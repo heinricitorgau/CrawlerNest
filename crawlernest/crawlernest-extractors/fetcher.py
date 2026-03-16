@@ -9,6 +9,7 @@ import logging
 import os
 import re
 import ssl
+import time
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, cast
 
 import requests
@@ -391,6 +392,15 @@ class UniversityFetcher:
     def __init__(self, config: Config):
         self.config = config
         self.session = requests.Session()
+        self._last_request_time = 0.0
+
+    def _wait_for_delay(self):
+        delay = getattr(self.config, "request_delay", 0.0)
+        if delay > 0:
+            elapsed = time.time() - self._last_request_time
+            if elapsed < delay:
+                time.sleep(delay - elapsed)
+        self._last_request_time = time.time()
 
     def close(self):
         try:
@@ -411,6 +421,7 @@ class UniversityFetcher:
         for page_url in _ranking_page_fallbacks(ranking_page_url):
             tried.append(page_url)
             try:
+                self._wait_for_delay()
                 resp = self.session.get(
                     page_url,
                     timeout=getattr(self.config, "timeout", 15),
@@ -479,6 +490,7 @@ class UniversityFetcher:
                             else:
                                 params["countries"] = country_v
 
+                            self._wait_for_delay()
                             resp = self.session.get(
                                 url,
                                 timeout=getattr(self.config, "timeout", 15),
@@ -528,6 +540,7 @@ class UniversityFetcher:
         if not path:
             return None
         url = _abs_url(getattr(self.config, "base_url", "https://www.topuniversities.com"), path)
+        self._wait_for_delay()
         resp = self.session.get(
             url,
             timeout=getattr(self.config, "timeout", 15),
@@ -556,6 +569,15 @@ class AsyncUniversityFetcher:
             self._ssl_context = ssl.create_default_context(cafile=certifi.where())
         else:
             self._ssl_context = ssl.create_default_context()
+        self._last_request_time = 0.0
+
+    async def _wait_for_delay(self):
+        delay = getattr(self.config, "request_delay", 0.0)
+        if delay > 0:
+            elapsed = time.time() - self._last_request_time
+            if elapsed < delay:
+                await asyncio.sleep(delay - elapsed)
+        self._last_request_time = time.time()
 
     async def _ensure_session(self):
         if self.session is None:
@@ -589,6 +611,7 @@ class AsyncUniversityFetcher:
         for page_url in _ranking_page_fallbacks(ranking_page_url):
             tried.append(page_url)
             try:
+                await self._wait_for_delay()
                 async with self.session.get(
                     page_url,
                     timeout=getattr(self.config, "timeout", 15),
@@ -658,6 +681,7 @@ class AsyncUniversityFetcher:
                             else:
                                 params["countries"] = country_v
 
+                            await self._wait_for_delay()
                             async with self.session.get(
                                 url,
                                 timeout=getattr(self.config, "timeout", 15),
@@ -725,6 +749,7 @@ class AsyncUniversityFetcher:
             url = _abs_url(base_url, path)
             async with sem:
                 try:
+                    await self._wait_for_delay()
                     async with session.get(
                         url,
                         timeout=getattr(self.config, "timeout", 15),

@@ -29,10 +29,10 @@ class Config:
     page: int = 0
     
                            
-    user_agent: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    user_agent: str = "CrawlerNestBot/1.0 (+https://github.com/CrawlerNest/UniGraph-University-Knowledge-Graph-Engine)"
     timeout: int = 30  # 增加到 30 秒以避免超時
     request_delay: float = 10.0  # 增加延遲以符合 robots.txt 規範 (10秒)
-    max_concurrent_requests: int = 5  # 降低並發數量以減少伺服器負擔
+    max_concurrent_requests: int = 1  # QS robots.txt requires 10s wait, disable concurrency to respect this
     
                          
     max_retries: int = 3

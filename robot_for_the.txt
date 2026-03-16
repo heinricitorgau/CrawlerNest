@@ -1,0 +1,134 @@
+#
+# robots.txt
+#
+# This file is to prevent the crawling and indexing of certain parts
+# of your site by web crawlers and spiders run by sites like Yahoo!
+# and Google. By telling these "robots" where not to go on your site,
+# you save bandwidth and server resources.
+#
+# This file will be ignored unless it is at the root of your host:
+# Used:    http://example.com/robots.txt
+# Ignored: http://example.com/site/robots.txt
+#
+# For more information about the robots.txt standard, see:
+# http://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+# Directories
+Disallow: /includes/
+Disallow: /misc/
+Disallow: /modules/
+Disallow: /profiles/
+Disallow: /scripts/
+Disallow: /themes/
+# Files
+Disallow: /CHANGELOG.txt
+Disallow: /cron.php
+Disallow: /INSTALL.mysql.txt
+Disallow: /INSTALL.pgsql.txt
+Disallow: /INSTALL.sqlite.txt
+Disallow: /install.php
+Disallow: /INSTALL.txt
+Disallow: /LICENSE.txt
+Disallow: /MAINTAINERS.txt
+Disallow: /update.php
+Disallow: /UPGRADE.txt
+Disallow: /xmlrpc.php
+# Paths (clean URLs)
+Disallow: /admin/
+Disallow: /comment/reply/
+Disallow: /filter/tips/
+Disallow: /node/add/
+#Disallow: /search/
+Disallow: /?q=search/
+Disallow: *?*search=*
+Disallow: /user/register/
+Disallow: /user/password/
+Disallow: /user/login/
+Disallow: /user/logout/
+# Paths (no clean URLs)
+Disallow: /?q=admin/
+Disallow: /?q=comment/reply/
+Disallow: /?q=filter/tips/
+Disallow: /?q=node/add/
+Disallow: /?q=search/
+Disallow: /?q=user/password/
+Disallow: /?q=user/register/
+Disallow: /?q=user/login/
+Disallow: /?q=user/logout
+Disallow: /*?popupvideo=true$
+
+# custom
+Disallow: /flag/
+Disallow: /sites/default/files/pdf/
+
+# Unijobs
+# See https://www.timeshighereducation.com/unijobs/robots.txt
+Disallow: /unijobs/session-img/
+Disallow: /unijobs/invalid-request/
+Disallow: /unijobs/document/
+Disallow: /unijobs/analytics/
+Disallow: /unijobs/en-us/session-img/
+Disallow: /unijobs/en-us/invalid-request/
+Disallow: /unijobs/en-us/document/
+Disallow: /unijobs/en-us/analytics/
+Disallow: /unijobs/en-au/session-img/
+Disallow: /unijobs/en-au/invalid-request/
+Disallow: /unijobs/en-au/document/
+Disallow: /unijobs/en-au/analytics/
+Disallow: /unijobs/*/searchjobs/*
+Disallow: /unijobs/*/jobsrss/*
+Disallow: /unijobs/jobsrss/*
+Disallow: /unijobs/*/jbequicksignup/*
+Disallow: /unijobs/*/emailjob/*
+Disallow: /unijobs/your-jobs/*
+Disallow: /unijobs/external-redirect-registration*
+Disallow: /unijobs/*/emailjob/*
+Disallow: /unijobs/*/previewjob/*
+Disallow: /unijobs/searchjobs/*
+Disallow: /unijobs/jobsrss/*
+Disallow: /unijobs/jbequicksignup/*
+Disallow: /unijobs/emailjob/*
+Disallow: /unijobs/your-jobs/*
+Disallow: /unijobs/external-redirect-registration*
+Disallow: /unijobs/emailjob/*
+Disallow: /unijobs/previewjob/*
+Disallow: /unijobs/listings/*/australian-dollars/
+Disallow: /unijobs/listings/*/direct-employer/
+Disallow: /unijobs/listings/*/fixed-term/
+Disallow: /unijobs/listings/*/full-time/
+Disallow: /unijobs/listings/*/hourly-rate/
+Disallow: /unijobs/listings/*/maternity-cover/
+Disallow: /unijobs/listings/*/part-time/
+Disallow: /unijobs/listings/*/permanent/
+Disallow: /unijobs/listings/*/recruitment-consultant/
+Disallow: /unijobs/listings/*/sessional/
+Disallow: /unijobs/listings/*/temporary/
+Disallow: /unijobs/listings/*/uk-pounds/
+Disallow: /unijobs/listings/*/us-dollars/
+Disallow: /unijobs/listings/*/-*/
+Disallow: /*?*keywords=
+
+# Global Nav
+Disallow: /global-nav-esi/*
+
+# MZ
+Disallow: /et$
+
+# HybridAuth
+Disallow: /hybridauth/endpoint
+
+# Bad urls, particularly from Sogou web spider
+Disallow: /contact-us/content/*
+Disallow: /contact-us/author/*
+Allow: /contact-us/
+
+Sitemap: https://www.timeshighereducation.com/sitemap.xml
+Sitemap: https://www.timeshighereducation.com/sitemap-types-node-ranking_dataset.xml
+Sitemap: https://www.timeshighereducation.com/unijobs/sitemapindex.xml
+Sitemap: https://www.timeshighereducation.com/campus/sitemap.xml
+Sitemap: https://www.timeshighereducation.com/student/sitemap.xml
+Sitemap: https://www.timeshighereducation.com/googlenews.xml
+
+# Academic D10 sitemap (will slowly replace the old sitemaps from D7)
+Sitemap: https://www.timeshighereducation.com/sitemaps/index/sitemap.xml
