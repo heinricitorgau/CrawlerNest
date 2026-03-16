@@ -38,6 +38,13 @@ void collapse_spaces(char *str);
 void remove_punctuation(char *str);
 
 /*
+ * to_title_case
+ *
+ * Converts a string to Title Case in place.
+ */
+void to_title_case(char *str);
+
+/*
  * safe_copy_string
  *
  * Safely copies a string into a fixed-size destination buffer.

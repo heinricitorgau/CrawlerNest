@@ -36,6 +36,7 @@ Major components include:
 - **crawlernest-cli** – command‑line interface for exploring the platform
 - **crawlernest-schema** – database schema definitions
 - **crawlernest-tests** – automated tests
+- **servise_for_java** – Java Spring Boot backend providing REST APIs and recommendation logic
 
 ---
 
@@ -46,6 +47,7 @@ CrawlerNest uses a lightweight and portable stack designed for research and data
 - **Python** – crawler pipelines and data processing
 - **SQLite** – local analytical knowledge base
 - **C** – high‑performance normalization engine
+- **Java / Spring Boot** – backend API services and recommendation engine
 - **AsyncIO** – asynchronous crawling
 - **PyTest** – automated testing
 

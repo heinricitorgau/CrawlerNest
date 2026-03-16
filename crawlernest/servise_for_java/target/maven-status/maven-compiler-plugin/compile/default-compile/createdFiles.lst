@@ -1,0 +1,14 @@
+clawer/repository/UniversityRepository.class
+clawer/api/UniversityController.class
+clawer/Application.class
+clawer/service/RecommendationService.class
+clawer/config/DatabaseConfig.class
+clawer/model/University.class
+clawer/model/Ranking.class
+clawer/model/RecommendationResult.class
+clawer/repository/RankingRepository.class
+clawer/api/RankingController.class
+clawer/service/UniversityService.class
+clawer/service/RankingService.class
+clawer/service/AnalyticsService.class
+clawer/api/RecommendationController.class

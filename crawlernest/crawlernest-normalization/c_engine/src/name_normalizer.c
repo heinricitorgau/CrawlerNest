@@ -37,7 +37,7 @@ void normalize_name(const char *input, char *output, int size) {
     safe_copy_string(output, (size_t)size, input);
     trim_whitespace(output);
     remove_punctuation(output);
-    to_lowercase(output);
     collapse_spaces(output);
+    to_title_case(output);
     trim_whitespace(output);
 }

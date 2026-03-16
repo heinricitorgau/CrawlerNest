@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "csv_reader.h"
+#include "utils.h"
 
 #define CSV_LINE_LEN 512
 #define MAX_FIELDS 11
@@ -72,10 +73,7 @@ static void initialize_record(UniversityRecord *record) {
  * load_csv_data
  *
  * Reads university data from a CSV file.
- * Expected format per line:
- * QS Rank,University,Country,GMAT,GRE,GPA,IELTS,TOEFL,Duolingo,Overall Score,URL
- *
- * The first row is treated as a header row and skipped.
+ * Handles dynamic header mapping for "University", "Country", "Rank", and "Score".
  *
  * Returns the number of successfully loaded records.
  */
@@ -84,6 +82,13 @@ int load_csv_data(const char *filename, UniversityRecord records[], int max_reco
     char line[CSV_LINE_LEN];
     int record_count = 0;
     int is_header = 1;
+
+    int idx_name = -1;
+    int idx_country = -1;
+    int idx_rank_min = -1;
+    int idx_rank_max = -1;
+    int idx_score = -1;
+    int idx_rank_legacy = -1;
 
     if (filename == NULL || records == NULL || max_records <= 0) {
         fprintf(stderr, "Invalid arguments passed to load_csv_data().\n");
@@ -102,12 +107,29 @@ int load_csv_data(const char *filename, UniversityRecord records[], int max_reco
         char temp_line[CSV_LINE_LEN];
 
         trim_newline(line);
-
         if (line[0] == '\0') {
             continue;
         }
 
+        strncpy(temp_line, line, sizeof(temp_line) - 1);
+        temp_line[sizeof(temp_line) - 1] = '\0';
+        field_count = split_csv_line(temp_line, fields, MAX_FIELDS);
+
         if (is_header) {
+            /* Detect field indices from header */
+            for (int i = 0; i < field_count; i++) {
+                char header[64];
+                safe_copy_string(header, sizeof(header), fields[i]);
+                trim_whitespace(header);
+                to_lowercase(header);
+
+                if (strstr(header, "university") || strstr(header, "name")) idx_name = i;
+                else if (strstr(header, "country") || strstr(header, "region")) idx_country = i;
+                else if (strstr(header, "rank min")) idx_rank_min = i;
+                else if (strstr(header, "rank max")) idx_rank_max = i;
+                else if (strstr(header, "rank")) idx_rank_legacy = i;
+                else if (strstr(header, "score")) idx_score = i;
+            }
             is_header = 0;
             continue;
         }
@@ -117,35 +139,36 @@ int load_csv_data(const char *filename, UniversityRecord records[], int max_reco
             break;
         }
 
-        strncpy(temp_line, line, sizeof(temp_line) - 1);
-        temp_line[sizeof(temp_line) - 1] = '\0';
-        field_count = split_csv_line(temp_line, fields, MAX_FIELDS);
-
-        if (field_count < MAX_FIELDS) {
-            fprintf(stderr, "Warning: skipped malformed line: %s\n", line);
-            continue;
+        /* Mandatory fields check */
+        if (idx_name == -1 || idx_country == -1) {
+            fprintf(stderr, "Error: Required columns (University, Country) not found in CSV header.\n");
+            break;
         }
 
         initialize_record(&records[record_count]);
 
-        /*
-         * CSV column mapping:
-         * 0  -> QS Rank
-         * 1  -> University
-         * 2  -> Country
-         * 9  -> Overall Score
-         */
-        strncpy(records[record_count].raw_rank, fields[0], RANK_STR_LEN - 1);
-        records[record_count].raw_rank[RANK_STR_LEN - 1] = '\0';
+        /* Map University Name */
+        if (idx_name < field_count) {
+            safe_copy_string(records[record_count].raw_name, NAME_LEN, fields[idx_name]);
+        }
 
-        strncpy(records[record_count].raw_name, fields[1], NAME_LEN - 1);
-        records[record_count].raw_name[NAME_LEN - 1] = '\0';
+        /* Map Country */
+        if (idx_country < field_count) {
+            safe_copy_string(records[record_count].raw_country, COUNTRY_LEN, fields[idx_country]);
+        }
 
-        strncpy(records[record_count].raw_country, fields[2], COUNTRY_LEN - 1);
-        records[record_count].raw_country[COUNTRY_LEN - 1] = '\0';
+        /* Map Rank */
+        if (idx_rank_min != -1 && idx_rank_max != -1 && idx_rank_min < field_count && idx_rank_max < field_count) {
+            /* If we have discrete Min/Max columns, combine them for the parser or set directly */
+            snprintf(records[record_count].raw_rank, RANK_STR_LEN, "%s-%s", fields[idx_rank_min], fields[idx_rank_max]);
+        } else if (idx_rank_legacy != -1 && idx_rank_legacy < field_count) {
+            safe_copy_string(records[record_count].raw_rank, RANK_STR_LEN, fields[idx_rank_legacy]);
+        }
 
-        strncpy(records[record_count].raw_score, fields[9], SCORE_STR_LEN - 1);
-        records[record_count].raw_score[SCORE_STR_LEN - 1] = '\0';
+        /* Map Score */
+        if (idx_score != -1 && idx_score < field_count) {
+            safe_copy_string(records[record_count].raw_score, SCORE_STR_LEN, fields[idx_score]);
+        }
 
         record_count++;
     }

@@ -48,6 +48,36 @@ static void normalize_basic(const char *input, char *output, int size) {
  */
 void normalize_country(const char *input, char *output, int size) {
     char temp[128];
+    
+    typedef struct {
+        const char *alias;
+        const char *canonical;
+    } CountryMap;
+
+    static const CountryMap mapping_table[] = {
+        {"usa", "United States"},
+        {"us", "United States"},
+        {"u s a", "United States"},
+        {"united states", "United States"},
+        {"united states of america", "United States"},
+        {"uk", "United Kingdom"},
+        {"u k", "United Kingdom"},
+        {"united kingdom", "United Kingdom"},
+        {"great britain", "United Kingdom"},
+        {"sg", "Singapore"},
+        {"singapore", "Singapore"},
+        {"china mainland", "China (Mainland)"},
+        {"china", "China (Mainland)"},
+        {"hong kong sar", "Hong Kong SAR"},
+        {"hong kong", "Hong Kong SAR"},
+        {"taiwan", "Taiwan"},
+        {"republic of china", "Taiwan"},
+        {"roc", "Taiwan"},
+        {"south korea", "South Korea"},
+        {"korea", "South Korea"},
+        {"republic of korea", "South Korea"},
+        {NULL, NULL}
+    };
 
     if (input == NULL || output == NULL || size <= 0) {
         return;
@@ -55,27 +85,15 @@ void normalize_country(const char *input, char *output, int size) {
 
     normalize_basic(input, temp, (int)sizeof(temp));
 
-    if (strcmp(temp, "usa") == 0 ||
-        strcmp(temp, "us") == 0 ||
-        strcmp(temp, "u s a") == 0 ||
-        strcmp(temp, "united states") == 0 ||
-        strcmp(temp, "united states of america") == 0) {
-        safe_copy_string(output, (size_t)size, "United States");
-    } else if (strcmp(temp, "uk") == 0 ||
-               strcmp(temp, "u k") == 0 ||
-               strcmp(temp, "united kingdom") == 0 ||
-               strcmp(temp, "great britain") == 0) {
-        safe_copy_string(output, (size_t)size, "United Kingdom");
-    } else if (strcmp(temp, "taiwan") == 0 ||
-               strcmp(temp, "republic of china") == 0 ||
-               strcmp(temp, "roc") == 0) {
-        safe_copy_string(output, (size_t)size, "Taiwan");
-    } else if (strcmp(temp, "south korea") == 0 ||
-               strcmp(temp, "korea") == 0 ||
-               strcmp(temp, "republic of korea") == 0) {
-        safe_copy_string(output, (size_t)size, "South Korea");
-    } else {
-        /* Default behavior: keep the normalized basic form. */
-        safe_copy_string(output, (size_t)size, temp);
+    /* Search in mapping table */
+    for (int i = 0; mapping_table[i].alias != NULL; i++) {
+        if (strcmp(temp, mapping_table[i].alias) == 0) {
+            safe_copy_string(output, (size_t)size, mapping_table[i].canonical);
+            return;
+        }
     }
+
+    /* If not found in mapping table, use Title Case as fallback */
+    safe_copy_string(output, (size_t)size, temp);
+    to_title_case(output);
 }
