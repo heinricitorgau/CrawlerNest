@@ -1,64 +1,80 @@
 # CrawlerNest
 
-**CrawlerNest** is a research‑driven platform focused on **web crawling**, **data intelligence**, and **knowledge infrastructure**.
+**CrawlerNest** is a research‑driven platform for building infrastructure around **web crawling**, **data intelligence**, and **knowledge systems**.
 
-The project explores how scattered web information can be transformed into **structured knowledge** for analytics and intelligent systems.
+The project focuses on transforming large amounts of scattered web information into **structured, queryable knowledge** that can support analytics platforms and intelligent applications.
+
+Currently, CrawlerNest focuses on **global education data**, including university rankings, admission requirements, and related academic information.
 
 ---
 
 ## Vision
 
-Build a **global education data intelligence platform** that collects, structures, and analyzes university information worldwide.
+Build a **global education data intelligence platform** capable of collecting, structuring, and analyzing university information worldwide.
+
+CrawlerNest aims to provide the technical foundation for:
+
+- education analytics
+- university comparison tools
+- admission intelligence
+- future AI‑driven recommendation systems
 
 ---
 
-## What CrawlerNest Does
+## What This Repository Contains
 
-- Collects education data from the web
-- Transforms raw pages into structured datasets
-- Builds a university knowledge base
-- Enables analytics and future AI‑driven recommendations
+This repository hosts the **core CrawlerNest platform codebase**, organized as a modular data‑platform architecture.
+
+Major components include:
+
+- **crawlernest-core** – shared utilities and core platform logic
+- **crawlernest-extractors** – data extraction and parsing modules
+- **crawlernest-jobs** – crawler pipelines and data ingestion workflows
+- **crawlernest-db-writer** – database writing and persistence layer
+- **crawlernest-kb** – university knowledge base structures
+- **crawlernest-analytics** – analytical modules built on collected data
+- **crawlernest-cli** – command‑line interface for exploring the platform
+- **crawlernest-schema** – database schema definitions
+- **crawlernest-tests** – automated tests
 
 ---
 
 ## Technology
 
-- Python crawler pipelines
-- SQLite knowledge base
-- C normalization engine
-- AsyncIO
-- PyTest
+CrawlerNest uses a lightweight and portable stack designed for research and data engineering:
+
+- **Python** – crawler pipelines and data processing
+- **SQLite** – local analytical knowledge base
+- **C** – high‑performance normalization engine
+- **AsyncIO** – asynchronous crawling
+- **PyTest** – automated testing
 
 ---
 
-## Platform Structure
+## Platform Concept
 
 ```
-Crawler → Data Platform → Knowledge Base → Analytics → AI
+Web Crawling → Data Platform → Knowledge Base → Analytics → AI
 ```
 
 ---
 
-## Company Overview
-
-📄 **Pitch Deck**
-
-[Download the CrawlerNest Pitch Deck](../press/crawlernest_pitch_deck.pdf)
-
----
-
-## Status
+## Project Status
 
 Active development.
+
+CrawlerNest is an evolving research and engineering project exploring scalable education data systems.
 
 ---
 
 ## Access
 
-CrawlerNest repositories are currently **private**.
+CrawlerNest repositories are currently **private** and maintained under the CrawlerNest organization.
 
 ---
 
 ## License
 
-This project is not open source. All materials are proprietary to the CrawlerNest organization.
+This project is licensed under the Apache License 2.0.
+
+© 2026 CrawlerNest Organization
