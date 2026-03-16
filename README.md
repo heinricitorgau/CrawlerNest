@@ -25,6 +25,7 @@ CrawlerNest aims to provide the technical foundation for:
 
 This repository hosts the **core CrawlerNest platform codebase**, organized as a modular data‑platform architecture.
 
+
 Major components include:
 
 - **crawlernest-core** – shared utilities and core platform logic
@@ -37,6 +38,122 @@ Major components include:
 - **crawlernest-schema** – database schema definitions
 - **crawlernest-tests** – automated tests
 - **servise_for_java** – Java Spring Boot backend providing REST APIs and recommendation logic
+
+---
+## Platform Architecture
+
+The high‑level architecture of CrawlerNest follows a layered data‑platform pipeline:
+
+```
+                ┌──────────────────┐
+                │   Web Sources    │
+                │ Rankings / Sites │
+                └─────────┬────────┘
+                          │
+                          ▼
+               ┌─────────────────────┐
+               │  Crawler Pipelines  │
+               │  Async Fetch Jobs   │
+               └─────────┬───────────┘
+                         │
+                         ▼
+             ┌─────────────────────────┐
+             │ Extraction & Parsers    │
+             │ HTML / JSON processing  │
+             └─────────┬───────────────┘
+                       │
+                       ▼
+       ┌──────────────────────────────────┐
+       │ C Normalization Engine           │
+       │ (Name / Country / Score parsing) │
+       └─────────┬────────────────────────┘
+                 │
+                 ▼
+        ┌──────────────────────────────┐
+        │ University Knowledge Base    │
+        │ SQLite Data Warehouse       │
+        └─────────┬────────────────────┘
+                  │
+                  ▼
+           ┌──────────────────────┐
+           │ Analytics Layer      │
+           │ Ranking / Insights   │
+           └─────────┬────────────┘
+                     │
+                     ▼
+           ┌──────────────────────┐
+           │ API & Platform Layer │
+           │ Spring Boot Services │
+           └──────────────────────┘
+```
+
+This pipeline transforms **unstructured web information** into a **structured knowledge system** that can power analytics tools, university intelligence platforms, and future AI‑driven recommendation systems.
+
+---
+
+## Repository Structure Map
+
+The CrawlerNest codebase is organized as a layered data‑platform architecture.  
+Below is a simplified map of the current repository structure.
+
+```
+crawlernest/
+│
+├── crawlernest-core/
+│   Shared utilities, configuration, and core platform logic
+│
+├── crawlernest-extractors/
+│   Data extraction modules
+│   HTML parsers, ranking parsers, and admission requirement extractors
+│
+├── crawlernest-jobs/
+│   Crawling pipelines and scheduled ingestion workflows
+│   Ranking crawlers, admission crawlers, and ingestion orchestration
+│
+├── crawlernest-db-writer/
+│   Persistence layer
+│   Handles validated records and writes them into the knowledge base
+│
+├── crawlernest-kb/
+│   Knowledge base layer
+│   Database models and domain objects such as:
+│   universities, rankings, admission requirements, programs, degrees
+│
+├── crawlernest-schema/
+│   SQL schema definitions
+│   Data warehouse structure and relational schema
+│
+├── crawlernest-analytics/
+│   Analytical modules
+│   Ranking aggregation, statistics, and future recommendation features
+│
+├── crawlernest-cli/
+│   Command‑line interface
+│   Tools for exploring and querying the knowledge base
+│
+├── crawlernest-tests/
+│   Automated tests using PyTest
+│   Ensures reliability of crawlers, extractors, and database logic
+│
+├── clawer_c_data_normalization_engine/
+│   High‑performance data normalization engine written in C
+│   Responsible for tasks such as:
+│   • university name normalization
+│   • country standardization
+│   • ranking score parsing
+│   • admission requirement parsing
+│
+├── servise_for_java/
+│   Java Spring Boot backend
+│   Provides REST APIs and future recommendation system services
+│
+└── docs /
+    Project documentation, architecture descriptions, and design notes
+```
+
+This layered structure separates **data acquisition**, **data processing**, **knowledge storage**, and **analytics**, allowing the platform to evolve from a crawler system into a full **education data intelligence platform**.
+
+---
 
 ---
 
