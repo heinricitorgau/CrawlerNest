@@ -1,0 +1,55 @@
+package clawer.api;
+
+import clawer.dto.UniversityDTO;
+import clawer.service.UniversityService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Arrays;
+
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/**
+ * Slice test for UniversityController.
+ * This tests ONLY the web layer (Controller), including mapping and serialization.
+ */
+@WebMvcTest(UniversityController.class)
+class UniversityControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private UniversityService universityService;
+
+    @Test
+    void testGetAllUniversities_ReturnsJsonList() throws Exception {
+        UniversityDTO u1 = new UniversityDTO();
+        u1.setId(1L);
+        u1.setDisplayName("Test Uni");
+        
+        when(universityService.getAllUniversities()).thenReturn(Arrays.asList(u1));
+
+        mockMvc.perform(get("/universities")
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].displayName").value("Test Uni"))
+                .andExpect(jsonPath("$[0].id").value(1));
+    }
+
+    @Test
+    void testGetUniversityById_NotFound_Returns404() throws Exception {
+        when(universityService.getUniversityById(anyLong())).thenReturn(null);
+
+        mockMvc.perform(get("/universities/999"))
+                .andExpect(status().isNotFound());
+    }
+}

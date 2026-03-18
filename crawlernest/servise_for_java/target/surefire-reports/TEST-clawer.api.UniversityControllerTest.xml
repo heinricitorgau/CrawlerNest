@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="clawer.service.UniversityServiceTest" time="0.054" tests="2" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="clawer.api.UniversityControllerTest" time="0.937" tests="2" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="25"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -66,6 +66,30 @@
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.class.version" value="69.0"/>
   </properties>
-  <testcase name="testGetAllUniversities" classname="clawer.service.UniversityServiceTest" time="0.051"/>
-  <testcase name="testGetUniversityById" classname="clawer.service.UniversityServiceTest" time="0.001"/>
+  <testcase name="testGetUniversityById_NotFound_Returns404" classname="clawer.api.UniversityControllerTest" time="0.046">
+    <system-out><![CDATA[19:51:22.781 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [clawer.api.UniversityControllerTest]: UniversityControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+19:51:22.825 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration clawer.Application for test class clawer.api.UniversityControllerTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.3)
+
+2026-03-18T19:51:22.934+08:00  INFO 27969 --- [           main] clawer.api.UniversityControllerTest      : Starting UniversityControllerTest using Java 25.0.1 with PID 27969 (started by test in /Users/test/Desktop/crawlernest/crawlernest/servise_for_java)
+2026-03-18T19:51:22.934+08:00  INFO 27969 --- [           main] clawer.api.UniversityControllerTest      : No active profile set, falling back to 1 default profile: "default"
+2026-03-18T19:51:23.592+08:00  INFO 27969 --- [           main] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-03-18T19:51:23.592+08:00  INFO 27969 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-03-18T19:51:23.592+08:00  INFO 27969 --- [           main] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 0 ms
+2026-03-18T19:51:23.599+08:00  INFO 27969 --- [           main] clawer.api.UniversityControllerTest      : Started UniversityControllerTest in 0.751 seconds (process running for 1.052)
+]]></system-out>
+    <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/test/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.12/byte-buddy-agent-1.14.12.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+  </testcase>
+  <testcase name="testGetAllUniversities_ReturnsJsonList" classname="clawer.api.UniversityControllerTest" time="0.015"/>
 </testsuite>

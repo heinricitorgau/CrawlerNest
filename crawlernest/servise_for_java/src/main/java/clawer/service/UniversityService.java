@@ -1,10 +1,13 @@
 package clawer.service;
 
+import clawer.dto.RankingDTO;
+import clawer.dto.UniversityDTO;
 import clawer.model.University;
 import clawer.repository.UniversityRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service for handling University-related business logic.
@@ -18,11 +21,44 @@ public class UniversityService {
         this.universityRepository = universityRepository;
     }
 
-    public List<University> getAllUniversities() {
-        return universityRepository.findAll();
+    public List<UniversityDTO> getAllUniversities() {
+        return universityRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    public University getUniversityById(String id) {
-        return universityRepository.findById(id).orElse(null);
+    public UniversityDTO getUniversityById(Long id) {
+        return universityRepository.findById(id)
+                .map(this::convertToDTO)
+                .orElse(null);
+    }
+
+    private UniversityDTO convertToDTO(University university) {
+        UniversityDTO dto = new UniversityDTO();
+        dto.setId(university.getId());
+        dto.setSchoolSlug(university.getSchoolSlug());
+        dto.setDisplayName(university.getDisplayName());
+        dto.setCityName(university.getCityName());
+        dto.setWebsiteUrl(university.getWebsiteUrl());
+        
+        if (university.getCountry() != null) {
+            dto.setCountryName(university.getCountry().getCountryName());
+        }
+
+        if (university.getRankings() != null) {
+            dto.setRankings(university.getRankings().stream()
+                .map(ranking -> {
+                    RankingDTO rDto = new RankingDTO();
+                    rDto.setSource(ranking.getRankingSource());
+                    rDto.setType(ranking.getRankingType());
+                    rDto.setYear(ranking.getRankingYear());
+                    rDto.setRankStart(ranking.getRankStart());
+                    rDto.setRankEnd(ranking.getRankEnd());
+                    rDto.setScore(ranking.getScore());
+                    return rDto;
+                }).collect(Collectors.toList()));
+        }
+        
+        return dto;
     }
 }

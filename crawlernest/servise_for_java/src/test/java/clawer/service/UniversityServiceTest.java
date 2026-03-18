@@ -1,5 +1,6 @@
 package clawer.service;
 
+import clawer.dto.UniversityDTO;
 import clawer.model.University;
 import clawer.repository.UniversityRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,30 +32,32 @@ class UniversityServiceTest {
     @Test
     void testGetAllUniversities() {
         University u1 = new University();
-        u1.setName("MIT");
+        u1.setId(1L);
+        u1.setDisplayName("MIT");
         University u2 = new University();
-        u2.setName("Stanford");
+        u2.setId(2L);
+        u2.setDisplayName("Stanford");
 
         when(universityRepository.findAll()).thenReturn(Arrays.asList(u1, u2));
 
-        List<University> result = universityService.getAllUniversities();
+        List<UniversityDTO> result = universityService.getAllUniversities();
 
         assertEquals(2, result.size());
-        assertEquals("MIT", result.get(0).getName());
+        assertEquals("MIT", result.get(0).getDisplayName());
         verify(universityRepository, times(1)).findAll();
     }
 
     @Test
     void testGetUniversityById() {
         University u1 = new University();
-        u1.setId("u1");
-        u1.setName("MIT");
+        u1.setId(1L);
+        u1.setDisplayName("MIT");
 
-        when(universityRepository.findById("u1")).thenReturn(Optional.of(u1));
+        when(universityRepository.findById(1L)).thenReturn(Optional.of(u1));
 
-        University result = universityService.getUniversityById("u1");
+        UniversityDTO result = universityService.getUniversityById(1L);
 
         assertNotNull(result);
-        assertEquals("MIT", result.getName());
+        assertEquals("MIT", result.getDisplayName());
     }
 }

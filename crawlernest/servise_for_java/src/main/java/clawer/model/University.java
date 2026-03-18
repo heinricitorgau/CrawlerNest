@@ -1,49 +1,75 @@
 package clawer.model;
 
-/**
- * Represents a University in the Clawer Education Data Platform.
- * Features various metrics used for recommendations and rankings.
- */
+import jakarta.persistence.*;
+import java.util.List;
+
+@Entity
+@Table(name = "universities")
 public class University {
-    private String id;
-    private String name;
-    private String country;
-    private Integer ranking;
-    private String subject;
-    private Double admissionScore;
-    private Double tuition;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "university_id")
+    private Long id;
+
+    @Column(name = "school_slug", unique = true, nullable = false)
+    private String schoolSlug;
+
+    @Column(name = "display_name", nullable = false)
+    private String displayName;
+
+    @Column(name = "canonical_name")
+    private String canonicalName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country_id")
+    private Country country;
+
+    @Column(name = "city_name")
+    private String cityName;
+
+    @Column(name = "website_url")
+    private String websiteUrl;
+
+    @Column(name = "qs_profile_path")
+    private String qsProfilePath;
+
+    @OneToMany(mappedBy = "university", fetch = FetchType.LAZY)
+    private List<Ranking> rankings;
+
+    @OneToMany(mappedBy = "university", fetch = FetchType.LAZY)
+    private List<Program> programs;
 
     public University() {
     }
 
-    public University(String id, String name, String country, Integer ranking, String subject, Double admissionScore, Double tuition) {
-        this.id = id;
-        this.name = name;
-        this.country = country;
-        this.ranking = ranking;
-        this.subject = subject;
-        this.admissionScore = admissionScore;
-        this.tuition = tuition;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public String getSchoolSlug() { return schoolSlug; }
+    public void setSchoolSlug(String schoolSlug) { this.schoolSlug = schoolSlug; }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
 
-    public String getCountry() { return country; }
-    public void setCountry(String country) { this.country = country; }
+    public String getCanonicalName() { return canonicalName; }
+    public void setCanonicalName(String canonicalName) { this.canonicalName = canonicalName; }
 
-    public Integer getRanking() { return ranking; }
-    public void setRanking(Integer ranking) { this.ranking = ranking; }
+    public Country getCountry() { return country; }
+    public void setCountry(Country country) { this.country = country; }
 
-    public String getSubject() { return subject; }
-    public void setSubject(String subject) { this.subject = subject; }
+    public String getCityName() { return cityName; }
+    public void setCityName(String cityName) { this.cityName = cityName; }
 
-    public Double getAdmissionScore() { return admissionScore; }
-    public void setAdmissionScore(Double admissionScore) { this.admissionScore = admissionScore; }
+    public String getWebsiteUrl() { return websiteUrl; }
+    public void setWebsiteUrl(String websiteUrl) { this.websiteUrl = websiteUrl; }
 
-    public Double getTuition() { return tuition; }
-    public void setTuition(Double tuition) { this.tuition = tuition; }
+    public String getQsProfilePath() { return qsProfilePath; }
+    public void setQsProfilePath(String qsProfilePath) { this.qsProfilePath = qsProfilePath; }
+
+    public List<Ranking> getRankings() { return rankings; }
+    public void setRankings(List<Ranking> rankings) { this.rankings = rankings; }
+
+    public List<Program> getPrograms() { return programs; }
+    public void setPrograms(List<Program> programs) { this.programs = programs; }
 }

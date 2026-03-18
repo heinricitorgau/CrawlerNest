@@ -1,5 +1,6 @@
 package clawer.service;
 
+import clawer.model.Ranking;
 import clawer.model.RecommendationResult;
 import clawer.model.University;
 import clawer.repository.UniversityRepository;
@@ -49,27 +50,35 @@ public class RecommendationService {
 
     private double calculateScore(University university, String preferredSubject, Double studentScore) {
         double subjectMatch = 0.0;
-        if (preferredSubject != null && preferredSubject.equalsIgnoreCase(university.getSubject())) {
-            subjectMatch = 50.0; // Strong weight for exact subject match
+        if (preferredSubject != null && university.getPrograms() != null) {
+            boolean hasProgram = university.getPrograms().stream()
+                .anyMatch(p -> p.getProgramName().equalsIgnoreCase(preferredSubject) || 
+                               (p.getStudyField() != null && p.getStudyField().equalsIgnoreCase(preferredSubject)));
+            if (hasProgram) {
+                subjectMatch = 50.0;
+            }
         }
 
         double rankingWeight = 0.0;
-        if (university.getRanking() != null) {
-            // Higher rank (lower number) yields higher weight. Max 30 points.
-            rankingWeight = Math.max(0, 30.0 - (university.getRanking() * 0.2));
+        if (university.getRankings() != null && !university.getRankings().isEmpty()) {
+            // Use the best rank found across all records
+            Integer bestRank = university.getRankings().stream()
+                .map(Ranking::getRankStart)
+                .filter(r -> r != null && r > 0)
+                .min(Integer::compare)
+                .orElse(null);
+                
+            if (bestRank != null) {
+                rankingWeight = Math.max(0, 30.0 - (bestRank * 0.2));
+            }
         }
 
+        // Simplifying admission probability for now as we don't scale it per program here yet
         double admissionProbability = 0.0;
-        if (studentScore != null && university.getAdmissionScore() != null) {
-            // Difference between student score and required score
-            double diff = studentScore - university.getAdmissionScore();
-            if (diff >= 0) {
-                admissionProbability = 20.0; // High probability
-            } else if (diff >= -5.0) {
-                admissionProbability = 10.0; // Borderline
-            } else {
-                admissionProbability = 0.0; // Out of reach
-            }
+        // In a real scenario, we'd check AdmissionRequirement table
+        // For baseline mature connection, we'll give a static boost if a studentScore is provided
+        if (studentScore != null && studentScore > 80.0) {
+            admissionProbability = 20.0;
         }
 
         return rankingWeight + subjectMatch + admissionProbability;

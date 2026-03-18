@@ -1,33 +1,73 @@
 package clawer.model;
 
-/**
- * Represents a specific ranking entry for a University from a particular ranking source.
- */
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "rankings")
 public class Ranking {
-    private String universityId;
-    private String rankingSource; // e.g., "qs", "the", "arwu"
-    private Integer rank;
-    private Integer year;
 
-    public Ranking() {
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ranking_id")
+    private Long id;
 
-    public Ranking(String universityId, String rankingSource, Integer rank, Integer year) {
-        this.universityId = universityId;
-        this.rankingSource = rankingSource;
-        this.rank = rank;
-        this.year = year;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "university_id", nullable = false)
+    private University university;
 
-    public String getUniversityId() { return universityId; }
-    public void setUniversityId(String universityId) { this.universityId = universityId; }
+    @Column(name = "ranking_source", nullable = false)
+    private String rankingSource;
+
+    @Column(name = "ranking_type", nullable = false)
+    private String rankingType;
+
+    @Column(name = "ranking_year")
+    private Integer rankingYear;
+
+    @Column(name = "rank_start")
+    private Integer rankStart;
+
+    @Column(name = "rank_end")
+    private Integer rankEnd;
+
+    @Column(name = "score")
+    private Double score;
+
+    @Column(name = "metrics_json")
+    private String metricsJson;
+
+    @Column(name = "source_url")
+    private String sourceUrl;
+
+    public Ranking() {}
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public University getUniversity() { return university; }
+    public void setUniversity(University university) { this.university = university; }
 
     public String getRankingSource() { return rankingSource; }
     public void setRankingSource(String rankingSource) { this.rankingSource = rankingSource; }
 
-    public Integer getRank() { return rank; }
-    public void setRank(Integer rank) { this.rank = rank; }
+    public String getRankingType() { return rankingType; }
+    public void setRankingType(String rankingType) { this.rankingType = rankingType; }
 
-    public Integer getYear() { return year; }
-    public void setYear(Integer year) { this.year = year; }
+    public Integer getRankingYear() { return rankingYear; }
+    public void setRankingYear(Integer rankingYear) { this.rankingYear = rankingYear; }
+
+    public Integer getRankStart() { return rankStart; }
+    public void setRankStart(Integer rankStart) { this.rankStart = rankStart; }
+
+    public Integer getRankEnd() { return rankEnd; }
+    public void setRankEnd(Integer rankEnd) { this.rankEnd = rankEnd; }
+
+    public Double getScore() { return score; }
+    public void setScore(Double score) { this.score = score; }
+
+    public String getMetricsJson() { return metricsJson; }
+    public void setMetricsJson(String metricsJson) { this.metricsJson = metricsJson; }
+
+    public String getSourceUrl() { return sourceUrl; }
+    public void setSourceUrl(String sourceUrl) { this.sourceUrl = sourceUrl; }
 }
