@@ -178,7 +178,7 @@ Crawler → Knowledge Base → Analytics → AI Recommendation → Product
 - **結構穩固性 (9/10)**：已形成明確的分層式系統結構，入口點、UI、crawler orchestration、fetcher、extractor、database writer、exporter 均已拆分。
 - **環境適應力 (8/10)**：具備 NID 動態探測、同步 / 非同步抓取、分頁與 fallback 機制，能抵禦中小型網站改版與請求波動。
 - **資料平台進展**：SQLite knowledge base、`clawer_main/schema.sql`、`clawer_main/db_writer.py`、crawl run tracking 與 raw source staging 已接入主流程；同時新增 **Clawer C Data Normalization Engine** 作為資料品質層的原型模組，代表系統已從單純 crawler 工具演進為 **crawler + knowledge base prototype with normalization engine direction**。
-- **完成度概況**：採集引擎完成度約 80%，解析提取層約 70%，Python 正規化與驗證基線已建立，C 正規化引擎目前處於 prototype 階段；資料庫與 ingestion pipeline 已建立 baseline，entity resolution、ranking aggregation 與 AI recommendation 仍屬後續階段。
+- **完成度概況**：採集引擎完成度約 80%，解析提取層約 75%，Python 正規化與驗證基線已建立，C 正規化引擎目前處於 prototype 階段；資料庫與 ingestion pipeline 已建立 baseline，Java 服務已升級至 Spring Data JPA 架構並整合 JUnit 測試框架，entity resolution、ranking aggregation 與 AI recommendation 仍屬後續階段。
 
 ---
 
@@ -1039,9 +1039,9 @@ Clawer 的四年演進路徑以「先資料平台、後 analytics、再 AI 與�
 | 2026-03-11 | 建立私人repo |
 | 2026-03-12 | 建立初始資料正規化引擎 |
 | 2026-03-13 | 執行初始資料正規化引擎測試與修改 |
-| 2026-03-15 | 專案結構模組化，分離 Python 主程式 (`clawer_main`) 與 C 正規化引擎 (`clawer_c_data_normalization_engine`) |
-| 2026-03-16 | 建立初始java程式模組 |
-| 2026-03-18 | java模組與主程式資料連接 |
+| 2026-03-15 | 完成專案結構模組化，明確分離 Python 主流程 (clawer_main) 與 C 資料正規化引擎 (clawer_c_data_normalization_engine) |
+| 2026-03-16 | 建立初始 Java 服務模組，作為未來 API / recommendation layer 的原型入口 |
+| 2026-03-18 | 升級 Java 服務至 Spring Data JPA 架構，建立 DTO/Mapped Entities，並導入 Maven 標準化與自動化測試框架 (JUnit) |
 ### 階段 1：穩定化與規範化 (0–6 個月)
 - **重點項目**：建立 `requirements.txt` 版本錨定、實作 `clawer_main/extractor.py` 的自動化單元測試、建立 HTML 靜態樣本庫以防止解析回歸，並完成 C normalization engine prototype 與主流程的邊界定義。
 
@@ -1139,8 +1139,8 @@ User-facing Products
 | **Python 正規化/驗證層** | Country Canon, Safe Numeric Casting, Validation Baseline | ~60% |
 | **C 正規化引擎** | Name / Country Normalization, Rank Parsing, Score Cleaning Prototype | ~25% |
 | **去重 / 實體識別** | Alias Baseline, Manual Mapping, Future Fuzzy / Embedding | ~30% |
-| **存儲/數據庫層** | Warehouse-style Schema, DB Writer, Crawl Run Tracking | ~55% |
-| **驗證/質量層** | Raw Lineage, Field Status Logs, Parsing Metadata | ~35% |
+| **存儲/數據庫層** | Warehouse-style Schema, DB Writer, JPA/Hibernate Integration | ~70% |
+| **驗證/質量層** | Raw Lineage, Parsing Metadata, Java Unit Testing Framework | ~55% |
 | **分析/推薦前置層** | Ranking Aggregation / Recommendation Feature Design | ~20% |
 
 ---

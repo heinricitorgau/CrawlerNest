@@ -21,6 +21,38 @@ CrawlerNest aims to provide the technical foundation for:
 
 ---
 
+## Current System Status (Reality Layer)
+
+CrawlerNest is currently transitioning from a crawler tool into a structured data platform (V1 → V1.5).
+
+### What is working now:
+
+- ✅ QS ranking crawler (stable)
+- ✅ Asynchronous crawling pipeline (AsyncIO-based)
+- ✅ SQLite-based knowledge base (data warehouse baseline)
+- ✅ Extraction and parsing modules for rankings and admission data
+- ✅ Python data ingestion pipeline (crawler → DB)
+- ✅ C normalization engine (prototype for high-performance parsing)
+- ✅ Modular architecture (crawler / extractor / db_writer separation)
+- ✅ Initial Java Spring Boot service integration (basic data connection)
+
+### In progress:
+
+- Entity resolution (university aliases / fuzzy matching)
+- Data consistency and normalization refinement
+- Ranking aggregation logic
+- Knowledge base expansion (programs, degrees, metadata)
+
+### Planned (not yet implemented):
+
+- AI-driven recommendation system
+- Public API platform
+- Web-based analytics interface
+
+This section reflects the **actual engineering maturity** of the system and distinguishes it from long-term architectural goals.
+
+---
+
 ## What This Repository Contains
 
 This repository hosts the **core CrawlerNest platform codebase**, organized as a modular data‑platform architecture.
@@ -173,16 +205,23 @@ CrawlerNest uses a lightweight and portable stack designed for research and data
 ## Platform Concept
 
 ```
-Web Crawling → Data Platform → Knowledge Base → Analytics → AI
+Web Crawling → Data Ingestion → Normalization → Knowledge Base → Analytics → AI Systems
 ```
 
 ---
 
 ## Project Status
 
-Active development.
+Active development (V1.5 – Data Platform Transition Stage).
 
-CrawlerNest is an evolving research and engineering project exploring scalable education data systems.
+CrawlerNest is currently evolving from a crawler-centric system into a modular data platform with:
+
+- a structured data ingestion pipeline
+- a normalization engine (C-based prototype)
+- a knowledge base (SQLite warehouse)
+- an emerging service layer (Java backend)
+
+The project is in a **platform-building phase**, focusing on stability, data quality, and architectural scalability.
 
 ---
 
