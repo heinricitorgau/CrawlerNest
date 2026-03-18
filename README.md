@@ -71,7 +71,7 @@ The high‑level architecture of CrawlerNest follows a layered data‑platform p
                  ▼
         ┌──────────────────────────────┐
         │ University Knowledge Base    │
-        │ SQLite Data Warehouse       │
+        │ SQLite Data Warehouse        │
         └─────────┬────────────────────┘
                   │
                   ▼

@@ -1040,6 +1040,8 @@ Clawer 的四年演進路徑以「先資料平台、後 analytics、再 AI 與�
 | 2026-03-12 | 建立初始資料正規化引擎 |
 | 2026-03-13 | 執行初始資料正規化引擎測試與修改 |
 | 2026-03-15 | 專案結構模組化，分離 Python 主程式 (`clawer_main`) 與 C 正規化引擎 (`clawer_c_data_normalization_engine`) |
+| 2026-03-16 | 建立初始java程式模組 |
+| 2026-03-18 | java模組與主程式資料連接 |
 ### 階段 1：穩定化與規範化 (0–6 個月)
 - **重點項目**：建立 `requirements.txt` 版本錨定、實作 `clawer_main/extractor.py` 的自動化單元測試、建立 HTML 靜態樣本庫以防止解析回歸，並完成 C normalization engine prototype 與主流程的邊界定義。
 
