@@ -25,7 +25,7 @@ CrawlerNest aims to provide the technical foundation for:
 
 CrawlerNest is currently transitioning from a crawler tool into a structured data platform (V1 → V1.5).
 
-### What is working now:
+### Current (V1.5): What is working now
 
 - ✅ QS ranking crawler (stable)
 - ✅ Asynchronous crawling pipeline (AsyncIO-based)
@@ -36,14 +36,14 @@ CrawlerNest is currently transitioning from a crawler tool into a structured dat
 - ✅ Modular architecture (crawler / extractor / db_writer separation)
 - ✅ Initial Java Spring Boot service integration (basic data connection)
 
-### In progress:
+### Next (V2): In progress
 
 - Entity resolution (university aliases / fuzzy matching)
 - Data consistency and normalization refinement
 - Ranking aggregation logic
 - Knowledge base expansion (programs, degrees, metadata)
 
-### Planned (not yet implemented):
+### Future (V3): Planned (not yet implemented)
 
 - AI-driven recommendation system
 - Public API platform
@@ -167,8 +167,8 @@ crawlernest/
 │   Automated tests using PyTest
 │   Ensures reliability of crawlers, extractors, and database logic
 │
-├── clawer_c_data_normalization_engine/
-│   High‑performance data normalization engine written in C
+├── crawlernest_c_data_normalization_engine/
+│   High‑performance data normalization engine written in C (prototype)
 │   Responsible for tasks such as:
 │   • university name normalization
 │   • country standardization
@@ -195,7 +195,7 @@ CrawlerNest uses a lightweight and portable stack designed for research and data
 
 - **Python** – crawler pipelines and data processing
 - **SQLite** – local analytical knowledge base
-- **C** – high‑performance normalization engine
+- **C** – high‑performance normalization engine (prototype)
 - **Java / Spring Boot** – backend API services and recommendation engine
 - **AsyncIO** – asynchronous crawling
 - **PyTest** – automated testing

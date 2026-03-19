@@ -58,7 +58,7 @@ Low-level networking and parsing logic.
 ### 3. [crawlernest-jobs](file:///Users/test/Desktop/crawlernest/crawlernest-jobs)
 The orchestration layer. Manages the lifecycle of a crawl task, including pagination and session management.
 - `crawler.py`: Coordination between fetchers, extractors, and writers.
-- `clawer_main.py`: Main entry point logic.
+- `crawlernest_main.py`: Main entry point logic.
 
 ### 4. [crawlernest-db-writer](file:///Users/test/Desktop/crawlernest/crawlernest-db-writer)
 The persistence layer.

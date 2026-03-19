@@ -42,7 +42,7 @@ Database Writer
         │
         ▼
 SQLite Knowledge Base
-(clawer.db)
+(crawlernest.db)
         │
         ▼
 Analytics Layer
@@ -179,7 +179,7 @@ SQLite
 Primary database file:
 
 ```
-clawer.db
+crawlernest.db
 ```
 
 ---
