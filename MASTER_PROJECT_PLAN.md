@@ -38,8 +38,8 @@ The system transforms fragmented web data into a structured knowledge base for:
 | **Normalization Baseline** | Country Canon, Safe Numeric Casting, Validation Pipelines | [Operational] | ~60% |
 | **C Normalization Engine** | High-performance Name/Country/Rank Parsing | [In Development] | ~25% |
 | **Entity Resolution** | Alias Mapping, Manual Correction | [Operational] | ~30% |
-| **Storage / Data Warehouse** | Unified Schema, DB Writer, Spring Data JPA | [Operational] | ~70% |
-| **Quality & Verification** | Raw Lineage, Parsing Metadata, JUnit Automation | [Operational] | ~55% |
+| **Storage / Data Warehouse** | Unified Schema, DB Writer, PostgreSQL Baseline, Spring Data JPA | [Operational] | ~78% |
+| **Quality & Verification** | Raw Lineage, Parsing Metadata, PostgreSQL Initialization Test, JUnit Automation | [Operational] | ~62% |
 | **Analytics & Recommendation**| Ranking Aggregation, Feature Vector Design | [Strategic Goal] | ~20% |
 
 ---
@@ -209,7 +209,7 @@ To handle frequent website structure changes, the system prioritizes configurati
 The CrawlerNest Data Platform evolves the system from a simple scraping tool into a structured **Educational Intelligence Warehouse**.
 
 ### 1. Canonical Data Model
-The V1.5 schema implements a **warehouse-style hierarchy** featuring dimensions, facts, and raw lineage. Data is persisted in a modular SQLite knowledge base designed for future migration to PostgreSQL.
+The V1.5 schema implements a **warehouse-style hierarchy** featuring dimensions, facts, and raw lineage. The original warehouse baseline was implemented in SQLite, and the project has now completed an initial PostgreSQL schema migration baseline for service-layer integration and future analytics expansion.
 
 #### Core Entity Relationships
 ```mermaid
@@ -246,7 +246,7 @@ Key long-term focus areas:
 ### 1.2 SQL Schema (Reference Implementation)
 
 ### 3. SQL Schema Reference
-The following schema defines the V1.5 warehouse baseline, incorporating crawl runs, raw staging, dimensions, facts, and auditing logs.
+The following schema defines the V1.5 warehouse baseline, incorporating crawl runs, raw staging, dimensions, facts, and auditing logs. This reference reflects the canonical logical model; SQLite served as the original persistence baseline, and PostgreSQL has now been validated as the next-stage operational database target for the Java service layer.
 
 ```sql
 -- Core Lineage & Job Management
@@ -490,7 +490,7 @@ This pipeline ensures a clean separation of concerns:
                          DB Writer Layer
                                │
                  ┌─────────────▼─────────────┐
-                 │ SQLite Knowledge Base /   │
+                 │ SQLite / PostgreSQL KB    │
                  │ Warehouse Baseline        │
                  └─────────────┬─────────────┘
                                │
@@ -525,6 +525,7 @@ Crawler → Database → Analytics → AI → Product
 - Data pipeline 與 AI layer 解耦
 - 未來能支援多 ranking 整合
 - 系統可逐步產品化，而不影響現有 crawler 架構
+ - PostgreSQL baseline 已完成初始化與 Java Spring Boot service 啟動驗證
 
 ### 7.2 Architecture Principles
 
@@ -663,7 +664,7 @@ This tier establishes the critical path for system viability.
 - **Focus**: `Crawler → Normalization → Database → Query`
 - **Core Components [Operational]**:
     - Ranking crawlers (QS World Rankings baseline).
-    - Canonical Database Schema implementation (SQLite).
+    - Canonical Database Schema implementation (SQLite baseline + PostgreSQL migration baseline).
     - Multi-stage Normalization Pipelines (Python).
     - CLI Explorer/Query Interface for developer and power-user access.
     - Initial School Mapping and Identity Resolution mechanisms.
@@ -796,7 +797,8 @@ Our path follows the principle: **Data Platform → Analytics → AI → Product
 | **2026-03-09** | Formalized system architecture and long-term intelligence platform vision. | Done |
 | **2026-03-15** | Structural modularization: Separated Python orchestration from the C Normalization Engine. | Done |
 | **2026-03-18** | Java services upgraded to Spring Data JPA with Maven/JUnit automation framework. | Done |
-| **2026-03-19** | **Architecture Whitepaper Refined**: Clarified implementation boundaries and status. | **Current** |
+| **2026-03-19** | PostgreSQL schema initialization validated; Spring Boot service successfully booted against the new database baseline. | Done |
+| **2026-03-20** | **Architecture Whitepaper Refined**: Updated persistence status to reflect PostgreSQL baseline validation and service integration progress. | **Current** |
 
 #### Future Development Phases
 - **Phase 1: Stabilization (Months 0–6)**: Establish HTML sample libraries, automate unit testing for extractors, and finalize C-engine boundary definitions.
@@ -823,7 +825,7 @@ The following matrix categorizes platform capabilities across four evolutionary 
 | **Foundation** | Ranking Crawling Infrastructure | **Active** | Continuous stability and maintenance optimization. |
 | **Foundation** | Canonical Identity Schema | **Active** | Evolution to program/degree-aware models. |
 | **Foundation** | Identity Resolution (Aliases) | **Active** | Transitioning to fuzzy and embedding-based matching. |
-| **Foundation** | SQLite Knowledge Base | **Early** | Migration to PostgreSQL/Cloud-native architectures. |
+| **Foundation** | Knowledge Base Persistence (SQLite → PostgreSQL) | **Active** | PostgreSQL baseline validated; continuing toward production-grade analytics and service integration. |
 | **Expansion** | Multi-Ranking Integration | **Planned** | Full support for QS, THE, ARWU, and regional lists. |
 | **Expansion** | Admission Ingestion | **Planned** | Extraction of structured and raw admission signatures. |
 | **Expansion** | Program Taxonomy | **Planned** | Foundation for department-level analytics. |
@@ -849,6 +851,7 @@ Our technical strategy includes proactive management of crawler, data platform, 
 ### Routine Maintenance Checklist
 - **Quarterly Audit**: Sample-check top 10 institutions to verify DOM stability and parsing accuracy.
 - **Continuous Alignment**: Ensure that any major architectural changes are reflected in this Master Project Plan.
+- **Database Verification**: Re-run PostgreSQL schema initialization and Spring Boot connectivity checks whenever schema or persistence configuration changes.
 
 ---
 
