@@ -1,94 +1,102 @@
-# CrawlerNest System Architecture Whitepaper
+# CrawlerNest 系統架構白皮書
 
-This document serves as the Master Technical Architecture Whitepaper for the CrawlerNest project. It provides a comprehensive explanation of the system's layered design, data models, processing pipelines, recommendation architecture, and long-term platform strategy. Our goal is not merely to build a crawler but to define a technical blueprint for evolving from large-scale data collection into a global **University Data Intelligence Platform**.
+本文件是 CrawlerNest 專案的最高層級技術架構文件（Master Technical Architecture Document）。
+目標不是只描述爬蟲程式，而是定義一條可持續演進的技術路線：
 
-## Whitepaper Positioning
-
-This document is the **Master Technical Architecture Document** for CrawlerNest, serving as:
-
-- **Strategic Reference**: High-level architectural framework for long-term evolution.
-- **Design Alignment**: Unified design language across crawler, database, analytics, and AI layers.
-- **Structural Blueprint**: Core reference for future feature expansion and data model iterations.
-
-This whitepaper prioritizes **architecture, platform design, data modeling, and recommendation logic**. It defines:
-
-- The current **CrawlerNest [Operational: V1.5]** foundation.
-- Mid-to-long-term **Next [Strategic Goal: V2] & Future [Vision: V3]** expansion strategies.
-- The roadmap for the future AI-driven recommendation engine and consumer-facing products.
+**資料採集 → 資料平台 → 分析能力 → AI 推薦 → 產品化**
 
 ---
 
-## Current Platform Status & Capabilities
+## 1. 文件定位
 
-CrawlerNest is currently built on a **data-first architecture**, where each functional layer is decoupled to ensure stability and scalability.
+本白皮書用於：
 
-### Strategic Focus [Current]
-The system transforms fragmented web data into a structured knowledge base for:
-1. **Data Aggregation**: Automated collection from global sources (QS, THE, ARWU, etc.).
-2. **Knowledge Infrastructure**: A scalable, standardized global university database.
-3. **Decision Support [Initial]**: Analysis to assist in university selection.
+- 作為中長期架構決策的主參考
+- 統一 crawler、database、analytics、recommendation、product 層的設計語言
+- 定義 V1.5 現況、V2 擴展策略、V3 未來藍圖
+- 在功能擴展與資料模型調整時，提供一致判準
 
-### Module Completion Map
-*Current development status of the core technical stack (as of March 2026):*
+本文件聚焦於：
 
-| Module | Description | Status | Completion |
+- 系統架構
+- 資料模型
+- 資料流程
+- 推薦系統設計
+- 里程碑與路線圖
+
+---
+
+## 2. 平台現況與能力
+
+CrawlerNest 目前採用 **資料優先（Data-first）** 架構，各層模組保持解耦，確保穩定與可擴展。
+
+### 2.1 當前策略重點（當前 / V1.5）
+
+1. **資料聚合**：自動採集 QS、THE、ARWU 等來源資料（目前以 QS 為主）
+2. **知識基礎建設**：建立可擴展、可查詢、可追溯的大學資料庫
+3. **決策支援起步**：先建立分析基礎，再逐步推進推薦能力
+
+### 2.2 模組完成度地圖（截至 2026 年 3 月）
+
+| 模組 | 說明 | 狀態 | 完成度 |
 | :--- | :--- | :---: | :---: |
-| **Ingestion / Networking** | Async Stack, Endpoint Probing, Pagination | [Operational] | ~80% |
-| **Extraction / Parsing** | Admission Requirements, Deadlines, Scoring Heuristics | [Operational] | ~75% |
-| **Normalization Baseline** | Country Canon, Safe Numeric Casting, Validation Pipelines | [Operational] | ~60% |
-| **C Normalization Engine** | High-performance Name/Country/Rank Parsing | [In Development] | ~25% |
-| **Entity Resolution** | Alias Mapping, Manual Correction | [Operational] | ~30% |
-| **Storage / Data Warehouse** | Unified Schema, DB Writer, PostgreSQL Baseline, Spring Data JPA | [Operational] | ~78% |
-| **Quality & Verification** | Raw Lineage, Parsing Metadata, PostgreSQL Initialization Test, JUnit Automation | [Operational] | ~62% |
-| **Analytics & Recommendation**| Ranking Aggregation, Feature Vector Design | [Strategic Goal] | ~20% |
+| 採集 / 網路層 | 非同步請求、端點探測、分頁處理 | 進行中（可運行） | ~80% |
+| 解析 / 提取層 | 錄取要求、截止日、分數規則解析 | 進行中（可運行） | ~75% |
+| Python 正規化基線 | 國家標準化、數值安全轉換、驗證流程 | 進行中（可運行） | ~60% |
+| C 正規化引擎 | 名稱 / 國家 / 排名 / 分數高效處理 | 開發中 | ~25% |
+| 實體識別 | 別名映射、人工校正 | 進行中（可運行） | ~30% |
+| 儲存 / 資料倉層 | 統一 schema、DB writer、PostgreSQL 基線、Spring Data JPA | 進行中（可運行） | ~78% |
+| 品質與驗證 | Raw lineage、欄位狀態、PostgreSQL 初始化驗證、JUnit | 進行中（可運行） | ~62% |
+| 分析與推薦 | 排名聚合、特徵向量設計 | 策略目標 | ~20% |
 
 ---
 
-## Table of Contents
+## 3. 目錄
 
-1. [Current Platform Status & Capabilities](#current-platform-status--capabilities)
-2. [System Architecture Overview](#system-architecture-overview-high-level)
-3. [System Layer Model (Operational vs. Planned)](#system-layer-model-architectural-layers)
-4. [Core Architectural Mechanisms](#core-architectural-mechanisms)
-5. [Data Platform & Knowledge Base Architecture](#data-platform--knowledge-base-architecture)
-6. [Crawler Framework & Job-based Pipelines](#crawler-framework--job-based-pipelines)
-7. [AI Recommendation Architecture (Vision)](#ai-recommendation-architecture)
-8. [Project Milestones & 4-Year Roadmap](#project-milestones--4-year-roadmap)
-9. [Risk Mitigation & Maintenance](#risk-mitigation--maintenance)
+1. 平台現況與能力
+2. 系統總覽架構
+3. 系統分層模型
+4. 核心架構策略與機制
+5. 資料平台與知識庫設計
+6. Crawler 框架與 Job 管線
+7. 實體識別與推薦架構
+8. 開發優先順序與執行策略
+9. 里程碑與四年路線圖
+10. 產品願景與能力地圖
+11. 風險與維護策略
 
 ---
 
+## 4. 系統總覽架構
 
-## System Architecture Overview (High-level)
-
-The following diagram illustrates the long-term system architecture of CrawlerNest as a university data intelligence platform.
+以下為 CrawlerNest 長期目標下的整體技術架構：
 
 ```mermaid
 graph TD
-    subgraph "Product Layer"
-        CLI[CLI Explorer]
-        WEB[Future Web/API Platform]
+    subgraph "產品層"
+        CLI[CLI 探索介面]
+        WEB[未來 Web/API 平台]
     end
 
-    subgraph "Discovery & Orchestration"
-        JOBS[Job Manager]
-        CRAWL[Crawl Engine]
+    subgraph "協作與編排層"
+        JOBS[Job 管理器]
+        CRAWL[Crawler 引擎]
     end
 
-    subgraph "Processing & Validation"
-        EXT[Extraction Layer]
-        NORM_PY[Python Normalization]
-        NORM_C[C Engine Prototype]
+    subgraph "處理與驗證層"
+        EXT[提取解析層]
+        NORM_PY[Python 正規化]
+        NORM_C[C 引擎原型]
     end
 
-    subgraph "Data Infrastructure"
-        KB[(University Knowledge DB)]
-        SAMP[HTML Samples / Staging]
+    subgraph "資料基礎層"
+        KB[(大學知識庫)]
+        SAMP[樣本與暫存層]
     end
 
-    subgraph "Intelligence & AI"
-        ANA[Analytics Layer]
-        REC[AI Recommendation Engine]
+    subgraph "智慧與決策層"
+        ANA[分析層]
+        REC[AI 推薦引擎]
     end
 
     CLI --> JOBS
@@ -103,394 +111,223 @@ graph TD
     REC --> WEB
 ```
 
-This architecture reflects the long-term design principle:
-**Crawler → Data Platform → Analytics → AI → Product**
+核心演進原則：
 
----
+**爬蟲採集 → 資料平台 → 分析能力 → AI 智能 → 產品化**
 
-### Future Platform Architecture (Unified View)
-
-The following diagram consolidates the long-term platform evolution of CrawlerNest into a single unified architecture view:
+### 4.1 統一演進視圖（Unified View）
 
 ```
-                    ┌──────────────────────────────┐
-                    │     Global Web Sources       │
-                    │ QS / THE / ARWU / Univ Sites │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │   Crawler & Ingestion Layer  │
-                    │ Async jobs / fetch / parsing │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ Normalization & Resolution   │
-                    │ Python baseline + C engine   │
-                    │ Alias / fuzzy / embedding    │
-                    └──────────────┬───────────────┘
-                                   │
-                                   ▼
-                    ┌──────────────────────────────┐
-                    │ University Knowledge Base    │
-                    │ Rankings / admission /       │
-                    │ programs / degrees / tuition │
-                    └──────────────┬───────────────┘
-                                   │
-              ┌────────────────────┼────────────────────┐
-              │                    │                    │
-              ▼                    ▼                    ▼
-   ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-   │ Analytics Layer  │  │ Recommendation   │  │ Public API Layer │
-   │ aggregation      │  │ Engine           │  │ /universities    │
-   │ ROI / trends     │  │ rule + score +AI │  │ /rankings        │
-   │ admission prob   │  │ uni/program fit  │  │ /recommendations │
-   └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘
-            │                     │                     │
-            └──────────────┬──────┴──────┬─────────────┘
-                           │             │
-                           ▼             ▼
-                ┌──────────────────┐  ┌──────────────────┐
-                │ B2C Product      │  │ B2B Product      │
-                │ Student Explorer │  │ EdTech / Agency  │
-                │ AI Selection     │  │ Data licensing   │
-                │ Compare schools  │  │ API subscription │
-                └──────────────────┘  └──────────────────┘
+全球來源（QS / THE / ARWU / 校方網站）
+        ↓
+採集與匯入層（非同步 jobs / fetch / parse）
+        ↓
+正規化與實體識別（Python 基線 + C 引擎 + alias/fuzzy/embedding）
+        ↓
+大學知識庫（rankings / admission / programs / degrees / tuition）
+        ↓
+分析層 + 推薦引擎 + 公開 API 層
+        ↓
+B2C / B2B 產品化
 ```
 
-#### Interpretation
-- **Current (V1.5)**: Crawler, normalization baseline, and knowledge base layers are partially implemented.
-- **Next (V2)**: Analytics layer, entity resolution upgrades, and multi-source integration.
-- **Future (V3+)**: Recommendation engine, public API platform, and end-user products.
+對應分期：
+
+- **當前（V1.5）**：採集、正規化基線、知識庫基礎
+- **下一階段（V2）**：多來源整合、分析層、實體識別升級
+- **未來（V3+）**：推薦引擎、公開 API、產品介面
 
 ---
 
-## System Layer Model (Architectural Layers)
+## 5. 系統分層模型
 
-To clearly define the platform structure, it is categorized into six functional layers:
+CrawlerNest 可抽象為六層：
 
-- **Layer 1: Data Collection [Operational]**: Automated crawling of rankings (QS, THE, ARWU) and admission requirements.
-- **Layer 2: Data Quality & Normalization [Operational / In Development]**: Multi-stage validation using Python pipelines (Operational) and high-performance C normalization modules (In Development).
-- **Layer 3: Knowledge Base [Operational]**: Canonical University Database serving as the central "Single Source of Truth."
-- **Layer 4: Analytics Layer [Strategic Goal]**: Cross-ranking aggregation, statistical analysis, and feature engineering for recommendations.
-- **Layer 5: Recommendation Engine [Strategic Goal]**: Rule-based screening combined with weighted scoring and future ML-driven refinement.
-- **Layer 6: Product Layer [Operational / Strategic Goal]**: Developer CLI tools (Operational) and future consumer-facing web/API platforms (Strategic Goal).
+- **Layer 1 資料採集層（已運作）**：排名與錄取條件採集
+- **Layer 2 資料品質與正規化層（已運作 / 開發中）**：Python 驗證基線 + C 高效正規化
+- **Layer 3 知識庫層（已運作）**：Canonical University Database（單一真實來源）
+- **Layer 4 分析層（策略目標）**：跨榜單聚合、統計分析、特徵工程
+- **Layer 5 推薦層（策略目標）**：規則篩選 + 權重模型 + ML 精煉
+- **Layer 6 產品層（已運作 / 策略目標）**：CLI（現有）與 Web/API（未來）
 
-Each layer is isolated through modular interfaces, allowing for continuous independent evolution.
-
----
-
-## Vision & Institutional Strategy
-
-### 1. Core Vision
-To establish a perpetual, automated system for the intelligent analysis of global university rankings and admission requirements, serving as the definitive data backbone for international education intelligence over the next four years.
-
-### 2. Strategic Objectives
-- **Data Integrity [Current Focus]**: Maintaining a high-fidelity knowledge base through rigorous normalization and entity resolution.
-- **Scalability [Architecture Goal]**: Evolving from a specialized crawler into a general-purpose educational intelligence platform.
-- **Decision Value [Long-term Vision]**: Providing actionable insights to students, researchers, and institutions through AI-driven analytics.
+分層目的：每層可獨立演進，降低耦合，避免牽一髮動全身。
 
 ---
 
-## 2. Core Architectural Strategy & Mechanisms（中文補充）
+## 6. 願景與策略
 
-### 1. 全域參數與組態機制 (Configuration Logic)
-系統核心由 `Config` 類管理，採用 Python Dataclass 封裝，實現「參數化管理」：
-- **網路請求控制**：透過 `asyncio.Semaphore` 限制最大進行中的協程數量 (`max_concurrent_requests = 200`)，並設定全域 30 秒中斷時間。
-- **指數退避重試 (Exponential Backoff)**：`wait = retry_delay * (retry_backoff ** attempt)`，初始延遲 1.0s，退避倍率 2.0。
+### 6.1 核心願景
 
-### 2. 數據獲取層：Schema-driven 與探針模式
-為了應對頻繁改版，系統將從「硬編碼」轉向「配置驅動」：
-- **Source Schema**：定義來源（如 QS）的 JSON/HTML 結構。
-- **NID 自動發現算法**：啟動「探針模式」，透過多重 Regex 偵測鏈 (Script tags, HTML data attributes, API URLs) 定位 NID。
-- **自動降級機制 (Fallback)**：若無法提取 NID，依據定義的關聯頁面列表自動跳轉，極大提高系統健壯性。
+建立一套可持續、可自動化、可解釋的全球大學資料智慧系統，成為未來四年教育決策支援的資料底座。
 
-### 3. 解析提取層：視窗化滑動搜尋 (Windowed Extract)
-- **視窗化算法**：設定 `window = 140`，在關鍵字前後 140 個字元內進行目標模式匹配，減少無關連數據干擾。
-- **上下文隔離技術 (Context Isolation)**：利用 Regex 截取相關區段（如區分 Undergraduate 與 Postgraduate），避免學制要求混淆。
-- **容錯機制**：欄位失效時標記 `unparsed` 並保留原始數據供後續稽核。
+### 6.2 策略目標
 
-### 3.1 正規化引擎分層 (Normalization Engine Layering)
-
-為了在資料進入 knowledge base 前提高一致性與可分析性，CrawlerNest 的正規化層採取 **Python baseline + C prototype engine** 的雙層策略：
-
-- **Python Normalization Baseline**：負責目前主流程中的 safe numeric casting、country normalization、欄位驗證與基本清洗。
-- **CrawlerNest C Data Normalization Engine**：作為高效能 prototype，聚焦於名稱正規化、國家標準化、排名區間解析、分數清洗與後續 duplicate detection 前處理。
-
-目前 C engine 的定位不是取代整個 Python pipeline，而是作為未來可插拔的 **data quality accelerator / preprocessing module**。
-
-### 4. 數據平台層：去重與實體識別 (Deduplication)
-- **模糊匹配策略**：利用 Levenshtein 距離、縮寫擴展與 Token 匹配處理名稱不一致問題。
-- **地理座標歸一化**：採用 `unicodedata` 進行 NFKD 正規化與字符過濾，並通過硬映射統一國家名稱。
+- **資料可信度優先**：強化正規化、實體識別、資料可追溯性
+- **架構可擴展性**：從專用爬蟲演進為通用教育資料平台
+- **決策價值導向**：逐步提供可行動的推薦與分析能力
 
 ---
 
-## 3. Detailed Implementation Notes（中文補充）
+## 7. 核心架構策略與機制
 
-### 1. 特徵提取、驗證與正規化 (Extraction, Validation & Normalization)
-- **數值解析**：針對分數範圍（如 `7.0-7.5`），執行算術平均運算 `(min + max) / 2` 輸出單一浮點數。
-- **指標安全邊界**：
-  * IELTS: `[0, 9.0]` | TOEFL: `[0, 120]` | GMAT: `[200, 800]` | GRE: `[260, 340]`
-  * 若超出上述邊界，系統自動將該欄位設定為 `None`，防止統計偏差。
-- **雙層正規化路徑**：短期由 Python pipeline 執行主流程驗證與 normalization；中長期則預留 C engine 處理高頻率字串清洗、rank parsing、score cleaning 與 duplicate-ready comparison string generation。
+### 7.1 全域參數與組態
 
-### 2. 區域過濾機制 (`_filter_nodes_for_region`)
-區域排名核心邏輯包含三項原子操作（滿足其一即獲准）：
-- **路徑匹配**：檢查 `resolved_url` 是否包含子區域 Slug。
-- **標籤驗證**：檢查節點內部的 `region` 或 `subregion` 字串。
-- **名單驗證**：檢查國家是否在預定義清單中。
+- 以 `Config`（Python Dataclass）集中管理參數
+- 併發控制：`asyncio.Semaphore`（預設 200）
+- 超時策略：全域 30 秒 timeout
+- 重試策略：指數退避 `wait = retry_delay * (retry_backoff ** attempt)`
+
+### 7.2 採集策略：Schema-driven + 探針模式
+
+- **Source Schema**：用來源結構定義替代硬編碼
+- **NID 自動探測**：多條 regex 鏈（script/data attribute/API URL）
+- **Fallback**：主路徑失敗時自動切換關聯頁面
+
+### 7.3 解析與正規化策略
+
+- 視窗化提取（window = 140）降低噪音
+- 上下文隔離（學制區段分離）避免欄位污染
+- 欄位失敗保留 `unparsed` 與 raw 值，利於追查
+- 雙層正規化：
+  - Python：主流程驗證與清洗
+  - C engine：高頻字串與數值解析加速（可插拔）
+
+### 7.4 分數與邏輯一致性
+
+- 區間分數（如 7.0-7.5）取中值
+- 安全邊界：IELTS/TOEFL/GMAT/GRE 皆有合理範圍檢查
+- 綜合評分標準化：
+
+```text
+Score_final = Σ(Score_raw / Score_max × 100) / N_valid
+```
+
+### 7.5 匯出與呈現
+
+- CLI 表格採高可讀排版
+- CSV 匯出預設 UTF-8 BOM，提升 Excel 相容性
+
 ---
 
-## Core Architectural Mechanisms
+## 8. 資料平台與知識庫設計
 
-### 1. Global Configuration & Orchestration
-The system core is managed by a `Config` singleton (implemented via Python Dataclasses), ensuring centralized control:
-- **Concurrency Control**: Utilizes `asyncio.Semaphore` to limit concurrent requests (default: 200) with a global 30-second timeout.
-- **Exponential Backoff**: Implements robust retry logic: `wait = retry_delay * (retry_backoff ** attempt)`, starting at 1.0s with a 2.0x multiplier.
+CrawlerNest 已從單純爬蟲輸出，演進為具備維度/事實/血緣（lineage）的資料倉基線。
 
-### 2. Ingestion Strategy: Schema-driven & Discovery Probes
-To handle frequent website structure changes, the system prioritizes configuration over hard-coding:
-- **Source Schemas**: Declarative definitions of JSON/HTML structures for each ranking source (e.g., QS).
-- **Automated Node Discovery (NID)**: A "Probe Mode" utilizing multiple regex chains (script tags, data attributes, API endpoints) to dynamically locate target data nodes.
-- **Graceful Fallback**: Automated navigation to related pages if primary data points are missing, significantly improving crawl reliability.
-- **Normalization Scoring**: Implements composite scoring logic: $Score_{final} = \frac{\sum (Score_{raw} / Score_{max} \times 100)}{N_{valid}}$ to ensure disparate metrics (e.g., GMAT vs. IELTS) are weighted fairly.
+### 8.1 Canonical 資料模型（V1.5）
 
-### 3. Data Export & Presentation
-- **High-Fidelity CLI**: Console tables built using Unicode box-drawing characters with dynamic width adaptation for terminal responsiveness.
-- **Enterprise Compatibility**: CSV exports include UTF-8 BOM headers to ensure seamless compatibility with Microsoft Excel across platforms.
+核心資料表：
 
----
+- `crawl_runs`
+- `raw_source_records`
+- `countries`
+- `universities`
+- `university_aliases`
+- `rankings`
+- `admission_requirements`
+- `programs`
+- `degrees`
+- `tuition`
+- `field_status_logs`
 
-## Data Platform & Knowledge Base Architecture
+關係主軸：
 
-The CrawlerNest Data Platform evolves the system from a simple scraping tool into a structured **Educational Intelligence Warehouse**.
-
-### 1. Canonical Data Model
-The V1.5 schema implements a **warehouse-style hierarchy** featuring dimensions, facts, and raw lineage. The original warehouse baseline was implemented in SQLite, and the project has now completed an initial PostgreSQL schema migration baseline for service-layer integration and future analytics expansion.
-
-#### Core Entity Relationships
 ```mermaid
 erDiagram
-    CRAWL_RUNS ||--o{ RAW_SOURCE_RECORDS : initiates
-    UNIVERSITIES ||--o{ UNIVERSITY_ALIASES : identifies
-    UNIVERSITIES ||--o{ RANKINGS : tracks
-    UNIVERSITIES ||--o{ ADMISSION_REQUIREMENTS : defines
-    UNIVERSITIES ||--o{ TUITION : costs
-    UNIVERSITIES ||--o{ PROGRAMS : offers
-    UNIVERSITIES ||--o{ FIELD_STATUS_LOGS : audits
-    COUNTRIES ||--o{ UNIVERSITIES : locates
-    PROGRAMS ||--o{ DEGREES : contains
+    CRAWL_RUNS ||--o{ RAW_SOURCE_RECORDS : 產生
+    COUNTRIES ||--o{ UNIVERSITIES : 歸屬
+    UNIVERSITIES ||--o{ UNIVERSITY_ALIASES : 別名
+    UNIVERSITIES ||--o{ RANKINGS : 排名
+    UNIVERSITIES ||--o{ ADMISSION_REQUIREMENTS : 錄取條件
+    UNIVERSITIES ||--o{ PROGRAMS : 課程
+    PROGRAMS ||--o{ DEGREES : 學位
+    UNIVERSITIES ||--o{ FIELD_STATUS_LOGS : 品質追蹤
 ```
 
-#### Primary Table Responsibilities
-- **crawl_runs [Operational]**: Tracks batch metadata and serves as the lineage entry point.
-- **raw_source_records [Operational]**: Staging layer preserving raw JSON/HTML for audit and re-parsing.
-- **universities / countries [Operational]**: Dimension tables defining canonical institutional identities.
-- **university_aliases [Operational]**: Mapping source-specific variants to canonical IDs (Entity Resolution).
-- **rankings / admission_requirements [Operational]**: Fact tables supporting analytics and recommendation features.
-- **tuition [Design Placeholder]**: Costs data structure (V2 development target).
-- **programs / degrees [Design Placeholder]**: Forward-looking structural placeholders for degree-level expansion (V3 development target).
+### 8.2 表職責摘要
 
-### 2. Strategic Data Model Evolution
-While currently school-centric, the model is prepared for multi-level expansion:
+- `crawl_runs`：批次執行與狀態追蹤
+- `raw_source_records`：原始資料暫存與重解析依據
+- `universities/countries`：實體主鍵與地理維度
+- `university_aliases`：來源名稱映射（實體識別基礎）
+- `rankings/admission_requirements`：分析與推薦訊號表
+- `programs/degrees/tuition`：V2/V3 擴展預留
+- `field_status_logs`：品質與稽核層
+
+### 8.3 長期資料模型方向
+
+由 school-centric 擴展為：
+
 **University → Program → Degree**
 
-Key long-term focus areas:
-- **High-fidelity Resolution**: Transitioning from manual alias mapping to fuzzy and embedding-based matching.
-- **Feature Engineering**: Transforming raw rankings and admission signals into ML-ready feature vectors for the recommendation engine.
-- **Interoperability**: Using the C-based normalization engine as a pluggable data quality accelerator.
+長期重點：
 
-### 3. SQL Schema Reference
-The following schema defines the V1.5 warehouse baseline, incorporating crawl runs, raw staging, dimensions, facts, and auditing logs. This reference reflects the canonical logical model; SQLite served as the original persistence baseline, and PostgreSQL has now been validated as the next-stage operational database target for the Java service layer.
+- Manual → Alias → Fuzzy → Embedding 的識別升級
+- rankings/admission/tuition/outcome 特徵化與 ML-ready 化
+- C engine 與 Python ingestion 深度整合
 
-```sql
--- Core Lineage & Job Management
-CREATE TABLE crawl_runs (
-    crawl_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    source_name TEXT NOT NULL,
-    ranking_type TEXT,
-    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    finished_at TIMESTAMP,
-    status TEXT DEFAULT 'running',
-    notes TEXT
-);
+### 8.4 Schema 與索引策略
 
--- Dimension Tables (Canonical Identity)
-CREATE TABLE countries (
-    country_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    country_name TEXT NOT NULL UNIQUE,
-    country_code TEXT UNIQUE,
-    region_name TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+目前提供：
 
-CREATE TABLE universities (
-    university_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    school_slug TEXT UNIQUE NOT NULL,
-    display_name TEXT NOT NULL,
-    canonical_name TEXT,
-    country_id INTEGER,
-    city_name TEXT,
-    website_url TEXT,
-    qs_profile_path TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (country_id) REFERENCES countries(country_id)
-);
+- SQLite：`crawlernest-schema/schema.sql`
+- PostgreSQL：`crawlernest-schema/postgresql_schema.sql`
 
-CREATE TABLE university_aliases (
-    alias_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    university_id INTEGER NOT NULL,
-    source_name TEXT NOT NULL,
-    source_school_name TEXT NOT NULL,
-    match_type TEXT DEFAULT 'manual',
-    confidence_score REAL DEFAULT 1.0,
-    FOREIGN KEY (university_id) REFERENCES universities(university_id),
-    UNIQUE(source_name, source_school_name)
-);
+建議持續維護索引：
 
--- Staging & Audit Layer
-CREATE TABLE raw_source_records (
-    raw_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    crawl_run_id INTEGER,
-    source_name TEXT NOT NULL,
-    record_type TEXT,
-    ranking_type TEXT,
-    source_url TEXT,
-    raw_json TEXT,
-    raw_text TEXT,
-    fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (crawl_run_id) REFERENCES crawl_runs(crawl_run_id)
-);
+- `idx_universities_slug`
+- `idx_universities_country`
+- `idx_university_aliases_source_name`
+- `idx_raw_source_records_source_type`
+- `idx_raw_source_records_crawl_run`
+- `idx_rankings_university_year`
+- `idx_rankings_source_type`
+- `idx_rankings_raw`
+- `idx_admission_requirements_university`
+- `idx_field_status_logs_university`
 
--- Fact Tables (Signals for Analytics/AI)
-CREATE TABLE rankings (
-    ranking_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    university_id INTEGER NOT NULL,
-    raw_id INTEGER,
-    ranking_source TEXT NOT NULL,
-    ranking_type TEXT NOT NULL,
-    ranking_year INTEGER,
-    rank_start INTEGER,
-    rank_end INTEGER,
-    score REAL,
-    metrics_json TEXT,
-    source_url TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (university_id) REFERENCES universities(university_id),
-    FOREIGN KEY (raw_id) REFERENCES raw_source_records(raw_id)
-);
+---
 
-CREATE TABLE admission_requirements (
-    requirement_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    university_id INTEGER NOT NULL,
-    program_id INTEGER,
-    degree_id INTEGER,
-    raw_id INTEGER,
-    source_url TEXT,
-    gpa_min REAL,
-    ielts_min REAL,
-    toefl_min REAL,
-    gre_min REAL,
-    gmat_min REAL,
-    application_deadline_text TEXT,
-    raw_text TEXT,
-    parsed_status TEXT,
-    extracted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (university_id) REFERENCES universities(university_id),
-    FOREIGN KEY (raw_id) REFERENCES raw_source_records(raw_id)
-);
-```
+## 9. Crawler 框架與 Job 管線
 
-#### Key Design Principles:
-- **Lineage Tracking**: `crawl_runs` and `raw_source_records` ensure that every data point can be traced back to its specific crawl batch and original source.
-- **Identity Resolution**: The `universities`, `countries`, and `aliases` tables manage canonical institutional identities, preventing data fragmentation across multiple ranking sources.
-- **Hybrid Storage**: Use of `metrics_json` and `raw_text` allows for a flexible schema that captures both structured numeric data and semi-structured qualitative signals for future LLM-based parsing.
+### 9.1 統一 Crawler 引擎
 
-### 4. Optimized Indexing Strategy
-To support high-performance analytics and entity resolution, the following indexes are maintained:
-
-```sql
-CREATE INDEX idx_countries_name ON countries(country_name);
-CREATE INDEX idx_universities_slug ON universities(school_slug);
-CREATE INDEX idx_universities_country ON universities(country_id);
-CREATE INDEX idx_university_aliases_source_name ON university_aliases(source_name, source_school_name);
-CREATE INDEX idx_raw_source_records_source_type ON raw_source_records(source_name, ranking_type);
-CREATE INDEX idx_raw_source_records_crawl_run ON raw_source_records(crawl_run_id);
-CREATE INDEX idx_rankings_university_year ON rankings(university_id, ranking_year);
-CREATE INDEX idx_rankings_source_type ON rankings(ranking_source, ranking_type);
-CREATE INDEX idx_rankings_raw ON rankings(raw_id);
-CREATE INDEX idx_admission_requirements_university ON admission_requirements(university_id);
-CREATE INDEX idx_field_status_logs_university ON field_status_logs(university_id);
-```
-
-These indexes facilitate:
-- **Identity Resolution**: Fast lookups for universities and aliases across multiple sources.
-- **Analytics Performance**: Efficient cross-ranking trend analysis and country-level statistics.
-- **Data Governance**: Rapid traceback of parsing errors and crawl batch history.
-
-### 5. Functional Data Roles
-- **System Orchestration (`crawl_runs`)**: Standardizes batch lifecycle management.
-- **Geospatial Consistency (`countries`)**: Prevents fragmentation of country/region data.
-- **Institutional Identity (`universities` & `university_aliases`)**: The core of the platform, enabling multi-source data merging.
-- **Data Provenance (`raw_source_records`)**: Acts as a persistent caching and audit layer.
-- **Analytical Facts (`rankings` & `admission_requirements`)**: Raw signals used for downstream analytics; all normalization and weighting occur at the analytics layer.
-- **Quality Assurance (`field_status_logs`)**: Provides a transparent audit trail for all normalization and extraction operations.
-
-## Crawler Framework & Job-based Pipelines
-
-### 1. Unified Crawler Engine
-The system is driven by a unified crawler engine that eliminates the need for independent scripts. This centralized approach enables consistent logging, error handling, and data flow management.
+系統採用統一引擎而非多腳本散落，統一記錄與錯誤處理。
 
 ```mermaid
 graph TD
     ENGINE[Crawler Engine]
     ENGINE --> RANK[Ranking Plugins]
     ENGINE --> ADM[Admission Crawlers]
-    ENGINE --> FUT[Future Sources: Tuition/Programs]
+    ENGINE --> FUT[未來來源：Tuition / Programs]
 ```
 
-#### Operational Data Flow
-1. **Source Page**: Target URL identified by the job.
-2. **Fetcher**: Handles HTTP/Async requests with rotation and retries.
-3. **Extractor**: Performs HTML/JSON parsing via schema-driven logic.
-4. **Normalization**: Python validation followed by high-performance C-engine processing.
-5. **Database**: Final persistence in the University Knowledge Base.
+### 9.2 Job 級編排
 
----
+範例：
 
-### 2. Job-Level Orchestration
-The system utilizes a **Job-based scheduling architecture** to ensure task isolation and observability. Examples includes:
 - `qs_world_rankings`
 - `qs_subject_rankings`
 - `mit_admission_sync`
 - `ucla_admission_sync`
 
-**Advantages of Job-based Design**:
-- **Granular Scheduling**: Jobs can be prioritized or deferred independently.
-- **Error Isolation**: Failure in one job (e.g., a specific university site) does not impact the rest of the pipeline.
-- **Enhanced Observability**: Clear tracking of success rates and performance metrics per job.
+優勢：
 
-### 3. Collection Strategy: Baseline vs. Incremental
-CrawlerNest employs a dual-mode collection strategy:
-- **Full Crawl (Baseline)**: Periodic complete refreshes of global ranking datasets (1,500+ universities).
-- **Incremental Update**: Selective refreshing of admission requirements and program-level data to optimize bandwidth and target site respect.
+- 排程粒度高
+- 故障隔離佳
+- 可觀測性高
 
----
+### 9.3 全量 + 增量策略
 
-### 4. Ranking Data Strategy
-The ranking crawler architecture is governed by key strategic principles:
-- **Resilient Extraction**: Prioritization of HTML extraction for higher stability, with API integration reserved for future optimization.
-- **Unified Rankings Table**: A consolidated storage strategy where all sources (QS, THE, ARWU) share a single canonical table.
+- **Full Crawl**：週期性全量更新（1500+ universities）
+- **Incremental Update**：針對 admission/program 層做增量刷新
 
-**Design Benefits**:
-- **Cross-Ranking Analytics**: Enables direct comparisons between different ranking methodologies.
-- **AI Ranking Aggregation**: Provides a consistent foundation for composite scoring and trend analysis.
-- **Schema Flexibility**: Use of `metrics_json` avoids schema bloat by storing source-specific indicators (e.g., Academic Reputation vs. Research Influence) in a flexible format.
+### 9.4 排名資料策略
 
-### 5. Operational Data Pipeline
-The end-to-end flow from raw collection to intelligent recommendation is illustrated below:
+- 以 HTML extraction 為主，API 為輔
+- 採統一 rankings table（來源無關）
+- 透過 `metrics_json` 保持不同榜單指標彈性
+
+### 9.5 端到端資料流程
 
 ```mermaid
 graph LR
@@ -499,368 +336,182 @@ graph LR
     EXT --> NORM_PY[Python Normalization]
     NORM_PY --> NORM_C[C Engine]
     NORM_C --> DB[Knowledge Base]
-    DB --> ANA[Analytics Layer]
+    DB --> ANA[Analytics]
     ANA --> AI[AI Recommendation]
 ```
 
-This pipeline ensures a clean separation of concerns:
-- **Collection Layer**: Infrastructure and networking.
-- **Processing Layer**: Extraction and multi-stage normalization.
-- **Storage Layer**: The definitive University Knowledge Base.
-- **Decision Layer**: Advanced analytics and recommendation heuristics.
-
-這種分層確保系統未來可以：
-
-- 更換 crawler source 而不影響資料模型
-- 重跑 normalization 與 analytics
-- 在資料庫層之上構建新的產品功能
-
-### 6. Platform Architecture
-
-為了支援未來四年的產品化目標，CrawlerNest 系統將逐步演進為一個 **University Data Platform**，並在其上建立 AI 決策層。此架構與目前的 crawler 系統保持相容，同時允許未來擴展 API 與 Web 平台。
-
-整體架構如下：
-
-```
-                ┌──────────────────────────────┐
-                │      CLI / Interactive UI    │
-                └──────────────┬───────────────┘
-                               │
-                         ┌─────▼─────┐
-                         │  Crawler  │
-                         │Orchestrator│
-                         └─────┬─────┘
-                               │
-                ┌──────────────┼──────────────┐
-                │                              │
-          Fetcher Layer                  Extractor Layer
-                │                              │
-                └──────────────┬──────────────┘
-                               │
-                       University Data Model
-                               │
-                Python Validation / Normalization Layer
-                               │
-                C Data Normalization Engine (Prototype)
-                               │
-                         DB Writer Layer
-                               │
-                 ┌─────────────▼─────────────┐
-                 │ SQLite / PostgreSQL KB    │
-                 │ Warehouse Baseline        │
-                 └─────────────┬─────────────┘
-                               │
-                         Analytics Layer
-                               │
-                 ┌─────────────▼─────────────┐
-                 │   AI Recommendation       │
-                 │   & Decision Engine       │
-                 └─────────────┬─────────────┘
-                               │
-                       Future API Platform
-                               │
-                       Future Web Platform
-```
-
-此設計遵循一個核心原則：
-
-```
-Crawler → Database → Analytics → AI → Product
-```
-
-說明：
-
-- **Crawler Layer**：負責從 QS / THE / ARWU 等來源採集排名與相關資料。
-- **University Knowledge Base**：系統的核心資料庫，儲存 canonical university data。
-- **Analytics Layer**：負責 ranking aggregation、ROI analysis 與資料統計。
-- **AI Decision Engine**：提供 personalized university recommendation。
-- **API / Web Platform**：透過 `servise_for_java` (Spring Boot) 提供 REST API 端點（`/universities`, `/rankings`, `/recommendations`），並作為未來產品介面的服務後端。
-
-此架構確保：
-
-- Data pipeline 與 AI layer 解耦
-- 未來能支援多 ranking 整合
-- 系統可逐步產品化，而不影響現有 crawler 架構
-- PostgreSQL baseline 已完成初始化與 Java Spring Boot service 啟動驗證
-
-### 7. Architecture Principles
-
-為了確保 CrawlerNest 在未來四年的擴展過程中保持可維護性與一致性，系統設計遵循以下核心原則：
-
-- **Data-first Architecture**：優先建立穩定資料層，再向上發展 analytics 與 AI。
-- **Schema-driven Extraction**：以資料結構與來源規格驅動採集邏輯，降低網站改版帶來的維護成本。
-- **Layered Architecture**：Crawler、Normalization、Database、Analytics 與 AI Recommendation 分層實作，避免高耦合。
-- **Source-agnostic Ranking System**：所有 ranking source 皆寫入統一的 canonical rankings schema，而非各自建立獨立系統。
-- **Canonical Identity Resolution**：以 university_id 為核心，結合 manual mapping、alias、fuzzy matching 與 embedding matching 完成實體對齊。
-- **Analytics-after-Storage**：所有 normalization、aggregation、AI scoring 皆在資料寫入後進行，避免 crawler 層過度複雜化。
-- **Progressive Productization**：系統先完成 data platform，再逐步擴展為 API 與 Web product，而非一開始直接做完整產品介面。
-- **Warehouse-first Persistence**：crawler output 不再只停留於 console / CSV，而是優先進入可追溯的 SQLite knowledge base。
-- **Lineage-aware Data Design**：透過 `crawl_runs` 與 `raw_source_records` 保留資料來源、crawler batch 與解析上下文，支援未來品質治理與重解析。
-- **Language-appropriate Modules**：對高頻率字串清洗與資料前處理採取 language-appropriate strategy，允許 Python 主流程與 C-based normalization engine 並存。
-
 ---
 
-### 8. Entity Resolution Pipeline
+## 10. 實體識別與推薦架構
 
-為解決不同資料來源中學校名稱不一致的問題，系統採用多階段實體識別策略：
+### 10.1 實體識別流程（Entity Resolution）
 
-```
+```text
 Raw School Name
-      │
-      ▼
-Manual Mapping
-      │
-      ▼
-Alias Table Lookup
-      │
-      ▼
-Fuzzy Matching
-      │
-      ▼
-Embedding Matching (AI)
-      │
-      ▼
-Resolved school_id
+  → Manual Mapping
+  → Alias Table Lookup
+  → Fuzzy Matching
+  → Embedding Matching
+  → Resolved school_id
 ```
 
-說明：
+優先序：
 
-- **Manual Mapping**：最高準確度，用於核心學校名稱。
-- **Alias Table**：維護常見別名，例如 MIT / Massachusetts Institute of Technology。
-- **Fuzzy Matching**：利用字串相似度處理小幅拼寫差異。
-- **Embedding Matching**：透過語義向量比對處理複雜名稱變體。
+`manual mapping → alias table → fuzzy matching → embedding matching`
 
-Priority order：manual mapping → alias table → fuzzy matching → embedding matching
+### 10.2 推薦決策流程
 
----
-
-## AI Recommendation Architecture
-
-### 9. Decision Flow
-
-推薦系統在架構層可抽象為以下決策流程：
-
-```
-User Profile
-   │
-   ▼
-Rule Filter
-(Hard Constraints)
-   │
-   ▼
-Candidate Set
-   │
-   ▼
-University / Program / Degree Recommendation
-   │
-   ▼
-Weighted Scoring Layer
-   │
-   ▼
-ML Refinement Layer
-   │
-   ▼
-Final Ranked Recommendations
+```text
+使用者檔案
+→ 規則過濾（硬條件）
+→ 候選集合
+→ 校/系/學位推薦
+→ 權重計分
+→ ML 精煉（未來）
+→ 最終排序
 ```
 
-### 9.1 Strategic Overview
+### 10.3 推薦架構核心價值
 
-The CrawlerNest recommendation engine is designed to evolve from simple rule-based filtering into a sophisticated, multi-level AI decision support system.
+- **可解釋性**：每個推薦可回溯至具體訊號
+- **可擴展性**：可逐層引入 ML，不破壞既有流程
+- **多層級支援**：University / Program / Degree
 
-#### Core Strategic Value
-This architecture ensures three critical platform characteristics:
-- **Explainability**: Weighted scoring provides transparent rationale for every recommendation.
-- **Extensibility**: The modular design allows for the seamless integration of machine learning layers as data volume grows.
-- **Multi-level Support**: Simultaneously supports recommendations at the **University, Program, and Degree** levels.
+### 10.4 推薦演進路線
 
-#### Evolutionary Roadmap [Strategic Vision]
-The system follows a staged approach to recommendation depth:
-- **V1.5 (Current Development)**: University-level Recommendation
-- **V2 (Strategic Goal)**: Program-aware Recommendation
-- **V3 (Strategic Goal)**: Degree-level Recommendation
-- **V4 (Long-term Vision)**: Comprehensive Multi-level Intelligent Decision Support
+- **V1.5（當前）**：校級推薦
+- **V2（下一階段）**：Program-aware 推薦
+- **V3（未來）**：Degree-level 推薦
+- **V4（Long-term）**：多層級智慧決策系統
 
-This strategy transforms CrawlerNest from a mere data viewer into a true **Education Decision Support System (EDSS)**.
+### 10.5 概念評分式
 
----
-
-
-#### Multi-level Recommendation Strategy
-To manage complexity, the recommendation depth is expanded incrementally based on data maturity:
-- **University-level**: Addressing the foundational question: "Which institutions are a good fit?"
-- **Program-aware**: Addressing specialized fit: "Which specific departments or fields align with the user's goals?"
-- **Degree-level**: Addressing granular fit: "Which specific degree offerings provide the best outcome/ROI?"
-
-#### Hybrid Recommendation Engine
-The ultimate state of the engine is a **Hybrid System (Rule-based + Weighted Scoring + ML Refinement)**.
-
-#### Processing Pipeline:
-1. **Rule Filter (Hard Constraints)**: Filters candidates based on absolute requirements (IELTS/TOEFL scores, Budget, Country, Degree type).
-2. **Weighted Scoring Layer**: Calculates a base score using explainable signals such as aggregate rankings, admission probability, and cost/location fit.
-3. **ML Refinement Layer (Future)**: Fine-tunes the ranking based on historical outcomes and user behavior models as the dataset matures.
-
-#### Recommendation Scoring Model (Conceptual)
-In the V1.5 / V2 stages, the engine utilizes an explainable weighted scoring model:
-
-$RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPref + OutcomeSignal$
-
-- **CompositeRanking**: Aggregated score derived from QS, THE, and ARWU.
-- **AdmissionProb**: Statistical estimation of acceptance based on academic credentials.
-- **BudgetFit**: Alignment between tuition costs and user financial constraints.
-- **LocationPref**: Regional or country-specific preferences.
-- **OutcomeSignal**: Employment rates, career outcomes, and other third-party value indicators.
-
+```text
+RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPref + OutcomeSignal
+```
 
 ---
 
-## Development Priorities & Execution Strategy
+## 11. 開發優先順序與執行策略
 
-To ensure sustainable growth and avoid scope explosion, CrawlerNest development is prioritized into three distinct tiers. This strategy ensures a functional core platform is delivered before expanding into AI and product layers.
+為避免範圍膨脹（scope explosion），開發必須採分層推進。
 
-### Tier 1: Current (V1.5) — Foundational Data Platform [Operational / Finalizing]
-This tier establishes the critical path for system viability.
-- **Focus**: `Crawler → Normalization → Database → Query`
-- **Core Components [Operational]**:
-    - Ranking crawlers (QS World Rankings baseline).
-    - Canonical Database Schema implementation (SQLite baseline + PostgreSQL migration baseline).
-    - Multi-stage Normalization Pipelines (Python).
-    - CLI Explorer/Query Interface for developer and power-user access.
-    - Initial School Mapping and Identity Resolution mechanisms.
-- **Core Components [In Development]**:
-    - C Normalization Engine Prototype.
-    - JUnit Automation framework for Java services.
+### 11.1 第一層：當前（V1.5）
 
-**Status**: Provides a stable data foundation and a continuously updatable university knowledge base.
+焦點：`Crawler → Normalization → Database → Query`
 
----
+- 已可運行：QS ranking、Canonical schema、Python 正規化、CLI 查詢、初版實體映射
+- 開發中：C 引擎原型、Java 服務測試自動化
 
-### Tier 2: Next (V2) — Platform Expansion & Enrichment [Strategic Goal]
-Building upon the stable V1.5 foundation to create a comprehensive knowledge base.
-- **Focus**: Multi-source data integration and deeper parsing.
-- **Core Components [Planned]**:
-    - Integration of additional ranking sources (THE, ARWU).
-    - Automated admission requirement extraction from university sites.
-    - Incremental update pipelines for efficient data maintenance.
-    - Advanced Entity Resolution (Alias tables + fuzzy matching).
-    - Preliminary Admission Probability heuristics.
-    - Initial implementation of Program Taxonomy.
+### 11.2 第二層：下一階段（V2）
 
----
+焦點：多來源整合與資料深度
 
-此階段的目標是建立 **完整的 University Knowledge Base**。
+- THE/ARWU 接入
+- Admission 自動提取擴展
+- 增量更新管線
+- 實體識別升級（alias + fuzzy）
+- Admission 機率估算初版
+- Program taxonomy 初版
 
----
+### 11.3 第三層：未來（V3）
 
-### Future (V3) — 未來進化 (Advanced Intelligence Layer)
-
-此層為長期目標，不影響核心平台運作。
+焦點：智能化與產品化
 
 - Hybrid recommendation engine
-- Personalized university ranking
-- Program-aware recommendation
-- Degree-level recommendation
-- LLM-based admission parsing
-- Tuition / career outcome / third-party signal integration
-- Future API platform
-- Future web product
+- Program / Degree 層推薦
+- LLM 輔助 admission 解析
+- Tuition / outcome / 第三方訊號整合
+- API 平台與 Web 產品
 
-這一層將把 CrawlerNest 從 **data platform** 推進為 **decision-support system**。
+### 11.4 優先原則
+
+```text
+當前（V1.5） → 下一階段（V2） → 未來（V3）
+```
+
+任何新功能若影響 V1.5 穩定性，應延期至 V2 或 V3。
 
 ---
 
-### Priority Principle
+## 12. 里程碑與四年路線圖
 
-整個專案開發必須遵循以下順序：
+### 12.1 平台能力里程碑
 
-```
-Current (V1.5) → Next (V2) → Future (V3)
-```
+- **Milestone 1：穩定採集能力**（QS + 基礎正規化）
+- **Milestone 2：知識基礎能力**（Canonical schema + school-level identity）
+- **Milestone 3：資料增強能力**（多榜單整合 + admission crawling）
+- **Milestone 4：智慧決策能力**（Hybrid recommendation + multi-level model）
 
-任何新功能若影響 Current (V1.5) 穩定性，應延後至 Next (V2) 或 Future (V3)。
+### 12.2 四年路線原則
 
-此策略確保：
+**資料平台 → 分析能力 → AI 智能 → 產品化**
 
-- 系統能快速產出可用成果
-- 架構不會因過度設計而停滯
-- 長期演進仍然保持清晰方向
+### 12.3 已完成里程進展（Historical Timeline）
 
-
-## Project Milestones & 4-Year Roadmap
-
-本節定義 CrawlerNest 的平台能力里程碑，並對應四年期演進計畫。開發順序仍以 **Current (V1.5) → Next (V2) → Future (V3)** 為原則，避免早期過度擴張範圍。
-
-### 1. Major Capability Milestones
-- **Milestone 1 — Stable Ingestion**: Verified crawling for QS ranking datasets and robust extraction/normalization.
-- **Milestone 2 — Knowledge Infrastructure**: Canonical schema implementation and school-level identity resolution.
-- **Milestone 3 — Data Enrichment**: Integration of multi-source rankings (THE, ARWU) and admission requirement crawling.
-- **Milestone 4 — Intelligent Decision Support**: Deployment of a hybrid recommendation engine and multi-level data models.
-
-### 2. 4-Year Strategic Roadmap
-Our path follows the principle: **Data Platform → Analytics → AI → Productization.**
-
-#### Historical Project Timeline (Current Progress)
-| Date | Milestone / Update | Status |
+| 日期 | 里程碑 / 更新 | 狀態 |
 | :--- | :--- | :--- |
-| **2026-02-04** | Initial admission requirements crawler prototype. | Done |
-| **2026-02-17** | Complete modular refactor (V2.0); established async default mode. | Done |
-| **2026-03-09** | Formalized system architecture and long-term intelligence platform vision. | Done |
-| **2026-03-15** | Structural modularization: Separated Python orchestration from the C Normalization Engine. | Done |
-| **2026-03-18** | Java services upgraded to Spring Data JPA with Maven/JUnit automation framework. | Done |
-| **2026-03-19** | PostgreSQL schema initialization validated; Spring Boot service successfully booted against the new database baseline. | Done |
-| **2026-03-20** | **Architecture Whitepaper Refined**: Updated persistence status to reflect PostgreSQL baseline validation and service integration progress. | **Current** |
+| 2026-02-04 | 初版 admission crawler 原型 | 已完成 |
+| 2026-02-17 | 完成模組化重構（V2.0）並預設 async 模式 | 已完成 |
+| 2026-03-09 | 完成架構藍圖與長期平台願景定義 | 已完成 |
+| 2026-03-15 | 分離 Python 主流程與 C 正規化引擎 | 已完成 |
+| 2026-03-18 | Java 服務升級 Spring Data JPA 與 Maven/JUnit 框架 | 已完成 |
+| 2026-03-19 | PostgreSQL schema 初始化驗證，Spring Boot 啟動驗證 | 已完成 |
+| 2026-03-20 | 白皮書重整：同步 PostgreSQL 基線與服務整合狀態 | 目前 |
 
-#### Future Development Phases
-- **Phase 1: Stabilization (Months 0–6)**: Establish HTML sample libraries, automate unit testing for extractors, and finalize C-engine boundary definitions.
-- **Phase 2: Data Modeling (Months 7–18)**: Strengthen PostgreSQL-ready schemas, implement de-duplication engines, and integrate C-engine into ingestion pipelines.
-- **Phase 3: Resilience & Multi-Source (Months 19–30)**: Integrate proxy rotation, THE/ARWU rankings, and real-time monitoring alerts.
-- **Phase 4: Advanced Intelligence (Months 31–48)**: Deploy LLM-assisted verification, hybrid recommendation engine, and produce comprehensive trend analysis reports.
+### 12.4 未來階段規劃
 
----
-
-## Product Vision & Capability Map
-
-### 1. Future Product Paradigms
-In its mature state, CrawlerNest will support multiple product configurations:
-- **University Data Explorer**: A structured global institutional search platform.
-- **AI Selection Assistant**: Personalization engine providing tailored university recommendations.
-- **Cross-Ranking Analytics**: Comparative methodology tools for researchers and policymakers.
-- **Integrated Decision Platform**: A "one-stop shop" for ranking, admission, tuition, and outcome data.
-
-### 2. System Capability Map
-The following matrix categorizes platform capabilities across four evolutionary layers:
-
-| Layer | Capability | Status | Direction |
-| :--- | :--- | :---: | :--- |
-| **Foundation** | Ranking Crawling Infrastructure | **Active** | Continuous stability and maintenance optimization. |
-| **Foundation** | Canonical Identity Schema | **Active** | Evolution to program/degree-aware models. |
-| **Foundation** | Identity Resolution (Aliases) | **Active** | Transitioning to fuzzy and embedding-based matching. |
-| **Foundation** | Knowledge Base Persistence (SQLite → PostgreSQL) | **Active** | PostgreSQL baseline validated; continuing toward production-grade analytics and service integration. |
-| **Expansion** | Multi-Ranking Integration | **Planned** | Full support for QS, THE, ARWU, and regional lists. |
-| **Expansion** | Admission Ingestion | **Planned** | Extraction of structured and raw admission signatures. |
-| **Expansion** | Program Taxonomy | **Planned** | Foundation for department-level analytics. |
-| **Intelligence** | Admission Probability Estimation | **Planned** | Key feature for explainable recommendations. |
-| **Intelligence** | Hybrid Recommendation Engine | **Future** | Rule-based screening + ML refinement. |
-| **Productization** | CLI Explorer | **Active** | Primary developer and research interface. |
-| **Productization** | API & Web Platform | **Future** | Scalable service endpoints and consumer interfaces. |
+- **Phase 1（0-6 個月）**：建立 HTML 樣本庫、完善 extractor 單測、完成 C engine 邊界定義
+- **Phase 2（7-18 個月）**：強化 PostgreSQL-ready schema、實作去重引擎、整合 C engine
+- **Phase 3（19-30 個月）**：代理池、THE/ARWU、多來源韌性與監控預警
+- **Phase 4（31-48 個月）**：LLM 輔助校驗、Hybrid recommendation、趨勢分析報告
 
 ---
 
-## Risk Mitigation & Maintenance
+## 13. 產品願景與能力地圖
 
-Our technical strategy includes proactive management of crawler, data platform, and AI-related risks.
+### 13.1 產品形態（成熟期）
 
-| Risk Category | Item | Severity | Mitigation Strategy |
+- **University Data Explorer**：結構化全球院校查詢
+- **AI Selection Assistant**：個人化選校輔助
+- **Cross-Ranking Analytics**：跨榜單比較與研究工具
+- **Integrated Decision Platform**：排名、錄取、費用、成果整合平台
+
+### 13.2 能力地圖
+
+| 能力層 | 能力項目 | 目前狀態 | 長期方向 |
 | :--- | :--- | :---: | :--- |
-| **Technical** | Site Structure Changes | High | Implementation of schema-driven parsing to reduce maintenance overhead. |
-| **Infrastructure** | IP Blocking / WAF | Medium | Proxy rotation integration and migration to headless browsing if necessary. |
-| **Data Quality** | Entity Fragmentation | High | Prioritization of identity resolution and de-duplication engines. |
+| 基礎層 | 排名採集基礎設施 | 進行中 | 穩定性與維護性持續提升 |
+| 基礎層 | Canonical identity schema | 進行中 | 演進至 program/degree aware |
+| 基礎層 | 實體識別（Aliases） | 進行中 | 升級 fuzzy + embedding |
+| 基礎層 | 知識庫儲存（SQLite → PostgreSQL） | 進行中 | 邁向 production-grade analytics/service |
+| 擴展層 | 多榜單整合 | 規劃中 | 完整支援 QS/THE/ARWU 與區域榜單 |
+| 擴展層 | Admission ingestion | 規劃中 | structured + raw 雙軌擴展 |
+| 擴展層 | Program taxonomy | 規劃中 | 部門級與課程級分析基礎 |
+| 智能層 | Admission probability estimation | 規劃中 | 可解釋推薦關鍵特徵 |
+| 智能層 | Hybrid recommendation engine | 未來 | Rule + Weight + ML |
+| 產品化層 | CLI explorer | 進行中 | 開發者與研究者主介面 |
+| 產品化層 | API / Web platform | 未來 | 可擴展服務端與用戶介面 |
 
-### Routine Maintenance Checklist
-- **Quarterly Audit**: Sample-check top 10 institutions to verify DOM stability and parsing accuracy.
-- **Continuous Alignment**: Ensure that any major architectural changes are reflected in this Master Project Plan.
-- **Database Verification**: Re-run PostgreSQL schema initialization and Spring Boot connectivity checks whenever schema or persistence configuration changes.
+---
+
+## 14. 風險與維護策略
+
+### 14.1 主要風險
+
+| 風險類別 | 風險項目 | 影響程度 | 緩解策略 |
+| :--- | :--- | :---: | :--- |
+| 技術層 | 網站結構改版 | 高 | 落實 schema-driven parsing，降低維護成本 |
+| 基礎設施層 | IP 封鎖 / WAF | 中 | 導入代理輪替，必要時採 headless 方案 |
+| 資料品質層 | 實體碎片化 | 高 | 提前推進 identity resolution 與去重引擎 |
+
+### 14.2 例行維護清單
+
+- **每季**：抽樣 Top 10 大學頁面，檢查 DOM 與解析正確性
+- **持續**：重大架構變更後同步更新本白皮書
+- **資料庫變更後**：重跑 PostgreSQL schema 初始化與 Spring Boot 連線驗證
 
 ---
 
 > [!IMPORTANT]
-> This document constitutes the definitive Technical Architecture Whitepaper for the CrawlerNest project. All architectural decisions, data model modifications, and strategic pivots must align with the layered design and evolutionary tiers documented herein.
+> 本文件為 CrawlerNest 專案的主架構白皮書。所有重大技術決策、資料模型調整與路線轉向，均應以本文的分層模型與演進策略為優先依據，確保架構一致性、可擴展性與推薦系統可解釋性。
