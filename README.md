@@ -121,8 +121,94 @@ The high‑level architecture of CrawlerNest follows a layered data‑platform p
            └──────────────────────┘
 ```
 
-This pipeline transforms **unstructured web information** into a **structured knowledge system** that can power analytics tools, university intelligence platforms, and future AI‑driven recommendation systems. The persistence layer now includes a validated PostgreSQL baseline in addition to the original SQLite warehouse setup.
+## Future Platform Architecture
 
+CrawlerNest is evolving beyond a crawler into a full **education data infrastructure and decision-support platform**.
+
+```
+Crawler → Knowledge Base → Analytics → AI → Product
+```
+
+### What This Means
+
+In the future, the system will include:
+
+- **Global University Knowledge Base**
+  - Rankings (QS / THE / ARWU)
+  - Admission requirements
+  - Programs / degrees
+  - Tuition and future outcome signals
+
+- **Analytics Layer (Next)**
+  - Cross-ranking aggregation
+  - Admission probability estimation
+  - ROI / trend analysis
+
+- **Recommendation Engine (Future)**
+  - Rule-based filtering (constraints)
+  - Weighted scoring (explainable)
+  - ML-based refinement (long-term)
+
+- **API Platform (Future)**
+  - `/universities`
+  - `/rankings`
+  - `/recommendations`
+
+- **End-user Products (Future)**
+  - AI university selection assistant
+  - School comparison tools
+  - Education data explorer
+
+### Positioning
+
+CrawlerNest is not just a crawler.
+
+It is being designed as a **data infrastructure layer for global education intelligence**, with a long-term goal of becoming an **AI-powered decision support system**.
+
+---
+
+## Roadmap Visualization
+
+CrawlerNest development is organized into clearly defined stages to distinguish **current capabilities** from **near-term engineering goals** and **long-term vision**.
+
+```
+V1.5 (Current) → V2 (Next) → V3+ (Future)
+```
+
+### V1.5 — Data Platform Foundation (Current)
+- Stable QS ranking crawler
+- Async crawling pipeline (AsyncIO)
+- SQLite knowledge base (baseline)
+- PostgreSQL schema initialized (validated)
+- Python ingestion pipeline (crawler → DB)
+- C normalization engine (prototype)
+- Modular architecture (crawler / extractor / db_writer)
+- Java service layer (boot-tested with PostgreSQL)
+
+### V2 — Data Intelligence Layer (Next)
+- Entity resolution (alias / fuzzy matching)
+- Data consistency & normalization improvements
+- Multi-source ranking integration (QS / THE / ARWU)
+- Ranking aggregation logic
+- Expanded knowledge base (programs / degrees / metadata)
+- PostgreSQL-backed analytics expansion
+
+### V3+ — Intelligence & Product Layer (Future)
+- AI-driven recommendation engine
+- Public API platform
+- Web-based analytics interface
+- University/program recommendation system
+- B2C (student tools) + B2B (data/API services)
+
+### Key Principle
+
+CrawlerNest is built with a staged evolution model:
+
+- **Current = implemented and testable**
+- **Next = actively being engineered**
+- **Future = clearly defined but not yet built**
+
+This ensures clarity, credibility, and a realistic development trajectory.
 ---
 
 ## Repository Structure Map

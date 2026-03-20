@@ -2,6 +2,7 @@
 import unittest
 import sys
 import os
+import importlib.util
 from pathlib import Path
 
 def run_all_tests():
@@ -28,8 +29,22 @@ def run_all_tests():
     sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
     
     loader = unittest.TestLoader()
-    # Discover tests in the current directory (which is crawlernest-tests/)
-    suite = loader.discover(start_dir=os.path.dirname(__file__), pattern='test_*.py')
+
+    test_modules = [
+        "test_fetcher",
+        "test_extractor",
+        "test_db_writer",
+    ]
+
+    # pytest-based modules are optional for the unified unittest runner.
+    if importlib.util.find_spec("pytest") is not None:
+        test_modules.extend(["test_ranking_api", "test_regions"])
+    else:
+        print("[WARN] pytest not installed: skipping test_ranking_api and test_regions")
+
+    suite = unittest.TestSuite()
+    for mod in test_modules:
+        suite.addTests(loader.loadTestsFromName(mod))
     
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)

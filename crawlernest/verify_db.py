@@ -1,11 +1,20 @@
 import sys
 import os
+from pathlib import Path
 
-# Add the project root to sys.path so we can import the models and writer
-sys.path.append(os.getcwd())
+# Add module roots used by the modularized layout.
+ROOT = Path(__file__).resolve().parent
+MODULE_DIRS = [
+    ROOT / "crawlernest-core",
+    ROOT / "crawlernest-db-writer",
+]
+
+for mod_dir in MODULE_DIRS:
+    if mod_dir.is_dir():
+        sys.path.insert(0, str(mod_dir))
 
 try:
-    from crawlernest_db_writer.db_writer import DBWriter
+    from db_writer import DBWriter
     print("✅ Successfully imported DBWriter")
 except ImportError as e:
     print(f"❌ Error importing DBWriter: {e}")

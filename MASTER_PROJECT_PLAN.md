@@ -108,6 +108,64 @@ This architecture reflects the long-term design principle:
 
 ---
 
+### Future Platform Architecture (Unified View)
+
+The following diagram consolidates the long-term platform evolution of CrawlerNest into a single unified architecture view:
+
+```
+                    ┌──────────────────────────────┐
+                    │     Global Web Sources       │
+                    │ QS / THE / ARWU / Univ Sites │
+                    └──────────────┬───────────────┘
+                                   │
+                                   ▼
+                    ┌──────────────────────────────┐
+                    │   Crawler & Ingestion Layer  │
+                    │ Async jobs / fetch / parsing │
+                    └──────────────┬───────────────┘
+                                   │
+                                   ▼
+                    ┌──────────────────────────────┐
+                    │ Normalization & Resolution   │
+                    │ Python baseline + C engine   │
+                    │ Alias / fuzzy / embedding    │
+                    └──────────────┬───────────────┘
+                                   │
+                                   ▼
+                    ┌──────────────────────────────┐
+                    │ University Knowledge Base    │
+                    │ Rankings / admission /       │
+                    │ programs / degrees / tuition │
+                    └──────────────┬───────────────┘
+                                   │
+              ┌────────────────────┼────────────────────┐
+              │                    │                    │
+              ▼                    ▼                    ▼
+   ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+   │ Analytics Layer  │  │ Recommendation   │  │ Public API Layer │
+   │ aggregation      │  │ Engine           │  │ /universities    │
+   │ ROI / trends     │  │ rule + score +AI │  │ /rankings        │
+   │ admission prob   │  │ uni/program fit  │  │ /recommendations │
+   └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘
+            │                     │                     │
+            └──────────────┬──────┴──────┬─────────────┘
+                           │             │
+                           ▼             ▼
+                ┌──────────────────┐  ┌──────────────────┐
+                │ B2C Product      │  │ B2B Product      │
+                │ Student Explorer │  │ EdTech / Agency  │
+                │ AI Selection     │  │ Data licensing   │
+                │ Compare schools  │  │ API subscription │
+                └──────────────────┘  └──────────────────┘
+```
+
+#### Interpretation
+- **Current (V1.5)**: Crawler, normalization baseline, and knowledge base layers are partially implemented.
+- **Next (V2)**: Analytics layer, entity resolution upgrades, and multi-source integration.
+- **Future (V3+)**: Recommendation engine, public API platform, and end-user products.
+
+---
+
 ## System Layer Model (Architectural Layers)
 
 To clearly define the platform structure, it is categorized into six functional layers:
@@ -135,7 +193,7 @@ To establish a perpetual, automated system for the intelligent analysis of globa
 
 ---
 
-## 二、 核心技術架構與機制 (Core Architectural Strategy & Mechanisms)
+## 2. Core Architectural Strategy & Mechanisms（中文補充）
 
 ### 1. 全域參數與組態機制 (Configuration Logic)
 系統核心由 `Config` 類管理，採用 Python Dataclass 封裝，實現「參數化管理」：
@@ -168,7 +226,7 @@ To establish a perpetual, automated system for the intelligent analysis of globa
 
 ---
 
-## 三、 深度技術實作邏輯 (Detailed Implementation)
+## 3. Detailed Implementation Notes（中文補充）
 
 ### 1. 特徵提取、驗證與正規化 (Extraction, Validation & Normalization)
 - **數值解析**：針對分數範圍（如 `7.0-7.5`），執行算術平均運算 `(min + max) / 2` 輸出單一浮點數。
@@ -242,8 +300,6 @@ Key long-term focus areas:
 - **High-fidelity Resolution**: Transitioning from manual alias mapping to fuzzy and embedding-based matching.
 - **Feature Engineering**: Transforming raw rankings and admission signals into ML-ready feature vectors for the recommendation engine.
 - **Interoperability**: Using the C-based normalization engine as a pluggable data quality accelerator.
-
-### 1.2 SQL Schema (Reference Implementation)
 
 ### 3. SQL Schema Reference
 The following schema defines the V1.5 warehouse baseline, incorporating crawl runs, raw staging, dimensions, facts, and auditing logs. This reference reflects the canonical logical model; SQLite served as the original persistence baseline, and PostgreSQL has now been validated as the next-stage operational database target for the Java service layer.
@@ -459,7 +515,7 @@ This pipeline ensures a clean separation of concerns:
 - 重跑 normalization 與 analytics
 - 在資料庫層之上構建新的產品功能
 
-### 7.1 Platform Architecture
+### 6. Platform Architecture
 
 為了支援未來四年的產品化目標，CrawlerNest 系統將逐步演進為一個 **University Data Platform**，並在其上建立 AI 決策層。此架構與目前的 crawler 系統保持相容，同時允許未來擴展 API 與 Web 平台。
 
@@ -525,9 +581,9 @@ Crawler → Database → Analytics → AI → Product
 - Data pipeline 與 AI layer 解耦
 - 未來能支援多 ranking 整合
 - 系統可逐步產品化，而不影響現有 crawler 架構
- - PostgreSQL baseline 已完成初始化與 Java Spring Boot service 啟動驗證
+- PostgreSQL baseline 已完成初始化與 Java Spring Boot service 啟動驗證
 
-### 7.2 Architecture Principles
+### 7. Architecture Principles
 
 為了確保 CrawlerNest 在未來四年的擴展過程中保持可維護性與一致性，系統設計遵循以下核心原則：
 
@@ -578,7 +634,9 @@ Priority order：manual mapping → alias table → fuzzy matching → embedding
 
 ---
 
-### 9. AI Recommendation Architecture
+## AI Recommendation Architecture
+
+### 9. Decision Flow
 
 推薦系統在架構層可抽象為以下決策流程：
 
@@ -605,17 +663,17 @@ ML Refinement Layer
 Final Ranked Recommendations
 ```
 
-## AI Recommendation Architecture
+### 9.1 Strategic Overview
 
 The CrawlerNest recommendation engine is designed to evolve from simple rule-based filtering into a sophisticated, multi-level AI decision support system.
 
-### Core Strategic Value
+#### Core Strategic Value
 This architecture ensures three critical platform characteristics:
 - **Explainability**: Weighted scoring provides transparent rationale for every recommendation.
 - **Extensibility**: The modular design allows for the seamless integration of machine learning layers as data volume grows.
 - **Multi-level Support**: Simultaneously supports recommendations at the **University, Program, and Degree** levels.
 
-### Evolutionary Roadmap [Strategic Vision]
+#### Evolutionary Roadmap [Strategic Vision]
 The system follows a staged approach to recommendation depth:
 - **V1.5 (Current Development)**: University-level Recommendation
 - **V2 (Strategic Goal)**: Program-aware Recommendation
@@ -627,13 +685,13 @@ This strategy transforms CrawlerNest from a mere data viewer into a true **Educa
 ---
 
 
-### 1. Multi-level Recommendation Strategy
+#### Multi-level Recommendation Strategy
 To manage complexity, the recommendation depth is expanded incrementally based on data maturity:
 - **University-level**: Addressing the foundational question: "Which institutions are a good fit?"
 - **Program-aware**: Addressing specialized fit: "Which specific departments or fields align with the user's goals?"
 - **Degree-level**: Addressing granular fit: "Which specific degree offerings provide the best outcome/ROI?"
 
-### 2. Hybrid Recommendation Engine
+#### Hybrid Recommendation Engine
 The ultimate state of the engine is a **Hybrid System (Rule-based + Weighted Scoring + ML Refinement)**.
 
 #### Processing Pipeline:
@@ -641,7 +699,7 @@ The ultimate state of the engine is a **Hybrid System (Rule-based + Weighted Sco
 2. **Weighted Scoring Layer**: Calculates a base score using explainable signals such as aggregate rankings, admission probability, and cost/location fit.
 3. **ML Refinement Layer (Future)**: Fine-tunes the ranking based on historical outcomes and user behavior models as the dataset matures.
 
-### 3. Recommendation Scoring Model (Conceptual)
+#### Recommendation Scoring Model (Conceptual)
 In the V1.5 / V2 stages, the engine utilizes an explainable weighted scoring model:
 
 $RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPref + OutcomeSignal$
@@ -727,64 +785,15 @@ Current (V1.5) → Next (V2) → Future (V3)
 - 長期演進仍然保持清晰方向
 
 
-## Major Project Milestones
+## Project Milestones & 4-Year Roadmap
 
-本節描述的是 **平台能力里程碑 (platform capability milestones)**，用於定義系統在長期演進過程中必須達到的穩定能力節點。
-
-實際開發優先順序仍應以 **Development Priorities (Current (V1.5) → Next (V2) → Future (V3))** 為準，以避免在早期階段過度擴展系統範圍。
-
-The long-term development of CrawlerNest is organized into a sequence of major technical milestones. Each milestone represents a stable platform capability that the system must achieve before moving to the next stage.
-
-### Milestone 1 — Stable Crawling Infrastructure Capability
-
-- 完成 ranking crawler 的穩定化
-- 建立基本 extraction / normalization pipeline
-- 支援 QS ranking dataset
-
-### Milestone 2 — University Knowledge Base Capability
-
-- 建立 canonical database schema
-- 完成 school identity resolution
-- 支援 admission requirements crawling
-
-### Milestone 3 — Multi-Ranking Integration Capability
-
-- 整合 QS / THE / ARWU rankings
-- 建立 ranking aggregation
-- 支援 cross-ranking analytics
-
-### Milestone 4 — Multi-level AI-assisted Recommendation Capability
-
-### Tier 3: Future (V3) — Advanced Intelligence Layer
-The long-term evolutionary stage where the platform transforms into a decision-support system.
-- **Focus**: AI-driven insights and multi-level recommendations.
-- **Core Components**:
-    - Hybrid Recommendation Engine (Rule + Scoring + ML).
-    - Personalized institutional rankings.
-    - Program and Degree-level recommendation modules.
-    - LLM-integrated admission parsing for complex, unstructured requirements.
-    - Integration of external signals (Tuition, Career Outcomes, ROI).
-    - Development of public API and Web products.
-
----
-
-### Execution Principle: Linear Progression
-Development must follow a strict sequential order:
-**Tier 1 (V1.5) → Tier 2 (V2) → Tier 3 (V3)**
-
-New features must not compromise the stability of Tier 1. This ensures rapid delivery of functional results while maintaining a clear, non-bloated architectural direction.
-
----
-
-## Development Roadmap & Milestones
-
-The CrawlerNest roadmap is defined by stable **Platform Capability Milestones**, ensuring that foundational infrastructure is solidified before advancing to higher-level intelligence.
+本節定義 CrawlerNest 的平台能力里程碑，並對應四年期演進計畫。開發順序仍以 **Current (V1.5) → Next (V2) → Future (V3)** 為原則，避免早期過度擴張範圍。
 
 ### 1. Major Capability Milestones
-- **Milestone 1 — Stable Ingestion**: Verified crawling for QS ranking datasets and robust normalization.
+- **Milestone 1 — Stable Ingestion**: Verified crawling for QS ranking datasets and robust extraction/normalization.
 - **Milestone 2 — Knowledge Infrastructure**: Canonical schema implementation and school-level identity resolution.
 - **Milestone 3 — Data Enrichment**: Integration of multi-source rankings (THE, ARWU) and admission requirement crawling.
-- **Milestone 4 — Intelligent Decision Support**: Deployment of the hybrid recommendation engine and multi-level data models.
+- **Milestone 4 — Intelligent Decision Support**: Deployment of a hybrid recommendation engine and multi-level data models.
 
 ### 2. 4-Year Strategic Roadmap
 Our path follows the principle: **Data Platform → Analytics → AI → Productization.**
@@ -833,8 +842,6 @@ The following matrix categorizes platform capabilities across four evolutionary 
 | **Intelligence** | Hybrid Recommendation Engine | **Future** | Rule-based screening + ML refinement. |
 | **Productization** | CLI Explorer | **Active** | Primary developer and research interface. |
 | **Productization** | API & Web Platform | **Future** | Scalable service endpoints and consumer interfaces. |
-
----
 
 ---
 

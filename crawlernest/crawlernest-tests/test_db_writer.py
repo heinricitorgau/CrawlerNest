@@ -20,7 +20,7 @@ class TestDBWriter(unittest.TestCase):
         with open(schema_path, "r") as f:
             conn.executescript(f.read())
         conn.close()
-        self.writer = DBWriter(self.test_db)
+        self.writer = DBWriter(db_type="sqlite", db_path=self.test_db)
 
     def tearDown(self):
         self.writer.close()
