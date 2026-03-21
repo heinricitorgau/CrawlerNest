@@ -381,6 +381,5 @@ CrawlerNest repositories are currently **private** and maintained under the Craw
 
 ## License
 
-This project is licensed under the Apache License 2.0.
-
-© 2026 CrawlerNest Organization
+This project is protected by a custom proprietary license.
+See the [LICENSE](./LICENSE) file for full terms and restrictions.
