@@ -5,10 +5,14 @@ clawer/service/RecommendationService.class
 clawer/config/DatabaseConfig.class
 clawer/model/University.class
 clawer/model/Ranking.class
+clawer/dto/AdmissionDTO.class
 clawer/model/RecommendationResult.class
+clawer/service/AdmissionService.class
 clawer/repository/RankingRepository.class
+clawer/api/AdmissionController.class
 clawer/api/RankingController.class
 clawer/service/UniversityService.class
+clawer/repository/AdmissionRequirementRepository.class
 clawer/service/RankingService.class
 clawer/service/AnalyticsService.class
 clawer/api/RecommendationController.class

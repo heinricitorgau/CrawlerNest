@@ -33,9 +33,11 @@ CrawlerNest is currently transitioning from a crawler tool into a structured dat
 - ✅ PostgreSQL schema initialization baseline (validated)
 - ✅ Extraction and parsing modules for rankings and admission data
 - ✅ Python data ingestion pipeline (crawler → DB)
+- ✅ Minimal end-to-end runner (`crawlernest/run_pipeline.py`: crawl → normalize → store → query)
 - ✅ C normalization engine (prototype for high-performance parsing)
 - ✅ Modular architecture (crawler / extractor / db_writer separation)
 - ✅ Initial Java Spring Boot service integration (validated startup against PostgreSQL baseline)
+- ✅ Read-only internal API endpoints: `/universities`, `/rankings`, `/admissions`
 
 ### Next (V2): In progress
 
@@ -52,6 +54,61 @@ CrawlerNest is currently transitioning from a crawler tool into a structured dat
 - Web-based analytics interface
 
 This section reflects the **actual engineering maturity** of the system and distinguishes it from long-term architectural goals.
+
+---
+
+## Minimal End-to-End Usage (Current)
+
+The commands below describe the current, testable path for QS data.
+
+### 1) Run crawler → extract → normalize → store (SQLite)
+
+From repository root:
+
+```bash
+python3 crawlernest/run_pipeline.py run --limit 30
+```
+
+Expected console shape:
+
+```text
+[1/4] Crawling QS data...
+[2/4] Normalizing fields (Python baseline)...
+[3/4] Writing 30 rows to sqlite...
+[4/4] Done.
+Inserted rows: 30
+```
+
+### 2) Query stored rankings (SQLite query mode)
+
+```bash
+python3 crawlernest/run_pipeline.py query MIT --limit 20
+```
+
+Expected output shape:
+
+```text
+rank | university | country | score | ranking_type
+1 | Massachusetts Institute of Technology (MIT) | United States | 100.0 | world
+```
+
+### 3) Read-only API paths (Spring Boot service)
+
+Once `servise_for_java` is running:
+
+- `GET /universities`
+- `GET /rankings`
+- `GET /admissions`
+
+Example requests:
+
+```bash
+curl http://localhost:8080/universities
+curl http://localhost:8080/rankings
+curl http://localhost:8080/admissions
+```
+
+Note: public/external API hardening is still part of future roadmap work.
 
 ---
 
@@ -150,8 +207,7 @@ In the future, the system will include:
   - ML-based refinement (long-term)
 
 - **API Platform (Future)**
-  - `/universities`
-  - `/rankings`
+  - Public/externalized API hardening and product-facing contracts
   - `/recommendations`
 
 - **End-user Products (Future)**
@@ -181,9 +237,11 @@ V1.5 (Current) → V2 (Next) → V3+ (Future)
 - SQLite knowledge base (baseline)
 - PostgreSQL schema initialized (validated)
 - Python ingestion pipeline (crawler → DB)
+- Minimal end-to-end flow via `crawlernest/run_pipeline.py`
 - C normalization engine (prototype)
 - Modular architecture (crawler / extractor / db_writer)
 - Java service layer (boot-tested with PostgreSQL)
+- Read-only internal API endpoints (`/universities`, `/rankings`, `/admissions`)
 
 ### V2 — Data Intelligence Layer (Next)
 - Entity resolution (alias / fuzzy matching)
@@ -306,9 +364,10 @@ Active development (V1.5 – Data Platform Transition Stage).
 CrawlerNest is currently evolving from a crawler-centric system into a modular data platform with a validated PostgreSQL migration baseline and:
 
 - a structured data ingestion pipeline
+- a minimal runnable flow (`crawlernest/run_pipeline.py`) for QS crawl/store/query
 - a normalization engine (C-based prototype)
 - a knowledge base (SQLite warehouse baseline + PostgreSQL initialization baseline)
-- an emerging service layer (Java backend successfully boot-tested against PostgreSQL)
+- an emerging service layer (Java backend with read-only endpoints for universities/rankings/admissions)
 
 The project is in a **platform-building phase**, focusing on stability, data quality, and architectural scalability.
 

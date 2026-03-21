@@ -534,7 +534,14 @@ class UniversityFetcher:
             raise RuntimeError(f"Failed to fetch ranking data using all endpoints for nid={nid}: {' | '.join(errors)}")
         return None
 
-    @retry(max_attempts=3, delay=1.0, backoff=2.0, exceptions=(requests.RequestException,))
+    @retry(
+        max_attempts=3,
+        delay=1.0,
+        backoff=2.0,
+        exceptions=(requests.RequestException,),
+        log_attempt_failures=False,
+        log_final_failure=False,
+    )
     def fetch_university_detail(self, path: str) -> Optional[str]:
 
         if not path:

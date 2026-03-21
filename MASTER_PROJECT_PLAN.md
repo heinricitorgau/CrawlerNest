@@ -32,7 +32,7 @@ CrawlerNest 目前採用 **資料優先（Data-first）** 架構，各層模組�
 
 ### 2.1 當前策略重點（當前 / V1.5）
 
-1. **資料聚合**：自動採集 QS、THE、ARWU 等來源資料（目前以 QS 為主）
+1. **資料聚合**：目前穩定採集 QS（THE/ARWU 屬於下一階段整合）
 2. **知識基礎建設**：建立可擴展、可查詢、可追溯的大學資料庫
 3. **決策支援起步**：先建立分析基礎，再逐步推進推薦能力
 
@@ -40,13 +40,16 @@ CrawlerNest 目前採用 **資料優先（Data-first）** 架構，各層模組�
 
 | 模組 | 說明 | 狀態 | 完成度 |
 | :--- | :--- | :---: | :---: |
-| 採集 / 網路層 | 非同步請求、端點探測、分頁處理 | 進行中（可運行） | ~80% |
+| 最小端到端流程 | `crawlernest/run_pipeline.py`（crawl → normalize → store → query） | 已運行 | ~85% |
+| 採集 / 網路層 | 非同步請求、端點探測、分頁處理、保守抓取節流 | 進行中（可運行） | ~80% |
 | 解析 / 提取層 | 錄取要求、截止日、分數規則解析 | 進行中（可運行） | ~75% |
 | Python 正規化基線 | 國家標準化、數值安全轉換、驗證流程 | 進行中（可運行） | ~60% |
 | C 正規化引擎 | 名稱 / 國家 / 排名 / 分數高效處理 | 開發中 | ~25% |
 | 實體識別 | 別名映射、人工校正 | 進行中（可運行） | ~30% |
 | 儲存 / 資料倉層 | 統一 schema、DB writer、PostgreSQL 基線、Spring Data JPA | 進行中（可運行） | ~78% |
-| 品質與驗證 | Raw lineage、欄位狀態、PostgreSQL 初始化驗證、JUnit | 進行中（可運行） | ~62% |
+| API 讀取層（唯讀） | Spring Boot `/universities`、`/rankings`、`/admissions` | 已運行 | ~70% |
+| 品質與驗證 | Raw lineage、欄位狀態、PostgreSQL 初始化驗證、JUnit、checkpoint/resume 驗證 | 進行中（可運行） | ~62% |
+| 低規節點運行策略 | Low-spec mode、資源保護、續跑與長時間運行準則 | 已定義（待工程化） | ~35% |
 | 分析與推薦 | 排名聚合、特徵向量設計 | 策略目標 | ~20% |
 
 ---
@@ -126,7 +129,7 @@ graph TD
         ↓
 大學知識庫（rankings / admission / programs / degrees / tuition）
         ↓
-分析層 + 推薦引擎 + 公開 API 層
+分析層 + 推薦引擎 + API 層（目前內部唯讀，公開化為未來）
         ↓
 B2C / B2B 產品化
 ```
@@ -148,7 +151,7 @@ CrawlerNest 可抽象為六層：
 - **Layer 3 知識庫層（已運作）**：Canonical University Database（單一真實來源）
 - **Layer 4 分析層（策略目標）**：跨榜單聚合、統計分析、特徵工程
 - **Layer 5 推薦層（策略目標）**：規則篩選 + 權重模型 + ML 精煉
-- **Layer 6 產品層（已運作 / 策略目標）**：CLI（現有）與 Web/API（未來）
+- **Layer 6 產品層（已運作 / 策略目標）**：CLI（現有）+ 內部唯讀 API（現有）+ Web / 公開 API（未來）
 
 分層目的：每層可獨立演進，降低耦合，避免牽一髮動全身。
 
@@ -173,9 +176,11 @@ CrawlerNest 可抽象為六層：
 ### 7.1 全域參數與組態
 
 - 以 `Config`（Python Dataclass）集中管理參數
-- 併發控制：`asyncio.Semaphore`（預設 200）
+- 併發控制：`asyncio.Semaphore` + worker/concurrency 雙層節制
+- 低規節點安全預設：`workers = 1`、`concurrency = 1`、`request_delay ≈ 10s`
 - 超時策略：全域 30 秒 timeout
 - 重試策略：指數退避 `wait = retry_delay * (retry_backoff ** attempt)`
+- 長時間運行保護：`resource_guard`、`resume`、checkpoint/snapshot 為基線能力
 
 ### 7.2 採集策略：Schema-driven + 探針模式
 
@@ -320,6 +325,7 @@ graph TD
 
 - **Full Crawl**：週期性全量更新（1500+ universities）
 - **Incremental Update**：針對 admission/program 層做增量刷新
+- **Low-spec Execution**：在老舊節點上以低並發、保守節流、可續跑模式執行長時間任務
 
 ### 9.4 排名資料策略
 
@@ -339,6 +345,34 @@ graph LR
     DB --> ANA[Analytics]
     ANA --> AI[AI Recommendation]
 ```
+
+### 9.6 低規節點運行模式（OpenClaw / Lobster Node）
+
+為了讓 CrawlerNest 未來可在老舊 x86 節點上穩定運行，系統已明確區分「開發主機」與「低規控制節點」兩種角色：
+
+- **開發主機（目前以 MacBook 為主）**：負責功能開發、除錯、測試、小規模端到端驗證
+- **低規控制節點（老桌機 / Lobster-01）**：負責低並發 crawler、長時間 background job、writer node、checkpoint/resume 與穩定性驗證
+
+建議的 Low-spec mode 安全預設：
+
+- `workers = 1`
+- `concurrency = 1`
+- `request_delay = 8~12s`（建議 10 秒）
+- `batch commit = 10`
+- `log level = INFO`
+- `resource_guard = enabled`
+- `resume = enabled`
+
+此模式的設計原則不是追求吞吐極限，而是追求：
+
+**慢慢跑、持續跑、出錯能續跑。**
+
+因此，低規節點的價值主要體現在：
+
+- 可作為第一代 OpenClaw / 龍蝦機節點
+- 可承擔單 pipeline、低併發、長時間任務
+- 可驗證 systemd、自動重啟、log rotation、checkpoint 等運維能力
+- 可作為未來多節點架構的原型節點，而非唯一核心節點
 
 ---
 
@@ -398,10 +432,9 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 
 ### 11.1 第一層：當前（V1.5）
 
-焦點：`Crawler → Normalization → Database → Query`
-
-- 已可運行：QS ranking、Canonical schema、Python 正規化、CLI 查詢、初版實體映射
-- 開發中：C 引擎原型、Java 服務測試自動化
+焦點：  
+- 已可運行：QS ranking、Canonical schema、Python 正規化、CLI 查詢、`crawlernest/run_pipeline.py`（含 SQLite query mode）、Java read-only API（`/universities`、`/rankings`、`/admissions`）、初版實體映射、checkpoint/resume、`resource_guard`  
+- 開發中：C 引擎原型、Java 服務測試自動化、Low-spec mode 工程化（如 `--low-spec` 開關、log rotation、systemd service）
 
 ### 11.2 第二層：下一階段（V2）
 
@@ -457,6 +490,10 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-15 | 分離 Python 主流程與 C 正規化引擎 | 已完成 |
 | 2026-03-18 | Java 服務升級 Spring Data JPA 與 Maven/JUnit 框架 | 已完成 |
 | 2026-03-19 | PostgreSQL schema 初始化驗證，Spring Boot 啟動驗證 | 已完成 |
+| 2026-03-20 | 新增最小端到端入口 `crawlernest/run_pipeline.py`（crawl/store/query） | 已完成 |
+| 2026-03-20 | 新增 Java read-only admissions endpoint：`GET /admissions` | 已完成 |
+| 2026-03-21 | 完成老舊 x86 節點可行性評估，確認可作為第一代 OpenClaw / Lobster-01 低規控制節點 | 已完成 |
+| 2026-03-21 | 定義 Low-spec mode 安全預設（低並發、保守節流、checkpoint/resume、資源保護） | 已完成 |
 | 2026-03-20 | 白皮書重整：同步 PostgreSQL 基線與服務整合狀態 | 目前 |
 
 ### 12.4 未來階段規劃
@@ -485,13 +522,14 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 基礎層 | Canonical identity schema | 進行中 | 演進至 program/degree aware |
 | 基礎層 | 實體識別（Aliases） | 進行中 | 升級 fuzzy + embedding |
 | 基礎層 | 知識庫儲存（SQLite → PostgreSQL） | 進行中 | 邁向 production-grade analytics/service |
+| 基礎層 | 低規節點運行能力（Low-spec node ops） | 已定義（待工程化） | 演進為多節點 crawler / writer / scheduler 原型 |
 | 擴展層 | 多榜單整合 | 規劃中 | 完整支援 QS/THE/ARWU 與區域榜單 |
 | 擴展層 | Admission ingestion | 規劃中 | structured + raw 雙軌擴展 |
 | 擴展層 | Program taxonomy | 規劃中 | 部門級與課程級分析基礎 |
 | 智能層 | Admission probability estimation | 規劃中 | 可解釋推薦關鍵特徵 |
 | 智能層 | Hybrid recommendation engine | 未來 | Rule + Weight + ML |
 | 產品化層 | CLI explorer | 進行中 | 開發者與研究者主介面 |
-| 產品化層 | API / Web platform | 未來 | 可擴展服務端與用戶介面 |
+| 產品化層 | API / Web platform | 進行中（可運行） | 目前內部唯讀 API；長期擴展為公開服務端與用戶介面 |
 
 ---
 
@@ -504,12 +542,50 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 技術層 | 網站結構改版 | 高 | 落實 schema-driven parsing，降低維護成本 |
 | 基礎設施層 | IP 封鎖 / WAF | 中 | 導入代理輪替，必要時採 headless 方案 |
 | 資料品質層 | 實體碎片化 | 高 | 提前推進 identity resolution 與去重引擎 |
+| 運維層 | 低規節點長時間運行失敗（OOM / IO wait / restart loop） | 中 | 導入 Low-spec mode、systemd、自動重啟節流、checkpoint/resume、log rotation |
+| 硬體層 | 老舊 x86 節點硬體老化（主機板 / PSU / SATA / 散熱） | 中 | 將其定位為可失敗節點、定期保養、資料備份、避免唯一節點依賴 |
 
 ### 14.2 例行維護清單
 
 - **每季**：抽樣 Top 10 大學頁面，檢查 DOM 與解析正確性
+- **每月**：檢查 low-spec 節點磁碟空間、log 增長、checkpoint 更新狀態
+- **每月**：抽查 CPU / RAM / iowait / restart 次數，確認長時間運行仍在安全區間
 - **持續**：重大架構變更後同步更新本白皮書
 - **資料庫變更後**：重跑 PostgreSQL schema 初始化與 Spring Boot 連線驗證
+- **硬體維護**：老舊節點定期清灰、檢查散熱與電源健康度，避免將其作為唯一核心節點
+
+---
+
+## 15. OpenClaw / Lobster-01 節點定位補充
+
+作為 CrawlerNest 基礎設施演進的一部分，已明確確認現有老舊桌機可作為 **OpenClaw Node-01（Lobster-01）** 的第一代原型節點。
+
+其定位不是高性能主機，而是：
+
+- **低規控制節點**
+- **低並發 crawler / writer node**
+- **長時間 background job 節點**
+- **systemd / checkpoint / resume / log rotation 運維驗證節點**
+
+建議升級方向為：
+
+- 16GB RAM
+- 1TB SATA SSD
+- Linux / Ubuntu Server 化
+- 保留低並發與保守節流策略
+
+工程原則：
+
+> 這台機器的價值不在極限性能，而在於把老硬體轉成可運行、可重建、可容錯的基礎設施節點。
+
+因此，OpenClaw / Lobster-01 應被視為：
+
+- 第一代龍蝦機
+- 低成本節點
+- 可失敗節點
+- 多節點架構前的驗證節點
+
+不得將其作為長期唯一核心節點，但可作為未來多節點 crawler / writer / scheduler 架構的重要原型。
 
 ---
 
