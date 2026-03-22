@@ -1,0 +1,124 @@
+{
+  "samples": [
+    {
+      "id": "demo-001",
+      "input": "University: National Taiwan University\nProgram: Computer Science\nQuota: 120",
+      "expected": {
+        "university": "National Taiwan University",
+        "program": "Computer Science",
+        "quota": 120
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-002",
+      "input": "Program: Data Science\nQuota: 80\nUniversity: National Chengchi University",
+      "expected": {
+        "university": "National Chengchi University",
+        "program": "Data Science",
+        "quota": 80
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-003",
+      "input": "University :  National Tsing Hua University  \nProgram  :Electrical Engineering\nQuota :  150",
+      "expected": {
+        "university": "National Tsing Hua University",
+        "program": "Electrical Engineering",
+        "quota": 150
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-004",
+      "input": "UNIVERSITY: National Yang Ming Chiao Tung University\nProgram: Biomedical Engineering\nQUOTA: 60",
+      "expected": {
+        "university": "National Yang Ming Chiao Tung University",
+        "program": "Biomedical Engineering",
+        "quota": 60
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-005",
+      "input": "university: National Taiwan Normal University\nprogram: Education\nquota: 90",
+      "expected": {
+        "university": "National Taiwan Normal University",
+        "program": "Education",
+        "quota": 90
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-006",
+      "input": "Admissions notice (2026 intake)\n<div>Some general information here.</div>\nUniversity: National Sun Yat-sen University\nPlease prepare transcripts.\nProgram: Marine Biology\nQuota: 45\nContact us for scholarships.",
+      "expected": {
+        "university": "National Sun Yat-sen University",
+        "program": "Marine Biology",
+        "quota": 45
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-007",
+      "input": "University: National Central University\nProgram: Atmospheric Sciences\nNote: Quota will be announced later.",
+      "expected": {
+        "university": "National Central University",
+        "program": "Atmospheric Sciences",
+        "quota": 40
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-008",
+      "input": "University: National Taipei University of Technology\nProgram: Industrial Design\nQuota: one hundred twenty",
+      "expected": {
+        "university": "National Taipei University of Technology",
+        "program": "Industrial Design",
+        "quota": 120
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-009",
+      "input": "University: National Dong Hwa University\nProgram: Tourism Management\nQuota: 120 students",
+      "expected": {
+        "university": "National Dong Hwa University",
+        "program": "Tourism Management",
+        "quota": 120
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-010",
+      "input": "University - National Kaohsiung University of Science and Technology\nProgram - Mechanical Engineering\nQuota - 110",
+      "expected": {
+        "university": "National Kaohsiung University of Science and Technology",
+        "program": "Mechanical Engineering",
+        "quota": 110
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-011",
+      "input": "University: Fu Jen Catholic University | Program: Psychology | Quota: 70",
+      "expected": {
+        "university": "Fu Jen Catholic University",
+        "program": "Psychology",
+        "quota": 70
+      },
+      "required_fields": ["university", "program", "quota"]
+    },
+    {
+      "id": "demo-012",
+      "input": "{\n  \"record\": {\n    \"University\": \"Tamkang University\",\n    \"Program\": \"International Business\",\n    \"Quota\": \"65\"\n  }\n}",
+      "expected": {
+        "university": "Tamkang University",
+        "program": "International Business",
+        "quota": 65
+      },
+      "required_fields": ["university", "program", "quota"]
+    }
+  ]
+}
