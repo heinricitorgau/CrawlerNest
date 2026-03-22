@@ -18,3 +18,7 @@ target/
 build/
 dist/
 *.log
+
+.venv/
+__pycache__/
+*.pyc
