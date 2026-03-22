@@ -362,4 +362,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    start_time = time.time()
+    try:
+        sys.exit(main())
+    finally:
+        elapsed = time.time() - start_time
+        print(f"\n--- Execution Finished in {elapsed:.2f} seconds ---")

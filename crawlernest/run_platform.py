@@ -8,6 +8,7 @@ without requiring complex PYTHONPATH configuration.
 
 import sys
 import os
+import time
 from pathlib import Path
 
 # Identify project root
@@ -31,6 +32,7 @@ for mod in MODULES:
 
 # Run the main crawler logic
 if __name__ == "__main__":
+    start_time = time.time()
     try:
         from clawer_main import run
         sys.exit(run())
@@ -41,3 +43,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nInterrupted by user.")
         sys.exit(130)
+    finally:
+        elapsed = time.time() - start_time
+        print(f"\n--- Execution Finished in {elapsed:.2f} seconds ---")
