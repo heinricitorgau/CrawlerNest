@@ -657,6 +657,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | :--- | :--- | :---: | :--- |
 | 技術層 | 網站結構改版 | 高 | 落實 schema-driven parsing，降低維護成本 |
 | 基礎設施層 | IP 封鎖 / WAF | 中 | 導入代理輪替，必要時採 headless 方案 |
+| 採集策略層 | QS detail 頁在特定客戶端指紋下出現 403（ranking 可抓、detail 被擋） | 中 | 維持保守節流（`workers=1`, `request_delay=10`），必要時改同步模式，採 `rankings-only` + 小批次 detail 補抓 |
 | 資料品質層 | 實體碎片化 | 高 | 推進 identity resolution 與去重引擎 |
 | 研究層 | extractor 規則改動造成 regression | 中 | 以 AutoEval + hard dataset + keep/revert 保護 |
 | 運維層 | 低規節點長時間運行失敗（OOM / IO wait / restart loop） | 中 | 導入 Low-spec mode、systemd、自動重啟節流、checkpoint/resume、log rotation |

@@ -202,6 +202,7 @@ CrawlerNest 架構遵循：
 - 檢查來源頁面結構是否有變動
 - 抽樣確認前 10 所大學資料完整性
 - 檢查 API 關鍵端點可用性
+- 檢查是否出現「QS ranking 可抓但 detail 頁 403」模式，若發生則記錄批次時間、指令與錯誤比例
 
 ### 9.2 每月
 
@@ -225,6 +226,14 @@ CrawlerNest 架構遵循：
 - schema 變更造成寫入失敗
 - API 合約變動造成前後端不一致
 - 實體識別錯配導致資料碎片化
+- QS detail 頁回應 `403 Forbidden`（常見於 async 指紋或高頻 detail 請求）
+
+### 10.4 QS Detail 403 標準處置（Runbook）
+
+1. 先確認採集合規參數：`workers=1`、`request_delay=10`。
+2. 若指令含 `--use-async` 且大量 detail 403，先改為同步模式重跑同批資料。
+3. 若仍不穩定，先使用 `--rankings-only` 完成主資料，再分批補抓 detail。
+4. 將本次 403 事件記錄到維運日誌（時間、limit、模式、成功/失敗比）。
 
 ### 10.2 回滾原則
 

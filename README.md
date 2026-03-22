@@ -151,6 +151,19 @@ The following acceleration items are already implemented and active in current p
 - **Partial update write-avoidance**: unchanged schools are skipped by key state comparison, reducing unnecessary DB writes.
 - **Bad-parameter suppression**: failed request parameter combinations are temporarily blacklisted (TTL) to avoid repeated slow failures.
 
+### Known Field Issue: QS Detail 403
+
+Observed behavior:
+
+- Ranking list fetch may succeed, while detail pages (`/universities/...`) return `403 Forbidden`.
+- This is more likely under async HTTP client fingerprints and repeated detail-page access patterns.
+
+Operational handling (current project standard):
+
+- Keep compliance-safe pacing: `workers=1`, `request_delay=10`.
+- Prefer non-async mode for full detail crawl when 403 appears repeatedly.
+- Use `--rankings-only` first for stable main dataset, then run detail enrichment in smaller batches.
+
 ---
 
 ## What This Repository Contains
