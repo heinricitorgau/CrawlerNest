@@ -967,6 +967,8 @@ class AsyncUniversityFetcher:
         await self._ensure_session()
         assert self.session is not None
         session = self.session
+        error_records: List[Dict[str, Any]] = []
+        forbidden_count = 0
 
         base_url = getattr(self.config, "base_url", "https://www.topuniversities.com")
         # 【技術細節：異步閘門併發控制】
@@ -975,6 +977,7 @@ class AsyncUniversityFetcher:
         sem = asyncio.Semaphore(self.config.max_concurrent_requests)
 
         async def _fetch_one(path: str) -> Optional[str]:
+            nonlocal forbidden_count
             if not path:
                 return None
             url = _abs_url(base_url, path)
@@ -989,11 +992,30 @@ class AsyncUniversityFetcher:
                         resp.raise_for_status()
                         return await resp.text()
                 except Exception as e:
+                    status = getattr(e, "status", None)
+                    if status is None:
+                        msg = str(e).lower()
+                        if "403" in msg or "forbidden" in msg:
+                            status = 403
+                    if status == 403:
+                        forbidden_count += 1
+                    error_records.append(
+                        {
+                            "path": path,
+                            "url": url,
+                            "status": status,
+                            "error": str(e),
+                        }
+                    )
                     logger.warning(f"Failed to fetch details for {url}: {e}")
                     return None
 
         tasks = [_fetch_one(p) for p in paths]
-        return await asyncio.gather(*tasks)
+        result = await asyncio.gather(*tasks)
+        setattr(self.config, "_detail_last_errors", error_records)
+        existing_forbidden = int(getattr(self.config, "_detail_forbidden_count", 0) or 0)
+        setattr(self.config, "_detail_forbidden_count", existing_forbidden + forbidden_count)
+        return result
 
     # crawler.py may call fetch_university_detail in sync mode only, but keep for completeness
     async def fetch_university_detail(self, path: str) -> Optional[str]:

@@ -45,6 +45,12 @@ CrawlerNest is currently transitioning from a crawler tool into a structured dat
 - ✅ Partial update strategy: compare `school_slug + ranking_type + year` and skip unchanged rows
 - ✅ Request-parameter failure blacklist (TTL) to avoid repeatedly retrying known-bad API parameter pairs
 
+V1.5 completion snapshot (as of 2026-03-23):
+
+- **End-to-end pipeline maturity**: ~88% (crawl -> normalize -> write -> query is stable)
+- **Performance optimization maturity**: ~85% (batch write / incremental checkpoint / partial update in production path)
+- **Operational resilience maturity**: ~82% (403 auto-degrade + deferred enrichment flow established)
+
 ### Next (V2): In progress
 
 - Entity resolution (university aliases / fuzzy matching)
@@ -86,6 +92,12 @@ python3 crawlernest/run_pipeline.py run \
   --write-batch-size 200
 ```
 
+Pinned production-safe command (recommended for daily runs):
+
+```bash
+bash crawlernest/scripts/run_production_safe.sh
+```
+
 Fast ranking-only mode (skip per-school detail requirements pages):
 
 ```bash
@@ -93,6 +105,14 @@ python3 crawlernest/run_pipeline.py run \
   --limit 200 \
   --rankings-only \
   --workers 1 \
+  --request-delay 10
+```
+
+Deferred detail enrichment in small batches (recommended after 403 degrade):
+
+```bash
+python3 crawlernest/run_pipeline.py enrich-details \
+  --limit 30 \
   --request-delay 10
 ```
 

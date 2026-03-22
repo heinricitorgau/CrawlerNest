@@ -42,6 +42,8 @@ from config import Config  # noqa: E402
 from constants import COUNTRY_CODES, COUNTRY_NAME_ALIASES  # noqa: E402
 from crawler import UniversityCrawler  # noqa: E402
 from db_writer import DBWriter  # noqa: E402
+from extractor import DataExtractor  # noqa: E402
+from fetcher import UniversityFetcher  # noqa: E402
 from models import University  # noqa: E402
 
 WRITE_BATCH_SIZE = 100
@@ -114,7 +116,9 @@ def run_qs_crawl(
     request_delay: float,
     local_parse_workers: int,
     fetch_details: bool,
-) -> list[University]:
+    detail_403_streak_threshold: int,
+    detail_chunk_size: int,
+) -> tuple[list[University], dict[str, Any]]:
     config = Config(
         ranking_id=ranking_id,
         ranking_limit=limit,
@@ -125,9 +129,17 @@ def run_qs_crawl(
         request_delay=max(0.0, request_delay),
         local_parse_workers=max(1, local_parse_workers),
         fetch_details=bool(fetch_details),
+        detail_forbidden_streak_threshold=max(1, detail_403_streak_threshold),
+        detail_chunk_size=max(1, detail_chunk_size),
     )
     crawler = UniversityCrawler(config)
-    return asyncio.run(crawler.crawl_async()) if use_async else crawler.crawl()
+    universities = asyncio.run(crawler.crawl_async()) if use_async else crawler.crawl()
+    crawl_meta = {
+        "detail_fallback_triggered": bool(getattr(config, "_detail_fallback_triggered", False)),
+        "detail_deferred_paths": list(getattr(config, "_detail_deferred_paths", []) or []),
+        "detail_forbidden_count": int(getattr(config, "_detail_forbidden_count", 0) or 0),
+    }
+    return universities, crawl_meta
 
 
 def _read_mem_available_mb() -> Optional[float]:
@@ -174,6 +186,221 @@ def save_snapshot(path: Path, universities: Iterable[University]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         json.dump([u.to_dict() for u in universities], f, ensure_ascii=False)
+
+
+def save_deferred_detail_list(path: Path, universities: Iterable[University], deferred_paths: Iterable[str]) -> int:
+    deferred_set = {str(p).strip() for p in deferred_paths if str(p).strip()}
+    if not deferred_set:
+        return 0
+
+    rows: list[dict[str, Any]] = []
+    for uni in universities:
+        if uni.path not in deferred_set:
+            continue
+        rows.append(
+            {
+                "school_slug": _uni_slug(uni),
+                "name": uni.name,
+                "rank": uni.rank,
+                "country": uni.country,
+                "path": uni.path,
+            }
+        )
+
+    unique_rows: list[dict[str, Any]] = []
+    seen_slugs: set[str] = set()
+    for row in rows:
+        slug = str(row.get("school_slug", ""))
+        if not slug or slug in seen_slugs:
+            continue
+        seen_slugs.add(slug)
+        unique_rows.append(row)
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(unique_rows, f, ensure_ascii=False, indent=2)
+    return len(unique_rows)
+
+
+def load_deferred_detail_list(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        slug = str(item.get("school_slug") or "").strip()
+        path_v = str(item.get("path") or "").strip()
+        if not slug or not path_v:
+            continue
+        out.append(
+            {
+                "school_slug": slug,
+                "path": path_v,
+                "name": item.get("name"),
+                "rank": item.get("rank"),
+                "country": item.get("country"),
+            }
+        )
+    return out
+
+
+def _has_admission_signal(req: Any) -> bool:
+    if req is None:
+        return False
+    for key in ("gpa", "ielts", "toefl", "gre", "gmat"):
+        if getattr(req, key, None) is not None:
+            return True
+    return False
+
+
+def _resolve_university_ids_by_slugs(writer: DBWriter, slugs: list[str]) -> dict[str, int]:
+    uniq = [s for s in dict.fromkeys([str(x).strip() for x in slugs if str(x).strip()])]
+    if not uniq:
+        return {}
+    p = writer._get_placeholder()
+    table = writer._get_schema_prefix("universities")
+    in_ph = ", ".join([p] * len(uniq))
+    writer.cur.execute(
+        f"SELECT school_slug, university_id FROM {table} WHERE school_slug IN ({in_ph})",
+        tuple(uniq),
+    )
+    rows = writer.cur.fetchall()
+    return {str(slug): int(uid) for slug, uid in rows}
+
+
+def enrich_deferred_details(
+    deferred_file: Path,
+    db_type: str,
+    db_path: Optional[str],
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+    limit: int,
+    request_delay: float,
+    timeout: int,
+) -> tuple[int, int, int, int]:
+    rows = load_deferred_detail_list(deferred_file)
+    if not rows:
+        return 0, 0, 0, 0
+
+    take = rows[: max(1, limit)] if limit > 0 else rows
+    rest = rows[len(take):]
+
+    writer = DBWriter(db_type="sqlite", db_path=db_path) if db_type == "sqlite" else DBWriter(
+        db_type="postgres", host=pg_host, port=pg_port, database=pg_database, user=pg_user, password=pg_password
+    )
+    fetcher = UniversityFetcher(
+        Config(
+            request_delay=max(0.0, request_delay),
+            timeout=max(1, int(timeout)),
+            use_async=False,
+            show_progress=False,
+            fetch_details=True,
+        )
+    )
+    extractor = DataExtractor()
+
+    success = 0
+    failed = 0
+    skipped = 0
+    remaining: list[dict[str, Any]] = []
+    crawl_run_id = writer.start_crawl_run(
+        source_name="QS",
+        ranking_type="world",
+        notes="detail enrichment from deferred list",
+    )
+
+    slug_to_uid = _resolve_university_ids_by_slugs(writer, [str(x.get("school_slug", "")) for x in take])
+
+    try:
+        total = len(take)
+        for i, item in enumerate(take, start=1):
+            slug = str(item.get("school_slug") or "").strip()
+            path_v = str(item.get("path") or "").strip()
+            if not slug or not path_v:
+                failed += 1
+                remaining.append(item)
+                continue
+
+            uid = slug_to_uid.get(slug)
+            if uid is None:
+                skipped += 1
+                remaining.append(item)
+                continue
+
+            try:
+                html = fetcher.fetch_university_detail(path_v)
+                if not html:
+                    failed += 1
+                    remaining.append(item)
+                    continue
+                req = extractor.extract_requirements(html)
+                if not _has_admission_signal(req):
+                    failed += 1
+                    remaining.append(item)
+                    continue
+
+                raw_id = writer.insert_raw_record(
+                    source_name="QS",
+                    ranking_type="world",
+                    raw_json={
+                        "school_slug": slug,
+                        "path": path_v,
+                        "requirements": req.to_dict() if hasattr(req, "to_dict") else None,
+                    },
+                    source_url=path_v,
+                    crawl_run_id=crawl_run_id,
+                    record_type="detail_enrichment",
+                )
+                writer.insert_admission_requirements(uid, req, raw_id)
+                success += 1
+            except Exception:
+                failed += 1
+                remaining.append(item)
+
+            pct = int(i / max(1, total) * 100)
+            filled = pct // 5
+            bar = "█" * filled + "░" * (20 - filled)
+            print(f"\r  [{bar}] {pct:>3}%  {i}/{total} detail enrich", end="", flush=True)
+
+        if total > 0:
+            print()
+
+        writer.finish_crawl_run(crawl_run_id, status="finished" if failed == 0 else "partial")
+        writer.commit()
+    except Exception:
+        writer.finish_crawl_run(crawl_run_id, status="failed")
+        writer.commit()
+        raise
+    finally:
+        try:
+            fetcher.close()
+        except Exception:
+            pass
+        writer.close()
+
+    # Keep failed/skipped rows + untouched remainder for next run.
+    final_remaining = remaining + rest
+    deduped: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in final_remaining:
+        slug = str(item.get("school_slug") or "").strip()
+        if not slug or slug in seen:
+            continue
+        seen.add(slug)
+        deduped.append(item)
+    deferred_file.parent.mkdir(parents=True, exist_ok=True)
+    with deferred_file.open("w", encoding="utf-8") as f:
+        json.dump(deduped, f, ensure_ascii=False, indent=2)
+
+    return success, failed, skipped, len(deduped)
 
 
 def load_checkpoint(path: Path) -> set[str]:
@@ -512,6 +739,7 @@ def build_parser() -> argparse.ArgumentParser:
     default_db = MODULE_ROOT / "crawlernest-kb" / "databases" / "universities.db"
     default_snapshot = MODULE_ROOT / "crawlernest-kb" / "databases" / "last_crawl_snapshot.json"
     default_checkpoint = MODULE_ROOT / "crawlernest-kb" / "databases" / "pipeline_checkpoint.json"
+    default_deferred = MODULE_ROOT / "crawlernest-kb" / "databases" / "pending_detail_enrichment.json"
 
     parser = argparse.ArgumentParser(description="CrawlerNest QS end-to-end pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -543,6 +771,23 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--resume", action="store_true", help="Resume from snapshot + checkpoint if available")
     run_parser.add_argument("--snapshot-file", default=str(default_snapshot))
     run_parser.add_argument("--checkpoint-file", default=str(default_checkpoint))
+    run_parser.add_argument(
+        "--deferred-details-file",
+        default=str(default_deferred),
+        help="JSON output path for deferred detail-enrichment items when anti-403 degrade is triggered",
+    )
+    run_parser.add_argument(
+        "--detail-403-streak-threshold",
+        type=int,
+        default=8,
+        help="Auto-degrade to rankings-only when this many consecutive detail 403 responses are observed",
+    )
+    run_parser.add_argument(
+        "--detail-chunk-size",
+        type=int,
+        default=20,
+        help="Async detail fetch chunk size for degrade checks (smaller chunks react to 403 sooner)",
+    )
     run_parser.add_argument("--db-type", choices=["sqlite", "postgres"], default="sqlite")
     run_parser.add_argument("--db-path", default=str(default_db))
     run_parser.add_argument("--pg-host", default="localhost")
@@ -556,6 +801,22 @@ def build_parser() -> argparse.ArgumentParser:
     query_parser.add_argument("--limit", type=int, default=20)
     query_parser.add_argument("--db-type", choices=["sqlite", "postgres"], default="sqlite")
     query_parser.add_argument("--db-path", default=str(default_db))
+
+    enrich_parser = subparsers.add_parser(
+        "enrich-details",
+        help="Enrich admissions by crawling deferred university detail pages in small batches",
+    )
+    enrich_parser.add_argument("--limit", type=int, default=30, help="How many deferred schools to process this run")
+    enrich_parser.add_argument("--request-delay", type=float, default=10.0, help="Delay (seconds) between detail requests")
+    enrich_parser.add_argument("--timeout", type=int, default=30, help="HTTP timeout in seconds for detail requests")
+    enrich_parser.add_argument("--deferred-details-file", default=str(default_deferred))
+    enrich_parser.add_argument("--db-type", choices=["sqlite", "postgres"], default="sqlite")
+    enrich_parser.add_argument("--db-path", default=str(default_db))
+    enrich_parser.add_argument("--pg-host", default="localhost")
+    enrich_parser.add_argument("--pg-port", type=int, default=5432)
+    enrich_parser.add_argument("--pg-database", default="clawer")
+    enrich_parser.add_argument("--pg-user", default="postgres")
+    enrich_parser.add_argument("--pg-password", default="")
     return parser
 
 
@@ -576,7 +837,7 @@ def main() -> int:
             universities = load_snapshot(snapshot_file)
         else:
             print("[1/4] Crawling QS data...")
-            universities = run_qs_crawl(
+            universities, crawl_meta = run_qs_crawl(
                 args.limit,
                 args.ranking_id,
                 args.use_async,
@@ -584,11 +845,32 @@ def main() -> int:
                 args.request_delay,
                 args.local_parse_workers,
                 not args.rankings_only,
+                args.detail_403_streak_threshold,
+                args.detail_chunk_size,
             )
             if not universities:
                 print("No universities crawled. Exiting.")
                 return 1
             save_snapshot(snapshot_file, universities)
+            deferred_count = save_deferred_detail_list(
+                Path(args.deferred_details_file),
+                universities,
+                crawl_meta.get("detail_deferred_paths", []),
+            )
+            if deferred_count > 0:
+                print(
+                    f"[note] Deferred detail enrichment items: {deferred_count} "
+                    f"(saved to {Path(args.deferred_details_file)})"
+                )
+            if crawl_meta.get("detail_fallback_triggered"):
+                print(
+                    "[note] Detail auto-degrade was triggered by repeated 403 responses; "
+                    "run deferred detail enrichment in smaller batches."
+                )
+                print(
+                    f"[note] Observed detail 403 count in this run: "
+                    f"{crawl_meta.get('detail_forbidden_count', 0)}"
+                )
 
         print("[2/4] Normalizing fields (Python baseline)...")
         normalized = normalize_universities(universities)
@@ -624,6 +906,32 @@ def main() -> int:
         print("rank | university | country | score | ranking_type")
         for rank_start, display_name, country_name, score, ranking_type in rows:
             print(f"{rank_start} | {display_name} | {country_name} | {'' if score is None else score} | {ranking_type}")
+        return 0
+
+    if args.command == "enrich-details":
+        if args.limit <= 0:
+            raise SystemExit("--limit must be a positive integer")
+        if args.db_type == "sqlite":
+            ensure_sqlite_schema(Path(args.db_path))
+
+        print("[1/2] Enriching deferred detail pages...")
+        success, failed, skipped, remaining = enrich_deferred_details(
+            deferred_file=Path(args.deferred_details_file),
+            db_type=args.db_type,
+            db_path=args.db_path,
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+            limit=args.limit,
+            request_delay=args.request_delay,
+            timeout=args.timeout,
+        )
+        print("[2/2] Done.")
+        print(f"Enriched: {success}, Failed: {failed}, Skipped(no university): {skipped}")
+        print(f"Deferred remaining: {remaining}")
+        print(f"Deferred file: {Path(args.deferred_details_file)}")
         return 0
 
     return 1

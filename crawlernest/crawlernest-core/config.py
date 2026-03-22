@@ -51,6 +51,8 @@ class Config:
     use_async: bool = True  # 預設啟用async模式，極速抓取
     local_parse_workers: int = 4  # Local CPU workers for HTML requirement parsing (no network fan-out)
     fetch_details: bool = True  # True: fetch university detail pages for requirements; False: rankings-only mode
+    detail_forbidden_streak_threshold: int = 8  # Auto-degrade when consecutive detail 403 reaches this value
+    detail_chunk_size: int = 20  # Async detail fetch chunk size for faster degrade reaction
     show_progress: bool = True
     enable_cache: bool = True
     cache_ttl: int = 3600          

@@ -169,6 +169,11 @@ def _extract_table_metrics(node: Dict[str, Any]) -> Dict[str, str]:
     return metrics
 
 
+def _is_forbidden_error(exc: Exception) -> bool:
+    msg = str(exc).lower()
+    return "403" in msg or "forbidden" in msg
+
+
 
 def _node_country_candidates(node: Dict[str, Any]) -> List[str]:
     """
@@ -639,6 +644,12 @@ class UniversityCrawler:
     def crawl(self) -> List[University]:
         self.logger.info("Starting university crawl (sync)")
         fetcher = cast(UniversityFetcher, self.fetcher)
+        detail_deferred_paths: List[str] = []
+        detail_fallback_triggered = False
+        detail_forbidden_streak = 0
+        detail_forbidden_hits = 0
+        detail_forbidden_threshold = max(1, int(getattr(self.config, "detail_forbidden_streak_threshold", 8) or 8))
+        details_enabled = bool(getattr(self.config, "fetch_details", True))
 
         try:
             data = fetcher.fetch_rankings()
@@ -694,7 +705,9 @@ class UniversityCrawler:
                 self.stats["success"] += 1
                 continue
 
-            if not bool(getattr(self.config, "fetch_details", True)):
+            if not details_enabled:
+                if detail_fallback_triggered and uni.path:
+                    detail_deferred_paths.append(uni.path)
                 self.stats["success"] += 1
                 continue
 
@@ -708,10 +721,25 @@ class UniversityCrawler:
                 if html:
                     uni.requirements = self.extractor.extract_requirements(html)
                     self.stats["success"] += 1
+                    detail_forbidden_streak = 0
                 else:
                     self.stats["failed"] += 1
-            except Exception:
+                    detail_forbidden_streak = 0
+            except Exception as e:
                 self.stats["failed"] += 1
+                if _is_forbidden_error(e):
+                    detail_forbidden_streak += 1
+                    detail_forbidden_hits += 1
+                    detail_deferred_paths.append(uni.path)
+                    if detail_forbidden_streak >= detail_forbidden_threshold and details_enabled:
+                        details_enabled = False
+                        detail_fallback_triggered = True
+                        print(
+                            f"\n[degrade] detected consecutive detail 403 (>= {detail_forbidden_threshold}), "
+                            "switching to rankings-only for remaining schools."
+                        )
+                else:
+                    detail_forbidden_streak = 0
 
         if self.config.show_progress:
             print()
@@ -720,6 +748,12 @@ class UniversityCrawler:
             fetcher.close()                              
         except Exception:
             pass
+
+        setattr(self.config, "_detail_fallback_triggered", detail_fallback_triggered)
+        unique_deferred = list(dict.fromkeys([p for p in detail_deferred_paths if p]))
+        setattr(self.config, "_detail_deferred_paths", unique_deferred)
+        existing_forbidden = int(getattr(self.config, "_detail_forbidden_count", 0) or 0)
+        setattr(self.config, "_detail_forbidden_count", existing_forbidden + detail_forbidden_hits)
 
         return self.universities
 
@@ -730,6 +764,10 @@ class UniversityCrawler:
 
         self.logger.info("Starting university crawl (async)")
         fetcher = cast(AsyncUniversityFetcher, self.fetcher)
+        detail_deferred_paths: List[str] = []
+        detail_fallback_triggered = False
+        detail_forbidden_streak = 0
+        detail_forbidden_threshold = max(1, int(getattr(self.config, "detail_forbidden_streak_threshold", 8) or 8))
 
         try:
             data = await fetcher.fetch_rankings()
@@ -774,41 +812,79 @@ class UniversityCrawler:
                         print(f"\r  [{bar}] {pct:>3}%  {i}/{len(nodes)} universities", end="", flush=True)
                 if self.config.show_progress:
                     print()
+                setattr(self.config, "_detail_fallback_triggered", False)
+                setattr(self.config, "_detail_deferred_paths", [])
                 return self.universities
 
-            paths = [str(node.get("path", "")) for node in nodes]
-            html_list = await fetcher.fetch_all_details(paths)
             local_parse_workers = max(1, int(getattr(self.config, "local_parse_workers", 1) or 1))
+            detail_chunk_size = max(1, int(getattr(self.config, "detail_chunk_size", 20) or 20))
             pending_parse: List[tuple[University, str]] = []
+            details_enabled = True
+            i = 0
 
-            for i, (node, html) in enumerate(zip(nodes, html_list), start=1):
-                uni = self._process_university(node)
-                if uni is None:
-                    self.stats["failed"] += 1
-                    continue
-
-                self.universities.append(uni)
-                path = str(node.get("path", ""))
-
-                if html:
-                    if local_parse_workers > 1:
-                        pending_parse.append((uni, html))
-                    else:
-                        try:
-                            uni.requirements = self.extractor.extract_requirements(html)
-                            self.stats["success"] += 1
-                        except Exception:
-                            self.stats["failed"] += 1
-                elif not path:
-                    self.stats["skipped"] += 1
+            for chunk_start in range(0, len(nodes), detail_chunk_size):
+                chunk_nodes = nodes[chunk_start:chunk_start + detail_chunk_size]
+                paths = [str(node.get("path", "")) for node in chunk_nodes]
+                if details_enabled:
+                    setattr(self.config, "_detail_last_errors", [])
+                    html_list = await fetcher.fetch_all_details(paths)
+                    raw_errors = getattr(self.config, "_detail_last_errors", []) or []
+                    err_status_by_path = {
+                        str(err.get("path", "")): err.get("status")
+                        for err in raw_errors
+                        if isinstance(err, dict) and err.get("path")
+                    }
                 else:
-                    self.stats["failed"] += 1
+                    html_list = [None for _ in chunk_nodes]
+                    err_status_by_path = {}
 
-                if self.config.show_progress:
-                    pct = int(i / max(1, len(nodes)) * 100)
-                    filled = pct // 5
-                    bar = "█" * filled + "░" * (20 - filled)
-                    print(f"\r  [{bar}] {pct:>3}%  {i}/{len(nodes)} universities", end="", flush=True)
+                for node, html in zip(chunk_nodes, html_list):
+                    i += 1
+                    uni = self._process_university(node)
+                    if uni is None:
+                        self.stats["failed"] += 1
+                        continue
+
+                    self.universities.append(uni)
+                    path = str(node.get("path", ""))
+
+                    if not details_enabled:
+                        if path:
+                            detail_deferred_paths.append(path)
+                        self.stats["success"] += 1
+                    elif html:
+                        detail_forbidden_streak = 0
+                        if local_parse_workers > 1:
+                            pending_parse.append((uni, html))
+                        else:
+                            try:
+                                uni.requirements = self.extractor.extract_requirements(html)
+                                self.stats["success"] += 1
+                            except Exception:
+                                self.stats["failed"] += 1
+                    elif not path:
+                        self.stats["skipped"] += 1
+                    else:
+                        status = err_status_by_path.get(path)
+                        if status == 403:
+                            detail_forbidden_streak += 1
+                            detail_deferred_paths.append(path)
+                            if detail_forbidden_streak >= detail_forbidden_threshold and details_enabled:
+                                details_enabled = False
+                                detail_fallback_triggered = True
+                                print(
+                                    f"\n[degrade] detected consecutive detail 403 (>= {detail_forbidden_threshold}), "
+                                    "switching to rankings-only for remaining schools."
+                                )
+                        else:
+                            detail_forbidden_streak = 0
+                        self.stats["failed"] += 1
+
+                    if self.config.show_progress:
+                        pct = int(i / max(1, len(nodes)) * 100)
+                        filled = pct // 5
+                        bar = "█" * filled + "░" * (20 - filled)
+                        print(f"\r  [{bar}] {pct:>3}%  {i}/{len(nodes)} universities", end="", flush=True)
 
             if pending_parse:
                 sem = asyncio.Semaphore(local_parse_workers)
@@ -830,6 +906,9 @@ class UniversityCrawler:
             if self.config.show_progress:
                 print()
 
+            setattr(self.config, "_detail_fallback_triggered", detail_fallback_triggered)
+            unique_deferred = list(dict.fromkeys([p for p in detail_deferred_paths if p]))
+            setattr(self.config, "_detail_deferred_paths", unique_deferred)
             return self.universities
 
         finally:
