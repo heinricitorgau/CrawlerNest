@@ -159,7 +159,7 @@ def _payload_matches_page(data: Dict[str, Any], ranking_page_url: Optional[str])
     if not ranking_page_url:
         return True
     page = ranking_page_url.lower()
-    blob = json.dumps(data, ensure_ascii=False).lower()
+    blob = _build_payload_haystack(data)
     page_norm = page.replace("-", " ")
     blob_norm = blob.replace("-", " ")
 
@@ -187,6 +187,69 @@ def _payload_matches_page(data: Dict[str, Any], ranking_page_url: Optional[str])
                 return True
             return False
     return True
+
+
+def _build_payload_haystack(data: Dict[str, Any], max_texts: int = 300, max_chars: int = 20000) -> str:
+
+    out: List[str] = []
+    char_count = 0
+
+    def add_text(v: Any) -> bool:
+        nonlocal char_count
+        if v is None:
+            return False
+        if not isinstance(v, str):
+            v = str(v)
+        txt = v.strip().lower()
+        if not txt:
+            return False
+        if len(out) >= max_texts:
+            return True
+        out.append(txt)
+        char_count += len(txt)
+        return char_count >= max_chars
+
+    candidate_keys = {
+        "region",
+        "regions",
+        "subregion",
+        "subregions",
+        "sub_region",
+        "sub_regions",
+        "country",
+        "country_name",
+        "location",
+        "name",
+        "title",
+        "label",
+        "path",
+        "url",
+        "link",
+        "ranking_type",
+        "ranking_name",
+        "slug",
+    }
+
+    queue: List[Any] = [data]
+    while queue and len(out) < max_texts and char_count < max_chars:
+        obj = queue.pop(0)
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                kk = str(k).strip().lower()
+                if kk in candidate_keys:
+                    if add_text(v):
+                        break
+                if isinstance(v, (dict, list)):
+                    queue.append(v)
+        elif isinstance(obj, list):
+            for it in obj[:300]:
+                if isinstance(it, (dict, list)):
+                    queue.append(it)
+                else:
+                    if add_text(it):
+                        break
+
+    return " ".join(out)
 
 
 def _ranking_page_fallbacks(ranking_page_url: str) -> List[str]:
@@ -386,6 +449,65 @@ def _country_param_variants(config: Config) -> List[Optional[str]]:
     return [*variants]
 
 
+def _hint_key(cand_nid: str, url: str) -> str:
+
+    return f"{cand_nid}|{url}"
+
+
+def _get_request_hint(config: Config, key: str) -> Optional[Dict[str, Any]]:
+
+    store = getattr(config, "_request_param_hints", None)
+    if not isinstance(store, dict):
+        return None
+    hint = store.get(key)
+    if not isinstance(hint, dict):
+        return None
+    extra = hint.get("extra", {})
+    country_v = hint.get("country", None)
+    if not isinstance(extra, dict):
+        return None
+    if country_v is not None and not isinstance(country_v, str):
+        return None
+    return {"extra": dict(extra), "country": country_v}
+
+
+def _set_request_hint(config: Config, key: str, extra: Dict[str, str], country_v: Optional[str]) -> None:
+
+    store = getattr(config, "_request_param_hints", None)
+    if not isinstance(store, dict):
+        store = {}
+        setattr(config, "_request_param_hints", store)
+    store[key] = {"extra": dict(extra), "country": country_v}
+
+
+def _ordered_param_pairs(
+    region_variants: List[Dict[str, str]],
+    country_variants: List[Optional[str]],
+    hint: Optional[Dict[str, Any]],
+) -> List[tuple[Dict[str, str], Optional[str]]]:
+
+    pairs: List[tuple[Dict[str, str], Optional[str]]] = [
+        (extra, country_v)
+        for extra in region_variants
+        for country_v in country_variants
+    ]
+    if not hint:
+        return pairs
+
+    hint_extra = hint.get("extra", {})
+    hint_country = hint.get("country", None)
+
+    preferred: List[tuple[Dict[str, str], Optional[str]]] = []
+    others: List[tuple[Dict[str, str], Optional[str]]] = []
+    for pair in pairs:
+        extra, country_v = pair
+        if extra == hint_extra and country_v == hint_country:
+            preferred.append(pair)
+        else:
+            others.append(pair)
+    return preferred + others
+
+
 class UniversityFetcher:
 
 
@@ -473,6 +595,8 @@ class UniversityFetcher:
         errors: List[str] = []
         first_success: Optional[Dict[str, Any]] = None
         country_requested = bool(str(getattr(self.config, "country", "") or "").strip())
+        region_variants = _region_param_variants(self.config)
+        country_variants = _country_param_variants(self.config)
         for cand_nid in candidate_nids:
             urls = [
                 f"https://www.topuniversities.com/rankings/api/ranking/{cand_nid}",
@@ -480,8 +604,9 @@ class UniversityFetcher:
             ]
             for url in urls:
                 try:
-                    for extra in _region_param_variants(self.config):
-                        for country_v in _country_param_variants(self.config):
+                    key = _hint_key(str(cand_nid), url)
+                    hint = _get_request_hint(self.config, key)
+                    for extra, country_v in _ordered_param_pairs(region_variants, country_variants, hint):
                             params = self.config.get_api_params().copy()
                             params["nid"] = str(cand_nid)
                             params.update(extra)
@@ -514,6 +639,7 @@ class UniversityFetcher:
                                 if first_success is None:
                                     first_success = data
                                 continue
+                            _set_request_hint(self.config, key, extra, country_v)
 
                             nodes = data.get("score_nodes", []) if isinstance(data, dict) else []
                             if isinstance(nodes, list) and len(nodes) > 0:
@@ -671,6 +797,8 @@ class AsyncUniversityFetcher:
         errors: List[str] = []
         first_success: Optional[Dict[str, Any]] = None
         country_requested = bool(str(getattr(self.config, "country", "") or "").strip())
+        region_variants = _region_param_variants(self.config)
+        country_variants = _country_param_variants(self.config)
         for cand_nid in candidate_nids:
             urls = [
                 f"https://www.topuniversities.com/rankings/api/ranking/{cand_nid}",
@@ -678,8 +806,9 @@ class AsyncUniversityFetcher:
             ]
             for url in urls:
                 try:
-                    for extra in _region_param_variants(self.config):
-                        for country_v in _country_param_variants(self.config):
+                    key = _hint_key(str(cand_nid), url)
+                    hint = _get_request_hint(self.config, key)
+                    for extra, country_v in _ordered_param_pairs(region_variants, country_variants, hint):
                             params = self.config.get_api_params().copy()
                             params["nid"] = str(cand_nid)
                             params.update(extra)
@@ -719,6 +848,7 @@ class AsyncUniversityFetcher:
                                     if first_success is None:
                                         first_success = data
                                     continue
+                                _set_request_hint(self.config, key, extra, country_v)
 
                                 nodes = data.get("score_nodes", []) if isinstance(data, dict) else []
                                 if isinstance(nodes, list) and len(nodes) > 0:

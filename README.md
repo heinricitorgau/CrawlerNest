@@ -383,3 +383,88 @@ CrawlerNest repositories are currently **private** and maintained under the Craw
 
 This project is protected by a custom proprietary license.
 See the [LICENSE](./LICENSE) file for full terms and restrictions.
+
+---
+
+## AutoEval Extractor Milestone
+
+CrawlerNest has successfully completed its first full **AutoEval optimization loop** for the extractor system, achieving production‑grade extraction accuracy on a hard, adversarial dataset.
+
+### Final Evaluation Result
+
+- Required fill rate: 1.0 (100%)
+- Exact match rate: 1.0 (100%)
+- Error count: 0
+- Adjusted score: ~0.95 (runtime adjusted)
+
+| Metric                | Value      |
+|----------------------|------------|
+| required_fill_rate   | 1.000000   |
+| exact_match_rate     | 1.000000   |
+| error_count          | 0          |
+| score (runtime adj.) | ~0.95      |
+
+### Significance
+
+This milestone demonstrates the extractor's capability to achieve near-perfect accuracy and robustness on challenging data sets, validating the effectiveness of the AutoEval loop.
+
+### Reproduce
+
+Run the evaluation locally to reproduce the results:
+
+```bash
+python crawlernest/crawlernest-autoeval/runners/run_extractor_eval.py --no-log
+```
+
+You should observe zero errors and near‑perfect score (runtime-adjusted).
+
+---
+
+## Technology
+
+CrawlerNest uses a lightweight and portable stack designed for research and data engineering:
+
+- **Python** – crawler pipelines and data processing
+- **SQLite** – original local analytical knowledge base baseline
+- **PostgreSQL** – validated next-stage operational database baseline
+- **C** – high‑performance normalization engine (prototype)
+- **Java / Spring Boot** – backend API services and recommendation engine
+- **AsyncIO** – asynchronous crawling
+- **PyTest** – automated testing
+
+---
+
+## Platform Concept
+
+```
+Web Crawling → Data Ingestion → Normalization → Knowledge Base → Analytics → AI Systems
+```
+
+---
+
+## Project Status
+
+Active development (V1.5 – Data Platform Transition Stage).
+
+CrawlerNest is currently evolving from a crawler-centric system into a modular data platform with a validated PostgreSQL migration baseline and:
+
+- a structured data ingestion pipeline
+- a minimal runnable flow (`crawlernest/run_pipeline.py`) for QS crawl/store/query
+- a normalization engine (C-based prototype)
+- a knowledge base (SQLite warehouse baseline + PostgreSQL initialization baseline)
+- an emerging service layer (Java backend with read-only endpoints for universities/rankings/admissions)
+
+The project is in a **platform-building phase**, focusing on stability, data quality, and architectural scalability.
+
+---
+
+## Access
+
+CrawlerNest repositories are currently **private** and maintained under the CrawlerNest organization.
+
+---
+
+## License
+
+This project is protected by a custom proprietary license.
+See the [LICENSE](./LICENSE) file for full terms and restrictions.

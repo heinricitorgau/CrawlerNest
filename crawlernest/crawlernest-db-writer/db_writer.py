@@ -10,7 +10,7 @@ This module should be used by the active crawler pipeline.
 import json
 import sqlite3
 import os
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Dict
 from models import University, AdmissionRequirements
 
 # Attempt to import psycopg2 for PostgreSQL support
@@ -50,6 +50,8 @@ class DBWriter:
             raise ValueError(f"Unsupported db_type: {db_type}")
         
         self.cur = self.conn.cursor()
+        self._country_id_cache: Dict[str, int] = {}
+        self._university_id_cache: Dict[str, int] = {}
         self._ensure_tables_exist()
 
     def _get_placeholder(self) -> str:
@@ -175,6 +177,9 @@ class DBWriter:
         normalized_country = self._normalize_country_name(country_name)
         if not normalized_country:
             return None
+        cached_country_id = self._country_id_cache.get(normalized_country)
+        if cached_country_id is not None:
+            return cached_country_id
 
         p = self._get_placeholder()
         table = self._get_schema_prefix("countries")
@@ -182,7 +187,9 @@ class DBWriter:
         self.cur.execute(f"SELECT country_id FROM {table} WHERE country_name = {p}", (normalized_country,))
         row = self.cur.fetchone()
         if row:
-            return row[0]
+            country_id = int(row[0])
+            self._country_id_cache[normalized_country] = country_id
+            return country_id
 
         if self.db_type == "sqlite":
             self.cur.execute(f"INSERT OR IGNORE INTO {table} (country_name) VALUES ({p})", (normalized_country,))
@@ -191,7 +198,11 @@ class DBWriter:
 
         self.cur.execute(f"SELECT country_id FROM {table} WHERE country_name = {p}", (normalized_country,))
         row = self.cur.fetchone()
-        return row[0] if row else None
+        if not row:
+            return None
+        country_id = int(row[0])
+        self._country_id_cache[normalized_country] = country_id
+        return country_id
 
     # -----------------------------
     # UNIVERSITIES
@@ -200,6 +211,7 @@ class DBWriter:
     def upsert_university(self, uni: University, embedding: Optional[list] = None) -> int:
         country_id = self.get_or_create_country(uni.country)
         slug = self._slugify(uni.name)
+        cached_university_id = self._university_id_cache.get(slug)
         p = self._get_placeholder()
         table = self._get_schema_prefix("universities")
 
@@ -232,11 +244,20 @@ class DBWriter:
                 """,
                 (slug, uni.name, uni.name, country_id, embedding),
             )
-            return self.cur.fetchone()[0]
+            university_id = int(self.cur.fetchone()[0])
+            self._university_id_cache[slug] = university_id
+            return university_id
+
+        if cached_university_id is not None:
+            return cached_university_id
 
         self.cur.execute(f"SELECT university_id FROM {table} WHERE school_slug = {p}", (slug,))
         row = self.cur.fetchone()
-        return int(row[0])
+        if row is None:
+            raise RuntimeError(f"Failed to resolve university_id for slug={slug}")
+        university_id = int(row[0])
+        self._university_id_cache[slug] = university_id
+        return university_id
 
     def upsert_university_alias(
         self,

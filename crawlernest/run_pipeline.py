@@ -44,6 +44,8 @@ from crawler import UniversityCrawler  # noqa: E402
 from db_writer import DBWriter  # noqa: E402
 from models import University  # noqa: E402
 
+WRITE_BATCH_SIZE = 100
+
 
 def _normalize_space(value: str) -> str:
     return " ".join((value or "").strip().split())
@@ -190,6 +192,7 @@ def write_universities(
     checkpoint_file: Path,
     resource_guard: bool,
     workers: int,
+    write_batch_size: int = WRITE_BATCH_SIZE,
 ) -> tuple[int, int, int]:
     writer = DBWriter(db_type="sqlite", db_path=db_path) if db_type == "sqlite" else DBWriter(
         db_type="postgres", host=pg_host, port=pg_port, database=pg_database, user=pg_user, password=pg_password
@@ -224,7 +227,7 @@ def write_universities(
                 writer.insert_admission_requirements(university_id, uni.requirements, raw_id)
                 inserted += 1
                 done_slugs.add(slug)
-                if i % 10 == 0:
+                if i % max(1, write_batch_size) == 0:
                     writer.commit()
                     save_checkpoint(checkpoint_file, done_slugs)
             except Exception as e:
@@ -279,6 +282,12 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--limit", type=int, default=30)
     run_parser.add_argument("--workers", type=int, default=1, help="Max concurrent requests per crawler")
     run_parser.add_argument("--request-delay", type=float, default=10.0, help="Delay (seconds) between requests")
+    run_parser.add_argument(
+        "--write-batch-size",
+        type=int,
+        default=WRITE_BATCH_SIZE,
+        help="Commit/checkpoint interval during DB writes",
+    )
     run_parser.add_argument("--use-async", action="store_true")
     run_parser.add_argument("--resource-guard", action="store_true", help="Auto slow down on high load / low memory")
     run_parser.add_argument("--resume", action="store_true", help="Resume from snapshot + checkpoint if available")
@@ -339,6 +348,7 @@ def main() -> int:
             checkpoint_file=checkpoint_file,
             resource_guard=args.resource_guard,
             workers=max(1, args.workers),
+            write_batch_size=max(1, args.write_batch_size),
         )
 
         print("[4/4] Done.")

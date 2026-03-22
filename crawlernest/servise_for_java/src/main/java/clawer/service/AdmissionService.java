@@ -3,6 +3,8 @@ package clawer.service;
 import clawer.dto.AdmissionDTO;
 import clawer.model.AdmissionRequirement;
 import clawer.repository.AdmissionRequirementRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,8 +19,9 @@ public class AdmissionService {
         this.admissionRequirementRepository = admissionRequirementRepository;
     }
 
-    public List<AdmissionDTO> getAllAdmissions() {
-        return admissionRequirementRepository.findAll().stream()
+    public List<AdmissionDTO> getAllAdmissions(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return admissionRequirementRepository.findAll(pageable).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }

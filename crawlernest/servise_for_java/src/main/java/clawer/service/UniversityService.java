@@ -4,6 +4,8 @@ import clawer.dto.RankingDTO;
 import clawer.dto.UniversityDTO;
 import clawer.model.University;
 import clawer.repository.UniversityRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,8 +23,9 @@ public class UniversityService {
         this.universityRepository = universityRepository;
     }
 
-    public List<UniversityDTO> getAllUniversities() {
-        return universityRepository.findAll().stream()
+    public List<UniversityDTO> getAllUniversities(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return universityRepository.findAll(pageable).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

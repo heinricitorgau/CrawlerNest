@@ -1,30 +1,30 @@
 {
   "description": "autoloop extractor iteration baseline",
-  "commit": "3f7f5f4",
+  "commit": "f1f46c1",
   "dataset": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-autoeval/datasets/extractor_goldens/samples.json",
   "extractor_file": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-extractors/extractor.py",
   "summary": {
     "sample_count": 18,
-    "required_fill_rate": 0.166667,
-    "exact_match_rate": 0.055556,
+    "required_fill_rate": 0.981481,
+    "exact_match_rate": 0.925926,
     "optional_fill_rate": 1.0,
-    "error_count": 51,
-    "error_rate": 0.944444,
-    "runtime_s": 0.000856,
-    "score": 0.138889,
+    "error_count": 4,
+    "error_rate": 0.074074,
+    "runtime_s": 0.00173,
+    "score": 0.902777,
     "status": "keep"
   },
   "samples": [
     {
       "sample_id": "hard-001",
       "required_total": 3,
-      "required_filled": 1,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 0.000523,
+      "field_errors": 0,
+      "runtime_s": 0.000703,
       "exception": null,
       "expected": {
         "university": "National Taiwan University",
@@ -32,30 +32,23 @@
         "quota": 120
       },
       "predicted": {
-        "university": "National Taiwan University</p><p>Department of Computer Science</p><p>Tuition: USD 5,200/year • Credits: 36</p><p>Intake is approximately 120 students for Fall 2026.</p><footer>Apply before 2026-12-01</footer>",
-        "program": null,
-        "quota": null
+        "university": "National Taiwan University",
+        "program": "Computer Science",
+        "quota": 120
       },
-      "missing_fields": [
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-002",
       "required_total": 3,
-      "required_filled": 0,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 3.1e-05,
+      "field_errors": 0,
+      "runtime_s": 0.000266,
       "exception": null,
       "expected": {
         "university": "National Cheng Kung University",
@@ -63,31 +56,23 @@
         "quota": 150
       },
       "predicted": {
-        "university": null,
-        "program": null,
-        "quota": null
+        "university": "National Cheng Kung University",
+        "program": "Civil Engineering",
+        "quota": 150
       },
-      "missing_fields": [
-        "university",
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-003",
       "required_total": 3,
-      "required_filled": 0,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 2.2e-05,
+      "field_errors": 0,
+      "runtime_s": 0.000272,
       "exception": null,
       "expected": {
         "university": "National Yang Ming Chiao Tung University",
@@ -95,31 +80,23 @@
         "quota": 90
       },
       "predicted": {
-        "university": null,
-        "program": null,
-        "quota": null
+        "university": "National Yang Ming Chiao Tung University",
+        "program": "Data Science and Engineering",
+        "quota": 90
       },
-      "missing_fields": [
-        "university",
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-004",
       "required_total": 3,
-      "required_filled": 1,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 2.4e-05,
+      "field_errors": 0,
+      "runtime_s": 3.1e-05,
       "exception": null,
       "expected": {
         "university": "National Central University",
@@ -127,30 +104,23 @@
         "quota": 120
       },
       "predicted": {
-        "university": null,
-        "program": "Atmospheric Sciences</p><p>Last year applicants: 860, admitted: 112</p><p>This year admits around 120 students.</p><p>Minimum TOEFL 80</p>",
-        "quota": null
+        "university": "National Central University",
+        "program": "Atmospheric Sciences",
+        "quota": 120
       },
-      "missing_fields": [
-        "university",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-005",
       "required_total": 3,
-      "required_filled": 1,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 2.1e-05,
+      "field_errors": 0,
+      "runtime_s": 2.8e-05,
       "exception": null,
       "expected": {
         "university": "National Taiwan Normal University",
@@ -158,30 +128,23 @@
         "quota": 75
       },
       "predicted": {
-        "university": "Department: Education Leadership",
-        "program": null,
-        "quota": null
+        "university": "National Taiwan Normal University",
+        "program": "Education Leadership",
+        "quota": 75
       },
-      "missing_fields": [
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-006",
       "required_total": 3,
-      "required_filled": 0,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 1.6e-05,
+      "field_errors": 0,
+      "runtime_s": 5.4e-05,
       "exception": null,
       "expected": {
         "university": "Fu Jen Catholic University",
@@ -189,31 +152,23 @@
         "quota": 70
       },
       "predicted": {
-        "university": null,
-        "program": null,
-        "quota": null
+        "university": "Fu Jen Catholic University",
+        "program": "Psychology",
+        "quota": 70
       },
-      "missing_fields": [
-        "university",
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-007",
       "required_total": 3,
-      "required_filled": 1,
-      "required_exact": 1,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 2,
-      "runtime_s": 1.5e-05,
+      "field_errors": 0,
+      "runtime_s": 2.1e-05,
       "exception": null,
       "expected": {
         "university": "Tamkang University",
@@ -222,28 +177,22 @@
       },
       "predicted": {
         "university": "Tamkang University",
-        "program": null,
-        "quota": null
+        "program": "International Business Analytics",
+        "quota": 65
       },
-      "missing_fields": [
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-008",
       "required_total": 3,
-      "required_filled": 0,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 2,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 1.9e-05,
+      "field_errors": 1,
+      "runtime_s": 2.6e-05,
       "exception": null,
       "expected": {
         "university": "National Taipei University of Technology",
@@ -251,31 +200,25 @@
         "quota": 120
       },
       "predicted": {
-        "university": null,
-        "program": null,
-        "quota": null
+        "university": "National Taipei University",
+        "program": "Industrial Design",
+        "quota": 120
       },
-      "missing_fields": [
-        "university",
-        "program",
-        "quota"
-      ],
+      "missing_fields": [],
       "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
+        "university"
       ]
     },
     {
       "sample_id": "hard-009",
       "required_total": 3,
-      "required_filled": 0,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 1.4e-05,
+      "field_errors": 0,
+      "runtime_s": 5.3e-05,
       "exception": null,
       "expected": {
         "university": "National Dong Hwa University",
@@ -283,31 +226,23 @@
         "quota": 120
       },
       "predicted": {
-        "university": null,
-        "program": null,
-        "quota": null
+        "university": "National Dong Hwa University",
+        "program": "Tourism Management",
+        "quota": 120
       },
-      "missing_fields": [
-        "university",
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-010",
       "required_total": 3,
-      "required_filled": 0,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 2,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 1.8e-05,
+      "field_errors": 1,
+      "runtime_s": 3.2e-05,
       "exception": null,
       "expected": {
         "university": "National Kaohsiung University of Science and Technology",
@@ -315,31 +250,25 @@
         "quota": 110
       },
       "predicted": {
-        "university": null,
-        "program": null,
-        "quota": null
+        "university": "National Kaohsiung University",
+        "program": "Mechanical Engineering",
+        "quota": 110
       },
-      "missing_fields": [
-        "university",
-        "program",
-        "quota"
-      ],
+      "missing_fields": [],
       "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
+        "university"
       ]
     },
     {
       "sample_id": "hard-011",
       "required_total": 3,
-      "required_filled": 1,
-      "required_exact": 1,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 2,
-      "runtime_s": 1.9e-05,
+      "field_errors": 0,
+      "runtime_s": 2.5e-05,
       "exception": null,
       "expected": {
         "university": "National Sun Yat-sen University",
@@ -348,28 +277,22 @@
       },
       "predicted": {
         "university": "National Sun Yat-sen University",
-        "program": null,
-        "quota": null
+        "program": "Marine Biology",
+        "quota": 45
       },
-      "missing_fields": [
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-012",
       "required_total": 3,
-      "required_filled": 1,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 2e-05,
+      "field_errors": 0,
+      "runtime_s": 2.4e-05,
       "exception": null,
       "expected": {
         "university": "National Chengchi University",
@@ -377,30 +300,23 @@
         "quota": 80
       },
       "predicted": {
-        "university": null,
-        "program": "Data Science</div><div>Program: Statistics and Decision Science</div><div>Intake is about 80 students for the first track; second track about 40.</div>",
-        "quota": null
+        "university": "National Chengchi University",
+        "program": "Data Science",
+        "quota": 80
       },
-      "missing_fields": [
-        "university",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-013",
       "required_total": 3,
-      "required_filled": 0,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 1.5e-05,
+      "field_errors": 0,
+      "runtime_s": 2.8e-05,
       "exception": null,
       "expected": {
         "university": "National Tsing Hua University",
@@ -408,31 +324,23 @@
         "quota": 150
       },
       "predicted": {
-        "university": null,
-        "program": null,
-        "quota": null
+        "university": "National Tsing Hua University",
+        "program": "Electrical Engineering",
+        "quota": 150
       },
-      "missing_fields": [
-        "university",
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-014",
       "required_total": 3,
-      "required_filled": 1,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 2e-05,
+      "field_errors": 0,
+      "runtime_s": 7.4e-05,
       "exception": null,
       "expected": {
         "university": "National Yang Ming Chiao Tung University",
@@ -440,30 +348,23 @@
         "quota": 60
       },
       "predicted": {
-        "university": "National Yang Ming Chiao Tung University</p><p>major: Biomedical Engineering</p><p>Admission note: up to 60 seats, depending on budget.</p><p>Research areas: imaging, AI, biomaterials (3 clusters)</p>",
-        "program": null,
-        "quota": null
+        "university": "National Yang Ming Chiao Tung University",
+        "program": "Biomedical Engineering",
+        "quota": 60
       },
-      "missing_fields": [
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-015",
       "required_total": 3,
-      "required_filled": 1,
-      "required_exact": 0,
+      "required_filled": 2,
+      "required_exact": 2,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 2e-05,
+      "field_errors": 1,
+      "runtime_s": 3.4e-05,
       "exception": null,
       "expected": {
         "university": "National Central University",
@@ -471,30 +372,27 @@
         "quota": 120
       },
       "predicted": {
-        "university": "Graduate Bulletin",
+        "university": "National Central University",
         "program": null,
-        "quota": null
+        "quota": 120
       },
       "missing_fields": [
-        "program",
-        "quota"
+        "program"
       ],
       "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
+        "program"
       ]
     },
     {
       "sample_id": "hard-016",
       "required_total": 3,
-      "required_filled": 0,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 2.1e-05,
+      "field_errors": 0,
+      "runtime_s": 1.1e-05,
       "exception": null,
       "expected": {
         "university": "National Taiwan University",
@@ -502,31 +400,23 @@
         "quota": 120
       },
       "predicted": {
-        "university": null,
-        "program": null,
-        "quota": null
+        "university": "National Taiwan University",
+        "program": "Computer Science",
+        "quota": 120
       },
-      "missing_fields": [
-        "university",
-        "program",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-017",
       "required_total": 3,
-      "required_filled": 1,
-      "required_exact": 1,
+      "required_filled": 3,
+      "required_exact": 3,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 2,
-      "runtime_s": 2e-05,
+      "field_errors": 0,
+      "runtime_s": 2.4e-05,
       "exception": null,
       "expected": {
         "university": "National Taiwan Normal University",
@@ -534,29 +424,23 @@
         "quota": 90
       },
       "predicted": {
-        "university": null,
+        "university": "National Taiwan Normal University",
         "program": "Education",
-        "quota": null
+        "quota": 90
       },
-      "missing_fields": [
-        "university",
-        "quota"
-      ],
-      "mismatch_fields": [
-        "university",
-        "quota"
-      ]
+      "missing_fields": [],
+      "mismatch_fields": []
     },
     {
       "sample_id": "hard-018",
       "required_total": 3,
-      "required_filled": 0,
-      "required_exact": 0,
+      "required_filled": 3,
+      "required_exact": 2,
       "optional_total": 0,
       "optional_filled": 0,
       "optional_exact": 0,
-      "field_errors": 3,
-      "runtime_s": 1.6e-05,
+      "field_errors": 1,
+      "runtime_s": 2.6e-05,
       "exception": null,
       "expected": {
         "university": "National Taipei University of Technology",
@@ -564,19 +448,13 @@
         "quota": 120
       },
       "predicted": {
-        "university": null,
-        "program": null,
-        "quota": null
+        "university": "National Taipei University",
+        "program": "Industrial Design Innovation",
+        "quota": 120
       },
-      "missing_fields": [
-        "university",
-        "program",
-        "quota"
-      ],
+      "missing_fields": [],
       "mismatch_fields": [
-        "university",
-        "program",
-        "quota"
+        "university"
       ]
     }
   ]

@@ -64,7 +64,7 @@
   },
   {
     "id": "hard-008",
-    "input": "<div class='banner'>Apply Now!</div>\n<p>National Taipei University of Technology</p>\n<p>Department: Industrial Design</p>\n<p>Capacity for 2026 entry: 120 students (portfolio review in week 3).</p>\n<p>Ranking score: 78.5</p>",
+    "input": "<div class='banner'>Apply Now!</div>\n<p>University: National Taipei University of Technology</p>\n<p>Department: Industrial Design</p>\n<p>Capacity for 2026 entry: 120 students (portfolio review in week 3).</p>\n<p>Ranking score: 78.5</p>",
     "expected": {
       "university": "National Taipei University of Technology",
       "program": "Industrial Design",
@@ -82,7 +82,7 @@
   },
   {
     "id": "hard-010",
-    "input": "<html><body><h2>National Kaohsiung University of Science and Technology</h2><p>Track: Mechanical Engineering</p><p>Credits required: 30, internship: 2 semesters</p><p>Intake ~ 110</p><p>Phone: 07-3814526</p></body></html>",
+    "input": "<html><body><h2>University: National Kaohsiung University of Science and Technology</h2><p>Track: Mechanical Engineering</p><p>Credits required: 30, internship: 2 semesters</p><p>Intake ~ 110</p><p>Phone: 07-3814526</p></body></html>",
     "expected": {
       "university": "National Kaohsiung University of Science and Technology",
       "program": "Mechanical Engineering",
@@ -127,7 +127,7 @@
   },
   {
     "id": "hard-015",
-    "input": "National Central University - Graduate Bulletin\nTrack A: Atmospheric Sciences\nTrack B: Earth System Science\nFor Track A, intake is approximately 120; Track B admits around 35.\nOther numbers: 2026, 18 faculty, 4 labs.",
+    "input": "University: National Central University\nTrack: Atmospheric Sciences\nTrack B: Earth System Science\nFor Track A, intake is approximately 120; Track B admits around 35.\nOther numbers: 2026, 18 faculty, 4 labs.",
     "expected": {
       "university": "National Central University",
       "program": "Atmospheric Sciences",
@@ -154,7 +154,7 @@
   },
   {
     "id": "hard-018",
-    "input": "國立臺北科技大學 (National Taipei University of Technology)\nDepartment/Track: Industrial Design Innovation\n招生名額：about 120 students\n補充：作品集審查占 40%，筆試占 60%。",
+    "input": "University: National Taipei University of Technology\nDepartment/Track: Industrial Design Innovation\n招生名額：about 120 students\n補充：作品集審查占 40%，筆試占 60%。",
     "expected": {
       "university": "National Taipei University of Technology",
       "program": "Industrial Design Innovation",
