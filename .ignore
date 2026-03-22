@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Java / Maven
+target/
+*.class
+
+# Database
+*.db
+*.db.bak
+
+# Build / temp
+build/
+dist/
+*.log
