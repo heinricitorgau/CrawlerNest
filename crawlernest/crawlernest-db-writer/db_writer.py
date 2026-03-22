@@ -169,6 +169,147 @@ class DBWriter:
             raise RuntimeError("Failed to create raw_source_record")
         return int(raw_id)
 
+    def insert_raw_records_batch(self, rows: list[dict[str, Any]]) -> list[int]:
+        if not rows:
+            return []
+
+        p = self._get_placeholder()
+        table = self._get_schema_prefix("raw_source_records")
+        query = f"""
+            INSERT INTO {table} (
+                crawl_run_id,
+                source_name,
+                record_type,
+                ranking_type,
+                raw_json,
+                raw_text,
+                source_url
+            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p})
+        """
+
+        params: list[tuple[Any, ...]] = []
+        for row in rows:
+            raw_json = row.get("raw_json")
+            if self.db_type == "postgres" and isinstance(raw_json, dict):
+                raw_json = Json(raw_json)
+            elif self.db_type == "sqlite" and isinstance(raw_json, dict):
+                raw_json = json.dumps(raw_json, ensure_ascii=False)
+            params.append(
+                (
+                    row.get("crawl_run_id"),
+                    row.get("source_name"),
+                    row.get("record_type"),
+                    row.get("ranking_type"),
+                    raw_json,
+                    row.get("raw_text"),
+                    row.get("source_url"),
+                )
+            )
+
+        if self.db_type == "sqlite":
+            self.cur.executemany(query, params)
+            self.cur.execute("SELECT last_insert_rowid()")
+            last_id_row = self.cur.fetchone()
+            if not last_id_row or last_id_row[0] is None:
+                raise RuntimeError("Failed to resolve last_insert_rowid for raw_source_records batch")
+            last_id = int(last_id_row[0])
+            first_id = last_id - len(rows) + 1
+            return list(range(first_id, last_id + 1))
+
+        # PostgreSQL fallback keeps correctness (ids may not be contiguous).
+        raw_ids: list[int] = []
+        for row in rows:
+            raw_id = self.insert_raw_record(
+                source_name=str(row.get("source_name") or ""),
+                ranking_type=row.get("ranking_type"),
+                raw_json=row.get("raw_json"),
+                raw_text=row.get("raw_text"),
+                source_url=row.get("source_url"),
+                crawl_run_id=row.get("crawl_run_id"),
+                record_type=row.get("record_type"),
+            )
+            raw_ids.append(raw_id)
+        return raw_ids
+
+    def get_existing_states_by_slugs(
+        self,
+        slugs: list[str],
+        ranking_type: str = "world",
+        ranking_year: Optional[int] = None,
+    ) -> Dict[str, Dict[str, Any]]:
+        unique_slugs = [s for s in dict.fromkeys(slugs) if s]
+        if not unique_slugs:
+            return {}
+
+        p = self._get_placeholder()
+        universities_t = self._get_schema_prefix("universities")
+        countries_t = self._get_schema_prefix("countries")
+        rankings_t = self._get_schema_prefix("rankings")
+        admissions_t = self._get_schema_prefix("admission_requirements")
+        in_placeholders = ", ".join([p] * len(unique_slugs))
+
+        query = f"""
+            SELECT
+                u.school_slug,
+                u.display_name,
+                COALESCE(c.country_name, ''),
+                u.qs_profile_path,
+                r.rank_start,
+                r.score,
+                r.metrics_json,
+                ar.gpa_min,
+                ar.ielts_min,
+                ar.toefl_min,
+                ar.gre_min,
+                ar.gmat_min
+            FROM {universities_t} u
+            LEFT JOIN {countries_t} c ON c.country_id = u.country_id
+            LEFT JOIN {rankings_t} r ON r.ranking_id = (
+                SELECT r2.ranking_id
+                FROM {rankings_t} r2
+                WHERE r2.university_id = u.university_id
+                  AND r2.ranking_type = {p}
+                  AND (({p} IS NULL AND r2.ranking_year IS NULL) OR r2.ranking_year = {p})
+                ORDER BY r2.ranking_id DESC
+                LIMIT 1
+            )
+            LEFT JOIN {admissions_t} ar ON ar.requirement_id = (
+                SELECT a2.requirement_id
+                FROM {admissions_t} a2
+                WHERE a2.university_id = u.university_id
+                ORDER BY a2.requirement_id DESC
+                LIMIT 1
+            )
+            WHERE u.school_slug IN ({in_placeholders})
+        """
+        params: list[Any] = [ranking_type, ranking_year, ranking_year, *unique_slugs]
+        self.cur.execute(query, tuple(params))
+        rows = self.cur.fetchall()
+
+        out: Dict[str, Dict[str, Any]] = {}
+        for row in rows:
+            metrics = row[6]
+            if isinstance(metrics, str):
+                try:
+                    metrics = json.loads(metrics)
+                except Exception:
+                    metrics = None
+            slug = str(row[0])
+            out[slug] = {
+                "name": row[1],
+                "country": row[2],
+                "qs_profile_path": row[3],
+                "rank_start": row[4],
+                "score": row[5],
+                "metrics_json": metrics,
+                "gpa": row[7],
+                "ielts": row[8],
+                "toefl": row[9],
+                "gre": row[10],
+                "gmat": row[11],
+            }
+        return out
+
     # -----------------------------
     # COUNTRIES
     # -----------------------------
@@ -288,6 +429,24 @@ class DBWriter:
         # SQLite uses small letters for EXCLUDED sometimes but works with EXCLUDED too.
         self.cur.execute(query, (university_id, source_name, source_school_name, match_type, confidence_score))
 
+    def upsert_university_aliases_batch(self, rows: list[tuple[int, str, str, str, float]]) -> None:
+        if not rows:
+            return
+        p = self._get_placeholder()
+        table = self._get_schema_prefix("university_aliases")
+        conflict_target = "source_name, source_school_name"
+        query = f"""
+            INSERT INTO {table} (
+                university_id, source_name, source_school_name, match_type, confidence_score
+            ) VALUES ({p}, {p}, {p}, {p}, {p})
+            ON CONFLICT({conflict_target})
+            DO UPDATE SET
+                university_id = EXCLUDED.university_id,
+                match_type = EXCLUDED.match_type,
+                confidence_score = EXCLUDED.confidence_score
+        """
+        self.cur.executemany(query, rows)
+
     # -----------------------------
     # RANKINGS
     # -----------------------------
@@ -330,6 +489,22 @@ class DBWriter:
             ),
         )
 
+    def insert_rankings_batch(
+        self,
+        rows: list[tuple[int, Optional[int], str, str, Optional[int], Optional[int], Optional[int], Optional[float], Any]],
+    ) -> None:
+        if not rows:
+            return
+        p = self._get_placeholder()
+        table = self._get_schema_prefix("rankings")
+        query = f"""
+            INSERT INTO {table} (
+                university_id, raw_id, ranking_source, ranking_type,
+                ranking_year, rank_start, rank_end, score, metrics_json
+            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
+        """
+        self.cur.executemany(query, rows)
+
     # -----------------------------
     # ADMISSION REQUIREMENTS
     # -----------------------------
@@ -358,6 +533,21 @@ class DBWriter:
                 self._safe_float(req.gre), self._safe_float(req.gmat),
             ),
         )
+
+    def insert_admission_requirements_batch(
+        self,
+        rows: list[tuple[int, Optional[int], Optional[float], Optional[float], Optional[float], Optional[float], Optional[float]]],
+    ) -> None:
+        if not rows:
+            return
+        p = self._get_placeholder()
+        table = self._get_schema_prefix("admission_requirements")
+        query = f"""
+            INSERT INTO {table} (
+                university_id, raw_id, gpa_min, ielts_min, toefl_min, gre_min, gmat_min
+            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p})
+        """
+        self.cur.executemany(query, rows)
 
     # -----------------------------
     # UTILS

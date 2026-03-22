@@ -13,7 +13,7 @@ import sys
 import time
 import unicodedata
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Any
 
 
 REPO_ROOT = Path(__file__).resolve().parent
@@ -106,7 +106,15 @@ def ensure_sqlite_schema(db_path: Path) -> None:
         conn.close()
 
 
-def run_qs_crawl(limit: int, ranking_id: str, use_async: bool, workers: int, request_delay: float) -> list[University]:
+def run_qs_crawl(
+    limit: int,
+    ranking_id: str,
+    use_async: bool,
+    workers: int,
+    request_delay: float,
+    local_parse_workers: int,
+    fetch_details: bool,
+) -> list[University]:
     config = Config(
         ranking_id=ranking_id,
         ranking_limit=limit,
@@ -115,6 +123,8 @@ def run_qs_crawl(limit: int, ranking_id: str, use_async: bool, workers: int, req
         output_format="console",
         max_concurrent_requests=max(1, workers),
         request_delay=max(0.0, request_delay),
+        local_parse_workers=max(1, local_parse_workers),
+        fetch_details=bool(fetch_details),
     )
     crawler = UniversityCrawler(config)
     return asyncio.run(crawler.crawl_async()) if use_async else crawler.crawl()
@@ -167,17 +177,56 @@ def save_snapshot(path: Path, universities: Iterable[University]) -> None:
 
 
 def load_checkpoint(path: Path) -> set[str]:
-    if not path.exists():
-        return set()
-    with path.open("r", encoding="utf-8") as f:
-        obj = json.load(f)
-    return set(obj.get("done_slugs", []))
+    done_slugs: set[str] = set()
+
+    if path.exists():
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                obj = json.load(f)
+            done_slugs.update(obj.get("done_slugs", []))
+        except Exception:
+            # Backward-compat fallback: line-based slug file.
+            with path.open("r", encoding="utf-8") as f:
+                for line in f:
+                    slug = line.strip()
+                    if slug:
+                        done_slugs.add(slug)
+
+    journal = _checkpoint_journal(path)
+    if journal.exists():
+        with journal.open("r", encoding="utf-8") as f:
+            for line in f:
+                slug = line.strip()
+                if slug:
+                    done_slugs.add(slug)
+
+    return done_slugs
 
 
-def save_checkpoint(path: Path, done_slugs: set[str]) -> None:
+def _checkpoint_journal(path: Path) -> Path:
+    return path.with_suffix(path.suffix + ".journal")
+
+
+def append_checkpoint(path: Path, new_slugs: set[str]) -> None:
+    if not new_slugs:
+        return
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as f:
+    journal = _checkpoint_journal(path)
+    with journal.open("a", encoding="utf-8") as f:
+        for slug in sorted(new_slugs):
+            f.write(slug)
+            f.write("\n")
+
+
+def compact_checkpoint(path: Path, done_slugs: set[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with tmp.open("w", encoding="utf-8") as f:
         json.dump({"done_slugs": sorted(done_slugs)}, f, ensure_ascii=False)
+    tmp.replace(path)
+    journal = _checkpoint_journal(path)
+    if journal.exists():
+        journal.unlink()
 
 
 def write_universities(
@@ -203,6 +252,210 @@ def write_universities(
     skipped = 0
     failed = 0
     crawl_run_id = writer.start_crawl_run(source_name="QS", ranking_type="world", notes="low-resource pipeline run")
+    pending_batch: list[tuple[str, University]] = []
+
+    def _to_float(v: Any) -> Optional[float]:
+        if v is None or v == "":
+            return None
+        try:
+            return float(str(v).strip())
+        except Exception:
+            return None
+
+    def _to_int(v: Any) -> Optional[int]:
+        if v is None or v == "":
+            return None
+        try:
+            return int(str(v).strip())
+        except Exception:
+            return None
+
+    def _norm_metrics(v: Any) -> Optional[str]:
+        if not v:
+            return None
+        if isinstance(v, str):
+            try:
+                obj = json.loads(v)
+                return json.dumps(obj, ensure_ascii=False, sort_keys=True)
+            except Exception:
+                vv = v.strip()
+                return vv or None
+        try:
+            return json.dumps(v, ensure_ascii=False, sort_keys=True)
+        except Exception:
+            return None
+
+    def _same_float(a: Any, b: Any, eps: float = 1e-9) -> bool:
+        aa = _to_float(a)
+        bb = _to_float(b)
+        if aa is None and bb is None:
+            return True
+        if aa is None or bb is None:
+            return False
+        return abs(aa - bb) <= eps
+
+    def _is_unchanged(existing: dict[str, Any], uni: University) -> bool:
+        incoming_metrics = uni.table_metrics or {}
+        incoming_score = _to_float(incoming_metrics.get("Overall Score"))
+        incoming_qs_path = (uni.qs_profile_path or uni.path or None)
+
+        req = uni.requirements
+        req_gpa = getattr(req, "gpa", None) if req else None
+        req_ielts = getattr(req, "ielts", None) if req else None
+        req_toefl = getattr(req, "toefl", None) if req else None
+        req_gre = getattr(req, "gre", None) if req else None
+        req_gmat = getattr(req, "gmat", None) if req else None
+
+        return (
+            str(existing.get("name") or "") == str(uni.name or "")
+            and str(existing.get("country") or "") == str(uni.country or "")
+            and str(existing.get("qs_profile_path") or "") == str(incoming_qs_path or "")
+            and _to_int(existing.get("rank_start")) == _to_int(uni.rank)
+            and _same_float(existing.get("score"), incoming_score)
+            and _norm_metrics(existing.get("metrics_json")) == _norm_metrics(incoming_metrics)
+            and _same_float(existing.get("gpa"), req_gpa)
+            and _same_float(existing.get("ielts"), req_ielts)
+            and _same_float(existing.get("toefl"), req_toefl)
+            and _same_float(existing.get("gre"), req_gre)
+            and _same_float(existing.get("gmat"), req_gmat)
+        )
+
+    def _write_one(slug: str, uni: University) -> bool:
+        nonlocal inserted, failed, done_slugs
+        try:
+            raw_id = writer.insert_raw_record(
+                source_name="QS",
+                ranking_type="world",
+                raw_json=uni.to_dict(),
+                source_url=uni.qs_profile_path or uni.path or None,
+                crawl_run_id=crawl_run_id,
+                record_type="university_object",
+            )
+            university_id = writer.upsert_university(uni)
+            writer.upsert_university_alias(university_id, "QS", uni.name, "exact", 1.0)
+            writer.insert_ranking(university_id, uni, "QS", "world", None, raw_id)
+            writer.insert_admission_requirements(university_id, uni.requirements, raw_id)
+            inserted += 1
+            done_slugs.add(slug)
+            return True
+        except Exception as e:
+            failed += 1
+            print(f"[warn] skip write error for {uni.name}: {e}")
+            return False
+
+    def _flush_pending_batch() -> set[str]:
+        nonlocal inserted, skipped, failed, done_slugs, pending_batch
+        if not pending_batch:
+            return set()
+
+        appended_slugs: set[str] = set()
+        existing_map = writer.get_existing_states_by_slugs(
+            [slug for slug, _ in pending_batch],
+            ranking_type="world",
+            ranking_year=None,
+        )
+        to_write: list[tuple[str, University]] = []
+        for slug, uni in pending_batch:
+            existing = existing_map.get(slug)
+            if existing is not None and _is_unchanged(existing, uni):
+                skipped += 1
+                done_slugs.add(slug)
+                appended_slugs.add(slug)
+                continue
+            to_write.append((slug, uni))
+
+        if not to_write:
+            pending_batch = []
+            return appended_slugs
+
+        # Batch path currently optimized for SQLite; keep PostgreSQL on stable row-by-row path.
+        if writer.db_type != "sqlite":
+            for slug, uni in to_write:
+                before = len(done_slugs)
+                _write_one(slug, uni)
+                if len(done_slugs) > before and slug in done_slugs:
+                    appended_slugs.add(slug)
+            pending_batch = []
+            return appended_slugs
+
+        raw_rows = [
+            {
+                "crawl_run_id": crawl_run_id,
+                "source_name": "QS",
+                "record_type": "university_object",
+                "ranking_type": "world",
+                "raw_json": uni.to_dict(),
+                "raw_text": None,
+                "source_url": uni.qs_profile_path or uni.path or None,
+            }
+            for _, uni in to_write
+        ]
+
+        try:
+            raw_ids = writer.insert_raw_records_batch(raw_rows)
+
+            alias_rows: list[tuple[int, str, str, str, float]] = []
+            ranking_rows: list[tuple[int, Optional[int], str, str, Optional[int], Optional[int], Optional[int], Optional[float], Optional[str]]] = []
+            admission_rows: list[tuple[int, Optional[int], Optional[float], Optional[float], Optional[float], Optional[float], Optional[float]]] = []
+
+            for (slug, uni), raw_id in zip(to_write, raw_ids):
+                try:
+                    university_id = writer.upsert_university(uni)
+                except Exception as e:
+                    failed += 1
+                    print(f"[warn] skip write error for {uni.name}: {e}")
+                    continue
+
+                alias_rows.append((university_id, "QS", uni.name, "exact", 1.0))
+
+                metrics_json = uni.table_metrics or {}
+                score = writer._safe_float(metrics_json.get("Overall Score")) if metrics_json else None
+                ranking_rows.append(
+                    (
+                        university_id,
+                        raw_id,
+                        "QS",
+                        "world",
+                        None,
+                        writer._safe_int(uni.rank),
+                        writer._safe_int(uni.rank),
+                        score,
+                        json.dumps(metrics_json, ensure_ascii=False) if metrics_json else None,
+                    )
+                )
+
+                req = uni.requirements
+                if req:
+                    admission_rows.append(
+                        (
+                            university_id,
+                            raw_id,
+                            writer._safe_float(req.gpa),
+                            writer._safe_float(req.ielts),
+                            writer._safe_float(req.toefl),
+                            writer._safe_float(req.gre),
+                            writer._safe_float(req.gmat),
+                        )
+                    )
+
+                inserted += 1
+                done_slugs.add(slug)
+                appended_slugs.add(slug)
+
+            writer.upsert_university_aliases_batch(alias_rows)
+            writer.insert_rankings_batch(ranking_rows)
+            writer.insert_admission_requirements_batch(admission_rows)
+        except Exception as e:
+            # Safety net: fallback to stable row-by-row if batch insert fails unexpectedly.
+            print(f"[warn] batch write failed, falling back to row-by-row for this chunk: {e}")
+            for slug, uni in to_write:
+                before = len(done_slugs)
+                _write_one(slug, uni)
+                if len(done_slugs) > before and slug in done_slugs:
+                    appended_slugs.add(slug)
+        finally:
+            pending_batch = []
+        return appended_slugs
 
     try:
         for i, uni in enumerate(universities, start=1):
@@ -212,32 +465,18 @@ def write_universities(
                 continue
 
             adaptive_pause(resource_guard, workers)
-            try:
-                raw_id = writer.insert_raw_record(
-                    source_name="QS",
-                    ranking_type="world",
-                    raw_json=uni.to_dict(),
-                    source_url=uni.qs_profile_path or uni.path or None,
-                    crawl_run_id=crawl_run_id,
-                    record_type="university_object",
-                )
-                university_id = writer.upsert_university(uni)
-                writer.upsert_university_alias(university_id, "QS", uni.name, "exact", 1.0)
-                writer.insert_ranking(university_id, uni, "QS", "world", None, raw_id)
-                writer.insert_admission_requirements(university_id, uni.requirements, raw_id)
-                inserted += 1
-                done_slugs.add(slug)
-                if i % max(1, write_batch_size) == 0:
-                    writer.commit()
-                    save_checkpoint(checkpoint_file, done_slugs)
-            except Exception as e:
-                failed += 1
-                print(f"[warn] skip write error for {uni.name}: {e}")
-                continue
+            pending_batch.append((slug, uni))
 
+            if len(pending_batch) >= max(1, write_batch_size):
+                newly_done = _flush_pending_batch()
+                writer.commit()
+                append_checkpoint(checkpoint_file, newly_done)
+
+        newly_done = _flush_pending_batch()
         writer.finish_crawl_run(crawl_run_id, status="finished" if failed == 0 else "partial")
         writer.commit()
-        save_checkpoint(checkpoint_file, done_slugs)
+        append_checkpoint(checkpoint_file, newly_done)
+        compact_checkpoint(checkpoint_file, done_slugs)
     finally:
         writer.close()
 
@@ -283,6 +522,17 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--workers", type=int, default=1, help="Max concurrent requests per crawler")
     run_parser.add_argument("--request-delay", type=float, default=10.0, help="Delay (seconds) between requests")
     run_parser.add_argument(
+        "--local-parse-workers",
+        type=int,
+        default=4,
+        help="Local CPU workers for parsing HTML into requirements (does not increase web request concurrency)",
+    )
+    run_parser.add_argument(
+        "--rankings-only",
+        action="store_true",
+        help="Fetch rankings list only; skip per-university detail page fetching/extraction",
+    )
+    run_parser.add_argument(
         "--write-batch-size",
         type=int,
         default=WRITE_BATCH_SIZE,
@@ -326,7 +576,15 @@ def main() -> int:
             universities = load_snapshot(snapshot_file)
         else:
             print("[1/4] Crawling QS data...")
-            universities = run_qs_crawl(args.limit, args.ranking_id, args.use_async, args.workers, args.request_delay)
+            universities = run_qs_crawl(
+                args.limit,
+                args.ranking_id,
+                args.use_async,
+                args.workers,
+                args.request_delay,
+                args.local_parse_workers,
+                not args.rankings_only,
+            )
             if not universities:
                 print("No universities crawled. Exiting.")
                 return 1

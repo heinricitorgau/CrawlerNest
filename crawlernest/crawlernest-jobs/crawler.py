@@ -694,6 +694,10 @@ class UniversityCrawler:
                 self.stats["success"] += 1
                 continue
 
+            if not bool(getattr(self.config, "fetch_details", True)):
+                self.stats["success"] += 1
+                continue
+
                                                        
             if not uni.path:
                 self.stats["skipped"] += 1
@@ -755,7 +759,7 @@ class UniversityCrawler:
             self.stats["total"] = len(nodes)
             self.logger.info(f"Found {len(nodes)} universities to process (async)")
 
-            if self.is_sustainability:
+            if self.is_sustainability or not bool(getattr(self.config, "fetch_details", True)):
                 for i, node in enumerate(nodes, start=1):
                     uni = self._process_university(node)
                     if uni is None:
@@ -774,6 +778,8 @@ class UniversityCrawler:
 
             paths = [str(node.get("path", "")) for node in nodes]
             html_list = await fetcher.fetch_all_details(paths)
+            local_parse_workers = max(1, int(getattr(self.config, "local_parse_workers", 1) or 1))
+            pending_parse: List[tuple[University, str]] = []
 
             for i, (node, html) in enumerate(zip(nodes, html_list), start=1):
                 uni = self._process_university(node)
@@ -785,11 +791,14 @@ class UniversityCrawler:
                 path = str(node.get("path", ""))
 
                 if html:
-                    try:
-                        uni.requirements = self.extractor.extract_requirements(html)
-                        self.stats["success"] += 1
-                    except Exception:
-                        self.stats["failed"] += 1
+                    if local_parse_workers > 1:
+                        pending_parse.append((uni, html))
+                    else:
+                        try:
+                            uni.requirements = self.extractor.extract_requirements(html)
+                            self.stats["success"] += 1
+                        except Exception:
+                            self.stats["failed"] += 1
                 elif not path:
                     self.stats["skipped"] += 1
                 else:
@@ -800,6 +809,23 @@ class UniversityCrawler:
                     filled = pct // 5
                     bar = "█" * filled + "░" * (20 - filled)
                     print(f"\r  [{bar}] {pct:>3}%  {i}/{len(nodes)} universities", end="", flush=True)
+
+            if pending_parse:
+                sem = asyncio.Semaphore(local_parse_workers)
+
+                async def _parse_one(uni: University, html_text: str) -> bool:
+                    async with sem:
+                        try:
+                            req = await asyncio.to_thread(self.extractor.extract_requirements, html_text)
+                            uni.requirements = req
+                            return True
+                        except Exception:
+                            return False
+
+                parsed = await asyncio.gather(*[_parse_one(uni, html) for uni, html in pending_parse])
+                ok_count = sum(1 for x in parsed if x)
+                self.stats["success"] += ok_count
+                self.stats["failed"] += (len(parsed) - ok_count)
 
             if self.config.show_progress:
                 print()

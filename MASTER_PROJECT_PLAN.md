@@ -46,6 +46,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 3. **推薦延後但預留**：先把資料與分析層打穩，再逐步推進 AI 推薦能力
 4. **模組解耦**：crawler、extractor、normalization、db、analytics、API 彼此保持相對獨立
 5. **低規節點可運行**：系統設計必須能支援老舊 x86 節點作為第一代 OpenClaw / Lobster Node
+6. **合規優先加速**：在 robots.txt 與來源限制下，以本地解析並行、批次寫入、增量 checkpoint、局部更新等手段提升吞吐
 
 ### 2.2 模組完成度地圖（截至 2026 年 3 月）
 
@@ -377,6 +378,14 @@ graph TD
 - **Incremental Update**：針對 admission / program 層做局部刷新
 - **Low-spec Execution**：在老舊節點上以低併發、保守節流、resume/checkpoint 模式執行長任務
 
+目前已落地的增量與加速機制（V1.5）：
+
+- **兩段模式**：可先跑 `rankings-only`（僅主榜單），再於需要時補抓 detail requirements
+- **局部更新寫入**：以 `school_slug + ranking_type + year` 先比對現有資料，未變動者跳過寫入
+- **checkpoint 增量化**：執行中先寫入 journal，完成後 compact，兼顧續跑速度與完整性
+- **批次寫入**：writer 層對 raw / alias / rankings / admissions 採 `executemany` 類批次路徑
+- **失敗參數黑名單（TTL）**：對重複失敗的 API 參數組合暫時停用，避免反覆慢失敗
+
 ### 9.4 排名資料策略
 
 - HTML extraction 為主，API 為輔
@@ -408,7 +417,7 @@ CrawlerNest 已明確區分：
 - `workers = 1`
 - `concurrency = 1`
 - `request_delay = 8 ~ 12s`（建議 10 秒）
-- `batch commit = 10`
+- `write_batch_size = 100 ~ 300`（依節點 I/O 能力微調）
 - `log level = INFO`
 - `resource_guard = enabled`
 - `resume = enabled`

@@ -38,6 +38,12 @@ CrawlerNest is currently transitioning from a crawler tool into a structured dat
 - ✅ Modular architecture (crawler / extractor / db_writer separation)
 - ✅ Initial Java Spring Boot service integration (validated startup against PostgreSQL baseline)
 - ✅ Read-only internal API endpoints: `/universities`, `/rankings`, `/admissions`
+- ✅ Rankings-only mode (`--rankings-only`) for faster collection when detail pages are not required
+- ✅ Local parse parallelism (`--local-parse-workers`) that speeds parsing without increasing web-request concurrency
+- ✅ Batch DB writes (`executemany` path in writer) to reduce per-row write overhead
+- ✅ Incremental checkpoint journal (`*.journal`) + compaction to speed resume reliability
+- ✅ Partial update strategy: compare `school_slug + ranking_type + year` and skip unchanged rows
+- ✅ Request-parameter failure blacklist (TTL) to avoid repeatedly retrying known-bad API parameter pairs
 
 ### Next (V2): In progress
 
@@ -67,6 +73,27 @@ From repository root:
 
 ```bash
 python3 crawlernest/run_pipeline.py run --limit 30
+```
+
+Compliance-safe baseline (recommended for QS):
+
+```bash
+python3 crawlernest/run_pipeline.py run \
+  --limit 200 \
+  --workers 1 \
+  --request-delay 10 \
+  --local-parse-workers 4 \
+  --write-batch-size 200
+```
+
+Fast ranking-only mode (skip per-school detail requirements pages):
+
+```bash
+python3 crawlernest/run_pipeline.py run \
+  --limit 200 \
+  --rankings-only \
+  --workers 1 \
+  --request-delay 10
 ```
 
 Expected console shape:
@@ -109,6 +136,20 @@ curl http://localhost:8080/admissions
 ```
 
 Note: public/external API hardening is still part of future roadmap work.
+
+---
+
+## Performance Updates (2026-03)
+
+The following acceleration items are already implemented and active in current pipeline:
+
+- **Network compliance first**: QS requests remain conservative (`workers=1`, `request_delay≈10s`) to reduce legal/rate-limit risk.
+- **Two-stage crawl mode**: support ranking-only runs, then optional detail enrichment later.
+- **Local CPU acceleration**: detail-page parsing can use local workers without violating web-side request pacing.
+- **Write-path batching**: raw records / aliases / rankings / admissions support batched insert calls.
+- **Checkpoint incrementalization**: append-only journal during run, then compact at finish.
+- **Partial update write-avoidance**: unchanged schools are skipped by key state comparison, reducing unnecessary DB writes.
+- **Bad-parameter suppression**: failed request parameter combinations are temporarily blacklisted (TTL) to avoid repeated slow failures.
 
 ---
 

@@ -9,7 +9,9 @@ import logging
 import os
 import re
 import ssl
+import threading
 import time
+from urllib.parse import urlparse
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, cast
 
 import requests
@@ -30,8 +32,56 @@ from utils import retry
 
 logger = logging.getLogger("UniversityFetcher")
 
+_SYNC_RATE_LOCK = threading.Lock()
+_SYNC_LAST_REQUEST_AT: Dict[str, float] = {}
+_ASYNC_HOST_LOCKS: Dict[str, asyncio.Lock] = {}
+_ASYNC_LAST_REQUEST_AT: Dict[str, float] = {}
+
 if TYPE_CHECKING:
     import aiohttp as aiohttp_module
+
+
+def _host_key_from_url(url: Optional[str]) -> str:
+    if not url:
+        return "_default"
+    try:
+        parsed = urlparse(url)
+        return parsed.netloc.lower() or "_default"
+    except Exception:
+        return "_default"
+
+
+def _global_wait_sync(url: Optional[str], delay: float) -> None:
+    if delay <= 0:
+        return
+    host = _host_key_from_url(url)
+    with _SYNC_RATE_LOCK:
+        now = time.time()
+        last = _SYNC_LAST_REQUEST_AT.get(host, 0.0)
+        remain = delay - (now - last)
+        if remain > 0:
+            time.sleep(remain)
+            now = time.time()
+        _SYNC_LAST_REQUEST_AT[host] = now
+
+
+async def _global_wait_async(url: Optional[str], delay: float) -> None:
+    if delay <= 0:
+        return
+    host = _host_key_from_url(url)
+    lock = _ASYNC_HOST_LOCKS.get(host)
+    if lock is None:
+        lock = asyncio.Lock()
+        _ASYNC_HOST_LOCKS[host] = lock
+
+    async with lock:
+        now = time.time()
+        last = _ASYNC_LAST_REQUEST_AT.get(host, 0.0)
+        remain = delay - (now - last)
+        if remain > 0:
+            await asyncio.sleep(remain)
+            now = time.time()
+        _ASYNC_LAST_REQUEST_AT[host] = now
 
 
 def _abs_url(base_url: str, path: str) -> str:
@@ -508,6 +558,40 @@ def _ordered_param_pairs(
     return preferred + others
 
 
+def _pair_key(cand_nid: str, url: str, extra: Dict[str, str], country_v: Optional[str]) -> str:
+    extra_key = tuple(sorted(extra.items()))
+    return f"{cand_nid}|{url}|{extra_key}|{country_v or ''}"
+
+
+def _get_failure_ttl(config: Config) -> float:
+    try:
+        ttl = float(getattr(config, "failed_param_ttl_seconds", 1800.0) or 0.0)
+    except Exception:
+        ttl = 1800.0
+    return max(1.0, ttl)
+
+
+def _is_pair_blacklisted(config: Config, key: str) -> bool:
+    store = getattr(config, "_failed_param_pairs", None)
+    if not isinstance(store, dict):
+        return False
+    expiry = store.get(key)
+    now = time.time()
+    if isinstance(expiry, (int, float)) and expiry > now:
+        return True
+    if key in store:
+        store.pop(key, None)
+    return False
+
+
+def _mark_pair_failed(config: Config, key: str) -> None:
+    store = getattr(config, "_failed_param_pairs", None)
+    if not isinstance(store, dict):
+        store = {}
+        setattr(config, "_failed_param_pairs", store)
+    store[key] = time.time() + _get_failure_ttl(config)
+
+
 class UniversityFetcher:
 
 
@@ -516,12 +600,10 @@ class UniversityFetcher:
         self.session = requests.Session()
         self._last_request_time = 0.0
 
-    def _wait_for_delay(self):
+    def _wait_for_delay(self, url: Optional[str] = None):
         delay = getattr(self.config, "request_delay", 0.0)
         if delay > 0:
-            elapsed = time.time() - self._last_request_time
-            if elapsed < delay:
-                time.sleep(delay - elapsed)
+            _global_wait_sync(url, delay)
         self._last_request_time = time.time()
 
     def close(self):
@@ -543,7 +625,7 @@ class UniversityFetcher:
         for page_url in _ranking_page_fallbacks(ranking_page_url):
             tried.append(page_url)
             try:
-                self._wait_for_delay()
+                self._wait_for_delay(page_url)
                 resp = self.session.get(
                     page_url,
                     timeout=getattr(self.config, "timeout", 15),
@@ -603,10 +685,12 @@ class UniversityFetcher:
                 getattr(self.config, "api_url", "https://www.topuniversities.com/rankings/endpoint"),
             ]
             for url in urls:
-                try:
-                    key = _hint_key(str(cand_nid), url)
-                    hint = _get_request_hint(self.config, key)
-                    for extra, country_v in _ordered_param_pairs(region_variants, country_variants, hint):
+                key = _hint_key(str(cand_nid), url)
+                hint = _get_request_hint(self.config, key)
+                for extra, country_v in _ordered_param_pairs(region_variants, country_variants, hint):
+                            pair_key = _pair_key(str(cand_nid), url, extra, country_v)
+                            if _is_pair_blacklisted(self.config, pair_key):
+                                continue
                             params = self.config.get_api_params().copy()
                             params["nid"] = str(cand_nid)
                             params.update(extra)
@@ -615,17 +699,26 @@ class UniversityFetcher:
                             else:
                                 params["countries"] = country_v
 
-                            self._wait_for_delay()
-                            resp = self.session.get(
-                                url,
-                                timeout=getattr(self.config, "timeout", 15),
-                                headers=self.config.get_headers(),
-                                params=params,
-                            )
-                            resp.raise_for_status()
+                            try:
+                                self._wait_for_delay(url)
+                                resp = self.session.get(
+                                    url,
+                                    timeout=getattr(self.config, "timeout", 15),
+                                    headers=self.config.get_headers(),
+                                    params=params,
+                                )
+                                resp.raise_for_status()
+                            except requests.RequestException as e:
+                                _mark_pair_failed(self.config, pair_key)
+                                error_msg = f"{url!r}: {e}"
+                                errors.append(error_msg)
+                                logger.debug(f"Request failed: {error_msg}")
+                                continue
+
                             try:
                                 data = resp.json()
                             except ValueError:
+                                _mark_pair_failed(self.config, pair_key)
                                 ct = resp.headers.get("Content-Type", "")
                                 snippet = resp.text[:200]
                                 errors.append(
@@ -649,10 +742,6 @@ class UniversityFetcher:
                                 first_success = data
                             elif first_success is None:
                                 first_success = data
-                except requests.RequestException as e:
-                    error_msg = f"{url!r}: {e}"
-                    errors.append(error_msg)
-                    logger.debug(f"Request failed: {error_msg}")
 
         if first_success is not None:
             return first_success
@@ -673,7 +762,7 @@ class UniversityFetcher:
         if not path:
             return None
         url = _abs_url(getattr(self.config, "base_url", "https://www.topuniversities.com"), path)
-        self._wait_for_delay()
+        self._wait_for_delay(url)
         resp = self.session.get(
             url,
             timeout=getattr(self.config, "timeout", 15),
@@ -704,12 +793,10 @@ class AsyncUniversityFetcher:
             self._ssl_context = ssl.create_default_context()
         self._last_request_time = 0.0
 
-    async def _wait_for_delay(self):
+    async def _wait_for_delay(self, url: Optional[str] = None):
         delay = getattr(self.config, "request_delay", 0.0)
         if delay > 0:
-            elapsed = time.time() - self._last_request_time
-            if elapsed < delay:
-                await asyncio.sleep(delay - elapsed)
+            await _global_wait_async(url, delay)
         self._last_request_time = time.time()
 
     async def _ensure_session(self):
@@ -744,7 +831,7 @@ class AsyncUniversityFetcher:
         for page_url in _ranking_page_fallbacks(ranking_page_url):
             tried.append(page_url)
             try:
-                await self._wait_for_delay()
+                await self._wait_for_delay(page_url)
                 async with self.session.get(
                     page_url,
                     timeout=getattr(self.config, "timeout", 15),
@@ -805,10 +892,12 @@ class AsyncUniversityFetcher:
                 getattr(self.config, "api_url", "https://www.topuniversities.com/rankings/endpoint"),
             ]
             for url in urls:
-                try:
-                    key = _hint_key(str(cand_nid), url)
-                    hint = _get_request_hint(self.config, key)
-                    for extra, country_v in _ordered_param_pairs(region_variants, country_variants, hint):
+                key = _hint_key(str(cand_nid), url)
+                hint = _get_request_hint(self.config, key)
+                for extra, country_v in _ordered_param_pairs(region_variants, country_variants, hint):
+                            pair_key = _pair_key(str(cand_nid), url, extra, country_v)
+                            if _is_pair_blacklisted(self.config, pair_key):
+                                continue
                             params = self.config.get_api_params().copy()
                             params["nid"] = str(cand_nid)
                             params.update(extra)
@@ -817,51 +906,56 @@ class AsyncUniversityFetcher:
                             else:
                                 params["countries"] = country_v
 
-                            await self._wait_for_delay()
-                            async with self.session.get(
-                                url,
-                                timeout=getattr(self.config, "timeout", 15),
-                                ssl=self._ssl_context,
-                                params=params,
-                            ) as resp:
-                                ct = resp.headers.get("Content-Type", "")
-                                if resp.status >= 400:
-                                    text = await resp.text()
-                                    errors.append(
-                                        f"QS API error from {url!r} (status={resp.status}, content-type={ct}). "
-                                        f"First 200 chars: {text[:200]!r}"
-                                    )
-                                    continue
+                            try:
+                                await self._wait_for_delay(url)
+                                async with self.session.get(
+                                    url,
+                                    timeout=getattr(self.config, "timeout", 15),
+                                    ssl=self._ssl_context,
+                                    params=params,
+                                ) as resp:
+                                    ct = resp.headers.get("Content-Type", "")
+                                    if resp.status >= 400:
+                                        _mark_pair_failed(self.config, pair_key)
+                                        text = await resp.text()
+                                        errors.append(
+                                            f"QS API error from {url!r} (status={resp.status}, content-type={ct}). "
+                                            f"First 200 chars: {text[:200]!r}"
+                                        )
+                                        continue
 
-                                try:
-                                    data = await resp.json()
-                                except Exception as e:
-                                    text = await resp.text()
-                                    errors.append(
-                                        f"QS API did not return JSON from {url!r} "
-                                        f"(status={resp.status}, content-type={ct}). "
-                                        f"First 200 chars: {text[:200]!r}; parser_error={e}"
-                                    )
-                                    continue
+                                    try:
+                                        data = await resp.json()
+                                    except Exception as e:
+                                        _mark_pair_failed(self.config, pair_key)
+                                        text = await resp.text()
+                                        errors.append(
+                                            f"QS API did not return JSON from {url!r} "
+                                            f"(status={resp.status}, content-type={ct}). "
+                                            f"First 200 chars: {text[:200]!r}; parser_error={e}"
+                                        )
+                                        continue
+                            except Exception as e:
+                                _mark_pair_failed(self.config, pair_key)
+                                error_msg = f"{url!r}: {e}"
+                                errors.append(error_msg)
+                                logger.debug(f"Async request failed: {error_msg}")
+                                continue
 
-                                if not _payload_matches_page(data, getattr(self.config, "ranking_page_url", None)):
-                                    if first_success is None:
-                                        first_success = data
-                                    continue
-                                _set_request_hint(self.config, key, extra, country_v)
-
-                                nodes = data.get("score_nodes", []) if isinstance(data, dict) else []
-                                if isinstance(nodes, list) and len(nodes) > 0:
-                                    self.config.ranking_id = str(cand_nid)
-                                    return data
-                                if not country_requested and first_success is None:
+                            if not _payload_matches_page(data, getattr(self.config, "ranking_page_url", None)):
+                                if first_success is None:
                                     first_success = data
-                                elif first_success is None:
-                                    first_success = data
-                except Exception as e:
-                    error_msg = f"{url!r}: {e}"
-                    errors.append(error_msg)
-                    logger.debug(f"Async request failed: {error_msg}")
+                                continue
+                            _set_request_hint(self.config, key, extra, country_v)
+
+                            nodes = data.get("score_nodes", []) if isinstance(data, dict) else []
+                            if isinstance(nodes, list) and len(nodes) > 0:
+                                self.config.ranking_id = str(cand_nid)
+                                return data
+                            if not country_requested and first_success is None:
+                                first_success = data
+                            elif first_success is None:
+                                first_success = data
 
         if first_success is not None:
             return first_success
@@ -886,7 +980,7 @@ class AsyncUniversityFetcher:
             url = _abs_url(base_url, path)
             async with sem:
                 try:
-                    await self._wait_for_delay()
+                    await self._wait_for_delay(url)
                     async with session.get(
                         url,
                         timeout=getattr(self.config, "timeout", 15),
