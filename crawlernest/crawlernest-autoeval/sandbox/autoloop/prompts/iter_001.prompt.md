@@ -8,13 +8,13 @@ You are a senior Python engineer improving CrawlerNest's extractor for AutoEval.
         Improve extractor robustness without breaking current passing cases.
 
         Current baseline metrics:
-        - score = 0.950000
-        - required_fill_rate = 1.000000
-        - exact_match_rate = 1.000000
+        - score = 0.138889
+        - required_fill_rate = 0.166667
+        - exact_match_rate = 0.055556
         - optional_fill_rate = 1.000000
-        - error_count = 0
-        - error_rate = 0.000000
-        - runtime_s = 0.000733
+        - error_count = 51
+        - error_rate = 0.944444
+        - runtime_s = 0.000856
         - status = keep
 
         Dataset:

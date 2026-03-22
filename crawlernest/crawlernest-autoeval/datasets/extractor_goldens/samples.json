@@ -1,124 +1,164 @@
-{
-  "samples": [
-    {
-      "id": "demo-001",
-      "input": "University: National Taiwan University\nProgram: Computer Science\nQuota: 120",
-      "expected": {
-        "university": "National Taiwan University",
-        "program": "Computer Science",
-        "quota": 120
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-002",
-      "input": "Program: Data Science\nQuota: 80\nUniversity: National Chengchi University",
-      "expected": {
-        "university": "National Chengchi University",
-        "program": "Data Science",
-        "quota": 80
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-003",
-      "input": "University :  National Tsing Hua University  \nProgram  :Electrical Engineering\nQuota :  150",
-      "expected": {
-        "university": "National Tsing Hua University",
-        "program": "Electrical Engineering",
-        "quota": 150
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-004",
-      "input": "UNIVERSITY: National Yang Ming Chiao Tung University\nProgram: Biomedical Engineering\nQUOTA: 60",
-      "expected": {
-        "university": "National Yang Ming Chiao Tung University",
-        "program": "Biomedical Engineering",
-        "quota": 60
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-005",
-      "input": "university: National Taiwan Normal University\nprogram: Education\nquota: 90",
-      "expected": {
-        "university": "National Taiwan Normal University",
-        "program": "Education",
-        "quota": 90
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-006",
-      "input": "Admissions notice (2026 intake)\n<div>Some general information here.</div>\nUniversity: National Sun Yat-sen University\nPlease prepare transcripts.\nProgram: Marine Biology\nQuota: 45\nContact us for scholarships.",
-      "expected": {
-        "university": "National Sun Yat-sen University",
-        "program": "Marine Biology",
-        "quota": 45
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-007",
-      "input": "University: National Central University\nProgram: Atmospheric Sciences\nNote: Quota will be announced later.",
-      "expected": {
-        "university": "National Central University",
-        "program": "Atmospheric Sciences",
-        "quota": 40
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-008",
-      "input": "University: National Taipei University of Technology\nProgram: Industrial Design\nQuota: one hundred twenty",
-      "expected": {
-        "university": "National Taipei University of Technology",
-        "program": "Industrial Design",
-        "quota": 120
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-009",
-      "input": "University: National Dong Hwa University\nProgram: Tourism Management\nQuota: 120 students",
-      "expected": {
-        "university": "National Dong Hwa University",
-        "program": "Tourism Management",
-        "quota": 120
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-010",
-      "input": "University - National Kaohsiung University of Science and Technology\nProgram - Mechanical Engineering\nQuota - 110",
-      "expected": {
-        "university": "National Kaohsiung University of Science and Technology",
-        "program": "Mechanical Engineering",
-        "quota": 110
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-011",
-      "input": "University: Fu Jen Catholic University | Program: Psychology | Quota: 70",
-      "expected": {
-        "university": "Fu Jen Catholic University",
-        "program": "Psychology",
-        "quota": 70
-      },
-      "required_fields": ["university", "program", "quota"]
-    },
-    {
-      "id": "demo-012",
-      "input": "{\n  \"record\": {\n    \"University\": \"Tamkang University\",\n    \"Program\": \"International Business\",\n    \"Quota\": \"65\"\n  }\n}",
-      "expected": {
-        "university": "Tamkang University",
-        "program": "International Business",
-        "quota": 65
-      },
-      "required_fields": ["university", "program", "quota"]
+[
+  {
+    "id": "hard-001",
+    "input": "<div class='hero'>Top 100 in Asia (QS 2026)</div><p>University: National Taiwan University</p><p>Department of Computer Science</p><p>Tuition: USD 5,200/year • Credits: 36</p><p>Intake is approximately 120 students for Fall 2026.</p><footer>Apply before 2026-12-01</footer>",
+    "expected": {
+      "university": "National Taiwan University",
+      "program": "Computer Science",
+      "quota": 120
     }
-  ]
-}
+  },
+  {
+    "id": "hard-002",
+    "input": "<header>Admissions Portal</header><div>National Cheng Kung University | major: Civil Engineering</div><div>Founded 1931, ranked #68 globally.</div><div>Capacity: 150 seats (scholarship slots: 12)</div><p>Contact: +886-6-2757575</p>",
+    "expected": {
+      "university": "National Cheng Kung University",
+      "program": "Civil Engineering",
+      "quota": 150
+    }
+  },
+  {
+    "id": "hard-003",
+    "input": "【招生公告】國立陽明交通大學 NYCU<br>Track: Data Science and Engineering<br>學分需求 24，修業年限 2 年。<br>招生名額約 90 人 (approx. 90 students).<br>2026 年學雜費另計。",
+    "expected": {
+      "university": "National Yang Ming Chiao Tung University",
+      "program": "Data Science and Engineering",
+      "quota": 90
+    }
+  },
+  {
+    "id": "hard-004",
+    "input": "<div>University Profile</div><p>School: National Central University</p><p>Program: Atmospheric Sciences</p><p>Last year applicants: 860, admitted: 112</p><p>This year admits around 120 students.</p><p>Minimum TOEFL 80</p>",
+    "expected": {
+      "university": "National Central University",
+      "program": "Atmospheric Sciences",
+      "quota": 120
+    }
+  },
+  {
+    "id": "hard-005",
+    "input": "National Taiwan Normal University - Department: Education Leadership\nAdvertisement: Join our webinar on 05/20!\nIntake: up to 75 for 2027 cohort; expected enrolled credits: 30.\nDorm fee 18000 NTD/year.",
+    "expected": {
+      "university": "National Taiwan Normal University",
+      "program": "Education Leadership",
+      "quota": 75
+    }
+  },
+  {
+    "id": "hard-006",
+    "input": "<section><h1>Fu Jen Catholic University</h1><p>Major - Psychology</p><p>About 70 seats available</p><p>Founded in 1925, alumni 200000+</p></section><footer>Privacy Policy</footer>",
+    "expected": {
+      "university": "Fu Jen Catholic University",
+      "program": "Psychology",
+      "quota": 70
+    }
+  },
+  {
+    "id": "hard-007",
+    "input": "University: Tamkang University | program track: International Business Analytics | intake is approximately 65 | IELTS 6.0 | GPA 3.0",
+    "expected": {
+      "university": "Tamkang University",
+      "program": "International Business Analytics",
+      "quota": 65
+    }
+  },
+  {
+    "id": "hard-008",
+    "input": "<div class='banner'>Apply Now!</div>\n<p>National Taipei University of Technology</p>\n<p>Department: Industrial Design</p>\n<p>Capacity for 2026 entry: 120 students (portfolio review in week 3).</p>\n<p>Ranking score: 78.5</p>",
+    "expected": {
+      "university": "National Taipei University of Technology",
+      "program": "Industrial Design",
+      "quota": 120
+    }
+  },
+  {
+    "id": "hard-009",
+    "input": "國立東華大學 National Dong Hwa University\nMajor: Tourism Management\n2026 招生資訊：預計招收約 120 人。\n備註：學程共 32 學分，另有實習 6 學分。",
+    "expected": {
+      "university": "National Dong Hwa University",
+      "program": "Tourism Management",
+      "quota": 120
+    }
+  },
+  {
+    "id": "hard-010",
+    "input": "<html><body><h2>National Kaohsiung University of Science and Technology</h2><p>Track: Mechanical Engineering</p><p>Credits required: 30, internship: 2 semesters</p><p>Intake ~ 110</p><p>Phone: 07-3814526</p></body></html>",
+    "expected": {
+      "university": "National Kaohsiung University of Science and Technology",
+      "program": "Mechanical Engineering",
+      "quota": 110
+    }
+  },
+  {
+    "id": "hard-011",
+    "input": "Header: 2026 Graduate Admissions\nUniversity = National Sun Yat-sen University\nDepartment = Marine Biology\nApplicants last cycle: 412; offers: 88; enrollment cap: 45 seats.\nFooter: Subscribe for newsletter.",
+    "expected": {
+      "university": "National Sun Yat-sen University",
+      "program": "Marine Biology",
+      "quota": 45
+    }
+  },
+  {
+    "id": "hard-012",
+    "input": "<div>National Chengchi University</div><div>Program: Data Science</div><div>Program: Statistics and Decision Science</div><div>Intake is about 80 students for the first track; second track about 40.</div>",
+    "expected": {
+      "university": "National Chengchi University",
+      "program": "Data Science",
+      "quota": 80
+    }
+  },
+  {
+    "id": "hard-013",
+    "input": "招生簡章 | National Tsing Hua University\nDepartment of Electrical Engineering\n預計招生：approximately 150 seats\n註：學費每學期 56000，修業年限 2-4 年。",
+    "expected": {
+      "university": "National Tsing Hua University",
+      "program": "Electrical Engineering",
+      "quota": 150
+    }
+  },
+  {
+    "id": "hard-014",
+    "input": "<p>University: National Yang Ming Chiao Tung University</p><p>major: Biomedical Engineering</p><p>Admission note: up to 60 seats, depending on budget.</p><p>Research areas: imaging, AI, biomaterials (3 clusters)</p>",
+    "expected": {
+      "university": "National Yang Ming Chiao Tung University",
+      "program": "Biomedical Engineering",
+      "quota": 60
+    }
+  },
+  {
+    "id": "hard-015",
+    "input": "National Central University - Graduate Bulletin\nTrack A: Atmospheric Sciences\nTrack B: Earth System Science\nFor Track A, intake is approximately 120; Track B admits around 35.\nOther numbers: 2026, 18 faculty, 4 labs.",
+    "expected": {
+      "university": "National Central University",
+      "program": "Atmospheric Sciences",
+      "quota": 120
+    }
+  },
+  {
+    "id": "hard-016",
+    "input": "{\"meta\":{\"year\":2026,\"rank\":53},\"school\":\"National Taiwan University\",\"department\":\"Computer Science\",\"notes\":\"admits around 120 students\",\"fees\":{\"tuition\":5200}}",
+    "expected": {
+      "university": "National Taiwan University",
+      "program": "Computer Science",
+      "quota": 120
+    }
+  },
+  {
+    "id": "hard-017",
+    "input": "<div>Promo: Early-bird application discount!</div>\nUniversity Name: National Taiwan Normal University\nMajor/Program: Education\nCapacity is approx. 90 seats; last year 87 enrolled.\nFooter links: FAQ | Contact | Terms",
+    "expected": {
+      "university": "National Taiwan Normal University",
+      "program": "Education",
+      "quota": 90
+    }
+  },
+  {
+    "id": "hard-018",
+    "input": "國立臺北科技大學 (National Taipei University of Technology)\nDepartment/Track: Industrial Design Innovation\n招生名額：about 120 students\n補充：作品集審查占 40%，筆試占 60%。",
+    "expected": {
+      "university": "National Taipei University of Technology",
+      "program": "Industrial Design Innovation",
+      "quota": 120
+    }
+  }
+]
