@@ -12,7 +12,7 @@ The global education ecosystem generates a vast amount of fragmented information
 
 CrawlerNest explores how large-scale web data collection combined with structured data engineering can transform scattered education information into a unified **knowledge infrastructure**.
 
-The platform focuses on building a modular architecture that enables continuous data ingestion, normalization, storage, and analysis. The long-term goal is to support education analytics, admission intelligence, and AI-driven recommendation systems.
+The platform focuses on building a modular architecture that enables continuous data ingestion, normalization, storage, identity resolution, and analysis. The long-term goal is to support education analytics, admission intelligence, and AI-driven recommendation systems.
 
 ---
 
@@ -46,7 +46,8 @@ A scalable solution requires a system capable of:
 1. Collecting data from multiple sources
 2. Converting raw HTML into structured entities
 3. Normalizing data formats
-4. Storing data in a queryable knowledge base
+4. Resolving equivalent institutions across sources
+5. Storing data in a queryable knowledge base
 
 ---
 
@@ -54,8 +55,13 @@ A scalable solution requires a system capable of:
 
 CrawlerNest follows a layered architecture designed for modular data ingestion and analytics.
 
-```
-Crawler → Data Platform → Knowledge Base → Analytics → AI Systems
+```text
+Crawler / Source Payloads
+    → Extraction / Normalization
+    → Entity Resolution
+    → Multi-Source Ranking Storage
+    → Aggregation / Recommendation
+    → Analytics / AI Systems
 ```
 
 Each layer has a dedicated responsibility in the data pipeline.
@@ -72,7 +78,7 @@ Key characteristics:
 - asynchronous crawling using Python AsyncIO
 - configurable ranking and scope selection
 
-Current targets include global university ranking platforms and related education data sources.
+Current targets include global university ranking platforms and related education data sources. In the current system state, QS is crawled directly, while THE and ARWU can be ingested through the same standardized ranking pipeline once normalized payloads are available.
 
 ---
 
@@ -86,6 +92,8 @@ Key components include:
 - entity extraction
 - validation and cleaning
 - data normalization
+- source adapters for QS / THE / ARWU
+- canonical university resolution across sources
 
 CrawlerNest includes both Python-based pipelines and a lightweight **C normalization engine** designed for performance and portability.
 
@@ -98,12 +106,13 @@ Normalized data is stored in a structured database representing the **University
 Example entities stored in the knowledge base include:
 
 - universities
-- rankings
+- canonical universities
+- source-specific ranking records
 - academic programs
 - admission requirements
 - geographic regions
 
-The knowledge base enables complex queries and large-scale analysis.
+The knowledge base enables complex queries and large-scale analysis. A key design principle is that source-specific ranking rows are preserved independently rather than overwritten. Cross-source comparison is performed later in the aggregation layer.
 
 ---
 
@@ -112,6 +121,7 @@ The knowledge base enables complex queries and large-scale analysis.
 Once structured data is available, analytical tools can generate insights such as:
 
 - cross-region ranking comparisons
+- cross-source ranking aggregation (QS / THE / ARWU)
 - admission requirement statistics
 - program distribution analysis
 
@@ -129,7 +139,7 @@ Potential applications include:
 - admission probability estimation
 - personalized program discovery
 
-These systems rely on the structured data infrastructure built by the platform.
+These systems rely on the structured data infrastructure built by the platform. In the current implementation, the recommendation layer is deterministic and explainable: it reads aggregated rankings rather than depending on a single raw ranking source by default.
 
 ---
 
@@ -138,10 +148,10 @@ These systems rely on the structured data infrastructure built by the platform.
 CrawlerNest currently uses a lightweight and portable technology stack:
 
 - Python for crawler pipelines
-- SQLite for the analytical knowledge base
+- PostgreSQL for the operational warehouse and analytical views
 - C for normalization engine components
 - AsyncIO for concurrent crawling
-- PyTest for automated testing
+- unittest for automated verification
 
 This architecture prioritizes simplicity while enabling future scalability.
 
@@ -154,7 +164,7 @@ Current project scale:
 - ~7.7k lines of code and documentation
 - modular crawler platform
 - automated testing suite
-- SQLite knowledge base
+- PostgreSQL knowledge base with entity resolution, multi-source ranking storage, aggregation views, and recommendation views
 
 The platform continues to expand as new data sources and analytical capabilities are added.
 
@@ -169,7 +179,7 @@ CrawlerNest is an ongoing research and engineering initiative exploring the inte
 - knowledge base construction
 - education analytics
 
-Future development will focus on expanding data coverage and building intelligent analytical tools.
+Future development will focus on expanding data coverage, improving entity resolution quality, and building intelligent analytical tools on top of the multi-source ranking foundation.
 
 ---
 
@@ -177,7 +187,7 @@ Future development will focus on expanding data coverage and building intelligen
 
 CrawlerNest demonstrates how web crawling and data engineering techniques can transform fragmented web information into structured knowledge.
 
-By building a modular platform that integrates crawling, normalization, storage, and analytics, the project lays the foundation for future education intelligence systems.
+By building a modular platform that integrates crawling, normalization, entity resolution, multi-source storage, aggregation, and analytics, the project lays the foundation for future education intelligence systems.
 
 ---
 

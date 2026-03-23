@@ -29,17 +29,23 @@ CrawlerNest is currently transitioning from a crawler tool into a structured dat
 
 - ✅ QS ranking crawler (stable)
 - ✅ Asynchronous crawling pipeline (AsyncIO-based)
-- ✅ PostgreSQL knowledge base and operational warehouse
+- ✅ PostgreSQL-only knowledge base and operational warehouse
 - ✅ PostgreSQL schema initialization baseline (validated)
 - ✅ Extraction and parsing modules for rankings and admission data
 - ✅ Python data ingestion pipeline (crawler → DB)
 - ✅ Minimal end-to-end runner (`crawlernest/run_pipeline.py`: crawl → normalize → store → query)
+- ✅ Multi-source ranking integration path (QS / THE / ARWU → entity resolution → `warehouse.ranking_record`)
+- ✅ Deterministic aggregation refresh from PostgreSQL ranking facts
 - ✅ C normalization engine (prototype for high-performance parsing)
 - ✅ Modular architecture (crawler / extractor / db_writer separation)
 - ✅ Initial Java Spring Boot service integration (validated startup against PostgreSQL baseline)
 - ✅ Read-only internal API endpoints: `/universities`, `/rankings`, `/admissions`
-- ✅ Deterministic rule-based recommendation engine (country / IELTS / rank filters + explainable scoring)
-- ✅ Recommendation API endpoint: `/recommendations`
+- ✅ Deterministic comparison engine with explainable side-by-side reasoning
+- ✅ Recommendation engine v1 / v2 / v3:
+  - `recommend`: hard-filtered rule-based shortlist
+  - `recommend-v2`: grouped reach / target / safety decisions
+  - `recommend-v3`: hybrid deterministic scoring with preference weights and risk adjustments
+- ✅ Recommendation and comparison API endpoints: `/recommendations`, `/compare`
 - ✅ Rankings-only mode (`--rankings-only`) for faster collection when detail pages are not required
 - ✅ Local parse parallelism (`--local-parse-workers`) that speeds parsing without increasing web-request concurrency
 - ✅ Batch DB writes (`executemany` path in writer) to reduce per-row write overhead
@@ -52,7 +58,7 @@ V1.5 completion snapshot (as of 2026-03-23):
 - **End-to-end pipeline maturity**: ~88% (crawl -> normalize -> write -> query is stable)
 - **Performance optimization maturity**: ~85% (batch write / incremental checkpoint / partial update in production path)
 - **Operational resilience maturity**: ~82% (403 auto-degrade + deferred enrichment flow established)
-- **Decision-support maturity**: ~58% (aggregated rankings + rule-based recommendations + API surface are operational)
+- **Decision-support maturity**: ~72% (aggregated rankings + explainable comparison + grouped and hybrid recommendations are operational)
 
 ### Next (V2): In progress
 
@@ -74,14 +80,14 @@ This section reflects the **actual engineering maturity** of the system and dist
 
 ## Minimal End-to-End Usage (Current)
 
-The commands below describe the current, testable path for QS data.
+The commands below describe the current, testable path for QS data and the active multi-source ranking pipeline.
 
 ### 1) Run crawler → extract → normalize → store (PostgreSQL)
 
 From repository root:
 
 ```bash
-python3 crawlernest/run_pipeline.py run --limit 30
+python3 crawlernest/run_pipeline.py run --limit 30 --ranking-year 2026
 ```
 
 Compliance-safe baseline (recommended for QS):
@@ -89,6 +95,7 @@ Compliance-safe baseline (recommended for QS):
 ```bash
 python3 crawlernest/run_pipeline.py run \
   --limit 200 \
+  --ranking-year 2026 \
   --workers 1 \
   --request-delay 10 \
   --local-parse-workers 4 \
@@ -106,6 +113,7 @@ Fast ranking-only mode (skip per-school detail requirements pages):
 ```bash
 python3 crawlernest/run_pipeline.py run \
   --limit 200 \
+  --ranking-year 2026 \
   --rankings-only \
   --workers 1 \
   --request-delay 10
@@ -126,10 +134,55 @@ Expected console shape:
 [2/4] Normalizing fields (Python baseline)...
 [3/4] Writing 30 rows to postgres...
 [4/4] Done.
-Inserted rows: 30
+[multi-source] rows=30 matched=30 unresolved=0 duplicates=0 aggregated_years=[2026]
 ```
 
-### 2) Query stored rankings (PostgreSQL query mode)
+The `run` command keeps the existing QS crawler path, then syncs normalized QS rows into the active multi-source flow:
+
+```text
+crawler -> extractor -> normalize -> entity resolution
+-> source adapter -> warehouse.ranking_record -> aggregation -> recommendation
+```
+
+### 2) Ingest THE / ARWU payloads into the same multi-source pipeline
+
+THE:
+
+```bash
+python3 crawlernest/run_pipeline.py ingest-rankings \
+  --source THE \
+  --input-file ./the_sample.json \
+  --ranking-year 2026
+```
+
+ARWU:
+
+```bash
+python3 crawlernest/run_pipeline.py ingest-rankings \
+  --source ARWU \
+  --input-file ./arwu_sample.json \
+  --ranking-year 2026
+```
+
+Expected payload shape:
+
+```json
+[
+  {
+    "id": "the:oxford",
+    "institution": "University of Oxford",
+    "country": "United Kingdom",
+    "year": 2026,
+    "rank_position": 1,
+    "scores": { "overall": 98.5 },
+    "profile_url": "https://example.test/the/oxford"
+  }
+]
+```
+
+Source rows are stored independently. QS, THE, and ARWU are not overwritten across sources; they are combined later by aggregation.
+
+### 3) Query stored rankings (PostgreSQL query mode)
 
 ```bash
 python3 crawlernest/run_pipeline.py query MIT --limit 20
@@ -142,7 +195,7 @@ rank | university | country | score | ranking_type
 1 | Massachusetts Institute of Technology (MIT) | United States | 100.0 | world
 ```
 
-### 3) Read-only API paths (Spring Boot service)
+### 4) Spring Boot API paths
 
 Once `servise_for_java` is running:
 
@@ -150,6 +203,7 @@ Once `servise_for_java` is running:
 - `GET /rankings`
 - `GET /admissions`
 - `GET /recommendations`
+- `GET /compare`
 
 Example requests:
 
@@ -158,11 +212,13 @@ curl http://localhost:8080/universities
 curl http://localhost:8080/rankings
 curl http://localhost:8080/admissions
 curl "http://localhost:8080/recommendations?country=United%20Kingdom&ielts=6.5&targetRank=100&preferredRankingSource=QS&limit=3"
+curl "http://localhost:8080/recommendations?version=v3&targetRank=100&ielts=6.5&country=United%20Kingdom&riskProfile=aggressive"
+curl "http://localhost:8080/compare?u1=Oxford&u2=LSE"
 ```
 
 Note: public/external API hardening is still part of future roadmap work.
 
-### 4) Rule-based recommendation (current)
+### 5) Recommendation and Comparison (current)
 
 CLI:
 
@@ -175,10 +231,105 @@ python3 crawlernest/run_pipeline.py recommend \
   --limit 5
 ```
 
+Without `--preferred-ranking-source`, the recommender uses the aggregated multi-source rank by default.
+
+Grouped strategy recommendation:
+
+```bash
+python3 crawlernest/run_pipeline.py recommend-v2 \
+  --target-rank 100 \
+  --ielts 6.5 \
+  --risk-profile balanced \
+  --country "United Kingdom" \
+  --limit 5
+```
+
+Hybrid deterministic recommendation:
+
+```bash
+python3 crawlernest/run_pipeline.py recommend-v3 \
+  --target-rank 100 \
+  --ielts 6.5 \
+  --risk-profile aggressive \
+  --country "United Kingdom" \
+  --preference-weights '{"ranking":0.5,"ielts":0.2,"confidence":0.2,"country_match":0.1}' \
+  --limit 5
+```
+
+University comparison:
+
+```bash
+python3 crawlernest/run_pipeline.py compare --a "Oxford" --b "LSE"
+```
+
 API smoke test:
 
 ```bash
 python3 crawlernest/scripts/smoke_test_recommendations_api.py --base-url http://localhost:8080
+```
+
+Expected v3 response shape:
+
+```json
+{
+  "reach": [
+    {
+      "university_name": "University of Oxford",
+      "score": 94.2,
+      "category": "reach",
+      "preference_alignment": "strong",
+      "explanation": "..."
+    }
+  ],
+  "target": [],
+  "safety": [],
+  "metadata": {
+    "version": "v3",
+    "risk_profile": "aggressive",
+    "preference_weights": {
+      "ranking": 0.5,
+      "ielts": 0.2,
+      "confidence": 0.2,
+      "country_match": 0.1
+    }
+  }
+}
+```
+
+### 6) Multi-source validation queries
+
+Check that source rows were persisted independently:
+
+```sql
+SELECT
+  cu.display_name,
+  rs.source_code,
+  rr.ranking_year,
+  rr.rank_position,
+  rr.score
+FROM warehouse.ranking_record rr
+JOIN warehouse.ranking_source rs
+  ON rs.ranking_source_id = rr.ranking_source_id
+JOIN warehouse.canonical_university cu
+  ON cu.canonical_university_id = rr.canonical_university_id
+WHERE cu.display_name ILIKE '%Oxford%'
+ORDER BY rs.source_code;
+```
+
+Check that aggregation has been refreshed:
+
+```sql
+SELECT
+  canonical_university_id,
+  ranking_year,
+  display_rank,
+  composite_score,
+  source_ranks_json,
+  source_normalized_scores_json
+FROM analytics.v_aggregated_rankings_latest
+WHERE ranking_year = 2026
+ORDER BY display_rank
+LIMIT 20;
 ```
 
 ---

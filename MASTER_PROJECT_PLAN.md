@@ -43,7 +43,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 
 1. **資料聚合優先**：以 QS 為主來源，THE / ARWU 為下一階段整合目標
 2. **知識庫優先**：建立可查詢、可維護、可追溯的大學資料基底
-3. **推薦延後但預留**：先把資料與分析層打穩，再逐步推進 AI 推薦能力
+3. **決策系統先 explainable 再 intelligent**：先以 deterministic recommendation / comparison 打穩決策層，再逐步推進 AI 能力
 4. **模組解耦**：crawler、extractor、normalization、db、analytics、API 彼此保持相對獨立
 5. **低規節點可運行**：系統設計必須能支援老舊 x86 節點作為第一代 OpenClaw / Lobster Node
 6. **合規優先加速**：在 robots.txt 與來源限制下，以本地解析並行、批次寫入、增量 checkpoint、局部更新等手段提升吞吐
@@ -58,11 +58,11 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 | Python 正規化基線 | 國家標準化、數值安全轉換、驗證流程 | 進行中（可運行） | ~60% |
 | C 正規化引擎 | 名稱 / 國家 / 排名 / 分數高效處理 | 開發中 | ~25% |
 | 實體識別 | 別名映射、人工校正、模糊比對基礎 | 進行中（可運行） | ~30% |
-| 儲存 / 資料倉層 | 統一 schema、DB writer、PostgreSQL 基線、Spring Data JPA | 進行中（可運行） | ~78% |
-| API 讀取層（唯讀） | Spring Boot `/universities`、`/rankings`、`/admissions` | 已運行 | ~70% |
+| 儲存 / 資料倉層 | PostgreSQL-only schema、DB writer、analytics views、Spring Data JPA | 已運行 | ~86% |
+| API 讀取層（唯讀 + 決策） | Spring Boot `/universities`、`/rankings`、`/admissions`、`/recommendations`、`/compare` | 已運行 | ~82% |
 | 品質與驗證 | lineage、欄位狀態、PostgreSQL 初始化驗證、JUnit、resume/checkpoint 驗證 | 進行中（可運行） | ~62% |
 | 低規節點運行策略 | Low-spec mode、資源保護、長時間運行與續跑準則 | 已定義（待工程化） | ~35% |
-| 分析與推薦 | 排名聚合、rule-based recommendation、推薦 API | 已運作（第一版） | ~58% |
+| 分析與推薦 | 排名聚合、explainable comparison、recommendation v1 / v2 / v3、推薦 API | 已運作（第二版） | ~72% |
 | AutoEval 研究層 | extractor 評估、hard dataset、manual autoloop、keep/revert | 已運行 | ~65% |
 
 ---
@@ -115,7 +115,7 @@ graph TD
 
     subgraph "智慧與決策層"
         ANA[分析層]
-        REC[AI 推薦引擎]
+        REC[可解釋決策引擎]
     end
 
     CLI --> JOBS
@@ -153,9 +153,9 @@ B2C / B2B 產品化
 
 對應分期：
 
-- **當前（V1.5）**：採集、正規化基線、知識庫、唯讀 API、AutoEval baseline
-- **下一階段（V2）**：多來源整合、實體識別升級、分析層成形
-- **未來（V3+）**：推薦引擎、公開 API、Web 平台、產品化
+- **當前（V1.5+）**：採集、正規化基線、PostgreSQL-only 資料平台、決策 API、AutoEval baseline
+- **下一階段（V2）**：多來源整合深化、實體識別升級、program-level analytics
+- **未來（V3+）**：LLM 輔助研究、公開 API、Web 平台、產品化
 
 ---
 
@@ -178,17 +178,19 @@ CrawlerNest 可抽象為六層：
 
 作為 Canonical University Database，負責提供單一真實來源（Single Source of Truth）。
 
+目前正式單一資料庫為 PostgreSQL；SQLite 僅保留為歷史 schema / migration artifact，不再是 runtime backend。
+
 ### Layer 4：分析層（已運作 / 持續擴展）
 
 提供跨榜單聚合、統計分析、特徵工程與決策輔助能力。
 
 ### Layer 5：推薦層（已運作第一版）
 
-提供規則篩選、權重模型、IELTS / ranking explainable scoring，後續再演進至 Admission Probability 與 ML 精煉。
+提供規則篩選、可配置權重、IELTS / ranking explainable scoring、reach / target / safety 分類、comparison 決策說明；後續再演進至 Admission Probability 與 ML 精煉。
 
 ### Layer 6：產品層（已運作 / 策略目標）
 
-- 現有：CLI、內部唯讀 API、rule-based recommendation API
+- 現有：CLI、內部 API、comparison API、rule-based / hybrid recommendation API
 - 未來：Web UI、公開 API、B2C / B2B 產品介面
 
 分層目的在於：
@@ -319,8 +321,9 @@ erDiagram
 
 目前提供：
 
-- SQLite：`crawlernest-schema/schema.sql`
-- PostgreSQL：`crawlernest-schema/postgresql_schema.sql`
+- 正式 runtime schema：`crawlernest-schema/postgresql_schema.sql`
+- 補充 schema：`entity_resolution_postgresql.sql`、`multi_source_postgresql.sql`、`ranking_aggregation_postgresql.sql`、`recommendation_postgresql.sql`
+- `crawlernest-schema/schema.sql` 僅保留為 archived legacy SQLite schema
 
 建議持續維護：
 
@@ -629,13 +632,17 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-23 | 新增正式固定入口腳本 `crawlernest/scripts/run_production_safe.sh`，統一 production-safe 參數 | 已完成 |
 | 2026-03-23 | 完成 PostgreSQL canonical seed、legacy ranking backfill、aggregated ranking candidate view 打通 | 已完成 |
 | 2026-03-23 | 完成 rule-based recommendation engine（CLI `recommend` + Spring Boot `/recommendations`） | 已完成 |
+| 2026-03-23 | 完成 explainable university comparison（CLI `compare` + Spring Boot `/compare`） | 已完成 |
+| 2026-03-23 | 完成 recommendation v2（reach / target / safety 分組決策） | 已完成 |
+| 2026-03-23 | 完成 PostgreSQL-only cutover，移除 runtime SQLite 依賴 | 已完成 |
+| 2026-03-23 | 完成 recommendation v3（hybrid deterministic scoring + preference weights + risk adjustment） | 已完成 |
 
 ### 13.4 未來階段規劃
 
 - **Phase 1（0-6 個月）**：建立 HTML 樣本庫、完善 extractor 單測、完成 C engine 邊界定義
-- **Phase 2（7-18 個月）**：強化 PostgreSQL-ready schema、實作去重引擎、整合 C engine
+- **Phase 2（7-18 個月）**：強化 PostgreSQL analytics schema、實作去重引擎、整合 C engine
 - **Phase 3（19-30 個月）**：代理池、THE/ARWU、多來源韌性與監控預警
-- **Phase 4（31-48 個月）**：LLM 輔助校驗、Hybrid recommendation、趨勢分析報告
+- **Phase 4（31-48 個月）**：LLM 輔助校驗、decision intelligence 深化、趨勢分析報告
 
 ---
 
@@ -655,16 +662,16 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 基礎層 | 排名採集基礎設施 | 進行中 | 穩定性與維護性持續提升 |
 | 基礎層 | Canonical identity schema | 進行中 | 演進至 program/degree aware |
 | 基礎層 | 實體識別（Aliases） | 進行中 | 升級 fuzzy + embedding |
-| 基礎層 | 知識庫儲存（SQLite → PostgreSQL） | 進行中 | 邁向 production-grade analytics / service |
+| 基礎層 | 知識庫儲存（PostgreSQL-only） | 已運作 | production-grade analytics / service baseline |
 | 基礎層 | 低規節點運行能力 | 已定義（待工程化） | 演進為多節點 crawler / writer / scheduler 原型 |
 | 擴展層 | 多榜單整合 | 已運作（QS 回填基線） | 完整支援 QS / THE / ARWU 與區域榜單 |
 | 擴展層 | Admission ingestion | 規劃中 | structured + raw 雙軌擴展 |
 | 擴展層 | Program taxonomy | 規劃中 | 部門級與課程級分析基礎 |
 | 智能層 | Admission probability estimation | 規劃中 | 可解釋推薦關鍵特徵 |
-| 智能層 | Rule-based recommendation engine | 已運作（第一版） | Rule + Weight + ML |
+| 智能層 | Explainable decision engine（compare + recommend v1/v2/v3） | 已運作（第二版） | Rule + Weight + ML |
 | 研究層 | AutoEval / dataset evolution | 已運作 | 擴展至 normalization / recommendation |
 | 產品化層 | CLI explorer | 進行中 | 開發者與研究者主介面 |
-| 產品化層 | API / Web platform | 進行中（可運行） | 內部唯讀 API → 公開平台 |
+| 產品化層 | API / Web platform | 進行中（可運行） | 內部 decision API → 公開平台 |
 
 ---
 

@@ -1,7 +1,7 @@
-# CrawlerNest 架構維護說明書
+# CrawlerNest 測試與維護指南
 
-本文件定義 CrawlerNest 的架構維護原則、模組邊界、變更流程與例行維護方式。
-目標是確保系統在持續演進時，仍維持一致性、可擴展性與可回溯性。
+本文件定義 CrawlerNest 的測試流程、架構維護原則、模組邊界、變更流程與例行維護方式。
+目標是確保系統在持續演進時，仍維持一致性、可擴展性、可回溯性與可驗證性。
 
 ---
 
@@ -108,10 +108,15 @@ CrawlerNest 架構遵循：
 
 ### 5.1 Schema 單一真實來源
 
-- SQLite：`crawlernest/crawlernest-schema/schema.sql`
-- PostgreSQL：`crawlernest/crawlernest-schema/postgresql_schema.sql`
+- 正式 runtime schema：`crawlernest/crawlernest-schema/postgresql_schema.sql`
+- 相關擴充 schema：
+  - `crawlernest/crawlernest-schema/entity_resolution_postgresql.sql`
+  - `crawlernest/crawlernest-schema/multi_source_postgresql.sql`
+  - `crawlernest/crawlernest-schema/ranking_aggregation_postgresql.sql`
+  - `crawlernest/crawlernest-schema/recommendation_postgresql.sql`
+- `crawlernest/crawlernest-schema/schema.sql` 為 archived legacy SQLite schema，不再作為 runtime source
 
-任何表結構變更必須同步兩份 schema（若該功能需跨環境）。
+任何表結構變更，應以 PostgreSQL schema 與對應 bootstrap / migration 路徑為準。
 
 ### 5.2 Schema 變更要求
 
@@ -133,7 +138,7 @@ CrawlerNest 架構遵循：
 ### 6.1 API 合約規則
 
 - 新增端點優先，不破壞既有端點語意
-- 若需破壞式變更，必須提供版本策略（如 `/v2`）
+- 若需破壞式變更，必須提供版本策略（如 `version=v2` / `version=v3`）
 - 回應結構需穩定，錯誤格式需一致
 
 ### 6.2 Java 服務層規範
@@ -279,24 +284,84 @@ CrawlerNest 架構遵循：
 
 ---
 
-## 13. 推薦系統驗證（2026-03 新增）
+## 13. 決策系統驗證（2026-03 更新）
+
+本節驗證目前正式對外的決策能力：
+
+- comparison
+- recommendation v1
+- recommendation v2
+- recommendation v3
+- Spring Boot decision APIs
 
 ### 13.1 Python 核心單元驗證
 
 ```bash
 python3 -m py_compile \
+  crawlernest/crawlernest-core/comparison/engine.py \
+  crawlernest/crawlernest-core/comparison/repository.py \
   crawlernest/crawlernest-core/recommendation_engine/types.py \
   crawlernest/crawlernest-core/recommendation_engine/config.py \
   crawlernest/crawlernest-core/recommendation_engine/engine.py \
   crawlernest/crawlernest-core/recommendation_engine/repository.py \
-  crawlernest/crawlernest-tests/test_recommendation_engine.py
+  crawlernest/run_pipeline.py \
+  crawlernest/crawlernest-tests/test_recommendation_engine.py \
+  crawlernest/crawlernest-tests/test_recommendation_v2.py \
+  crawlernest/crawlernest-tests/test_recommendation_v3.py \
+  crawlernest/crawlernest-tests/test_comparison_engine.py
 ```
 
 ```bash
-python3 -m unittest crawlernest/crawlernest-tests/test_recommendation_engine.py
+python3 crawlernest/crawlernest-tests/test_recommendation_engine.py
+python3 crawlernest/crawlernest-tests/test_recommendation_v2.py
+python3 crawlernest/crawlernest-tests/test_recommendation_v3.py
+python3 crawlernest/crawlernest-tests/test_comparison_engine.py
 ```
 
-### 13.2 CLI 推薦驗證
+### 13.2 PostgreSQL 前置檢查
+
+先確認 PostgreSQL schema 與資料庫可用：
+
+```bash
+python3 crawlernest/scripts/bootstrap_postgres.py --user test --database clawer
+psql -h localhost -U test -d clawer -c "select current_database();"
+```
+
+### 13.3 Pipeline 寫入驗證
+
+如果前一次 run 有 `Skipped(resume)`，先清 checkpoint：
+
+```bash
+rm -f crawlernest/crawlernest-kb/databases/pipeline_checkpoint.json
+rm -f crawlernest/crawlernest-kb/databases/pipeline_checkpoint.json.journal
+```
+
+執行 pipeline：
+
+```bash
+python3 crawlernest/run_pipeline.py run \
+  --limit 30 \
+  --pg-host localhost \
+  --pg-port 5432 \
+  --pg-database clawer \
+  --pg-user test
+```
+
+驗證重點：
+
+- console 應看到 `[3/4] Writing ... rows to postgres...`
+- `Inserted` 不應長期維持 0
+- 若出現 `No canonical university profiles found`，需補 canonical seed
+
+必要時補做 canonical seed：
+
+```bash
+python3 crawlernest/scripts/seed_canonical_from_universities.py --user test --database clawer
+```
+
+### 13.4 CLI comparison / recommendation 驗證
+
+v1 recommendation：
 
 ```bash
 python3 crawlernest/run_pipeline.py recommend \
@@ -307,13 +372,80 @@ python3 crawlernest/run_pipeline.py recommend \
   --limit 5
 ```
 
+v2 grouped recommendation：
+
+```bash
+python3 crawlernest/run_pipeline.py recommend-v2 \
+  --target-rank 100 \
+  --ielts 6.5 \
+  --risk-profile balanced \
+  --country "United Kingdom" \
+  --limit 5 \
+  --pg-user test \
+  --pg-database clawer
+```
+
+v3 hybrid recommendation：
+
+```bash
+python3 crawlernest/run_pipeline.py recommend-v3 \
+  --target-rank 100 \
+  --ielts 6.5 \
+  --risk-profile aggressive \
+  --country "United Kingdom" \
+  --preference-weights '{"ranking":0.5,"ielts":0.2,"confidence":0.2,"country_match":0.1}' \
+  --limit 5 \
+  --pg-user test \
+  --pg-database clawer
+```
+
+comparison：
+
+```bash
+python3 crawlernest/run_pipeline.py compare \
+  --a "Oxford" \
+  --b "LSE" \
+  --pg-user test \
+  --pg-database clawer
+```
+
 驗證重點：
 
-- 有回傳結果
-- explanation 內含 `score breakdown`
+- `recommend` 會回平面 shortlist
+- `recommend-v2` / `recommend-v3` 會回 `reach` / `target` / `safety`
+- `recommend-v3` 回傳 `preference_alignment`、`base_score`、`risk_adjustment`
+- `compare` 回傳 `better`、`summary`、`comparison`
 - `preferred-ranking-source=QS` 時，說明文字應優先顯示 `QS rank #...`
 
-### 13.3 Spring Boot Recommendation API Smoke Test
+### 13.5 Conservative vs Aggressive 差異驗證
+
+```bash
+python3 crawlernest/run_pipeline.py recommend-v3 \
+  --target-rank 100 \
+  --ielts 6.5 \
+  --risk-profile conservative \
+  --country "United Kingdom" \
+  --pg-user test \
+  --pg-database clawer > /tmp/rec_conservative.json
+
+python3 crawlernest/run_pipeline.py recommend-v3 \
+  --target-rank 100 \
+  --ielts 6.5 \
+  --risk-profile aggressive \
+  --country "United Kingdom" \
+  --pg-user test \
+  --pg-database clawer > /tmp/rec_aggressive.json
+
+diff -u /tmp/rec_conservative.json /tmp/rec_aggressive.json
+```
+
+驗證重點：
+
+- aggressive 應提高 reach 類別分數
+- conservative 應提高 safety 類別分數
+- `score_breakdown.risk_adjustment` 應隨 profile 改變
+
+### 13.6 Spring Boot Decision API Smoke Test
 
 先啟動 API：
 
@@ -332,12 +464,16 @@ python3 crawlernest/scripts/smoke_test_recommendations_api.py --base-url http://
 
 ```bash
 curl "http://localhost:8080/recommendations?country=United%20Kingdom&ielts=6.5&targetRank=100&preferredRankingSource=QS&limit=3"
+curl "http://localhost:8080/recommendations?version=v3&targetRank=100&ielts=6.5&country=United%20Kingdom&riskProfile=aggressive"
+curl "http://localhost:8080/recommendations?version=v3&targetRank=100&ielts=6.5&country=United%20Kingdom&riskProfile=balanced&preferenceWeights=%7B%22ranking%22%3A0.5%2C%22ielts%22%3A0.2%2C%22confidence%22%3A0.2%2C%22country_match%22%3A0.1%7D"
+curl "http://localhost:8080/compare?u1=Oxford&u2=LSE"
 ```
 
 驗證重點：
 
 - HTTP 200
-- 至少一筆推薦結果
+- `/recommendations?version=v3` 至少一個分組存在
+- `/compare` 回傳 deterministic comparison JSON
 - 回傳欄位包含：
   - `canonicalUniversityId`
   - `universityName`
@@ -345,22 +481,223 @@ curl "http://localhost:8080/recommendations?country=United%20Kingdom&ielts=6.5&t
   - `aggregatedRank`
   - `ieltsMin`
   - `matchingScore`
+  - `category`
+  - `preferenceAlignment`
   - `explanation`
 
-### 13.4 推薦資料鏈前置檢查
+### 13.7 決策資料鏈前置檢查
 
 若推薦結果為空，先檢查：
 
 ```bash
+psql -h localhost -U test -d clawer -c "select count(*) from warehouse.universities;"
 psql -h localhost -U test -d clawer -c "select count(*) from warehouse.canonical_university;"
 psql -h localhost -U test -d clawer -c "select count(*) from warehouse.canonical_university_link;"
+psql -h localhost -U test -d clawer -c "select count(*) from warehouse.ranking_record;"
 psql -h localhost -U test -d clawer -c "select count(*) from analytics.v_aggregated_rankings_latest;"
 psql -h localhost -U test -d clawer -c "select count(*) from analytics.v_recommendation_candidates_latest;"
 ```
 
 正常基線（目前資料集）：
 
+- `universities > 0`
 - `canonical_university = 166`
 - `canonical_university_link = 166`
+- `ranking_record > 0`
 - `v_aggregated_rankings_latest = 166`
 - `v_recommendation_candidates_latest = 166`
+
+## 14. 多來源排名整合測試（QS / THE / ARWU）
+
+本節用於驗證目前已落地的多來源資料流：
+
+**QS crawler / THE payload / ARWU payload -> entity resolution -> `warehouse.ranking_record` -> aggregation -> recommendation**
+
+### 14.1 先跑單元測試
+
+```bash
+python3 -m unittest \
+  crawlernest/crawlernest-tests/test_multi_source_pipeline.py \
+  crawlernest/crawlernest-tests/test_recommendation_engine.py
+```
+
+驗證重點：
+
+- THE / ARWU adapter 會輸出標準化欄位
+- QS / THE / ARWU 會各自保留，不互相覆寫
+- aggregation 會吃多來源資料
+- recommender 預設走 aggregated rank，而不是 raw QS
+
+### 14.2 驗證 QS 真實資料流
+
+先執行現有 QS pipeline：
+
+```bash
+python3 crawlernest/run_pipeline.py run \
+  --limit 5 \
+  --ranking-year 2026 \
+  --pg-host localhost \
+  --pg-port 5432 \
+  --pg-database clawer \
+  --pg-user test
+```
+
+若 console 出現以下訊息，代表 QS 已同步進 multi-source 流程並觸發 aggregation：
+
+```text
+[multi-source] rows=5 matched=5 unresolved=0 duplicates=0 aggregated_years=[2026]
+```
+
+### 14.3 準備 THE / ARWU 測試 payload
+
+建立 `the_sample.json`：
+
+```json
+[
+  {
+    "id": "the:oxford",
+    "institution": "University of Oxford",
+    "country": "United Kingdom",
+    "year": 2026,
+    "rank_position": 1,
+    "scores": { "overall": 98.5 },
+    "profile_url": "https://example.test/the/oxford"
+  }
+]
+```
+
+建立 `arwu_sample.json`：
+
+```json
+[
+  {
+    "id": "arwu:oxford",
+    "university_name": "University of Oxford",
+    "country": "United Kingdom",
+    "year": 2026,
+    "overall_rank": 7,
+    "total_score": null,
+    "url": "https://example.test/arwu/oxford"
+  }
+]
+```
+
+注意：`--input-file` 必須使用實際存在的路徑，例如 `./the_sample.json`，不要寫成 `/crawlernest/the_sample.json`。
+
+### 14.4 匯入 THE / ARWU
+
+```bash
+python3 crawlernest/run_pipeline.py ingest-rankings \
+  --source THE \
+  --input-file ./the_sample.json \
+  --ranking-year 2026 \
+  --pg-host localhost \
+  --pg-port 5432 \
+  --pg-database clawer \
+  --pg-user test
+```
+
+```bash
+python3 crawlernest/run_pipeline.py ingest-rankings \
+  --source ARWU \
+  --input-file ./arwu_sample.json \
+  --ranking-year 2026 \
+  --pg-host localhost \
+  --pg-port 5432 \
+  --pg-database clawer \
+  --pg-user test
+```
+
+### 14.5 驗證 `ranking_record` 沒有互相覆寫
+
+```sql
+SELECT
+  cu.display_name,
+  rs.source_code,
+  rr.ranking_year,
+  rr.rank_position,
+  rr.score
+FROM warehouse.ranking_record rr
+JOIN warehouse.ranking_source rs
+  ON rs.ranking_source_id = rr.ranking_source_id
+JOIN warehouse.canonical_university cu
+  ON cu.canonical_university_id = rr.canonical_university_id
+WHERE cu.display_name ILIKE '%Oxford%'
+ORDER BY rs.source_code;
+```
+
+期望結果：
+
+- 同一所 Oxford 會有 `QS`、`THE`、`ARWU` 三筆
+- 三筆 source 獨立存在
+- 不會用 THE 或 ARWU 覆寫 QS
+
+### 14.6 驗證 aggregation 輸出
+
+```sql
+SELECT
+  cu.display_name,
+  ar.ranking_year,
+  ar.display_rank,
+  ar.composite_score,
+  ar.source_ranks_json,
+  ar.source_normalized_scores_json,
+  ar.source_weights_used_json
+FROM analytics.v_aggregated_rankings_latest ar
+JOIN warehouse.canonical_university cu
+  ON cu.canonical_university_id = ar.canonical_university_id
+WHERE cu.display_name ILIKE '%Oxford%';
+```
+
+Oxford 測試案例期望值：
+
+- QS = 3 -> `99.866667`
+- THE = 1 -> `100.0`
+- ARWU = 7 -> `99.4`
+- composite score = `99.796667`
+- final rank = `1`
+
+對應範例程式：
+
+```bash
+python3 crawlernest/scripts/ranking_aggregation_example.py
+```
+
+### 14.7 驗證 recommender 已吃 aggregated rank
+
+```bash
+python3 crawlernest/run_pipeline.py recommend \
+  --country "United Kingdom" \
+  --target-rank 10 \
+  --limit 5 \
+  --ranking-year 2026 \
+  --pg-host localhost \
+  --pg-port 5432 \
+  --pg-database clawer \
+  --pg-user test
+```
+
+驗證重點：
+
+- candidate 來自 `analytics.v_recommendation_candidates_latest`
+- 未指定 `--preferred-ranking-source` 時，預設走 aggregated rank
+- 指定 `--preferred-ranking-source QS` 時，才改走 QS rank
+
+### 14.8 觀測與除錯
+
+可檢查以下表確認 ingestion / unresolved / merge diagnostics：
+
+```sql
+SELECT * FROM analytics.source_ingestion_log ORDER BY ingestion_log_id DESC LIMIT 20;
+SELECT * FROM analytics.missing_entity_log ORDER BY missing_entity_log_id DESC LIMIT 20;
+SELECT * FROM analytics.merge_diagnostics ORDER BY diagnostics_id DESC LIMIT 20;
+```
+
+常見問題：
+
+- `FileNotFoundError`
+  - `--input-file` 路徑錯誤，請改用 `./the_sample.json` 或完整絕對路徑
+- `No canonical university profiles found`
+  - 尚未建立 canonical university / alias 資料，需先完成 entity resolution 基礎資料
+- `ranking_record` 只有 QS
+  - 表示 THE / ARWU payload 尚未匯入，或 entity resolution 沒命中
