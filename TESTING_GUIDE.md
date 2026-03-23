@@ -276,3 +276,91 @@ CrawlerNest 架構遵循：
 
 > [!IMPORTANT]
 > 本文件是 CrawlerNest 的架構維護作業基準。所有跨層變更、資料模型調整與服務介面演進，都應先對照本規範執行，避免架構漂移與技術債快速擴張。
+
+---
+
+## 13. 推薦系統驗證（2026-03 新增）
+
+### 13.1 Python 核心單元驗證
+
+```bash
+python3 -m py_compile \
+  crawlernest/crawlernest-core/recommendation_engine/types.py \
+  crawlernest/crawlernest-core/recommendation_engine/config.py \
+  crawlernest/crawlernest-core/recommendation_engine/engine.py \
+  crawlernest/crawlernest-core/recommendation_engine/repository.py \
+  crawlernest/crawlernest-tests/test_recommendation_engine.py
+```
+
+```bash
+python3 -m unittest crawlernest/crawlernest-tests/test_recommendation_engine.py
+```
+
+### 13.2 CLI 推薦驗證
+
+```bash
+python3 crawlernest/run_pipeline.py recommend \
+  --country "United Kingdom" \
+  --ielts-score 6.5 \
+  --target-rank 100 \
+  --preferred-ranking-source QS \
+  --limit 5
+```
+
+驗證重點：
+
+- 有回傳結果
+- explanation 內含 `score breakdown`
+- `preferred-ranking-source=QS` 時，說明文字應優先顯示 `QS rank #...`
+
+### 13.3 Spring Boot Recommendation API Smoke Test
+
+先啟動 API：
+
+```bash
+cd crawlernest/servise_for_java
+./mvnw spring-boot:run
+```
+
+再執行 smoke test：
+
+```bash
+python3 crawlernest/scripts/smoke_test_recommendations_api.py --base-url http://localhost:8080
+```
+
+或直接呼叫：
+
+```bash
+curl "http://localhost:8080/recommendations?country=United%20Kingdom&ielts=6.5&targetRank=100&preferredRankingSource=QS&limit=3"
+```
+
+驗證重點：
+
+- HTTP 200
+- 至少一筆推薦結果
+- 回傳欄位包含：
+  - `canonicalUniversityId`
+  - `universityName`
+  - `country`
+  - `aggregatedRank`
+  - `ieltsMin`
+  - `matchingScore`
+  - `explanation`
+
+### 13.4 推薦資料鏈前置檢查
+
+若推薦結果為空，先檢查：
+
+```bash
+psql -h localhost -U test -d clawer -c "select count(*) from warehouse.canonical_university;"
+psql -h localhost -U test -d clawer -c "select count(*) from warehouse.canonical_university_link;"
+psql -h localhost -U test -d clawer -c "select count(*) from analytics.v_aggregated_rankings_latest;"
+psql -h localhost -U test -d clawer -c "select count(*) from analytics.v_recommendation_candidates_latest;"
+```
+
+正常基線（目前資料集）：
+
+- `canonical_university = 166`
+- `canonical_university_link = 166`
+- `v_aggregated_rankings_latest = 166`
+- `v_recommendation_candidates_latest = 166`

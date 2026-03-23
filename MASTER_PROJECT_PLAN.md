@@ -62,7 +62,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 | API 讀取層（唯讀） | Spring Boot `/universities`、`/rankings`、`/admissions` | 已運行 | ~70% |
 | 品質與驗證 | lineage、欄位狀態、PostgreSQL 初始化驗證、JUnit、resume/checkpoint 驗證 | 進行中（可運行） | ~62% |
 | 低規節點運行策略 | Low-spec mode、資源保護、長時間運行與續跑準則 | 已定義（待工程化） | ~35% |
-| 分析與推薦 | 排名聚合、特徵向量設計、推薦規則草案 | 策略目標 | ~20% |
+| 分析與推薦 | 排名聚合、rule-based recommendation、推薦 API | 已運作（第一版） | ~58% |
 | AutoEval 研究層 | extractor 評估、hard dataset、manual autoloop、keep/revert | 已運行 | ~65% |
 
 ---
@@ -178,17 +178,17 @@ CrawlerNest 可抽象為六層：
 
 作為 Canonical University Database，負責提供單一真實來源（Single Source of Truth）。
 
-### Layer 4：分析層（策略目標）
+### Layer 4：分析層（已運作 / 持續擴展）
 
 提供跨榜單聚合、統計分析、特徵工程與決策輔助能力。
 
-### Layer 5：推薦層（策略目標）
+### Layer 5：推薦層（已運作第一版）
 
-提供規則篩選、權重模型、Admission Probability、後續 ML 精煉。
+提供規則篩選、權重模型、IELTS / ranking explainable scoring，後續再演進至 Admission Probability 與 ML 精煉。
 
 ### Layer 6：產品層（已運作 / 策略目標）
 
-- 現有：CLI、內部唯讀 API
+- 現有：CLI、內部唯讀 API、rule-based recommendation API
 - 未來：Web UI、公開 API、B2C / B2B 產品介面
 
 分層目的在於：
@@ -627,6 +627,8 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-23 | 完成 detail 403 連續偵測自動降級與 deferred 清單輸出（`pending_detail_enrichment.json`） | 已完成 |
 | 2026-03-23 | 新增 `enrich-details` 小批次補抓命令，支援補寫 admission 並保留失敗項續跑 | 已完成 |
 | 2026-03-23 | 新增正式固定入口腳本 `crawlernest/scripts/run_production_safe.sh`，統一 production-safe 參數 | 已完成 |
+| 2026-03-23 | 完成 PostgreSQL canonical seed、legacy ranking backfill、aggregated ranking candidate view 打通 | 已完成 |
+| 2026-03-23 | 完成 rule-based recommendation engine（CLI `recommend` + Spring Boot `/recommendations`） | 已完成 |
 
 ### 13.4 未來階段規劃
 
@@ -655,11 +657,11 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 基礎層 | 實體識別（Aliases） | 進行中 | 升級 fuzzy + embedding |
 | 基礎層 | 知識庫儲存（SQLite → PostgreSQL） | 進行中 | 邁向 production-grade analytics / service |
 | 基礎層 | 低規節點運行能力 | 已定義（待工程化） | 演進為多節點 crawler / writer / scheduler 原型 |
-| 擴展層 | 多榜單整合 | 規劃中 | 完整支援 QS / THE / ARWU 與區域榜單 |
+| 擴展層 | 多榜單整合 | 已運作（QS 回填基線） | 完整支援 QS / THE / ARWU 與區域榜單 |
 | 擴展層 | Admission ingestion | 規劃中 | structured + raw 雙軌擴展 |
 | 擴展層 | Program taxonomy | 規劃中 | 部門級與課程級分析基礎 |
 | 智能層 | Admission probability estimation | 規劃中 | 可解釋推薦關鍵特徵 |
-| 智能層 | Hybrid recommendation engine | 未來 | Rule + Weight + ML |
+| 智能層 | Rule-based recommendation engine | 已運作（第一版） | Rule + Weight + ML |
 | 研究層 | AutoEval / dataset evolution | 已運作 | 擴展至 normalization / recommendation |
 | 產品化層 | CLI explorer | 進行中 | 開發者與研究者主介面 |
 | 產品化層 | API / Web platform | 進行中（可運行） | 內部唯讀 API → 公開平台 |

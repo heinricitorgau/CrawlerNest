@@ -38,6 +38,8 @@ CrawlerNest is currently transitioning from a crawler tool into a structured dat
 - ✅ Modular architecture (crawler / extractor / db_writer separation)
 - ✅ Initial Java Spring Boot service integration (validated startup against PostgreSQL baseline)
 - ✅ Read-only internal API endpoints: `/universities`, `/rankings`, `/admissions`
+- ✅ Deterministic rule-based recommendation engine (country / IELTS / rank filters + explainable scoring)
+- ✅ Recommendation API endpoint: `/recommendations`
 - ✅ Rankings-only mode (`--rankings-only`) for faster collection when detail pages are not required
 - ✅ Local parse parallelism (`--local-parse-workers`) that speeds parsing without increasing web-request concurrency
 - ✅ Batch DB writes (`executemany` path in writer) to reduce per-row write overhead
@@ -50,14 +52,15 @@ V1.5 completion snapshot (as of 2026-03-23):
 - **End-to-end pipeline maturity**: ~88% (crawl -> normalize -> write -> query is stable)
 - **Performance optimization maturity**: ~85% (batch write / incremental checkpoint / partial update in production path)
 - **Operational resilience maturity**: ~82% (403 auto-degrade + deferred enrichment flow established)
+- **Decision-support maturity**: ~58% (aggregated rankings + rule-based recommendations + API surface are operational)
 
 ### Next (V2): In progress
 
-- Entity resolution (university aliases / fuzzy matching)
 - Data consistency and normalization refinement
-- Ranking aggregation logic
+- Canonical / ranking year quality backfill
 - Knowledge base expansion (programs, degrees, metadata)
 - PostgreSQL-backed service and analytics expansion
+- Program-level recommendation refinement
 
 ### Future (V3): Planned (not yet implemented)
 
@@ -73,7 +76,7 @@ This section reflects the **actual engineering maturity** of the system and dist
 
 The commands below describe the current, testable path for QS data.
 
-### 1) Run crawler → extract → normalize → store (SQLite)
+### 1) Run crawler → extract → normalize → store (PostgreSQL)
 
 From repository root:
 
@@ -126,7 +129,7 @@ Expected console shape:
 Inserted rows: 30
 ```
 
-### 2) Query stored rankings (SQLite query mode)
+### 2) Query stored rankings (PostgreSQL query mode)
 
 ```bash
 python3 crawlernest/run_pipeline.py query MIT --limit 20
@@ -146,6 +149,7 @@ Once `servise_for_java` is running:
 - `GET /universities`
 - `GET /rankings`
 - `GET /admissions`
+- `GET /recommendations`
 
 Example requests:
 
@@ -153,9 +157,29 @@ Example requests:
 curl http://localhost:8080/universities
 curl http://localhost:8080/rankings
 curl http://localhost:8080/admissions
+curl "http://localhost:8080/recommendations?country=United%20Kingdom&ielts=6.5&targetRank=100&preferredRankingSource=QS&limit=3"
 ```
 
 Note: public/external API hardening is still part of future roadmap work.
+
+### 4) Rule-based recommendation (current)
+
+CLI:
+
+```bash
+python3 crawlernest/run_pipeline.py recommend \
+  --country "United Kingdom" \
+  --ielts-score 6.5 \
+  --target-rank 100 \
+  --preferred-ranking-source QS \
+  --limit 5
+```
+
+API smoke test:
+
+```bash
+python3 crawlernest/scripts/smoke_test_recommendations_api.py --base-url http://localhost:8080
+```
 
 ---
 
