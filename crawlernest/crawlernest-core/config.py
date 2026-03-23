@@ -17,8 +17,14 @@ class Config:
     # --------------------------------------------------
     source_name: str = "QS"
     ranking_year: Optional[int] = None
-    db_path: str = "clawer.db"
     enable_database: bool = True
+    pg_host: str = "localhost"
+    pg_port: int = 5432
+    pg_database: str = "clawer"
+    pg_user: str = "test"
+    pg_password: str = ""
+    pg_pool_minconn: int = 1
+    pg_pool_maxconn: int = 8
     
                        
     ranking_id: str = "4023722"                                               

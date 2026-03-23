@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: clawer.service.UniversityServiceTest
 -------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 0.007 s <<< FAILURE! -- in clawer.service.UniversityServiceTest
-clawer.service.UniversityServiceTest.testGetAllUniversities -- Time elapsed: 0.003 s <<< ERROR!
+Tests run: 2, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 0.008 s <<< FAILURE! -- in clawer.service.UniversityServiceTest
+clawer.service.UniversityServiceTest.testGetAllUniversities -- Time elapsed: 0.004 s <<< ERROR!
 java.lang.IllegalStateException: Could not initialize plugin: interface org.mockito.plugins.MockMaker (alternate: null)
 	at org.mockito.internal.configuration.plugins.PluginLoader$1.invoke(PluginLoader.java:84)
 	at jdk.proxy2/jdk.proxy2.$Proxy66.isTypeMockable(Unknown Source)
@@ -20,7 +20,7 @@ java.lang.IllegalStateException: Could not initialize plugin: interface org.mock
 	at org.mockito.internal.configuration.InjectingAnnotationEngine.processIndependentAnnotations(InjectingAnnotationEngine.java:62)
 	at org.mockito.internal.configuration.InjectingAnnotationEngine.process(InjectingAnnotationEngine.java:47)
 	at org.mockito.MockitoAnnotations.openMocks(MockitoAnnotations.java:81)
-	at clawer.service.UniversityServiceTest.setUp(UniversityServiceTest.java:29)
+	at clawer.service.UniversityServiceTest.setUp(UniversityServiceTest.java:31)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
@@ -102,7 +102,7 @@ Caused by: java.lang.IllegalStateException: Could not self-attach to current VM 
 	at org.mockito.internal.creation.bytebuddy.InlineDelegateByteBuddyMockMaker.<clinit>(InlineDelegateByteBuddyMockMaker.java:133)
 	... 51 more
 
-clawer.service.UniversityServiceTest.testGetUniversityById -- Time elapsed: 0 s <<< ERROR!
+clawer.service.UniversityServiceTest.testGetUniversityById -- Time elapsed: 0.002 s <<< ERROR!
 java.lang.IllegalStateException: Could not initialize plugin: interface org.mockito.plugins.MockMaker (alternate: null)
 	at org.mockito.internal.configuration.plugins.PluginLoader$1.invoke(PluginLoader.java:84)
 	at jdk.proxy2/jdk.proxy2.$Proxy66.isTypeMockable(Unknown Source)
@@ -120,7 +120,7 @@ java.lang.IllegalStateException: Could not initialize plugin: interface org.mock
 	at org.mockito.internal.configuration.InjectingAnnotationEngine.processIndependentAnnotations(InjectingAnnotationEngine.java:62)
 	at org.mockito.internal.configuration.InjectingAnnotationEngine.process(InjectingAnnotationEngine.java:47)
 	at org.mockito.MockitoAnnotations.openMocks(MockitoAnnotations.java:81)
-	at clawer.service.UniversityServiceTest.setUp(UniversityServiceTest.java:29)
+	at clawer.service.UniversityServiceTest.setUp(UniversityServiceTest.java:31)
 	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
 	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)

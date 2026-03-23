@@ -1,3 +1,4 @@
+-- Archived legacy SQLite experimental schema retained only for migration reference.
 CREATE TABLE IF NOT EXISTS universities_tmp (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     rank_value TEXT,

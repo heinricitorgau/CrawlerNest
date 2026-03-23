@@ -1,5 +1,6 @@
 package clawer.service;
 
+import clawer.model.RecommendationGroupResponse;
 import clawer.model.RecommendationResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,18 +11,57 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class RecommendationService {
 
-    private static final double RANKING_WEIGHT = 0.55;
-    private static final double IELTS_FIT_WEIGHT = 0.35;
-    private static final double COMPLETENESS_WEIGHT = 0.10;
+    private static final List<String> SOURCE_ORDER = List.of("QS", "THE", "ARWU");
+    private static final String DEFAULT_RISK_PROFILE = "balanced";
+
+    private static final double V1_RANKING_WEIGHT = 0.75;
+    private static final double V1_IELTS_FIT_WEIGHT = 0.20;
+    private static final double V1_COMPLETENESS_WEIGHT = 0.05;
+    private static final double V2_RANKING_WEIGHT = 0.45;
+    private static final double V2_IELTS_FIT_WEIGHT = 0.20;
+    private static final double V2_CONFIDENCE_WEIGHT = 0.20;
+    private static final double V2_RISK_ALIGNMENT_WEIGHT = 0.15;
+    private static final double V3_RANKING_WEIGHT = 0.50;
+    private static final double V3_IELTS_FIT_WEIGHT = 0.20;
+    private static final double V3_CONFIDENCE_WEIGHT = 0.20;
+    private static final double V3_COUNTRY_MATCH_WEIGHT = 0.10;
+    private static final double V3_RANKING_MIN_WEIGHT = 0.40;
     private static final int RANKING_RANK_CAP = 500;
-    private static final double IELTS_GAP_TOLERANCE = 2.0;
+    private static final double RANKING_TOP10_FLOOR = 90.0;
+    private static final double RANKING_TOP50_FLOOR = 55.0;
+    private static final double RANKING_TAIL_DECAY = 0.01;
+    private static final double IELTS_OPTIMAL_BAND = 0.5;
+    private static final double IELTS_SATURATION_GAP = 1.0;
+    private static final double IELTS_SATURATION_SCORE = 94.0;
+    private static final double REACH_RATIO_UPPER = 0.8;
+    private static final double TARGET_RATIO_UPPER = 1.2;
+    private static final double CONSERVATIVE_REACH_ADJUSTMENT = -0.1;
+    private static final double CONSERVATIVE_TARGET_ADJUSTMENT = -0.1;
+    private static final double AGGRESSIVE_REACH_ADJUSTMENT = 0.1;
+    private static final double AGGRESSIVE_TARGET_ADJUSTMENT = 0.15;
+    private static final double LOW_CONFIDENCE_THRESHOLD = 60.0;
+    private static final double VERY_LOW_CONFIDENCE_THRESHOLD = 45.0;
+    private static final double MISSING_SOURCE_PENALTY = 12.0;
+    private static final double COMPLETENESS_CONFIDENCE_WEIGHT = 0.65;
+    private static final double SOURCE_AGREEMENT_WEIGHT = 0.35;
+    private static final double CONSERVATIVE_SAFETY_BOOST = 8.0;
+    private static final double CONSERVATIVE_TARGET_BOOST = 2.0;
+    private static final double CONSERVATIVE_REACH_PENALTY = -10.0;
+    private static final double BALANCED_REACH_BOOST = 2.0;
+    private static final double BALANCED_TARGET_BOOST = 4.0;
+    private static final double BALANCED_SAFETY_BOOST = 1.0;
+    private static final double AGGRESSIVE_REACH_BOOST = 9.0;
+    private static final double AGGRESSIVE_TARGET_BOOST = 3.0;
+    private static final double AGGRESSIVE_SAFETY_PENALTY = -6.0;
     private static final int MAX_LIMIT = 50;
 
     private final JdbcTemplate jdbcTemplate;
@@ -43,10 +83,10 @@ public class RecommendationService {
         List<Candidate> candidates = fetchCandidates(country, rankingYear);
         List<RecommendationResult> results = new ArrayList<>();
         for (Candidate candidate : candidates) {
-            if (!passesHardConstraints(candidate, country, ieltsScore, targetRank, preferredRankingSource)) {
+            if (!passesV1Constraints(candidate, country, ieltsScore, targetRank, preferredRankingSource)) {
                 continue;
             }
-            RecommendationResult result = scoreCandidate(candidate, country, ieltsScore, targetRank, preferredRankingSource);
+            RecommendationResult result = scoreCandidateV1(candidate, country, ieltsScore, targetRank, preferredRankingSource);
             if (result != null) {
                 results.add(result);
             }
@@ -58,11 +98,171 @@ public class RecommendationService {
                         .thenComparing(RecommendationResult::getCanonicalUniversityId)
         );
 
-        int safeLimit = Math.max(1, Math.min(limit == null ? 10 : limit, MAX_LIMIT));
-        if (results.size() > safeLimit) {
-            return results.subList(0, safeLimit);
+        int safeLimit = safeLimit(limit, 10);
+        return results.size() > safeLimit ? results.subList(0, safeLimit) : results;
+    }
+
+    public RecommendationGroupResponse getRecommendationsV2(
+            String country,
+            Double ieltsScore,
+            Integer targetRank,
+            String riskProfile,
+            String preferredRankingSource,
+            Integer rankingYear,
+            Integer limit
+    ) {
+        if (targetRank == null || targetRank <= 0) {
+            throw new IllegalArgumentException("targetRank is required for recommendation v2.");
         }
-        return results;
+
+        List<Candidate> candidates = fetchCandidates(country, rankingYear);
+        Map<String, List<RecommendationResult>> grouped = new LinkedHashMap<>();
+        grouped.put("reach", new ArrayList<>());
+        grouped.put("target", new ArrayList<>());
+        grouped.put("safety", new ArrayList<>());
+
+        int candidateCount = 0;
+        for (Candidate candidate : candidates) {
+            if (!passesV2Constraints(candidate, country, preferredRankingSource)) {
+                continue;
+            }
+            RecommendationResult result = scoreCandidateV2(candidate, country, ieltsScore, targetRank, riskProfile, preferredRankingSource);
+            if (result == null || result.getCategory() == null) {
+                continue;
+            }
+            candidateCount++;
+            grouped.get(result.getCategory()).add(result);
+        }
+
+        Comparator<RecommendationResult> comparator = Comparator
+                .comparing(RecommendationResult::getMatchingScore, Comparator.nullsLast(Double::compareTo)).reversed()
+                .thenComparing(RecommendationResult::getAggregatedRank, Comparator.nullsLast(Integer::compareTo))
+                .thenComparing(RecommendationResult::getCanonicalUniversityId);
+        int safeLimit = safeLimit(limit, 5);
+        for (List<RecommendationResult> rows : grouped.values()) {
+            rows.sort(comparator);
+            if (rows.size() > safeLimit) {
+                rows.subList(safeLimit, rows.size()).clear();
+            }
+        }
+
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("target_rank", targetRank);
+        metadata.put("risk_profile", normalizeRiskProfile(riskProfile));
+        metadata.put("country", country);
+        metadata.put("ielts_score", ieltsScore);
+        metadata.put("candidate_count", candidateCount);
+        metadata.put("counts", Map.of(
+                "reach", grouped.get("reach").size(),
+                "target", grouped.get("target").size(),
+                "safety", grouped.get("safety").size()
+        ));
+        metadata.put("thresholds", Map.of(
+                "balanced", Map.of("reach_upper", REACH_RATIO_UPPER, "target_upper", TARGET_RATIO_UPPER),
+                "conservative", Map.of(
+                        "reach_upper", REACH_RATIO_UPPER + CONSERVATIVE_REACH_ADJUSTMENT,
+                        "target_upper", TARGET_RATIO_UPPER + CONSERVATIVE_TARGET_ADJUSTMENT
+                ),
+                "aggressive", Map.of(
+                        "reach_upper", REACH_RATIO_UPPER + AGGRESSIVE_REACH_ADJUSTMENT,
+                        "target_upper", TARGET_RATIO_UPPER + AGGRESSIVE_TARGET_ADJUSTMENT
+                )
+        ));
+
+        return new RecommendationGroupResponse(
+                grouped.get("reach"),
+                grouped.get("target"),
+                grouped.get("safety"),
+                metadata
+        );
+    }
+
+    public RecommendationGroupResponse getRecommendationsV3(
+            String country,
+            Double ieltsScore,
+            Integer targetRank,
+            String riskProfile,
+            String preferenceWeights,
+            String preferredRankingSource,
+            Integer rankingYear,
+            Integer limit
+    ) {
+        if (targetRank == null || targetRank <= 0) {
+            throw new IllegalArgumentException("targetRank is required for recommendation v3.");
+        }
+
+        List<Candidate> candidates = fetchCandidates(null, rankingYear);
+        Map<String, Double> resolvedWeights = resolvePreferenceWeights(preferenceWeights);
+        Map<String, List<RecommendationResult>> grouped = new LinkedHashMap<>();
+        grouped.put("reach", new ArrayList<>());
+        grouped.put("target", new ArrayList<>());
+        grouped.put("safety", new ArrayList<>());
+
+        int candidateCount = 0;
+        for (Candidate candidate : candidates) {
+            if (!passesV3Constraints(candidate, preferredRankingSource)) {
+                continue;
+            }
+            RecommendationResult result = scoreCandidateV3(
+                    candidate,
+                    country,
+                    ieltsScore,
+                    targetRank,
+                    riskProfile,
+                    resolvedWeights,
+                    preferredRankingSource
+            );
+            if (result == null || result.getCategory() == null) {
+                continue;
+            }
+            candidateCount++;
+            grouped.get(result.getCategory()).add(result);
+        }
+
+        Comparator<RecommendationResult> comparator = Comparator
+                .comparing(RecommendationResult::getMatchingScore, Comparator.nullsLast(Double::compareTo)).reversed()
+                .thenComparing(RecommendationResult::getAggregatedRank, Comparator.nullsLast(Integer::compareTo))
+                .thenComparing(RecommendationResult::getCanonicalUniversityId);
+        int safeLimit = safeLimit(limit, 5);
+        for (List<RecommendationResult> rows : grouped.values()) {
+            rows.sort(comparator);
+            if (rows.size() > safeLimit) {
+                rows.subList(safeLimit, rows.size()).clear();
+            }
+        }
+
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("version", "v3");
+        metadata.put("target_rank", targetRank);
+        metadata.put("risk_profile", normalizeRiskProfile(riskProfile));
+        metadata.put("country", country);
+        metadata.put("ielts_score", ieltsScore);
+        metadata.put("candidate_count", candidateCount);
+        metadata.put("preference_weights", resolvedWeights);
+        metadata.put("country_preference_mode", country == null || country.isBlank() ? "none" : "soft_preference");
+        metadata.put("counts", Map.of(
+                "reach", grouped.get("reach").size(),
+                "target", grouped.get("target").size(),
+                "safety", grouped.get("safety").size()
+        ));
+        metadata.put("thresholds", Map.of(
+                "balanced", Map.of("reach_upper", REACH_RATIO_UPPER, "target_upper", TARGET_RATIO_UPPER),
+                "conservative", Map.of(
+                        "reach_upper", REACH_RATIO_UPPER + CONSERVATIVE_REACH_ADJUSTMENT,
+                        "target_upper", TARGET_RATIO_UPPER + CONSERVATIVE_TARGET_ADJUSTMENT
+                ),
+                "aggressive", Map.of(
+                        "reach_upper", REACH_RATIO_UPPER + AGGRESSIVE_REACH_ADJUSTMENT,
+                        "target_upper", TARGET_RATIO_UPPER + AGGRESSIVE_TARGET_ADJUSTMENT
+                )
+        ));
+
+        return new RecommendationGroupResponse(
+                grouped.get("reach"),
+                grouped.get("target"),
+                grouped.get("safety"),
+                metadata
+        );
     }
 
     private List<Candidate> fetchCandidates(String country, Integer rankingYear) {
@@ -103,6 +303,8 @@ public class RecommendationService {
         candidate.rankingYear = rs.wasNull() ? null : rankingYear;
         int aggregatedRank = rs.getInt("aggregated_rank");
         candidate.aggregatedRank = rs.wasNull() ? null : aggregatedRank;
+        double aggregatedScore = rs.getDouble("composite_score");
+        candidate.aggregatedScore = rs.wasNull() ? null : aggregatedScore;
         double coverageRatio = rs.getDouble("coverage_ratio");
         candidate.coverageRatio = rs.wasNull() ? 0.0 : coverageRatio;
         double ieltsMin = rs.getDouble("ielts_min");
@@ -112,26 +314,20 @@ public class RecommendationService {
         return candidate;
     }
 
-    private boolean passesHardConstraints(
+    private boolean passesV1Constraints(
             Candidate candidate,
             String country,
             Double ieltsScore,
             Integer targetRank,
             String preferredRankingSource
     ) {
-        if (country != null && !country.isBlank()) {
-            if (candidate.country == null || !candidate.country.equalsIgnoreCase(country.trim())) {
-                return false;
-            }
+        if (country != null && !country.isBlank() && (candidate.country == null || !candidate.country.equalsIgnoreCase(country.trim()))) {
+            return false;
         }
-
         EffectiveRank effectiveRank = chooseEffectiveRank(candidate, preferredRankingSource);
-        if (targetRank != null) {
-            if (effectiveRank.rank == null || effectiveRank.rank > targetRank) {
-                return false;
-            }
+        if (targetRank != null && (effectiveRank.rank == null || effectiveRank.rank > targetRank)) {
+            return false;
         }
-
         if (ieltsScore != null) {
             if (candidate.ieltsMin == null) {
                 return false;
@@ -143,7 +339,18 @@ public class RecommendationService {
         return true;
     }
 
-    private RecommendationResult scoreCandidate(
+    private boolean passesV2Constraints(Candidate candidate, String country, String preferredRankingSource) {
+        if (country != null && !country.isBlank() && (candidate.country == null || !candidate.country.equalsIgnoreCase(country.trim()))) {
+            return false;
+        }
+        return chooseEffectiveRank(candidate, preferredRankingSource).rank != null;
+    }
+
+    private boolean passesV3Constraints(Candidate candidate, String preferredRankingSource) {
+        return chooseEffectiveRank(candidate, preferredRankingSource).rank != null;
+    }
+
+    private RecommendationResult scoreCandidateV1(
             Candidate candidate,
             String country,
             Double ieltsScore,
@@ -155,21 +362,26 @@ public class RecommendationService {
         Double ieltsFitScore = ieltsFitScore(candidate.ieltsMin, ieltsScore);
         Double completenessScore = completenessScore(candidate);
 
-        Map<String, Double> weightsUsed = new HashMap<>();
+        Map<String, Double> weightsUsed = new LinkedHashMap<>();
         if (rankingScore != null) {
-            weightsUsed.put("ranking", RANKING_WEIGHT);
+            weightsUsed.put("ranking", V1_RANKING_WEIGHT);
         }
         if (ieltsFitScore != null) {
-            weightsUsed.put("ielts_fit", IELTS_FIT_WEIGHT);
+            weightsUsed.put("ielts_fit", V1_IELTS_FIT_WEIGHT);
         }
         if (completenessScore != null) {
-            weightsUsed.put("completeness", COMPLETENESS_WEIGHT);
+            weightsUsed.put("completeness", V1_COMPLETENESS_WEIGHT);
         }
         if (weightsUsed.isEmpty()) {
             return null;
         }
 
-        double finalScore = weightedAverage(weightsUsed, rankingScore, ieltsFitScore, completenessScore);
+        Map<String, Double> scoreMap = Map.of(
+                "ranking", rankingScore == null ? 0.0 : rankingScore,
+                "ielts_fit", ieltsFitScore == null ? 0.0 : ieltsFitScore,
+                "completeness", completenessScore == null ? 0.0 : completenessScore
+        );
+        double finalScore = weightedAverage(weightsUsed, scoreMap);
         List<String> rulesPassed = new ArrayList<>();
         if (country != null && !country.isBlank()) {
             rulesPassed.add("country=" + country);
@@ -183,15 +395,14 @@ public class RecommendationService {
             rulesPassed.add("IELTS filter not applied");
         }
 
-        Map<String, Object> scoreBreakdown = new HashMap<>();
+        Map<String, Object> scoreBreakdown = new LinkedHashMap<>();
         scoreBreakdown.put("ranking_score", rankingScore);
         scoreBreakdown.put("ielts_fit_score", ieltsFitScore);
         scoreBreakdown.put("completeness_score", completenessScore);
         scoreBreakdown.put("weights_used", weightsUsed);
+        scoreBreakdown.put("contributions", componentContributions(weightsUsed, scoreMap));
         scoreBreakdown.put("effective_rank_used", effectiveRank.rank);
         scoreBreakdown.put("effective_rank_source", effectiveRank.source);
-
-        String explanation = buildExplanation(candidate, ieltsScore, rankingScore, ieltsFitScore, completenessScore, finalScore, effectiveRank);
 
         return new RecommendationResult(
                 candidate.canonicalUniversityId,
@@ -200,7 +411,178 @@ public class RecommendationService {
                 candidate.aggregatedRank,
                 candidate.ieltsMin,
                 round(finalScore),
-                explanation,
+                null,
+                null,
+                buildExplanationV1(candidate, ieltsScore, rankingScore, ieltsFitScore, completenessScore, finalScore, effectiveRank),
+                candidate.aggregationMethodVersion,
+                scoreBreakdown,
+                rulesPassed
+        );
+    }
+
+    private RecommendationResult scoreCandidateV2(
+            Candidate candidate,
+            String country,
+            Double ieltsScore,
+            Integer targetRank,
+            String riskProfile,
+            String preferredRankingSource
+    ) {
+        EffectiveRank effectiveRank = chooseEffectiveRank(candidate, preferredRankingSource);
+        if (effectiveRank.rank == null) {
+            return null;
+        }
+
+        Double rankingScore = rankingScore(effectiveRank.rank, targetRank);
+        Double ieltsFitScore = ieltsFitScoreV2(candidate.ieltsMin, ieltsScore);
+        Double confidenceScore = confidenceScore(candidate, targetRank, ieltsScore);
+        CategoryDecision categoryDecision = classifyCategory(candidate, effectiveRank.rank, targetRank, ieltsScore, riskProfile, confidenceScore);
+        Double riskAlignmentScore = riskAlignmentScore(categoryDecision.category, riskProfile);
+        Double completenessScore = completenessScore(candidate);
+        Double ieltsMargin = ieltsMargin(candidate.ieltsMin, ieltsScore);
+        String confidenceLabel = confidenceLabel(confidenceScore);
+
+        Map<String, Double> weightsUsed = new LinkedHashMap<>();
+        weightsUsed.put("ranking", V2_RANKING_WEIGHT);
+        weightsUsed.put("ielts_fit", V2_IELTS_FIT_WEIGHT);
+        weightsUsed.put("confidence", V2_CONFIDENCE_WEIGHT);
+        weightsUsed.put("risk_alignment", V2_RISK_ALIGNMENT_WEIGHT);
+
+        Map<String, Double> scoreMap = new LinkedHashMap<>();
+        scoreMap.put("ranking", rankingScore);
+        scoreMap.put("ielts_fit", ieltsFitScore);
+        scoreMap.put("confidence", confidenceScore);
+        scoreMap.put("risk_alignment", riskAlignmentScore);
+        double finalScore = weightedAverage(weightsUsed, scoreMap);
+
+        Map<String, Object> scoreBreakdown = new LinkedHashMap<>();
+        scoreBreakdown.put("ranking_score", rankingScore);
+        scoreBreakdown.put("ielts_fit_score", ieltsFitScore);
+        scoreBreakdown.put("completeness_score", completenessScore);
+        scoreBreakdown.put("confidence_score", confidenceScore);
+        scoreBreakdown.put("risk_alignment_score", riskAlignmentScore);
+        scoreBreakdown.put("weights_used", weightsUsed);
+        scoreBreakdown.put("contributions", componentContributions(weightsUsed, scoreMap));
+        scoreBreakdown.put("effective_rank_used", effectiveRank.rank);
+        scoreBreakdown.put("effective_rank_source", effectiveRank.source);
+        scoreBreakdown.put("category", categoryDecision.category);
+        scoreBreakdown.put("category_reason", categoryDecision.reason);
+        scoreBreakdown.put("ielts_margin", ieltsMargin);
+        scoreBreakdown.put("confidence_label", confidenceLabel);
+
+        List<String> rulesPassed = new ArrayList<>();
+        rulesPassed.add("category=" + categoryDecision.category);
+        rulesPassed.add("risk_profile=" + normalizeRiskProfile(riskProfile));
+        rulesPassed.add("confidence=" + confidenceLabel);
+        if (country != null && !country.isBlank()) {
+            rulesPassed.add("country=" + country);
+        }
+        if (ieltsMargin != null) {
+            rulesPassed.add("ielts_margin=" + formatNumber(ieltsMargin));
+        }
+
+        return new RecommendationResult(
+                candidate.canonicalUniversityId,
+                candidate.universityName,
+                candidate.country,
+                candidate.aggregatedRank,
+                candidate.ieltsMin,
+                round(finalScore),
+                categoryDecision.category,
+                null,
+                buildExplanationV2(candidate, ieltsScore, rankingScore, confidenceLabel, ieltsMargin, finalScore, categoryDecision.reason),
+                candidate.aggregationMethodVersion,
+                scoreBreakdown,
+                rulesPassed
+        );
+    }
+
+    private RecommendationResult scoreCandidateV3(
+            Candidate candidate,
+            String country,
+            Double ieltsScore,
+            Integer targetRank,
+            String riskProfile,
+            Map<String, Double> resolvedWeights,
+            String preferredRankingSource
+    ) {
+        EffectiveRank effectiveRank = chooseEffectiveRank(candidate, preferredRankingSource);
+        if (effectiveRank.rank == null) {
+            return null;
+        }
+
+        Double rankingScore = rankingScore(effectiveRank.rank, targetRank);
+        Double ieltsFitScore = ieltsFitScoreV2(candidate.ieltsMin, ieltsScore);
+        Double completenessScore = completenessScore(candidate);
+        Double confidenceScore = confidenceScore(candidate, targetRank, ieltsScore);
+        CategoryDecision categoryDecision = classifyCategory(candidate, effectiveRank.rank, targetRank, ieltsScore, riskProfile, confidenceScore);
+        Double ieltsMargin = ieltsMargin(candidate.ieltsMin, ieltsScore);
+        String confidenceLabel = confidenceLabel(confidenceScore);
+        Double countryMatchScore = countryMatchScore(candidate.country, country);
+        Double riskAdjustment = riskAdjustment(categoryDecision.category, riskProfile);
+        String preferenceAlignment = preferenceAlignment(countryMatchScore, riskAdjustment, country);
+
+        Map<String, Double> scoreMap = new LinkedHashMap<>();
+        scoreMap.put("ranking", rankingScore);
+        scoreMap.put("ielts", ieltsFitScore);
+        scoreMap.put("confidence", confidenceScore);
+        scoreMap.put("country_match", countryMatchScore);
+        double baseScore = weightedAverage(resolvedWeights, scoreMap);
+        double finalScore = Math.max(0.0, Math.min(100.0, baseScore + riskAdjustment));
+
+        Map<String, Object> scoreBreakdown = new LinkedHashMap<>();
+        scoreBreakdown.put("ranking_score", rankingScore);
+        scoreBreakdown.put("ielts_fit_score", ieltsFitScore);
+        scoreBreakdown.put("completeness_score", completenessScore);
+        scoreBreakdown.put("confidence_score", confidenceScore);
+        scoreBreakdown.put("country_match_score", countryMatchScore);
+        scoreBreakdown.put("weights_used", resolvedWeights);
+        scoreBreakdown.put("contributions", componentContributions(resolvedWeights, scoreMap));
+        scoreBreakdown.put("effective_rank_used", effectiveRank.rank);
+        scoreBreakdown.put("effective_rank_source", effectiveRank.source);
+        scoreBreakdown.put("category", categoryDecision.category);
+        scoreBreakdown.put("category_reason", categoryDecision.reason);
+        scoreBreakdown.put("ielts_margin", ieltsMargin);
+        scoreBreakdown.put("confidence_label", confidenceLabel);
+        scoreBreakdown.put("preference_alignment", preferenceAlignment);
+        scoreBreakdown.put("base_score", round(baseScore));
+        scoreBreakdown.put("risk_adjustment", round(riskAdjustment));
+
+        List<String> rulesPassed = new ArrayList<>();
+        rulesPassed.add("version=v3");
+        rulesPassed.add("category=" + categoryDecision.category);
+        rulesPassed.add("risk_profile=" + normalizeRiskProfile(riskProfile));
+        rulesPassed.add("preference_alignment=" + preferenceAlignment);
+        if (country != null && !country.isBlank()) {
+            rulesPassed.add("country_preference=" + country);
+        }
+        if (ieltsMargin != null) {
+            rulesPassed.add("ielts_margin=" + formatNumber(ieltsMargin));
+        }
+
+        return new RecommendationResult(
+                candidate.canonicalUniversityId,
+                candidate.universityName,
+                candidate.country,
+                candidate.aggregatedRank,
+                candidate.ieltsMin,
+                round(finalScore),
+                categoryDecision.category,
+                preferenceAlignment,
+                buildExplanationV3(
+                        country,
+                        rankingScore,
+                        ieltsFitScore,
+                        confidenceScore,
+                        countryMatchScore,
+                        baseScore,
+                        riskAdjustment,
+                        finalScore,
+                        preferenceAlignment,
+                        resolvedWeights,
+                        categoryDecision.reason,
+                        riskProfile
+                ),
                 candidate.aggregationMethodVersion,
                 scoreBreakdown,
                 rulesPassed
@@ -208,7 +590,7 @@ public class RecommendationService {
     }
 
     private EffectiveRank chooseEffectiveRank(Candidate candidate, String preferredRankingSource) {
-        String preferred = preferredRankingSource == null ? "" : preferredRankingSource.trim().toUpperCase();
+        String preferred = preferredRankingSource == null ? "" : preferredRankingSource.trim().toUpperCase(Locale.ROOT);
         if (!preferred.isBlank()) {
             Integer sourceRank = candidate.sourceRanks.get(preferred);
             if (sourceRank != null) {
@@ -222,8 +604,28 @@ public class RecommendationService {
         if (rankValue == null || rankValue <= 0) {
             return null;
         }
-        int cap = Math.max(Math.max(RANKING_RANK_CAP, targetRank == null ? 0 : targetRank), rankValue);
-        return round(Math.max(0.0, Math.min(100.0, 100.0 * (cap - rankValue + 1.0) / cap)));
+        double ratioScore = 0.0;
+        if (targetRank != null && targetRank > 0) {
+            double ratio = rankValue / (double) targetRank;
+            ratioScore = Math.max(0.0, Math.min(100.0, 125.0 - 50.0 * ratio));
+        }
+        double globalScore;
+        if (rankValue <= 10) {
+            globalScore = 100.0 - 10.0 * Math.log10(rankValue);
+        } else if (rankValue <= 50) {
+            double midProgress = Math.log(rankValue / 10.0) / Math.log(5.0);
+            globalScore = RANKING_TOP10_FLOOR - (RANKING_TOP10_FLOOR - RANKING_TOP50_FLOOR) * midProgress;
+        } else {
+            int cap = Math.max(Math.max(RANKING_RANK_CAP, targetRank == null ? 0 : targetRank), rankValue);
+            globalScore = RANKING_TOP50_FLOOR * Math.exp(-RANKING_TAIL_DECAY * (rankValue - 50.0));
+            if (rankValue >= cap) {
+                globalScore = Math.min(globalScore, 1.0);
+            }
+        }
+        if (targetRank == null || targetRank <= 0) {
+            return round(Math.max(0.0, Math.min(100.0, globalScore)));
+        }
+        return round(Math.max(0.0, Math.min(100.0, (0.6 * ratioScore) + (0.4 * globalScore))));
     }
 
     private Double ieltsFitScore(Double requirement, Double ieltsScore) {
@@ -234,7 +636,28 @@ public class RecommendationService {
             return null;
         }
         double gap = Math.max(0.0, ieltsScore - requirement);
-        return round(Math.max(0.0, 100.0 * (1.0 - Math.min(gap / IELTS_GAP_TOLERANCE, 1.0))));
+        if (gap <= IELTS_OPTIMAL_BAND) {
+            return 100.0;
+        }
+        if (gap <= IELTS_SATURATION_GAP) {
+            double progress = (gap - IELTS_OPTIMAL_BAND) / (IELTS_SATURATION_GAP - IELTS_OPTIMAL_BAND);
+            return round(100.0 - (100.0 - IELTS_SATURATION_SCORE) * progress);
+        }
+        return IELTS_SATURATION_SCORE;
+    }
+
+    private Double ieltsFitScoreV2(Double requirement, Double ieltsScore) {
+        if (ieltsScore == null) {
+            return 55.0;
+        }
+        if (requirement == null) {
+            return 60.0;
+        }
+        if (ieltsScore + 1e-9 < requirement) {
+            double deficit = requirement - ieltsScore;
+            return round(Math.max(10.0, 55.0 - 35.0 * deficit));
+        }
+        return ieltsFitScore(requirement, ieltsScore);
     }
 
     private Double completenessScore(Candidate candidate) {
@@ -249,16 +672,264 @@ public class RecommendationService {
         return round(Math.min(100.0, score));
     }
 
-    private double weightedAverage(Map<String, Double> weightsUsed, Double rankingScore, Double ieltsFitScore, Double completenessScore) {
+    private Double confidenceScore(Candidate candidate, Integer targetRank, Double ieltsScore) {
+        double completeness = completenessScore(candidate);
+        List<Integer> sourceRanks = SOURCE_ORDER.stream()
+                .map(candidate.sourceRanks::get)
+                .filter(Objects::nonNull)
+                .toList();
+        double agreement;
+        if (sourceRanks.isEmpty()) {
+            agreement = 45.0;
+        } else if (sourceRanks.size() == 1) {
+            agreement = 68.0;
+        } else {
+            int spread = sourceRanks.stream().max(Integer::compareTo).orElse(0) - sourceRanks.stream().min(Integer::compareTo).orElse(0);
+            int denominator = Math.max(sourceRanks.stream().max(Integer::compareTo).orElse(1), Math.max(targetRank == null ? 1 : targetRank, 1));
+            double spreadRatio = spread / (double) denominator;
+            agreement = Math.max(45.0, 100.0 - (spreadRatio * 100.0) - (MISSING_SOURCE_PENALTY * (SOURCE_ORDER.size() - sourceRanks.size())));
+        }
+        double confidence = (COMPLETENESS_CONFIDENCE_WEIGHT * completeness) + (SOURCE_AGREEMENT_WEIGHT * agreement);
+        if (ieltsScore != null && candidate.ieltsMin == null) {
+            confidence -= 8.0;
+        }
+        return round(Math.max(0.0, Math.min(100.0, confidence)));
+    }
+
+    private CategoryDecision classifyCategory(
+            Candidate candidate,
+            Integer effectiveRank,
+            Integer targetRank,
+            Double ieltsScore,
+            String riskProfile,
+            Double confidenceScore
+    ) {
+        double ratio = effectiveRank / (double) Math.max(1, targetRank);
+        Thresholds thresholds = thresholdsForRiskProfile(riskProfile);
+        String category;
+        if (ratio < thresholds.reachUpper) {
+            category = "reach";
+        } else if (ratio > thresholds.targetUpper) {
+            category = "safety";
+        } else {
+            category = "target";
+        }
+
+        if (ieltsScore != null && candidate.ieltsMin != null && ieltsScore + 1e-9 < candidate.ieltsMin) {
+            category = shiftRiskier(category);
+        }
+        if (confidenceScore < VERY_LOW_CONFIDENCE_THRESHOLD) {
+            category = shiftRiskier(category);
+        } else if (confidenceScore < LOW_CONFIDENCE_THRESHOLD && "safety".equals(category)) {
+            category = "target";
+        }
+
+        String reason;
+        if ("reach".equals(category)) {
+            reason = "Classified as Reach: rank #" + effectiveRank + " is materially stronger than your target #" + targetRank + ", so it is an ambitious option.";
+        } else if ("safety".equals(category)) {
+            reason = "Classified as Safety: rank #" + effectiveRank + " is below your target threshold #" + targetRank + ", so it is a lower-risk option.";
+        } else {
+            reason = "Classified as Target: rank #" + effectiveRank + " sits close to your target #" + targetRank + ", so it is a balanced option.";
+        }
+        Double margin = ieltsMargin(candidate.ieltsMin, ieltsScore);
+        if (margin != null) {
+            if (margin < 0) {
+                reason += " IELTS is short by " + formatNumber(Math.abs(margin)) + ", which makes the category more aggressive.";
+            } else {
+                reason += " IELTS margin is " + formatNumber(margin) + ", which supports the application profile.";
+            }
+        } else if (ieltsScore != null && candidate.ieltsMin == null) {
+            reason += " IELTS requirement is missing, so confidence is reduced.";
+        }
+        if (confidenceScore < LOW_CONFIDENCE_THRESHOLD) {
+            reason += " Confidence is only " + formatNumber(confidenceScore) + "/100 due to incomplete or inconsistent data.";
+        }
+        return new CategoryDecision(category, reason);
+    }
+
+    private Double riskAlignmentScore(String category, String riskProfile) {
+        String profile = normalizeRiskProfile(riskProfile);
+        return switch (profile) {
+            case "conservative" -> switch (category) {
+                case "reach" -> 55.0;
+                case "target" -> 82.0;
+                default -> 100.0;
+            };
+            case "aggressive" -> switch (category) {
+                case "reach" -> 100.0;
+                case "target" -> 88.0;
+                default -> 70.0;
+            };
+            default -> switch (category) {
+                case "reach" -> 72.0;
+                case "target" -> 100.0;
+                default -> 86.0;
+            };
+        };
+    }
+
+    private Double riskAdjustment(String category, String riskProfile) {
+        String profile = normalizeRiskProfile(riskProfile);
+        return switch (profile) {
+            case "conservative" -> switch (category) {
+                case "reach" -> CONSERVATIVE_REACH_PENALTY;
+                case "target" -> CONSERVATIVE_TARGET_BOOST;
+                default -> CONSERVATIVE_SAFETY_BOOST;
+            };
+            case "aggressive" -> switch (category) {
+                case "reach" -> AGGRESSIVE_REACH_BOOST;
+                case "target" -> AGGRESSIVE_TARGET_BOOST;
+                default -> AGGRESSIVE_SAFETY_PENALTY;
+            };
+            default -> switch (category) {
+                case "reach" -> BALANCED_REACH_BOOST;
+                case "target" -> BALANCED_TARGET_BOOST;
+                default -> BALANCED_SAFETY_BOOST;
+            };
+        };
+    }
+
+    private Thresholds thresholdsForRiskProfile(String riskProfile) {
+        return switch (normalizeRiskProfile(riskProfile)) {
+            case "conservative" -> new Thresholds(
+                    Math.max(0.2, REACH_RATIO_UPPER + CONSERVATIVE_REACH_ADJUSTMENT),
+                    Math.max(0.6, TARGET_RATIO_UPPER + CONSERVATIVE_TARGET_ADJUSTMENT)
+            );
+            case "aggressive" -> new Thresholds(
+                    REACH_RATIO_UPPER + AGGRESSIVE_REACH_ADJUSTMENT,
+                    TARGET_RATIO_UPPER + AGGRESSIVE_TARGET_ADJUSTMENT
+            );
+            default -> new Thresholds(REACH_RATIO_UPPER, TARGET_RATIO_UPPER);
+        };
+    }
+
+    private String normalizeRiskProfile(String riskProfile) {
+        String cleaned = riskProfile == null ? DEFAULT_RISK_PROFILE : riskProfile.trim().toLowerCase(Locale.ROOT);
+        return switch (cleaned) {
+            case "conservative", "aggressive", "balanced" -> cleaned;
+            default -> DEFAULT_RISK_PROFILE;
+        };
+    }
+
+    private String shiftRiskier(String category) {
+        return "safety".equals(category) ? "target" : "reach";
+    }
+
+    private Double ieltsMargin(Double requirement, Double ieltsScore) {
+        if (requirement == null || ieltsScore == null) {
+            return null;
+        }
+        return round(ieltsScore - requirement);
+    }
+
+    private String confidenceLabel(Double confidenceScore) {
+        if (confidenceScore >= 80.0) {
+            return "high";
+        }
+        if (confidenceScore >= 60.0) {
+            return "medium";
+        }
+        return "low";
+    }
+
+    private Double countryMatchScore(String candidateCountry, String preferredCountry) {
+        if (preferredCountry == null || preferredCountry.isBlank()) {
+            return 55.0;
+        }
+        if (candidateCountry == null || candidateCountry.isBlank()) {
+            return 40.0;
+        }
+        if (candidateCountry.equalsIgnoreCase(preferredCountry.trim())) {
+            return 100.0;
+        }
+        return 25.0;
+    }
+
+    private String preferenceAlignment(Double countryMatchScore, Double riskAdjustment, String preferredCountry) {
+        double total = 60.0 + (riskAdjustment == null ? 0.0 : riskAdjustment);
+        int count = 1;
+        if (preferredCountry != null && !preferredCountry.isBlank()) {
+            total += countryMatchScore == null ? 0.0 : countryMatchScore;
+            count += 1;
+        }
+        double average = total / count;
+        if (average >= 78.0) {
+            return "strong";
+        }
+        if (average >= 55.0) {
+            return "moderate";
+        }
+        return "low";
+    }
+
+    private Map<String, Double> resolvePreferenceWeights(String preferenceWeights) {
+        Map<String, Double> merged = new LinkedHashMap<>();
+        merged.put("ranking", V3_RANKING_WEIGHT);
+        merged.put("ielts", V3_IELTS_FIT_WEIGHT);
+        merged.put("confidence", V3_CONFIDENCE_WEIGHT);
+        merged.put("country_match", V3_COUNTRY_MATCH_WEIGHT);
+
+        if (preferenceWeights != null && !preferenceWeights.isBlank()) {
+            try {
+                Map<String, Object> raw = objectMapper.readValue(preferenceWeights, new TypeReference<>() {});
+                for (Map.Entry<String, Object> entry : raw.entrySet()) {
+                    if (!merged.containsKey(entry.getKey()) || entry.getValue() == null) {
+                        continue;
+                    }
+                    merged.put(entry.getKey(), Math.max(0.0, Double.parseDouble(entry.getValue().toString())));
+                }
+            } catch (Exception ex) {
+                throw new IllegalArgumentException("Invalid preferenceWeights JSON.", ex);
+            }
+        }
+
+        double total = merged.values().stream().mapToDouble(Double::doubleValue).sum();
+        if (total <= 0.0) {
+            merged.put("ranking", 0.5);
+            merged.put("ielts", 0.2);
+            merged.put("confidence", 0.2);
+            merged.put("country_match", 0.1);
+            total = 1.0;
+        }
+        Map<String, Double> normalized = new LinkedHashMap<>();
+        for (Map.Entry<String, Double> entry : merged.entrySet()) {
+            normalized.put(entry.getKey(), entry.getValue() / total);
+        }
+
+        double rankingWeight = normalized.get("ranking");
+        double maxOther = Math.max(
+                normalized.get("ielts"),
+                Math.max(normalized.get("confidence"), normalized.get("country_match"))
+        );
+        double targetRanking = Math.min(0.85, Math.max(Math.max(rankingWeight, V3_RANKING_MIN_WEIGHT), maxOther + 0.01));
+        if (targetRanking > rankingWeight) {
+            double otherTotal = normalized.get("ielts") + normalized.get("confidence") + normalized.get("country_match");
+            normalized.put("ranking", targetRanking);
+            double remaining = Math.max(0.0, 1.0 - targetRanking);
+            if (otherTotal <= 0.0) {
+                normalized.put("ielts", 0.0);
+                normalized.put("confidence", 0.0);
+                normalized.put("country_match", remaining);
+            } else {
+                normalized.put("ielts", remaining * (normalized.get("ielts") / otherTotal));
+                normalized.put("confidence", remaining * (normalized.get("confidence") / otherTotal));
+                normalized.put("country_match", remaining * (normalized.get("country_match") / otherTotal));
+            }
+        }
+
+        Map<String, Double> rounded = new LinkedHashMap<>();
+        for (Map.Entry<String, Double> entry : normalized.entrySet()) {
+            rounded.put(entry.getKey(), round(entry.getValue()));
+        }
+        return rounded;
+    }
+
+    private double weightedAverage(Map<String, Double> weightsUsed, Map<String, Double> scoreMap) {
         double weightedSum = 0.0;
         double weightSum = 0.0;
         for (Map.Entry<String, Double> entry : weightsUsed.entrySet()) {
-            Double score = switch (entry.getKey()) {
-                case "ranking" -> rankingScore;
-                case "ielts_fit" -> ieltsFitScore;
-                case "completeness" -> completenessScore;
-                default -> null;
-            };
+            Double score = scoreMap.get(entry.getKey());
             if (score == null) {
                 continue;
             }
@@ -271,7 +942,41 @@ public class RecommendationService {
         return weightedSum / weightSum;
     }
 
-    private String buildExplanation(
+    private Map<String, Double> componentContributions(Map<String, Double> weightsUsed, Map<String, Double> scoreMap) {
+        double weightSum = weightsUsed.values().stream().mapToDouble(Double::doubleValue).sum();
+        Map<String, Double> contributions = new LinkedHashMap<>();
+        if (weightSum <= 0.0) {
+            return contributions;
+        }
+        for (Map.Entry<String, Double> entry : weightsUsed.entrySet()) {
+            Double score = scoreMap.get(entry.getKey());
+            if (score == null) {
+                continue;
+            }
+            contributions.put(entry.getKey(), round((entry.getValue() / weightSum) * score));
+        }
+        return contributions;
+    }
+
+    private Map<String, Integer> parseJsonMap(Object value) {
+        if (value == null) {
+            return new LinkedHashMap<>();
+        }
+        try {
+            Map<String, Object> raw = objectMapper.readValue(value.toString(), new TypeReference<>() {});
+            Map<String, Integer> parsed = new LinkedHashMap<>();
+            for (Map.Entry<String, Object> entry : raw.entrySet()) {
+                if (entry.getValue() != null) {
+                    parsed.put(entry.getKey().toUpperCase(Locale.ROOT), Integer.parseInt(entry.getValue().toString()));
+                }
+            }
+            return parsed;
+        } catch (Exception e) {
+            return new LinkedHashMap<>();
+        }
+    }
+
+    private String buildExplanationV1(
             Candidate candidate,
             Double ieltsScore,
             Double rankingScore,
@@ -300,38 +1005,97 @@ public class RecommendationService {
         return String.join("; ", parts);
     }
 
-    private Map<String, Integer> parseJsonMap(Object value) {
-        if (value == null) {
-            return new HashMap<>();
+    private String buildExplanationV2(
+            Candidate candidate,
+            Double ieltsScore,
+            Double rankingScore,
+            String confidenceLabel,
+            Double ieltsMargin,
+            double finalScore,
+            String categoryReason
+    ) {
+        List<String> recommendationBits = new ArrayList<>();
+        if (rankingScore != null) {
+            recommendationBits.add("ranking score is " + formatScore(rankingScore));
         }
-        try {
-            String json = value.toString();
-            if (json == null || json.isBlank()) {
-                return new HashMap<>();
+        recommendationBits.add("confidence is " + confidenceLabel);
+        if (ieltsMargin != null) {
+            if (ieltsMargin >= 0) {
+                recommendationBits.add("IELTS requirement " + candidate.ieltsMin + " is covered by a " + formatNumber(ieltsMargin) + " margin");
+            } else {
+                recommendationBits.add("IELTS is short by " + formatNumber(Math.abs(ieltsMargin)));
             }
-            Map<String, Object> raw = objectMapper.readValue(json, new TypeReference<>() {});
-            Map<String, Integer> parsed = new HashMap<>();
-            for (Map.Entry<String, Object> entry : raw.entrySet()) {
-                if (entry.getValue() == null) {
-                    continue;
-                }
-                parsed.put(entry.getKey().toUpperCase(), Integer.parseInt(entry.getValue().toString()));
-            }
-            return parsed;
-        } catch (Exception e) {
-            return new HashMap<>();
+        } else if (ieltsScore != null && candidate.ieltsMin == null) {
+            recommendationBits.add("IELTS requirement is missing");
         }
+        recommendationBits.add("overall fit score is " + formatScore(finalScore));
+        return categoryReason + " Recommended because " + String.join(", ", recommendationBits) + ".";
+    }
+
+    private String buildExplanationV3(
+            String country,
+            Double rankingScore,
+            Double ieltsFitScore,
+            Double confidenceScore,
+            Double countryMatchScore,
+            double baseScore,
+            double riskAdjustment,
+            double finalScore,
+            String preferenceAlignment,
+            Map<String, Double> weightsUsed,
+            String categoryReason,
+            String riskProfile
+    ) {
+        List<String> baseBits = new ArrayList<>();
+        if (rankingScore != null) {
+            baseBits.add("ranking contributes " + formatScore(rankingScore));
+        }
+        if (ieltsFitScore != null) {
+            baseBits.add("IELTS fit contributes " + formatScore(ieltsFitScore));
+        }
+        if (confidenceScore != null) {
+            baseBits.add("confidence contributes " + formatScore(confidenceScore));
+        }
+
+        List<String> preferenceBits = new ArrayList<>();
+        if (country != null && !country.isBlank()) {
+            preferenceBits.add("country match is " + formatScore(countryMatchScore) + " for preference " + country);
+        }
+        preferenceBits.add("preference alignment is " + preferenceAlignment);
+        preferenceBits.add("weights used " + weightsUsed);
+
+        String direction = riskAdjustment >= 0 ? "boosted" : "reduced";
+        return categoryReason
+                + " Base score " + String.join(", ", baseBits) + ", producing " + formatScore(baseScore) + " before scenario adjustment."
+                + " Preference impact: " + String.join(", ", preferenceBits) + "."
+                + " Risk adjustment: " + direction + " by " + formatScore(Math.abs(riskAdjustment))
+                + " due to the " + normalizeRiskProfile(riskProfile) + " profile favoring this category."
+                + " Final score is " + formatScore(finalScore) + ".";
+    }
+
+    private int safeLimit(Integer limit, int defaultValue) {
+        return Math.max(1, Math.min(limit == null ? defaultValue : limit, MAX_LIMIT));
     }
 
     private Double round(double value) {
-        return Math.round(value * 100.0) / 100.0;
+        return Math.round(value * 10000.0) / 10000.0;
     }
 
     private String formatScore(Double value) {
         if (value == null) {
             return "n/a";
         }
-        return String.format("%.2f", value);
+        return String.format(Locale.ROOT, "%.2f", value);
+    }
+
+    private String formatNumber(Double value) {
+        if (value == null) {
+            return "n/a";
+        }
+        if (Math.rint(value) == value) {
+            return Integer.toString(value.intValue());
+        }
+        return String.format(Locale.ROOT, "%.2f", value);
     }
 
     private static final class Candidate {
@@ -340,12 +1104,19 @@ public class RecommendationService {
         private String country;
         private Integer rankingYear;
         private Integer aggregatedRank;
-        private Double ieltsMin;
+        private Double aggregatedScore;
         private double coverageRatio;
+        private Double ieltsMin;
         private String aggregationMethodVersion;
-        private Map<String, Integer> sourceRanks = new HashMap<>();
+        private Map<String, Integer> sourceRanks = new LinkedHashMap<>();
     }
 
     private record EffectiveRank(Integer rank, String source) {
+    }
+
+    private record Thresholds(double reachUpper, double targetUpper) {
+    }
+
+    private record CategoryDecision(String category, String reason) {
     }
 }

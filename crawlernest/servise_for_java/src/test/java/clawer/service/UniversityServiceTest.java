@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,13 +40,13 @@ class UniversityServiceTest {
         u2.setId(2L);
         u2.setDisplayName("Stanford");
 
-        when(universityRepository.findAll()).thenReturn(Arrays.asList(u1, u2));
+        when(universityRepository.findAll(PageRequest.of(0, 20))).thenReturn(new PageImpl<>(Arrays.asList(u1, u2)));
 
-        List<UniversityDTO> result = universityService.getAllUniversities();
+        List<UniversityDTO> result = universityService.getAllUniversities(0, 20);
 
         assertEquals(2, result.size());
         assertEquals("MIT", result.get(0).getDisplayName());
-        verify(universityRepository, times(1)).findAll();
+        verify(universityRepository, times(1)).findAll(PageRequest.of(0, 20));
     }
 
     @Test

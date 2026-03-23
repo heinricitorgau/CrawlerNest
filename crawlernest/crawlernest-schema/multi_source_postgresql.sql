@@ -134,6 +134,9 @@ CREATE INDEX IF NOT EXISTS idx_ranking_record_source_year
 CREATE INDEX IF NOT EXISTS idx_ranking_record_canonical
     ON warehouse.ranking_record(canonical_university_id, ranking_year);
 
+CREATE INDEX IF NOT EXISTS idx_ranking_record_year
+    ON warehouse.ranking_record(ranking_year);
+
 CREATE INDEX IF NOT EXISTS idx_missing_entity_source_created
     ON analytics.missing_entity_log(source_code, created_at);
 

@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -35,7 +36,7 @@ class UniversityControllerTest {
         u1.setId(1L);
         u1.setDisplayName("Test Uni");
         
-        when(universityService.getAllUniversities()).thenReturn(Arrays.asList(u1));
+        when(universityService.getAllUniversities(anyInt(), anyInt())).thenReturn(Arrays.asList(u1));
 
         mockMvc.perform(get("/universities")
                 .accept(MediaType.APPLICATION_JSON))

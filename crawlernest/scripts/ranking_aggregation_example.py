@@ -18,43 +18,51 @@ def main() -> None:
             canonical_university_id=1,
             source="QS",
             year=2026,
-            rank=10,
+            rank=3,
             score=None,
         ),
         RankingRecordInput(
             canonical_university_id=1,
             source="THE",
             year=2026,
-            rank=25,
+            rank=1,
             score=None,
         ),
         RankingRecordInput(
             canonical_university_id=1,
             source="ARWU",
             year=2026,
-            rank=40,
+            rank=7,
             score=None,
         ),
         RankingRecordInput(
             canonical_university_id=2,
             source="QS",
             year=2026,
-            rank=30,
+            rank=8,
             score=None,
         ),
         RankingRecordInput(
             canonical_university_id=2,
             source="THE",
             year=2026,
-            rank=28,
+            rank=4,
+            score=None,
+        ),
+        RankingRecordInput(
+            canonical_university_id=2,
+            source="ARWU",
+            year=2026,
+            rank=9,
             score=None,
         ),
     ]
 
     outputs = aggregate_rankings(records, config=default_aggregation_config())
     for row in outputs:
+        label = "Oxford" if row.canonical_university_id == 1 else "Cambridge"
         print(
-            f"cid={row.canonical_university_id} year={row.year} rank={row.display_rank} "
+            f"{label}: cid={row.canonical_university_id} year={row.year} rank={row.display_rank} "
             f"composite={row.composite_score} coverage={row.coverage_ratio} "
             f"source_ranks={row.source_ranks} "
             f"norm={row.source_normalized_scores} "

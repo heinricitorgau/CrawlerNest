@@ -1,0 +1,11 @@
+[
+  {
+    "id": "the:oxford",
+    "institution": "University of Oxford",
+    "country": "United Kingdom",
+    "year": 2026,
+    "rank_position": 1,
+    "scores": { "overall": 98.5 },
+    "profile_url": "https://example.test/the/oxford"
+  }
+]

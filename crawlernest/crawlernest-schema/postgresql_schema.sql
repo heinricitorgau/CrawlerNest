@@ -55,7 +55,7 @@ CREATE TABLE warehouse.university_aliases (
     source_name TEXT NOT NULL,
     source_school_name TEXT NOT NULL,
     match_type TEXT DEFAULT 'manual',
-    confidence_score REAL DEFAULT 1.0,
+    confidence_score NUMERIC(5,4) DEFAULT 1.0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(source_name, source_school_name)
 );
@@ -98,7 +98,7 @@ CREATE TABLE warehouse.rankings (
     ranking_year INTEGER,
     rank_start INTEGER,
     rank_end INTEGER,
-    score REAL,
+    score NUMERIC(10,4),
     metrics_json JSONB, -- Stored as JSONB for indexing
     source_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -114,11 +114,11 @@ CREATE TABLE warehouse.admission_requirements (
     degree_id INTEGER REFERENCES warehouse.degrees(degree_id),
     raw_id INTEGER,
     source_url TEXT,
-    gpa_min REAL,
-    ielts_min REAL,
-    toefl_min REAL,
-    gre_min REAL,
-    gmat_min REAL,
+    gpa_min NUMERIC(6,2),
+    ielts_min NUMERIC(4,2),
+    toefl_min NUMERIC(6,2),
+    gre_min NUMERIC(6,2),
+    gmat_min NUMERIC(6,2),
     application_deadline_text TEXT,
     raw_text TEXT,
     parsed_status TEXT,
@@ -172,6 +172,10 @@ CREATE INDEX idx_raw_source_records_json ON staging.raw_source_records USING GIN
 -- Standard Indexes
 CREATE INDEX idx_universities_slug ON warehouse.universities(school_slug);
 CREATE INDEX idx_rankings_uni_year ON warehouse.rankings(university_id, ranking_year);
+CREATE INDEX idx_university_aliases_university_id ON warehouse.university_aliases(university_id);
+CREATE INDEX idx_rankings_source_year ON warehouse.rankings(ranking_source, ranking_year, ranking_type);
+CREATE INDEX idx_admission_requirements_university_id ON warehouse.admission_requirements(university_id);
+CREATE INDEX idx_admission_requirements_program_id ON warehouse.admission_requirements(program_id);
 CREATE INDEX idx_programs_uni ON warehouse.programs(university_id);
 
 -- If pgvector is installed later, embedding columns can be migrated from JSONB to vector

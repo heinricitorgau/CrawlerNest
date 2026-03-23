@@ -49,7 +49,7 @@ Clawer follows a **multi-language layered architecture**, where each language is
                               v
                 +----------------------------+
                 |       Knowledge Base       |
-                |       SQLite / SQL        |
+                |       PostgreSQL          |
                 +-------------+--------------+
                               |
                               v

@@ -1,7 +1,14 @@
 from .config import RecommendationConfig, default_recommendation_config
-from .engine import RuleBasedRecommender, recommend_universities
+from .engine import (
+    RuleBasedRecommender,
+    grouped_recommendations_to_dict,
+    recommend_universities,
+    recommend_universities_v2,
+    recommend_universities_v3,
+)
 from .repository import RecommendationRepository
 from .types import (
+    GroupedRecommendationResult,
     RecommendationCandidate,
     RecommendationQuery,
     RecommendationResult,
@@ -9,6 +16,7 @@ from .types import (
 )
 
 __all__ = [
+    "GroupedRecommendationResult",
     "RecommendationCandidate",
     "RecommendationConfig",
     "RecommendationQuery",
@@ -17,5 +25,8 @@ __all__ = [
     "RecommendationScoreBreakdown",
     "RuleBasedRecommender",
     "default_recommendation_config",
+    "grouped_recommendations_to_dict",
     "recommend_universities",
+    "recommend_universities_v2",
+    "recommend_universities_v3",
 ]

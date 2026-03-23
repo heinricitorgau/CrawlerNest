@@ -1,3 +1,4 @@
+-- Archived legacy SQLite schema retained only for one-time migration reference.
 PRAGMA foreign_keys = ON;
 
 BEGIN TRANSACTION;

@@ -29,7 +29,7 @@ CrawlerNest is currently transitioning from a crawler tool into a structured dat
 
 - ✅ QS ranking crawler (stable)
 - ✅ Asynchronous crawling pipeline (AsyncIO-based)
-- ✅ SQLite-based knowledge base (original warehouse baseline)
+- ✅ PostgreSQL knowledge base and operational warehouse
 - ✅ PostgreSQL schema initialization baseline (validated)
 - ✅ Extraction and parsing modules for rankings and admission data
 - ✅ Python data ingestion pipeline (crawler → DB)
@@ -124,7 +124,7 @@ Expected console shape:
 ```text
 [1/4] Crawling QS data...
 [2/4] Normalizing fields (Python baseline)...
-[3/4] Writing 30 rows to sqlite...
+[3/4] Writing 30 rows to postgres...
 [4/4] Done.
 Inserted rows: 30
 ```
@@ -260,7 +260,7 @@ The high‑level architecture of CrawlerNest follows a layered data‑platform p
                  ▼
         ┌──────────────────────────────┐
         │ University Knowledge Base    │
-        │ SQLite / PostgreSQL Warehouse│
+        │ PostgreSQL Warehouse         │
         └─────────┬────────────────────┘
                   │
                   ▼
@@ -332,8 +332,7 @@ V1.5 (Current) → V2 (Next) → V3+ (Future)
 ### V1.5 — Data Platform Foundation (Current)
 - Stable QS ranking crawler
 - Async crawling pipeline (AsyncIO)
-- SQLite knowledge base (baseline)
-- PostgreSQL schema initialized (validated)
+- PostgreSQL knowledge base and schema initialized
 - Python ingestion pipeline (crawler → DB)
 - Minimal end-to-end flow via `crawlernest/run_pipeline.py`
 - C normalization engine (prototype)
@@ -438,8 +437,7 @@ This layered structure separates **data acquisition**, **data processing**, **kn
 CrawlerNest uses a lightweight and portable stack designed for research and data engineering:
 
 - **Python** – crawler pipelines and data processing
-- **SQLite** – original local analytical knowledge base baseline
-- **PostgreSQL** – validated next-stage operational database baseline
+- **PostgreSQL** – single operational database and source of truth
 - **C** – high‑performance normalization engine (prototype)
 - **Java / Spring Boot** – backend API services and recommendation engine
 - **AsyncIO** – asynchronous crawling
@@ -464,7 +462,7 @@ CrawlerNest is currently evolving from a crawler-centric system into a modular d
 - a structured data ingestion pipeline
 - a minimal runnable flow (`crawlernest/run_pipeline.py`) for QS crawl/store/query
 - a normalization engine (C-based prototype)
-- a knowledge base (SQLite warehouse baseline + PostgreSQL initialization baseline)
+- a PostgreSQL knowledge base and service data layer
 - an emerging service layer (Java backend with read-only endpoints for universities/rankings/admissions)
 
 The project is in a **platform-building phase**, focusing on stability, data quality, and architectural scalability.
@@ -523,8 +521,7 @@ You should observe zero errors and near‑perfect score (runtime-adjusted).
 CrawlerNest uses a lightweight and portable stack designed for research and data engineering:
 
 - **Python** – crawler pipelines and data processing
-- **SQLite** – original local analytical knowledge base baseline
-- **PostgreSQL** – validated next-stage operational database baseline
+- **PostgreSQL** – single operational database and source of truth
 - **C** – high‑performance normalization engine (prototype)
 - **Java / Spring Boot** – backend API services and recommendation engine
 - **AsyncIO** – asynchronous crawling
@@ -549,7 +546,7 @@ CrawlerNest is currently evolving from a crawler-centric system into a modular d
 - a structured data ingestion pipeline
 - a minimal runnable flow (`crawlernest/run_pipeline.py`) for QS crawl/store/query
 - a normalization engine (C-based prototype)
-- a knowledge base (SQLite warehouse baseline + PostgreSQL initialization baseline)
+- a PostgreSQL knowledge base and service data layer
 - an emerging service layer (Java backend with read-only endpoints for universities/rankings/admissions)
 
 The project is in a **platform-building phase**, focusing on stability, data quality, and architectural scalability.

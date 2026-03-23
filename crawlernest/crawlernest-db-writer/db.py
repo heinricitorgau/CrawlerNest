@@ -29,7 +29,7 @@ def get_connection(
 
 
 def init_db():
-    raise RuntimeError("SQLite temporary helper has been removed. Use bootstrap_postgres.py instead.")
+    raise RuntimeError("Legacy local DB bootstrap has been removed. Use bootstrap_postgres.py instead.")
 
 
 def insert_university(uni):

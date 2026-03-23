@@ -10,6 +10,8 @@ public class RecommendationResult {
     private Integer aggregatedRank;
     private Double ieltsMin;
     private Double matchingScore;
+    private String category;
+    private String preferenceAlignment;
     private String explanation;
     private String aggregationMethodVersion;
     private Map<String, Object> scoreBreakdown;
@@ -25,6 +27,8 @@ public class RecommendationResult {
             Integer aggregatedRank,
             Double ieltsMin,
             Double matchingScore,
+            String category,
+            String preferenceAlignment,
             String explanation,
             String aggregationMethodVersion,
             Map<String, Object> scoreBreakdown,
@@ -36,6 +40,8 @@ public class RecommendationResult {
         this.aggregatedRank = aggregatedRank;
         this.ieltsMin = ieltsMin;
         this.matchingScore = matchingScore;
+        this.category = category;
+        this.preferenceAlignment = preferenceAlignment;
         this.explanation = explanation;
         this.aggregationMethodVersion = aggregationMethodVersion;
         this.scoreBreakdown = scoreBreakdown;
@@ -90,8 +96,24 @@ public class RecommendationResult {
         this.matchingScore = matchingScore;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
     public String getExplanation() {
         return explanation;
+    }
+
+    public String getPreferenceAlignment() {
+        return preferenceAlignment;
+    }
+
+    public void setPreferenceAlignment(String preferenceAlignment) {
+        this.preferenceAlignment = preferenceAlignment;
     }
 
     public void setExplanation(String explanation) {

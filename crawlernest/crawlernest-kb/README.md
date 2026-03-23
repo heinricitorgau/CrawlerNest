@@ -3,4 +3,4 @@
 Knowledge Base build scripts and database snapshots.
 
 ## Folders
-- `databases/`: Contains reference database snapshots (e.g., `universities.db`).
+- `databases/`: Contains JSON checkpoints and archived migration artifacts; PostgreSQL is the runtime source of truth.

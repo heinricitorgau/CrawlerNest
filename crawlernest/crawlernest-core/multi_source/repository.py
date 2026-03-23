@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from ranking_aggregation.types import RankingRecordInput
+
 from .integrator import IntegrationDiagnostics
 from .types import StandardizedRankingRecord, UnifiedRankingRecord
 
@@ -20,18 +22,17 @@ class MultiSourceRepository:
         # (source_code, source_name, source_version)
         source_codes = sorted(set([s[0] for s in sources if s and s[0]]))
         with self.conn.cursor() as cur:
-            for code, name, version in sources:
-                cur.execute(
-                    """
-                    INSERT INTO warehouse.ranking_source (source_code, source_name, source_version)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (source_code)
-                    DO UPDATE SET
-                        source_name = EXCLUDED.source_name,
-                        source_version = COALESCE(EXCLUDED.source_version, warehouse.ranking_source.source_version)
-                    """,
-                    (code, name, version),
-                )
+            cur.executemany(
+                """
+                INSERT INTO warehouse.ranking_source (source_code, source_name, source_version)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (source_code)
+                DO UPDATE SET
+                    source_name = EXCLUDED.source_name,
+                    source_version = COALESCE(EXCLUDED.source_version, warehouse.ranking_source.source_version)
+                """,
+                [(code, name, version) for code, name, version in sources],
+            )
             cur.execute(
                 """
                 SELECT ranking_source_id, source_code
@@ -45,80 +46,92 @@ class MultiSourceRepository:
         return {str(code): int(source_id) for source_id, code in rows}
 
     def upsert_source_university_mappings(self, unified_rows: list[UnifiedRankingRecord], source_id_map: dict[str, int]) -> None:
-        with self.conn.cursor() as cur:
-            for row in unified_rows:
-                if row.canonical_university_id is None:
-                    continue
-                ranking_source_id = source_id_map.get(row.source)
-                if ranking_source_id is None:
-                    continue
-                cur.execute(
-                    """
-                    INSERT INTO warehouse.source_university_mapping (
-                        ranking_source_id, source_entity_id, canonical_university_id,
-                        match_method, confidence_score, metadata
-                    ) VALUES (%s, %s, %s, %s, %s, %s::jsonb)
-                    ON CONFLICT (ranking_source_id, source_entity_id)
-                    DO UPDATE SET
-                        canonical_university_id = EXCLUDED.canonical_university_id,
-                        match_method = EXCLUDED.match_method,
-                        confidence_score = EXCLUDED.confidence_score,
-                        metadata = EXCLUDED.metadata,
-                        last_seen_at = CURRENT_TIMESTAMP
-                    """,
-                    (
-                        ranking_source_id,
-                        row.source_entity_id,
-                        row.canonical_university_id,
-                        row.matching_method,
-                        row.confidence_score,
-                        json.dumps(row.metadata, ensure_ascii=False),
-                    ),
+        params: list[tuple[Any, ...]] = []
+        for row in unified_rows:
+            if row.canonical_university_id is None:
+                continue
+            ranking_source_id = source_id_map.get(row.source)
+            if ranking_source_id is None:
+                continue
+            params.append(
+                (
+                    ranking_source_id,
+                    row.source_entity_id,
+                    row.canonical_university_id,
+                    row.matching_method,
+                    row.confidence_score,
+                    json.dumps(row.metadata, ensure_ascii=False),
                 )
+            )
+        if not params:
+            return
+        with self.conn.cursor() as cur:
+            cur.executemany(
+                """
+                INSERT INTO warehouse.source_university_mapping (
+                    ranking_source_id, source_entity_id, canonical_university_id,
+                    match_method, confidence_score, metadata
+                ) VALUES (%s, %s, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (ranking_source_id, source_entity_id)
+                DO UPDATE SET
+                    canonical_university_id = EXCLUDED.canonical_university_id,
+                    match_method = EXCLUDED.match_method,
+                    confidence_score = EXCLUDED.confidence_score,
+                    metadata = EXCLUDED.metadata,
+                    last_seen_at = CURRENT_TIMESTAMP
+                """,
+                params,
+            )
         self.conn.commit()
 
     def upsert_ranking_records(self, unified_rows: list[UnifiedRankingRecord], source_id_map: dict[str, int]) -> None:
-        with self.conn.cursor() as cur:
-            for row in unified_rows:
-                if row.canonical_university_id is None:
-                    continue
-                ranking_source_id = source_id_map.get(row.source)
-                if ranking_source_id is None:
-                    continue
-                cur.execute(
-                    """
-                    INSERT INTO warehouse.ranking_record (
-                        canonical_university_id,
-                        ranking_source_id,
-                        ranking_year,
-                        ranking_type,
-                        rank_position,
-                        score,
-                        source_version,
-                        source_url,
-                        metadata
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
-                    ON CONFLICT (canonical_university_id, ranking_source_id, ranking_year, ranking_type)
-                    DO UPDATE SET
-                        rank_position = EXCLUDED.rank_position,
-                        score = EXCLUDED.score,
-                        source_version = COALESCE(EXCLUDED.source_version, warehouse.ranking_record.source_version),
-                        source_url = COALESCE(EXCLUDED.source_url, warehouse.ranking_record.source_url),
-                        metadata = EXCLUDED.metadata,
-                        ingested_at = CURRENT_TIMESTAMP
-                    """,
-                    (
-                        row.canonical_university_id,
-                        ranking_source_id,
-                        row.year,
-                        row.ranking_type,
-                        row.rank,
-                        row.score,
-                        row.source_version,
-                        row.source_url,
-                        json.dumps(row.metadata, ensure_ascii=False),
-                    ),
+        params: list[tuple[Any, ...]] = []
+        for row in unified_rows:
+            if row.canonical_university_id is None:
+                continue
+            ranking_source_id = source_id_map.get(row.source)
+            if ranking_source_id is None:
+                continue
+            params.append(
+                (
+                    row.canonical_university_id,
+                    ranking_source_id,
+                    row.year,
+                    row.ranking_type,
+                    row.rank,
+                    row.score,
+                    row.source_version,
+                    row.source_url,
+                    json.dumps(row.metadata, ensure_ascii=False),
                 )
+            )
+        if not params:
+            return
+        with self.conn.cursor() as cur:
+            cur.executemany(
+                """
+                INSERT INTO warehouse.ranking_record (
+                    canonical_university_id,
+                    ranking_source_id,
+                    ranking_year,
+                    ranking_type,
+                    rank_position,
+                    score,
+                    source_version,
+                    source_url,
+                    metadata
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (canonical_university_id, ranking_source_id, ranking_year, ranking_type)
+                DO UPDATE SET
+                    rank_position = EXCLUDED.rank_position,
+                    score = EXCLUDED.score,
+                    source_version = COALESCE(EXCLUDED.source_version, warehouse.ranking_record.source_version),
+                    source_url = COALESCE(EXCLUDED.source_url, warehouse.ranking_record.source_url),
+                    metadata = EXCLUDED.metadata,
+                    ingested_at = CURRENT_TIMESTAMP
+                """,
+                params,
+            )
         self.conn.commit()
 
     def log_ingestion(self, source_code: str, diagnostics: IntegrationDiagnostics, inserted_count: int, updated_count: int, batch_id: str | None = None) -> None:
@@ -151,28 +164,34 @@ class MultiSourceRepository:
         self.conn.commit()
 
     def log_missing_entities(self, raw_rows: list[StandardizedRankingRecord], unified_rows: list[UnifiedRankingRecord]) -> None:
-        with self.conn.cursor() as cur:
-            for raw, unified in zip(raw_rows, unified_rows):
-                if unified.canonical_university_id is not None:
-                    continue
-                cur.execute(
-                    """
-                    INSERT INTO analytics.missing_entity_log (
-                        source_code, source_entity_id, raw_name, normalized_name,
-                        country_hint, ranking_year, ranking_type, details_json
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
-                    """,
-                    (
-                        raw.source,
-                        raw.source_entity_id,
-                        raw.university_name,
-                        unified.metadata.get("normalized_name") if isinstance(unified.metadata, dict) else None,
-                        raw.country_hint,
-                        raw.ranking_year,
-                        raw.ranking_type,
-                        json.dumps({"matching_method": unified.matching_method}, ensure_ascii=False),
-                    ),
+        params: list[tuple[Any, ...]] = []
+        for raw, unified in zip(raw_rows, unified_rows):
+            if unified.canonical_university_id is not None:
+                continue
+            params.append(
+                (
+                    raw.source,
+                    raw.source_entity_id,
+                    raw.university_name,
+                    unified.metadata.get("normalized_name") if isinstance(unified.metadata, dict) else None,
+                    raw.country_hint,
+                    raw.ranking_year,
+                    raw.ranking_type,
+                    json.dumps({"matching_method": unified.matching_method}, ensure_ascii=False),
                 )
+            )
+        if not params:
+            return
+        with self.conn.cursor() as cur:
+            cur.executemany(
+                """
+                INSERT INTO analytics.missing_entity_log (
+                    source_code, source_entity_id, raw_name, normalized_name,
+                    country_hint, ranking_year, ranking_type, details_json
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                """,
+                params,
+            )
         self.conn.commit()
 
     def log_merge_diagnostics(self, diagnostics: IntegrationDiagnostics, batch_id: str | None = None) -> None:
@@ -207,3 +226,38 @@ class MultiSourceRepository:
                     ),
                 )
         self.conn.commit()
+
+    def fetch_ranking_inputs(self, years: list[int], ranking_type: str = "world") -> list[RankingRecordInput]:
+        if not years:
+            return []
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    rr.canonical_university_id,
+                    rs.source_code,
+                    rr.ranking_year,
+                    rr.rank_position,
+                    rr.score,
+                    rr.metadata
+                FROM warehouse.ranking_record rr
+                JOIN warehouse.ranking_source rs
+                  ON rs.ranking_source_id = rr.ranking_source_id
+                WHERE rr.ranking_year = ANY(%s)
+                  AND rr.ranking_type = %s
+                ORDER BY rr.ranking_year, rr.canonical_university_id, rs.source_code
+                """,
+                (years, ranking_type),
+            )
+            rows = cur.fetchall()
+        return [
+            RankingRecordInput(
+                canonical_university_id=int(canonical_university_id),
+                source=str(source_code),
+                year=int(ranking_year),
+                rank=rank_position,
+                score=float(score) if score is not None else None,
+                metadata_json=dict(metadata or {}),
+            )
+            for canonical_university_id, source_code, ranking_year, rank_position, score, metadata in rows
+        ]

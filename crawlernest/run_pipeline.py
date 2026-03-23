@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import datetime as dt
 import json
 import os
 import re
@@ -44,11 +45,21 @@ from db_writer import DBWriter  # noqa: E402
 from extractor import DataExtractor  # noqa: E402
 from fetcher import UniversityFetcher  # noqa: E402
 from models import University  # noqa: E402
+from entity_resolution import EntityResolver  # noqa: E402
+from entity_resolution.repository import EntityResolutionRepository  # noqa: E402
+from multi_source import MultiSourceRankingPipeline  # noqa: E402
+from multi_source.adapters import ARWUAdapter, QSAdapter, THEAdapter  # noqa: E402
+from multi_source.repository import MultiSourceRepository  # noqa: E402
+from comparison import ComparisonRepository, compare_universities  # noqa: E402
 from recommendation_engine import (  # noqa: E402
     RecommendationQuery,
     RecommendationRepository,
     default_recommendation_config,
+    grouped_recommendations_to_dict,
+    recommend_universities_v2,
+    recommend_universities_v3,
 )
+from ranking_aggregation.repository import RankingAggregationRepository  # noqa: E402
 
 try:  # noqa: E402
     import psycopg2
@@ -58,6 +69,7 @@ except ImportError:
     psycopg2_errors = None  # type: ignore
 
 WRITE_BATCH_SIZE = 100
+DEFAULT_RANKING_YEAR = dt.datetime.now().year
 
 
 def _normalize_space(value: str) -> str:
@@ -337,7 +349,6 @@ def _resolve_university_ids_by_slugs(writer: DBWriter, slugs: list[str]) -> dict
 def enrich_deferred_details(
     deferred_file: Path,
     db_type: str,
-    db_path: Optional[str],
     pg_host: Optional[str],
     pg_port: int,
     pg_database: Optional[str],
@@ -520,7 +531,6 @@ def compact_checkpoint(path: Path, done_slugs: set[str]) -> None:
 def write_universities(
     universities: Iterable[University],
     db_type: str,
-    db_path: Optional[str],
     pg_host: Optional[str],
     pg_port: int,
     pg_database: Optional[str],
@@ -761,9 +771,117 @@ def write_universities(
     return inserted, skipped, failed
 
 
+def _connect_postgres(
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> Any:
+    if psycopg2 is None:
+        raise RuntimeError("psycopg2 is required for PostgreSQL mode")
+    return psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        database=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
+
+
+def _build_multi_source_pipeline(conn: Any) -> MultiSourceRankingPipeline:
+    er_repo = EntityResolutionRepository(conn)
+    profiles = er_repo.load_canonical_profiles()
+    if not profiles:
+        raise RuntimeError(
+            "No canonical university profiles found. Seed entity resolution tables before multi-source ingestion."
+        )
+    resolver = EntityResolver(profiles)
+    return MultiSourceRankingPipeline(
+        resolver=resolver,
+        multi_source_repo=MultiSourceRepository(conn),
+        aggregation_repo=RankingAggregationRepository(conn),
+    )
+
+
+def sync_qs_multi_source_rankings(
+    universities: Iterable[University],
+    ranking_year: int,
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+    batch_id: str | None = None,
+) -> Any:
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    try:
+        pipeline = _build_multi_source_pipeline(conn)
+        standardized = QSAdapter(ranking_year=ranking_year, ranking_type="world").adapt(list(universities))
+        return pipeline.ingest_records(
+            standardized,
+            batch_id=batch_id,
+            run_label_prefix="qs_pipeline_sync",
+            ranking_type="world",
+        )
+    finally:
+        conn.close()
+
+
+def ingest_rankings_payload(
+    source: str,
+    payload: list[Any],
+    ranking_year: int,
+    ranking_type: str,
+    source_version: Optional[str],
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+    batch_id: str | None = None,
+) -> Any:
+    source_code = str(source or "").strip().upper()
+    if source_code == "QS":
+        adapter = QSAdapter(ranking_year=ranking_year, ranking_type=ranking_type, source_version=source_version)
+        adapter_payload = [row if isinstance(row, University) else University.from_dict(row) for row in payload]
+    elif source_code == "THE":
+        adapter = THEAdapter(default_year=ranking_year, ranking_type=ranking_type, source_version=source_version)
+        adapter_payload = payload
+    elif source_code == "ARWU":
+        adapter = ARWUAdapter(default_year=ranking_year, ranking_type=ranking_type, source_version=source_version)
+        adapter_payload = payload
+    else:
+        raise ValueError(f"Unsupported source: {source}. Expected one of QS, THE, ARWU.")
+
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    try:
+        pipeline = _build_multi_source_pipeline(conn)
+        standardized = adapter.adapt(adapter_payload)
+        return pipeline.ingest_records(
+            standardized,
+            batch_id=batch_id,
+            run_label_prefix=f"{source_code.lower()}_payload_ingest",
+            ranking_type=ranking_type,
+        )
+    finally:
+        conn.close()
+
+
+def load_json_payload(path: Path) -> list[Any]:
+    with path.open("r", encoding="utf-8") as f:
+        payload = json.load(f)
+    if isinstance(payload, list):
+        return payload
+    if isinstance(payload, dict):
+        rows = payload.get("rows")
+        if isinstance(rows, list):
+            return rows
+    raise ValueError(f"Unsupported payload format in {path}. Expected a JSON array or an object with a 'rows' array.")
+
+
 def query_rankings(
     db_type: str,
-    db_path: Optional[str],
     keyword: str,
     limit: int,
     pg_host: Optional[str],
@@ -839,16 +957,145 @@ def recommend_universities_from_db(
         conn.close()
 
 
+def compare_universities_from_db(
+    identifiers: list[str],
+    ranking_year: Optional[int],
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> dict[str, Any]:
+    if psycopg2 is None:
+        raise RuntimeError("psycopg2 is required for PostgreSQL comparison mode")
+    conn = psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        database=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
+    try:
+        repo = ComparisonRepository(conn)
+        rows = repo.resolve_universities(identifiers, ranking_year=ranking_year)
+        return compare_universities(rows)
+    finally:
+        conn.close()
+
+
+def recommend_universities_v2_from_db(
+    country: Optional[str],
+    ielts_score: Optional[float],
+    target_rank: int,
+    risk_profile: Optional[str],
+    preferred_ranking_source: Optional[str],
+    limit: int,
+    ranking_year: Optional[int],
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> dict[str, Any]:
+    if psycopg2 is None:
+        raise RuntimeError("psycopg2 is required for PostgreSQL recommendation mode")
+    conn = psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        database=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
+    try:
+        repo = RecommendationRepository(conn)
+        query = RecommendationQuery(
+            country=country,
+            ielts_score=ielts_score,
+            target_rank=target_rank,
+            risk_profile=risk_profile,
+            preferred_ranking_source=preferred_ranking_source,
+            limit=limit,
+            ranking_year=ranking_year,
+        )
+        candidates = repo.fetch_candidates(ranking_year=ranking_year, country=country)
+        grouped = recommend_universities_v2(candidates, query, config=default_recommendation_config())
+        return grouped_recommendations_to_dict(grouped)
+    finally:
+        conn.close()
+
+
+def _parse_preference_weights(raw: Optional[str]) -> dict[str, float]:
+    if not raw:
+        return {}
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid preference weight JSON: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("preference_weights must be a JSON object")
+    parsed: dict[str, float] = {}
+    for key, value in payload.items():
+        try:
+            parsed[str(key)] = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"Invalid preference weight for {key!r}") from exc
+    return parsed
+
+
+def recommend_universities_v3_from_db(
+    country: Optional[str],
+    ielts_score: Optional[float],
+    target_rank: int,
+    risk_profile: Optional[str],
+    preference_weights: dict[str, float],
+    preferred_ranking_source: Optional[str],
+    limit: int,
+    ranking_year: Optional[int],
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> dict[str, Any]:
+    if psycopg2 is None:
+        raise RuntimeError("psycopg2 is required for PostgreSQL recommendation mode")
+    conn = psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        database=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
+    try:
+        repo = RecommendationRepository(conn)
+        query = RecommendationQuery(
+            country=country,
+            ielts_score=ielts_score,
+            target_rank=target_rank,
+            risk_profile=risk_profile,
+            preference_weights=preference_weights,
+            preferred_ranking_source=preferred_ranking_source,
+            limit=limit,
+            ranking_year=ranking_year,
+        )
+        candidates = repo.fetch_candidates(ranking_year=ranking_year, country=None)
+        grouped = recommend_universities_v3(candidates, query, config=default_recommendation_config())
+        return grouped_recommendations_to_dict(grouped)
+    finally:
+        conn.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
     default_snapshot = MODULE_ROOT / "crawlernest-kb" / "databases" / "last_crawl_snapshot.json"
     default_checkpoint = MODULE_ROOT / "crawlernest-kb" / "databases" / "pipeline_checkpoint.json"
     default_deferred = MODULE_ROOT / "crawlernest-kb" / "databases" / "pending_detail_enrichment.json"
 
-    parser = argparse.ArgumentParser(description="CrawlerNest QS end-to-end pipeline")
+    parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     run_parser = subparsers.add_parser("run", help="Crawl QS -> normalize -> write to DB")
     run_parser.add_argument("--ranking-id", default="3990755")
+    run_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
     run_parser.add_argument("--limit", type=int, default=30)
     run_parser.add_argument("--workers", type=int, default=1, help="Max concurrent requests per crawler")
     run_parser.add_argument("--request-delay", type=float, default=10.0, help="Delay (seconds) between requests")
@@ -923,6 +1170,22 @@ def build_parser() -> argparse.ArgumentParser:
     enrich_parser.add_argument("--pg-user", default="test")
     enrich_parser.add_argument("--pg-password", default="")
 
+    ingest_parser = subparsers.add_parser(
+        "ingest-rankings",
+        help="Ingest standardized ranking payloads for QS/THE/ARWU into multi-source tables and refresh aggregation",
+    )
+    ingest_parser.add_argument("--source", required=True, choices=["QS", "THE", "ARWU"])
+    ingest_parser.add_argument("--input-file", required=True, help="JSON array or {\"rows\": [...]} payload")
+    ingest_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
+    ingest_parser.add_argument("--ranking-type", default="world")
+    ingest_parser.add_argument("--source-version", default=None)
+    ingest_parser.add_argument("--batch-id", default=None)
+    ingest_parser.add_argument("--pg-host", default="localhost")
+    ingest_parser.add_argument("--pg-port", type=int, default=5432)
+    ingest_parser.add_argument("--pg-database", default="clawer")
+    ingest_parser.add_argument("--pg-user", default="test")
+    ingest_parser.add_argument("--pg-password", default="")
+
     recommend_parser = subparsers.add_parser(
         "recommend",
         help="Run the rule-based university recommendation engine against PostgreSQL candidate data",
@@ -938,6 +1201,63 @@ def build_parser() -> argparse.ArgumentParser:
     recommend_parser.add_argument("--pg-database", default="clawer")
     recommend_parser.add_argument("--pg-user", default="test")
     recommend_parser.add_argument("--pg-password", default="")
+
+    recommend_v2_parser = subparsers.add_parser(
+        "recommend-v2",
+        help="Run grouped reach/target/safety recommendations against PostgreSQL candidate data",
+    )
+    recommend_v2_parser.add_argument("--country", default=None)
+    recommend_v2_parser.add_argument("--ielts", type=float, default=None)
+    recommend_v2_parser.add_argument("--target-rank", type=int, required=True)
+    recommend_v2_parser.add_argument("--risk-profile", default="balanced", choices=["conservative", "balanced", "aggressive"])
+    recommend_v2_parser.add_argument("--preferred-ranking-source", default=None)
+    recommend_v2_parser.add_argument("--limit", type=int, default=5)
+    recommend_v2_parser.add_argument("--ranking-year", type=int, default=None)
+    recommend_v2_parser.add_argument("--pg-host", default="localhost")
+    recommend_v2_parser.add_argument("--pg-port", type=int, default=5432)
+    recommend_v2_parser.add_argument("--pg-database", default="clawer")
+    recommend_v2_parser.add_argument("--pg-user", default="test")
+    recommend_v2_parser.add_argument("--pg-password", default="")
+
+    recommend_v3_parser = subparsers.add_parser(
+        "recommend-v3",
+        help="Run hybrid grouped recommendations with configurable preference weights against PostgreSQL candidate data",
+    )
+    recommend_v3_parser.add_argument("--country", default=None)
+    recommend_v3_parser.add_argument("--ielts", type=float, default=None)
+    recommend_v3_parser.add_argument("--target-rank", type=int, required=True)
+    recommend_v3_parser.add_argument("--risk-profile", default="balanced", choices=["conservative", "balanced", "aggressive"])
+    recommend_v3_parser.add_argument(
+        "--preference-weights",
+        default=None,
+        help='Optional JSON object, for example {"ranking":0.5,"ielts":0.2,"confidence":0.2,"country_match":0.1}',
+    )
+    recommend_v3_parser.add_argument("--preferred-ranking-source", default=None)
+    recommend_v3_parser.add_argument("--limit", type=int, default=5)
+    recommend_v3_parser.add_argument("--ranking-year", type=int, default=None)
+    recommend_v3_parser.add_argument("--pg-host", default="localhost")
+    recommend_v3_parser.add_argument("--pg-port", type=int, default=5432)
+    recommend_v3_parser.add_argument("--pg-database", default="clawer")
+    recommend_v3_parser.add_argument("--pg-user", default="test")
+    recommend_v3_parser.add_argument("--pg-password", default="")
+
+    compare_parser = subparsers.add_parser(
+        "compare",
+        help="Compare two or more universities using aggregated ranking, source ranks, IELTS, and completeness",
+    )
+    compare_parser.add_argument("--a", required=True, help="First university name or canonical university id")
+    compare_parser.add_argument(
+        "--b",
+        required=True,
+        action="append",
+        help="Second university and any additional universities to compare",
+    )
+    compare_parser.add_argument("--ranking-year", type=int, default=None)
+    compare_parser.add_argument("--pg-host", default="localhost")
+    compare_parser.add_argument("--pg-port", type=int, default=5432)
+    compare_parser.add_argument("--pg-database", default="clawer")
+    compare_parser.add_argument("--pg-user", default="test")
+    compare_parser.add_argument("--pg-password", default="")
     return parser
 
 
@@ -999,7 +1319,6 @@ def main() -> int:
         inserted, skipped, failed = write_universities(
             universities=normalized,
             db_type=args.db_type,
-            db_path=None,
             pg_host=args.pg_host,
             pg_port=args.pg_port,
             pg_database=args.pg_database,
@@ -1014,12 +1333,30 @@ def main() -> int:
         print("[4/4] Done.")
         print(f"Inserted: {inserted}, Skipped(resume): {skipped}, Failed: {failed}")
         print(f"Checkpoint: {checkpoint_file}")
+        try:
+            summary = sync_qs_multi_source_rankings(
+                normalized,
+                ranking_year=args.ranking_year,
+                pg_host=args.pg_host,
+                pg_port=args.pg_port,
+                pg_database=args.pg_database,
+                pg_user=args.pg_user,
+                pg_password=args.pg_password,
+                batch_id=f"qs-run-{args.ranking_year}",
+            )
+            print(
+                "[multi-source] "
+                f"rows={summary.standardized_count} matched={summary.matched_count} "
+                f"unresolved={summary.unresolved_count} duplicates={summary.duplicate_input_count} "
+                f"aggregated_years={summary.years_aggregated}"
+            )
+        except Exception as exc:
+            print(f"[warn] QS multi-source sync skipped: {exc}")
         return 0
 
     if args.command == "query":
         rows = query_rankings(
             args.db_type,
-            None,
             args.keyword,
             args.limit,
             args.pg_host,
@@ -1045,7 +1382,6 @@ def main() -> int:
         success, failed, skipped, remaining = enrich_deferred_details(
             deferred_file=Path(args.deferred_details_file),
             db_type=args.db_type,
-            db_path=None,
             pg_host=args.pg_host,
             pg_port=args.pg_port,
             pg_database=args.pg_database,
@@ -1059,6 +1395,33 @@ def main() -> int:
         print(f"Enriched: {success}, Failed: {failed}, Skipped(no university): {skipped}")
         print(f"Deferred remaining: {remaining}")
         print(f"Deferred file: {Path(args.deferred_details_file)}")
+        return 0
+
+    if args.command == "ingest-rankings":
+        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
+        payload_path = Path(args.input_file)
+        payload = load_json_payload(payload_path)
+        summary = ingest_rankings_payload(
+            source=args.source,
+            payload=payload,
+            ranking_year=args.ranking_year,
+            ranking_type=args.ranking_type,
+            source_version=args.source_version,
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+            batch_id=args.batch_id or f"{args.source.lower()}-{args.ranking_year}",
+        )
+        print(
+            f"source={args.source} rows={summary.standardized_count} matched={summary.matched_count} "
+            f"unresolved={summary.unresolved_count} duplicates={summary.duplicate_input_count}"
+        )
+        print(
+            f"by_source={summary.by_source_count} aggregated_years={summary.years_aggregated} "
+            f"aggregated_rows={summary.aggregated_row_count}"
+        )
         return 0
 
     if args.command == "recommend":
@@ -1090,6 +1453,69 @@ def main() -> int:
                 f"{'' if row.ielts_min is None else row.ielts_min} | {row.matching_score:.2f}"
             )
             print(f"  explanation: {row.explanation}")
+        return 0
+
+    if args.command == "recommend-v2":
+        if args.target_rank <= 0:
+            raise SystemExit("--target-rank must be a positive integer")
+        if args.limit <= 0:
+            raise SystemExit("--limit must be a positive integer")
+        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
+        grouped = recommend_universities_v2_from_db(
+            country=args.country,
+            ielts_score=args.ielts,
+            target_rank=args.target_rank,
+            risk_profile=args.risk_profile,
+            preferred_ranking_source=args.preferred_ranking_source,
+            limit=args.limit,
+            ranking_year=args.ranking_year,
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+        )
+        print(json.dumps(grouped, ensure_ascii=False, indent=2, sort_keys=False))
+        return 0
+
+    if args.command == "recommend-v3":
+        if args.target_rank <= 0:
+            raise SystemExit("--target-rank must be a positive integer")
+        if args.limit <= 0:
+            raise SystemExit("--limit must be a positive integer")
+        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
+        preference_weights = _parse_preference_weights(args.preference_weights)
+        grouped = recommend_universities_v3_from_db(
+            country=args.country,
+            ielts_score=args.ielts,
+            target_rank=args.target_rank,
+            risk_profile=args.risk_profile,
+            preference_weights=preference_weights,
+            preferred_ranking_source=args.preferred_ranking_source,
+            limit=args.limit,
+            ranking_year=args.ranking_year,
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+        )
+        print(json.dumps(grouped, ensure_ascii=False, indent=2, sort_keys=False))
+        return 0
+
+    if args.command == "compare":
+        identifiers = [args.a, *(args.b or [])]
+        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
+        result = compare_universities_from_db(
+            identifiers=identifiers,
+            ranking_year=args.ranking_year,
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=False))
         return 0
 
     return 1

@@ -78,6 +78,14 @@ class TestRecommendationEngine(unittest.TestCase):
         self.assertEqual(by_name["University of Oxford"].score_breakdown.effective_rank_source, "QS")
         self.assertEqual(by_name["University of Oxford"].score_breakdown.effective_rank_used, 3)
 
+    def test_aggregated_rank_is_used_by_default(self):
+        query = RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=10)
+        results = self.recommender.recommend(self.candidates, query)
+        self.assertTrue(results)
+        by_name = {row.university_name: row for row in results}
+        self.assertEqual(by_name["University of Oxford"].score_breakdown.effective_rank_source, "AGGREGATED")
+        self.assertEqual(by_name["University of Oxford"].score_breakdown.effective_rank_used, 3)
+
     def test_explanation_and_rules_are_present(self):
         query = RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=1)
         result = self.recommender.recommend(self.candidates, query)[0]

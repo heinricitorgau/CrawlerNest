@@ -115,6 +115,9 @@ LEFT JOIN source_rank_summary srs
 CREATE INDEX IF NOT EXISTS idx_canonical_university_link_canonical
     ON warehouse.canonical_university_link(canonical_university_id);
 
+CREATE INDEX IF NOT EXISTS idx_canonical_university_link_university
+    ON warehouse.canonical_university_link(university_id);
+
 CREATE INDEX IF NOT EXISTS idx_recommendation_runs_method_year
     ON analytics.recommendation_runs(recommendation_method_version, ranking_year, started_at);
 

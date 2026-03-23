@@ -11,11 +11,12 @@ import json
 import os
 from typing import Any, Optional, Union, Dict
 from models import University, AdmissionRequirements
+from postgres_pool import PostgresPool
 
 # Attempt to import psycopg2 for PostgreSQL support
 try:
     import psycopg2
-    from psycopg2.extras import Json
+    from psycopg2.extras import Json, execute_values
     HAS_POSTGRES = True
 except ImportError:
     HAS_POSTGRES = False
@@ -26,6 +27,8 @@ class DBWriter:
 
     PostgreSQL-only writer for the production CrawlerNest pipeline.
     """
+
+    _shared_pool: Optional[PostgresPool] = None
 
     def __init__(self, db_type: str = "postgres", **kwargs):
         """Initialize connection based on db_type.
@@ -39,13 +42,37 @@ class DBWriter:
             raise ValueError("CrawlerNest has migrated to PostgreSQL-only mode.")
         if not HAS_POSTGRES:
             raise ImportError("psycopg2 is required for PostgreSQL support. Install with 'pip install psycopg2-binary'")
-        self.conn = psycopg2.connect(**kwargs)
+        self._owns_connection = False
+        self._uses_pool = bool(kwargs.pop("use_pool", True))
+        if "conn" in kwargs and kwargs["conn"] is not None:
+            self.conn = kwargs.pop("conn")
+        elif self._uses_pool:
+            pool = self._get_or_create_pool(**kwargs)
+            self.conn = pool._pool.getconn()
+            self._owns_connection = True
+        else:
+            self.conn = psycopg2.connect(**kwargs)
+            self._owns_connection = True
         print(f"[DBWriter] connected to PostgreSQL: {kwargs.get('host', 'localhost')}")
         
         self.cur = self.conn.cursor()
         self._country_id_cache: Dict[str, int] = {}
         self._university_id_cache: Dict[str, int] = {}
         self._ensure_tables_exist()
+
+    @classmethod
+    def _get_or_create_pool(cls, **kwargs) -> PostgresPool:
+        if cls._shared_pool is None:
+            cls._shared_pool = PostgresPool(
+                host=kwargs.get("host", "localhost"),
+                port=kwargs.get("port", 5432),
+                database=kwargs.get("database", "clawer"),
+                user=kwargs.get("user", "test"),
+                password=kwargs.get("password", ""),
+                minconn=int(kwargs.get("minconn", 1)),
+                maxconn=int(kwargs.get("maxconn", 8)),
+            )
+        return cls._shared_pool
 
     def _get_placeholder(self) -> str:
         return "%s"
@@ -365,26 +392,26 @@ class DBWriter:
                 match_type = EXCLUDED.match_type,
                 confidence_score = EXCLUDED.confidence_score
         """
-        # SQLite uses small letters for EXCLUDED sometimes but works with EXCLUDED too.
         self.cur.execute(query, (university_id, source_name, source_school_name, match_type, confidence_score))
 
     def upsert_university_aliases_batch(self, rows: list[tuple[int, str, str, str, float]]) -> None:
         if not rows:
             return
-        p = self._get_placeholder()
         table = self._get_schema_prefix("university_aliases")
-        conflict_target = "source_name, source_school_name"
-        query = f"""
+        execute_values(
+            self.cur,
+            f"""
             INSERT INTO {table} (
                 university_id, source_name, source_school_name, match_type, confidence_score
-            ) VALUES ({p}, {p}, {p}, {p}, {p})
-            ON CONFLICT({conflict_target})
+            ) VALUES %s
+            ON CONFLICT(source_name, source_school_name)
             DO UPDATE SET
                 university_id = EXCLUDED.university_id,
                 match_type = EXCLUDED.match_type,
                 confidence_score = EXCLUDED.confidence_score
-        """
-        self.cur.executemany(query, rows)
+            """,
+            rows,
+        )
 
     # -----------------------------
     # RANKINGS
@@ -431,15 +458,17 @@ class DBWriter:
     ) -> None:
         if not rows:
             return
-        p = self._get_placeholder()
         table = self._get_schema_prefix("rankings")
-        query = f"""
+        execute_values(
+            self.cur,
+            f"""
             INSERT INTO {table} (
                 university_id, raw_id, ranking_source, ranking_type,
                 ranking_year, rank_start, rank_end, score, metrics_json
-            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
-        """
-        self.cur.executemany(query, rows)
+            ) VALUES %s
+            """,
+            rows,
+        )
 
     # -----------------------------
     # ADMISSION REQUIREMENTS
@@ -476,14 +505,16 @@ class DBWriter:
     ) -> None:
         if not rows:
             return
-        p = self._get_placeholder()
         table = self._get_schema_prefix("admission_requirements")
-        query = f"""
+        execute_values(
+            self.cur,
+            f"""
             INSERT INTO {table} (
                 university_id, raw_id, gpa_min, ielts_min, toefl_min, gre_min, gmat_min
-            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p})
-        """
-        self.cur.executemany(query, rows)
+            ) VALUES %s
+            """,
+            rows,
+        )
 
     # -----------------------------
     # UTILS
@@ -521,4 +552,9 @@ class DBWriter:
         self.conn.commit()
 
     def close(self):
+        if not self._owns_connection:
+            return
+        if self._uses_pool and self._shared_pool is not None:
+            self._shared_pool._pool.putconn(self.conn)
+            return
         self.conn.close()
