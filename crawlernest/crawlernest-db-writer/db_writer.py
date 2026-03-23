@@ -8,7 +8,6 @@ Role classification:
 This module should be used by the active crawler pipeline.
 """
 import json
-import sqlite3
 import os
 from typing import Any, Optional, Union, Dict
 from models import University, AdmissionRequirements
@@ -25,29 +24,23 @@ except ImportError:
 class DBWriter:
     """Main persistence / ingestion service for the Clawer pipeline.
 
-    Supports both SQLite (V1.5) and PostgreSQL (V2/V3 AI-ready).
+    PostgreSQL-only writer for the production CrawlerNest pipeline.
     """
 
-    def __init__(self, db_type: str = "sqlite", **kwargs):
+    def __init__(self, db_type: str = "postgres", **kwargs):
         """Initialize connection based on db_type.
         
         Args:
-            db_type: 'sqlite' or 'postgres'
-            **kwargs: Connection parameters (e.g., db_path for sqlite, host/user/password for postgres)
+            db_type: must be 'postgres'
+            **kwargs: Connection parameters (host/user/password/database/port)
         """
         self.db_type = db_type.lower()
-        if self.db_type == "sqlite":
-            db_path = kwargs.get("db_path", "clawer.db")
-            self.conn = sqlite3.connect(db_path)
-            self.conn.execute("PRAGMA foreign_keys = ON")
-            print(f"[DBWriter] connected to SQLite: {db_path}")
-        elif self.db_type == "postgres":
-            if not HAS_POSTGRES:
-                raise ImportError("psycopg2 is required for PostgreSQL support. Install with 'pip install psycopg2-binary'")
-            self.conn = psycopg2.connect(**kwargs)
-            print(f"[DBWriter] connected to PostgreSQL: {kwargs.get('host', 'localhost')}")
-        else:
-            raise ValueError(f"Unsupported db_type: {db_type}")
+        if self.db_type != "postgres":
+            raise ValueError("CrawlerNest has migrated to PostgreSQL-only mode.")
+        if not HAS_POSTGRES:
+            raise ImportError("psycopg2 is required for PostgreSQL support. Install with 'pip install psycopg2-binary'")
+        self.conn = psycopg2.connect(**kwargs)
+        print(f"[DBWriter] connected to PostgreSQL: {kwargs.get('host', 'localhost')}")
         
         self.cur = self.conn.cursor()
         self._country_id_cache: Dict[str, int] = {}
@@ -55,11 +48,9 @@ class DBWriter:
         self._ensure_tables_exist()
 
     def _get_placeholder(self) -> str:
-        return "?" if self.db_type == "sqlite" else "%s"
+        return "%s"
 
     def _get_schema_prefix(self, table_name: str) -> str:
-        if self.db_type == "sqlite":
-            return table_name
         # Map tables to PostgreSQL schemas
         schema_map = {
             "crawl_runs": "warehouse",
@@ -97,13 +88,9 @@ class DBWriter:
             ) VALUES ({p}, {p}, 'running', {p})
         """
         
-        if self.db_type == "sqlite":
-            self.cur.execute(query, (source_name, ranking_type, notes))
-            crawl_run_id = self.cur.lastrowid
-        else:
-            query += " RETURNING crawl_run_id"
-            self.cur.execute(query, (source_name, ranking_type, notes))
-            crawl_run_id = self.cur.fetchone()[0]
+        query += " RETURNING crawl_run_id"
+        self.cur.execute(query, (source_name, ranking_type, notes))
+        crawl_run_id = self.cur.fetchone()[0]
 
         if crawl_run_id is None:
             raise RuntimeError("Failed to create crawl_run record")
@@ -140,10 +127,8 @@ class DBWriter:
         table = self._get_schema_prefix("raw_source_records")
         
         # Handle JSONB for PostgreSQL
-        if self.db_type == "postgres" and isinstance(raw_json, dict):
+        if isinstance(raw_json, dict):
             raw_json = Json(raw_json)
-        elif self.db_type == "sqlite" and isinstance(raw_json, dict):
-            raw_json = json.dumps(raw_json, ensure_ascii=False)
 
         query = f"""
             INSERT INTO {table} (
@@ -157,13 +142,9 @@ class DBWriter:
             ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p})
         """
         
-        if self.db_type == "sqlite":
-            self.cur.execute(query, (crawl_run_id, source_name, record_type, ranking_type, raw_json, raw_text, source_url))
-            raw_id = self.cur.lastrowid
-        else:
-            query += " RETURNING raw_id"
-            self.cur.execute(query, (crawl_run_id, source_name, record_type, ranking_type, raw_json, raw_text, source_url))
-            raw_id = self.cur.fetchone()[0]
+        query += " RETURNING raw_id"
+        self.cur.execute(query, (crawl_run_id, source_name, record_type, ranking_type, raw_json, raw_text, source_url))
+        raw_id = self.cur.fetchone()[0]
 
         if raw_id is None:
             raise RuntimeError("Failed to create raw_source_record")
@@ -190,10 +171,8 @@ class DBWriter:
         params: list[tuple[Any, ...]] = []
         for row in rows:
             raw_json = row.get("raw_json")
-            if self.db_type == "postgres" and isinstance(raw_json, dict):
+            if isinstance(raw_json, dict):
                 raw_json = Json(raw_json)
-            elif self.db_type == "sqlite" and isinstance(raw_json, dict):
-                raw_json = json.dumps(raw_json, ensure_ascii=False)
             params.append(
                 (
                     row.get("crawl_run_id"),
@@ -206,17 +185,6 @@ class DBWriter:
                 )
             )
 
-        if self.db_type == "sqlite":
-            self.cur.executemany(query, params)
-            self.cur.execute("SELECT last_insert_rowid()")
-            last_id_row = self.cur.fetchone()
-            if not last_id_row or last_id_row[0] is None:
-                raise RuntimeError("Failed to resolve last_insert_rowid for raw_source_records batch")
-            last_id = int(last_id_row[0])
-            first_id = last_id - len(rows) + 1
-            return list(range(first_id, last_id + 1))
-
-        # PostgreSQL fallback keeps correctness (ids may not be contiguous).
         raw_ids: list[int] = []
         for row in rows:
             raw_id = self.insert_raw_record(
@@ -332,10 +300,7 @@ class DBWriter:
             self._country_id_cache[normalized_country] = country_id
             return country_id
 
-        if self.db_type == "sqlite":
-            self.cur.execute(f"INSERT OR IGNORE INTO {table} (country_name) VALUES ({p})", (normalized_country,))
-        else:
-            self.cur.execute(f"INSERT INTO {table} (country_name) VALUES ({p}) ON CONFLICT DO NOTHING", (normalized_country,))
+        self.cur.execute(f"INSERT INTO {table} (country_name) VALUES ({p}) ON CONFLICT DO NOTHING", (normalized_country,))
 
         self.cur.execute(f"SELECT country_id FROM {table} WHERE country_name = {p}", (normalized_country,))
         row = self.cur.fetchone()
@@ -352,51 +317,25 @@ class DBWriter:
     def upsert_university(self, uni: University, embedding: Optional[list] = None) -> int:
         country_id = self.get_or_create_country(uni.country)
         slug = self._slugify(uni.name)
-        cached_university_id = self._university_id_cache.get(slug)
         p = self._get_placeholder()
         table = self._get_schema_prefix("universities")
+        embedding_payload = Json(embedding) if embedding is not None else None
 
-        if self.db_type == "sqlite":
-            self.cur.execute(
-                f"""
-                INSERT INTO {table} (
-                    school_slug, display_name, canonical_name, country_id
-                ) VALUES ({p}, {p}, {p}, {p})
-                ON CONFLICT(school_slug) DO UPDATE SET
-                    display_name = excluded.display_name,
-                    canonical_name = excluded.canonical_name,
-                    country_id = COALESCE(excluded.country_id, {table}.country_id)
-                """,
-                (slug, uni.name, uni.name, country_id),
-            )
-        else:
-            # PostgreSQL supports vectors and returning
-            self.cur.execute(
-                f"""
-                INSERT INTO {table} (
-                    school_slug, display_name, canonical_name, country_id, embedding
-                ) VALUES ({p}, {p}, {p}, {p}, {p})
-                ON CONFLICT(school_slug) DO UPDATE SET
-                    display_name = EXCLUDED.display_name,
-                    canonical_name = EXCLUDED.canonical_name,
-                    country_id = COALESCE(EXCLUDED.country_id, {table}.country_id),
-                    embedding = COALESCE(EXCLUDED.embedding, {table}.embedding)
-                RETURNING university_id
-                """,
-                (slug, uni.name, uni.name, country_id, embedding),
-            )
-            university_id = int(self.cur.fetchone()[0])
-            self._university_id_cache[slug] = university_id
-            return university_id
-
-        if cached_university_id is not None:
-            return cached_university_id
-
-        self.cur.execute(f"SELECT university_id FROM {table} WHERE school_slug = {p}", (slug,))
-        row = self.cur.fetchone()
-        if row is None:
-            raise RuntimeError(f"Failed to resolve university_id for slug={slug}")
-        university_id = int(row[0])
+        self.cur.execute(
+            f"""
+            INSERT INTO {table} (
+                school_slug, display_name, canonical_name, country_id, embedding
+            ) VALUES ({p}, {p}, {p}, {p}, {p})
+            ON CONFLICT(school_slug) DO UPDATE SET
+                display_name = EXCLUDED.display_name,
+                canonical_name = EXCLUDED.canonical_name,
+                country_id = COALESCE(EXCLUDED.country_id, {table}.country_id),
+                embedding = COALESCE(EXCLUDED.embedding, {table}.embedding)
+            RETURNING university_id
+            """,
+            (slug, uni.name, uni.name, country_id, embedding_payload),
+        )
+        university_id = int(self.cur.fetchone()[0])
         self._university_id_cache[slug] = university_id
         return university_id
 
@@ -465,10 +404,7 @@ class DBWriter:
 
         if metrics_json:
             score = self._safe_float(metrics_json.get("Overall Score"))
-            if self.db_type == "postgres":
-                metrics_json = Json(metrics_json)
-            else:
-                metrics_json = json.dumps(metrics_json, ensure_ascii=False)
+            metrics_json = Json(metrics_json)
         else:
             metrics_json = None
 
@@ -578,15 +514,8 @@ class DBWriter:
         return " ".join(country_name.strip().split())
 
     def _ensure_tables_exist(self):
-        """Minimal check / init for SQLite. PostgreSQL should be initialized via SQL script."""
-        if self.db_type == "sqlite":
-            self.cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='crawl_runs'")
-            if not self.cur.fetchone():
-                schema_path = os.path.join(os.path.dirname(__file__), "schema.sql")
-                if os.path.exists(schema_path):
-                    with open(schema_path, "r") as f:
-                        self.conn.executescript(f.read())
-                    self.conn.commit()
+        """PostgreSQL schema bootstrap is handled externally."""
+        return None
 
     def commit(self):
         self.conn.commit()

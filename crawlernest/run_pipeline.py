@@ -8,7 +8,6 @@ import asyncio
 import json
 import os
 import re
-import sqlite3
 import sys
 import time
 import unicodedata
@@ -45,6 +44,18 @@ from db_writer import DBWriter  # noqa: E402
 from extractor import DataExtractor  # noqa: E402
 from fetcher import UniversityFetcher  # noqa: E402
 from models import University  # noqa: E402
+from recommendation_engine import (  # noqa: E402
+    RecommendationQuery,
+    RecommendationRepository,
+    default_recommendation_config,
+)
+
+try:  # noqa: E402
+    import psycopg2
+    from psycopg2 import errors as psycopg2_errors
+except ImportError:
+    psycopg2 = None  # type: ignore
+    psycopg2_errors = None  # type: ignore
 
 WRITE_BATCH_SIZE = 100
 
@@ -92,20 +103,70 @@ def normalize_universities(universities: Iterable[University]) -> list[Universit
     return out
 
 
-def ensure_sqlite_schema(db_path: Path) -> None:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path))
+def ensure_postgres_schema(
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> None:
+    if psycopg2 is None:
+        raise RuntimeError("psycopg2 is required for PostgreSQL mode")
+    conn = psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        database=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
+    schema_paths = [
+        MODULE_ROOT / "crawlernest-schema" / "postgresql_schema.sql",
+        MODULE_ROOT / "crawlernest-schema" / "entity_resolution_postgresql.sql",
+        MODULE_ROOT / "crawlernest-schema" / "multi_source_postgresql.sql",
+        MODULE_ROOT / "crawlernest-schema" / "ranking_aggregation_postgresql.sql",
+        MODULE_ROOT / "crawlernest-schema" / "recommendation_postgresql.sql",
+    ]
     try:
-        cur = conn.cursor()
-        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='crawl_runs'")
-        if cur.fetchone():
-            return
-        schema_path = MODULE_ROOT / "crawlernest-schema" / "schema.sql"
-        with schema_path.open("r", encoding="utf-8") as f:
-            conn.executescript(f.read())
-        conn.commit()
+        with conn.cursor() as cur:
+            for path in schema_paths:
+                if not path.exists():
+                    continue
+                for stmt in _split_sql_statements(path.read_text(encoding="utf-8")):
+                    try:
+                        cur.execute(stmt)
+                        conn.commit()
+                    except Exception as exc:
+                        conn.rollback()
+                        if _is_postgres_duplicate_error(exc):
+                            continue
+                        raise
     finally:
         conn.close()
+
+
+def _split_sql_statements(sql: str) -> list[str]:
+    cleaned_lines: list[str] = []
+    for line in sql.splitlines():
+        if "--" in line:
+            line = line.split("--", 1)[0]
+        cleaned_lines.append(line)
+    sql = "\n".join(cleaned_lines)
+    return [part.strip() + ";" for part in sql.split(";") if part.strip()]
+
+
+def _is_postgres_duplicate_error(exc: Exception) -> bool:
+    if psycopg2_errors is None:
+        return False
+    return isinstance(
+        exc,
+        (
+            psycopg2_errors.DuplicateTable,
+            psycopg2_errors.DuplicateObject,
+            psycopg2_errors.DuplicateSchema,
+            psycopg2_errors.DuplicateColumn,
+            psycopg2_errors.DuplicateFunction,
+        ),
+    )
 
 
 def run_qs_crawl(
@@ -293,9 +354,9 @@ def enrich_deferred_details(
     take = rows[: max(1, limit)] if limit > 0 else rows
     rest = rows[len(take):]
 
-    writer = DBWriter(db_type="sqlite", db_path=db_path) if db_type == "sqlite" else DBWriter(
-        db_type="postgres", host=pg_host, port=pg_port, database=pg_database, user=pg_user, password=pg_password
-    )
+    if db_type != "postgres":
+        raise ValueError("CrawlerNest is now PostgreSQL-only. Use db_type='postgres'.")
+    writer = DBWriter(db_type="postgres", host=pg_host, port=pg_port, database=pg_database, user=pg_user, password=pg_password)
     fetcher = UniversityFetcher(
         Config(
             request_delay=max(0.0, request_delay),
@@ -470,9 +531,9 @@ def write_universities(
     workers: int,
     write_batch_size: int = WRITE_BATCH_SIZE,
 ) -> tuple[int, int, int]:
-    writer = DBWriter(db_type="sqlite", db_path=db_path) if db_type == "sqlite" else DBWriter(
-        db_type="postgres", host=pg_host, port=pg_port, database=pg_database, user=pg_user, password=pg_password
-    )
+    if db_type != "postgres":
+        raise ValueError("CrawlerNest is now PostgreSQL-only. Use db_type='postgres'.")
+    writer = DBWriter(db_type="postgres", host=pg_host, port=pg_port, database=pg_database, user=pg_user, password=pg_password)
 
     done_slugs = load_checkpoint(checkpoint_file)
     inserted = 0
@@ -595,16 +656,6 @@ def write_universities(
             pending_batch = []
             return appended_slugs
 
-        # Batch path currently optimized for SQLite; keep PostgreSQL on stable row-by-row path.
-        if writer.db_type != "sqlite":
-            for slug, uni in to_write:
-                before = len(done_slugs)
-                _write_one(slug, uni)
-                if len(done_slugs) > before and slug in done_slugs:
-                    appended_slugs.add(slug)
-            pending_batch = []
-            return appended_slugs
-
         raw_rows = [
             {
                 "crawl_run_id": crawl_run_id,
@@ -710,23 +761,39 @@ def write_universities(
     return inserted, skipped, failed
 
 
-def query_rankings(db_type: str, db_path: Optional[str], keyword: str, limit: int) -> list[tuple]:
-    if db_type != "sqlite":
-        raise NotImplementedError("Query mode currently supports sqlite only.")
-    if not db_path:
-        raise ValueError("db_path is required for sqlite query mode")
-    conn = sqlite3.connect(db_path)
+def query_rankings(
+    db_type: str,
+    db_path: Optional[str],
+    keyword: str,
+    limit: int,
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> list[tuple]:
+    if db_type != "postgres":
+        raise ValueError("CrawlerNest query mode is now PostgreSQL-only.")
+    if psycopg2 is None:
+        raise RuntimeError("psycopg2 is required for PostgreSQL mode")
+    conn = psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        database=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
     try:
         cur = conn.cursor()
         cur.execute(
             """
             SELECT r.rank_start, u.display_name, COALESCE(c.country_name, ''), r.score, r.ranking_type
-            FROM rankings r
-            JOIN universities u ON u.university_id = r.university_id
-            LEFT JOIN countries c ON c.country_id = u.country_id
-            WHERE u.display_name LIKE ?
+            FROM warehouse.rankings r
+            JOIN warehouse.universities u ON u.university_id = r.university_id
+            LEFT JOIN warehouse.countries c ON c.country_id = u.country_id
+            WHERE u.display_name ILIKE %s
             ORDER BY CASE WHEN r.rank_start IS NULL THEN 1 ELSE 0 END, r.rank_start ASC, r.ranking_id DESC
-            LIMIT ?
+            LIMIT %s
             """,
             (f"%{keyword}%", limit),
         )
@@ -735,8 +802,44 @@ def query_rankings(db_type: str, db_path: Optional[str], keyword: str, limit: in
         conn.close()
 
 
+def recommend_universities_from_db(
+    country: Optional[str],
+    ielts_score: Optional[float],
+    target_rank: Optional[int],
+    preferred_ranking_source: Optional[str],
+    limit: int,
+    ranking_year: Optional[int],
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> list[Any]:
+    if psycopg2 is None:
+        raise RuntimeError("psycopg2 is required for PostgreSQL recommendation mode")
+    conn = psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        database=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
+    try:
+        repo = RecommendationRepository(conn)
+        query = RecommendationQuery(
+            country=country,
+            ielts_score=ielts_score,
+            target_rank=target_rank,
+            preferred_ranking_source=preferred_ranking_source,
+            limit=limit,
+            ranking_year=ranking_year,
+        )
+        return repo.run_recommendation_query(query, default_recommendation_config(), run_label="run_pipeline_recommend")
+    finally:
+        conn.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
-    default_db = MODULE_ROOT / "crawlernest-kb" / "databases" / "universities.db"
     default_snapshot = MODULE_ROOT / "crawlernest-kb" / "databases" / "last_crawl_snapshot.json"
     default_checkpoint = MODULE_ROOT / "crawlernest-kb" / "databases" / "pipeline_checkpoint.json"
     default_deferred = MODULE_ROOT / "crawlernest-kb" / "databases" / "pending_detail_enrichment.json"
@@ -788,19 +891,22 @@ def build_parser() -> argparse.ArgumentParser:
         default=20,
         help="Async detail fetch chunk size for degrade checks (smaller chunks react to 403 sooner)",
     )
-    run_parser.add_argument("--db-type", choices=["sqlite", "postgres"], default="sqlite")
-    run_parser.add_argument("--db-path", default=str(default_db))
+    run_parser.add_argument("--db-type", choices=["postgres"], default="postgres")
     run_parser.add_argument("--pg-host", default="localhost")
     run_parser.add_argument("--pg-port", type=int, default=5432)
     run_parser.add_argument("--pg-database", default="clawer")
-    run_parser.add_argument("--pg-user", default="postgres")
+    run_parser.add_argument("--pg-user", default="test")
     run_parser.add_argument("--pg-password", default="")
 
     query_parser = subparsers.add_parser("query", help="Query stored QS rankings from DB")
     query_parser.add_argument("keyword")
     query_parser.add_argument("--limit", type=int, default=20)
-    query_parser.add_argument("--db-type", choices=["sqlite", "postgres"], default="sqlite")
-    query_parser.add_argument("--db-path", default=str(default_db))
+    query_parser.add_argument("--db-type", choices=["postgres"], default="postgres")
+    query_parser.add_argument("--pg-host", default="localhost")
+    query_parser.add_argument("--pg-port", type=int, default=5432)
+    query_parser.add_argument("--pg-database", default="clawer")
+    query_parser.add_argument("--pg-user", default="test")
+    query_parser.add_argument("--pg-password", default="")
 
     enrich_parser = subparsers.add_parser(
         "enrich-details",
@@ -810,13 +916,28 @@ def build_parser() -> argparse.ArgumentParser:
     enrich_parser.add_argument("--request-delay", type=float, default=10.0, help="Delay (seconds) between detail requests")
     enrich_parser.add_argument("--timeout", type=int, default=30, help="HTTP timeout in seconds for detail requests")
     enrich_parser.add_argument("--deferred-details-file", default=str(default_deferred))
-    enrich_parser.add_argument("--db-type", choices=["sqlite", "postgres"], default="sqlite")
-    enrich_parser.add_argument("--db-path", default=str(default_db))
+    enrich_parser.add_argument("--db-type", choices=["postgres"], default="postgres")
     enrich_parser.add_argument("--pg-host", default="localhost")
     enrich_parser.add_argument("--pg-port", type=int, default=5432)
     enrich_parser.add_argument("--pg-database", default="clawer")
-    enrich_parser.add_argument("--pg-user", default="postgres")
+    enrich_parser.add_argument("--pg-user", default="test")
     enrich_parser.add_argument("--pg-password", default="")
+
+    recommend_parser = subparsers.add_parser(
+        "recommend",
+        help="Run the rule-based university recommendation engine against PostgreSQL candidate data",
+    )
+    recommend_parser.add_argument("--country", default=None)
+    recommend_parser.add_argument("--ielts-score", type=float, default=None)
+    recommend_parser.add_argument("--target-rank", type=int, default=None)
+    recommend_parser.add_argument("--preferred-ranking-source", default=None)
+    recommend_parser.add_argument("--limit", type=int, default=10)
+    recommend_parser.add_argument("--ranking-year", type=int, default=None)
+    recommend_parser.add_argument("--pg-host", default="localhost")
+    recommend_parser.add_argument("--pg-port", type=int, default=5432)
+    recommend_parser.add_argument("--pg-database", default="clawer")
+    recommend_parser.add_argument("--pg-user", default="test")
+    recommend_parser.add_argument("--pg-password", default="")
     return parser
 
 
@@ -826,8 +947,7 @@ def main() -> int:
     if args.command == "run":
         if args.limit <= 0:
             raise SystemExit("--limit must be a positive integer")
-        if args.db_type == "sqlite":
-            ensure_sqlite_schema(Path(args.db_path))
+        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
 
         snapshot_file = Path(args.snapshot_file)
         checkpoint_file = Path(args.checkpoint_file)
@@ -879,7 +999,7 @@ def main() -> int:
         inserted, skipped, failed = write_universities(
             universities=normalized,
             db_type=args.db_type,
-            db_path=args.db_path,
+            db_path=None,
             pg_host=args.pg_host,
             pg_port=args.pg_port,
             pg_database=args.pg_database,
@@ -897,9 +1017,17 @@ def main() -> int:
         return 0
 
     if args.command == "query":
-        if args.db_type == "sqlite":
-            ensure_sqlite_schema(Path(args.db_path))
-        rows = query_rankings(args.db_type, args.db_path, args.keyword, args.limit)
+        rows = query_rankings(
+            args.db_type,
+            None,
+            args.keyword,
+            args.limit,
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+        )
         if not rows:
             print("No matching universities found.")
             return 0
@@ -911,14 +1039,13 @@ def main() -> int:
     if args.command == "enrich-details":
         if args.limit <= 0:
             raise SystemExit("--limit must be a positive integer")
-        if args.db_type == "sqlite":
-            ensure_sqlite_schema(Path(args.db_path))
+        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
 
         print("[1/2] Enriching deferred detail pages...")
         success, failed, skipped, remaining = enrich_deferred_details(
             deferred_file=Path(args.deferred_details_file),
             db_type=args.db_type,
-            db_path=args.db_path,
+            db_path=None,
             pg_host=args.pg_host,
             pg_port=args.pg_port,
             pg_database=args.pg_database,
@@ -932,6 +1059,37 @@ def main() -> int:
         print(f"Enriched: {success}, Failed: {failed}, Skipped(no university): {skipped}")
         print(f"Deferred remaining: {remaining}")
         print(f"Deferred file: {Path(args.deferred_details_file)}")
+        return 0
+
+    if args.command == "recommend":
+        if args.limit <= 0:
+            raise SystemExit("--limit must be a positive integer")
+        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
+        rows = recommend_universities_from_db(
+            country=args.country,
+            ielts_score=args.ielts_score,
+            target_rank=args.target_rank,
+            preferred_ranking_source=args.preferred_ranking_source,
+            limit=args.limit,
+            ranking_year=args.ranking_year,
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+        )
+        if not rows:
+            print("No recommendations matched the provided constraints.")
+            return 0
+
+        print("canonical_id | university | country | aggregated_rank | ielts_min | score")
+        for row in rows:
+            print(
+                f"{row.canonical_university_id} | {row.university_name} | {row.country or ''} | "
+                f"{'' if row.aggregated_rank is None else row.aggregated_rank} | "
+                f"{'' if row.ielts_min is None else row.ielts_min} | {row.matching_score:.2f}"
+            )
+            print(f"  explanation: {row.explanation}")
         return 0
 
     return 1

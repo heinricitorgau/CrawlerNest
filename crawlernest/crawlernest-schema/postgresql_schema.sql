@@ -3,7 +3,7 @@
 -- =========================================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "vector"; -- Requires pgvector
+-- pgvector is optional. For broad local compatibility, embeddings are stored as JSONB.
 
 -- Create Schemas
 CREATE SCHEMA IF NOT EXISTS staging;
@@ -43,7 +43,7 @@ CREATE TABLE warehouse.universities (
     city_name TEXT,
     website_url TEXT,
     qs_profile_path TEXT,
-    embedding vector(1536), -- Vector for semantic search/matching
+    embedding JSONB,        -- Optional embedding payload; upgrade to pgvector later if installed
     metadata JSONB,         -- Flexible metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -69,7 +69,7 @@ CREATE TABLE warehouse.programs (
     department_name TEXT,
     study_field TEXT,
     source_url TEXT,
-    embedding vector(1536), -- Vector for program similarity
+    embedding JSONB,        -- Optional embedding payload; upgrade to pgvector later if installed
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(university_id, program_name)
@@ -174,5 +174,5 @@ CREATE INDEX idx_universities_slug ON warehouse.universities(school_slug);
 CREATE INDEX idx_rankings_uni_year ON warehouse.rankings(university_id, ranking_year);
 CREATE INDEX idx_programs_uni ON warehouse.programs(university_id);
 
--- Vector Indexes (example)
--- CREATE INDEX idx_universities_embedding ON warehouse.universities USING hnsw (embedding vector_cosine_ops);
+-- If pgvector is installed later, embedding columns can be migrated from JSONB to vector
+-- and indexed with HNSW / IVFFLAT.

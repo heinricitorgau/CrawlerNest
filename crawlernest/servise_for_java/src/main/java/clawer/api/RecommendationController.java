@@ -9,9 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/**
- * REST Controller for generating University recommendations.
- */
 @RestController
 @RequestMapping("/recommendations")
 public class RecommendationController {
@@ -22,17 +19,22 @@ public class RecommendationController {
         this.recommendationService = recommendationService;
     }
 
-    /**
-     * Generates recommendations based on preferred subject and student's admission score.
-     * @param subject The preferred field of study (e.g., "Computer Science")
-     * @param score The student's admission score (e.g., 90.0)
-     * @return List of recommended Universities with match scores
-     */
     @GetMapping
     public List<RecommendationResult> getRecommendations(
-            @RequestParam(required = false) String subject,
-            @RequestParam(required = false) Double score) {
-        
-        return recommendationService.getRecommendations(subject, score);
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) Double ielts,
+            @RequestParam(required = false) Integer targetRank,
+            @RequestParam(required = false) String preferredRankingSource,
+            @RequestParam(required = false) Integer rankingYear,
+            @RequestParam(defaultValue = "10") Integer limit
+    ) {
+        return recommendationService.getRecommendations(
+                country,
+                ielts,
+                targetRank,
+                preferredRankingSource,
+                rankingYear,
+                limit
+        );
     }
 }

@@ -3,7 +3,7 @@ package clawer.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "rankings")
+@Table(name = "rankings", schema = "warehouse")
 public class Ranking {
 
     @Id

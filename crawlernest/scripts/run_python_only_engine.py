@@ -19,8 +19,12 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--request-delay", type=float, default=10.0)
     run_parser.add_argument("--write-batch-size", type=int, default=200)
     run_parser.add_argument("--ranking-id", default="3990755")
-    run_parser.add_argument("--db-type", choices=["sqlite", "postgres"], default="sqlite")
-    run_parser.add_argument("--db-path", default=None)
+    run_parser.add_argument("--db-type", choices=["postgres"], default="postgres")
+    run_parser.add_argument("--pg-host", default="localhost")
+    run_parser.add_argument("--pg-port", type=int, default=5432)
+    run_parser.add_argument("--pg-database", default="clawer")
+    run_parser.add_argument("--pg-user", default="test")
+    run_parser.add_argument("--pg-password", default="")
     run_parser.add_argument("--use-async", action="store_true")
     run_parser.add_argument("--rankings-only", action="store_true")
     run_parser.add_argument("--resource-guard", action="store_true")
@@ -29,8 +33,12 @@ def build_parser() -> argparse.ArgumentParser:
     query_parser = subparsers.add_parser("query", help="Query rankings from Python-managed DB")
     query_parser.add_argument("keyword")
     query_parser.add_argument("--limit", type=int, default=20)
-    query_parser.add_argument("--db-type", choices=["sqlite", "postgres"], default="sqlite")
-    query_parser.add_argument("--db-path", default=None)
+    query_parser.add_argument("--db-type", choices=["postgres"], default="postgres")
+    query_parser.add_argument("--pg-host", default="localhost")
+    query_parser.add_argument("--pg-port", type=int, default=5432)
+    query_parser.add_argument("--pg-database", default="clawer")
+    query_parser.add_argument("--pg-user", default="test")
+    query_parser.add_argument("--pg-password", default="")
     return parser
 
 
@@ -56,9 +64,17 @@ def main() -> int:
             str(args.ranking_id),
             "--db-type",
             str(args.db_type),
+            "--pg-host",
+            str(args.pg_host),
+            "--pg-port",
+            str(args.pg_port),
+            "--pg-database",
+            str(args.pg_database),
+            "--pg-user",
+            str(args.pg_user),
+            "--pg-password",
+            str(args.pg_password),
         ]
-        if args.db_path:
-            cmd.extend(["--db-path", str(args.db_path)])
         if args.use_async:
             cmd.append("--use-async")
         if args.rankings_only:
@@ -76,9 +92,17 @@ def main() -> int:
             str(args.limit),
             "--db-type",
             str(args.db_type),
+            "--pg-host",
+            str(args.pg_host),
+            "--pg-port",
+            str(args.pg_port),
+            "--pg-database",
+            str(args.pg_database),
+            "--pg-user",
+            str(args.pg_user),
+            "--pg-password",
+            str(args.pg_password),
         ]
-        if args.db_path:
-            cmd.extend(["--db-path", str(args.db_path)])
 
     proc = subprocess.run(cmd, cwd=str(repo_root))
     return proc.returncode

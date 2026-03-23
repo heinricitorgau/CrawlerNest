@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: crawlernest-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: clawer
+    ports:
+      - "5432:5432"
+    volumes:
+      - crawlernest_pgdata:/var/lib/postgresql/data
+
+volumes:
+  crawlernest_pgdata:

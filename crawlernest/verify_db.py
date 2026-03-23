@@ -21,13 +21,12 @@ except ImportError as e:
     sys.exit(1)
 
 def test_postgresql_connection():
-    # Credentials should be replaced with actual ones
     config = {
         "db_type": "postgres",
         "host": "localhost",
         "database": "clawer",
-        "user": "postgres",
-        "password": "your_password"
+        "user": "test",
+        "password": ""
     }
     
     print(f"--- Testing PostgreSQL Initialization ---")

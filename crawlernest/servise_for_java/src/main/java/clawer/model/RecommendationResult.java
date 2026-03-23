@@ -1,29 +1,124 @@
 package clawer.model;
 
-/**
- * Represents the result of a recommendation process, including the recommended University
- * and a calculated match score.
- */
+import java.util.List;
+import java.util.Map;
+
 public class RecommendationResult {
-    private University university;
-    private Double matchScore;
-    private String rationale;
+    private Long canonicalUniversityId;
+    private String universityName;
+    private String country;
+    private Integer aggregatedRank;
+    private Double ieltsMin;
+    private Double matchingScore;
+    private String explanation;
+    private String aggregationMethodVersion;
+    private Map<String, Object> scoreBreakdown;
+    private List<String> rulesPassed;
 
     public RecommendationResult() {
     }
 
-    public RecommendationResult(University university, Double matchScore, String rationale) {
-        this.university = university;
-        this.matchScore = matchScore;
-        this.rationale = rationale;
+    public RecommendationResult(
+            Long canonicalUniversityId,
+            String universityName,
+            String country,
+            Integer aggregatedRank,
+            Double ieltsMin,
+            Double matchingScore,
+            String explanation,
+            String aggregationMethodVersion,
+            Map<String, Object> scoreBreakdown,
+            List<String> rulesPassed
+    ) {
+        this.canonicalUniversityId = canonicalUniversityId;
+        this.universityName = universityName;
+        this.country = country;
+        this.aggregatedRank = aggregatedRank;
+        this.ieltsMin = ieltsMin;
+        this.matchingScore = matchingScore;
+        this.explanation = explanation;
+        this.aggregationMethodVersion = aggregationMethodVersion;
+        this.scoreBreakdown = scoreBreakdown;
+        this.rulesPassed = rulesPassed;
     }
 
-    public University getUniversity() { return university; }
-    public void setUniversity(University university) { this.university = university; }
+    public Long getCanonicalUniversityId() {
+        return canonicalUniversityId;
+    }
 
-    public Double getMatchScore() { return matchScore; }
-    public void setMatchScore(Double matchScore) { this.matchScore = matchScore; }
+    public void setCanonicalUniversityId(Long canonicalUniversityId) {
+        this.canonicalUniversityId = canonicalUniversityId;
+    }
 
-    public String getRationale() { return rationale; }
-    public void setRationale(String rationale) { this.rationale = rationale; }
+    public String getUniversityName() {
+        return universityName;
+    }
+
+    public void setUniversityName(String universityName) {
+        this.universityName = universityName;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public Integer getAggregatedRank() {
+        return aggregatedRank;
+    }
+
+    public void setAggregatedRank(Integer aggregatedRank) {
+        this.aggregatedRank = aggregatedRank;
+    }
+
+    public Double getIeltsMin() {
+        return ieltsMin;
+    }
+
+    public void setIeltsMin(Double ieltsMin) {
+        this.ieltsMin = ieltsMin;
+    }
+
+    public Double getMatchingScore() {
+        return matchingScore;
+    }
+
+    public void setMatchingScore(Double matchingScore) {
+        this.matchingScore = matchingScore;
+    }
+
+    public String getExplanation() {
+        return explanation;
+    }
+
+    public void setExplanation(String explanation) {
+        this.explanation = explanation;
+    }
+
+    public String getAggregationMethodVersion() {
+        return aggregationMethodVersion;
+    }
+
+    public void setAggregationMethodVersion(String aggregationMethodVersion) {
+        this.aggregationMethodVersion = aggregationMethodVersion;
+    }
+
+    public Map<String, Object> getScoreBreakdown() {
+        return scoreBreakdown;
+    }
+
+    public void setScoreBreakdown(Map<String, Object> scoreBreakdown) {
+        this.scoreBreakdown = scoreBreakdown;
+    }
+
+    public List<String> getRulesPassed() {
+        return rulesPassed;
+    }
+
+    public void setRulesPassed(List<String> rulesPassed) {
+        this.rulesPassed = rulesPassed;
+    }
 }
