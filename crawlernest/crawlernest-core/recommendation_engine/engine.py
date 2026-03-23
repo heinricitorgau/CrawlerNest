@@ -1,10 +1,24 @@
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import asdict
 from typing import Iterable, Optional
 
 from .config import RecommendationConfig, default_recommendation_config
+from .confidence import build_confidence_assessment
+from .explanations import build_no_results_reason, build_v3_explanation
+from .policy import (
+    category_thresholds,
+    classify_category,
+    country_match_score,
+    normalize_country_policy,
+    normalize_risk_profile,
+    preference_alignment,
+    resolve_preference_weights,
+    risk_adjustment,
+    weighted_score,
+)
 from .types import (
     GroupedRecommendationResult,
     RecommendationCandidate,
@@ -15,8 +29,7 @@ from .types import (
 
 SOURCE_ORDER = ("QS", "THE", "ARWU")
 CATEGORY_ORDER = ("reach", "target", "safety")
-RISK_PROFILES = {"conservative", "balanced", "aggressive"}
-PREFERENCE_WEIGHT_KEYS = ("ranking", "ielts", "confidence", "country_match")
+LOGGER = logging.getLogger(__name__)
 
 
 class RuleBasedRecommender:
@@ -53,6 +66,11 @@ class RuleBasedRecommender:
                     matching_score=self._composite_from_breakdown(breakdown),
                     category=None,
                     preference_alignment=None,
+                    recommendation_confidence=None,
+                    confidence_reason=None,
+                    scoring_version=self.config.scoring_version,
+                    decision_policy_version=self.config.decision_policy_version,
+                    explanation_version=self.config.explanation_version,
                     explanation=explanation,
                     score_breakdown=breakdown,
                     aggregation_method_version=row.aggregation_method_version,
@@ -102,6 +120,11 @@ class RuleBasedRecommender:
                     matching_score=self._composite_from_breakdown(breakdown),
                     category=breakdown.category,
                     preference_alignment=breakdown.preference_alignment,
+                    recommendation_confidence=breakdown.recommendation_confidence,
+                    confidence_reason=breakdown.confidence_reason,
+                    scoring_version=breakdown.scoring_version,
+                    decision_policy_version=breakdown.decision_policy_version,
+                    explanation_version=breakdown.explanation_version,
                     explanation=explanation,
                     score_breakdown=breakdown,
                     aggregation_method_version=row.aggregation_method_version,
@@ -140,12 +163,13 @@ class RuleBasedRecommender:
 
         filtered: list[RecommendationCandidate] = []
         for row in rows:
-            if self._passes_v3_filters(row):
+            if self._passes_v3_filters(row, query):
                 filtered.append(row)
 
+        pool_context = self._build_pool_context(filtered, query)
         grouped: dict[str, list[RecommendationResult]] = {category: [] for category in CATEGORY_ORDER}
         for row in filtered:
-            breakdown = self._score_candidate_v3(row, query)
+            breakdown = self._score_candidate_v3(row, query, pool_context.get(row.canonical_university_id))
             if breakdown is None or breakdown.category is None:
                 continue
             explanation = self._build_explanation_v3(row, query, breakdown)
@@ -159,6 +183,11 @@ class RuleBasedRecommender:
                     matching_score=self._composite_from_breakdown_v3(breakdown),
                     category=breakdown.category,
                     preference_alignment=breakdown.preference_alignment,
+                    recommendation_confidence=breakdown.recommendation_confidence,
+                    confidence_reason=breakdown.confidence_reason,
+                    scoring_version=breakdown.scoring_version,
+                    decision_policy_version=breakdown.decision_policy_version,
+                    explanation_version=breakdown.explanation_version,
                     explanation=explanation,
                     score_breakdown=breakdown,
                     aggregation_method_version=row.aggregation_method_version,
@@ -176,6 +205,7 @@ class RuleBasedRecommender:
             grouped[category] = grouped[category][: max(1, min(int(query.limit or 10), self.config.max_limit))]
 
         counts = {category: len(grouped[category]) for category in CATEGORY_ORDER}
+        self._log_v3_summary(query, len(rows), len(filtered), grouped)
         return GroupedRecommendationResult(
             reach=grouped["reach"],
             target=grouped["target"],
@@ -220,8 +250,16 @@ class RuleBasedRecommender:
     ) -> dict[str, object]:
         metadata = self._metadata(query, counts, candidate_count)
         metadata["version"] = "v3"
+        metadata["config_version"] = self.config.config_version
+        metadata["scoring_version"] = self.config.scoring_version
+        metadata["decision_policy_version"] = self.config.decision_policy_version
+        metadata["explanation_version"] = self.config.explanation_version
         metadata["preference_weights"] = self._resolve_preference_weights(query)
-        metadata["country_preference_mode"] = "soft_preference" if query.country else "none"
+        country_policy = self._country_policy(query) if query.country else "none"
+        metadata["country_policy"] = country_policy
+        metadata["country_preference_mode"] = country_policy
+        if not any(counts.values()):
+            metadata["no_results_reason"] = build_no_results_reason(candidate_count, query.target_rank)
         return metadata
 
     def _passes_hard_constraints(self, row: RecommendationCandidate, query: RecommendationQuery) -> bool:
@@ -248,7 +286,10 @@ class RuleBasedRecommender:
         effective_rank, _ = self._choose_effective_rank(row, query)
         return effective_rank is not None
 
-    def _passes_v3_filters(self, row: RecommendationCandidate) -> bool:
+    def _passes_v3_filters(self, row: RecommendationCandidate, query: RecommendationQuery) -> bool:
+        if self._country_policy(query) == "hard_filter" and query.country:
+            if (row.country or "").strip().lower() != query.country.strip().lower():
+                return False
         return row.aggregated_rank is not None or any(rank is not None for rank in row.source_ranks.values())
 
     def _score_candidate_v1(
@@ -299,6 +340,9 @@ class RuleBasedRecommender:
             contributions=contributions,
             effective_rank_used=effective_rank,
             effective_rank_source=effective_rank_source,
+            scoring_version=self.config.scoring_version,
+            decision_policy_version=self.config.decision_policy_version,
+            explanation_version=self.config.explanation_version,
             rules_passed=rules_passed,
         )
 
@@ -369,6 +413,11 @@ class RuleBasedRecommender:
             category_reason=category_reason,
             ielts_margin=round(ielts_margin, 4) if ielts_margin is not None else None,
             confidence_label=confidence_label,
+            recommendation_confidence=round(confidence_score, 4) if confidence_score is not None else None,
+            confidence_reason=f"Confidence is {confidence_label} based on ranking-source agreement and data completeness.",
+            scoring_version=self.config.scoring_version,
+            decision_policy_version=self.config.decision_policy_version,
+            explanation_version=self.config.explanation_version,
             rules_passed=rules_passed,
         )
 
@@ -376,6 +425,7 @@ class RuleBasedRecommender:
         self,
         row: RecommendationCandidate,
         query: RecommendationQuery,
+        pool_context: Optional[dict[str, object]] = None,
     ) -> Optional[RecommendationScoreBreakdown]:
         effective_rank, effective_rank_source = self._choose_effective_rank(row, query)
         if effective_rank is None:
@@ -383,30 +433,53 @@ class RuleBasedRecommender:
 
         ranking_score = self._ranking_score(effective_rank, query)
         ielts_fit_score = self._ielts_fit_score_v2(row.ielts_min, query.ielts_score)
-        completeness_score = self._completeness_score(row)
-        confidence_score = self._confidence_score(row, query)
-        category, category_reason = self._classify_category(row, query, confidence_score, effective_rank)
+        completeness_score = self._completeness_score(row) or 0.0
         ielts_margin = self._ielts_margin(row.ielts_min, query.ielts_score)
-        confidence_label = self._confidence_label(confidence_score)
-        country_match_score = self._country_match_score(row.country, query.country)
+        confidence_assessment = self._confidence_assessment(row, query, completeness_score)
+        confidence_score = confidence_assessment.score
+        confidence_label = confidence_assessment.label
+        category_decision = classify_category(
+            effective_rank=effective_rank,
+            target_rank=int(query.target_rank or 1),
+            risk_profile=query.risk_profile,
+            confidence_score=confidence_score,
+            low_confidence_threshold=self.config.low_confidence_threshold,
+            very_low_confidence_threshold=self.config.very_low_confidence_threshold,
+            ielts_margin=ielts_margin,
+            ielts_shortfall_risk_shift_threshold=self.config.ielts_shortfall_risk_shift_threshold,
+            thresholds=category_thresholds(self.config, query.risk_profile),
+        )
+        category = category_decision.category
+        category_reason = category_decision.reason
+        if pool_context and pool_context.get("elite_pool"):
+            category, category_reason = self._elite_pool_category(
+                row=row,
+                query=query,
+                effective_rank=effective_rank,
+                ielts_margin=ielts_margin,
+                pool_context=pool_context,
+            )
+        country_preference_score = country_match_score(row.country, query.country)
         weights_used = self._resolve_preference_weights(query)
         available_scores = {
             "ranking": ranking_score,
             "ielts": ielts_fit_score,
             "confidence": confidence_score,
-            "country_match": country_match_score,
+            "country_match": country_preference_score,
         }
         contributions = self._component_contributions(weights_used, available_scores)
-        base_score = self._weighted_score(weights_used, available_scores)
-        risk_adjustment = self._risk_adjustment(category, query.risk_profile)
-        final_score = max(0.0, min(100.0, base_score + risk_adjustment))
-        preference_alignment = self._preference_alignment(country_match_score, risk_adjustment, query.country)
+        base_score = weighted_score(weights_used, available_scores)
+        profile = normalize_risk_profile(query.risk_profile)
+        risk_adjustment_score = risk_adjustment(self.config, category, query.risk_profile)
+        final_score = max(0.0, min(100.0, base_score + risk_adjustment_score))
+        alignment = preference_alignment(country_preference_score, risk_adjustment_score, query.country)
+        filter_reasons = self._filter_reasons_v3(row, query, effective_rank_source, effective_rank)
 
         rules_passed = [
             "version=v3",
             f"category={category}",
-            f"risk_profile={self._normalize_risk_profile(query.risk_profile)}",
-            f"preference_alignment={preference_alignment}",
+            f"risk_profile={profile}",
+            f"preference_alignment={alignment}",
         ]
         if query.country:
             rules_passed.append(f"country_preference={query.country}")
@@ -430,10 +503,16 @@ class RuleBasedRecommender:
             category_reason=category_reason,
             ielts_margin=round(ielts_margin, 4) if ielts_margin is not None else None,
             confidence_label=confidence_label,
-            country_match_score=round(country_match_score, 4) if country_match_score is not None else None,
-            preference_alignment=preference_alignment,
+            country_match_score=round(country_preference_score, 4),
+            preference_alignment=alignment,
             base_score=round(base_score, 4),
-            risk_adjustment=round(risk_adjustment, 4),
+            risk_adjustment=round(risk_adjustment_score, 4),
+            recommendation_confidence=round(confidence_score, 4),
+            confidence_reason=confidence_assessment.reason,
+            scoring_version=self.config.scoring_version,
+            decision_policy_version=self.config.decision_policy_version,
+            explanation_version=self.config.explanation_version,
+            filter_reasons=filter_reasons,
             rules_passed=rules_passed,
         )
 
@@ -589,6 +668,26 @@ class RuleBasedRecommender:
             confidence -= 8.0
         return round(max(0.0, min(100.0, confidence)), 4)
 
+    def _confidence_assessment(
+        self,
+        row: RecommendationCandidate,
+        query: RecommendationQuery,
+        completeness_score: float,
+    ):
+        source_ranks = [int(row.source_ranks[source]) for source in SOURCE_ORDER if row.source_ranks.get(source) is not None]
+        spread_ratio = None
+        if len(source_ranks) > 1:
+            spread = max(source_ranks) - min(source_ranks)
+            denominator = max(max(source_ranks), int(query.target_rank or max(source_ranks)), 1)
+            spread_ratio = spread / denominator
+        return build_confidence_assessment(
+            completeness_score=completeness_score,
+            source_count=len(source_ranks),
+            source_spread_ratio=spread_ratio,
+            missing_ielts_for_query=bool(query.ielts_score is not None and row.ielts_min is None),
+            config=self.config,
+        )
+
     def _classify_category(
         self,
         row: RecommendationCandidate,
@@ -605,12 +704,12 @@ class RuleBasedRecommender:
         elif ratio > target_upper:
             category = "safety"
 
-        if query.ielts_score is not None and row.ielts_min is not None and float(query.ielts_score) + 1e-9 < float(row.ielts_min):
+        if (
+            query.ielts_score is not None
+            and row.ielts_min is not None
+            and (float(row.ielts_min) - float(query.ielts_score)) >= float(self.config.ielts_shortfall_risk_shift_threshold)
+        ):
             category = self._shift_riskier(category)
-        if confidence_score < self.config.very_low_confidence_threshold:
-            category = self._shift_riskier(category)
-        elif confidence_score < self.config.low_confidence_threshold and category == "safety":
-            category = "target"
 
         if category == "reach":
             reason = (
@@ -640,6 +739,93 @@ class RuleBasedRecommender:
             reason += f" Confidence is only {confidence_score:.1f}/100 due to incomplete or inconsistent data."
         return category, reason
 
+    def _build_pool_context(
+        self,
+        rows: list[RecommendationCandidate],
+        query: RecommendationQuery,
+    ) -> dict[int, dict[str, object]]:
+        if not rows or query.target_rank is None or int(query.target_rank) <= 0:
+            return {}
+
+        ranked: list[tuple[int, RecommendationCandidate]] = []
+        for row in rows:
+            effective_rank, _ = self._choose_effective_rank(row, query)
+            if effective_rank is not None:
+                ranked.append((effective_rank, row))
+        if not ranked:
+            return {}
+
+        ranked.sort(key=lambda item: (item[0], item[1].canonical_university_id))
+        pool_size = len(ranked)
+        max_rank = ranked[-1][0]
+        elite_pool = (
+            pool_size >= int(self.config.elite_pool_min_size)
+            and int(query.target_rank) <= int(self.config.elite_pool_target_rank_cap)
+            and max_rank <= (float(query.target_rank) * float(self.config.elite_pool_rank_ceiling_ratio))
+        )
+
+        context: dict[int, dict[str, object]] = {}
+        for index, (effective_rank, row) in enumerate(ranked):
+            context[row.canonical_university_id] = {
+                "pool_size": pool_size,
+                "pool_position": index,
+                "elite_pool": elite_pool,
+            }
+        return context
+
+    def _elite_pool_category(
+        self,
+        *,
+        row: RecommendationCandidate,
+        query: RecommendationQuery,
+        effective_rank: int,
+        ielts_margin: Optional[float],
+        pool_context: dict[str, object],
+    ) -> tuple[str, str]:
+        pool_size = int(pool_context.get("pool_size") or 1)
+        pool_position = int(pool_context.get("pool_position") or 0)
+        profile = self._normalize_risk_profile(query.risk_profile)
+
+        if profile == "conservative":
+            reach_share, target_share = 0.2, 0.4
+        elif profile == "aggressive":
+            reach_share, target_share = 0.6, 0.25
+        else:
+            reach_share, target_share = 0.4, 0.4
+
+        reach_cutoff = max(1, math.ceil(pool_size * reach_share))
+        target_cutoff = min(pool_size, reach_cutoff + max(1, math.ceil(pool_size * target_share)))
+
+        if pool_position < reach_cutoff:
+            category = "reach"
+            reason = (
+                f"Reach: within this elite filtered pool, rank #{effective_rank} sits in the most ambitious band "
+                f"for target #{int(query.target_rank or 0)}."
+            )
+        elif pool_position < target_cutoff:
+            category = "target"
+            reason = (
+                f"Target: within this elite filtered pool, rank #{effective_rank} sits in the balanced middle band "
+                f"for target #{int(query.target_rank or 0)}."
+            )
+        else:
+            category = "safety"
+            reason = (
+                f"Safety: within this elite filtered pool, rank #{effective_rank} sits in the safer end of the shortlist "
+                f"for target #{int(query.target_rank or 0)}."
+            )
+
+        if ielts_margin is not None:
+            if ielts_margin <= -float(self.config.ielts_shortfall_risk_shift_threshold):
+                reason += f" IELTS is short by {abs(ielts_margin):.2f}, which makes it riskier."
+            elif ielts_margin < 0:
+                reason += f" IELTS is slightly short by {abs(ielts_margin):.2f}."
+            else:
+                reason += f" IELTS margin is {ielts_margin:.2f}."
+        elif query.ielts_score is not None and row.ielts_min is None:
+            reason += " IELTS requirement is missing, so confidence is reduced."
+        return category, reason
+
     def _risk_alignment_score(self, category: str, risk_profile: Optional[str]) -> float:
         profile = self._normalize_risk_profile(risk_profile)
         matrix = {
@@ -650,25 +836,7 @@ class RuleBasedRecommender:
         return matrix[profile][category]
 
     def _risk_adjustment(self, category: str, risk_profile: Optional[str]) -> float:
-        profile = self._normalize_risk_profile(risk_profile)
-        matrix = {
-            "conservative": {
-                "reach": self.config.conservative_reach_penalty,
-                "target": self.config.conservative_target_boost,
-                "safety": self.config.conservative_safety_boost,
-            },
-            "balanced": {
-                "reach": self.config.balanced_reach_boost,
-                "target": self.config.balanced_target_boost,
-                "safety": self.config.balanced_safety_boost,
-            },
-            "aggressive": {
-                "reach": self.config.aggressive_reach_boost,
-                "target": self.config.aggressive_target_boost,
-                "safety": self.config.aggressive_safety_penalty,
-            },
-        }
-        return float(matrix[profile][category])
+        return risk_adjustment(self.config, category, risk_profile)
 
     def _category_thresholds(self, risk_profile: Optional[str]) -> tuple[float, float]:
         profile = self._normalize_risk_profile(risk_profile)
@@ -702,58 +870,16 @@ class RuleBasedRecommender:
         return "low"
 
     def _normalize_risk_profile(self, value: Optional[str]) -> str:
-        cleaned = (value or "balanced").strip().lower()
-        return cleaned if cleaned in RISK_PROFILES else "balanced"
+        return normalize_risk_profile(value)
+
+    def _country_policy(self, query: RecommendationQuery) -> str:
+        return normalize_country_policy(query.country_policy, default=self.config.country_match_policy)
 
     def _resolve_preference_weights(self, query: RecommendationQuery) -> dict[str, float]:
-        merged = {
-            "ranking": max(0.0, float(self.config.v3_ranking_weight)),
-            "ielts": max(0.0, float(self.config.v3_ielts_fit_weight)),
-            "confidence": max(0.0, float(self.config.v3_confidence_weight)),
-            "country_match": max(0.0, float(self.config.v3_country_match_weight)),
-        }
-        for key, value in (query.preference_weights or {}).items():
-            if key not in merged:
-                continue
-            try:
-                merged[key] = max(0.0, float(value))
-            except (TypeError, ValueError):
-                continue
-
-        total = sum(merged.values())
-        if total <= 0:
-            merged = {
-                "ranking": 0.5,
-                "ielts": 0.2,
-                "confidence": 0.2,
-                "country_match": 0.1,
-            }
-            total = 1.0
-        normalized = {key: value / total for key, value in merged.items()}
-
-        min_ranking = max(0.0, min(1.0, float(self.config.v3_ranking_min_weight)))
-        max_other = max(normalized[key] for key in normalized if key != "ranking")
-        target_ranking = max(normalized["ranking"], min_ranking, max_other + 0.01)
-        target_ranking = min(0.85, target_ranking)
-        if target_ranking > normalized["ranking"]:
-            other_total = sum(normalized[key] for key in normalized if key != "ranking")
-            normalized["ranking"] = target_ranking
-            remaining = max(0.0, 1.0 - target_ranking)
-            for key in normalized:
-                if key == "ranking":
-                    continue
-                share = 0.0 if other_total <= 0 else normalized[key] / other_total
-                normalized[key] = remaining * share
-        return {key: round(normalized[key], 4) for key in PREFERENCE_WEIGHT_KEYS}
+        return resolve_preference_weights(self.config, query.preference_weights)
 
     def _country_match_score(self, candidate_country: Optional[str], preferred_country: Optional[str]) -> Optional[float]:
-        if not preferred_country:
-            return 55.0
-        if not candidate_country:
-            return 40.0
-        if candidate_country.strip().lower() == preferred_country.strip().lower():
-            return 100.0
-        return 25.0
+        return country_match_score(candidate_country, preferred_country)
 
     def _preference_alignment(
         self,
@@ -761,15 +887,73 @@ class RuleBasedRecommender:
         risk_adjustment: float,
         preferred_country: Optional[str],
     ) -> str:
-        signals: list[float] = [60.0 + risk_adjustment]
-        if preferred_country:
-            signals.append(country_match_score or 0.0)
-        average = sum(signals) / len(signals)
-        if average >= 78:
-            return "strong"
-        if average >= 55:
-            return "moderate"
-        return "low"
+        return preference_alignment(country_match_score or 0.0, risk_adjustment, preferred_country)
+
+    def _filter_reasons_v3(
+        self,
+        row: RecommendationCandidate,
+        query: RecommendationQuery,
+        effective_rank_source: str,
+        effective_rank: int,
+    ) -> list[str]:
+        reasons = [f"effective rank #{effective_rank} from {effective_rank_source.lower()} data is available"]
+        country_policy = self._country_policy(query)
+        if query.country and row.country:
+            if row.country.strip().lower() == query.country.strip().lower():
+                reasons.append(f"country matches {query.country}")
+            elif country_policy == "soft_preference":
+                reasons.append(f"country differs from {query.country}, but soft preference keeps it eligible")
+        elif query.country and country_policy == "hard_filter":
+            reasons.append(f"country filter is locked to {query.country}")
+        if query.ielts_score is None:
+            reasons.append("IELTS filter was not required")
+        elif row.ielts_min is None:
+            reasons.append("IELTS requirement is missing, so the row stays eligible with reduced confidence")
+        elif query.ielts_score + 1e-9 >= row.ielts_min:
+            reasons.append(f"IELTS {query.ielts_score} covers requirement {row.ielts_min}")
+        else:
+            reasons.append(f"IELTS {query.ielts_score} is below requirement {row.ielts_min}, so risk increases")
+        return reasons
+
+    def _log_v3_summary(
+        self,
+        query: RecommendationQuery,
+        initial_candidates: int,
+        filtered_candidates: int,
+        grouped: dict[str, list[RecommendationResult]],
+    ) -> None:
+        top_rows = []
+        for category in CATEGORY_ORDER:
+            if grouped[category]:
+                row = grouped[category][0]
+                top_rows.append(
+                    {
+                        "category": category,
+                        "university": row.university_name,
+                        "score": row.matching_score,
+                    }
+                )
+        LOGGER.info(
+            "recommendation_v3_summary request=%s config_version=%s scoring_version=%s policy_version=%s counts=%s top=%s",
+            {
+                "target_rank": query.target_rank,
+                "risk_profile": self._normalize_risk_profile(query.risk_profile),
+                "country": query.country,
+                "country_policy": self._country_policy(query),
+                "ielts_score": query.ielts_score,
+            },
+            self.config.config_version,
+            self.config.scoring_version,
+            self.config.decision_policy_version,
+            {
+                "before_filter": initial_candidates,
+                "after_filter": filtered_candidates,
+                "reach": len(grouped["reach"]),
+                "target": len(grouped["target"]),
+                "safety": len(grouped["safety"]),
+            },
+            top_rows,
+        )
 
     def _build_explanation_v1(
         self,
@@ -828,37 +1012,20 @@ class RuleBasedRecommender:
         query: RecommendationQuery,
         breakdown: RecommendationScoreBreakdown,
     ) -> str:
-        parts = [breakdown.category_reason or "Category not available."]
-        base_bits: list[str] = []
-        if breakdown.ranking_score is not None:
-            base_bits.append(f"ranking contributes {breakdown.ranking_score:.2f}")
-        if breakdown.ielts_fit_score is not None:
-            base_bits.append(f"IELTS fit contributes {breakdown.ielts_fit_score:.2f}")
-        if breakdown.confidence_score is not None:
-            base_bits.append(f"confidence contributes {breakdown.confidence_score:.2f}")
-        parts.append(
-            "Base score "
-            + ", ".join(base_bits)
-            + f", producing {self._fmt_optional(breakdown.base_score)} before scenario adjustment."
+        return build_v3_explanation(
+            category_reason=breakdown.category_reason or "Category not available.",
+            category=breakdown.category or "target",
+            effective_rank=breakdown.effective_rank_used,
+            target_rank=query.target_rank,
+            ielts_margin=breakdown.ielts_margin,
+            confidence_label=breakdown.confidence_label,
+            country_preference=query.country,
+            country_policy=self._country_policy(query),
+            candidate_country=row.country,
+            country_match_score=breakdown.country_match_score,
+            risk_profile=self._normalize_risk_profile(query.risk_profile),
+            risk_adjustment=breakdown.risk_adjustment or 0.0,
         )
-
-        preference_bits: list[str] = []
-        if query.country:
-            preference_bits.append(
-                f"country match is {self._fmt_optional(breakdown.country_match_score)} for preference {query.country}"
-            )
-        preference_bits.append(f"preference alignment is {breakdown.preference_alignment}")
-        preference_bits.append(f"weights used {breakdown.weights_used}")
-        parts.append("Preference impact: " + ", ".join(preference_bits) + ".")
-
-        profile = self._normalize_risk_profile(query.risk_profile)
-        adjustment = breakdown.risk_adjustment or 0.0
-        direction = "boosted" if adjustment >= 0 else "reduced"
-        parts.append(
-            f"Risk adjustment: {direction} by {abs(adjustment):.2f} due to the {profile} profile favoring "
-            f"{breakdown.category} options. Final score is {self._composite_from_breakdown_v3(breakdown):.2f}."
-        )
-        return " ".join(parts)
 
     def _fmt_optional(self, value: Optional[float]) -> str:
         if value is None:
@@ -909,6 +1076,11 @@ def _result_to_dict(row: RecommendationResult) -> dict[str, object]:
         "score": row.matching_score,
         "category": row.category,
         "preference_alignment": row.preference_alignment,
+        "recommendation_confidence": row.recommendation_confidence,
+        "confidence_reason": row.confidence_reason,
+        "scoring_version": row.scoring_version,
+        "decision_policy_version": row.decision_policy_version,
+        "explanation_version": row.explanation_version,
         "explanation": row.explanation,
         "score_breakdown": asdict(row.score_breakdown),
         "aggregation_method_version": row.aggregation_method_version,

@@ -1,14 +1,18 @@
 import os
 import sys
 import unittest
+from pathlib import Path
 
 try:
     import psycopg2
 except ImportError:
     psycopg2 = None
 
-# Ensure parent directory is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+TESTS_DIR = Path(__file__).resolve().parent
+PACKAGE_ROOT = TESTS_DIR.parent
+
+sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-core"))
+sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-db-writer"))
 
 from db_writer import DBWriter
 from models import University, AdmissionRequirements

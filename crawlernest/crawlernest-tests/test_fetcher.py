@@ -1,10 +1,15 @@
 import unittest
 import sys
-import os
-# Ensure parent directory is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from pathlib import Path
 
 from unittest.mock import MagicMock, patch
+
+TESTS_DIR = Path(__file__).resolve().parent
+PACKAGE_ROOT = TESTS_DIR.parent
+
+sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-core"))
+sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-extractors"))
+
 from fetcher import _abs_url, _extract_nid_from_html, _ranking_page_fallbacks, UniversityFetcher
 from config import Config
 
@@ -36,16 +41,17 @@ class TestUniversityFetcher(unittest.TestCase):
         self.config.ranking_id = "3990755"
         self.fetcher = UniversityFetcher(self.config)
 
-    @patch('fetcher.requests.Session.get')
-    def test_fetch_rankings_success(self, mock_get):
+    def test_fetch_rankings_success(self):
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"score_nodes": [{"uniname": "Test Uni"}]}
-        mock_get.return_value = mock_response
-        
-        data = self.fetcher.fetch_rankings()
+
+        with patch.object(self.fetcher.session, "get", return_value=mock_response) as mock_get:
+            data = self.fetcher.fetch_rankings()
+
         self.assertIsNotNone(data)
         self.assertEqual(data["score_nodes"][0]["uniname"], "Test Uni")
+        self.assertGreater(mock_get.call_count, 0)
 
 if __name__ == '__main__':
     unittest.main()

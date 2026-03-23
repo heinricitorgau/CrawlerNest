@@ -391,8 +391,9 @@ v3 hybrid recommendation：
 python3 crawlernest/run_pipeline.py recommend-v3 \
   --target-rank 100 \
   --ielts 6.5 \
-  --risk-profile aggressive \
+  --risk-profile balanced \
   --country "United Kingdom" \
+  --country-policy hard_filter \
   --preference-weights '{"ranking":0.5,"ielts":0.2,"confidence":0.2,"country_match":0.1}' \
   --limit 5 \
   --pg-user test \
@@ -414,6 +415,7 @@ python3 crawlernest/run_pipeline.py compare \
 - `recommend` 會回平面 shortlist
 - `recommend-v2` / `recommend-v3` 會回 `reach` / `target` / `safety`
 - `recommend-v3` 回傳 `preference_alignment`、`base_score`、`risk_adjustment`
+- `recommend-v3` 預設應明確反映 country policy；`hard_filter` 時不應混入非 UK 學校
 - `compare` 回傳 `better`、`summary`、`comparison`
 - `preferred-ranking-source=QS` 時，說明文字應優先顯示 `QS rank #...`
 
@@ -425,6 +427,7 @@ python3 crawlernest/run_pipeline.py recommend-v3 \
   --ielts 6.5 \
   --risk-profile conservative \
   --country "United Kingdom" \
+  --country-policy hard_filter \
   --pg-user test \
   --pg-database clawer > /tmp/rec_conservative.json
 
@@ -433,6 +436,7 @@ python3 crawlernest/run_pipeline.py recommend-v3 \
   --ielts 6.5 \
   --risk-profile aggressive \
   --country "United Kingdom" \
+  --country-policy hard_filter \
   --pg-user test \
   --pg-database clawer > /tmp/rec_aggressive.json
 
@@ -441,9 +445,24 @@ diff -u /tmp/rec_conservative.json /tmp/rec_aggressive.json
 
 驗證重點：
 
-- aggressive 應提高 reach 類別分數
-- conservative 應提高 safety 類別分數
+- aggressive 應提高 reach 類別分數與 reach 數量
+- conservative 應提高 safety 類別分數與 safety 數量
 - `score_breakdown.risk_adjustment` 應隨 profile 改變
+
+目前已驗證的 calibration 基線：
+
+- `balanced`: `reach=2`, `target=2`, `safety=1`
+- `conservative`: `reach=1`, `target=2`, `safety=2`
+- `aggressive`: `reach=3`, `target=2`, `safety=0`
+
+如果 balanced 重新回到 `reach=5, target=0, safety=0`，代表你啟動的是舊版 API 或舊版程式。
+
+Edinburgh-like edge case 驗證：
+
+```bash
+python3 crawlernest/crawlernest-tests/test_recommendation_v3.py \
+  TestRecommendationV3.test_v3_confidence_no_longer_reclassifies_edinburgh_like_case
+```
 
 ### 13.6 Spring Boot Decision API Smoke Test
 
@@ -451,28 +470,30 @@ diff -u /tmp/rec_conservative.json /tmp/rec_aggressive.json
 
 ```bash
 cd crawlernest/servise_for_java
-./mvnw spring-boot:run
+./mvnw -q spring-boot:run -Dspring-boot.run.arguments=--server.port=8083
 ```
 
 再執行 smoke test：
 
 ```bash
-python3 crawlernest/scripts/smoke_test_recommendations_api.py --base-url http://localhost:8080
+python3 crawlernest/scripts/smoke_test_recommendations_api.py --base-url http://localhost:8083
 ```
 
 或直接呼叫：
 
 ```bash
-curl "http://localhost:8080/recommendations?country=United%20Kingdom&ielts=6.5&targetRank=100&preferredRankingSource=QS&limit=3"
-curl "http://localhost:8080/recommendations?version=v3&targetRank=100&ielts=6.5&country=United%20Kingdom&riskProfile=aggressive"
-curl "http://localhost:8080/recommendations?version=v3&targetRank=100&ielts=6.5&country=United%20Kingdom&riskProfile=balanced&preferenceWeights=%7B%22ranking%22%3A0.5%2C%22ielts%22%3A0.2%2C%22confidence%22%3A0.2%2C%22country_match%22%3A0.1%7D"
-curl "http://localhost:8080/compare?u1=Oxford&u2=LSE"
+curl "http://localhost:8083/recommendations?country=United%20Kingdom&countryPolicy=hard_filter&ielts=6.5&targetRank=100&riskProfile=balanced&limit=5"
+curl "http://localhost:8083/recommendations?country=United%20Kingdom&countryPolicy=hard_filter&ielts=6.5&targetRank=100&riskProfile=conservative&limit=5"
+curl "http://localhost:8083/recommendations?country=United%20Kingdom&countryPolicy=hard_filter&ielts=6.5&targetRank=100&riskProfile=aggressive&limit=5"
+curl "http://localhost:8083/recommendations?version=v3&targetRank=100&ielts=6.5&country=United%20Kingdom&countryPolicy=hard_filter&riskProfile=balanced&preferenceWeights=%7B%22ranking%22%3A0.5%2C%22ielts%22%3A0.2%2C%22confidence%22%3A0.2%2C%22country_match%22%3A0.1%7D"
+curl "http://localhost:8083/compare?u1=Oxford&u2=LSE"
 ```
 
 驗證重點：
 
 - HTTP 200
-- `/recommendations?version=v3` 至少一個分組存在
+- `/recommendations?version=v3` 應回 `reach` / `target` / `safety` / `metadata`
+- balanced 不應再出現 `reach=5, target=0, safety=0`
 - `/compare` 回傳 deterministic comparison JSON
 - 回傳欄位包含：
   - `canonicalUniversityId`
@@ -484,6 +505,9 @@ curl "http://localhost:8080/compare?u1=Oxford&u2=LSE"
   - `category`
   - `preferenceAlignment`
   - `explanation`
+  - `recommendationConfidence`
+  - `scoringVersion`
+  - `decisionPolicyVersion`
 
 ### 13.7 決策資料鏈前置檢查
 

@@ -7,6 +7,7 @@ import argparse
 import asyncio
 import datetime as dt
 import json
+import logging
 import os
 import re
 import sys
@@ -1044,6 +1045,7 @@ def _parse_preference_weights(raw: Optional[str]) -> dict[str, float]:
 
 def recommend_universities_v3_from_db(
     country: Optional[str],
+    country_policy: Optional[str],
     ielts_score: Optional[float],
     target_rank: int,
     risk_profile: Optional[str],
@@ -1067,9 +1069,11 @@ def recommend_universities_v3_from_db(
         password=pg_password,
     )
     try:
+        config = default_recommendation_config()
         repo = RecommendationRepository(conn)
         query = RecommendationQuery(
             country=country,
+            country_policy=country_policy,
             ielts_score=ielts_score,
             target_rank=target_rank,
             risk_profile=risk_profile,
@@ -1078,8 +1082,9 @@ def recommend_universities_v3_from_db(
             limit=limit,
             ranking_year=ranking_year,
         )
-        candidates = repo.fetch_candidates(ranking_year=ranking_year, country=None)
-        grouped = recommend_universities_v3(candidates, query, config=default_recommendation_config())
+        effective_country = country if (country and (country_policy or config.country_match_policy) == "hard_filter") else None
+        candidates = repo.fetch_candidates(ranking_year=ranking_year, country=effective_country)
+        grouped = recommend_universities_v3(candidates, query, config=config)
         return grouped_recommendations_to_dict(grouped)
     finally:
         conn.close()
@@ -1224,6 +1229,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run hybrid grouped recommendations with configurable preference weights against PostgreSQL candidate data",
     )
     recommend_v3_parser.add_argument("--country", default=None)
+    recommend_v3_parser.add_argument("--country-policy", default=None, choices=["hard_filter", "soft_preference"])
     recommend_v3_parser.add_argument("--ielts", type=float, default=None)
     recommend_v3_parser.add_argument("--target-rank", type=int, required=True)
     recommend_v3_parser.add_argument("--risk-profile", default="balanced", choices=["conservative", "balanced", "aggressive"])
@@ -1484,9 +1490,15 @@ def main() -> int:
         if args.limit <= 0:
             raise SystemExit("--limit must be a positive integer")
         ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
-        preference_weights = _parse_preference_weights(args.preference_weights)
+        if not logging.getLogger().handlers:
+            logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
+        try:
+            preference_weights = _parse_preference_weights(args.preference_weights)
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
         grouped = recommend_universities_v3_from_db(
             country=args.country,
+            country_policy=args.country_policy,
             ielts_score=args.ielts,
             target_rank=args.target_rank,
             risk_profile=args.risk_profile,

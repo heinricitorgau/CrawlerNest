@@ -44,7 +44,7 @@ CrawlerNest is currently transitioning from a crawler tool into a structured dat
 - ✅ Recommendation engine v1 / v2 / v3:
   - `recommend`: hard-filtered rule-based shortlist
   - `recommend-v2`: grouped reach / target / safety decisions
-  - `recommend-v3`: hybrid deterministic scoring with preference weights and risk adjustments
+  - `recommend-v3`: calibrated hybrid deterministic scoring with preference weights, explicit country policy, and advisor-like reach / target / safety behavior
 - ✅ Recommendation and comparison API endpoints: `/recommendations`, `/compare`
 - ✅ Rankings-only mode (`--rankings-only`) for faster collection when detail pages are not required
 - ✅ Local parse parallelism (`--local-parse-workers`) that speeds parsing without increasing web-request concurrency
@@ -58,7 +58,7 @@ V1.5 completion snapshot (as of 2026-03-23):
 - **End-to-end pipeline maturity**: ~88% (crawl -> normalize -> write -> query is stable)
 - **Performance optimization maturity**: ~85% (batch write / incremental checkpoint / partial update in production path)
 - **Operational resilience maturity**: ~82% (403 auto-degrade + deferred enrichment flow established)
-- **Decision-support maturity**: ~72% (aggregated rankings + explainable comparison + grouped and hybrid recommendations are operational)
+- **Decision-support maturity**: ~79% (aggregated rankings + explainable comparison + calibrated grouped / hybrid recommendations are operational and API-validated)
 
 ### Next (V2): In progress
 
@@ -212,7 +212,7 @@ curl http://localhost:8080/universities
 curl http://localhost:8080/rankings
 curl http://localhost:8080/admissions
 curl "http://localhost:8080/recommendations?country=United%20Kingdom&ielts=6.5&targetRank=100&preferredRankingSource=QS&limit=3"
-curl "http://localhost:8080/recommendations?version=v3&targetRank=100&ielts=6.5&country=United%20Kingdom&riskProfile=aggressive"
+curl "http://localhost:8080/recommendations?version=v3&targetRank=100&ielts=6.5&country=United%20Kingdom&countryPolicy=hard_filter&riskProfile=balanced"
 curl "http://localhost:8080/compare?u1=Oxford&u2=LSE"
 ```
 
@@ -250,11 +250,20 @@ Hybrid deterministic recommendation:
 python3 crawlernest/run_pipeline.py recommend-v3 \
   --target-rank 100 \
   --ielts 6.5 \
-  --risk-profile aggressive \
+  --risk-profile balanced \
   --country "United Kingdom" \
+  --country-policy hard_filter \
   --preference-weights '{"ranking":0.5,"ielts":0.2,"confidence":0.2,"country_match":0.1}' \
   --limit 5
 ```
+
+Calibrated behavior snapshot (validated against the current UK elite-only pool):
+
+- `balanced`: `reach=2`, `target=2`, `safety=1`
+- `conservative`: `reach=1`, `target=2`, `safety=2`
+- `aggressive`: `reach=3`, `target=2`, `safety=0`
+
+This avoids the earlier failure mode where all UK results collapsed into `reach` for `targetRank=100`.
 
 University comparison:
 
@@ -268,24 +277,48 @@ API smoke test:
 python3 crawlernest/scripts/smoke_test_recommendations_api.py --base-url http://localhost:8080
 ```
 
+If older local API processes already occupy `8080`, start the latest calibrated service on another port, for example:
+
+```bash
+cd crawlernest/servise_for_java
+./mvnw -q spring-boot:run -Dspring-boot.run.arguments=--server.port=8083
+```
+
 Expected v3 response shape:
 
 ```json
 {
   "reach": [
     {
-      "university_name": "University of Oxford",
-      "score": 94.2,
+      "universityName": "Imperial College London",
+      "matchingScore": 94.118,
       "category": "reach",
-      "preference_alignment": "strong",
-      "explanation": "..."
+      "preferenceAlignment": "strong",
+      "recommendationConfidence": 77.1,
+      "explanation": "Reach: within this elite filtered pool, rank #2 sits in the most ambitious band for target #100."
     }
   ],
-  "target": [],
-  "safety": [],
+  "target": [
+    {
+      "universityName": "University of Cambridge",
+      "matchingScore": 93.8221,
+      "category": "target"
+    }
+  ],
+  "safety": [
+    {
+      "universityName": "The University of Edinburgh",
+      "matchingScore": 76.1,
+      "category": "safety"
+    }
+  ],
   "metadata": {
     "version": "v3",
-    "risk_profile": "aggressive",
+    "risk_profile": "balanced",
+    "country_policy": "hard_filter",
+    "scoring_version": "hybrid_scoring_v3",
+    "decision_policy_version": "decision_policy_v2",
+    "explanation_version": "explanation_templates_v2",
     "preference_weights": {
       "ranking": 0.5,
       "ielts": 0.2,

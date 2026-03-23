@@ -108,6 +108,7 @@ class RecommendationRepository:
                     json.dumps(
                         {
                             "country": query.country,
+                            "country_policy": query.country_policy,
                             "ielts_score": query.ielts_score,
                             "target_rank": query.target_rank,
                             "risk_profile": query.risk_profile,
@@ -163,6 +164,11 @@ class RecommendationRepository:
                                 "contributions": result.score_breakdown.contributions,
                                 "effective_rank_used": result.score_breakdown.effective_rank_used,
                                 "effective_rank_source": result.score_breakdown.effective_rank_source,
+                                "recommendation_confidence": result.score_breakdown.recommendation_confidence,
+                                "confidence_reason": result.score_breakdown.confidence_reason,
+                                "scoring_version": result.score_breakdown.scoring_version,
+                                "decision_policy_version": result.score_breakdown.decision_policy_version,
+                                "explanation_version": result.score_breakdown.explanation_version,
                                 "rules_passed": result.score_breakdown.rules_passed,
                             },
                             ensure_ascii=False,

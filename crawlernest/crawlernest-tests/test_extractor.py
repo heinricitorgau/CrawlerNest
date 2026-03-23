@@ -1,8 +1,12 @@
 import unittest
 import sys
-import os
-# Ensure parent directory is in path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from pathlib import Path
+
+TESTS_DIR = Path(__file__).resolve().parent
+PACKAGE_ROOT = TESTS_DIR.parent
+
+sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-core"))
+sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-extractors"))
 
 from extractor import DataExtractor, ScoreValidator
 

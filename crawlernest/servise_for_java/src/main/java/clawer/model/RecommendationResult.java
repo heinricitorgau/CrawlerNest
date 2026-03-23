@@ -12,6 +12,11 @@ public class RecommendationResult {
     private Double matchingScore;
     private String category;
     private String preferenceAlignment;
+    private Double recommendationConfidence;
+    private String confidenceReason;
+    private String scoringVersion;
+    private String decisionPolicyVersion;
+    private String explanationVersion;
     private String explanation;
     private String aggregationMethodVersion;
     private Map<String, Object> scoreBreakdown;
@@ -29,6 +34,11 @@ public class RecommendationResult {
             Double matchingScore,
             String category,
             String preferenceAlignment,
+            Double recommendationConfidence,
+            String confidenceReason,
+            String scoringVersion,
+            String decisionPolicyVersion,
+            String explanationVersion,
             String explanation,
             String aggregationMethodVersion,
             Map<String, Object> scoreBreakdown,
@@ -42,6 +52,11 @@ public class RecommendationResult {
         this.matchingScore = matchingScore;
         this.category = category;
         this.preferenceAlignment = preferenceAlignment;
+        this.recommendationConfidence = recommendationConfidence;
+        this.confidenceReason = confidenceReason;
+        this.scoringVersion = scoringVersion;
+        this.decisionPolicyVersion = decisionPolicyVersion;
+        this.explanationVersion = explanationVersion;
         this.explanation = explanation;
         this.aggregationMethodVersion = aggregationMethodVersion;
         this.scoreBreakdown = scoreBreakdown;
@@ -114,6 +129,46 @@ public class RecommendationResult {
 
     public void setPreferenceAlignment(String preferenceAlignment) {
         this.preferenceAlignment = preferenceAlignment;
+    }
+
+    public Double getRecommendationConfidence() {
+        return recommendationConfidence;
+    }
+
+    public void setRecommendationConfidence(Double recommendationConfidence) {
+        this.recommendationConfidence = recommendationConfidence;
+    }
+
+    public String getConfidenceReason() {
+        return confidenceReason;
+    }
+
+    public void setConfidenceReason(String confidenceReason) {
+        this.confidenceReason = confidenceReason;
+    }
+
+    public String getScoringVersion() {
+        return scoringVersion;
+    }
+
+    public void setScoringVersion(String scoringVersion) {
+        this.scoringVersion = scoringVersion;
+    }
+
+    public String getDecisionPolicyVersion() {
+        return decisionPolicyVersion;
+    }
+
+    public void setDecisionPolicyVersion(String decisionPolicyVersion) {
+        this.decisionPolicyVersion = decisionPolicyVersion;
+    }
+
+    public String getExplanationVersion() {
+        return explanationVersion;
+    }
+
+    public void setExplanationVersion(String explanationVersion) {
+        this.explanationVersion = explanationVersion;
     }
 
     public void setExplanation(String explanation) {

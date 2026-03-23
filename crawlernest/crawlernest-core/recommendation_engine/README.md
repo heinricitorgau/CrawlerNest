@@ -1,4 +1,4 @@
-# Rule-Based Recommendation Engine
+# Production Decision Engine
 
 ## Objective
 
@@ -12,21 +12,51 @@ This is **not ML**.
 aggregated_rankings + admission_requirements -> recommendation_engine -> analytics/API
 ```
 
-## Stages
+## Module Structure
 
-1. Hard filters
-- country match
-- IELTS score must satisfy minimum requirement
-- rank must be within target rank
+- `config.py`
+  Centralized defaults, policy/scoring/explanation versioning, environment overrides
+- `policy.py`
+  Eligibility, category boundaries, preference weighting, risk adjustment, category assignment
+- `confidence.py`
+  Rule-based recommendation confidence and confidence reason generation
+- `explanations.py`
+  Deterministic user-facing explanation templates
+- `engine.py`
+  Orchestration layer that applies the policy stack and returns grouped results
+- `repository.py`
+  PostgreSQL candidate fetch and recommendation-run persistence
+- `types.py`
+  Query, candidate, breakdown, grouped result contracts
 
-2. Deterministic scoring
-- `ranking_score`: better rank => higher score
-- `ielts_fit_score`: closer to the required IELTS => higher score
-- `completeness_score`: rewards rows with stable ranking/admission coverage
+## Decision Layers
 
-3. Sorting
-- sort by `matching_score` descending
-- tie-break by better aggregated rank, then canonical id
+1. Eligibility filter layer
+- requires usable ranking evidence
+- keeps country as a soft preference in v3
+- handles missing IELTS gracefully
+
+2. Base scoring layer
+- `ranking_score`
+- `ielts_fit_score`
+- `confidence_score`
+
+3. Preference adjustment layer
+- configurable `ranking / ielts / confidence / country_match` weights
+- ranking remains dominant after normalization
+
+4. Risk adjustment layer
+- conservative / balanced / aggressive profile shifts
+
+5. Category assignment layer
+- deterministic `reach / target / safety`
+
+6. Explanation generation layer
+- filter summary
+- category reason
+- score explanation
+- preference impact
+- risk adjustment summary
 
 ## Explainability Output
 
@@ -37,6 +67,11 @@ Each result returns:
 - `aggregated_rank`
 - `ielts_min`
 - `matching_score`
+- `recommendation_confidence`
+- `confidence_reason`
+- `scoring_version`
+- `decision_policy_version`
+- `explanation_version`
 - `explanation`
 - `score_breakdown`
 
@@ -61,8 +96,17 @@ Use `recommendation_postgresql.sql` to create:
 from recommendation_engine import (
     RecommendationQuery,
     default_recommendation_config,
-    recommend_universities,
+    recommend_universities_v3,
 )
 
-results = recommend_universities(candidates, RecommendationQuery(country="UK", ielts_score=6.5, target_rank=100))
+grouped = recommend_universities_v3(
+    candidates,
+    RecommendationQuery(
+        country="United Kingdom",
+        ielts_score=6.5,
+        target_rank=100,
+        risk_profile="balanced",
+        preference_weights={"ranking": 0.5, "ielts": 0.2, "confidence": 0.2, "country_match": 0.1},
+    ),
+)
 ```

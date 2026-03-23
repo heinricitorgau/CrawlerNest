@@ -4,6 +4,8 @@ import clawer.model.RecommendationGroupResponse;
 import clawer.model.RecommendationResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -19,9 +21,15 @@ import java.util.Objects;
 
 @Service
 public class RecommendationService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecommendationService.class);
 
     private static final List<String> SOURCE_ORDER = List.of("QS", "THE", "ARWU");
     private static final String DEFAULT_RISK_PROFILE = "balanced";
+    private static final String DEFAULT_COUNTRY_POLICY = "hard_filter";
+    private static final String CONFIG_VERSION = "decision_config_v1";
+    private static final String SCORING_VERSION = "hybrid_scoring_v3";
+    private static final String DECISION_POLICY_VERSION = "decision_policy_v2";
+    private static final String EXPLANATION_VERSION = "explanation_templates_v2";
 
     private static final double V1_RANKING_WEIGHT = 0.75;
     private static final double V1_IELTS_FIT_WEIGHT = 0.20;
@@ -42,26 +50,27 @@ public class RecommendationService {
     private static final double IELTS_OPTIMAL_BAND = 0.5;
     private static final double IELTS_SATURATION_GAP = 1.0;
     private static final double IELTS_SATURATION_SCORE = 94.0;
-    private static final double REACH_RATIO_UPPER = 0.8;
-    private static final double TARGET_RATIO_UPPER = 1.2;
+    private static final double REACH_RATIO_UPPER = 0.7;
+    private static final double TARGET_RATIO_UPPER = 1.35;
     private static final double CONSERVATIVE_REACH_ADJUSTMENT = -0.1;
-    private static final double CONSERVATIVE_TARGET_ADJUSTMENT = -0.1;
-    private static final double AGGRESSIVE_REACH_ADJUSTMENT = 0.1;
-    private static final double AGGRESSIVE_TARGET_ADJUSTMENT = 0.15;
+    private static final double CONSERVATIVE_TARGET_ADJUSTMENT = -0.15;
+    private static final double AGGRESSIVE_REACH_ADJUSTMENT = 0.12;
+    private static final double AGGRESSIVE_TARGET_ADJUSTMENT = 0.2;
+    private static final double IELTS_SHORTFALL_RISK_SHIFT_THRESHOLD = 0.25;
     private static final double LOW_CONFIDENCE_THRESHOLD = 60.0;
     private static final double VERY_LOW_CONFIDENCE_THRESHOLD = 45.0;
     private static final double MISSING_SOURCE_PENALTY = 12.0;
     private static final double COMPLETENESS_CONFIDENCE_WEIGHT = 0.65;
     private static final double SOURCE_AGREEMENT_WEIGHT = 0.35;
-    private static final double CONSERVATIVE_SAFETY_BOOST = 8.0;
-    private static final double CONSERVATIVE_TARGET_BOOST = 2.0;
-    private static final double CONSERVATIVE_REACH_PENALTY = -10.0;
-    private static final double BALANCED_REACH_BOOST = 2.0;
-    private static final double BALANCED_TARGET_BOOST = 4.0;
-    private static final double BALANCED_SAFETY_BOOST = 1.0;
-    private static final double AGGRESSIVE_REACH_BOOST = 9.0;
-    private static final double AGGRESSIVE_TARGET_BOOST = 3.0;
-    private static final double AGGRESSIVE_SAFETY_PENALTY = -6.0;
+    private static final double CONSERVATIVE_SAFETY_BOOST = 1.5;
+    private static final double CONSERVATIVE_TARGET_BOOST = 0.75;
+    private static final double CONSERVATIVE_REACH_PENALTY = -2.0;
+    private static final double BALANCED_REACH_BOOST = 0.5;
+    private static final double BALANCED_TARGET_BOOST = 1.0;
+    private static final double BALANCED_SAFETY_BOOST = 0.5;
+    private static final double AGGRESSIVE_REACH_BOOST = 2.0;
+    private static final double AGGRESSIVE_TARGET_BOOST = 0.75;
+    private static final double AGGRESSIVE_SAFETY_PENALTY = -1.0;
     private static final int MAX_LIMIT = 50;
 
     private final JdbcTemplate jdbcTemplate;
@@ -179,6 +188,7 @@ public class RecommendationService {
 
     public RecommendationGroupResponse getRecommendationsV3(
             String country,
+            String countryPolicy,
             Double ieltsScore,
             Integer targetRank,
             String riskProfile,
@@ -191,26 +201,33 @@ public class RecommendationService {
             throw new IllegalArgumentException("targetRank is required for recommendation v3.");
         }
 
-        List<Candidate> candidates = fetchCandidates(null, rankingYear);
+        String resolvedCountryPolicy = normalizeCountryPolicy(countryPolicy);
+        List<Candidate> candidates = fetchCandidates(
+                "hard_filter".equals(resolvedCountryPolicy) ? country : null,
+                rankingYear
+        );
         Map<String, Double> resolvedWeights = resolvePreferenceWeights(preferenceWeights);
         Map<String, List<RecommendationResult>> grouped = new LinkedHashMap<>();
         grouped.put("reach", new ArrayList<>());
         grouped.put("target", new ArrayList<>());
         grouped.put("safety", new ArrayList<>());
 
+        Map<Long, PoolContext> poolContexts = buildPoolContexts(candidates, targetRank, preferredRankingSource);
         int candidateCount = 0;
         for (Candidate candidate : candidates) {
-            if (!passesV3Constraints(candidate, preferredRankingSource)) {
+            if (!passesV3Constraints(candidate, country, resolvedCountryPolicy, preferredRankingSource)) {
                 continue;
             }
             RecommendationResult result = scoreCandidateV3(
                     candidate,
                     country,
+                    resolvedCountryPolicy,
                     ieltsScore,
                     targetRank,
                     riskProfile,
                     resolvedWeights,
-                    preferredRankingSource
+                    preferredRankingSource,
+                    poolContexts.get(candidate.canonicalUniversityId)
             );
             if (result == null || result.getCategory() == null) {
                 continue;
@@ -233,13 +250,19 @@ public class RecommendationService {
 
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("version", "v3");
+        metadata.put("config_version", CONFIG_VERSION);
+        metadata.put("scoring_version", SCORING_VERSION);
+        metadata.put("decision_policy_version", DECISION_POLICY_VERSION);
+        metadata.put("explanation_version", EXPLANATION_VERSION);
         metadata.put("target_rank", targetRank);
         metadata.put("risk_profile", normalizeRiskProfile(riskProfile));
         metadata.put("country", country);
+        String metadataCountryPolicy = country == null || country.isBlank() ? "none" : resolvedCountryPolicy;
+        metadata.put("country_policy", metadataCountryPolicy);
+        metadata.put("country_preference_mode", metadataCountryPolicy);
         metadata.put("ielts_score", ieltsScore);
         metadata.put("candidate_count", candidateCount);
         metadata.put("preference_weights", resolvedWeights);
-        metadata.put("country_preference_mode", country == null || country.isBlank() ? "none" : "soft_preference");
         metadata.put("counts", Map.of(
                 "reach", grouped.get("reach").size(),
                 "target", grouped.get("target").size(),
@@ -256,6 +279,24 @@ public class RecommendationService {
                         "target_upper", TARGET_RATIO_UPPER + AGGRESSIVE_TARGET_ADJUSTMENT
                 )
         ));
+        if (grouped.get("reach").isEmpty() && grouped.get("target").isEmpty() && grouped.get("safety").isEmpty()) {
+            metadata.put("no_results_reason", "No universities produced a valid decision result for the supplied target rank.");
+        }
+
+        LOGGER.info(
+                "recommendation_v3_summary targetRank={} riskProfile={} country={} countryPolicy={} ielts={} before={} reach={} target={} safety={} configVersion={} scoringVersion={}",
+                targetRank,
+                normalizeRiskProfile(riskProfile),
+                country,
+                resolvedCountryPolicy,
+                ieltsScore,
+                candidates.size(),
+                grouped.get("reach").size(),
+                grouped.get("target").size(),
+                grouped.get("safety").size(),
+                CONFIG_VERSION,
+                SCORING_VERSION
+        );
 
         return new RecommendationGroupResponse(
                 grouped.get("reach"),
@@ -346,7 +387,18 @@ public class RecommendationService {
         return chooseEffectiveRank(candidate, preferredRankingSource).rank != null;
     }
 
-    private boolean passesV3Constraints(Candidate candidate, String preferredRankingSource) {
+    private boolean passesV3Constraints(
+            Candidate candidate,
+            String country,
+            String countryPolicy,
+            String preferredRankingSource
+    ) {
+        if ("hard_filter".equals(normalizeCountryPolicy(countryPolicy))
+                && country != null
+                && !country.isBlank()
+                && (candidate.country == null || !candidate.country.equalsIgnoreCase(country.trim()))) {
+            return false;
+        }
         return chooseEffectiveRank(candidate, preferredRankingSource).rank != null;
     }
 
@@ -413,6 +465,11 @@ public class RecommendationService {
                 round(finalScore),
                 null,
                 null,
+                null,
+                null,
+                SCORING_VERSION,
+                DECISION_POLICY_VERSION,
+                EXPLANATION_VERSION,
                 buildExplanationV1(candidate, ieltsScore, rankingScore, ieltsFitScore, completenessScore, finalScore, effectiveRank),
                 candidate.aggregationMethodVersion,
                 scoreBreakdown,
@@ -490,6 +547,11 @@ public class RecommendationService {
                 round(finalScore),
                 categoryDecision.category,
                 null,
+                round(confidenceScore),
+                "Confidence is " + confidenceLabel + " based on ranking-source agreement and data completeness.",
+                SCORING_VERSION,
+                DECISION_POLICY_VERSION,
+                EXPLANATION_VERSION,
                 buildExplanationV2(candidate, ieltsScore, rankingScore, confidenceLabel, ieltsMargin, finalScore, categoryDecision.reason),
                 candidate.aggregationMethodVersion,
                 scoreBreakdown,
@@ -500,11 +562,13 @@ public class RecommendationService {
     private RecommendationResult scoreCandidateV3(
             Candidate candidate,
             String country,
+            String countryPolicy,
             Double ieltsScore,
             Integer targetRank,
             String riskProfile,
             Map<String, Double> resolvedWeights,
-            String preferredRankingSource
+            String preferredRankingSource,
+            PoolContext poolContext
     ) {
         EffectiveRank effectiveRank = chooseEffectiveRank(candidate, preferredRankingSource);
         if (effectiveRank.rank == null) {
@@ -516,6 +580,9 @@ public class RecommendationService {
         Double completenessScore = completenessScore(candidate);
         Double confidenceScore = confidenceScore(candidate, targetRank, ieltsScore);
         CategoryDecision categoryDecision = classifyCategory(candidate, effectiveRank.rank, targetRank, ieltsScore, riskProfile, confidenceScore);
+        if (poolContext != null && poolContext.elitePool()) {
+            categoryDecision = classifyElitePoolCategory(candidate, effectiveRank.rank, targetRank, ieltsScore, riskProfile, poolContext);
+        }
         Double ieltsMargin = ieltsMargin(candidate.ieltsMin, ieltsScore);
         String confidenceLabel = confidenceLabel(confidenceScore);
         Double countryMatchScore = countryMatchScore(candidate.country, country);
@@ -545,6 +612,11 @@ public class RecommendationService {
         scoreBreakdown.put("ielts_margin", ieltsMargin);
         scoreBreakdown.put("confidence_label", confidenceLabel);
         scoreBreakdown.put("preference_alignment", preferenceAlignment);
+        scoreBreakdown.put("recommendation_confidence", round(confidenceScore));
+        scoreBreakdown.put("confidence_reason", "Confidence is " + confidenceLabel + " because data completeness and ranking-source agreement support this decision.");
+        scoreBreakdown.put("scoring_version", SCORING_VERSION);
+        scoreBreakdown.put("decision_policy_version", DECISION_POLICY_VERSION);
+        scoreBreakdown.put("explanation_version", EXPLANATION_VERSION);
         scoreBreakdown.put("base_score", round(baseScore));
         scoreBreakdown.put("risk_adjustment", round(riskAdjustment));
 
@@ -569,17 +641,22 @@ public class RecommendationService {
                 round(finalScore),
                 categoryDecision.category,
                 preferenceAlignment,
+                round(confidenceScore),
+                "Confidence is " + confidenceLabel + " because data completeness and ranking-source agreement support this decision.",
+                SCORING_VERSION,
+                DECISION_POLICY_VERSION,
+                EXPLANATION_VERSION,
                 buildExplanationV3(
                         country,
-                        rankingScore,
-                        ieltsFitScore,
-                        confidenceScore,
-                        countryMatchScore,
-                        baseScore,
+                        countryPolicy,
+                        candidate.country,
+                        categoryDecision.category,
+                        effectiveRank.rank,
+                        targetRank,
+                        ieltsMargin,
+                        confidenceLabel,
                         riskAdjustment,
-                        finalScore,
                         preferenceAlignment,
-                        resolvedWeights,
                         categoryDecision.reason,
                         riskProfile
                 ),
@@ -715,7 +792,9 @@ public class RecommendationService {
             category = "target";
         }
 
-        if (ieltsScore != null && candidate.ieltsMin != null && ieltsScore + 1e-9 < candidate.ieltsMin) {
+        if (ieltsScore != null
+                && candidate.ieltsMin != null
+                && (candidate.ieltsMin - ieltsScore) >= IELTS_SHORTFALL_RISK_SHIFT_THRESHOLD) {
             category = shiftRiskier(category);
         }
         if (confidenceScore < VERY_LOW_CONFIDENCE_THRESHOLD) {
@@ -726,24 +805,87 @@ public class RecommendationService {
 
         String reason;
         if ("reach".equals(category)) {
-            reason = "Classified as Reach: rank #" + effectiveRank + " is materially stronger than your target #" + targetRank + ", so it is an ambitious option.";
+            reason = "Reach: rank #" + effectiveRank + " is clearly above your target level of #" + targetRank + ".";
         } else if ("safety".equals(category)) {
-            reason = "Classified as Safety: rank #" + effectiveRank + " is below your target threshold #" + targetRank + ", so it is a lower-risk option.";
+            reason = "Safety: rank #" + effectiveRank + " is comfortably below your target level of #" + targetRank + ".";
         } else {
-            reason = "Classified as Target: rank #" + effectiveRank + " sits close to your target #" + targetRank + ", so it is a balanced option.";
+            reason = "Target: rank #" + effectiveRank + " is close to your target level of #" + targetRank + ".";
         }
         Double margin = ieltsMargin(candidate.ieltsMin, ieltsScore);
         if (margin != null) {
-            if (margin < 0) {
-                reason += " IELTS is short by " + formatNumber(Math.abs(margin)) + ", which makes the category more aggressive.";
+            if (margin <= -IELTS_SHORTFALL_RISK_SHIFT_THRESHOLD) {
+                reason += " IELTS is short by " + formatNumber(Math.abs(margin)) + ", which makes it riskier.";
+            } else if (margin < 0) {
+                reason += " IELTS is slightly short by " + formatNumber(Math.abs(margin)) + ".";
             } else {
-                reason += " IELTS margin is " + formatNumber(margin) + ", which supports the application profile.";
+                reason += " IELTS margin is " + formatNumber(margin) + ".";
             }
         } else if (ieltsScore != null && candidate.ieltsMin == null) {
             reason += " IELTS requirement is missing, so confidence is reduced.";
         }
         if (confidenceScore < LOW_CONFIDENCE_THRESHOLD) {
-            reason += " Confidence is only " + formatNumber(confidenceScore) + "/100 due to incomplete or inconsistent data.";
+            reason += " Confidence is only " + formatNumber(confidenceScore) + "/100.";
+        }
+        return new CategoryDecision(category, reason);
+    }
+
+    private CategoryDecision classifyElitePoolCategory(
+            Candidate candidate,
+            Integer effectiveRank,
+            Integer targetRank,
+            Double ieltsScore,
+            String riskProfile,
+            PoolContext poolContext
+    ) {
+        String profile = normalizeRiskProfile(riskProfile);
+        double reachShare;
+        double targetShare;
+        switch (profile) {
+            case "conservative" -> {
+                reachShare = 0.2;
+                targetShare = 0.4;
+            }
+            case "aggressive" -> {
+                reachShare = 0.6;
+                targetShare = 0.25;
+            }
+            default -> {
+                reachShare = 0.4;
+                targetShare = 0.4;
+            }
+        }
+
+        int poolSize = Math.max(1, poolContext.poolSize());
+        int reachCutoff = Math.max(1, (int) Math.ceil(poolSize * reachShare));
+        int targetCutoff = Math.min(poolSize, reachCutoff + Math.max(1, (int) Math.ceil(poolSize * targetShare)));
+
+        String category;
+        String reason;
+        if (poolContext.position() < reachCutoff) {
+            category = "reach";
+            reason = "Reach: within this elite filtered pool, rank #" + effectiveRank
+                    + " sits in the most ambitious band for target #" + targetRank + ".";
+        } else if (poolContext.position() < targetCutoff) {
+            category = "target";
+            reason = "Target: within this elite filtered pool, rank #" + effectiveRank
+                    + " sits in the balanced middle band for target #" + targetRank + ".";
+        } else {
+            category = "safety";
+            reason = "Safety: within this elite filtered pool, rank #" + effectiveRank
+                    + " sits in the safer end of the shortlist for target #" + targetRank + ".";
+        }
+
+        Double margin = ieltsMargin(candidate.ieltsMin, ieltsScore);
+        if (margin != null) {
+            if (margin <= -IELTS_SHORTFALL_RISK_SHIFT_THRESHOLD) {
+                reason += " IELTS is short by " + formatNumber(Math.abs(margin)) + ", which makes it riskier.";
+            } else if (margin < 0) {
+                reason += " IELTS is slightly short by " + formatNumber(Math.abs(margin)) + ".";
+            } else {
+                reason += " IELTS margin is " + formatNumber(margin) + ".";
+            }
+        } else if (ieltsScore != null && candidate.ieltsMin == null) {
+            reason += " IELTS requirement is missing, so confidence is reduced.";
         }
         return new CategoryDecision(category, reason);
     }
@@ -790,6 +932,40 @@ public class RecommendationService {
         };
     }
 
+    private Map<Long, PoolContext> buildPoolContexts(
+            List<Candidate> candidates,
+            Integer targetRank,
+            String preferredRankingSource
+    ) {
+        if (targetRank == null || targetRank <= 0) {
+            return Map.of();
+        }
+
+        List<PoolRank> ranked = new ArrayList<>();
+        for (Candidate candidate : candidates) {
+            EffectiveRank effectiveRank = chooseEffectiveRank(candidate, preferredRankingSource);
+            if (effectiveRank.rank != null) {
+                ranked.add(new PoolRank(candidate, effectiveRank.rank));
+            }
+        }
+        if (ranked.isEmpty()) {
+            return Map.of();
+        }
+
+        ranked.sort(Comparator.comparing(PoolRank::rank).thenComparing(poolRank -> poolRank.candidate().canonicalUniversityId));
+        int maxRank = ranked.get(ranked.size() - 1).rank();
+        boolean elitePool = ranked.size() >= 4
+                && targetRank <= 200
+                && maxRank <= Math.round(targetRank * 0.5);
+
+        Map<Long, PoolContext> contexts = new LinkedHashMap<>();
+        for (int i = 0; i < ranked.size(); i++) {
+            PoolRank poolRank = ranked.get(i);
+            contexts.put(poolRank.candidate().canonicalUniversityId, new PoolContext(i, ranked.size(), elitePool));
+        }
+        return contexts;
+    }
+
     private Thresholds thresholdsForRiskProfile(String riskProfile) {
         return switch (normalizeRiskProfile(riskProfile)) {
             case "conservative" -> new Thresholds(
@@ -809,6 +985,14 @@ public class RecommendationService {
         return switch (cleaned) {
             case "conservative", "aggressive", "balanced" -> cleaned;
             default -> DEFAULT_RISK_PROFILE;
+        };
+    }
+
+    private String normalizeCountryPolicy(String countryPolicy) {
+        String cleaned = countryPolicy == null ? DEFAULT_COUNTRY_POLICY : countryPolicy.trim().toLowerCase(Locale.ROOT);
+        return switch (cleaned) {
+            case "hard_filter", "soft_preference" -> cleaned;
+            default -> DEFAULT_COUNTRY_POLICY;
         };
     }
 
@@ -838,12 +1022,12 @@ public class RecommendationService {
             return 55.0;
         }
         if (candidateCountry == null || candidateCountry.isBlank()) {
-            return 40.0;
+            return 25.0;
         }
         if (candidateCountry.equalsIgnoreCase(preferredCountry.trim())) {
             return 100.0;
         }
-        return 25.0;
+        return 10.0;
     }
 
     private String preferenceAlignment(Double countryMatchScore, Double riskAdjustment, String preferredCountry) {
@@ -1034,43 +1218,56 @@ public class RecommendationService {
 
     private String buildExplanationV3(
             String country,
-            Double rankingScore,
-            Double ieltsFitScore,
-            Double confidenceScore,
-            Double countryMatchScore,
-            double baseScore,
+            String countryPolicy,
+            String candidateCountry,
+            String category,
+            Integer effectiveRank,
+            Integer targetRank,
+            Double ieltsMargin,
+            String confidenceLabel,
             double riskAdjustment,
-            double finalScore,
             String preferenceAlignment,
-            Map<String, Double> weightsUsed,
             String categoryReason,
             String riskProfile
     ) {
-        List<String> baseBits = new ArrayList<>();
-        if (rankingScore != null) {
-            baseBits.add("ranking contributes " + formatScore(rankingScore));
+        List<String> fitBits = new ArrayList<>();
+        if (effectiveRank != null && targetRank != null) {
+            fitBits.add("rank #" + effectiveRank + " is judged against target #" + targetRank);
         }
-        if (ieltsFitScore != null) {
-            baseBits.add("IELTS fit contributes " + formatScore(ieltsFitScore));
+        if (ieltsMargin != null) {
+            if (ieltsMargin >= 0) {
+                fitBits.add("IELTS clears the requirement by " + formatNumber(ieltsMargin));
+            } else {
+                fitBits.add("IELTS is short by " + formatNumber(Math.abs(ieltsMargin)));
+            }
         }
-        if (confidenceScore != null) {
-            baseBits.add("confidence contributes " + formatScore(confidenceScore));
-        }
-
-        List<String> preferenceBits = new ArrayList<>();
         if (country != null && !country.isBlank()) {
-            preferenceBits.add("country match is " + formatScore(countryMatchScore) + " for preference " + country);
+            if ("hard_filter".equals(normalizeCountryPolicy(countryPolicy))) {
+                fitBits.add("country is filtered to " + country);
+            } else if (candidateCountry != null && candidateCountry.equalsIgnoreCase(country.trim())) {
+                fitBits.add("country matches " + country);
+            } else {
+                fitBits.add("country mismatch is tolerated as a soft preference");
+            }
         }
-        preferenceBits.add("preference alignment is " + preferenceAlignment);
-        preferenceBits.add("weights used " + weightsUsed);
+        if (confidenceLabel != null) {
+            fitBits.add("confidence is " + confidenceLabel);
+        }
 
-        String direction = riskAdjustment >= 0 ? "boosted" : "reduced";
-        return categoryReason
-                + " Base score " + String.join(", ", baseBits) + ", producing " + formatScore(baseScore) + " before scenario adjustment."
-                + " Preference impact: " + String.join(", ", preferenceBits) + "."
-                + " Risk adjustment: " + direction + " by " + formatScore(Math.abs(riskAdjustment))
-                + " due to the " + normalizeRiskProfile(riskProfile) + " profile favoring this category."
-                + " Final score is " + formatScore(finalScore) + ".";
+        StringBuilder explanation = new StringBuilder(categoryReason);
+        if (!fitBits.isEmpty()) {
+            explanation.append(" Recommended because ").append(String.join(", ", fitBits)).append(".");
+        }
+        if (Math.abs(riskAdjustment) >= 1.0) {
+            explanation.append(" The ")
+                    .append(normalizeRiskProfile(riskProfile))
+                    .append(" profile ")
+                    .append(riskAdjustment >= 0 ? "boosted" : "reduced")
+                    .append(" this ")
+                    .append(category)
+                    .append(" option.");
+        }
+        return explanation.toString();
     }
 
     private int safeLimit(Integer limit, int defaultValue) {
@@ -1118,5 +1315,11 @@ public class RecommendationService {
     }
 
     private record CategoryDecision(String category, String reason) {
+    }
+
+    private record PoolRank(Candidate candidate, Integer rank) {
+    }
+
+    private record PoolContext(int position, int poolSize, boolean elitePool) {
     }
 }

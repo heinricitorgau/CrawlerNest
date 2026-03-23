@@ -62,7 +62,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 | API 讀取層（唯讀 + 決策） | Spring Boot `/universities`、`/rankings`、`/admissions`、`/recommendations`、`/compare` | 已運行 | ~82% |
 | 品質與驗證 | lineage、欄位狀態、PostgreSQL 初始化驗證、JUnit、resume/checkpoint 驗證 | 進行中（可運行） | ~62% |
 | 低規節點運行策略 | Low-spec mode、資源保護、長時間運行與續跑準則 | 已定義（待工程化） | ~35% |
-| 分析與推薦 | 排名聚合、explainable comparison、recommendation v1 / v2 / v3、推薦 API | 已運作（第二版） | ~72% |
+| 分析與推薦 | 排名聚合、explainable comparison、recommendation v1 / v2 / v3、推薦 API | 已運作（第三版，已校準） | ~79% |
 | AutoEval 研究層 | extractor 評估、hard dataset、manual autoloop、keep/revert | 已運行 | ~65% |
 
 ---
@@ -184,9 +184,9 @@ CrawlerNest 可抽象為六層：
 
 提供跨榜單聚合、統計分析、特徵工程與決策輔助能力。
 
-### Layer 5：推薦層（已運作第一版）
+### Layer 5：推薦層（已運作第三版）
 
-提供規則篩選、可配置權重、IELTS / ranking explainable scoring、reach / target / safety 分類、comparison 決策說明；後續再演進至 Admission Probability 與 ML 精煉。
+提供規則篩選、可配置權重、IELTS / ranking explainable scoring、reach / target / safety 分類、comparison 決策說明；目前已完成 production-oriented calibration，讓 balanced / conservative / aggressive 在 elite-only pool 中仍能產生合理分布。後續再演進至 Admission Probability 與 ML 精煉。
 
 ### Layer 6：產品層（已運作 / 策略目標）
 
@@ -636,6 +636,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-23 | 完成 recommendation v2（reach / target / safety 分組決策） | 已完成 |
 | 2026-03-23 | 完成 PostgreSQL-only cutover，移除 runtime SQLite 依賴 | 已完成 |
 | 2026-03-23 | 完成 recommendation v3（hybrid deterministic scoring + preference weights + risk adjustment） | 已完成 |
+| 2026-03-24 | 完成 recommendation v3 production calibration（elite-pool category rebalance、較弱風險調整、confidence 與 category 解耦、API/CLI 對齊） | 已完成 |
 
 ### 13.4 未來階段規劃
 
@@ -668,7 +669,22 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 擴展層 | Admission ingestion | 規劃中 | structured + raw 雙軌擴展 |
 | 擴展層 | Program taxonomy | 規劃中 | 部門級與課程級分析基礎 |
 | 智能層 | Admission probability estimation | 規劃中 | 可解釋推薦關鍵特徵 |
-| 智能層 | Explainable decision engine（compare + recommend v1/v2/v3） | 已運作（第二版） | Rule + Weight + ML |
+| 智能層 | Explainable decision engine（compare + recommend v1/v2/v3） | 已運作（第三版，已校準） | Rule + Weight + ML |
+
+### 14.3 決策引擎校準快照（2026-03-24）
+
+以目前實際驗證過的 UK hard-filter pool、`targetRank=100`、`ielts=6.5` 為例：
+
+- `balanced`: `reach=2`, `target=2`, `safety=1`
+- `conservative`: `reach=1`, `target=2`, `safety=2`
+- `aggressive`: `reach=3`, `target=2`, `safety=0`
+
+這表示 decision engine 已從「技術上可運行」提升到「結果上較接近真人顧問」：
+
+- balanced 不再把所有 elite schools 全部塞進 `reach`
+- conservative 會明確增加 safety 權重與分類比例
+- aggressive 會增加 reach，但不再把頂尖學校大量推到 `100.0`
+- confidence 仍會影響解釋、排序與信心，但不再主導 category 扭曲
 | 研究層 | AutoEval / dataset evolution | 已運作 | 擴展至 normalization / recommendation |
 | 產品化層 | CLI explorer | 進行中 | 開發者與研究者主介面 |
 | 產品化層 | API / Web platform | 進行中（可運行） | 內部 decision API → 公開平台 |

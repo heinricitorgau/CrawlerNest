@@ -22,10 +22,10 @@ import os
 import unittest
 from unittest.mock import MagicMock, patch
 
-# Ensure parent directory is in path so imports resolve
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-import pytest
+try:
+    import pytest
+except ImportError:
+    pytest = None
 
 # ---------------------------------------------------------------------------
 # Constants shared by all tests
@@ -138,7 +138,6 @@ class TestQSRankingAPIMocked(unittest.TestCase):
 # Optional live integration test (skips automatically on any failure)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.integration
 def test_qs_live_endpoint_optional():
     """
     Makes a real HTTP request to the QS ranking API.
@@ -150,6 +149,9 @@ def test_qs_live_endpoint_optional():
     External ranking API endpoints change and retire over time; this test
     is intentionally lenient to avoid blocking CI on external failures.
     """
+    if pytest is None:
+        raise unittest.SkipTest("pytest is not installed; skipping optional live integration test")
+
     import requests
 
     try:
