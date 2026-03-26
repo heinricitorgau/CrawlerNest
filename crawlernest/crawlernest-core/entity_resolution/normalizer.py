@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html as _html
 import re
 import unicodedata
 
@@ -13,6 +14,12 @@ ABBREVIATION_MAP = {
     "univ.": "university",
     "dept": "department",
     "dept.": "department",
+    # Extended safe entries (Fix R1)
+    "sci": "science",
+    "natl": "national",
+    "coll": "college",
+    "engr": "engineering",
+    "intl": "international",
 }
 
 STOPWORDS = {
@@ -31,7 +38,9 @@ def normalize_university_name(name: str) -> str:
     if not name:
         return ""
 
-    s = _strip_accents(name).lower().strip()
+    # Fix R2: decode HTML entities (e.g. &amp; → &) before any other processing
+    s = _html.unescape(name)
+    s = _strip_accents(s).lower().strip()
     s = s.replace("&", " and ")
     s = re.sub(r"[\u2010-\u2015]", "-", s)
     s = re.sub(r"[^\w\s\u4e00-\u9fff-]", " ", s)

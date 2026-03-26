@@ -33,24 +33,24 @@ class UniversityControllerTest {
     @Test
     void testGetAllUniversities_ReturnsJsonList() throws Exception {
         UniversityDTO u1 = new UniversityDTO();
-        u1.setId(1L);
-        u1.setDisplayName("Test Uni");
+        u1.setCanonicalUniversityId(1L);
+        u1.setUniversityName("Test Uni");
         
         when(universityService.getAllUniversities(anyInt(), anyInt())).thenReturn(Arrays.asList(u1));
 
-        mockMvc.perform(get("/universities")
+        mockMvc.perform(get("/api/v1/universities")
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$[0].displayName").value("Test Uni"))
-                .andExpect(jsonPath("$[0].id").value(1));
+                .andExpect(jsonPath("$.data[0].universityName").value("Test Uni"))
+                .andExpect(jsonPath("$.data[0].canonicalUniversityId").value(1));
     }
 
     @Test
     void testGetUniversityById_NotFound_Returns404() throws Exception {
         when(universityService.getUniversityById(anyLong())).thenReturn(null);
 
-        mockMvc.perform(get("/universities/999"))
+        mockMvc.perform(get("/api/v1/universities/999"))
                 .andExpect(status().isNotFound());
     }
 }

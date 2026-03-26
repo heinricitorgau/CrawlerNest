@@ -296,6 +296,88 @@ def save_deferred_detail_list(path: Path, universities: Iterable[University], de
     return len(unique_rows)
 
 
+# ── Enrichment cooldown & retry helpers ─────────────────────────────────────
+
+class _JsOnlyPage(Exception):
+    """Raised when a detail page is a JS-rendered shell with no extractable text."""
+
+
+_FAILURE_COOLDOWN_HOURS: dict[str, float] = {
+    "http_403": 12.0,        # scaled: N * 12h, capped at _FAILURE_MAX_COOLDOWN_HOURS
+    "http_timeout": 2.0,
+    "http_error": 6.0,
+    "parse_no_signal": 24.0,
+    "js_only_permanent": float("inf"),  # never retry
+    "missing_canonical": float("inf"),  # never retry until re-seeded
+    "system_error": 1.0,
+}
+_FAILURE_MAX_COOLDOWN_HOURS: float = 72.0
+
+
+def _classify_enrichment_failure(exc: Exception) -> tuple[str, bool, float]:
+    """Return (failure_type, retryable, base_cooldown_hours) from an enrichment exception."""
+    if isinstance(exc, _JsOnlyPage):
+        return "js_only_permanent", False, float("inf")
+    name = type(exc).__name__
+    msg = str(exc)
+    if "Timeout" in name or "timeout" in msg.lower():
+        return "http_timeout", True, 2.0
+    if "HTTPError" in name:
+        return ("http_403", True, 12.0) if "403" in msg else ("http_error", True, 6.0)
+    if any(k in name for k in ("ConnectionError", "ChunkedEncoding", "RequestException")):
+        return "http_error", True, 6.0
+    if "No admission signal" in msg:
+        return "parse_no_signal", True, 24.0
+    if "Empty response" in msg:
+        return "http_403", True, 12.0  # most common root cause for empty body
+    return "system_error", True, 1.0
+
+
+def _is_in_cooldown(item: dict[str, Any], now: dt.datetime) -> bool:
+    """Return True if next_retry_at is set and still in the future."""
+    nr = item.get("next_retry_at")
+    if not nr:
+        return False
+    try:
+        nrdt = dt.datetime.fromisoformat(str(nr))
+        if nrdt.tzinfo is None:
+            nrdt = nrdt.replace(tzinfo=dt.timezone.utc)
+        return now < nrdt
+    except Exception:
+        return False
+
+
+def _migrate_deferred_item(item: dict[str, Any]) -> dict[str, Any]:
+    """Migrate v1 deferred item (uses `attempts`) to v2 schema (uses `failure_count`)."""
+    out: dict[str, Any] = {
+        "school_slug": str(item.get("school_slug") or "").strip(),
+        "path": str(item.get("path") or "").strip(),
+        "name": item.get("name"),
+        "rank": item.get("rank"),
+        "country": item.get("country"),
+        # Migrate: prefer failure_count; fall back to old attempts field
+        "failure_count": int(item.get("failure_count", item.get("attempts", 0))),
+    }
+    for field in ("last_failure_type", "last_attempt_at", "next_retry_at"):
+        if item.get(field) is not None:
+            out[field] = item[field]
+    return out
+
+
+def _write_deferred_file(path: Path, items: list[dict[str, Any]]) -> None:
+    """Write deferred items to disk, deduplicating by school_slug."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    deduped: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in items:
+        slug = str(item.get("school_slug") or "").strip()
+        if not slug or slug in seen:
+            continue
+        seen.add(slug)
+        deduped.append(item)
+    path.write_text(json.dumps(deduped, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def load_deferred_detail_list(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
@@ -307,19 +389,10 @@ def load_deferred_detail_list(path: Path) -> list[dict[str, Any]]:
     for item in data:
         if not isinstance(item, dict):
             continue
-        slug = str(item.get("school_slug") or "").strip()
-        path_v = str(item.get("path") or "").strip()
-        if not slug or not path_v:
+        migrated = _migrate_deferred_item(item)
+        if not migrated["school_slug"] or not migrated["path"]:
             continue
-        out.append(
-            {
-                "school_slug": slug,
-                "path": path_v,
-                "name": item.get("name"),
-                "rank": item.get("rank"),
-                "country": item.get("country"),
-            }
-        )
+        out.append(migrated)
     return out
 
 
@@ -358,13 +431,39 @@ def enrich_deferred_details(
     limit: int,
     request_delay: float,
     timeout: int,
-) -> tuple[int, int, int, int]:
+) -> tuple[int, int, int, int, int]:
+    """Enrich deferred university detail pages with cooldown/retry policy.
+
+    Returns:
+        (success, skipped_cooldown, failed, skipped_no_uid, remaining_count)
+    """
     rows = load_deferred_detail_list(deferred_file)
     if not rows:
-        return 0, 0, 0, 0
+        print("[info] No deferred items found — nothing to enrich.")
+        return 0, 0, 0, 0, 0
 
-    take = rows[: max(1, limit)] if limit > 0 else rows
-    rest = rows[len(take):]
+    now_utc = dt.datetime.now(dt.timezone.utc)
+
+    # Partition: items still in cooldown (skip) vs eligible to attempt
+    cooldown_items: list[dict[str, Any]] = []
+    eligible: list[dict[str, Any]] = []
+    for item in rows:
+        if _is_in_cooldown(item, now_utc):
+            nr = item.get("next_retry_at", "unknown")
+            slug = item.get("school_slug", "?")
+            print(f"[cooldown] skip {slug!r} — next retry at {nr}")
+            cooldown_items.append(item)
+        else:
+            eligible.append(item)
+
+    skipped_cooldown = len(cooldown_items)
+    take = eligible[: max(1, limit)] if limit > 0 else eligible
+    rest_eligible = eligible[len(take):]  # eligible but beyond --limit
+
+    if not take:
+        print(f"[info] All {len(rows)} deferred item(s) in cooldown — nothing to attempt this run.")
+        _write_deferred_file(deferred_file, rows)
+        return 0, skipped_cooldown, 0, 0, len(rows)
 
     if db_type != "postgres":
         raise ValueError("CrawlerNest is now PostgreSQL-only. Use db_type='postgres'.")
@@ -382,14 +481,15 @@ def enrich_deferred_details(
 
     success = 0
     failed = 0
-    skipped = 0
-    remaining: list[dict[str, Any]] = []
+    skipped_no_uid = 0
+    remaining_after_attempt: list[dict[str, Any]] = []
+    exhausted: list[dict[str, Any]] = []
+
     crawl_run_id = writer.start_crawl_run(
         source_name="QS",
         ranking_type="world",
         notes="detail enrichment from deferred list",
     )
-
     slug_to_uid = _resolve_university_ids_by_slugs(writer, [str(x.get("school_slug", "")) for x in take])
 
     try:
@@ -399,26 +499,37 @@ def enrich_deferred_details(
             path_v = str(item.get("path") or "").strip()
             if not slug or not path_v:
                 failed += 1
-                remaining.append(item)
+                remaining_after_attempt.append(item)
                 continue
 
             uid = slug_to_uid.get(slug)
             if uid is None:
-                skipped += 1
-                remaining.append(item)
+                skipped_no_uid += 1
+                print(f"[skip] {slug!r} — not found in DB (missing_canonical); moved to exhausted")
+                exhausted.append({
+                    **item,
+                    "failure_count": int(item.get("failure_count", 0)) + 1,
+                    "last_failure_type": "missing_canonical",
+                    "last_attempt_at": now_utc.isoformat(),
+                    "next_retry_at": None,
+                    "status": "missing_canonical",
+                })
                 continue
 
             try:
                 html = fetcher.fetch_university_detail(path_v)
                 if not html:
-                    failed += 1
-                    remaining.append(item)
-                    continue
+                    raise ValueError("Empty response (possible 403/redirect)")
+
+                # Pre-check: JS-rendered shell has very little extractable text
+                _plain = re.sub(r"<[^>]+>", "", html[:4000])
+                _plain = re.sub(r"\s+", " ", _plain).strip()
+                if len(_plain) < 200:
+                    raise _JsOnlyPage(f"JS-rendered shell ({len(_plain)} chars) for {slug!r}")
+
                 req = extractor.extract_requirements(html)
                 if not _has_admission_signal(req):
-                    failed += 1
-                    remaining.append(item)
-                    continue
+                    raise ValueError("No admission signal (gpa/ielts/toefl/gre/gmat) in parsed HTML")
 
                 raw_id = writer.insert_raw_record(
                     source_name="QS",
@@ -434,13 +545,46 @@ def enrich_deferred_details(
                 )
                 writer.insert_admission_requirements(uid, req, raw_id)
                 success += 1
-            except Exception:
+                print(f"[ok] enriched {slug!r}")
+
+            except Exception as _exc:
                 failed += 1
-                remaining.append(item)
+                failure_type, retryable, base_hours = _classify_enrichment_failure(_exc)
+                failure_count = int(item.get("failure_count", 0)) + 1
+
+                # Compute cooldown: http_403 scales with failure_count
+                if failure_type == "http_403":
+                    cooldown_h = min(base_hours * failure_count, _FAILURE_MAX_COOLDOWN_HOURS)
+                else:
+                    cooldown_h = base_hours
+
+                updated: dict[str, Any] = {
+                    **item,
+                    "failure_count": failure_count,
+                    "last_failure_type": failure_type,
+                    "last_attempt_at": now_utc.isoformat(),
+                }
+
+                if retryable and cooldown_h < float("inf"):
+                    next_retry = now_utc + dt.timedelta(hours=cooldown_h)
+                    updated["next_retry_at"] = next_retry.isoformat()
+                    retry_str = f"retry after {cooldown_h:.0f}h (next: {next_retry.strftime('%Y-%m-%d %H:%M UTC')})"
+                    remaining_after_attempt.append(updated)
+                else:
+                    updated["next_retry_at"] = None
+                    updated["status"] = failure_type
+                    retry_str = f"permanent — no retry ({failure_type})"
+                    exhausted.append(updated)
+
+                print(
+                    f"[warn] {slug!r} ({path_v!r})\n"
+                    f"       cause={type(_exc).__name__}: {_exc}\n"
+                    f"       class={failure_type} | {retry_str}"
+                )
 
             pct = int(i / max(1, total) * 100)
             filled = pct // 5
-            bar = "█" * filled + "░" * (20 - filled)
+            bar = "\u2588" * filled + "\u2591" * (20 - filled)
             print(f"\r  [{bar}] {pct:>3}%  {i}/{total} detail enrich", end="", flush=True)
 
         if total > 0:
@@ -459,21 +603,35 @@ def enrich_deferred_details(
             pass
         writer.close()
 
-    # Keep failed/skipped rows + untouched remainder for next run.
-    final_remaining = remaining + rest
-    deduped: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for item in final_remaining:
-        slug = str(item.get("school_slug") or "").strip()
-        if not slug or slug in seen:
-            continue
-        seen.add(slug)
-        deduped.append(item)
-    deferred_file.parent.mkdir(parents=True, exist_ok=True)
-    with deferred_file.open("w", encoding="utf-8") as f:
-        json.dump(deduped, f, ensure_ascii=False, indent=2)
+    # Rebuild deferred file: still-cooling items + retryable failures + eligible not yet attempted
+    final_deferred = cooldown_items + remaining_after_attempt + rest_eligible
+    _write_deferred_file(deferred_file, final_deferred)
 
-    return success, failed, skipped, len(deduped)
+    # Write exhausted items to separate file for manual inspection
+    if exhausted:
+        exhausted_file = deferred_file.parent / "exhausted_detail_enrichment.json"
+        existing_exhausted: list[dict[str, Any]] = []
+        if exhausted_file.exists():
+            try:
+                existing_exhausted = json.loads(exhausted_file.read_text(encoding="utf-8"))
+                if not isinstance(existing_exhausted, list):
+                    existing_exhausted = []
+            except Exception:
+                existing_exhausted = []
+        merged_ex: list[dict[str, Any]] = []
+        seen_ex: set[str] = set()
+        for ex_item in exhausted + existing_exhausted:
+            ex_slug = str(ex_item.get("school_slug") or "").strip()
+            if not ex_slug or ex_slug in seen_ex:
+                continue
+            seen_ex.add(ex_slug)
+            merged_ex.append(ex_item)
+        exhausted_file.write_text(json.dumps(merged_ex, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"[info] {len(exhausted)} exhausted item(s) written to {exhausted_file}")
+
+    return success, skipped_cooldown, failed, skipped_no_uid, len(final_deferred)
+
+
 
 
 def load_checkpoint(path: Path) -> set[str]:
@@ -1385,7 +1543,7 @@ def main() -> int:
         ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
 
         print("[1/2] Enriching deferred detail pages...")
-        success, failed, skipped, remaining = enrich_deferred_details(
+        success, skipped_cooldown, failed, skipped_no_uid, remaining = enrich_deferred_details(
             deferred_file=Path(args.deferred_details_file),
             db_type=args.db_type,
             pg_host=args.pg_host,
@@ -1398,7 +1556,10 @@ def main() -> int:
             timeout=args.timeout,
         )
         print("[2/2] Done.")
-        print(f"Enriched: {success}, Failed: {failed}, Skipped(no university): {skipped}")
+        print(
+            f"Attempted: {success + failed}  |  Enriched: {success}  |  Failed: {failed}  "
+            f"|  Cooldown-skipped: {skipped_cooldown}  |  No-DB-match: {skipped_no_uid}"
+        )
         print(f"Deferred remaining: {remaining}")
         print(f"Deferred file: {Path(args.deferred_details_file)}")
         return 0

@@ -8,8 +8,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/recommendations")
+@RequestMapping("/api/v1/recommendations")
 public class RecommendationController {
 
     private final RecommendationService recommendationService;
@@ -48,20 +50,20 @@ public class RecommendationController {
             Integer resolvedRankingYear = firstNonNull(rankingYear, rankingYearSnakeCase);
 
             if ("v1".equalsIgnoreCase(version)) {
-                return recommendationService.getRecommendations(
+                return clawer.dto.ApiResponse.success(recommendationService.getRecommendations(
                         country,
                         resolvedIelts,
                         resolvedTargetRank,
                         resolvedPreferredRankingSource,
                         resolvedRankingYear,
                         limit
-                );
+                ));
             }
             if ("v3".equalsIgnoreCase(version)) {
                 if (resolvedTargetRank == null) {
                     throw new IllegalArgumentException("targetRank is required for recommendation v3.");
                 }
-                return recommendationService.getRecommendationsV3(
+                clawer.model.RecommendationGroupResponse res = recommendationService.getRecommendationsV3(
                         country,
                         resolvedCountryPolicy,
                         resolvedIelts,
@@ -72,11 +74,16 @@ public class RecommendationController {
                         resolvedRankingYear,
                         limit
                 );
+                return clawer.dto.ApiResponse.success(Map.of(
+                        "reach", res.getReach(),
+                        "target", res.getTarget(),
+                        "safety", res.getSafety()
+                ), res.getMetadata());
             }
             if (resolvedTargetRank == null) {
                 throw new IllegalArgumentException("targetRank is required for recommendation v2.");
             }
-            return recommendationService.getRecommendationsV2(
+            clawer.model.RecommendationGroupResponse res = recommendationService.getRecommendationsV2(
                     country,
                     resolvedIelts,
                     resolvedTargetRank,
@@ -85,6 +92,11 @@ public class RecommendationController {
                     resolvedRankingYear,
                     limit
             );
+            return clawer.dto.ApiResponse.success(Map.of(
+                    "reach", res.getReach(),
+                    "target", res.getTarget(),
+                    "safety", res.getSafety()
+            ), res.getMetadata());
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
         }

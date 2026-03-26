@@ -45,7 +45,7 @@ class UniversityServiceTest {
         List<UniversityDTO> result = universityService.getAllUniversities(0, 20);
 
         assertEquals(2, result.size());
-        assertEquals("MIT", result.get(0).getDisplayName());
+        assertEquals("MIT", result.get(0).getUniversityName());
         verify(universityRepository, times(1)).findAll(PageRequest.of(0, 20));
     }
 
@@ -60,6 +60,6 @@ class UniversityServiceTest {
         UniversityDTO result = universityService.getUniversityById(1L);
 
         assertNotNull(result);
-        assertEquals("MIT", result.getDisplayName());
+        assertEquals("MIT", result.getUniversityName());
     }
 }

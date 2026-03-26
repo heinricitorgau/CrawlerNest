@@ -80,12 +80,20 @@ public class ComparisonService {
         comparison.put("universities", universities);
         comparison.put("ranking", ranking);
         comparison.put("ielts", ielts);
-        comparison.put("data_completeness", completeness);
+        comparison.put("dataCompleteness", completeness);
         comparison.put("sources", sources);
-        comparison.put("decision_factors", decisionFactors);
+        comparison.put("decisionFactors", decisionFactors);
+
+        Map<String, Object> betterUniv = null;
+        if (winner != null) {
+            betterUniv = Map.of(
+                "canonicalUniversityId", winner.canonicalUniversityId,
+                "universityName", winner.universityName
+            );
+        }
 
         return new UniversityComparisonResult(
-                winner == null ? "Tie" : winner.universityName,
+                betterUniv,
                 buildSummary(ordered, winner, ranking, ielts, completeness, sources),
                 ordered.stream().map(candidate -> candidate.universityName).toList(),
                 comparison
@@ -364,31 +372,31 @@ public class ComparisonService {
 
     private Map<String, Object> serializeUniversity(Candidate candidate) {
         Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("canonical_university_id", candidate.canonicalUniversityId);
+        payload.put("canonicalUniversityId", candidate.canonicalUniversityId);
         payload.put("country", candidate.country);
-        payload.put("aggregated_rank", candidate.aggregatedRank);
-        payload.put("aggregated_score", candidate.aggregatedScore);
-        payload.put("ielts_min", candidate.ieltsMin);
+        payload.put("aggregatedRank", candidate.aggregatedRank);
+        payload.put("aggregatedScore", candidate.aggregatedScore);
+        payload.put("ieltsMin", candidate.ieltsMin);
         Map<String, Object> sourceRanks = new LinkedHashMap<>();
         for (String source : SOURCE_ORDER) {
             if (candidate.sourceRanks.get(source) != null) {
                 sourceRanks.put(source, candidate.sourceRanks.get(source));
             }
         }
-        payload.put("source_ranks", sourceRanks);
-        payload.put("data_completeness", completenessSnapshot(candidate));
-        payload.put("aggregation_method_version", candidate.aggregationMethodVersion);
+        payload.put("sourceRanks", sourceRanks);
+        payload.put("dataCompleteness", completenessSnapshot(candidate));
+        payload.put("aggregationMethodVersion", candidate.aggregationMethodVersion);
         return payload;
     }
 
     private Map<String, Object> completenessSnapshot(Candidate candidate) {
         int availableSources = (int) SOURCE_ORDER.stream().filter(source -> candidate.sourceRanks.get(source) != null).count();
         Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("has_aggregated_rank", candidate.aggregatedRank != null);
-        payload.put("has_ielts_requirement", candidate.ieltsMin != null);
-        payload.put("available_source_count", availableSources);
-        payload.put("source_coverage_ratio", round((double) availableSources / SOURCE_ORDER.size()));
-        payload.put("coverage_ratio", round(candidate.coverageRatio));
+        payload.put("hasAggregatedRank", candidate.aggregatedRank != null);
+        payload.put("hasIeltsRequirement", candidate.ieltsMin != null);
+        payload.put("availableSourceCount", availableSources);
+        payload.put("sourceCoverageRatio", round((double) availableSources / SOURCE_ORDER.size()));
+        payload.put("coverageRatio", round(candidate.coverageRatio));
         return payload;
     }
 

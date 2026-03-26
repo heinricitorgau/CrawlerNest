@@ -1,2 +1,5 @@
 clawer/api/RecommendationControllerTest.class
+clawer/api/UniversityControllerTest.class
+clawer/service/UniversityServiceTest.class
 clawer/api/ComparisonControllerTest.class
+clawer/api/RankingApiIntegrationTest.class

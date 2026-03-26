@@ -1,30 +1,42 @@
 package clawer.dto;
 
 public class RankingDTO {
-    private String source;
-    private String type;
-    private Integer year;
-    private Integer rankStart;
-    private Integer rankEnd;
-    private Double score;
+    private Long canonicalUniversityId;
+    private String universityName;
+    private String country;
+    private Integer aggregatedRank;
+    private Double compositeScore;
+    private Integer rankingYear;
+    private String primarySource;
+    private Integer sourceCount;
+    private String slug;
 
     public RankingDTO() {}
 
-    public String getSource() { return source; }
-    public void setSource(String source) { this.source = source; }
+    public Long getCanonicalUniversityId() { return canonicalUniversityId; }
+    public void setCanonicalUniversityId(Long canonicalUniversityId) { this.canonicalUniversityId = canonicalUniversityId; }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public String getUniversityName() { return universityName; }
+    public void setUniversityName(String universityName) { this.universityName = universityName; }
 
-    public Integer getYear() { return year; }
-    public void setYear(Integer year) { this.year = year; }
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
 
-    public Integer getRankStart() { return rankStart; }
-    public void setRankStart(Integer rankStart) { this.rankStart = rankStart; }
+    public Integer getAggregatedRank() { return aggregatedRank; }
+    public void setAggregatedRank(Integer aggregatedRank) { this.aggregatedRank = aggregatedRank; }
 
-    public Integer getRankEnd() { return rankEnd; }
-    public void setRankEnd(Integer rankEnd) { this.rankEnd = rankEnd; }
+    public Double getCompositeScore() { return compositeScore; }
+    public void setCompositeScore(Double compositeScore) { this.compositeScore = compositeScore; }
 
-    public Double getScore() { return score; }
-    public void setScore(Double score) { this.score = score; }
+    public Integer getRankingYear() { return rankingYear; }
+    public void setRankingYear(Integer rankingYear) { this.rankingYear = rankingYear; }
+
+    public String getPrimarySource() { return primarySource; }
+    public void setPrimarySource(String primarySource) { this.primarySource = primarySource; }
+
+    public Integer getSourceCount() { return sourceCount; }
+    public void setSourceCount(Integer sourceCount) { this.sourceCount = sourceCount; }
+
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
 }

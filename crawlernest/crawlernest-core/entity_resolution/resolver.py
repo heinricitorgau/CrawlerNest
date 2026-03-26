@@ -154,11 +154,15 @@ class EntityResolver:
         token_sets = [self._token_inverted.get(tok, set()) for tok in tokenize_for_blocking(normalized_name)]
         token_union: set[int] = set().union(*token_sets) if token_sets else set(self._profiles_by_id.keys())
 
-        # Country blocking (if provided)
+        # Country blocking (if provided).
+        # Fix R3: if the intersection is empty (country stored in a different format),
+        # fall back to the full token_union rather than returning no candidates, which
+        # would force an unresolved result even for a strong name match.
         if record.country_hint:
             country_set = self._country_index.get(record.country_hint.strip().lower(), set())
             if country_set:
-                token_union = token_union.intersection(country_set) if token_union else country_set
+                narrowed = token_union.intersection(country_set) if token_union else country_set
+                token_union = narrowed if narrowed else token_union
 
         if not token_union:
             return []

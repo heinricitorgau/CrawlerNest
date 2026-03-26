@@ -16,7 +16,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,7 +40,7 @@ class ComparisonControllerTest {
         comparison.put("ranking", ranking);
 
         UniversityComparisonResult result = new UniversityComparisonResult(
-                "Oxford",
+                Map.of("canonicalUniversityId", 3L, "universityName", "Oxford"),
                 "Oxford ranks #3 overall versus LSE at #52, giving it a 49-place aggregated ranking advantage.",
                 List.of("Oxford", "LSE"),
                 comparison
@@ -48,13 +48,20 @@ class ComparisonControllerTest {
 
         when(comparisonService.compareUniversities(any(), eq(null))).thenReturn(result);
 
-        mockMvc.perform(get("/compare")
-                        .param("u1", "Oxford")
-                        .param("u2", "LSE")
+        String jsonPayload = """
+                {
+                    "leftUniversityId": 3,
+                    "rightUniversityId": 52
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/compare")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonPayload)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.better").value("Oxford"))
-                .andExpect(jsonPath("$.comparison.ranking.winner").value("Oxford"));
+                .andExpect(jsonPath("$.data.betterUniversity.universityName").value("Oxford"))
+                .andExpect(jsonPath("$.data.comparison.ranking.winner").value("Oxford"));
     }
 }

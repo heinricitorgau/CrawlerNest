@@ -37,7 +37,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 
 先建立可信任、可追溯、可擴充的資料平台，再在其上疊加分析、推薦與產品層能力。
 
-### 2.1 當前策略重點（V1.5）
+### 2.1 當前策略重點（V1.5+ / Website MVP）
 
 目前 CrawlerNest 的核心策略如下：
 
@@ -47,6 +47,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 4. **模組解耦**：crawler、extractor、normalization、db、analytics、API 彼此保持相對獨立
 5. **低規節點可運行**：系統設計必須能支援老舊 x86 節點作為第一代 OpenClaw / Lobster Node
 6. **合規優先加速**：在 robots.txt 與來源限制下，以本地解析並行、批次寫入、增量 checkpoint、局部更新等手段提升吞吐
+7. **產品層逐步落地**：在不破壞資料平台與 API 穩定性的前提下，逐步交付 Rankings Browser、University Detail 與 Recommendation Engine 等 Website MVP 能力
 
 ### 2.2 模組完成度地圖（截至 2026 年 3 月）
 
@@ -60,6 +61,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 | 實體識別 | 別名映射、人工校正、模糊比對基礎 | 進行中（可運行） | ~30% |
 | 儲存 / 資料倉層 | PostgreSQL-only schema、DB writer、analytics views、Spring Data JPA | 已運行 | ~86% |
 | API 讀取層（唯讀 + 決策） | Spring Boot `/universities`、`/rankings`、`/admissions`、`/recommendations`、`/compare` | 已運行 | ~82% |
+| Website MVP | Next.js Rankings Homepage、University Detail、Recommendation UI、同源 API proxy | 已運行 | ~78% |
 | 品質與驗證 | lineage、欄位狀態、PostgreSQL 初始化驗證、JUnit、resume/checkpoint 驗證 | 進行中（可運行） | ~62% |
 | 低規節點運行策略 | Low-spec mode、資源保護、長時間運行與續跑準則 | 已定義（待工程化） | ~35% |
 | 分析與推薦 | 排名聚合、explainable comparison、recommendation v1 / v2 / v3、推薦 API | 已運作（第三版，已校準） | ~79% |
@@ -93,7 +95,7 @@ CrawlerNest 的長期技術架構如下：
 graph TD
     subgraph "產品層"
         CLI[CLI 探索介面]
-        WEB[未來 Web / API 平台]
+        WEB[Website MVP / API 平台]
     end
 
     subgraph "協作與編排層"
@@ -153,9 +155,9 @@ B2C / B2B 產品化
 
 對應分期：
 
-- **當前（V1.5+）**：採集、正規化基線、PostgreSQL-only 資料平台、決策 API、AutoEval baseline
-- **下一階段（V2）**：多來源整合深化、實體識別升級、program-level analytics
-- **未來（V3+）**：LLM 輔助研究、公開 API、Web 平台、產品化
+- **當前（V1.5+）**：採集、正規化基線、PostgreSQL-only 資料平台、決策 API、Website MVP、AutoEval baseline
+- **下一階段（V2）**：多來源整合深化、實體識別升級、program-level analytics、產品層穩定化
+- **未來（V3+）**：LLM 輔助研究、公開 API、完整 Web 平台、產品化擴張
 
 ---
 
@@ -190,8 +192,8 @@ CrawlerNest 可抽象為六層：
 
 ### Layer 6：產品層（已運作 / 策略目標）
 
-- 現有：CLI、內部 API、comparison API、rule-based / hybrid recommendation API
-- 未來：Web UI、公開 API、B2C / B2B 產品介面
+- 現有：CLI、內部 API、comparison API、rule-based / hybrid recommendation API、Next.js Website MVP（Rankings / University Detail / Recommendations）
+- 未來：公開 API、B2C / B2B 產品介面、完整 Web decision platform
 
 分層目的在於：
 
@@ -550,17 +552,20 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
   - Python normalization baseline
   - CLI query
   - `crawlernest/run_pipeline.py`
-  - Java read-only API（`/universities`、`/rankings`、`/admissions`）
+  - Java read-only / decision API（`/universities`、`/rankings`、`/admissions`、`/recommendations`、`/compare`）
   - 初版實體映射
   - checkpoint / resume
   - resource guard
   - extractor AutoEval baseline
+  - Website MVP（`/` Rankings Browser、`/universities/[slug]`、`/recommendations`）
+  - Next.js same-origin API proxy（rankings / recommendations）
 
 - 開發中：
   - C 引擎原型
   - Java 服務測試自動化
   - Low-spec mode 工程化
   - normalization / identity resolution 提升
+  - rankings API 與 aggregation view 的持續穩定化
 
 ### 12.2 第二層：下一階段（V2）
 
@@ -582,7 +587,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 - Program / Degree 層推薦
 - LLM 輔助 admission 校驗
 - tuition / outcome / 第三方訊號整合
-- API 平台與 Web 產品
+- 公開 API 平台與完整 Web 產品
 
 ### 12.4 優先原則
 
@@ -602,6 +607,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 - **Milestone 2：知識基礎能力**（Canonical schema + school-level identity）
 - **Milestone 3：資料增強能力**（多榜單整合 + admission crawling + AutoEval）
 - **Milestone 4：智慧決策能力**（Hybrid recommendation + multi-level model）
+- **Milestone 5：Website MVP**（Rankings Browser + University Detail + Recommendation UI）
 
 ### 13.2 四年路線原則
 
@@ -637,6 +643,11 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-23 | 完成 PostgreSQL-only cutover，移除 runtime SQLite 依賴 | 已完成 |
 | 2026-03-23 | 完成 recommendation v3（hybrid deterministic scoring + preference weights + risk adjustment） | 已完成 |
 | 2026-03-24 | 完成 recommendation v3 production calibration（elite-pool category rebalance、較弱風險調整、confidence 與 category 解耦、API/CLI 對齊） | 已完成 |
+| 2026-03-25 | 完成官方 Next.js frontend 整併，確立單一 Website MVP app root（`crawlernest-web`） | 已完成 |
+| 2026-03-25 | 完成 Rankings Homepage、University Detail Page 與 Recommendation Engine 基本產品流程打通 | 已完成 |
+| 2026-03-26 | 完成 Recommendation Engine 同源 proxy 化（`/api/recommendations`），避免 browser-direct backend fetch 問題 | 已完成 |
+| 2026-03-26 | 完成 Rankings Browser 升級（pagination、page size、search、year/source controls、same-origin rankings proxy） | 已完成 |
+| 2026-03-26 | 完成 rankings API 排序與 aggregated source 修正，確保 aggregated rankings 以全域排序後再分頁 | 已完成 |
 
 ### 13.4 未來階段規劃
 
@@ -670,6 +681,8 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 擴展層 | Program taxonomy | 規劃中 | 部門級與課程級分析基礎 |
 | 智能層 | Admission probability estimation | 規劃中 | 可解釋推薦關鍵特徵 |
 | 智能層 | Explainable decision engine（compare + recommend v1/v2/v3） | 已運作（第三版，已校準） | Rule + Weight + ML |
+| 產品化層 | Website MVP（Rankings / Detail / Recommendations） | 已運作 | 演進為完整 decision-support product |
+| 產品化層 | Frontend API proxy 與瀏覽穩定性 | 已運作 | 擴展至更多 product APIs 與 caching 策略 |
 
 ### 14.3 決策引擎校準快照（2026-03-24）
 
@@ -685,9 +698,14 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 - conservative 會明確增加 safety 權重與分類比例
 - aggressive 會增加 reach，但不再把頂尖學校大量推到 `100.0`
 - confidence 仍會影響解釋、排序與信心，但不再主導 category 扭曲
+
+### 14.4 補充能力地圖
+
+| 能力層 | 能力項目 | 目前狀態 | 長期方向 |
+| :--- | :--- | :---: | :--- |
 | 研究層 | AutoEval / dataset evolution | 已運作 | 擴展至 normalization / recommendation |
 | 產品化層 | CLI explorer | 進行中 | 開發者與研究者主介面 |
-| 產品化層 | API / Web platform | 進行中（可運行） | 內部 decision API → 公開平台 |
+| 產品化層 | API / Web platform | 進行中（可運行） | 內部 decision API → 公開平台 / Web 平台 |
 
 ---
 

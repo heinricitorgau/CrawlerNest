@@ -67,7 +67,7 @@ class RecommendationControllerTest {
                 eq(10)
         )).thenReturn(response);
 
-        mockMvc.perform(get("/recommendations")
+        mockMvc.perform(get("/api/v1/recommendations")
                         .param("country", "United Kingdom")
                         .param("ielts", "6.5")
                         .param("targetRank", "100")
@@ -76,7 +76,7 @@ class RecommendationControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.target[0].category").value("target"))
+                .andExpect(jsonPath("$.data.target[0].category").value("target"))
                 .andExpect(jsonPath("$.metadata.risk_profile").value("balanced"));
     }
 
@@ -120,7 +120,7 @@ class RecommendationControllerTest {
                 eq(10)
         )).thenReturn(response);
 
-        mockMvc.perform(get("/recommendations")
+        mockMvc.perform(get("/api/v1/recommendations")
                         .param("country", "United Kingdom")
                         .param("ielts", "6.5")
                         .param("targetRank", "100")
@@ -130,9 +130,9 @@ class RecommendationControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.reach[0].preferenceAlignment").value("strong"))
-                .andExpect(jsonPath("$.reach[0].recommendationConfidence").value(88.0))
-                .andExpect(jsonPath("$.reach[0].scoringVersion").value("hybrid_scoring_v3"))
+                .andExpect(jsonPath("$.data.reach[0].preferenceAlignment").value("strong"))
+                .andExpect(jsonPath("$.data.reach[0].recommendationConfidence").value(88.0))
+                .andExpect(jsonPath("$.data.reach[0].scoringVersion").value("hybrid_scoring_v3"))
                 .andExpect(jsonPath("$.metadata.version").value("v3"));
     }
 
@@ -176,7 +176,7 @@ class RecommendationControllerTest {
                 eq(3)
         )).thenReturn(response);
 
-        mockMvc.perform(get("/recommendations")
+        mockMvc.perform(get("/api/v1/recommendations")
                         .param("country", "United Kingdom")
                         .param("country_policy", "hard_filter")
                         .param("ieltsScore", "6.5")
@@ -186,8 +186,8 @@ class RecommendationControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.safety[0].category").value("safety"))
-                .andExpect(jsonPath("$.safety[0].recommendationConfidence").value(81.0))
+                .andExpect(jsonPath("$.data.safety[0].category").value("safety"))
+                .andExpect(jsonPath("$.data.safety[0].recommendationConfidence").value(81.0))
                 .andExpect(jsonPath("$.metadata.version").value("v3"))
                 .andExpect(jsonPath("$.metadata.country_policy").value("hard_filter"))
                 .andExpect(jsonPath("$.metadata.risk_profile").value("conservative"));
@@ -195,7 +195,7 @@ class RecommendationControllerTest {
 
     @Test
     void testRecommendationsV3ReturnsBadRequestWhenTargetRankMissing() throws Exception {
-        mockMvc.perform(get("/recommendations")
+        mockMvc.perform(get("/api/v1/recommendations")
                         .param("country", "United Kingdom")
                         .param("ielts", "6.5")
                         .param("riskProfile", "balanced")

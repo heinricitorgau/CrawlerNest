@@ -1,37 +1,57 @@
 [
   {
     "school_slug": "massachusetts-institute-of-technology-mit",
+    "path": "/universities/massachusetts-institute-technology-mit",
     "name": "Massachusetts Institute of Technology (MIT)",
     "rank": "1",
     "country": "United States",
-    "path": "/universities/massachusetts-institute-technology-mit"
+    "failure_count": 2,
+    "last_failure_type": "http_403",
+    "last_attempt_at": "2026-03-25T15:07:43.588056+00:00",
+    "next_retry_at": "2026-03-26T15:07:43.588056+00:00"
   },
   {
     "school_slug": "imperial-college-london",
+    "path": "/universities/imperial-college-london",
     "name": "Imperial College London",
     "rank": "2",
     "country": "United Kingdom",
-    "path": "/universities/imperial-college-london"
+    "failure_count": 2,
+    "last_failure_type": "http_403",
+    "last_attempt_at": "2026-03-25T15:07:43.588056+00:00",
+    "next_retry_at": "2026-03-26T15:07:43.588056+00:00"
   },
   {
     "school_slug": "university-of-oxford",
+    "path": "/universities/university-oxford",
     "name": "University of Oxford",
     "rank": "3",
     "country": "United Kingdom",
-    "path": "/universities/university-oxford"
+    "failure_count": 2,
+    "last_failure_type": "http_403",
+    "last_attempt_at": "2026-03-25T15:07:43.588056+00:00",
+    "next_retry_at": "2026-03-26T15:07:43.588056+00:00"
   },
   {
     "school_slug": "harvard-university",
+    "path": "/universities/harvard-university",
     "name": "Harvard University",
     "rank": "4",
     "country": "United States",
-    "path": "/universities/harvard-university"
+    "failure_count": 2,
+    "last_failure_type": "http_403",
+    "last_attempt_at": "2026-03-25T15:07:43.588056+00:00",
+    "next_retry_at": "2026-03-26T15:07:43.588056+00:00"
   },
   {
     "school_slug": "university-of-cambridge",
+    "path": "/universities/university-cambridge",
     "name": "University of Cambridge",
     "rank": "5",
     "country": "United Kingdom",
-    "path": "/universities/university-cambridge"
+    "failure_count": 2,
+    "last_failure_type": "http_403",
+    "last_attempt_at": "2026-03-25T15:07:43.588056+00:00",
+    "next_retry_at": "2026-03-26T15:07:43.588056+00:00"
   }
 ]

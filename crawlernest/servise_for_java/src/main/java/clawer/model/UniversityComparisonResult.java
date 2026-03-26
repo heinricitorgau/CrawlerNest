@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 public class UniversityComparisonResult {
-    private String better;
+    private Map<String, Object> betterUniversity;
     private String summary;
     private List<String> order;
     private Map<String, Object> comparison;
@@ -12,19 +12,19 @@ public class UniversityComparisonResult {
     public UniversityComparisonResult() {
     }
 
-    public UniversityComparisonResult(String better, String summary, List<String> order, Map<String, Object> comparison) {
-        this.better = better;
+    public UniversityComparisonResult(Map<String, Object> betterUniversity, String summary, List<String> order, Map<String, Object> comparison) {
+        this.betterUniversity = betterUniversity;
         this.summary = summary;
         this.order = order;
         this.comparison = comparison;
     }
 
-    public String getBetter() {
-        return better;
+    public Map<String, Object> getBetterUniversity() {
+        return betterUniversity;
     }
 
-    public void setBetter(String better) {
-        this.better = better;
+    public void setBetterUniversity(Map<String, Object> betterUniversity) {
+        this.betterUniversity = betterUniversity;
     }
 
     public String getSummary() {
