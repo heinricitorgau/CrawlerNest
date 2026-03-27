@@ -23,6 +23,47 @@ CrawlerNest is built on a strict, decoupled 5-layer architecture:
 5.  **API (Product) Layer:** Java Spring Boot APIs and the Consumer Website.
 
 For a deep dive into the engineering principles, see the [Whitepaper](docs/foundation/Whitepaper.md).
+
+## How to Run the Web Platform (Website MVP)
+
+To start the full stack (Backend API + Frontend UI), follow these steps in two separate terminals:
+
+### 1. Start the Java Backend API
+The backend serves normalized university and ranking data.
+```bash
+cd crawlernest/servise_for_java
+./mvnw spring-boot:run
+```
+
+### 2. Start the Next.js Frontend
+The frontend provides the Rankings Browser and Recommendation UI.
+```bash
+cd crawlernest/crawlernest-web
+npm run dev
+```
+
+The application will be available at `http://localhost:3000`.
+
+---
+
+## How to Run the Data Pipeline (Crawler)
+
+The crawler fetches data from global sources like QS Rankings and populates the PostgreSQL database.
+
+### 1. Production-Safe Run (Recommended)
+This script runs the pipeline with conservative settings to avoid IP blocks and ensure high resilience.
+```bash
+bash crawlernest/scripts/run_production_safe.sh
+```
+
+### 2. Manual / Custom Pipeline Run
+You can also run the pipeline directly using Python for more control (e.g., limiting the number of universities for testing).
+```bash
+python3 run_pipeline.py run-qs-universes --ranking-year 2026 --limit 100 --pg-user test --pg-database clawer
+```
+
+---
+
 For engineering operations, API invariants, and testing logic, see the [Engineering Validation & Maintenance Guide](docs/foundation/TESTING_GUIDE.md).
 For the current repository map and working paths, see [Repository Structure](docs/REPO_STRUCTURE.md).
 

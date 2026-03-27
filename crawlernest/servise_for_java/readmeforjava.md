@@ -4,6 +4,19 @@ Java backend services for the **Clawer Education Data Platform**
 
 ---
 
+## 🚀 How to Run
+
+To start the Spring Boot API service:
+
+```bash
+cd crawlernest/servise_for_java
+./mvnw spring-boot:run
+```
+
+The API will be available at `http://localhost:8080`.
+
+---
+
 # Overview
 
 **Clawer** is a multi-layer data intelligence system designed to collect, normalize, analyze, and serve global university information such as:
