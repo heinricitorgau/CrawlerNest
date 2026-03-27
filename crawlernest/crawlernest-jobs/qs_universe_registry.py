@@ -27,6 +27,7 @@ QS_GLOBAL = QSUniverseSpec(
     universe_key="global",
     label="QS World University Rankings",
     ranking_id="3990755",
+    ranking_page_url="https://www.topuniversities.com/university-rankings/world-university-rankings",
     fetch_details=True,
     enable_aggregation=True,
 )
@@ -60,6 +61,27 @@ QS_REGION_SPECS: dict[str, QSUniverseSpec] = {
         label="QS Arab Region University Rankings",
         ranking_page_url="https://www.topuniversities.com/arab-region-university-rankings",
         region_name="Arab Region",
+    ),
+    "oceania": QSUniverseSpec(
+        universe_type="region",
+        universe_key="oceania",
+        label="QS Oceania University Rankings",
+        ranking_page_url="https://www.topuniversities.com/oceania-university-rankings",
+        region_name="Oceania",
+    ),
+    "africa": QSUniverseSpec(
+        universe_type="region",
+        universe_key="africa",
+        label="QS Africa University Rankings",
+        ranking_page_url="https://www.topuniversities.com/africa-university-rankings",
+        region_name="Africa",
+    ),
+    "north-america": QSUniverseSpec(
+        universe_type="region",
+        universe_key="north-america",
+        label="QS North America University Rankings",
+        ranking_page_url="https://www.topuniversities.com/north-america-university-rankings",
+        region_name="North America",
     ),
 }
 
@@ -131,3 +153,12 @@ def iter_all_qs_universes() -> Iterable[QSUniverseSpec]:
     yield from QS_REGION_SPECS.values()
     yield from QS_SUBJECT_SPECS.values()
     yield from QS_SPECIAL_SPECS.values()
+
+
+def iter_major_qs_universes() -> Iterable[QSUniverseSpec]:
+    """Yield only the global and major regional rankings."""
+    yield QS_GLOBAL
+    for key in ("europe", "asia", "latin-america", "oceania", "africa"):
+        spec = QS_REGION_SPECS.get(key)
+        if spec:
+            yield spec

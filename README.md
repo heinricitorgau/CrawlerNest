@@ -102,10 +102,12 @@ The repo currently has two layers:
 - outer workspace: docs, deployment assets, editor config, top-level project material
 - inner platform workspace: [`crawlernest/`](crawlernest) containing the runnable pipeline, backend, schema, and frontend
 
-Most day-to-day engineering work happens in:
+### 3. All-in-One Major Rankings Run
+This single command runs the World ranking and all 5 major regional rankings (Europe, Asia, Latin America, Oceania, Africa) sequentially in a continuous loop.
+```bash
+python3 run_pipeline.py run-qs-major --ranking-year 2026
+```
 
-- [`crawlernest/run_pipeline.py`](crawlernest/run_pipeline.py)
-- [`crawlernest/crawlernest-core/`](crawlernest/crawlernest-core)
-- [`crawlernest/crawlernest-schema/`](crawlernest/crawlernest-schema)
-- [`crawlernest/servise_for_java/`](crawlernest/servise_for_java)
-- [`crawlernest/crawlernest-web/`](crawlernest/crawlernest-web)
+---
+
+For engineering operations, API invariants, and testing logic, see the [Engineering Validation & Maintenance Guide](docs/foundation/TESTING_GUIDE.md).

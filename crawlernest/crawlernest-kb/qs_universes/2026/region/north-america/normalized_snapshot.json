@@ -1,0 +1,48 @@
+[
+  {
+    "university_name": "Massachusetts Institute of Technology (MIT)",
+    "country": "United States",
+    "rank": "1",
+    "score": "100",
+    "source": "QS",
+    "universe_type": "region",
+    "universe_key": "north-america",
+    "year": 2026,
+    "detail_url": "/universities/massachusetts-institute-technology-mit",
+    "table_metrics": {
+      "Overall Score": "100",
+      "Academic Reputation": "100",
+      "Citations per Faculty": "100",
+      "Faculty Student Ratio": "100",
+      "Employer Reputation": "100",
+      "Employment Outcomes": "100",
+      "International Student Ratio": "86.8",
+      "International Research Network": "96",
+      "International Faculty Ratio": "99.3",
+      "Sustainability Score": "99"
+    }
+  },
+  {
+    "university_name": "Harvard University",
+    "country": "United States",
+    "rank": "4",
+    "score": "96.8",
+    "source": "QS",
+    "universe_type": "region",
+    "universe_key": "north-america",
+    "year": 2026,
+    "detail_url": "/universities/harvard-university",
+    "table_metrics": {
+      "Overall Score": "96.8",
+      "Academic Reputation": "100",
+      "Citations per Faculty": "100",
+      "Faculty Student Ratio": "96.3",
+      "Employer Reputation": "100",
+      "Employment Outcomes": "100",
+      "International Student Ratio": "69",
+      "International Research Network": "99.6",
+      "International Faculty Ratio": "74.1",
+      "Sustainability Score": "84.4"
+    }
+  }
+]

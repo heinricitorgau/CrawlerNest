@@ -55,19 +55,20 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 
 | 模組 | 說明 | 狀態 | 完成度 |
 | :--- | :--- | :---: | :---: |
-| 最小端到端流程 | `crawlernest/run_pipeline.py`（crawl → normalize → store → query） | 已運行 | ~85% |
-| 採集 / 網路層 | 非同步請求、端點探測、分頁處理、保守抓取節流 | 進行中（可運行） | ~80% |
-| 解析 / 提取層 | 錄取要求、截止日、分數規則解析 | 進行中（可運行） | ~75% |
-| Python 正規化基線 | 國家標準化、數值安全轉換、驗證流程 | 進行中（可運行） | ~60% |
+| 最小端到端流程 | `crawlernest/run_pipeline.py`（crawl → normalize → store → query） | 已運行 | ~90% |
+| 長時間持續爬蟲 | 無限循環、KeyboardInterrupt 優雅關機、資料不遺失 | 已完成 | 100% |
+| 採集 / 網路層 | 非同步請求、端點探測、分頁處理、保守抓取節流 | 已運行 | ~85% |
+| 解析 / 提取層 | 錄取要求、截止日、分數規則解析 | 已運行 | ~80% |
+| Python 正規化基線 | 國家標準化、數值安全轉換、驗證流程 | 進行中 | ~75% |
 | C 正規化引擎 | 名稱 / 國家 / 排名 / 分數高效處理 | 開發中 | ~25% |
-| 實體識別 | 別名映射、人工校正、模糊比對基礎 | 進行中（可運行） | ~30% |
-| 儲存 / 資料倉層 | PostgreSQL-only schema、DB writer、analytics views、Spring Data JPA | 已運行 | ~90% |
-| API 讀取層（唯讀 + 決策） | Spring Boot `/universities`、`/rankings`、`/admissions`、`/recommendations`、`/compare` | 已運行 | ~88% |
-| Website MVP | Next.js Rankings Homepage、University Detail、Recommendation UI、同源 API proxy | 已運行 | ~82% |
-| 品質與驗證 | lineage、PostgreSQL 初始化驗證、JUnit、transaction rollback、early commit | 已運行 | ~85% |
-| 低規節點運行策略 | Low-spec mode、資源保護、`lobster-01` runtime workspace | 已完成 | 100% |
-| 分析與推薦 | 排名聚合、explainable comparison、recommendation v3 | 已運作 | ~85% |
-| AutoEval 研究層 | extractor 評估、hard dataset、manual autoloop、keep/revert | 已運行 | ~65% |
+| 實體識別 | 別名映射、人工校正、模糊比對基礎 | 進行中 | ~40% |
+| 儲存 / 資料倉層 | PostgreSQL-only schema、DB writer、analytics views、Spring Data JPA | 已完成 | ~95% |
+| API 讀取層（唯讀 + 決策） | Spring Boot `/universities`、`/rankings`、`/recommendations`、`/compare` | 已完成 | ~92% |
+| Website MVP | Next.js Rankings Homepage、University Detail、Recommendation UI、API Proxy | 已運行 | ~88% |
+| 品質與驗證 | transaction rollback、early commit、AutoEval baseline | 已運行 | ~90% |
+| 低規節點運行策略 | `lobster-01` runtime workspace、optimized scripts | 已完成 | 100% |
+| 分析與推薦 | 排名聚合、explainable comparison、recommendation v3 | 已運作 | ~90% |
+| AutoEval 研究層 | extractor 評估、hard dataset、manual autoloop | 已運行 | ~70% |
 
 ---
 
@@ -633,6 +634,9 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | **Web Product** | **Website MVP** | 已完成 | 交付包含排名首頁、大學詳情與推薦流程的 Next.js 前端。 |
 | **Web Product** | **Rankings Browser Upgrade**| 已完成 | 擴充為具備分頁、過濾與同源 API 代理的正式排名產品。 |
 | **Web Product** | **Decision-Support UX** | 已完成 | 加入分析標籤、推薦桶位與來源信任提示，支持決策引導。 |
+| **Data Platform**| **Regional Coverage Expansion**| 已完成 | 擴充 Oceania, Africa, North America 區域排名抓取。 |
+| **Pipeline** | **Continuous Resilience** | 已完成 | 實作無限循環與 KeyboardInterrupt (Ctrl+C) 優雅關機與儲存。 |
+| **Web Product** | **Live Data Polling** | 已完成 | 實現前端 Rankings Browser 即時輪詢後端資料更新。 |
 
 *詳細執行日誌：*
 
@@ -683,6 +687,10 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-27 | 完成 multi-universe aggregation 升級，讓 `global`、`region`、`subject` 各自產生獨立 aggregated truth | 已完成 |
 | 2026-03-27 | 完成 Europe universe hardening，加入 stable-entry-first、resolution cache 與 failure classification，降低 HTML-first 解析脆弱性 | 已完成 |
 | 2026-03-27 | 修復 region aggregated read correctness，堵住 latest view / read join row explosion，恢復 Europe rankings 一校一列 | 已完成 |
+| 2026-03-27 | 實做爬蟲無限循環與 KeyboardInterrupt (Ctrl+C) 優雅關機機制，確保資料即時入庫不遺失 | 已完成 |
+| 2026-03-28 | 擴充 QS 區域排名覆蓋（Oceania, Africa, North America），更新各區 NID 與 URL 映射 | 已完成 |
+| 2026-03-28 | 新增一鍵全自動抓取命令 `run-qs-major`，整合 Global 與五大區域排名任務 | 已完成 |
+| 2026-03-28 | 完成前端 Rankings Browser 即時輪詢 (Polling) 機制，確保爬蟲數據即時顯示 | 已完成 |
 
 ### 13.4 未來階段規劃
 

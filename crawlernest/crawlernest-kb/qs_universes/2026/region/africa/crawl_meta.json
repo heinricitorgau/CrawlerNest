@@ -11,13 +11,13 @@
   "subregion_id": "",
   "resolution_cache_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
   "universe": {
-    "universe_type": "global",
-    "universe_key": "global",
-    "label": "QS World University Rankings",
-    "ranking_id": "3990755",
-    "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
-    "region_name": null,
-    "fetch_details": true,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "label": "QS Africa University Rankings",
+    "ranking_id": null,
+    "ranking_page_url": "https://www.topuniversities.com/africa-university-rankings",
+    "region_name": "Africa",
+    "fetch_details": false,
     "enable_aggregation": true
   }
 }

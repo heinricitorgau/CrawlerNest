@@ -1,0 +1,25 @@
+[
+  {
+    "university_name": "The University of Melbourne",
+    "country": "Australia",
+    "rank": "13",
+    "score": "88.9",
+    "source": "QS",
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "year": 2026,
+    "detail_url": "/universities/university-melbourne",
+    "table_metrics": {
+      "Overall Score": "88.9",
+      "Academic Reputation": "98.5",
+      "Citations per Faculty": "93",
+      "Faculty Student Ratio": "15.4",
+      "Employer Reputation": "93.9",
+      "Employment Outcomes": "96.5",
+      "International Student Ratio": "99.8",
+      "International Research Network": "97.4",
+      "International Faculty Ratio": "95.1",
+      "Sustainability Score": "99.6"
+    }
+  }
+]

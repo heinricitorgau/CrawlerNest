@@ -306,9 +306,25 @@ function RankingsHomeContent() {
   const [error, setError] = useState<string | null>(null);
   const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const REFRESH_INTERVAL_MS = 30000; // 30 seconds
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Polling effect: increment refreshTrigger every 30s to trigger re-fetch
+  useEffect(() => {
+    if (!isMounted || loading) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setRefreshTrigger((prev) => prev + 1);
+    }, REFRESH_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [isMounted, loading]);
 
   useEffect(() => {
     setSearchInput(search);
@@ -363,7 +379,12 @@ function RankingsHomeContent() {
     let cancelled = false;
 
     async function loadRankings() {
-      setLoading(true);
+      // Only show loading skeleton on initial load or manual filter change
+      // Avoid flickering during background polling
+      const isPolling = refreshTrigger > 0 && !loading;
+      if (!isPolling) {
+        setLoading(true);
+      }
       setError(null);
 
       try {
@@ -411,7 +432,7 @@ function RankingsHomeContent() {
     return () => {
       cancelled = true;
     };
-  }, [page, pageSize, source, year, scope, region, search]);
+  }, [page, pageSize, source, year, scope, region, search, refreshTrigger]);
 
   const shortlistIds = useMemo(
     () => new Set(shortlist.map((item) => item.canonicalUniversityId)),

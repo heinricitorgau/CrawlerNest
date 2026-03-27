@@ -56,6 +56,7 @@ from qs_universe_crawlers import (  # noqa: E402
 from qs_universe_registry import (  # noqa: E402
     get_qs_universe_spec,
     iter_all_qs_universes,
+    iter_major_qs_universes,
 )
 from entity_resolution import EntityResolver  # noqa: E402
 from entity_resolution.repository import EntityResolutionRepository  # noqa: E402
@@ -1076,7 +1077,7 @@ def run_qs_universe_ingestion(
     pg_user: Optional[str],
     pg_password: Optional[str],
     output_dir: Path,
-) -> tuple[Any, list[University], list[Any]]:
+) -> tuple[Any, list[University], list[Any], bool]:
     spec, crawler = _build_qs_universe_crawler(
         universe_type,
         universe_key,
@@ -1166,7 +1167,7 @@ def run_qs_universe_ingestion(
             "aggregated_years": list(summary.years_aggregated),
         },
     )
-    return summary, normalized, standardized
+    return summary, normalized, standardized, crawler.interrupted
 
 
 def ingest_rankings_payload(
@@ -1552,7 +1553,11 @@ def build_parser() -> argparse.ArgumentParser:
         "run-qs-region",
         help="Run one QS regional ranking universe ingestion",
     )
-    qs_region_parser.add_argument("--region", required=True, choices=["europe", "asia", "latin-america", "arab-region"])
+    qs_region_parser.add_argument(
+        "--region",
+        required=True,
+        choices=["europe", "asia", "latin-america", "arab-region", "oceania", "africa", "north-america"],
+    )
     qs_region_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
     qs_region_parser.add_argument("--limit", type=int, default=100)
     qs_region_parser.add_argument("--workers", type=int, default=1)
@@ -1626,6 +1631,23 @@ def build_parser() -> argparse.ArgumentParser:
     qs_all_parser.add_argument("--pg-database", default="clawer")
     qs_all_parser.add_argument("--pg-user", default="test")
     qs_all_parser.add_argument("--pg-password", default="")
+
+    qs_major_parser = subparsers.add_parser(
+        "run-qs-major",
+        help="Run only the major QS ranking universes (Global + 5 Regions) independently",
+    )
+    qs_major_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
+    qs_major_parser.add_argument("--limit", type=int, default=100)
+    qs_major_parser.add_argument("--workers", type=int, default=1)
+    qs_major_parser.add_argument("--request-delay", type=float, default=10.0)
+    qs_major_parser.add_argument("--local-parse-workers", type=int, default=4)
+    qs_major_parser.add_argument("--use-async", action="store_true")
+    qs_major_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
+    qs_major_parser.add_argument("--pg-host", default="localhost")
+    qs_major_parser.add_argument("--pg-port", type=int, default=5432)
+    qs_major_parser.add_argument("--pg-database", default="clawer")
+    qs_major_parser.add_argument("--pg-user", default="test")
+    qs_major_parser.add_argument("--pg-password", default="")
 
     qs_universes_parser = subparsers.add_parser(
         "run-qs-universes",
@@ -1907,31 +1929,37 @@ def main() -> int:
             universe_type = "special"
             universe_key = args.special
 
-        summary, normalized, standardized = run_qs_universe_ingestion(
-            universe_type=universe_type,
-            universe_key=universe_key,
-            limit=args.limit,
-            ranking_year=args.ranking_year,
-            use_async=args.use_async,
-            workers=args.workers,
-            request_delay=args.request_delay,
-            local_parse_workers=args.local_parse_workers,
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-            output_dir=Path(args.output_dir),
-        )
-        print(
-            f"[qs-universe] {universe_type}/{universe_key} "
-            f"normalized={len(normalized)} standardized={len(standardized)} "
-            f"matched={summary.matched_count} unresolved={summary.unresolved_count} "
-            f"aggregated_years={summary.years_aggregated}"
-        )
+        while True:
+            summary, normalized, standardized, interrupted = run_qs_universe_ingestion(
+                universe_type=universe_type,
+                universe_key=universe_key,
+                limit=args.limit,
+                ranking_year=args.ranking_year,
+                use_async=args.use_async,
+                workers=args.workers,
+                request_delay=args.request_delay,
+                local_parse_workers=args.local_parse_workers,
+                pg_host=args.pg_host,
+                pg_port=args.pg_port,
+                pg_database=args.pg_database,
+                pg_user=args.pg_user,
+                pg_password=args.pg_password,
+                output_dir=Path(args.output_dir),
+            )
+            print(
+                f"[qs-universe] {universe_type}/{universe_key} "
+                f"normalized={len(normalized)} standardized={len(standardized)} "
+                f"matched={summary.matched_count} unresolved={summary.unresolved_count} "
+                f"aggregated_years={summary.years_aggregated}"
+            )
+            if interrupted:
+                print(f"\n[pipeline] Graceful shutdown completed for {universe_type}/{universe_key}. Exiting.")
+                break
+            print(f"\n--- [continuous] Completed pass for {universe_type}/{universe_key}. Starting next pass in 5s... ---")
+            time.sleep(5)
         return 0
 
-    if args.command in {"run-all-qs-universes", "run-qs-universes"}:
+    if args.command in {"run-all-qs-universes", "run-qs-universes", "run-qs-major"}:
         ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
         results: list[dict[str, Any]] = []
         failures = 0
@@ -1945,58 +1973,68 @@ def main() -> int:
                     selected_specs = [get_qs_universe_spec("global", "global")]
                 else:
                     raise SystemExit("--universe-key is required when --universe-type is not 'all' or 'global'")
+        elif args.command == "run-qs-major":
+            selected_specs = list(iter_major_qs_universes())
         else:
             selected_specs = list(iter_all_qs_universes())
 
-        total_specs = len(selected_specs)
-        for spec in selected_specs:
-            current_index = len(results) + 1
-            label = f"{spec.universe_type}/{spec.universe_key}"
-            print(f"\n=== [{current_index}/{total_specs}] Starting QS universe: {label} ===")
-            try:
-                summary, normalized, standardized = run_qs_universe_ingestion(
-                    universe_type=spec.universe_type,
-                    universe_key=spec.universe_key,
-                    limit=args.limit,
-                    ranking_year=args.ranking_year,
-                    use_async=args.use_async,
-                    workers=args.workers,
-                    request_delay=args.request_delay,
-                    local_parse_workers=args.local_parse_workers,
-                    pg_host=args.pg_host,
-                    pg_port=args.pg_port,
-                    pg_database=args.pg_database,
-                    pg_user=args.pg_user,
-                    pg_password=args.pg_password,
-                    output_dir=Path(args.output_dir),
-                )
-                results.append(
-                    {
-                        "universe_type": spec.universe_type,
-                        "universe_key": spec.universe_key,
-                        "normalized_count": len(normalized),
-                        "standardized_count": len(standardized),
-                        "matched_count": summary.matched_count,
-                        "unresolved_count": summary.unresolved_count,
-                        "aggregated_years": summary.years_aggregated,
-                    }
-                )
-                print(
-                    f"=== [{current_index}/{total_specs}] Completed QS universe: {label} | "
-                    f"normalized={len(normalized)} standardized={len(standardized)} "
-                    f"matched={summary.matched_count} unresolved={summary.unresolved_count} ==="
-                )
-            except Exception as exc:
-                failures += 1
-                results.append(
-                    {
-                        "universe_type": spec.universe_type,
-                        "universe_key": spec.universe_key,
-                        "error": str(exc),
-                    }
-                )
-                print(f"[warn] QS universe failed but pipeline continues: {spec.universe_type}/{spec.universe_key} -> {exc}")
-        print(json.dumps({"failures": failures, "results": results}, ensure_ascii=False, indent=2))
+        while True:
+            total_specs = len(selected_specs)
+            for spec in selected_specs:
+                current_index = len(results) + 1
+                label = f"{spec.universe_type}/{spec.universe_key}"
+                print(f"\n=== [{current_index}/{total_specs}] Starting QS universe: {label} ===")
+                try:
+                    summary, normalized, standardized, interrupted = run_qs_universe_ingestion(
+                        universe_type=spec.universe_type,
+                        universe_key=spec.universe_key,
+                        limit=args.limit,
+                        ranking_year=args.ranking_year,
+                        use_async=args.use_async,
+                        workers=args.workers,
+                        request_delay=args.request_delay,
+                        local_parse_workers=args.local_parse_workers,
+                        pg_host=args.pg_host,
+                        pg_port=args.pg_port,
+                        pg_database=args.pg_database,
+                        pg_user=args.pg_user,
+                        pg_password=args.pg_password,
+                        output_dir=Path(args.output_dir),
+                    )
+                    results.append(
+                        {
+                            "universe_type": spec.universe_type,
+                            "universe_key": spec.universe_key,
+                            "normalized_count": len(normalized),
+                            "standardized_count": len(standardized),
+                            "matched_count": summary.matched_count,
+                            "unresolved_count": summary.unresolved_count,
+                            "aggregated_years": summary.years_aggregated,
+                        }
+                    )
+                    print(
+                        f"=== [{current_index}/{total_specs}] Completed QS universe: {label} | "
+                        f"normalized={len(normalized)} standardized={len(standardized)} "
+                        f"matched={summary.matched_count} unresolved={summary.unresolved_count} ==="
+                    )
+                    if interrupted:
+                        print(f"\n[pipeline] Graceful shutdown completed for {label}. Stopping crawler loop.")
+                        print(json.dumps({"failures": failures, "results": results}, ensure_ascii=False, indent=2))
+                        return 0
+                except Exception as exc:
+                    failures += 1
+                    results.append(
+                        {
+                            "universe_type": spec.universe_type,
+                            "universe_key": spec.universe_key,
+                            "error": str(exc),
+                        }
+                    )
+                    print(f"[warn] QS universe failed but pipeline continues: {spec.universe_type}/{spec.universe_key} -> {exc}")
+            
+            print("\n--- [continuous] Completed full pass of all universes. Starting next pass in 30s... ---")
+            results = []  # Clear results for next pass summary
+            time.sleep(30)
         return 0
 
     if args.command == "recommend":

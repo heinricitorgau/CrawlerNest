@@ -106,6 +106,7 @@ class BaseQSUniverseCrawler:
         config = self.build_config()
         crawler = UniversityCrawler(config)
         universities = asyncio.run(crawler.crawl_async()) if self.use_async else crawler.crawl()
+        self.interrupted = getattr(crawler, "interrupted", False)
         if universities:
             _persist_resolution_cache(config)
         crawl_meta = {

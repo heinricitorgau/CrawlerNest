@@ -1,0 +1,32 @@
+[
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-cape-town",
+    "university_name": "University of Cape Town",
+    "country_hint": "South Africa",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 171,
+    "score": 50.0,
+    "source_url": "/universities/university-cape-town",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "50",
+        "Academic Reputation": "45.2",
+        "Citations per Faculty": "46.8",
+        "Faculty Student Ratio": "13.8",
+        "Employer Reputation": "51.8",
+        "Employment Outcomes": "95.8",
+        "International Student Ratio": "19.2",
+        "International Research Network": "97.3",
+        "International Faculty Ratio": "56.5",
+        "Sustainability Score": "95.6"
+      },
+      "universe_type": "region",
+      "universe_key": "africa"
+    }
+  }
+]
