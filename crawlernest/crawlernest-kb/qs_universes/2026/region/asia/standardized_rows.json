@@ -1,0 +1,3002 @@
+[
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-university-singapore-nus",
+    "university_name": "National University of Singapore (NUS)",
+    "country_hint": "Singapore",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 8,
+    "score": 93.7,
+    "source_url": "/universities/national-university-singapore-nus",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "93.7",
+        "Academic Reputation": "99.5",
+        "Citations per Faculty": "93.1",
+        "Faculty Student Ratio": "68.8",
+        "Employer Reputation": "91.1",
+        "Employment Outcomes": "100",
+        "International Student Ratio": "88.9",
+        "International Research Network": "91.6",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "97.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/peking-university",
+    "university_name": "Peking University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 14,
+    "score": 88.5,
+    "source_url": "/universities/peking-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "88.5",
+        "Academic Reputation": "99.5",
+        "Citations per Faculty": "97.7",
+        "Faculty Student Ratio": "92.6",
+        "Employer Reputation": "96.6",
+        "Employment Outcomes": "94.2",
+        "International Student Ratio": "23.6",
+        "International Research Network": "79.8",
+        "International Faculty Ratio": "50.3",
+        "Sustainability Score": "46.9"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/nanyang-technological-university-singapore-ntu-singapore",
+    "university_name": "Nanyang Technological University, Singapore (NTU Singapore)",
+    "country_hint": "Singapore",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 15,
+    "score": 88.4,
+    "source_url": "/universities/nanyang-technological-university-singapore-ntu-singapore",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "88.4",
+        "Academic Reputation": "91.9",
+        "Citations per Faculty": "92.4",
+        "Faculty Student Ratio": "80.6",
+        "Employer Reputation": "73.3",
+        "Employment Outcomes": "83.9",
+        "International Student Ratio": "83.5",
+        "International Research Network": "89.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "95.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-hong-kong",
+    "university_name": "The University of Hong Kong",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 17,
+    "score": 87.6,
+    "source_url": "/universities/university-hong-kong",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "87.6",
+        "Academic Reputation": "97.4",
+        "Citations per Faculty": "86.4",
+        "Faculty Student Ratio": "81.2",
+        "Employer Reputation": "59.4",
+        "Employment Outcomes": "99.7",
+        "International Student Ratio": "99.3",
+        "International Research Network": "81.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "89.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tsinghua-university",
+    "university_name": "Tsinghua University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 20,
+    "score": 86.5,
+    "source_url": "/universities/tsinghua-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "86.5",
+        "Academic Reputation": "99.2",
+        "Citations per Faculty": "99.1",
+        "Faculty Student Ratio": "95",
+        "Employer Reputation": "97.7",
+        "Employment Outcomes": "92.3",
+        "International Student Ratio": "13.4",
+        "International Research Network": "79.2",
+        "International Faculty Ratio": "18.1",
+        "Sustainability Score": "40.4"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/seoul-national-university",
+    "university_name": "Seoul National University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 31,
+    "score": 82.3,
+    "source_url": "/universities/seoul-national-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.3",
+        "Academic Reputation": "98.5",
+        "Citations per Faculty": "71.7",
+        "Faculty Student Ratio": "83.1",
+        "Employer Reputation": "98.6",
+        "Employment Outcomes": "100",
+        "International Student Ratio": "16.9",
+        "International Research Network": "73.2",
+        "International Faculty Ratio": "10.5",
+        "Sustainability Score": "96"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-tokyo",
+    "university_name": "The University of Tokyo",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 33,
+    "score": 82.1,
+    "source_url": "/universities/university-tokyo",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.1",
+        "Academic Reputation": "100",
+        "Citations per Faculty": "57.3",
+        "Faculty Student Ratio": "89.3",
+        "Employer Reputation": "99.8",
+        "Employment Outcomes": "99.9",
+        "International Student Ratio": "29.7",
+        "International Research Network": "87.4",
+        "International Faculty Ratio": "10.1",
+        "Sustainability Score": "98.3"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/chinese-university-hong-kong-cuhk",
+    "university_name": "The Chinese University of Hong Kong (CUHK)",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 36,
+    "score": 81.3,
+    "source_url": "/universities/chinese-university-hong-kong-cuhk",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.3",
+        "Academic Reputation": "86.7",
+        "Citations per Faculty": "92.9",
+        "Faculty Student Ratio": "64.2",
+        "Employer Reputation": "53.3",
+        "Employment Outcomes": "89",
+        "International Student Ratio": "87.5",
+        "International Research Network": "74.2",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "86.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/fudan-university",
+    "university_name": "Fudan University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 39,
+    "score": 80.3,
+    "source_url": "/universities/fudan-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.3",
+        "Academic Reputation": "85.7",
+        "Citations per Faculty": "80.7",
+        "Faculty Student Ratio": "79.7",
+        "Employer Reputation": "87.8",
+        "Employment Outcomes": "64.4",
+        "International Student Ratio": "35.1",
+        "International Research Network": "67.2",
+        "International Faculty Ratio": "88.4",
+        "Sustainability Score": "82.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/shanghai-jiao-tong-university",
+    "university_name": "Shanghai Jiao Tong University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 45,
+    "score": 77.8,
+    "source_url": "/universities/shanghai-jiao-tong-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.8",
+        "Academic Reputation": "84",
+        "Citations per Faculty": "99.6",
+        "Faculty Student Ratio": "58.6",
+        "Employer Reputation": "86.3",
+        "Employment Outcomes": "73.5",
+        "International Student Ratio": "19.6",
+        "International Research Network": "73.7",
+        "International Faculty Ratio": "23.1",
+        "Sustainability Score": "80.3"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hong-kong-university-science-technology",
+    "university_name": "The Hong Kong University of Science and Technology",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 47,
+    "score": 77.1,
+    "source_url": "/universities/hong-kong-university-science-technology",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.1",
+        "Academic Reputation": "81.1",
+        "Citations per Faculty": "99.7",
+        "Faculty Student Ratio": "56.7",
+        "Employer Reputation": "50.3",
+        "Employment Outcomes": "65.4",
+        "International Student Ratio": "95.4",
+        "International Research Network": "46.7",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "77.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/zhejiang-university",
+    "university_name": "Zhejiang University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 48,
+    "score": 77.1,
+    "source_url": "/universities/zhejiang-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.1",
+        "Academic Reputation": "75.3",
+        "Citations per Faculty": "99.5",
+        "Faculty Student Ratio": "54.7",
+        "Employer Reputation": "95.4",
+        "Employment Outcomes": "55.5",
+        "International Student Ratio": "15.9",
+        "International Research Network": "91.8",
+        "International Faculty Ratio": "95",
+        "Sustainability Score": "30.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kyoto-university",
+    "university_name": "Kyoto University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 50,
+    "score": 76.0,
+    "source_url": "/universities/kyoto-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "76",
+        "Academic Reputation": "98.8",
+        "Citations per Faculty": "39.3",
+        "Faculty Student Ratio": "94.2",
+        "Employer Reputation": "99",
+        "Employment Outcomes": "72.8",
+        "International Student Ratio": "19",
+        "International Research Network": "85.7",
+        "International Faculty Ratio": "15.9",
+        "Sustainability Score": "85.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kaist-korea-advanced-institute-science-technology",
+    "university_name": "KAIST - Korea Advanced Institute of Science & Technology",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 53,
+    "score": 75.7,
+    "source_url": "/universities/kaist-korea-advanced-institute-science-technology",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.7",
+        "Academic Reputation": "87.7",
+        "Citations per Faculty": "96.2",
+        "Faculty Student Ratio": "60.2",
+        "Employer Reputation": "91",
+        "Employment Outcomes": "63.3",
+        "International Student Ratio": "10.9",
+        "International Research Network": "46.8",
+        "International Faculty Ratio": "21.1",
+        "Sustainability Score": "60.3"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/yonsei-university",
+    "university_name": "Yonsei University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 56,
+    "score": 72.9,
+    "source_url": "/universities/yonsei-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.9",
+        "Academic Reputation": "81.5",
+        "Citations per Faculty": "44.1",
+        "Faculty Student Ratio": "84.2",
+        "Employer Reputation": "97",
+        "Employment Outcomes": "87.8",
+        "International Student Ratio": "51.2",
+        "International Research Network": "78.7",
+        "International Faculty Ratio": "20.7",
+        "Sustainability Score": "88.9"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hong-kong-polytechnic-university",
+    "university_name": "The Hong Kong Polytechnic University",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 57,
+    "score": 72.1,
+    "source_url": "/universities/hong-kong-polytechnic-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.1",
+        "Academic Reputation": "68",
+        "Citations per Faculty": "94.9",
+        "Faculty Student Ratio": "65",
+        "Employer Reputation": "35.6",
+        "Employment Outcomes": "64.5",
+        "International Student Ratio": "91.9",
+        "International Research Network": "78.9",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "77.4"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universiti-malaya-um",
+    "university_name": "Universiti Malaya (UM)",
+    "country_hint": "Malaysia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 60,
+    "score": 71.2,
+    "source_url": "/universities/universiti-malaya-um",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.2",
+        "Academic Reputation": "82.9",
+        "Citations per Faculty": "29.1",
+        "Faculty Student Ratio": "75.7",
+        "Employer Reputation": "95.1",
+        "Employment Outcomes": "69.3",
+        "International Student Ratio": "64.2",
+        "International Research Network": "91.8",
+        "International Faculty Ratio": "60.2",
+        "Sustainability Score": "83.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/city-university-hong-kong-cityuhk",
+    "university_name": "City University of Hong Kong (CityUHK)",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 62,
+    "score": 70.7,
+    "source_url": "/universities/city-university-hong-kong-cityuhk",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.7",
+        "Academic Reputation": "60.9",
+        "Citations per Faculty": "100",
+        "Faculty Student Ratio": "89.5",
+        "Employer Reputation": "30.8",
+        "Employment Outcomes": "37.5",
+        "International Student Ratio": "100",
+        "International Research Network": "62.9",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "72.9"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/korea-university",
+    "university_name": "Korea University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 67,
+    "score": 69.0,
+    "source_url": "/universities/korea-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69",
+        "Academic Reputation": "78.2",
+        "Citations per Faculty": "45",
+        "Faculty Student Ratio": "73",
+        "Employer Reputation": "93.8",
+        "Employment Outcomes": "89",
+        "International Student Ratio": "45.7",
+        "International Research Network": "65.7",
+        "International Faculty Ratio": "15.2",
+        "Sustainability Score": "85.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-taiwan-university-ntu",
+    "university_name": "National Taiwan University (NTU)",
+    "country_hint": "Taiwan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 68,
+    "score": 68.7,
+    "source_url": "/universities/national-taiwan-university-ntu",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "68.7",
+        "Academic Reputation": "93.4",
+        "Citations per Faculty": "44.3",
+        "Faculty Student Ratio": "25.5",
+        "Employer Reputation": "92.1",
+        "Employment Outcomes": "99.9",
+        "International Student Ratio": "27.4",
+        "International Research Network": "71.5",
+        "International Faculty Ratio": "16.7",
+        "Sustainability Score": "90"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tokyo-institute-technology-tokyo-tech",
+    "university_name": "Tokyo Institute of Technology (Tokyo Tech)",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 85,
+    "score": 63.7,
+    "source_url": "/universities/tokyo-institute-technology-tokyo-tech",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "63.7",
+        "Academic Reputation": "75.1",
+        "Citations per Faculty": "43.1",
+        "Faculty Student Ratio": "84.1",
+        "Employer Reputation": "94.1",
+        "Employment Outcomes": "23.7",
+        "International Student Ratio": "30.5",
+        "International Research Network": "61.2",
+        "International Faculty Ratio": "23.4",
+        "Sustainability Score": "62.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/osaka-university",
+    "university_name": "Osaka University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 86,
+    "score": 63.5,
+    "source_url": "/universities/osaka-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "63.5",
+        "Academic Reputation": "82.4",
+        "Citations per Faculty": "54.9",
+        "Faculty Student Ratio": "45.2",
+        "Employer Reputation": "87",
+        "Employment Outcomes": "33",
+        "International Student Ratio": "12.2",
+        "International Research Network": "68.2",
+        "International Faculty Ratio": "23.9",
+        "Sustainability Score": "68"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/pohang-university-science-technology-postech",
+    "university_name": "Pohang University of Science And Technology (POSTECH)",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 98,
+    "score": 60.3,
+    "source_url": "/universities/pohang-university-science-technology-postech",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "60.3",
+        "Academic Reputation": "45.9",
+        "Citations per Faculty": "96.9",
+        "Faculty Student Ratio": "99.9",
+        "Employer Reputation": "80",
+        "Employment Outcomes": "11",
+        "International Student Ratio": "2.7",
+        "International Research Network": "26.6",
+        "International Faculty Ratio": "27.6",
+        "Sustainability Score": "36.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kfupm",
+    "university_name": "KFUPM",
+    "country_hint": "Saudi Arabia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 101,
+    "score": 59.5,
+    "source_url": "/universities/kfupm",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "59.5",
+        "Academic Reputation": "38",
+        "Citations per Faculty": "78",
+        "Faculty Student Ratio": "86",
+        "Employer Reputation": "46.5",
+        "Employment Outcomes": "97.8",
+        "International Student Ratio": "47.6",
+        "International Research Network": "73.9",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "20.1"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tohoku-university",
+    "university_name": "Tohoku University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 107,
+    "score": 58.8,
+    "source_url": "/universities/tohoku-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "58.8",
+        "Academic Reputation": "73.8",
+        "Citations per Faculty": "23.9",
+        "Faculty Student Ratio": "97.8",
+        "Employer Reputation": "82.8",
+        "Employment Outcomes": "22.6",
+        "International Student Ratio": "11.4",
+        "International Research Network": "68.3",
+        "International Faculty Ratio": "14.1",
+        "Sustainability Score": "78.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indian-institute-technology-bombay-iitb",
+    "university_name": "Indian Institute of Technology Bombay (IITB)",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 118,
+    "score": 56.3,
+    "source_url": "/universities/indian-institute-technology-bombay-iitb",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "56.3",
+        "Academic Reputation": "58.5",
+        "Citations per Faculty": "79.1",
+        "Faculty Student Ratio": "14.4",
+        "Employer Reputation": "86",
+        "Employment Outcomes": "64.5",
+        "International Student Ratio": "1.3",
+        "International Research Network": "52.3",
+        "International Faculty Ratio": "4.3",
+        "Sustainability Score": "52.5"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/qatar-university",
+    "university_name": "Qatar University",
+    "country_hint": "Qatar",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 122,
+    "score": 55.7,
+    "source_url": "/universities/qatar-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "55.7",
+        "Academic Reputation": "29.8",
+        "Citations per Faculty": "48.2",
+        "Faculty Student Ratio": "68.1",
+        "Employer Reputation": "50.6",
+        "Employment Outcomes": "98.6",
+        "International Student Ratio": "96.5",
+        "International Research Network": "89.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "74"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/sungkyunkwan-university-skku",
+    "university_name": "Sungkyunkwan University (SKKU)",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 124,
+    "score": 55.5,
+    "source_url": "/universities/sungkyunkwan-university-skku",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "55.5",
+        "Academic Reputation": "57.9",
+        "Citations per Faculty": "41.3",
+        "Faculty Student Ratio": "80.5",
+        "Employer Reputation": "70.7",
+        "Employment Outcomes": "36.5",
+        "International Student Ratio": "41.7",
+        "International Research Network": "54.2",
+        "International Faculty Ratio": "17.5",
+        "Sustainability Score": "79.1"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-science-technology-china",
+    "university_name": "University of Science and Technology of China",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 135,
+    "score": 54.1,
+    "source_url": "/universities/university-science-technology-china",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "54.1",
+        "Academic Reputation": "50",
+        "Citations per Faculty": "97.7",
+        "Faculty Student Ratio": "94.7",
+        "Employer Reputation": "23.7",
+        "Employment Outcomes": "31.9",
+        "International Student Ratio": "5.1",
+        "International Research Network": "75.7",
+        "International Faculty Ratio": "11.6",
+        "Sustainability Score": "11.9"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universiti-kebangsaan-malaysia-ukm",
+    "university_name": "Universiti Kebangsaan Malaysia (UKM)",
+    "country_hint": "Malaysia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 138,
+    "score": 53.8,
+    "source_url": "/universities/universiti-kebangsaan-malaysia-ukm",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "53.8",
+        "Academic Reputation": "61.7",
+        "Citations per Faculty": "14.1",
+        "Faculty Student Ratio": "80.4",
+        "Employer Reputation": "66.4",
+        "Employment Outcomes": "22.5",
+        "International Student Ratio": "78.8",
+        "International Research Network": "83.7",
+        "International Faculty Ratio": "45.7",
+        "Sustainability Score": "64.4"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/nanjing-university",
+    "university_name": "Nanjing University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 145,
+    "score": 53.0,
+    "source_url": "/universities/nanjing-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "53",
+        "Academic Reputation": "57.1",
+        "Citations per Faculty": "93",
+        "Faculty Student Ratio": "35.6",
+        "Employer Reputation": "32.5",
+        "Employment Outcomes": "29",
+        "International Student Ratio": "7.6",
+        "International Research Network": "67.1",
+        "International Faculty Ratio": "61.9",
+        "Sustainability Score": "16.5"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universiti-sains-malaysia-usm",
+    "university_name": "Universiti Sains Malaysia (USM)",
+    "country_hint": "Malaysia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 146,
+    "score": 52.7,
+    "source_url": "/universities/universiti-sains-malaysia-usm",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "52.7",
+        "Academic Reputation": "63.3",
+        "Citations per Faculty": "19.6",
+        "Faculty Student Ratio": "46.4",
+        "Employer Reputation": "69.7",
+        "Employment Outcomes": "20.1",
+        "International Student Ratio": "96.4",
+        "International Research Network": "87.8",
+        "International Faculty Ratio": "24.3",
+        "Sustainability Score": "71.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universiti-putra-malaysia-upm",
+    "university_name": "Universiti Putra Malaysia (UPM)",
+    "country_hint": "Malaysia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 148,
+    "score": 52.3,
+    "source_url": "/universities/universiti-putra-malaysia-upm",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "52.3",
+        "Academic Reputation": "61",
+        "Citations per Faculty": "25.7",
+        "Faculty Student Ratio": "58.8",
+        "Employer Reputation": "61.9",
+        "Employment Outcomes": "17.5",
+        "International Student Ratio": "92",
+        "International Research Network": "80.5",
+        "International Faculty Ratio": "36.1",
+        "Sustainability Score": "53.5"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/king-abdulaziz-university-kau",
+    "university_name": "King Abdulaziz University (KAU)",
+    "country_hint": "Saudi Arabia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 149,
+    "score": 52.2,
+    "source_url": "/universities/king-abdulaziz-university-kau",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "52.2",
+        "Academic Reputation": "59.8",
+        "Citations per Faculty": "34.4",
+        "Faculty Student Ratio": "41.6",
+        "Employer Reputation": "61.4",
+        "Employment Outcomes": "35.9",
+        "International Student Ratio": "9.5",
+        "International Research Network": "93.1",
+        "International Faculty Ratio": "89.3",
+        "Sustainability Score": "58.4"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indian-institute-technology-delhi-iitd",
+    "university_name": "Indian Institute of Technology Delhi (IITD)",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 150,
+    "score": 52.1,
+    "source_url": "/universities/indian-institute-technology-delhi-iitd",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "52.1",
+        "Academic Reputation": "54.1",
+        "Citations per Faculty": "77.4",
+        "Faculty Student Ratio": "17.3",
+        "Employer Reputation": "80.9",
+        "Employment Outcomes": "35.1",
+        "International Student Ratio": "1.5",
+        "International Research Network": "63.3",
+        "International Faculty Ratio": "3.1",
+        "Sustainability Score": "32.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/nagoya-university",
+    "university_name": "Nagoya University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 153,
+    "score": 51.9,
+    "source_url": "/universities/nagoya-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "51.9",
+        "Academic Reputation": "63.2",
+        "Citations per Faculty": "25.4",
+        "Faculty Student Ratio": "84.7",
+        "Employer Reputation": "65.8",
+        "Employment Outcomes": "21.5",
+        "International Student Ratio": "19.6",
+        "International Research Network": "64.8",
+        "International Faculty Ratio": "14.5",
+        "Sustainability Score": "75"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hanyang-university",
+    "university_name": "Hanyang University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 162,
+    "score": 51.1,
+    "source_url": "/universities/hanyang-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "51.1",
+        "Academic Reputation": "43",
+        "Citations per Faculty": "28.5",
+        "Faculty Student Ratio": "77.1",
+        "Employer Reputation": "78",
+        "Employment Outcomes": "43.3",
+        "International Student Ratio": "57.6",
+        "International Research Network": "63",
+        "International Faculty Ratio": "17.4",
+        "Sustainability Score": "85.8"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/al-farabi-kazakh-national-university",
+    "university_name": "Al-Farabi Kazakh National University",
+    "country_hint": "Kazakhstan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 163,
+    "score": 51.0,
+    "source_url": "/universities/al-farabi-kazakh-national-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "51",
+        "Academic Reputation": "54.2",
+        "Citations per Faculty": "1.4",
+        "Faculty Student Ratio": "99.3",
+        "Employer Reputation": "79.6",
+        "Employment Outcomes": "59.6",
+        "International Student Ratio": "54.2",
+        "International Research Network": "64.7",
+        "International Faculty Ratio": "49",
+        "Sustainability Score": "29.8"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kyushu-university",
+    "university_name": "Kyushu University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 167,
+    "score": 50.3,
+    "source_url": "/universities/kyushu-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "50.3",
+        "Academic Reputation": "58.3",
+        "Citations per Faculty": "27.9",
+        "Faculty Student Ratio": "78.4",
+        "Employer Reputation": "66.5",
+        "Employment Outcomes": "15.1",
+        "International Student Ratio": "14.1",
+        "International Research Network": "69.9",
+        "International Faculty Ratio": "18.7",
+        "Sustainability Score": "77.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hokkaido-university",
+    "university_name": "Hokkaido University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 174,
+    "score": 49.8,
+    "source_url": "/universities/hokkaido-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "49.8",
+        "Academic Reputation": "59",
+        "Citations per Faculty": "26",
+        "Faculty Student Ratio": "76.2",
+        "Employer Reputation": "63.3",
+        "Employment Outcomes": "15.5",
+        "International Student Ratio": "12.1",
+        "International Research Network": "77.7",
+        "International Faculty Ratio": "18.7",
+        "Sustainability Score": "78.1"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universiti-teknologi-malaysia",
+    "university_name": "Universiti Teknologi Malaysia",
+    "country_hint": "Malaysia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 181,
+    "score": 48.5,
+    "source_url": "/universities/universiti-teknologi-malaysia",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "48.5",
+        "Academic Reputation": "48.6",
+        "Citations per Faculty": "40.5",
+        "Faculty Student Ratio": "46",
+        "Employer Reputation": "59.6",
+        "Employment Outcomes": "18",
+        "International Student Ratio": "86.9",
+        "International Research Network": "82.9",
+        "International Faculty Ratio": "14.1",
+        "Sustainability Score": "52.1"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/waseda-university",
+    "university_name": "Waseda University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 182,
+    "score": 48.5,
+    "source_url": "/universities/waseda-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "48.5",
+        "Academic Reputation": "60.7",
+        "Citations per Faculty": "3.8",
+        "Faculty Student Ratio": "23.5",
+        "Employer Reputation": "96.1",
+        "Employment Outcomes": "83.7",
+        "International Student Ratio": "28",
+        "International Research Network": "66.4",
+        "International Faculty Ratio": "27.9",
+        "Sustainability Score": "56.1"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hamad-bin-khalifa-university-hbku",
+    "university_name": "Hamad Bin Khalifa University (HBKU)",
+    "country_hint": "Qatar",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 183,
+    "score": 48.3,
+    "source_url": "/universities/hamad-bin-khalifa-university-hbku",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "48.3",
+        "Academic Reputation": "12.9",
+        "Citations per Faculty": "100",
+        "Faculty Student Ratio": "99.9",
+        "Employer Reputation": "4.7",
+        "Employment Outcomes": "6",
+        "International Student Ratio": "100",
+        "International Research Network": "74.3",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "2.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/keio-university",
+    "university_name": "Keio University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 188,
+    "score": 47.4,
+    "source_url": "/universities/keio-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "47.4",
+        "Academic Reputation": "53",
+        "Citations per Faculty": "5.1",
+        "Faculty Student Ratio": "57.2",
+        "Employer Reputation": "91.6",
+        "Employment Outcomes": "91.4",
+        "International Student Ratio": "10.2",
+        "International Research Network": "57.5",
+        "International Faculty Ratio": "9.4",
+        "Sustainability Score": "59"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tongji-university",
+    "university_name": "Tongji University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 192,
+    "score": 46.9,
+    "source_url": "/universities/tongji-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "46.9",
+        "Academic Reputation": "31.8",
+        "Citations per Faculty": "96.9",
+        "Faculty Student Ratio": "29.1",
+        "Employer Reputation": "16.9",
+        "Employment Outcomes": "24",
+        "International Student Ratio": "26.5",
+        "International Research Network": "72.9",
+        "International Faculty Ratio": "54.5",
+        "Sustainability Score": "81.4"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/wuhan-university",
+    "university_name": "Wuhan University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 195,
+    "score": 46.7,
+    "source_url": "/universities/wuhan-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "46.7",
+        "Academic Reputation": "39.2",
+        "Citations per Faculty": "91.9",
+        "Faculty Student Ratio": "14",
+        "Employer Reputation": "40.5",
+        "Employment Outcomes": "46.5",
+        "International Student Ratio": "4.9",
+        "International Research Network": "78.2",
+        "International Faculty Ratio": "39.2",
+        "Sustainability Score": "22.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/king-saud-university",
+    "university_name": "King Saud University",
+    "country_hint": "Saudi Arabia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 201,
+    "score": 46.2,
+    "source_url": "/universities/king-saud-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "46.2",
+        "Academic Reputation": "39.4",
+        "Citations per Faculty": "40",
+        "Faculty Student Ratio": "54.3",
+        "Employer Reputation": "28.7",
+        "Employment Outcomes": "99",
+        "International Student Ratio": "15",
+        "International Research Network": "95.1",
+        "International Faculty Ratio": "99.4",
+        "Sustainability Score": "33"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/khalifa-university",
+    "university_name": "Khalifa University",
+    "country_hint": "United Arab Emirates",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 202,
+    "score": 46.1,
+    "source_url": "/universities/khalifa-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "46.1",
+        "Academic Reputation": "22.7",
+        "Citations per Faculty": "60.7",
+        "Faculty Student Ratio": "80",
+        "Employer Reputation": "21",
+        "Employment Outcomes": "9.3",
+        "International Student Ratio": "78.9",
+        "International Research Network": "78.8",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "61.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universitas-indonesia",
+    "university_name": "Universitas Indonesia",
+    "country_hint": "Indonesia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 207,
+    "score": 45.7,
+    "source_url": "/universities/universitas-indonesia",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "45.7",
+        "Academic Reputation": "53.8",
+        "Citations per Faculty": "2.1",
+        "Faculty Student Ratio": "55.7",
+        "Employer Reputation": "79.2",
+        "Employment Outcomes": "77.3",
+        "International Student Ratio": "7.1",
+        "International Research Network": "37.2",
+        "International Faculty Ratio": "88.3",
+        "Sustainability Score": "32.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tel-aviv-university",
+    "university_name": "Tel Aviv University",
+    "country_hint": "Israel",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 209,
+    "score": 45.2,
+    "source_url": "/universities/tel-aviv-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "45.2",
+        "Academic Reputation": "32",
+        "Citations per Faculty": "99.4",
+        "Faculty Student Ratio": "4.2",
+        "Employer Reputation": "18.6",
+        "Employment Outcomes": "88.4",
+        "International Student Ratio": "7",
+        "International Research Network": "77.9",
+        "International Faculty Ratio": "39.7",
+        "Sustainability Score": "46.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-tsing-hua-university-nthu",
+    "university_name": "National Tsing Hua University - NTHU",
+    "country_hint": "Taiwan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 210,
+    "score": 45.1,
+    "source_url": "/universities/national-tsing-hua-university-nthu",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "45.1",
+        "Academic Reputation": "54.8",
+        "Citations per Faculty": "49.6",
+        "Faculty Student Ratio": "28",
+        "Employer Reputation": "71.2",
+        "Employment Outcomes": "16.3",
+        "International Student Ratio": "11.1",
+        "International Research Network": "45",
+        "International Faculty Ratio": "9.5",
+        "Sustainability Score": "32.1"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indian-institute-science",
+    "university_name": "Indian Institute of Science",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 211,
+    "score": 45.0,
+    "source_url": "/universities/indian-institute-science",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "45",
+        "Academic Reputation": "45.7",
+        "Citations per Faculty": "99.9",
+        "Faculty Student Ratio": "37.9",
+        "Employer Reputation": "26.3",
+        "Employment Outcomes": "13.1",
+        "International Student Ratio": "1.5",
+        "International Research Network": "39.1",
+        "International Faculty Ratio": "3.7",
+        "Sustainability Score": "23.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-cheng-kung-university-ncku",
+    "university_name": "National Cheng Kung University (NCKU)",
+    "country_hint": "Taiwan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 215,
+    "score": 44.2,
+    "source_url": "/universities/national-cheng-kung-university-ncku",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "44.2",
+        "Academic Reputation": "51.5",
+        "Citations per Faculty": "20.3",
+        "Faculty Student Ratio": "33.4",
+        "Employer Reputation": "74",
+        "Employment Outcomes": "42.4",
+        "International Student Ratio": "13.9",
+        "International Research Network": "58.7",
+        "International Faculty Ratio": "16.3",
+        "Sustainability Score": "83.8"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-yang-ming-chiao-tung-university-nycu-taiwan",
+    "university_name": "National Yang Ming Chiao Tung University (NYCU Taiwan)",
+    "country_hint": "Taiwan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 219,
+    "score": 43.9,
+    "source_url": "/universities/national-yang-ming-chiao-tung-university-nycu-taiwan",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "43.9",
+        "Academic Reputation": "32.9",
+        "Citations per Faculty": "52.7",
+        "Faculty Student Ratio": "51.1",
+        "Employer Reputation": "62.7",
+        "Employment Outcomes": "58.3",
+        "International Student Ratio": "19.2",
+        "International Research Network": "53.7",
+        "International Faculty Ratio": "19.6",
+        "Sustainability Score": "38.8"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indian-institute-technology-kharagpur-iit-kgp",
+    "university_name": "Indian Institute of Technology Kharagpur (IIT-KGP)",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 223,
+    "score": 43.7,
+    "source_url": "/universities/indian-institute-technology-kharagpur-iit-kgp",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "43.7",
+        "Academic Reputation": "34",
+        "Citations per Faculty": "90.2",
+        "Faculty Student Ratio": "9",
+        "Employer Reputation": "51.1",
+        "Employment Outcomes": "33",
+        "International Student Ratio": "1.1",
+        "International Research Network": "69.3",
+        "International Faculty Ratio": "1.1",
+        "Sustainability Score": "44.3"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indian-institute-technology-madras-iitm",
+    "university_name": "Indian Institute of Technology Madras (IITM)",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 227,
+    "score": 43.5,
+    "source_url": "/universities/indian-institute-technology-madras-iitm",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "43.5",
+        "Academic Reputation": "42.4",
+        "Citations per Faculty": "70.3",
+        "Faculty Student Ratio": "20.3",
+        "Employer Reputation": "63.2",
+        "Employment Outcomes": "27",
+        "International Student Ratio": "1.6",
+        "International Research Network": "37.5",
+        "International Faculty Ratio": "3.9",
+        "Sustainability Score": "44.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/chulalongkorn-university",
+    "university_name": "Chulalongkorn University",
+    "country_hint": "Thailand",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 229,
+    "score": 43.4,
+    "source_url": "/universities/chulalongkorn-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "43.4",
+        "Academic Reputation": "68.2",
+        "Citations per Faculty": "7.5",
+        "Faculty Student Ratio": "31.7",
+        "Employer Reputation": "35.9",
+        "Employment Outcomes": "93.6",
+        "International Student Ratio": "3",
+        "International Research Network": "79.6",
+        "International Faculty Ratio": "18.7",
+        "Sustainability Score": "73.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/gadjah-mada-university",
+    "university_name": "Gadjah Mada University",
+    "country_hint": "Indonesia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 239,
+    "score": 41.8,
+    "source_url": "/universities/gadjah-mada-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "41.8",
+        "Academic Reputation": "54.4",
+        "Citations per Faculty": "1.7",
+        "Faculty Student Ratio": "57.6",
+        "Employer Reputation": "73.5",
+        "Employment Outcomes": "69",
+        "International Student Ratio": "4.1",
+        "International Research Network": "38.1",
+        "International Faculty Ratio": "40.3",
+        "Sustainability Score": "26.8"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-macau",
+    "university_name": "University of Macau",
+    "country_hint": "Macau Sar",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 245,
+    "score": 41.1,
+    "source_url": "/universities/university-macau",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "41.1",
+        "Academic Reputation": "11.9",
+        "Citations per Faculty": "99.1",
+        "Faculty Student Ratio": "9.8",
+        "Employer Reputation": "10.5",
+        "Employment Outcomes": "50.3",
+        "International Student Ratio": "99.9",
+        "International Research Network": "57",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "7.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/american-university-beirut-aub",
+    "university_name": "American University of Beirut (AUB)",
+    "country_hint": "Lebanon",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 250,
+    "score": 40.6,
+    "source_url": "/universities/american-university-beirut-aub",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "40.6",
+        "Academic Reputation": "28.6",
+        "Citations per Faculty": "28.9",
+        "Faculty Student Ratio": "48.5",
+        "Employer Reputation": "29.5",
+        "Employment Outcomes": "97",
+        "International Student Ratio": "37",
+        "International Research Network": "73.1",
+        "International Faculty Ratio": "63.2",
+        "Sustainability Score": "80.5"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/taylors-university",
+    "university_name": "Taylor's University",
+    "country_hint": "Malaysia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 251,
+    "score": 40.5,
+    "source_url": "/universities/taylors-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "40.5",
+        "Academic Reputation": "27",
+        "Citations per Faculty": "10.1",
+        "Faculty Student Ratio": "71.5",
+        "Employer Reputation": "81",
+        "Employment Outcomes": "4.2",
+        "International Student Ratio": "99.6",
+        "International Research Network": "41.4",
+        "International Faculty Ratio": "64.8",
+        "Sustainability Score": "22.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/harbin-institute-technology",
+    "university_name": "Harbin Institute of Technology",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 252,
+    "score": 40.3,
+    "source_url": "/universities/harbin-institute-technology",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "40.3",
+        "Academic Reputation": "27.1",
+        "Citations per Faculty": "99.8",
+        "Faculty Student Ratio": "33.7",
+        "Employer Reputation": "21.1",
+        "Employment Outcomes": "28.3",
+        "International Student Ratio": "5",
+        "International Research Network": "68.6",
+        "International Faculty Ratio": "8",
+        "Sustainability Score": "14.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hong-kong-baptist-university",
+    "university_name": "Hong Kong Baptist University",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 253,
+    "score": 40.3,
+    "source_url": "/universities/hong-kong-baptist-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "40.3",
+        "Academic Reputation": "18.2",
+        "Citations per Faculty": "61.4",
+        "Faculty Student Ratio": "60",
+        "Employer Reputation": "12",
+        "Employment Outcomes": "15.7",
+        "International Student Ratio": "100",
+        "International Research Network": "37",
+        "International Faculty Ratio": "98.9",
+        "Sustainability Score": "54.4"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/institut-teknologi-bandung-itb",
+    "university_name": "Institut Teknologi Bandung (ITB)",
+    "country_hint": "Indonesia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 256,
+    "score": 39.9,
+    "source_url": "/universities/institut-teknologi-bandung-itb",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "39.9",
+        "Academic Reputation": "43.2",
+        "Citations per Faculty": "2.6",
+        "Faculty Student Ratio": "55.8",
+        "Employer Reputation": "72.7",
+        "Employment Outcomes": "49.2",
+        "International Student Ratio": "3.8",
+        "International Research Network": "26.3",
+        "International Faculty Ratio": "94.4",
+        "Sustainability Score": "37.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/united-arab-emirates-university",
+    "university_name": "United Arab Emirates University",
+    "country_hint": "United Arab Emirates",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 261,
+    "score": 39.4,
+    "source_url": "/universities/united-arab-emirates-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "39.4",
+        "Academic Reputation": "30.1",
+        "Citations per Faculty": "16.6",
+        "Faculty Student Ratio": "49.8",
+        "Employer Reputation": "38.3",
+        "Employment Outcomes": "82",
+        "International Student Ratio": "34.2",
+        "International Research Network": "86.2",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "36.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indian-institute-technology-kanpur-iitk",
+    "university_name": "Indian Institute of Technology Kanpur (IITK)",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 263,
+    "score": 39.3,
+    "source_url": "/universities/indian-institute-technology-kanpur-iitk",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "39.3",
+        "Academic Reputation": "36.9",
+        "Citations per Faculty": "73.3",
+        "Faculty Student Ratio": "14",
+        "Employer Reputation": "56.9",
+        "Employment Outcomes": "19.6",
+        "International Student Ratio": "1.1",
+        "International Research Network": "38.8",
+        "International Faculty Ratio": "2.6",
+        "Sustainability Score": "22"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ucsi-university",
+    "university_name": "UCSI University",
+    "country_hint": "Malaysia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 265,
+    "score": 38.8,
+    "source_url": "/universities/ucsi-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "38.8",
+        "Academic Reputation": "27",
+        "Citations per Faculty": "3.6",
+        "Faculty Student Ratio": "78.1",
+        "Employer Reputation": "65.1",
+        "Employment Outcomes": "10.2",
+        "International Student Ratio": "95.8",
+        "International Research Network": "37.6",
+        "International Faculty Ratio": "89.1",
+        "Sustainability Score": "27.9"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tianjin-university",
+    "university_name": "Tianjin University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 269,
+    "score": 38.6,
+    "source_url": "/universities/tianjin-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "38.6",
+        "Academic Reputation": "17.2",
+        "Citations per Faculty": "99.5",
+        "Faculty Student Ratio": "38.8",
+        "Employer Reputation": "13.5",
+        "Employment Outcomes": "32.4",
+        "International Student Ratio": "25.4",
+        "International Research Network": "65.2",
+        "International Faculty Ratio": "24.8",
+        "Sustainability Score": "16.9"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universiti-teknologi-petronas-utp",
+    "university_name": "Universiti Teknologi PETRONAS (UTP)",
+    "country_hint": "Malaysia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 270,
+    "score": 38.6,
+    "source_url": "/universities/universiti-teknologi-petronas-utp",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "38.6",
+        "Academic Reputation": "19.5",
+        "Citations per Faculty": "79",
+        "Faculty Student Ratio": "38.5",
+        "Employer Reputation": "28.1",
+        "Employment Outcomes": "4.1",
+        "International Student Ratio": "20.1",
+        "International Research Network": "63.9",
+        "International Faculty Ratio": "83.9",
+        "Sustainability Score": "18.4"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/beijing-normal-university",
+    "university_name": "Beijing Normal University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 271,
+    "score": 38.5,
+    "source_url": "/universities/beijing-normal-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "38.5",
+        "Academic Reputation": "33.9",
+        "Citations per Faculty": "92.6",
+        "Faculty Student Ratio": "24.2",
+        "Employer Reputation": "10.3",
+        "Employment Outcomes": "10.5",
+        "International Student Ratio": "21.3",
+        "International Research Network": "70.8",
+        "International Faculty Ratio": "6.6",
+        "Sustainability Score": "19.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ulsan-national-institute-science-technology-unist",
+    "university_name": "Ulsan National Institute of Science and Technology (UNIST)",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 280,
+    "score": 38.0,
+    "source_url": "/universities/ulsan-national-institute-science-technology-unist",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "38",
+        "Academic Reputation": "13.6",
+        "Citations per Faculty": "98.1",
+        "Faculty Student Ratio": "87.9",
+        "Employer Reputation": "13.5",
+        "Employment Outcomes": "3.3",
+        "International Student Ratio": "9.6",
+        "International Research Network": "24.8",
+        "International Faculty Ratio": "29.3",
+        "Sustainability Score": "16.1"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hebrew-university-jerusalem",
+    "university_name": "The Hebrew University of Jerusalem",
+    "country_hint": "Israel",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 281,
+    "score": 37.9,
+    "source_url": "/universities/hebrew-university-jerusalem",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "37.9",
+        "Academic Reputation": "32.8",
+        "Citations per Faculty": "19.4",
+        "Faculty Student Ratio": "79.3",
+        "Employer Reputation": "18.2",
+        "Employment Outcomes": "94.6",
+        "International Student Ratio": "23.8",
+        "International Research Network": "77.8",
+        "International Faculty Ratio": "53.2",
+        "Sustainability Score": "34.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/southern-university-science-technology-sustech",
+    "university_name": "Southern University of Science and Technology (SUSTech)",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 284,
+    "score": 37.3,
+    "source_url": "/universities/southern-university-science-technology-sustech",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "37.3",
+        "Academic Reputation": "9.3",
+        "Citations per Faculty": "98.8",
+        "Faculty Student Ratio": "89.7",
+        "Employer Reputation": "2.5",
+        "Employment Outcomes": "1.6",
+        "International Student Ratio": "1.4",
+        "International Research Network": "48.3",
+        "International Faculty Ratio": "37.5",
+        "Sustainability Score": "31.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/middle-east-technical-university",
+    "university_name": "Middle East Technical University",
+    "country_hint": "Turkey",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 285,
+    "score": 37.2,
+    "source_url": "/universities/middle-east-technical-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "37.2",
+        "Academic Reputation": "31.2",
+        "Citations per Faculty": "22.3",
+        "Faculty Student Ratio": "9",
+        "Employer Reputation": "70.2",
+        "Employment Outcomes": "77.5",
+        "International Student Ratio": "18.3",
+        "International Research Network": "74.7",
+        "International Faculty Ratio": "12",
+        "Sustainability Score": "69.5"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/xian-jiaotong-university",
+    "university_name": "Xi’an Jiaotong University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 295,
+    "score": 36.9,
+    "source_url": "/universities/xian-jiaotong-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "36.9",
+        "Academic Reputation": "19",
+        "Citations per Faculty": "89.5",
+        "Faculty Student Ratio": "14",
+        "Employer Reputation": "39.4",
+        "Employment Outcomes": "26.4",
+        "International Student Ratio": "3.8",
+        "International Research Network": "80.5",
+        "International Faculty Ratio": "3.9",
+        "Sustainability Score": "18.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/huazhong-university-science-technology",
+    "university_name": "Huazhong University of Science and Technology",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 300,
+    "score": 36.4,
+    "source_url": "/universities/huazhong-university-science-technology",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "36.4",
+        "Academic Reputation": "20.4",
+        "Citations per Faculty": "99.9",
+        "Faculty Student Ratio": "7.9",
+        "Employer Reputation": "28.2",
+        "Employment Outcomes": "17.6",
+        "International Student Ratio": "2.7",
+        "International Research Network": "79.4",
+        "International Faculty Ratio": "5.2",
+        "Sustainability Score": "15"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/beijing-institute-technology",
+    "university_name": "Beijing Institute of Technology",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 302,
+    "score": 35.9,
+    "source_url": "/universities/beijing-institute-technology",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "35.9",
+        "Academic Reputation": "23.2",
+        "Citations per Faculty": "82",
+        "Faculty Student Ratio": "43.4",
+        "Employer Reputation": "24.3",
+        "Employment Outcomes": "14.3",
+        "International Student Ratio": "6.7",
+        "International Research Network": "68.6",
+        "International Faculty Ratio": "5.7",
+        "Sustainability Score": "10.1"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universitas-airlangga",
+    "university_name": "Universitas Airlangga",
+    "country_hint": "Indonesia",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 308,
+    "score": 35.3,
+    "source_url": "/universities/universitas-airlangga",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "35.3",
+        "Academic Reputation": "37.1",
+        "Citations per Faculty": "1.5",
+        "Faculty Student Ratio": "57",
+        "Employer Reputation": "79.1",
+        "Employment Outcomes": "18.9",
+        "International Student Ratio": "6.7",
+        "International Research Network": "40.3",
+        "International Faculty Ratio": "58",
+        "Sustainability Score": "16.3"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/quaid-i-azam-university",
+    "university_name": "Quaid-i-Azam University",
+    "country_hint": "Pakistan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 315,
+    "score": 34.8,
+    "source_url": "/universities/quaid-i-azam-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "34.8",
+        "Academic Reputation": "17.3",
+        "Citations per Faculty": "93.6",
+        "Faculty Student Ratio": "3.2",
+        "Employer Reputation": "42.4",
+        "Employment Outcomes": "21",
+        "International Student Ratio": "1.9",
+        "International Research Network": "65",
+        "International Faculty Ratio": "7",
+        "Sustainability Score": "3.4"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/shandong-university",
+    "university_name": "Shandong University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 317,
+    "score": 34.7,
+    "source_url": "/universities/shandong-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "34.7",
+        "Academic Reputation": "16.6",
+        "Citations per Faculty": "88.2",
+        "Faculty Student Ratio": "16.7",
+        "Employer Reputation": "35.5",
+        "Employment Outcomes": "20.7",
+        "International Student Ratio": "3.1",
+        "International Research Network": "64.1",
+        "International Faculty Ratio": "8.2",
+        "Sustainability Score": "19.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ln-gumilyov-eurasian-national-university-enu",
+    "university_name": "L.N. Gumilyov Eurasian National University (ENU)",
+    "country_hint": "Kazakhstan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 321,
+    "score": 34.2,
+    "source_url": "/universities/ln-gumilyov-eurasian-national-university-enu",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "34.2",
+        "Academic Reputation": "34.4",
+        "Citations per Faculty": "1.4",
+        "Faculty Student Ratio": "92.6",
+        "Employer Reputation": "62",
+        "Employment Outcomes": "5.5",
+        "International Student Ratio": "8.2",
+        "International Research Network": "22.8",
+        "International Faculty Ratio": "68.7",
+        "Sustainability Score": "10.5"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/daegu-gyeongbuk-institute-science-technology-dgist",
+    "university_name": "Daegu Gyeongbuk Institute of Science and Technology (DGIST)",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 326,
+    "score": 34.0,
+    "source_url": "/universities/daegu-gyeongbuk-institute-science-technology-dgist",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "34",
+        "Academic Reputation": "10.5",
+        "Citations per Faculty": "99.9",
+        "Faculty Student Ratio": "84.1",
+        "Employer Reputation": "11.8",
+        "Employment Outcomes": "2.7",
+        "International Student Ratio": "3.3",
+        "International Research Network": "12.3",
+        "International Faculty Ratio": "6.6",
+        "Sustainability Score": "3.1"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/istanbul-technical-university",
+    "university_name": "Istanbul Technical University",
+    "country_hint": "Turkey",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 327,
+    "score": 34.0,
+    "source_url": "/universities/istanbul-technical-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "34",
+        "Academic Reputation": "27",
+        "Citations per Faculty": "17",
+        "Faculty Student Ratio": "9.7",
+        "Employer Reputation": "67.2",
+        "Employment Outcomes": "69.1",
+        "International Student Ratio": "19.8",
+        "International Research Network": "76.1",
+        "International Faculty Ratio": "8.3",
+        "Sustainability Score": "70.3"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kyung-hee-university",
+    "university_name": "Kyung Hee University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 328,
+    "score": 33.8,
+    "source_url": "/universities/kyung-hee-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "33.8",
+        "Academic Reputation": "23.2",
+        "Citations per Faculty": "15.1",
+        "Faculty Student Ratio": "82.1",
+        "Employer Reputation": "37.1",
+        "Employment Outcomes": "13.8",
+        "International Student Ratio": "53.4",
+        "International Research Network": "54.5",
+        "International Faculty Ratio": "14.3",
+        "Sustainability Score": "80.5"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-delhi",
+    "university_name": "University of Delhi",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 330,
+    "score": 33.8,
+    "source_url": "/universities/university-delhi",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "33.8",
+        "Academic Reputation": "38.1",
+        "Citations per Faculty": "25.9",
+        "Faculty Student Ratio": "4.3",
+        "Employer Reputation": "35.3",
+        "Employment Outcomes": "96",
+        "International Student Ratio": "1.5",
+        "International Research Network": "75.1",
+        "International Faculty Ratio": "1.3",
+        "Sustainability Score": "70.6"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/sun-yat-sen-university",
+    "university_name": "Sun Yat-sen University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 331,
+    "score": 33.7,
+    "source_url": "/universities/sun-yat-sen-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "33.7",
+        "Academic Reputation": "31.8",
+        "Citations per Faculty": "49.5",
+        "Faculty Student Ratio": "46.4",
+        "Employer Reputation": "28.8",
+        "Employment Outcomes": "21.4",
+        "International Student Ratio": "3.6",
+        "International Research Network": "77.4",
+        "International Faculty Ratio": "2.2",
+        "Sustainability Score": "15.9"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/american-university-sharjah",
+    "university_name": "American University of Sharjah",
+    "country_hint": "United Arab Emirates",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 332,
+    "score": 33.6,
+    "source_url": "/universities/american-university-sharjah",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "33.6",
+        "Academic Reputation": "20.9",
+        "Citations per Faculty": "23.9",
+        "Faculty Student Ratio": "19.1",
+        "Employer Reputation": "38.6",
+        "Employment Outcomes": "48",
+        "International Student Ratio": "100",
+        "International Research Network": "48.1",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "16.5"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indian-institute-technology-roorkee-iitr",
+    "university_name": "Indian Institute of Technology Roorkee (IITR)",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 335,
+    "score": 33.4,
+    "source_url": "/universities/indian-institute-technology-roorkee-iitr",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "33.4",
+        "Academic Reputation": "19.4",
+        "Citations per Faculty": "93.8",
+        "Faculty Student Ratio": "6.8",
+        "Employer Reputation": "29",
+        "Employment Outcomes": "6.4",
+        "International Student Ratio": "2",
+        "International Research Network": "44.3",
+        "International Faculty Ratio": "1.3",
+        "Sustainability Score": "37.9"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/sichuan-university",
+    "university_name": "Sichuan University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 338,
+    "score": 33.3,
+    "source_url": "/universities/sichuan-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "33.3",
+        "Academic Reputation": "20.4",
+        "Citations per Faculty": "98.5",
+        "Faculty Student Ratio": "10.3",
+        "Employer Reputation": "12.3",
+        "Employment Outcomes": "12.9",
+        "International Student Ratio": "4.9",
+        "International Research Network": "71.3",
+        "International Faculty Ratio": "7.1",
+        "Sustainability Score": "11"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-philippines",
+    "university_name": "University of the Philippines",
+    "country_hint": "Philippines",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 339,
+    "score": 33.3,
+    "source_url": "/universities/university-philippines",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "33.3",
+        "Academic Reputation": "36.3",
+        "Citations per Faculty": "1.9",
+        "Faculty Student Ratio": "31.1",
+        "Employer Reputation": "65.3",
+        "Employment Outcomes": "65.6",
+        "International Student Ratio": "1.1",
+        "International Research Network": "60.9",
+        "International Faculty Ratio": "1.6",
+        "Sustainability Score": "67.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/sharif-university-technology",
+    "university_name": "Sharif University of Technology",
+    "country_hint": "Iran",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 343,
+    "score": 33.0,
+    "source_url": "/universities/sharif-university-technology",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "33",
+        "Academic Reputation": "11.5",
+        "Citations per Faculty": "99.9",
+        "Faculty Student Ratio": "5.1",
+        "Employer Reputation": "33.6",
+        "Employment Outcomes": "28.2",
+        "International Student Ratio": "1.2",
+        "International Research Network": "61.4",
+        "International Faculty Ratio": "2.9",
+        "Sustainability Score": "1.3"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indian-institute-technology-guwahati-iitg",
+    "university_name": "Indian Institute of Technology Guwahati (IITG)",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 344,
+    "score": 32.9,
+    "source_url": "/universities/indian-institute-technology-guwahati-iitg",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "32.9",
+        "Academic Reputation": "18.8",
+        "Citations per Faculty": "97.6",
+        "Faculty Student Ratio": "6.4",
+        "Employer Reputation": "32",
+        "Employment Outcomes": "4.9",
+        "International Student Ratio": "1.2",
+        "International Research Network": "51.2",
+        "International Faculty Ratio": "2.3",
+        "Sustainability Score": "2.2"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-university-sciences-technology-nust-islamabad",
+    "university_name": "National University of Sciences & Technology (NUST) Islamabad",
+    "country_hint": "Pakistan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 353,
+    "score": 32.3,
+    "source_url": "/universities/national-university-sciences-technology-nust-islamabad",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "32.3",
+        "Academic Reputation": "20.4",
+        "Citations per Faculty": "14.5",
+        "Faculty Student Ratio": "68.8",
+        "Employer Reputation": "71.6",
+        "Employment Outcomes": "2.8",
+        "International Student Ratio": "4",
+        "International Research Network": "73.6",
+        "International Faculty Ratio": "4.3",
+        "Sustainability Score": "44.9"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/gwangju-institute-science-technology-gist",
+    "university_name": "Gwangju Institute of Science and Technology (GIST)",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 359,
+    "score": 31.9,
+    "source_url": "/universities/gwangju-institute-science-technology-gist",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "31.9",
+        "Academic Reputation": "13.8",
+        "Citations per Faculty": "100",
+        "Faculty Student Ratio": "38.6",
+        "Employer Reputation": "9",
+        "Employment Outcomes": "2.2",
+        "International Student Ratio": "8.8",
+        "International Research Network": "27",
+        "International Faculty Ratio": "18.6",
+        "Sustainability Score": "9.9"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/sultan-qaboos-university",
+    "university_name": "Sultan Qaboos University",
+    "country_hint": "Oman",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 362,
+    "score": 31.7,
+    "source_url": "/universities/sultan-qaboos-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "31.7",
+        "Academic Reputation": "18.6",
+        "Citations per Faculty": "21.9",
+        "Faculty Student Ratio": "55.6",
+        "Employer Reputation": "17.1",
+        "Employment Outcomes": "51.5",
+        "International Student Ratio": "3.2",
+        "International Research Network": "78.8",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "55.4"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/xiamen-university",
+    "university_name": "Xiamen University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 363,
+    "score": 31.7,
+    "source_url": "/universities/xiamen-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "31.7",
+        "Academic Reputation": "23.6",
+        "Citations per Faculty": "72.2",
+        "Faculty Student Ratio": "19",
+        "Employer Reputation": "16.2",
+        "Employment Outcomes": "46",
+        "International Student Ratio": "3.1",
+        "International Research Network": "62.6",
+        "International Faculty Ratio": "5.1",
+        "Sustainability Score": "15.4"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/mahidol-university",
+    "university_name": "Mahidol University",
+    "country_hint": "Thailand",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 368,
+    "score": 31.4,
+    "source_url": "/universities/mahidol-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "31.4",
+        "Academic Reputation": "44.1",
+        "Citations per Faculty": "4.7",
+        "Faculty Student Ratio": "81.1",
+        "Employer Reputation": "21.8",
+        "Employment Outcomes": "9.8",
+        "International Student Ratio": "4.2",
+        "International Research Network": "57.2",
+        "International Faculty Ratio": "4.9",
+        "Sustainability Score": "57.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-jordan",
+    "university_name": "University of Jordan",
+    "country_hint": "Jordan",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 369,
+    "score": 31.4,
+    "source_url": "/universities/university-jordan",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "31.4",
+        "Academic Reputation": "32.9",
+        "Citations per Faculty": "3.5",
+        "Faculty Student Ratio": "19.5",
+        "Employer Reputation": "46.7",
+        "Employment Outcomes": "82.1",
+        "International Student Ratio": "43.5",
+        "International Research Network": "67",
+        "International Faculty Ratio": "21.2",
+        "Sustainability Score": "39.5"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-tehran",
+    "university_name": "University of Tehran",
+    "country_hint": "Iran",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 370,
+    "score": 31.4,
+    "source_url": "/universities/university-tehran",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "31.4",
+        "Academic Reputation": "20.6",
+        "Citations per Faculty": "79.1",
+        "Faculty Student Ratio": "3",
+        "Employer Reputation": "26.8",
+        "Employment Outcomes": "23.1",
+        "International Student Ratio": "2",
+        "International Research Network": "86.2",
+        "International Faculty Ratio": "2",
+        "Sustainability Score": "4.7"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/nankai-university",
+    "university_name": "Nankai University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "region:asia",
+    "rank": 377,
+    "score": 31.1,
+    "source_url": "/universities/nankai-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "asia",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "31.1",
+        "Academic Reputation": "18.5",
+        "Citations per Faculty": "82.9",
+        "Faculty Student Ratio": "25.4",
+        "Employer Reputation": "9.8",
+        "Employment Outcomes": "37.9",
+        "International Student Ratio": "2.7",
+        "International Research Network": "51.1",
+        "International Faculty Ratio": "12.3",
+        "Sustainability Score": "11.5"
+      },
+      "universe_type": "region",
+      "universe_key": "asia"
+    }
+  }
+]

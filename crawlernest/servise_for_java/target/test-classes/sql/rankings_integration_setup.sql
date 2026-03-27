@@ -24,10 +24,47 @@ CREATE TABLE IF NOT EXISTS warehouse.canonical_university (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS warehouse.university_alias (
+    alias_id BIGSERIAL PRIMARY KEY,
+    canonical_university_id BIGINT NOT NULL
+        REFERENCES warehouse.canonical_university(canonical_university_id),
+    alias_text TEXT NOT NULL,
+    alias_normalized TEXT NOT NULL,
+    language_code VARCHAR(12),
+    script_code VARCHAR(8),
+    source_name TEXT,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+    is_abbreviation BOOLEAN NOT NULL DEFAULT FALSE,
+    metadata JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS warehouse.canonical_university_link (
+    canonical_university_link_id BIGSERIAL PRIMARY KEY,
+    canonical_university_id BIGINT NOT NULL
+        REFERENCES warehouse.canonical_university(canonical_university_id),
+    university_id INTEGER NOT NULL,
+    link_method TEXT NOT NULL DEFAULT 'manual',
+    confidence_score NUMERIC(5,4) NOT NULL DEFAULT 1.0000,
+    is_primary BOOLEAN NOT NULL DEFAULT TRUE,
+    metadata JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS warehouse.admission_requirements (
+    admission_requirement_id BIGSERIAL PRIMARY KEY,
+    university_id INTEGER NOT NULL,
+    ielts_min NUMERIC(4,2),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS analytics.aggregation_runs (
     aggregation_run_id BIGSERIAL PRIMARY KEY,
     run_label TEXT,
     ranking_year INTEGER NOT NULL,
+    universe_type TEXT NOT NULL DEFAULT 'global',
+    universe_key TEXT NOT NULL DEFAULT 'global',
     aggregation_method_version TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'running',
     started_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -38,12 +75,20 @@ CREATE TABLE IF NOT EXISTS analytics.aggregation_runs (
     notes TEXT
 );
 
+ALTER TABLE analytics.aggregation_runs
+    ADD COLUMN IF NOT EXISTS universe_type TEXT NOT NULL DEFAULT 'global';
+
+ALTER TABLE analytics.aggregation_runs
+    ADD COLUMN IF NOT EXISTS universe_key TEXT NOT NULL DEFAULT 'global';
+
 CREATE TABLE IF NOT EXISTS analytics.aggregated_rankings (
     aggregated_ranking_id BIGSERIAL PRIMARY KEY,
     aggregation_run_id BIGINT REFERENCES analytics.aggregation_runs(aggregation_run_id),
     canonical_university_id BIGINT NOT NULL
         REFERENCES warehouse.canonical_university(canonical_university_id),
     ranking_year INTEGER NOT NULL,
+    universe_type TEXT NOT NULL DEFAULT 'global',
+    universe_key TEXT NOT NULL DEFAULT 'global',
     display_rank INTEGER,
     composite_score NUMERIC(10,6),
     coverage_ratio NUMERIC(8,6),
@@ -52,21 +97,40 @@ CREATE TABLE IF NOT EXISTS analytics.aggregated_rankings (
     source_weights_used_json JSONB NOT NULL,
     aggregation_method_version TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (canonical_university_id, ranking_year, aggregation_method_version)
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE analytics.aggregated_rankings
+    ADD COLUMN IF NOT EXISTS universe_type TEXT NOT NULL DEFAULT 'global';
+
+ALTER TABLE analytics.aggregated_rankings
+    ADD COLUMN IF NOT EXISTS universe_key TEXT NOT NULL DEFAULT 'global';
+
+ALTER TABLE analytics.aggregated_rankings
+    DROP CONSTRAINT IF EXISTS aggregated_rankings_canonical_university_id_ranking_year_ag_key;
+
+ALTER TABLE analytics.aggregated_rankings
+    DROP CONSTRAINT IF EXISTS uq_aggregated_rankings_universe_test;
+
+ALTER TABLE analytics.aggregated_rankings
+    ADD CONSTRAINT uq_aggregated_rankings_universe_test
+    UNIQUE (canonical_university_id, ranking_year, universe_type, universe_key, aggregation_method_version);
+
 CREATE OR REPLACE VIEW analytics.v_aggregated_rankings_latest AS
-SELECT ar.*
-FROM analytics.aggregated_rankings ar
-JOIN (
+WITH latest_finished_runs AS (
     SELECT
         ranking_year,
-        aggregation_method_version,
+        universe_type,
+        universe_key,
         MAX(aggregation_run_id) AS latest_run_id
-    FROM analytics.aggregated_rankings
-    GROUP BY ranking_year, aggregation_method_version
-) latest
+    FROM analytics.aggregation_runs
+    WHERE status = 'finished'
+    GROUP BY ranking_year, universe_type, universe_key
+)
+SELECT ar.*
+FROM analytics.aggregated_rankings ar
+JOIN latest_finished_runs latest
   ON ar.ranking_year = latest.ranking_year
- AND ar.aggregation_method_version = latest.aggregation_method_version
+ AND ar.universe_type = latest.universe_type
+ AND ar.universe_key = latest.universe_key
  AND ar.aggregation_run_id = latest.latest_run_id;

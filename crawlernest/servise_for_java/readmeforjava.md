@@ -94,12 +94,17 @@ Provide structured APIs for accessing university data.
 Example endpoints:
 
 ```
-GET /universities
-GET /universities/{id}
-GET /rankings
-GET /rankings/qs
-GET /admission/{university}
+GET /api/v1/universities
+GET /api/v1/universities/{slug}
+GET /api/v1/rankings
+GET /api/v1/rankings/qs
+GET /api/v1/admissions/{university_slug}
+GET /api/v1/recommendations
 ```
+
+#### Persistence & Repositories
+- **AggregatedRankingReadRepository**: Official read-only interface for product rankings.
+- **JdbcAggregatedRankingReadRepository**: Spring JDBC implementation with support for complex search scoring, pagination, and multi-dimensional filtering (year, scope, region).
 
 Possible frameworks:
 

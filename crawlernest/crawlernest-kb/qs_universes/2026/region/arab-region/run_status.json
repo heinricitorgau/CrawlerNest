@@ -1,0 +1,38 @@
+{
+  "status": "ok",
+  "failure_classification": "",
+  "message": "",
+  "universe_type": "region",
+  "universe_key": "arab-region",
+  "ranking_year": 2026,
+  "crawl_meta": {
+    "detail_fallback_triggered": false,
+    "detail_deferred_paths": [],
+    "detail_forbidden_count": 0,
+    "failure_classification": "",
+    "failure_message": "",
+    "used_resolution_cache": false,
+    "resolved_ranking_id": "3990755",
+    "ranking_id_candidates": [],
+    "resolved_ranking_page_url": "",
+    "subregion_id": "",
+    "resolution_cache_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
+    "universe": {
+      "universe_type": "region",
+      "universe_key": "arab-region",
+      "label": "QS Arab Region University Rankings",
+      "ranking_id": null,
+      "ranking_page_url": "https://www.topuniversities.com/arab-region-university-rankings",
+      "region_name": "Arab Region",
+      "fetch_details": false,
+      "enable_aggregation": true
+    }
+  },
+  "normalized_count": 99,
+  "standardized_count": 99,
+  "matched_count": 4,
+  "unresolved_count": 95,
+  "aggregated_years": [
+    2026
+  ]
+}

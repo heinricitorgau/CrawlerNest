@@ -1,0 +1,38 @@
+{
+  "status": "ok",
+  "failure_classification": "",
+  "message": "",
+  "universe_type": "subject",
+  "universe_key": "computer-science",
+  "ranking_year": 2026,
+  "crawl_meta": {
+    "detail_fallback_triggered": false,
+    "detail_deferred_paths": [],
+    "detail_forbidden_count": 0,
+    "failure_classification": "",
+    "failure_message": "",
+    "used_resolution_cache": false,
+    "resolved_ranking_id": "4023722",
+    "ranking_id_candidates": [],
+    "resolved_ranking_page_url": "",
+    "subregion_id": "",
+    "resolution_cache_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
+    "universe": {
+      "universe_type": "subject",
+      "universe_key": "computer-science",
+      "label": "QS Computer Science Rankings",
+      "ranking_id": "4023722",
+      "ranking_page_url": null,
+      "region_name": null,
+      "fetch_details": false,
+      "enable_aggregation": true
+    }
+  },
+  "normalized_count": 100,
+  "standardized_count": 100,
+  "matched_count": 94,
+  "unresolved_count": 6,
+  "aggregated_years": [
+    2026
+  ]
+}

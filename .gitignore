@@ -1,0 +1,28 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.venv-1/
+
+# Node / Next.js
+node_modules/
+.next/
+
+# Java / Maven
+target/
+*.class
+
+# Logs / local artifacts
+logs/
+*.log
+
+# Local databases
+*.db
+*.db.bak
+
+# Build outputs
+build/
+dist/

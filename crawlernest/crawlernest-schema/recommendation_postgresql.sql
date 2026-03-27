@@ -85,6 +85,8 @@ source_rank_summary AS (
     JOIN warehouse.ranking_source rs
       ON rs.ranking_source_id = rr.ranking_source_id
     WHERE rr.ranking_type = 'world'
+      AND rr.universe_type = 'global'
+      AND rr.universe_key = 'global'
     GROUP BY rr.canonical_university_id, rr.ranking_year
 )
 SELECT
@@ -110,7 +112,9 @@ LEFT JOIN admission_summary ads
   ON ads.canonical_university_id = ar.canonical_university_id
 LEFT JOIN source_rank_summary srs
   ON srs.canonical_university_id = ar.canonical_university_id
- AND srs.ranking_year = ar.ranking_year;
+ AND srs.ranking_year = ar.ranking_year
+WHERE ar.universe_type = 'global'
+  AND ar.universe_key = 'global';
 
 CREATE INDEX IF NOT EXISTS idx_canonical_university_link_canonical
     ON warehouse.canonical_university_link(canonical_university_id);

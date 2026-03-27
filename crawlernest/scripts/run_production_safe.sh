@@ -66,14 +66,18 @@ echo ""
 # ---------------------------------------------------------------------------
 # 5. STEP 1 — Rankings-only crawl
 # ---------------------------------------------------------------------------
-echo "[STEP 1] Starting rankings-only crawl  ($(date '+%H:%M:%S'))"
-echo "         python3 ${PIPELINE} run --limit 200 --ranking-year 2026 \\"
+# QS World Ranking 2026 generally contains ~1500-1700 rows.
+# Set LIMIT to 2500 to ensure we capture the entire dataset.
+LIMIT=${1:-2500}
+
+echo "[STEP 1] Starting rankings-only crawl (LIMIT: ${LIMIT})  ($(date '+%H:%M:%S'))"
+echo "         python3 ${PIPELINE} run --limit ${LIMIT} --ranking-year 2026 \\"
 echo "           --workers 1 --request-delay 10 --local-parse-workers 4 \\"
 echo "           --write-batch-size 200 --rankings-only --resource-guard"
 echo ""
 
 python3 "${PIPELINE}" run \
-    --limit 200 \
+    --limit "${LIMIT}" \
     --ranking-year 2026 \
     --workers 1 \
     --request-delay 10 \

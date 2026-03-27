@@ -16,6 +16,8 @@ class StandardizedRankingRecord:
     score: Optional[float]
     source_url: Optional[str] = None
     source_version: Optional[str] = None
+    universe_type: str = "global"
+    universe_key: str = "global"
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -31,6 +33,8 @@ class UnifiedRankingRecord:
     matched_alias: Optional[str]
     confidence_score: float
     matching_method: str
+    universe_type: str = "global"
+    universe_key: str = "global"
     source_url: Optional[str] = None
     source_version: Optional[str] = None
     metadata: dict[str, Any] = field(default_factory=dict)

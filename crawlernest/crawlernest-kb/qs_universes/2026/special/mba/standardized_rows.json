@@ -1,0 +1,3002 @@
+[
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/massachusetts-institute-technology-mit",
+    "university_name": "Massachusetts Institute of Technology (MIT)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 1,
+    "score": 100.0,
+    "source_url": "/universities/massachusetts-institute-technology-mit",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "100",
+        "Academic Reputation": "100",
+        "Citations per Faculty": "100",
+        "Faculty Student Ratio": "100",
+        "Employer Reputation": "100",
+        "Employment Outcomes": "100",
+        "International Student Ratio": "86.8",
+        "International Research Network": "96",
+        "International Faculty Ratio": "99.3",
+        "Sustainability Score": "99"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/imperial-college-london",
+    "university_name": "Imperial College London",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 2,
+    "score": 98.5,
+    "source_url": "/universities/imperial-college-london",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "98.5",
+        "Academic Reputation": "98.5",
+        "Citations per Faculty": "93.9",
+        "Faculty Student Ratio": "98.2",
+        "Employer Reputation": "99.5",
+        "Employment Outcomes": "93.4",
+        "International Student Ratio": "99.6",
+        "International Research Network": "97.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "99.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-oxford",
+    "university_name": "University of Oxford",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 3,
+    "score": 96.9,
+    "source_url": "/universities/university-oxford",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "96.9",
+        "Academic Reputation": "100",
+        "Citations per Faculty": "84.8",
+        "Faculty Student Ratio": "100",
+        "Employer Reputation": "100",
+        "Employment Outcomes": "100",
+        "International Student Ratio": "97.7",
+        "International Research Network": "100",
+        "International Faculty Ratio": "98.1",
+        "Sustainability Score": "85"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/harvard-university",
+    "university_name": "Harvard University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 4,
+    "score": 96.8,
+    "source_url": "/universities/harvard-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "96.8",
+        "Academic Reputation": "100",
+        "Citations per Faculty": "100",
+        "Faculty Student Ratio": "96.3",
+        "Employer Reputation": "100",
+        "Employment Outcomes": "100",
+        "International Student Ratio": "69",
+        "International Research Network": "99.6",
+        "International Faculty Ratio": "74.1",
+        "Sustainability Score": "84.4"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-cambridge",
+    "university_name": "University of Cambridge",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 5,
+    "score": 96.7,
+    "source_url": "/universities/university-cambridge",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "96.7",
+        "Academic Reputation": "100",
+        "Citations per Faculty": "84.6",
+        "Faculty Student Ratio": "100",
+        "Employer Reputation": "100",
+        "Employment Outcomes": "100",
+        "International Student Ratio": "94.8",
+        "International Research Network": "99.3",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "84.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/stanford-university",
+    "university_name": "Stanford University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 6,
+    "score": 96.1,
+    "source_url": "/universities/stanford-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "96.1",
+        "Academic Reputation": "100",
+        "Citations per Faculty": "99",
+        "Faculty Student Ratio": "100",
+        "Employer Reputation": "100",
+        "Employment Outcomes": "100",
+        "International Student Ratio": "60.8",
+        "International Research Network": "96.8",
+        "International Faculty Ratio": "70.3",
+        "Sustainability Score": "81.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/eth-zurich",
+    "university_name": "ETH Zurich",
+    "country_hint": "Switzerland",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 7,
+    "score": 93.9,
+    "source_url": "/universities/eth-zurich",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "93.9",
+        "Academic Reputation": "98.8",
+        "Citations per Faculty": "97.9",
+        "Faculty Student Ratio": "65.9",
+        "Employer Reputation": "87.2",
+        "Employment Outcomes": "90.5",
+        "International Student Ratio": "98.6",
+        "International Research Network": "95.7",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "98.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-university-singapore-nus",
+    "university_name": "National University of Singapore (NUS)",
+    "country_hint": "Singapore",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 8,
+    "score": 93.7,
+    "source_url": "/universities/national-university-singapore-nus",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "93.7",
+        "Academic Reputation": "99.5",
+        "Citations per Faculty": "93.1",
+        "Faculty Student Ratio": "68.8",
+        "Employer Reputation": "91.1",
+        "Employment Outcomes": "100",
+        "International Student Ratio": "88.9",
+        "International Research Network": "91.6",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "97.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ucl",
+    "university_name": "UCL",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 9,
+    "score": 91.6,
+    "source_url": "/universities/ucl",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "91.6",
+        "Academic Reputation": "99.5",
+        "Citations per Faculty": "72.2",
+        "Faculty Student Ratio": "95.9",
+        "Employer Reputation": "98.3",
+        "Employment Outcomes": "70.3",
+        "International Student Ratio": "100",
+        "International Research Network": "99.9",
+        "International Faculty Ratio": "99",
+        "Sustainability Score": "74.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/california-institute-technology-caltech",
+    "university_name": "California Institute of Technology (Caltech)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 10,
+    "score": 90.9,
+    "source_url": "/universities/california-institute-technology-caltech",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "90.9",
+        "Academic Reputation": "96.5",
+        "Citations per Faculty": "100",
+        "Faculty Student Ratio": "100",
+        "Employer Reputation": "95.3",
+        "Employment Outcomes": "31",
+        "International Student Ratio": "79.8",
+        "International Research Network": "65.5",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "62.5"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-pennsylvania",
+    "university_name": "University of Pennsylvania",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 11,
+    "score": 90.3,
+    "source_url": "/universities/university-pennsylvania",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "90.3",
+        "Academic Reputation": "96.3",
+        "Citations per Faculty": "74",
+        "Faculty Student Ratio": "99.8",
+        "Employer Reputation": "91.9",
+        "Employment Outcomes": "100",
+        "International Student Ratio": "66.2",
+        "International Research Network": "91.9",
+        "International Faculty Ratio": "90.9",
+        "Sustainability Score": "93"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-berkeley-ucb",
+    "university_name": "University of California, Berkeley (UCB)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 12,
+    "score": 90.1,
+    "source_url": "/universities/university-california-berkeley-ucb",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "90.1",
+        "Academic Reputation": "100",
+        "Citations per Faculty": "98.2",
+        "Faculty Student Ratio": "23.5",
+        "Employer Reputation": "100",
+        "Employment Outcomes": "98.4",
+        "International Student Ratio": "61",
+        "International Research Network": "97.2",
+        "International Faculty Ratio": "91.5",
+        "Sustainability Score": "100"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-melbourne",
+    "university_name": "The University of Melbourne",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 13,
+    "score": 88.9,
+    "source_url": "/universities/university-melbourne",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "88.9",
+        "Academic Reputation": "98.5",
+        "Citations per Faculty": "93",
+        "Faculty Student Ratio": "15.4",
+        "Employer Reputation": "93.9",
+        "Employment Outcomes": "96.5",
+        "International Student Ratio": "99.8",
+        "International Research Network": "97.4",
+        "International Faculty Ratio": "95.1",
+        "Sustainability Score": "99.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/peking-university",
+    "university_name": "Peking University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 14,
+    "score": 88.5,
+    "source_url": "/universities/peking-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "88.5",
+        "Academic Reputation": "99.5",
+        "Citations per Faculty": "97.7",
+        "Faculty Student Ratio": "92.6",
+        "Employer Reputation": "96.6",
+        "Employment Outcomes": "94.2",
+        "International Student Ratio": "23.6",
+        "International Research Network": "79.8",
+        "International Faculty Ratio": "50.3",
+        "Sustainability Score": "46.9"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/nanyang-technological-university-singapore-ntu-singapore",
+    "university_name": "Nanyang Technological University, Singapore (NTU Singapore)",
+    "country_hint": "Singapore",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 15,
+    "score": 88.4,
+    "source_url": "/universities/nanyang-technological-university-singapore-ntu-singapore",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "88.4",
+        "Academic Reputation": "91.9",
+        "Citations per Faculty": "92.4",
+        "Faculty Student Ratio": "80.6",
+        "Employer Reputation": "73.3",
+        "Employment Outcomes": "83.9",
+        "International Student Ratio": "83.5",
+        "International Research Network": "89.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "95.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/cornell-university",
+    "university_name": "Cornell University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 16,
+    "score": 87.9,
+    "source_url": "/universities/cornell-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "87.9",
+        "Academic Reputation": "98.3",
+        "Citations per Faculty": "97.5",
+        "Faculty Student Ratio": "52.7",
+        "Employer Reputation": "93.1",
+        "Employment Outcomes": "97.1",
+        "International Student Ratio": "63.4",
+        "International Research Network": "94",
+        "International Faculty Ratio": "54.2",
+        "Sustainability Score": "72.1"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-hong-kong",
+    "university_name": "The University of Hong Kong",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 17,
+    "score": 87.6,
+    "source_url": "/universities/university-hong-kong",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "87.6",
+        "Academic Reputation": "97.4",
+        "Citations per Faculty": "86.4",
+        "Faculty Student Ratio": "81.2",
+        "Employer Reputation": "59.4",
+        "Employment Outcomes": "99.7",
+        "International Student Ratio": "99.3",
+        "International Research Network": "81.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "89.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-sydney",
+    "university_name": "The University of Sydney",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 18,
+    "score": 87.3,
+    "source_url": "/universities/university-sydney",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "87.3",
+        "Academic Reputation": "96.4",
+        "Citations per Faculty": "93.7",
+        "Faculty Student Ratio": "10.9",
+        "Employer Reputation": "90",
+        "Employment Outcomes": "93.1",
+        "International Student Ratio": "100",
+        "International Research Network": "95.8",
+        "International Faculty Ratio": "99.9",
+        "Sustainability Score": "99.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-new-south-wales-unsw-sydney",
+    "university_name": "The University of New South Wales (UNSW Sydney)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 19,
+    "score": 87.1,
+    "source_url": "/universities/university-new-south-wales-unsw-sydney",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "87.1",
+        "Academic Reputation": "90.5",
+        "Citations per Faculty": "94.9",
+        "Faculty Student Ratio": "20.6",
+        "Employer Reputation": "90.4",
+        "Employment Outcomes": "97.7",
+        "International Student Ratio": "99.4",
+        "International Research Network": "98.3",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "99.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tsinghua-university",
+    "university_name": "Tsinghua University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 20,
+    "score": 86.5,
+    "source_url": "/universities/tsinghua-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "86.5",
+        "Academic Reputation": "99.2",
+        "Citations per Faculty": "99.1",
+        "Faculty Student Ratio": "95",
+        "Employer Reputation": "97.7",
+        "Employment Outcomes": "92.3",
+        "International Student Ratio": "13.4",
+        "International Research Network": "79.2",
+        "International Faculty Ratio": "18.1",
+        "Sustainability Score": "40.4"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-chicago",
+    "university_name": "University of Chicago",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 21,
+    "score": 86.2,
+    "source_url": "/universities/university-chicago",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "86.2",
+        "Academic Reputation": "99.1",
+        "Citations per Faculty": "60.8",
+        "Faculty Student Ratio": "94.2",
+        "Employer Reputation": "96.4",
+        "Employment Outcomes": "99.1",
+        "International Student Ratio": "87",
+        "International Research Network": "85.1",
+        "International Faculty Ratio": "79",
+        "Sustainability Score": "46.9"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/princeton-university",
+    "university_name": "Princeton University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 22,
+    "score": 85.5,
+    "source_url": "/universities/princeton-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "85.5",
+        "Academic Reputation": "99.8",
+        "Citations per Faculty": "100",
+        "Faculty Student Ratio": "57",
+        "Employer Reputation": "98.3",
+        "Employment Outcomes": "95.7",
+        "International Student Ratio": "56.6",
+        "International Research Network": "78.3",
+        "International Faculty Ratio": "9.6",
+        "Sustainability Score": "51.5"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/yale-university",
+    "university_name": "Yale University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 23,
+    "score": 85.2,
+    "source_url": "/universities/yale-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "85.2",
+        "Academic Reputation": "99.9",
+        "Citations per Faculty": "38.6",
+        "Faculty Student Ratio": "100",
+        "Employer Reputation": "99.9",
+        "Employment Outcomes": "98.5",
+        "International Student Ratio": "63.3",
+        "International Research Network": "93.9",
+        "International Faculty Ratio": "91.5",
+        "Sustainability Score": "92.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universite-psl",
+    "university_name": "Université PSL",
+    "country_hint": "France",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 24,
+    "score": 84.7,
+    "source_url": "/universities/universite-psl",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "84.7",
+        "Academic Reputation": "74.4",
+        "Citations per Faculty": "87.6",
+        "Faculty Student Ratio": "98.1",
+        "Employer Reputation": "97.6",
+        "Employment Outcomes": "97.1",
+        "International Student Ratio": "65",
+        "International Research Network": "99.8",
+        "International Faculty Ratio": "62.3",
+        "Sustainability Score": "73.4"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-toronto",
+    "university_name": "University of Toronto",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 25,
+    "score": 84.1,
+    "source_url": "/universities/university-toronto",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "84.1",
+        "Academic Reputation": "99.7",
+        "Citations per Faculty": "50.8",
+        "Faculty Student Ratio": "44.9",
+        "Employer Reputation": "96.9",
+        "Employment Outcomes": "98.7",
+        "International Student Ratio": "96.1",
+        "International Research Network": "97.7",
+        "International Faculty Ratio": "96.9",
+        "Sustainability Score": "100"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/epfl-ecole-polytechnique-federale-de-lausanne",
+    "university_name": "EPFL – École polytechnique fédérale de Lausanne",
+    "country_hint": "Switzerland",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 26,
+    "score": 83.5,
+    "source_url": "/universities/epfl-ecole-polytechnique-federale-de-lausanne",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "83.5",
+        "Academic Reputation": "84.2",
+        "Citations per Faculty": "93.6",
+        "Faculty Student Ratio": "91.2",
+        "Employer Reputation": "67.2",
+        "Employment Outcomes": "27.2",
+        "International Student Ratio": "100",
+        "International Research Network": "81.7",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "86.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-edinburgh",
+    "university_name": "The University of Edinburgh",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 27,
+    "score": 83.3,
+    "source_url": "/universities/university-edinburgh",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "83.3",
+        "Academic Reputation": "98.3",
+        "Citations per Faculty": "47.7",
+        "Faculty Student Ratio": "65.5",
+        "Employer Reputation": "97.2",
+        "Employment Outcomes": "55.9",
+        "International Student Ratio": "99.8",
+        "International Research Network": "99.5",
+        "International Faculty Ratio": "98.7",
+        "Sustainability Score": "99"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/technical-university-munich",
+    "university_name": "Technical University of Munich",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 28,
+    "score": 83.2,
+    "source_url": "/universities/technical-university-munich",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "83.2",
+        "Academic Reputation": "83",
+        "Citations per Faculty": "75.9",
+        "Faculty Student Ratio": "76.8",
+        "Employer Reputation": "98.6",
+        "Employment Outcomes": "34.5",
+        "International Student Ratio": "98.6",
+        "International Research Network": "95.6",
+        "International Faculty Ratio": "80.4",
+        "Sustainability Score": "93.1"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/mcgill-university",
+    "university_name": "McGill University",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 29,
+    "score": 83.0,
+    "source_url": "/universities/mcgill-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "83",
+        "Academic Reputation": "94.3",
+        "Citations per Faculty": "57.9",
+        "Faculty Student Ratio": "62.3",
+        "Employer Reputation": "87.6",
+        "Employment Outcomes": "98.3",
+        "International Student Ratio": "89.6",
+        "International Research Network": "94.2",
+        "International Faculty Ratio": "83.7",
+        "Sustainability Score": "99.1"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/australian-national-university-anu",
+    "university_name": "Australian National University (ANU)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 30,
+    "score": 82.4,
+    "source_url": "/universities/australian-national-university-anu",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.4",
+        "Academic Reputation": "93.8",
+        "Citations per Faculty": "84.6",
+        "Faculty Student Ratio": "34.6",
+        "Employer Reputation": "75.4",
+        "Employment Outcomes": "56.6",
+        "International Student Ratio": "96.2",
+        "International Research Network": "91.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "97.1"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/seoul-national-university",
+    "university_name": "Seoul National University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 31,
+    "score": 82.3,
+    "source_url": "/universities/seoul-national-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.3",
+        "Academic Reputation": "98.5",
+        "Citations per Faculty": "71.7",
+        "Faculty Student Ratio": "83.1",
+        "Employer Reputation": "98.6",
+        "Employment Outcomes": "100",
+        "International Student Ratio": "16.9",
+        "International Research Network": "73.2",
+        "International Faculty Ratio": "10.5",
+        "Sustainability Score": "96"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/johns-hopkins-university",
+    "university_name": "Johns Hopkins University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 32,
+    "score": 82.1,
+    "source_url": "/universities/johns-hopkins-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.1",
+        "Academic Reputation": "86",
+        "Citations per Faculty": "84.2",
+        "Faculty Student Ratio": "100",
+        "Employer Reputation": "62.6",
+        "Employment Outcomes": "71.5",
+        "International Student Ratio": "95.8",
+        "International Research Network": "98.7",
+        "International Faculty Ratio": "63.7",
+        "Sustainability Score": "61.9"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-tokyo",
+    "university_name": "The University of Tokyo",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 33,
+    "score": 82.1,
+    "source_url": "/universities/university-tokyo",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.1",
+        "Academic Reputation": "100",
+        "Citations per Faculty": "57.3",
+        "Faculty Student Ratio": "89.3",
+        "Employer Reputation": "99.8",
+        "Employment Outcomes": "99.9",
+        "International Student Ratio": "29.7",
+        "International Research Network": "87.4",
+        "International Faculty Ratio": "10.1",
+        "Sustainability Score": "98.3"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/columbia-university",
+    "university_name": "Columbia University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 34,
+    "score": 82.0,
+    "source_url": "/universities/columbia-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82",
+        "Academic Reputation": "99.6",
+        "Citations per Faculty": "31.7",
+        "Faculty Student Ratio": "100",
+        "Employer Reputation": "98.8",
+        "Employment Outcomes": "99.9",
+        "International Student Ratio": "97",
+        "International Research Network": "98.5",
+        "International Faculty Ratio": "41.5",
+        "Sustainability Score": "71.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-manchester",
+    "university_name": "The University of Manchester",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 35,
+    "score": 82.0,
+    "source_url": "/universities/university-manchester",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82",
+        "Academic Reputation": "95.6",
+        "Citations per Faculty": "45.1",
+        "Faculty Student Ratio": "51.3",
+        "Employer Reputation": "98.1",
+        "Employment Outcomes": "87.6",
+        "International Student Ratio": "99.2",
+        "International Research Network": "99.2",
+        "International Faculty Ratio": "93.1",
+        "Sustainability Score": "99.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/chinese-university-hong-kong-cuhk",
+    "university_name": "The Chinese University of Hong Kong (CUHK)",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 36,
+    "score": 81.3,
+    "source_url": "/universities/chinese-university-hong-kong-cuhk",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.3",
+        "Academic Reputation": "86.7",
+        "Citations per Faculty": "92.9",
+        "Faculty Student Ratio": "64.2",
+        "Employer Reputation": "53.3",
+        "Employment Outcomes": "89",
+        "International Student Ratio": "87.5",
+        "International Research Network": "74.2",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "86.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/monash-university",
+    "university_name": "Monash University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 37,
+    "score": 81.2,
+    "source_url": "/universities/monash-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.2",
+        "Academic Reputation": "89.2",
+        "Citations per Faculty": "87.6",
+        "Faculty Student Ratio": "9.4",
+        "Employer Reputation": "79.6",
+        "Employment Outcomes": "79.4",
+        "International Student Ratio": "100",
+        "International Research Network": "94.8",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "98.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-british-columbia",
+    "university_name": "University of British Columbia",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 38,
+    "score": 81.0,
+    "source_url": "/universities/university-british-columbia",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81",
+        "Academic Reputation": "98.3",
+        "Citations per Faculty": "57.7",
+        "Faculty Student Ratio": "34.5",
+        "Employer Reputation": "94.3",
+        "Employment Outcomes": "74.6",
+        "International Student Ratio": "72.8",
+        "International Research Network": "96.2",
+        "International Faculty Ratio": "95.5",
+        "Sustainability Score": "99.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/fudan-university",
+    "university_name": "Fudan University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 39,
+    "score": 80.3,
+    "source_url": "/universities/fudan-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.3",
+        "Academic Reputation": "85.7",
+        "Citations per Faculty": "80.7",
+        "Faculty Student Ratio": "79.7",
+        "Employer Reputation": "87.8",
+        "Employment Outcomes": "64.4",
+        "International Student Ratio": "35.1",
+        "International Research Network": "67.2",
+        "International Faculty Ratio": "88.4",
+        "Sustainability Score": "82.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kings-college-london",
+    "university_name": "King's College London",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 40,
+    "score": 80.2,
+    "source_url": "/universities/kings-college-london",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.2",
+        "Academic Reputation": "90.3",
+        "Citations per Faculty": "53.6",
+        "Faculty Student Ratio": "64.3",
+        "Employer Reputation": "85.7",
+        "Employment Outcomes": "59.8",
+        "International Student Ratio": "99.5",
+        "International Research Network": "98.6",
+        "International Faculty Ratio": "99.1",
+        "Sustainability Score": "96.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-queensland",
+    "university_name": "The University of Queensland",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 41,
+    "score": 80.2,
+    "source_url": "/universities/university-queensland",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.2",
+        "Academic Reputation": "86.7",
+        "Citations per Faculty": "90.2",
+        "Faculty Student Ratio": "21.2",
+        "Employer Reputation": "74",
+        "Employment Outcomes": "56.7",
+        "International Student Ratio": "100",
+        "International Research Network": "96.7",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "96.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-los-angeles-ucla",
+    "university_name": "University of California, Los Angeles (UCLA)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 42,
+    "score": 79.8,
+    "source_url": "/universities/university-california-los-angeles-ucla",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "79.8",
+        "Academic Reputation": "100",
+        "Citations per Faculty": "74",
+        "Faculty Student Ratio": "35.4",
+        "Employer Reputation": "99.8",
+        "Employment Outcomes": "94.7",
+        "International Student Ratio": "22.3",
+        "International Research Network": "95.5",
+        "International Faculty Ratio": "42.2",
+        "Sustainability Score": "67.1"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/new-york-university-nyu",
+    "university_name": "New York University (NYU)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 43,
+    "score": 79.6,
+    "source_url": "/universities/new-york-university-nyu",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "79.6",
+        "Academic Reputation": "96.3",
+        "Citations per Faculty": "28.6",
+        "Faculty Student Ratio": "90.5",
+        "Employer Reputation": "98.8",
+        "Employment Outcomes": "98.4",
+        "International Student Ratio": "98.1",
+        "International Research Network": "92.6",
+        "International Faculty Ratio": "30.2",
+        "Sustainability Score": "95.4"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-michigan-ann-arbor",
+    "university_name": "University of Michigan-Ann Arbor",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 44,
+    "score": 79.0,
+    "source_url": "/universities/university-michigan-ann-arbor",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "79",
+        "Academic Reputation": "97.9",
+        "Citations per Faculty": "47.6",
+        "Faculty Student Ratio": "80.3",
+        "Employer Reputation": "92.1",
+        "Employment Outcomes": "94.5",
+        "International Student Ratio": "39.2",
+        "International Research Network": "95.8",
+        "International Faculty Ratio": "65.5",
+        "Sustainability Score": "62.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/shanghai-jiao-tong-university",
+    "university_name": "Shanghai Jiao Tong University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 45,
+    "score": 77.8,
+    "source_url": "/universities/shanghai-jiao-tong-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.8",
+        "Academic Reputation": "84",
+        "Citations per Faculty": "99.6",
+        "Faculty Student Ratio": "58.6",
+        "Employer Reputation": "86.3",
+        "Employment Outcomes": "73.5",
+        "International Student Ratio": "19.6",
+        "International Research Network": "73.7",
+        "International Faculty Ratio": "23.1",
+        "Sustainability Score": "80.3"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/institut-polytechnique-de-paris",
+    "university_name": "Institut Polytechnique de Paris",
+    "country_hint": "France",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 46,
+    "score": 77.5,
+    "source_url": "/universities/institut-polytechnique-de-paris",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.5",
+        "Academic Reputation": "44.7",
+        "Citations per Faculty": "86.1",
+        "Faculty Student Ratio": "95.9",
+        "Employer Reputation": "99.6",
+        "Employment Outcomes": "97.7",
+        "International Student Ratio": "98",
+        "International Research Network": "89.6",
+        "International Faculty Ratio": "99.1",
+        "Sustainability Score": "54.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hong-kong-university-science-technology",
+    "university_name": "The Hong Kong University of Science and Technology",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 47,
+    "score": 77.1,
+    "source_url": "/universities/hong-kong-university-science-technology",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.1",
+        "Academic Reputation": "81.1",
+        "Citations per Faculty": "99.7",
+        "Faculty Student Ratio": "56.7",
+        "Employer Reputation": "50.3",
+        "Employment Outcomes": "65.4",
+        "International Student Ratio": "95.4",
+        "International Research Network": "46.7",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "77.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/zhejiang-university",
+    "university_name": "Zhejiang University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 48,
+    "score": 77.1,
+    "source_url": "/universities/zhejiang-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.1",
+        "Academic Reputation": "75.3",
+        "Citations per Faculty": "99.5",
+        "Faculty Student Ratio": "54.7",
+        "Employer Reputation": "95.4",
+        "Employment Outcomes": "55.5",
+        "International Student Ratio": "15.9",
+        "International Research Network": "91.8",
+        "International Faculty Ratio": "95",
+        "Sustainability Score": "30.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/delft-university-technology",
+    "university_name": "Delft University of Technology",
+    "country_hint": "Netherlands",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 49,
+    "score": 77.0,
+    "source_url": "/universities/delft-university-technology",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77",
+        "Academic Reputation": "74.4",
+        "Citations per Faculty": "79.7",
+        "Faculty Student Ratio": "39.4",
+        "Employer Reputation": "83",
+        "Employment Outcomes": "54.8",
+        "International Student Ratio": "91.4",
+        "International Research Network": "93.7",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "99.1"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kyoto-university",
+    "university_name": "Kyoto University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 50,
+    "score": 76.0,
+    "source_url": "/universities/kyoto-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "76",
+        "Academic Reputation": "98.8",
+        "Citations per Faculty": "39.3",
+        "Faculty Student Ratio": "94.2",
+        "Employer Reputation": "99",
+        "Employment Outcomes": "72.8",
+        "International Student Ratio": "19",
+        "International Research Network": "85.7",
+        "International Faculty Ratio": "15.9",
+        "Sustainability Score": "85.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/northwestern-university",
+    "university_name": "Northwestern University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 51,
+    "score": 76.0,
+    "source_url": "/universities/northwestern-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "76",
+        "Academic Reputation": "84",
+        "Citations per Faculty": "67.7",
+        "Faculty Student Ratio": "97.6",
+        "Employer Reputation": "68",
+        "Employment Outcomes": "96.8",
+        "International Student Ratio": "52",
+        "International Research Network": "89.4",
+        "International Faculty Ratio": "45.4",
+        "Sustainability Score": "55.4"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/london-school-economics-political-science-lse",
+    "university_name": "The London School of Economics and Political Science (LSE)",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 52,
+    "score": 76.0,
+    "source_url": "/universities/london-school-economics-political-science-lse",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "76",
+        "Academic Reputation": "67.2",
+        "Citations per Faculty": "69.4",
+        "Faculty Student Ratio": "35.1",
+        "Employer Reputation": "97",
+        "Employment Outcomes": "99.6",
+        "International Student Ratio": "100",
+        "International Research Network": "81.2",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "91.3"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kaist-korea-advanced-institute-science-technology",
+    "university_name": "KAIST - Korea Advanced Institute of Science & Technology",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 53,
+    "score": 75.7,
+    "source_url": "/universities/kaist-korea-advanced-institute-science-technology",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.7",
+        "Academic Reputation": "87.7",
+        "Citations per Faculty": "96.2",
+        "Faculty Student Ratio": "60.2",
+        "Employer Reputation": "91",
+        "Employment Outcomes": "63.3",
+        "International Student Ratio": "10.9",
+        "International Research Network": "46.8",
+        "International Faculty Ratio": "21.1",
+        "Sustainability Score": "60.3"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-bristol",
+    "university_name": "University of Bristol",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 54,
+    "score": 75.4,
+    "source_url": "/universities/university-bristol",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.4",
+        "Academic Reputation": "75.8",
+        "Citations per Faculty": "75.9",
+        "Faculty Student Ratio": "36.7",
+        "Employer Reputation": "82.5",
+        "Employment Outcomes": "51.2",
+        "International Student Ratio": "89.8",
+        "International Research Network": "94.6",
+        "International Faculty Ratio": "87.5",
+        "Sustainability Score": "98.9"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-amsterdam",
+    "university_name": "University of Amsterdam",
+    "country_hint": "Netherlands",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 55,
+    "score": 73.7,
+    "source_url": "/universities/university-amsterdam",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "73.7",
+        "Academic Reputation": "83.8",
+        "Citations per Faculty": "92.2",
+        "Faculty Student Ratio": "21.4",
+        "Employer Reputation": "52.1",
+        "Employment Outcomes": "79.8",
+        "International Student Ratio": "87.5",
+        "International Research Network": "96.3",
+        "International Faculty Ratio": "96",
+        "Sustainability Score": "38.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/yonsei-university",
+    "university_name": "Yonsei University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 56,
+    "score": 72.9,
+    "source_url": "/universities/yonsei-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.9",
+        "Academic Reputation": "81.5",
+        "Citations per Faculty": "44.1",
+        "Faculty Student Ratio": "84.2",
+        "Employer Reputation": "97",
+        "Employment Outcomes": "87.8",
+        "International Student Ratio": "51.2",
+        "International Research Network": "78.7",
+        "International Faculty Ratio": "20.7",
+        "Sustainability Score": "88.9"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hong-kong-polytechnic-university",
+    "university_name": "The Hong Kong Polytechnic University",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 57,
+    "score": 72.1,
+    "source_url": "/universities/hong-kong-polytechnic-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.1",
+        "Academic Reputation": "68",
+        "Citations per Faculty": "94.9",
+        "Faculty Student Ratio": "65",
+        "Employer Reputation": "35.6",
+        "Employment Outcomes": "64.5",
+        "International Student Ratio": "91.9",
+        "International Research Network": "78.9",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "77.4"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/carnegie-mellon-university",
+    "university_name": "Carnegie Mellon University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 58,
+    "score": 72.0,
+    "source_url": "/universities/carnegie-mellon-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72",
+        "Academic Reputation": "69.8",
+        "Citations per Faculty": "98.9",
+        "Faculty Student Ratio": "40.9",
+        "Employer Reputation": "80.1",
+        "Employment Outcomes": "61.5",
+        "International Student Ratio": "99.1",
+        "International Research Network": "79.9",
+        "International Faculty Ratio": "33.7",
+        "Sustainability Score": "24.5"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ludwig-maximilians-universitat-munchen",
+    "university_name": "Ludwig-Maximilians-Universität München",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 59,
+    "score": 71.6,
+    "source_url": "/universities/ludwig-maximilians-universitat-munchen",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.6",
+        "Academic Reputation": "92.2",
+        "Citations per Faculty": "50",
+        "Faculty Student Ratio": "38.5",
+        "Employer Reputation": "86.6",
+        "Employment Outcomes": "66.9",
+        "International Student Ratio": "37.6",
+        "International Research Network": "95.5",
+        "International Faculty Ratio": "75.1",
+        "Sustainability Score": "62.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universiti-malaya-um",
+    "university_name": "Universiti Malaya (UM)",
+    "country_hint": "Malaysia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 60,
+    "score": 71.2,
+    "source_url": "/universities/universiti-malaya-um",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.2",
+        "Academic Reputation": "82.9",
+        "Citations per Faculty": "29.1",
+        "Faculty Student Ratio": "75.7",
+        "Employer Reputation": "95.1",
+        "Employment Outcomes": "69.3",
+        "International Student Ratio": "64.2",
+        "International Research Network": "91.8",
+        "International Faculty Ratio": "60.2",
+        "Sustainability Score": "83.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/duke-university",
+    "university_name": "Duke University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 61,
+    "score": 70.8,
+    "source_url": "/universities/duke-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.8",
+        "Academic Reputation": "86",
+        "Citations per Faculty": "35.1",
+        "Faculty Student Ratio": "100",
+        "Employer Reputation": "74.7",
+        "Employment Outcomes": "85.5",
+        "International Student Ratio": "61",
+        "International Research Network": "93.3",
+        "International Faculty Ratio": "16.3",
+        "Sustainability Score": "75"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/city-university-hong-kong-cityuhk",
+    "university_name": "City University of Hong Kong (CityUHK)",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 62,
+    "score": 70.7,
+    "source_url": "/universities/city-university-hong-kong-cityuhk",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.7",
+        "Academic Reputation": "60.9",
+        "Citations per Faculty": "100",
+        "Faculty Student Ratio": "89.5",
+        "Employer Reputation": "30.8",
+        "Employment Outcomes": "37.5",
+        "International Student Ratio": "100",
+        "International Research Network": "62.9",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "72.9"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ku-leuven",
+    "university_name": "KU Leuven",
+    "country_hint": "Belgium",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 63,
+    "score": 70.3,
+    "source_url": "/universities/ku-leuven",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.3",
+        "Academic Reputation": "84.6",
+        "Citations per Faculty": "91",
+        "Faculty Student Ratio": "7.1",
+        "Employer Reputation": "49.6",
+        "Employment Outcomes": "75.3",
+        "International Student Ratio": "47.7",
+        "International Research Network": "99.5",
+        "International Faculty Ratio": "93.8",
+        "Sustainability Score": "51.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/sorbonne-university",
+    "university_name": "Sorbonne University",
+    "country_hint": "France",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 64,
+    "score": 70.3,
+    "source_url": "/universities/sorbonne-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.3",
+        "Academic Reputation": "87.2",
+        "Citations per Faculty": "72.3",
+        "Faculty Student Ratio": "43",
+        "Employer Reputation": "52",
+        "Employment Outcomes": "79.7",
+        "International Student Ratio": "46.7",
+        "International Research Network": "99.8",
+        "International Faculty Ratio": "33.8",
+        "Sustainability Score": "87.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-auckland",
+    "university_name": "The University of Auckland",
+    "country_hint": "New Zealand",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 65,
+    "score": 69.7,
+    "source_url": "/universities/university-auckland",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.7",
+        "Academic Reputation": "82.2",
+        "Citations per Faculty": "66.9",
+        "Faculty Student Ratio": "15.5",
+        "Employer Reputation": "44.7",
+        "Employment Outcomes": "92.9",
+        "International Student Ratio": "84",
+        "International Research Network": "87.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "99.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-texas-austin",
+    "university_name": "University of Texas at Austin",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 66,
+    "score": 69.5,
+    "source_url": "/universities/university-texas-austin",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.5",
+        "Academic Reputation": "93.5",
+        "Citations per Faculty": "76.7",
+        "Faculty Student Ratio": "8.1",
+        "Employer Reputation": "86.6",
+        "Employment Outcomes": "81.7",
+        "International Student Ratio": "11.7",
+        "International Research Network": "91.7",
+        "International Faculty Ratio": "6.1",
+        "Sustainability Score": "52.1"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/korea-university",
+    "university_name": "Korea University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 67,
+    "score": 69.0,
+    "source_url": "/universities/korea-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69",
+        "Academic Reputation": "78.2",
+        "Citations per Faculty": "45",
+        "Faculty Student Ratio": "73",
+        "Employer Reputation": "93.8",
+        "Employment Outcomes": "89",
+        "International Student Ratio": "45.7",
+        "International Research Network": "65.7",
+        "International Faculty Ratio": "15.2",
+        "Sustainability Score": "85.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-taiwan-university-ntu",
+    "university_name": "National Taiwan University (NTU)",
+    "country_hint": "Taiwan",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 68,
+    "score": 68.7,
+    "source_url": "/universities/national-taiwan-university-ntu",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "68.7",
+        "Academic Reputation": "93.4",
+        "Citations per Faculty": "44.3",
+        "Faculty Student Ratio": "25.5",
+        "Employer Reputation": "92.1",
+        "Employment Outcomes": "99.9",
+        "International Student Ratio": "27.4",
+        "International Research Network": "71.5",
+        "International Faculty Ratio": "16.7",
+        "Sustainability Score": "90"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-warwick",
+    "university_name": "The University of Warwick",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 69,
+    "score": 68.2,
+    "source_url": "/universities/university-warwick",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "68.2",
+        "Academic Reputation": "72.2",
+        "Citations per Faculty": "37.7",
+        "Faculty Student Ratio": "35.5",
+        "Employer Reputation": "86.4",
+        "Employment Outcomes": "65.7",
+        "International Student Ratio": "99.1",
+        "International Research Network": "94.2",
+        "International Faculty Ratio": "98.1",
+        "Sustainability Score": "89.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-illinois-urbana-champaign",
+    "university_name": "University of Illinois Urbana-Champaign",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 70,
+    "score": 68.2,
+    "source_url": "/universities/university-illinois-urbana-champaign",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "68.2",
+        "Academic Reputation": "83.9",
+        "Citations per Faculty": "77.5",
+        "Faculty Student Ratio": "6.4",
+        "Employer Reputation": "75.7",
+        "Employment Outcomes": "81.7",
+        "International Student Ratio": "56.3",
+        "International Research Network": "90.4",
+        "International Faculty Ratio": "14",
+        "Sustainability Score": "65"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universidad-de-buenos-aires-uba",
+    "university_name": "Universidad de Buenos Aires (UBA)",
+    "country_hint": "Argentina",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 71,
+    "score": 67.6,
+    "source_url": "/universities/universidad-de-buenos-aires-uba",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "67.6",
+        "Academic Reputation": "94.1",
+        "Citations per Faculty": "1.6",
+        "Faculty Student Ratio": "71.7",
+        "Employer Reputation": "94.1",
+        "Employment Outcomes": "99.8",
+        "International Student Ratio": "64.6",
+        "International Research Network": "73.4",
+        "International Faculty Ratio": "63.9",
+        "Sustainability Score": "51.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-san-diego-ucsd",
+    "university_name": "University of California, San Diego (UCSD)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 72,
+    "score": 67.1,
+    "source_url": "/universities/university-california-san-diego-ucsd",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "67.1",
+        "Academic Reputation": "89.3",
+        "Citations per Faculty": "67",
+        "Faculty Student Ratio": "50.8",
+        "Employer Reputation": "57.8",
+        "Employment Outcomes": "21.7",
+        "International Student Ratio": "44.3",
+        "International Research Network": "95.5",
+        "International Faculty Ratio": "54.6",
+        "Sustainability Score": "44.3"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universite-paris-saclay",
+    "university_name": "Université Paris-Saclay",
+    "country_hint": "France",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 73,
+    "score": 67.0,
+    "source_url": "/universities/universite-paris-saclay",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "67",
+        "Academic Reputation": "60.7",
+        "Citations per Faculty": "35",
+        "Faculty Student Ratio": "99.8",
+        "Employer Reputation": "99.1",
+        "Employment Outcomes": "70.8",
+        "International Student Ratio": "58.6",
+        "International Research Network": "98.6",
+        "International Faculty Ratio": "35.7",
+        "Sustainability Score": "72.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kth-royal-institute-technology",
+    "university_name": "KTH Royal Institute of Technology",
+    "country_hint": "Sweden",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 74,
+    "score": 65.7,
+    "source_url": "/universities/kth-royal-institute-technology",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "65.7",
+        "Academic Reputation": "45.2",
+        "Citations per Faculty": "86.1",
+        "Faculty Student Ratio": "62.3",
+        "Employer Reputation": "55.6",
+        "Employment Outcomes": "62.4",
+        "International Student Ratio": "65.9",
+        "International Research Network": "91.1",
+        "International Faculty Ratio": "92",
+        "Sustainability Score": "94.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/lund-university",
+    "university_name": "Lund University",
+    "country_hint": "Sweden",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 75,
+    "score": 65.6,
+    "source_url": "/universities/lund-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "65.6",
+        "Academic Reputation": "68.3",
+        "Citations per Faculty": "44.6",
+        "Faculty Student Ratio": "55.5",
+        "Employer Reputation": "52.5",
+        "Employment Outcomes": "86.5",
+        "International Student Ratio": "73.4",
+        "International Research Network": "96.7",
+        "International Faculty Ratio": "97.4",
+        "Sustainability Score": "99.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-washington",
+    "university_name": "University of Washington",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 76,
+    "score": 65.3,
+    "source_url": "/universities/university-washington",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "65.3",
+        "Academic Reputation": "81.9",
+        "Citations per Faculty": "78.8",
+        "Faculty Student Ratio": "28.6",
+        "Employer Reputation": "55.5",
+        "Employment Outcomes": "68.7",
+        "International Student Ratio": "32.8",
+        "International Research Network": "95.6",
+        "International Faculty Ratio": "11",
+        "Sustainability Score": "66.5"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-western-australia",
+    "university_name": "The University of Western Australia",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 77,
+    "score": 65.2,
+    "source_url": "/universities/university-western-australia",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "65.2",
+        "Academic Reputation": "55.5",
+        "Citations per Faculty": "98.8",
+        "Faculty Student Ratio": "13.1",
+        "Employer Reputation": "41.8",
+        "Employment Outcomes": "78",
+        "International Student Ratio": "99.8",
+        "International Research Network": "94.2",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "50.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-glasgow",
+    "university_name": "University of Glasgow",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 78,
+    "score": 65.0,
+    "source_url": "/universities/university-glasgow",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "65",
+        "Academic Reputation": "77.4",
+        "Citations per Faculty": "32.5",
+        "Faculty Student Ratio": "38",
+        "Employer Reputation": "67.7",
+        "Employment Outcomes": "33.5",
+        "International Student Ratio": "99.4",
+        "International Research Network": "97.6",
+        "International Faculty Ratio": "95.7",
+        "Sustainability Score": "98.5"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/brown-university",
+    "university_name": "Brown University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 79,
+    "score": 64.7,
+    "source_url": "/universities/brown-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "64.7",
+        "Academic Reputation": "59.9",
+        "Citations per Faculty": "76.4",
+        "Faculty Student Ratio": "77.7",
+        "Employer Reputation": "49.6",
+        "Employment Outcomes": "63.6",
+        "International Student Ratio": "50.9",
+        "International Research Network": "83.2",
+        "International Faculty Ratio": "79.9",
+        "Sustainability Score": "46.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-birmingham",
+    "university_name": "University of Birmingham",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 80,
+    "score": 64.1,
+    "source_url": "/universities/university-birmingham",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "64.1",
+        "Academic Reputation": "68.9",
+        "Citations per Faculty": "40.5",
+        "Faculty Student Ratio": "39",
+        "Employer Reputation": "69",
+        "Employment Outcomes": "44.5",
+        "International Student Ratio": "89.3",
+        "International Research Network": "97.5",
+        "International Faculty Ratio": "92.6",
+        "Sustainability Score": "96.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-southampton",
+    "university_name": "University of Southampton",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 81,
+    "score": 64.1,
+    "source_url": "/universities/university-southampton",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "64.1",
+        "Academic Reputation": "50.1",
+        "Citations per Faculty": "83.4",
+        "Faculty Student Ratio": "40.7",
+        "Employer Reputation": "44.3",
+        "Employment Outcomes": "49.2",
+        "International Student Ratio": "98",
+        "International Research Network": "97.1",
+        "International Faculty Ratio": "92.5",
+        "Sustainability Score": "96.9"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-adelaide",
+    "university_name": "The University of Adelaide",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 82,
+    "score": 63.8,
+    "source_url": "/universities/university-adelaide",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "63.8",
+        "Academic Reputation": "56",
+        "Citations per Faculty": "87",
+        "Faculty Student Ratio": "17.9",
+        "Employer Reputation": "38.9",
+        "Employment Outcomes": "51.5",
+        "International Student Ratio": "99.3",
+        "International Research Network": "93.6",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "95.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-leeds",
+    "university_name": "University of Leeds",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 83,
+    "score": 63.8,
+    "source_url": "/universities/university-leeds",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "63.8",
+        "Academic Reputation": "70.5",
+        "Citations per Faculty": "39.8",
+        "Faculty Student Ratio": "36.4",
+        "Employer Reputation": "75.9",
+        "Employment Outcomes": "50.9",
+        "International Student Ratio": "88.5",
+        "International Research Network": "98.8",
+        "International Faculty Ratio": "82.5",
+        "Sustainability Score": "71.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universitat-heidelberg",
+    "university_name": "Universität Heidelberg",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 84,
+    "score": 63.7,
+    "source_url": "/universities/universitat-heidelberg",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "63.7",
+        "Academic Reputation": "76.9",
+        "Citations per Faculty": "32.7",
+        "Faculty Student Ratio": "99.4",
+        "Employer Reputation": "59.4",
+        "Employment Outcomes": "25.2",
+        "International Student Ratio": "53.6",
+        "International Research Network": "94.5",
+        "International Faculty Ratio": "54.2",
+        "Sustainability Score": "77.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tokyo-institute-technology-tokyo-tech",
+    "university_name": "Tokyo Institute of Technology (Tokyo Tech)",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 85,
+    "score": 63.7,
+    "source_url": "/universities/tokyo-institute-technology-tokyo-tech",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "63.7",
+        "Academic Reputation": "75.1",
+        "Citations per Faculty": "43.1",
+        "Faculty Student Ratio": "84.1",
+        "Employer Reputation": "94.1",
+        "Employment Outcomes": "23.7",
+        "International Student Ratio": "30.5",
+        "International Research Network": "61.2",
+        "International Faculty Ratio": "23.4",
+        "Sustainability Score": "62.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/osaka-university",
+    "university_name": "Osaka University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 86,
+    "score": 63.5,
+    "source_url": "/universities/osaka-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "63.5",
+        "Academic Reputation": "82.4",
+        "Citations per Faculty": "54.9",
+        "Faculty Student Ratio": "45.2",
+        "Employer Reputation": "87",
+        "Employment Outcomes": "33",
+        "International Student Ratio": "12.2",
+        "International Research Network": "68.2",
+        "International Faculty Ratio": "23.9",
+        "Sustainability Score": "68"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/trinity-college-dublin-university-dublin",
+    "university_name": "Trinity College Dublin, The University of Dublin",
+    "country_hint": "Ireland",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 87,
+    "score": 62.9,
+    "source_url": "/universities/trinity-college-dublin-university-dublin",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "62.9",
+        "Academic Reputation": "69.5",
+        "Citations per Faculty": "58.4",
+        "Faculty Student Ratio": "20.2",
+        "Employer Reputation": "47.4",
+        "Employment Outcomes": "88.6",
+        "International Student Ratio": "88",
+        "International Research Network": "91.3",
+        "International Faculty Ratio": "99.3",
+        "Sustainability Score": "57.7"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-technology-sydney",
+    "university_name": "University of Technology Sydney",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 88,
+    "score": 62.4,
+    "source_url": "/universities/university-technology-sydney",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "62.4",
+        "Academic Reputation": "43.9",
+        "Citations per Faculty": "97.7",
+        "Faculty Student Ratio": "9.8",
+        "Employer Reputation": "55",
+        "Employment Outcomes": "40.2",
+        "International Student Ratio": "86",
+        "International Research Network": "91.4",
+        "International Faculty Ratio": "96.6",
+        "Sustainability Score": "96.3"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/durham-university",
+    "university_name": "Durham University",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 89,
+    "score": 61.7,
+    "source_url": "/universities/durham-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "61.7",
+        "Academic Reputation": "59.6",
+        "Citations per Faculty": "40.9",
+        "Faculty Student Ratio": "26.3",
+        "Employer Reputation": "83.9",
+        "Employment Outcomes": "39.4",
+        "International Student Ratio": "84.9",
+        "International Research Network": "89.7",
+        "International Faculty Ratio": "97.3",
+        "Sustainability Score": "98.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/pennsylvania-state-university",
+    "university_name": "Pennsylvania State University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 90,
+    "score": 61.7,
+    "source_url": "/universities/pennsylvania-state-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "61.7",
+        "Academic Reputation": "76.6",
+        "Citations per Faculty": "55.4",
+        "Faculty Student Ratio": "25",
+        "Employer Reputation": "64.5",
+        "Employment Outcomes": "61.9",
+        "International Student Ratio": "28",
+        "International Research Network": "97.9",
+        "International Faculty Ratio": "25.1",
+        "Sustainability Score": "96.5"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/purdue-university",
+    "university_name": "Purdue University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 91,
+    "score": 61.7,
+    "source_url": "/universities/purdue-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "61.7",
+        "Academic Reputation": "63.3",
+        "Citations per Faculty": "54.3",
+        "Faculty Student Ratio": "11.4",
+        "Employer Reputation": "81.1",
+        "Employment Outcomes": "63.1",
+        "International Student Ratio": "45.2",
+        "International Research Network": "92.9",
+        "International Faculty Ratio": "79.6",
+        "Sustainability Score": "90.1"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universidade-de-sao-paulo",
+    "university_name": "Universidade de São Paulo",
+    "country_hint": "Brazil",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 92,
+    "score": 61.6,
+    "source_url": "/universities/universidade-de-sao-paulo",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "61.6",
+        "Academic Reputation": "92.8",
+        "Citations per Faculty": "28.5",
+        "Faculty Student Ratio": "21.4",
+        "Employer Reputation": "74.6",
+        "Employment Outcomes": "97.9",
+        "International Student Ratio": "2.1",
+        "International Research Network": "95.9",
+        "International Faculty Ratio": "6.8",
+        "Sustainability Score": "93.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/pontificia-universidad-católica-de-chile-uc",
+    "university_name": "Pontificia Universidad Católica de Chile (UC)",
+    "country_hint": "Chile",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 93,
+    "score": 61.5,
+    "source_url": "/universities/pontificia-universidad-católica-de-chile-uc",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "61.5",
+        "Academic Reputation": "93.7",
+        "Citations per Faculty": "8.8",
+        "Faculty Student Ratio": "23.7",
+        "Employer Reputation": "98",
+        "Employment Outcomes": "99.9",
+        "International Student Ratio": "3.7",
+        "International Research Network": "82.5",
+        "International Faculty Ratio": "26",
+        "Sustainability Score": "79.3"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/lomonosov-moscow-state-university",
+    "university_name": "Lomonosov Moscow State University",
+    "country_hint": "Russia",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 94,
+    "score": 61.4,
+    "source_url": "/universities/lomonosov-moscow-state-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "61.4",
+        "Academic Reputation": "78",
+        "Citations per Faculty": "4.1",
+        "Faculty Student Ratio": "99.7",
+        "Employer Reputation": "82.3",
+        "Employment Outcomes": "95.8",
+        "International Student Ratio": "91.5",
+        "International Research Network": "88.1",
+        "International Faculty Ratio": "19.7",
+        "Sustainability Score": "3.5"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universidad-nacional-autonoma-de-mexico-unam",
+    "university_name": "Universidad Nacional Autónoma de México (UNAM)",
+    "country_hint": "Mexico",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 95,
+    "score": 61.4,
+    "source_url": "/universities/universidad-nacional-autonoma-de-mexico-unam",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "61.4",
+        "Academic Reputation": "97",
+        "Citations per Faculty": "2.4",
+        "Faculty Student Ratio": "37.4",
+        "Employer Reputation": "94.4",
+        "Employment Outcomes": "93.2",
+        "International Student Ratio": "2.3",
+        "International Research Network": "93.2",
+        "International Faculty Ratio": "7.5",
+        "Sustainability Score": "83.4"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-alberta",
+    "university_name": "University of Alberta",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 96,
+    "score": 61.2,
+    "source_url": "/universities/university-alberta",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "61.2",
+        "Academic Reputation": "57",
+        "Citations per Faculty": "61.3",
+        "Faculty Student Ratio": "39.1",
+        "Employer Reputation": "42.2",
+        "Employment Outcomes": "70",
+        "International Student Ratio": "71",
+        "International Research Network": "96",
+        "International Faculty Ratio": "98.3",
+        "Sustainability Score": "97.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/freie-universitaet-berlin",
+    "university_name": "Freie Universitaet Berlin",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 97,
+    "score": 60.6,
+    "source_url": "/universities/freie-universitaet-berlin",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "60.6",
+        "Academic Reputation": "80.3",
+        "Citations per Faculty": "71.7",
+        "Faculty Student Ratio": "5",
+        "Employer Reputation": "56.9",
+        "Employment Outcomes": "32.8",
+        "International Student Ratio": "43.7",
+        "International Research Network": "93.1",
+        "International Faculty Ratio": "62.4",
+        "Sustainability Score": "31.3"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/pohang-university-science-technology-postech",
+    "university_name": "Pohang University of Science And Technology (POSTECH)",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 98,
+    "score": 60.3,
+    "source_url": "/universities/pohang-university-science-technology-postech",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "60.3",
+        "Academic Reputation": "45.9",
+        "Citations per Faculty": "96.9",
+        "Faculty Student Ratio": "99.9",
+        "Employer Reputation": "80",
+        "Employment Outcomes": "11",
+        "International Student Ratio": "2.7",
+        "International Research Network": "26.6",
+        "International Faculty Ratio": "27.6",
+        "Sustainability Score": "36.6"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/rwth-aachen-university",
+    "university_name": "RWTH Aachen University",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 99,
+    "score": 59.9,
+    "source_url": "/universities/rwth-aachen-university",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "59.9",
+        "Academic Reputation": "46.6",
+        "Citations per Faculty": "71.9",
+        "Faculty Student Ratio": "6.3",
+        "Employer Reputation": "93.7",
+        "Employment Outcomes": "33.4",
+        "International Student Ratio": "85.5",
+        "International Research Network": "86.1",
+        "International Faculty Ratio": "48.6",
+        "Sustainability Score": "84.8"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-copenhagen",
+    "university_name": "University of Copenhagen",
+    "country_hint": "Denmark",
+    "ranking_year": 2026,
+    "ranking_type": "special:mba",
+    "rank": 100,
+    "score": 59.6,
+    "source_url": "/universities/university-copenhagen",
+    "source_version": null,
+    "universe_type": "special",
+    "universe_key": "mba",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "59.6",
+        "Academic Reputation": "74",
+        "Citations per Faculty": "23.1",
+        "Faculty Student Ratio": "99.8",
+        "Employer Reputation": "31.6",
+        "Employment Outcomes": "90.8",
+        "International Student Ratio": "15.6",
+        "International Research Network": "98.2",
+        "International Faculty Ratio": "84.9",
+        "Sustainability Score": "73.2"
+      },
+      "universe_type": "special",
+      "universe_key": "mba"
+    }
+  }
+]

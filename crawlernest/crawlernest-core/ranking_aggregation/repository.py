@@ -18,6 +18,8 @@ class RankingAggregationRepository:
     def create_aggregation_run(
         self,
         year: int,
+        universe_type: str,
+        universe_key: str,
         config: AggregationConfig,
         input_record_count: int,
         run_label: str | None = None,
@@ -27,14 +29,16 @@ class RankingAggregationRepository:
             cur.execute(
                 """
                 INSERT INTO analytics.aggregation_runs (
-                    run_label, ranking_year, aggregation_method_version,
+                    run_label, ranking_year, universe_type, universe_key, aggregation_method_version,
                     status, input_record_count, config_json, notes
-                ) VALUES (%s, %s, %s, 'running', %s, %s::jsonb, %s)
+                ) VALUES (%s, %s, %s, %s, %s, 'running', %s, %s::jsonb, %s)
                 RETURNING aggregation_run_id
                 """,
                 (
                     run_label,
                     year,
+                    universe_type,
+                    universe_key,
                     config.aggregation_method_version,
                     input_record_count,
                     json.dumps(
@@ -89,6 +93,8 @@ class RankingAggregationRepository:
                         aggregation_run_id,
                         canonical_university_id,
                         ranking_year,
+                        universe_type,
+                        universe_key,
                         display_rank,
                         composite_score,
                         coverage_ratio,
@@ -97,10 +103,12 @@ class RankingAggregationRepository:
                         source_weights_used_json,
                         aggregation_method_version,
                         updated_at
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb, %s, CURRENT_TIMESTAMP)
-                    ON CONFLICT (canonical_university_id, ranking_year, aggregation_method_version)
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb, %s, CURRENT_TIMESTAMP)
+                    ON CONFLICT (canonical_university_id, ranking_year, universe_type, universe_key, aggregation_method_version)
                     DO UPDATE SET
                         aggregation_run_id = EXCLUDED.aggregation_run_id,
+                        universe_type = EXCLUDED.universe_type,
+                        universe_key = EXCLUDED.universe_key,
                         display_rank = EXCLUDED.display_rank,
                         composite_score = EXCLUDED.composite_score,
                         coverage_ratio = EXCLUDED.coverage_ratio,
@@ -113,6 +121,8 @@ class RankingAggregationRepository:
                         run_id,
                         row.canonical_university_id,
                         row.year,
+                        row.universe_type,
+                        row.universe_key,
                         row.display_rank,
                         row.composite_score,
                         row.coverage_ratio,

@@ -1,88 +1,56 @@
 package clawer.repository;
 
+import clawer.domain.ranking.RankingContext;
+import clawer.domain.ranking.ScopedRankedUniversity;
+import clawer.domain.ranking.ScopedRankingReadAdapter;
 import clawer.dto.RankingDTO;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 @Repository
 public class JdbcAggregatedRankingReadRepository implements AggregatedRankingReadRepository {
+    private final ScopedRankingReadAdapter scopedRankingReadAdapter;
 
-    private final JdbcTemplate jdbcTemplate;
-
-    public JdbcAggregatedRankingReadRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public JdbcAggregatedRankingReadRepository(ScopedRankingReadAdapter scopedRankingReadAdapter) {
+        this.scopedRankingReadAdapter = scopedRankingReadAdapter;
     }
 
     @Override
-    public List<RankingDTO> findRankings(Integer year, int offset, int limit) {
-        return jdbcTemplate.query(
-                """
-                SELECT
-                    cu.canonical_university_id,
-                    cu.display_name AS university_name,
-                    cu.canonical_slug AS slug,
-                    c.country_name AS country,
-                    ar.display_rank AS aggregated_rank,
-                    ar.composite_score,
-                    ar.ranking_year,
-                    COALESCE((
-                        SELECT COUNT(*)
-                        FROM jsonb_object_keys(ar.source_ranks_json)
-                    ), 0) AS source_count
-                FROM analytics.v_aggregated_rankings_latest ar
-                JOIN warehouse.canonical_university cu
-                  ON cu.canonical_university_id = ar.canonical_university_id
-                LEFT JOIN warehouse.countries c
-                  ON c.country_id = cu.country_id
-                WHERE (? IS NULL OR ar.ranking_year = ?)
-                ORDER BY
-                    CASE WHEN ar.display_rank IS NULL THEN 1 ELSE 0 END,
-                    ar.display_rank ASC,
-                    cu.display_name ASC,
-                    cu.canonical_university_id ASC
-                OFFSET ? LIMIT ?
-                """,
-                (rs, rowNum) -> mapRanking(rs),
-                year, year, offset, limit
-        );
+    public List<RankingDTO> findRankings(
+            Integer year,
+            String search,
+            String scope,
+            String region,
+            int page,
+            int pageSize
+    ) {
+        RankingContext context = RankingContext.fromQuery(scope, region);
+        return scopedRankingReadAdapter.findRankings(context, year, search, page, pageSize)
+                .stream()
+                .map(row -> toRankingDto(row, context))
+                .toList();
     }
 
     @Override
-    public long countRankings(Integer year) {
-        Long count = jdbcTemplate.queryForObject(
-                """
-                SELECT COUNT(*)
-                FROM analytics.v_aggregated_rankings_latest ar
-                WHERE (? IS NULL OR ar.ranking_year = ?)
-                """,
-                Long.class,
-                year, year
-        );
-        return count == null ? 0L : count;
+    public long countRankings(Integer year, String search, String scope, String region) {
+        RankingContext context = RankingContext.fromQuery(scope, region);
+        return scopedRankingReadAdapter.countRankings(context, year, search);
     }
 
-    private RankingDTO mapRanking(ResultSet rs) throws SQLException {
+    private RankingDTO toRankingDto(ScopedRankedUniversity row, RankingContext context) {
         RankingDTO dto = new RankingDTO();
-        dto.setCanonicalUniversityId(rs.getLong("canonical_university_id"));
-        dto.setUniversityName(rs.getString("university_name"));
-        dto.setSlug(rs.getString("slug"));
-        dto.setCountry(rs.getString("country"));
-
-        int aggregatedRank = rs.getInt("aggregated_rank");
-        dto.setAggregatedRank(rs.wasNull() ? null : aggregatedRank);
-
-        double compositeScore = rs.getDouble("composite_score");
-        dto.setCompositeScore(rs.wasNull() ? null : compositeScore);
-
-        int rankingYear = rs.getInt("ranking_year");
-        dto.setRankingYear(rs.wasNull() ? null : rankingYear);
-
+        dto.setCanonicalUniversityId(row.getCanonicalUniversityId());
+        dto.setUniversityName(row.getUniversityName());
+        dto.setCountry(row.getCountry());
+        dto.setSlug(row.getSlug());
+        dto.setAggregatedRank(row.rankedPosition(context).compatibilityAggregatedRank());
+        dto.setGlobalRank(row.getGlobalRank());
+        dto.setScopeRank(context.isRegion() ? row.getScopeRank() : null);
+        dto.setCompositeScore(row.getCompositeScore());
+        dto.setRankingYear(row.getRankingYear());
         dto.setPrimarySource("AGGREGATED");
-        dto.setSourceCount(rs.getInt("source_count"));
+        dto.setSourceCount(row.getSourceCount());
         return dto;
     }
 }

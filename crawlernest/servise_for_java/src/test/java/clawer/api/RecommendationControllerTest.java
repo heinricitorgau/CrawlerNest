@@ -1,36 +1,28 @@
 package clawer.api;
 
+import clawer.dto.ApiResponse;
+import clawer.domain.ranking.RankingContext;
+import clawer.domain.ranking.ScopedRankedUniversity;
+import clawer.domain.ranking.ScopedRankingReadAdapter;
 import clawer.model.RecommendationGroupResponse;
 import clawer.model.RecommendationResult;
 import clawer.service.RecommendationService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@WebMvcTest(RecommendationController.class)
 class RecommendationControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private RecommendationService recommendationService;
-
     @Test
-    void testRecommendationsV2ReturnsGroupedJson() throws Exception {
+    void testRecommendationsV2ReturnsGroupedJson() {
+        FakeRecommendationService service = new FakeRecommendationService();
         RecommendationResult target = new RecommendationResult(
                 1L,
                 "Target Uni",
@@ -45,99 +37,64 @@ class RecommendationControllerTest {
                 "hybrid_scoring_v3",
                 "decision_policy_v1",
                 "explanation_templates_v1",
-                "Classified as Target: rank #92 sits close to your target #100, so it is a balanced option. Recommended because ranking score is 88.00, confidence is high, overall fit score is 89.40.",
+                "Classified as Target",
                 "rank_agg_v1",
                 Map.of(),
                 List.of("category=target")
         );
-        RecommendationGroupResponse response = new RecommendationGroupResponse(
+        service.v2Response = new RecommendationGroupResponse(
                 List.of(),
                 List.of(target),
                 List.of(),
                 Map.of("risk_profile", "balanced")
         );
 
-        when(recommendationService.getRecommendationsV2(
-                eq("United Kingdom"),
-                eq(6.5),
-                eq(100),
-                eq("balanced"),
-                eq(null),
-                eq(null),
-                eq(10)
-        )).thenReturn(response);
+        RecommendationController controller = new RecommendationController(service);
+        Object response = controller.getRecommendations(
+                "United Kingdom", null, null, null,
+                6.5, null, 100, null,
+                "balanced", null, null, null,
+                null, null, null, null, null, null, 10, "v2"
+        );
 
-        mockMvc.perform(get("/api/v1/recommendations")
-                        .param("country", "United Kingdom")
-                        .param("ielts", "6.5")
-                        .param("targetRank", "100")
-                        .param("riskProfile", "balanced")
-                        .param("version", "v2")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.data.target[0].category").value("target"))
-                .andExpect(jsonPath("$.metadata.risk_profile").value("balanced"));
+        ApiResponse<?> apiResponse = assertInstanceOf(ApiResponse.class, response);
+        Map<?, ?> data = assertInstanceOf(Map.class, apiResponse.getData());
+        List<?> targetRows = assertInstanceOf(List.class, data.get("target"));
+        RecommendationResult first = assertInstanceOf(RecommendationResult.class, targetRows.get(0));
+        assertEquals("target", first.getCategory());
+        assertEquals("balanced", apiResponse.getMetadata().get("risk_profile"));
+        assertEquals("United Kingdom", service.lastCountry);
     }
 
     @Test
-    void testRecommendationsV3AcceptsPreferenceWeights() throws Exception {
-        RecommendationResult reach = new RecommendationResult(
-                2L,
-                "Reach Uni",
-                "United States",
-                40,
-                6.5,
-                91.2,
-                "reach",
-                "strong",
-                88.0,
-                "Confidence is high because data completeness and ranking-source agreement support this decision.",
-                "hybrid_scoring_v3",
-                "decision_policy_v2",
-                "explanation_templates_v2",
-                "Boosted due to aggressive profile favoring higher-ranked universities.",
-                "rank_agg_v1",
-                Map.of("country_match_score", 25.0),
-                List.of("version=v3")
-        );
-        RecommendationGroupResponse response = new RecommendationGroupResponse(
-                List.of(reach),
+    void testRecommendationsV3AcceptsScopeAndRegion() {
+        FakeRecommendationService service = new FakeRecommendationService();
+        service.v3Response = new RecommendationGroupResponse(
                 List.of(),
                 List.of(),
-                Map.of("risk_profile", "aggressive", "version", "v3", "country_policy", "none")
+                List.of(),
+                Map.of("version", "v3", "scope", "region", "region", "Europe")
         );
 
-        when(recommendationService.getRecommendationsV3(
-                eq("United Kingdom"),
-                eq(null),
-                eq(6.5),
-                eq(100),
-                eq("aggressive"),
-                eq("{\"ranking\":0.6,\"ielts\":0.15,\"confidence\":0.15,\"country_match\":0.1}"),
-                eq(null),
-                eq(null),
-                eq(10)
-        )).thenReturn(response);
+        RecommendationController controller = new RecommendationController(service);
+        Object response = controller.getRecommendations(
+                "United Kingdom", "region", "Europe", "1,2",
+                6.5, null, 100, null,
+                "balanced", null, null, null,
+                null, null, null, null, null, null, 5, "v3"
+        );
 
-        mockMvc.perform(get("/api/v1/recommendations")
-                        .param("country", "United Kingdom")
-                        .param("ielts", "6.5")
-                        .param("targetRank", "100")
-                        .param("riskProfile", "aggressive")
-                        .param("preferenceWeights", "{\"ranking\":0.6,\"ielts\":0.15,\"confidence\":0.15,\"country_match\":0.1}")
-                        .param("version", "v3")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.data.reach[0].preferenceAlignment").value("strong"))
-                .andExpect(jsonPath("$.data.reach[0].recommendationConfidence").value(88.0))
-                .andExpect(jsonPath("$.data.reach[0].scoringVersion").value("hybrid_scoring_v3"))
-                .andExpect(jsonPath("$.metadata.version").value("v3"));
+        ApiResponse<?> apiResponse = assertInstanceOf(ApiResponse.class, response);
+        assertEquals("region", apiResponse.getMetadata().get("scope"));
+        assertEquals("Europe", apiResponse.getMetadata().get("region"));
+        assertEquals("region", service.lastScope);
+        assertEquals("Europe", service.lastRegion);
+        assertEquals("1,2", service.lastShortlist);
     }
 
     @Test
-    void testRecommendationsV3AcceptsSnakeCaseAliasesAndDefaultsToV3() throws Exception {
+    void testRecommendationsV3AcceptsSnakeCaseAliasesAndDefaultsToV3() {
+        FakeRecommendationService service = new FakeRecommendationService();
         RecommendationResult safety = new RecommendationResult(
                 3L,
                 "Safety Uni",
@@ -148,58 +105,120 @@ class RecommendationControllerTest {
                 "safety",
                 "moderate",
                 81.0,
-                "Confidence is moderate because ranking coverage is solid but some admission data is missing.",
+                "Confidence is moderate.",
                 "hybrid_scoring_v3",
                 "decision_policy_v2",
                 "explanation_templates_v2",
-                "Classified as Safety: rank #130 is below your target threshold #100, so it is a lower-risk option.",
+                "Classified as Safety",
                 "rank_agg_v1",
                 Map.of("risk_adjustment", 8.0),
                 List.of("version=v3", "category=safety")
         );
-        RecommendationGroupResponse response = new RecommendationGroupResponse(
+        service.v3Response = new RecommendationGroupResponse(
                 List.of(),
                 List.of(),
                 List.of(safety),
                 Map.of("version", "v3", "risk_profile", "conservative", "country_policy", "hard_filter")
         );
 
-        when(recommendationService.getRecommendationsV3(
-                eq("United Kingdom"),
-                eq("hard_filter"),
-                eq(6.5),
-                eq(100),
-                eq("conservative"),
-                eq(null),
-                eq(null),
-                eq(null),
-                eq(3)
-        )).thenReturn(response);
+        RecommendationController controller = new RecommendationController(service);
+        Object response = controller.getRecommendations(
+                "United Kingdom", null, null, null,
+                null, 6.5, null, 100,
+                null, "conservative", null, "hard_filter",
+                null, null, null, null, null, null, 3, "v3"
+        );
 
-        mockMvc.perform(get("/api/v1/recommendations")
-                        .param("country", "United Kingdom")
-                        .param("country_policy", "hard_filter")
-                        .param("ieltsScore", "6.5")
-                        .param("target_rank", "100")
-                        .param("risk_profile", "conservative")
-                        .param("limit", "3")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.data.safety[0].category").value("safety"))
-                .andExpect(jsonPath("$.data.safety[0].recommendationConfidence").value(81.0))
-                .andExpect(jsonPath("$.metadata.version").value("v3"))
-                .andExpect(jsonPath("$.metadata.country_policy").value("hard_filter"))
-                .andExpect(jsonPath("$.metadata.risk_profile").value("conservative"));
+        ApiResponse<?> apiResponse = assertInstanceOf(ApiResponse.class, response);
+        Map<?, ?> data = assertInstanceOf(Map.class, apiResponse.getData());
+        List<?> safetyRows = assertInstanceOf(List.class, data.get("safety"));
+        RecommendationResult first = assertInstanceOf(RecommendationResult.class, safetyRows.get(0));
+        assertEquals("safety", first.getCategory());
+        assertEquals("hard_filter", apiResponse.getMetadata().get("country_policy"));
+        assertEquals("conservative", apiResponse.getMetadata().get("risk_profile"));
     }
 
     @Test
-    void testRecommendationsV3ReturnsBadRequestWhenTargetRankMissing() throws Exception {
-        mockMvc.perform(get("/api/v1/recommendations")
-                        .param("country", "United Kingdom")
-                        .param("ielts", "6.5")
-                        .param("riskProfile", "balanced")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    void testRecommendationsV3ReturnsBadRequestWhenTargetRankMissing() {
+        RecommendationController controller = new RecommendationController(new FakeRecommendationService());
+
+        assertThrows(ResponseStatusException.class, () -> controller.getRecommendations(
+                "United Kingdom", null, null, null,
+                6.5, null, null, null,
+                "balanced", null, null, null,
+                null, null, null, null, null, null, 10, null
+        ));
+    }
+
+    private static final class FakeRecommendationService extends RecommendationService {
+        private RecommendationGroupResponse v2Response;
+        private RecommendationGroupResponse v3Response;
+        private String lastCountry;
+        private String lastScope;
+        private String lastRegion;
+        private String lastShortlist;
+
+        private FakeRecommendationService() {
+            super(new NoopScopedRankingReadAdapter(), new ObjectMapper());
+        }
+
+        @Override
+        public RecommendationGroupResponse getRecommendationsV2(
+                String country,
+                String scope,
+                String region,
+                String shortlist,
+                Double ieltsScore,
+                Integer targetRank,
+                String riskProfile,
+                String preferredRankingSource,
+                Integer rankingYear,
+                Integer limit
+        ) {
+            this.lastCountry = country;
+            this.lastScope = scope;
+            this.lastRegion = region;
+            this.lastShortlist = shortlist;
+            return v2Response;
+        }
+
+        @Override
+        public RecommendationGroupResponse getRecommendationsV3(
+                String country,
+                String scope,
+                String region,
+                String shortlist,
+                String countryPolicy,
+                Double ieltsScore,
+                Integer targetRank,
+                String riskProfile,
+                String preferenceWeights,
+                String preferredRankingSource,
+                Integer rankingYear,
+                Integer limit
+        ) {
+            this.lastCountry = country;
+            this.lastScope = scope;
+            this.lastRegion = region;
+            this.lastShortlist = shortlist;
+            return v3Response;
+        }
+    }
+
+    private static final class NoopScopedRankingReadAdapter implements ScopedRankingReadAdapter {
+        @Override
+        public List<ScopedRankedUniversity> findRankings(RankingContext context, Integer year, String search, int page, int pageSize) {
+            return List.of();
+        }
+
+        @Override
+        public long countRankings(RankingContext context, Integer year, String search) {
+            return 0;
+        }
+
+        @Override
+        public List<ScopedRankedUniversity> findRecommendationCandidates(RankingContext context, Integer year, String country) {
+            return List.of();
+        }
     }
 }

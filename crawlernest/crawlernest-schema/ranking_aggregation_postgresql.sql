@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS analytics.aggregation_runs (
     aggregation_run_id BIGSERIAL PRIMARY KEY,
     run_label TEXT,
     ranking_year INTEGER NOT NULL,
+    universe_type TEXT NOT NULL DEFAULT 'global',
+    universe_key TEXT NOT NULL DEFAULT 'global',
     aggregation_method_version TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'running', -- running/finished/failed
     started_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -48,6 +50,8 @@ CREATE TABLE IF NOT EXISTS analytics.aggregated_rankings (
     canonical_university_id BIGINT NOT NULL
         REFERENCES warehouse.canonical_university(canonical_university_id),
     ranking_year INTEGER NOT NULL,
+    universe_type TEXT NOT NULL DEFAULT 'global',
+    universe_key TEXT NOT NULL DEFAULT 'global',
     display_rank INTEGER,
     composite_score NUMERIC(10,6),
     coverage_ratio NUMERIC(8,6), -- sum(weights_used) / sum(configured_weights)
@@ -56,36 +60,61 @@ CREATE TABLE IF NOT EXISTS analytics.aggregated_rankings (
     source_weights_used_json JSONB NOT NULL,      -- {"QS":0.4,...}
     aggregation_method_version TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (canonical_university_id, ranking_year, aggregation_method_version)
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE analytics.aggregation_runs
+    ADD COLUMN IF NOT EXISTS universe_type TEXT NOT NULL DEFAULT 'global';
+
+ALTER TABLE analytics.aggregation_runs
+    ADD COLUMN IF NOT EXISTS universe_key TEXT NOT NULL DEFAULT 'global';
+
+ALTER TABLE analytics.aggregated_rankings
+    ADD COLUMN IF NOT EXISTS universe_type TEXT NOT NULL DEFAULT 'global';
+
+ALTER TABLE analytics.aggregated_rankings
+    ADD COLUMN IF NOT EXISTS universe_key TEXT NOT NULL DEFAULT 'global';
+
+ALTER TABLE analytics.aggregated_rankings
+    DROP CONSTRAINT IF EXISTS aggregated_rankings_canonical_university_id_ranking_year_ag_key;
+
+ALTER TABLE analytics.aggregated_rankings
+    DROP CONSTRAINT IF EXISTS uq_aggregated_rankings_universe;
+
+ALTER TABLE analytics.aggregated_rankings
+    ADD CONSTRAINT uq_aggregated_rankings_universe
+    UNIQUE (canonical_university_id, ranking_year, universe_type, universe_key, aggregation_method_version);
 
 -- ---------------------------------------------------------
 -- Helpful derived view (latest run per method/year)
 -- ---------------------------------------------------------
 CREATE OR REPLACE VIEW analytics.v_aggregated_rankings_latest AS
-SELECT ar.*
-FROM analytics.aggregated_rankings ar
-JOIN (
+WITH latest_finished_runs AS (
     SELECT
         ranking_year,
-        aggregation_method_version,
+        universe_type,
+        universe_key,
         MAX(aggregation_run_id) AS latest_run_id
-    FROM analytics.aggregated_rankings
-    GROUP BY ranking_year, aggregation_method_version
-) t
-ON ar.ranking_year = t.ranking_year
-AND ar.aggregation_method_version = t.aggregation_method_version
-AND ar.aggregation_run_id = t.latest_run_id;
+    FROM analytics.aggregation_runs
+    WHERE status = 'finished'
+    GROUP BY ranking_year, universe_type, universe_key
+)
+SELECT ar.*
+FROM analytics.aggregated_rankings ar
+JOIN latest_finished_runs latest
+  ON ar.ranking_year = latest.ranking_year
+ AND ar.universe_type = latest.universe_type
+ AND ar.universe_key = latest.universe_key
+ AND ar.aggregation_run_id = latest.latest_run_id;
 
 -- ---------------------------------------------------------
 -- Indexes
 -- ---------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_aggregation_runs_year_method
-    ON analytics.aggregation_runs(ranking_year, aggregation_method_version, started_at);
+    ON analytics.aggregation_runs(ranking_year, universe_type, universe_key, aggregation_method_version, started_at);
 
 CREATE INDEX IF NOT EXISTS idx_aggregated_rankings_year_rank
-    ON analytics.aggregated_rankings(ranking_year, aggregation_method_version, display_rank);
+    ON analytics.aggregated_rankings(ranking_year, universe_type, universe_key, aggregation_method_version, display_rank);
 
 CREATE INDEX IF NOT EXISTS idx_aggregated_rankings_canonical
     ON analytics.aggregated_rankings(canonical_university_id, ranking_year);

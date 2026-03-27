@@ -55,6 +55,7 @@ class MultiSourceRankingPipeline:
         batch_id: str | None = None,
         run_label_prefix: str = "multi_source_ingest",
         ranking_type: str = "world",
+        enable_aggregation: bool = True,
     ) -> MultiSourceIngestionSummary:
         raw_rows = list(standardized_records)
         if not raw_rows:
@@ -102,7 +103,11 @@ class MultiSourceRankingPipeline:
                 if row.canonical_university_id is not None and str(row.ranking_type or "world").lower() == ranking_type.lower()
             }
         )
-        aggregated_row_count = self._refresh_aggregations(years, ranking_type=ranking_type, run_label_prefix=run_label_prefix)
+        aggregated_row_count = 0
+        aggregated_years: list[int] = []
+        if enable_aggregation:
+            aggregated_row_count = self._refresh_aggregations(years, ranking_type=ranking_type, run_label_prefix=run_label_prefix)
+            aggregated_years = years
 
         matched_count = sum(1 for row in unified_rows if row.canonical_university_id is not None)
         summary = MultiSourceIngestionSummary(
@@ -112,7 +117,7 @@ class MultiSourceRankingPipeline:
             unresolved_count=len(unified_rows) - matched_count,
             duplicate_input_count=duplicate_input_count,
             by_source_count=dict(diagnostics.by_source_count),
-            years_aggregated=years,
+            years_aggregated=aggregated_years,
             aggregated_row_count=aggregated_row_count,
         )
         logger.info(
@@ -134,15 +139,23 @@ class MultiSourceRankingPipeline:
         if not outputs:
             return 0
         total = 0
-        for year in years:
-            year_inputs = [row for row in records if row.year == year]
-            year_outputs = [row for row in outputs if row.year == year]
+        grouped_inputs: dict[tuple[int, str, str], list[RankingRecordInput]] = {}
+        grouped_outputs: dict[tuple[int, str, str], list] = {}
+        for row in records:
+            grouped_inputs.setdefault((row.year, row.universe_type, row.universe_key), []).append(row)
+        for row in outputs:
+            grouped_outputs.setdefault((row.year, row.universe_type, row.universe_key), []).append(row)
+
+        for (year, universe_type, universe_key), year_outputs in sorted(grouped_outputs.items()):
+            year_inputs = grouped_inputs.get((year, universe_type, universe_key), [])
             run_id = self.aggregation_repo.create_aggregation_run(
                 year=year,
+                universe_type=universe_type,
+                universe_key=universe_key,
                 config=self.aggregation_config,
                 input_record_count=len(year_inputs),
-                run_label=f"{run_label_prefix}_{year}",
-                notes=f"Refreshed from warehouse.ranking_record ({ranking_type})",
+                run_label=f"{run_label_prefix}_{year}_{universe_type}_{universe_key}",
+                notes=f"Refreshed from warehouse.ranking_record ({ranking_type}, {universe_type}:{universe_key})",
             )
             self.aggregation_repo.upsert_source_weight_config(self.aggregation_config)
             self.aggregation_repo.upsert_aggregated_rankings(run_id, year_outputs)
@@ -184,6 +197,8 @@ def build_aggregation_inputs(rows: Iterable[UnifiedRankingRecord]) -> list[Ranki
             canonical_university_id=int(row.canonical_university_id),
             source=row.source,
             year=int(row.year),
+            universe_type=str(getattr(row, "universe_type", "global")),
+            universe_key=str(getattr(row, "universe_key", "global")),
             rank=row.rank,
             score=row.score,
             metadata_json=dict(row.metadata or {}),

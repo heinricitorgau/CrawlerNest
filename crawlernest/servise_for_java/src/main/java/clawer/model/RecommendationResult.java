@@ -8,6 +8,10 @@ public class RecommendationResult {
     private String universityName;
     private String country;
     private Integer aggregatedRank;
+    private String scope;
+    private String region;
+    private Integer globalRank;
+    private Integer scopeRank;
     private Double ieltsMin;
     private Double matchingScore;
     private String category;
@@ -93,6 +97,38 @@ public class RecommendationResult {
 
     public void setAggregatedRank(Integer aggregatedRank) {
         this.aggregatedRank = aggregatedRank;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public Integer getGlobalRank() {
+        return globalRank;
+    }
+
+    public void setGlobalRank(Integer globalRank) {
+        this.globalRank = globalRank;
+    }
+
+    public Integer getScopeRank() {
+        return scopeRank;
+    }
+
+    public void setScopeRank(Integer scopeRank) {
+        this.scopeRank = scopeRank;
     }
 
     public Double getIeltsMin() {

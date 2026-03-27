@@ -84,6 +84,8 @@ def main() -> int:
             year_outputs = [r for r in agg_outputs if r.year == year]
             run_id = agg_repo.create_aggregation_run(
                 year=year,
+                universe_type="global",
+                universe_key="global",
                 config=default_aggregation_config(),
                 input_record_count=len(year_inputs),
                 run_label=f"{args.run_label}_{year}",

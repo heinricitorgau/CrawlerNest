@@ -10,6 +10,7 @@ from entity_resolution import EntityRecord, EntityResolver, normalize_university
 from .types import StandardizedRankingRecord, UnifiedRankingRecord
 
 logger = logging.getLogger("MultiSourceIntegrator")
+_UNIFIED_FIELDS = set(getattr(UnifiedRankingRecord, "__annotations__", {}).keys())
 
 
 @dataclass(frozen=True)
@@ -73,25 +74,30 @@ class MultiSourceIntegrator:
             resolved = key_to_resolution.get((norm, country))
             if resolved is None or resolved.canonical_university_id is None:
                 unresolved += 1
+            unified_kwargs = {
+                "canonical_university_id": resolved.canonical_university_id if resolved else None,
+                "source": r.source,
+                "source_entity_id": r.source_entity_id,
+                "rank": r.rank,
+                "score": r.score,
+                "year": r.ranking_year,
+                "ranking_type": r.ranking_type,
+                "matched_alias": resolved.matched_alias if resolved else None,
+                "confidence_score": resolved.confidence_score if resolved else 0.0,
+                "matching_method": resolved.matching_method if resolved else "unresolved",
+                "source_url": r.source_url,
+                "source_version": r.source_version,
+                "metadata": {
+                    **dict(r.metadata or {}),
+                    **(dict(resolved.metadata) if resolved and resolved.metadata else {}),
+                },
+            }
+            if "universe_type" in _UNIFIED_FIELDS:
+                unified_kwargs["universe_type"] = r.universe_type
+            if "universe_key" in _UNIFIED_FIELDS:
+                unified_kwargs["universe_key"] = r.universe_key
             unified.append(
-                UnifiedRankingRecord(
-                    canonical_university_id=resolved.canonical_university_id if resolved else None,
-                    source=r.source,
-                    source_entity_id=r.source_entity_id,
-                    rank=r.rank,
-                    score=r.score,
-                    year=r.ranking_year,
-                    ranking_type=r.ranking_type,
-                    matched_alias=resolved.matched_alias if resolved else None,
-                    confidence_score=resolved.confidence_score if resolved else 0.0,
-                    matching_method=resolved.matching_method if resolved else "unresolved",
-                    source_url=r.source_url,
-                    source_version=r.source_version,
-                    metadata={
-                        **dict(r.metadata or {}),
-                        **(dict(resolved.metadata) if resolved and resolved.metadata else {}),
-                    },
-                )
+                UnifiedRankingRecord(**unified_kwargs)
             )
 
         diag = IntegrationDiagnostics(

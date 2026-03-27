@@ -9,7 +9,14 @@ import java.util.List;
  * Reads ONLY from the aggregated rankings read model.
  */
 public interface AggregatedRankingReadRepository {
-    List<RankingDTO> findRankings(Integer year, int offset, int limit);
+    List<RankingDTO> findRankings(
+            Integer year,
+            String search,
+            String scope,
+            String region,
+            int page,
+            int pageSize
+    );
 
-    long countRankings(Integer year);
+    long countRankings(Integer year, String search, String scope, String region);
 }

@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS warehouse.ranking_record (
         REFERENCES warehouse.source_university_mapping(source_mapping_id),
     ranking_year INTEGER NOT NULL,
     ranking_type TEXT NOT NULL DEFAULT 'world', -- world/regional/subject...
+    universe_type TEXT NOT NULL DEFAULT 'global', -- global/region/subject/special
+    universe_key TEXT NOT NULL DEFAULT 'global',  -- global/europe/computer-science/mba
     rank_position INTEGER,
     score NUMERIC(8,4),
     score_scale NUMERIC(8,4),                   -- optional: source-native score max
@@ -59,9 +61,24 @@ CREATE TABLE IF NOT EXISTS warehouse.ranking_record (
     metadata JSONB,
     ingested_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CHECK (rank_position IS NULL OR rank_position > 0),
-    CHECK (score IS NULL OR score >= 0),
-    UNIQUE (canonical_university_id, ranking_source_id, ranking_year, ranking_type)
+    CHECK (score IS NULL OR score >= 0)
 );
+
+ALTER TABLE warehouse.ranking_record
+    ADD COLUMN IF NOT EXISTS universe_type TEXT NOT NULL DEFAULT 'global';
+
+ALTER TABLE warehouse.ranking_record
+    ADD COLUMN IF NOT EXISTS universe_key TEXT NOT NULL DEFAULT 'global';
+
+ALTER TABLE warehouse.ranking_record
+    DROP CONSTRAINT IF EXISTS ranking_record_canonical_university_id_ranking_source_id_ra_key;
+
+ALTER TABLE warehouse.ranking_record
+    DROP CONSTRAINT IF EXISTS uq_ranking_record_universe;
+
+ALTER TABLE warehouse.ranking_record
+    ADD CONSTRAINT uq_ranking_record_universe
+    UNIQUE (canonical_university_id, ranking_source_id, ranking_year, ranking_type, universe_type, universe_key);
 
 -- ---------------------------------------------------------
 -- Optional future aggregation materialization table
@@ -130,6 +147,9 @@ CREATE INDEX IF NOT EXISTS idx_source_uni_mapping_canonical
 
 CREATE INDEX IF NOT EXISTS idx_ranking_record_source_year
     ON warehouse.ranking_record(ranking_source_id, ranking_year, ranking_type, rank_position);
+
+CREATE INDEX IF NOT EXISTS idx_ranking_record_universe
+    ON warehouse.ranking_record(ranking_source_id, ranking_year, universe_type, universe_key, rank_position);
 
 CREATE INDEX IF NOT EXISTS idx_ranking_record_canonical
     ON warehouse.ranking_record(canonical_university_id, ranking_year);

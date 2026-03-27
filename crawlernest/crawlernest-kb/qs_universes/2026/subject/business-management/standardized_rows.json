@@ -1,0 +1,2502 @@
+[
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-amsterdam",
+    "university_name": "University of Amsterdam",
+    "country_hint": "Netherlands",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 1,
+    "score": 97.1,
+    "source_url": "/universities/university-amsterdam",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "97.1",
+        "Employer Reputation": "72.4",
+        "H-index Citations": "100",
+        "Citations per Paper": "99.3",
+        "Academic Reputation": "100"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/harvard-university",
+    "university_name": "Harvard University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 2,
+    "score": 91.2,
+    "source_url": "/universities/harvard-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "91.2",
+        "Employer Reputation": "100",
+        "H-index Citations": "80.2",
+        "Citations per Paper": "87.3",
+        "Academic Reputation": "95.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-texas-austin",
+    "university_name": "University of Texas at Austin",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 3,
+    "score": 90.9,
+    "source_url": "/universities/university-texas-austin",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "90.9",
+        "Employer Reputation": "71.7",
+        "H-index Citations": "88.9",
+        "Citations per Paper": "91.8",
+        "Academic Reputation": "95.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/nanyang-technological-university-singapore-ntu-singapore",
+    "university_name": "Nanyang Technological University, Singapore (NTU Singapore)",
+    "country_hint": "Singapore",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 4,
+    "score": 90.6,
+    "source_url": "/universities/nanyang-technological-university-singapore-ntu-singapore",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "90.6",
+        "Employer Reputation": "81",
+        "H-index Citations": "91.5",
+        "Citations per Paper": "99.9",
+        "Academic Reputation": "88.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/stanford-university",
+    "university_name": "Stanford University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 5,
+    "score": 90.2,
+    "source_url": "/universities/stanford-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "90.2",
+        "Employer Reputation": "93.8",
+        "H-index Citations": "79.3",
+        "Citations per Paper": "91.1",
+        "Academic Reputation": "93.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/london-school-economics-political-science-lse",
+    "university_name": "The London School of Economics and Political Science (LSE)",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 6,
+    "score": 89.5,
+    "source_url": "/universities/london-school-economics-political-science-lse",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "89.5",
+        "Employer Reputation": "84.1",
+        "H-index Citations": "83.3",
+        "Citations per Paper": "96.1",
+        "Academic Reputation": "90.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-southern-california",
+    "university_name": "University of Southern California",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 7,
+    "score": 89.1,
+    "source_url": "/universities/university-southern-california",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "89.1",
+        "Employer Reputation": "65.6",
+        "H-index Citations": "82.4",
+        "Citations per Paper": "92.4",
+        "Academic Reputation": "95.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-pennsylvania",
+    "university_name": "University of Pennsylvania",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 8,
+    "score": 87.9,
+    "source_url": "/universities/university-pennsylvania",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "87.9",
+        "Employer Reputation": "78",
+        "H-index Citations": "86.6",
+        "Citations per Paper": "93.3",
+        "Academic Reputation": "88.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/columbia-university",
+    "university_name": "Columbia University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 9,
+    "score": 86.9,
+    "source_url": "/universities/columbia-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "86.9",
+        "Employer Reputation": "81.9",
+        "H-index Citations": "78.8",
+        "Citations per Paper": "89.5",
+        "Academic Reputation": "90.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-cambridge",
+    "university_name": "University of Cambridge",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 10,
+    "score": 86.7,
+    "source_url": "/universities/university-cambridge",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "86.7",
+        "Employer Reputation": "95.3",
+        "H-index Citations": "72.4",
+        "Citations per Paper": "79.5",
+        "Academic Reputation": "93.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-berkeley-ucb",
+    "university_name": "University of California, Berkeley (UCB)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 11,
+    "score": 86.6,
+    "source_url": "/universities/university-california-berkeley-ucb",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "86.6",
+        "Employer Reputation": "85.7",
+        "H-index Citations": "73.7",
+        "Citations per Paper": "86.1",
+        "Academic Reputation": "92.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/chinese-university-hong-kong-cuhk",
+    "university_name": "The Chinese University of Hong Kong (CUHK)",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 12,
+    "score": 86.2,
+    "source_url": "/universities/chinese-university-hong-kong-cuhk",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "86.2",
+        "Employer Reputation": "70.5",
+        "H-index Citations": "83.7",
+        "Citations per Paper": "92.9",
+        "Academic Reputation": "87.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/new-york-university-nyu",
+    "university_name": "New York University (NYU)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 13,
+    "score": 86.1,
+    "source_url": "/universities/new-york-university-nyu",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "86.1",
+        "Employer Reputation": "82.1",
+        "H-index Citations": "78.3",
+        "Citations per Paper": "88.4",
+        "Academic Reputation": "89"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-university-singapore-nus",
+    "university_name": "National University of Singapore (NUS)",
+    "country_hint": "Singapore",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 14,
+    "score": 85.9,
+    "source_url": "/universities/national-university-singapore-nus",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "85.9",
+        "Employer Reputation": "84.4",
+        "H-index Citations": "79.8",
+        "Citations per Paper": "87.5",
+        "Academic Reputation": "88"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-vienna",
+    "university_name": "University of Vienna",
+    "country_hint": "Austria",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 15,
+    "score": 85.5,
+    "source_url": "/universities/university-vienna",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "85.5",
+        "Employer Reputation": "59.2",
+        "H-index Citations": "90.7",
+        "Citations per Paper": "96.2",
+        "Academic Reputation": "84.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/michigan-state-university",
+    "university_name": "Michigan State University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 16,
+    "score": 85.2,
+    "source_url": "/universities/michigan-state-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "85.2",
+        "Employer Reputation": "66.8",
+        "H-index Citations": "88",
+        "Citations per Paper": "95.2",
+        "Academic Reputation": "83.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-wisconsin-madison",
+    "university_name": "University of Wisconsin-Madison",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 17,
+    "score": 85.1,
+    "source_url": "/universities/university-wisconsin-madison",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "85.1",
+        "Employer Reputation": "60.3",
+        "H-index Citations": "87.6",
+        "Citations per Paper": "92.1",
+        "Academic Reputation": "86.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kings-college-london",
+    "university_name": "King's College London",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 18,
+    "score": 84.8,
+    "source_url": "/universities/kings-college-london",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "84.8",
+        "Employer Reputation": "76.1",
+        "H-index Citations": "77.7",
+        "Citations per Paper": "86.5",
+        "Academic Reputation": "88.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-michigan-ann-arbor",
+    "university_name": "University of Michigan-Ann Arbor",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 19,
+    "score": 84.8,
+    "source_url": "/universities/university-michigan-ann-arbor",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "84.8",
+        "Employer Reputation": "74.8",
+        "H-index Citations": "84.1",
+        "Citations per Paper": "91.2",
+        "Academic Reputation": "84.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/cornell-university",
+    "university_name": "Cornell University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 20,
+    "score": 84.6,
+    "source_url": "/universities/cornell-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "84.6",
+        "Employer Reputation": "79.2",
+        "H-index Citations": "83.3",
+        "Citations per Paper": "92.7",
+        "Academic Reputation": "82.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-los-angeles-ucla",
+    "university_name": "University of California, Los Angeles (UCLA)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 21,
+    "score": 84.4,
+    "source_url": "/universities/university-california-los-angeles-ucla",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "84.4",
+        "Employer Reputation": "85.3",
+        "H-index Citations": "72.4",
+        "Citations per Paper": "82.9",
+        "Academic Reputation": "89.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/goldsmiths-university-london",
+    "university_name": "Goldsmiths, University of London",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 22,
+    "score": 84.2,
+    "source_url": "/universities/goldsmiths-university-london",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "84.2",
+        "Employer Reputation": "48.5",
+        "H-index Citations": "77.2",
+        "Citations per Paper": "93",
+        "Academic Reputation": "90.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/northwestern-university",
+    "university_name": "Northwestern University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 23,
+    "score": 84.0,
+    "source_url": "/universities/northwestern-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "84",
+        "Employer Reputation": "74.6",
+        "H-index Citations": "88.3",
+        "Citations per Paper": "95.2",
+        "Academic Reputation": "79.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ludwig-maximilians-universitat-munchen",
+    "university_name": "Ludwig-Maximilians-Universität München",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 24,
+    "score": 83.6,
+    "source_url": "/universities/ludwig-maximilians-universitat-munchen",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "83.6",
+        "Employer Reputation": "68.1",
+        "H-index Citations": "89.5",
+        "Citations per Paper": "96",
+        "Academic Reputation": "79.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/massachusetts-institute-technology-mit",
+    "university_name": "Massachusetts Institute of Technology (MIT)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 25,
+    "score": 83.5,
+    "source_url": "/universities/massachusetts-institute-technology-mit",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "83.5",
+        "Employer Reputation": "95",
+        "H-index Citations": "70.2",
+        "Citations per Paper": "98.6",
+        "Academic Reputation": "80.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/seoul-national-university",
+    "university_name": "Seoul National University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 26,
+    "score": 83.5,
+    "source_url": "/universities/seoul-national-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "83.5",
+        "Employer Reputation": "78",
+        "H-index Citations": "76.7",
+        "Citations per Paper": "83.6",
+        "Academic Reputation": "87.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/yale-university",
+    "university_name": "Yale University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 27,
+    "score": 83.2,
+    "source_url": "/universities/yale-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "83.2",
+        "Employer Reputation": "87.5",
+        "H-index Citations": "70.2",
+        "Citations per Paper": "81.7",
+        "Academic Reputation": "88.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-sydney",
+    "university_name": "The University of Sydney",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 28,
+    "score": 83.1,
+    "source_url": "/universities/university-sydney",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "83.1",
+        "Employer Reputation": "75.2",
+        "H-index Citations": "82.9",
+        "Citations per Paper": "87.5",
+        "Academic Reputation": "82.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-toronto",
+    "university_name": "University of Toronto",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 29,
+    "score": 83.0,
+    "source_url": "/universities/university-toronto",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "83",
+        "Employer Reputation": "80.8",
+        "H-index Citations": "81.6",
+        "Citations per Paper": "85.7",
+        "Academic Reputation": "83"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/freie-universitaet-berlin",
+    "university_name": "Freie Universitaet Berlin",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 30,
+    "score": 82.6,
+    "source_url": "/universities/freie-universitaet-berlin",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.6",
+        "Employer Reputation": "63.9",
+        "H-index Citations": "80.2",
+        "Citations per Paper": "91.5",
+        "Academic Reputation": "83.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ohio-state-university",
+    "university_name": "The Ohio State University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 31,
+    "score": 82.6,
+    "source_url": "/universities/ohio-state-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.6",
+        "Employer Reputation": "64.5",
+        "H-index Citations": "84.8",
+        "Citations per Paper": "97.6",
+        "Academic Reputation": "79.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-zurich",
+    "university_name": "University of Zurich",
+    "country_hint": "Switzerland",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 32,
+    "score": 82.5,
+    "source_url": "/universities/university-zurich",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.5",
+        "Employer Reputation": "60.9",
+        "H-index Citations": "91.3",
+        "Citations per Paper": "99.5",
+        "Academic Reputation": "76.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/queensland-university-technology-qut",
+    "university_name": "Queensland University of Technology (QUT)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 33,
+    "score": 82.3,
+    "source_url": "/universities/queensland-university-technology-qut",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.3",
+        "Employer Reputation": "60.9",
+        "H-index Citations": "87.3",
+        "Citations per Paper": "97.6",
+        "Academic Reputation": "78.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-leeds",
+    "university_name": "University of Leeds",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 34,
+    "score": 82.3,
+    "source_url": "/universities/university-leeds",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.3",
+        "Employer Reputation": "70.8",
+        "H-index Citations": "80.7",
+        "Citations per Paper": "85.2",
+        "Academic Reputation": "84"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/peking-university",
+    "university_name": "Peking University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 35,
+    "score": 82.2,
+    "source_url": "/universities/peking-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.2",
+        "Employer Reputation": "81.8",
+        "H-index Citations": "68.7",
+        "Citations per Paper": "85.1",
+        "Academic Reputation": "86.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/yonsei-university",
+    "university_name": "Yonsei University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 36,
+    "score": 82.2,
+    "source_url": "/universities/yonsei-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.2",
+        "Employer Reputation": "74.5",
+        "H-index Citations": "71.7",
+        "Citations per Paper": "87.5",
+        "Academic Reputation": "85.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/pennsylvania-state-university",
+    "university_name": "Pennsylvania State University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 37,
+    "score": 82.1,
+    "source_url": "/universities/pennsylvania-state-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.1",
+        "Employer Reputation": "67.3",
+        "H-index Citations": "86.3",
+        "Citations per Paper": "90.5",
+        "Academic Reputation": "80"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ucl",
+    "university_name": "UCL",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 38,
+    "score": 82.1,
+    "source_url": "/universities/ucl",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.1",
+        "Employer Reputation": "79.7",
+        "H-index Citations": "79.8",
+        "Citations per Paper": "88.4",
+        "Academic Reputation": "80.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-melbourne",
+    "university_name": "The University of Melbourne",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 39,
+    "score": 81.9,
+    "source_url": "/universities/university-melbourne",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.9",
+        "Employer Reputation": "77.7",
+        "H-index Citations": "82.4",
+        "Citations per Paper": "85.5",
+        "Academic Reputation": "81.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-edinburgh",
+    "university_name": "The University of Edinburgh",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 40,
+    "score": 81.6,
+    "source_url": "/universities/university-edinburgh",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.6",
+        "Employer Reputation": "77.8",
+        "H-index Citations": "73",
+        "Citations per Paper": "81.1",
+        "Academic Reputation": "86"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tsinghua-university",
+    "university_name": "Tsinghua University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 41,
+    "score": 81.6,
+    "source_url": "/universities/tsinghua-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.6",
+        "Employer Reputation": "81.7",
+        "H-index Citations": "70.2",
+        "Citations per Paper": "87.3",
+        "Academic Reputation": "83.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-illinois-urbana-champaign",
+    "university_name": "University of Illinois Urbana-Champaign",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 42,
+    "score": 81.5,
+    "source_url": "/universities/university-illinois-urbana-champaign",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.5",
+        "Employer Reputation": "66.1",
+        "H-index Citations": "80.7",
+        "Citations per Paper": "88.8",
+        "Academic Reputation": "81.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/pontificia-universidad-católica-de-chile-uc",
+    "university_name": "Pontificia Universidad Católica de Chile (UC)",
+    "country_hint": "Chile",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 43,
+    "score": 81.4,
+    "source_url": "/universities/pontificia-universidad-católica-de-chile-uc",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.4",
+        "Employer Reputation": "84.6",
+        "H-index Citations": "75.5",
+        "Citations per Paper": "86.1",
+        "Academic Reputation": "81.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-british-columbia",
+    "university_name": "University of British Columbia",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 44,
+    "score": 81.2,
+    "source_url": "/universities/university-british-columbia",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.2",
+        "Employer Reputation": "79.2",
+        "H-index Citations": "79.3",
+        "Citations per Paper": "86.4",
+        "Academic Reputation": "80.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-chicago",
+    "university_name": "University of Chicago",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 45,
+    "score": 80.9,
+    "source_url": "/universities/university-chicago",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.9",
+        "Employer Reputation": "79.7",
+        "H-index Citations": "68.7",
+        "Citations per Paper": "86.1",
+        "Academic Reputation": "84"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-hong-kong",
+    "university_name": "The University of Hong Kong",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 46,
+    "score": 80.4,
+    "source_url": "/universities/university-hong-kong",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.4",
+        "Employer Reputation": "75.8",
+        "H-index Citations": "69.5",
+        "Citations per Paper": "83.9",
+        "Academic Reputation": "84.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-santa-barbara-ucsb",
+    "university_name": "University of California, Santa Barbara (UCSB)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 47,
+    "score": 80.4,
+    "source_url": "/universities/university-california-santa-barbara-ucsb",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.4",
+        "Employer Reputation": "53.5",
+        "H-index Citations": "79.3",
+        "Citations per Paper": "90.1",
+        "Academic Reputation": "82.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/city-university-hong-kong-cityuhk",
+    "university_name": "City University of Hong Kong (CityUHK)",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 48,
+    "score": 80.1,
+    "source_url": "/universities/city-university-hong-kong-cityuhk",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.1",
+        "Employer Reputation": "64.9",
+        "H-index Citations": "77.7",
+        "Citations per Paper": "92.2",
+        "Academic Reputation": "79.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-missouri-columbia",
+    "university_name": "University of Missouri, Columbia",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 49,
+    "score": 80.1,
+    "source_url": "/universities/university-missouri-columbia",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.1",
+        "Employer Reputation": "52.9",
+        "H-index Citations": "83.7",
+        "Citations per Paper": "94.7",
+        "Academic Reputation": "78.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/cardiff-university",
+    "university_name": "Cardiff University",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 50,
+    "score": 80.0,
+    "source_url": "/universities/cardiff-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80",
+        "Employer Reputation": "61.7",
+        "H-index Citations": "80.2",
+        "Citations per Paper": "92",
+        "Academic Reputation": "78.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-copenhagen",
+    "university_name": "University of Copenhagen",
+    "country_hint": "Denmark",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 51,
+    "score": 80.0,
+    "source_url": "/universities/university-copenhagen",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80",
+        "Employer Reputation": "64.5",
+        "H-index Citations": "79.3",
+        "Citations per Paper": "90.9",
+        "Academic Reputation": "79"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/aarhus-university",
+    "university_name": "Aarhus University",
+    "country_hint": "Denmark",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 52,
+    "score": null,
+    "source_url": "/universities/aarhus-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "63.2",
+        "H-index Citations": "74.3",
+        "Citations per Paper": "84.8",
+        "Academic Reputation": "78.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/alma-mater-studiorum-universita-di-bologna",
+    "university_name": "Alma Mater Studiorum - Università di Bologna",
+    "country_hint": "Italy",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 53,
+    "score": null,
+    "source_url": "/universities/alma-mater-studiorum-universita-di-bologna",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "72.2",
+        "H-index Citations": "68.7",
+        "Citations per Paper": "77.1",
+        "Academic Reputation": "77.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/boston-university",
+    "university_name": "Boston University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 54,
+    "score": null,
+    "source_url": "/universities/boston-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "73.7",
+        "H-index Citations": "82.4",
+        "Citations per Paper": "95",
+        "Academic Reputation": "64.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "N/A",
+    "university_name": "N/A",
+    "country_hint": "N A",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 55,
+    "score": null,
+    "source_url": null,
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "60.6",
+        "H-index Citations": "81.1",
+        "Citations per Paper": "94.7",
+        "Academic Reputation": "68.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/complutense-university-madrid",
+    "university_name": "Complutense University of Madrid",
+    "country_hint": "Spain",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 56,
+    "score": null,
+    "source_url": "/universities/complutense-university-madrid",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "71.9",
+        "H-index Citations": "78.3",
+        "Citations per Paper": "80.2",
+        "Academic Reputation": "76.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/duke-university",
+    "university_name": "Duke University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 57,
+    "score": null,
+    "source_url": "/universities/duke-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "74.5",
+        "H-index Citations": "67.8",
+        "Citations per Paper": "80.3",
+        "Academic Reputation": "79.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/erasmus-university-rotterdam",
+    "university_name": "Erasmus University Rotterdam",
+    "country_hint": "Netherlands",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 58,
+    "score": null,
+    "source_url": "/universities/erasmus-university-rotterdam",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "71.5",
+        "H-index Citations": "83.3",
+        "Citations per Paper": "94.4",
+        "Academic Reputation": "65.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/fudan-university",
+    "university_name": "Fudan University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 59,
+    "score": null,
+    "source_url": "/universities/fudan-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "79",
+        "H-index Citations": "67",
+        "Citations per Paper": "80.8",
+        "Academic Reputation": "84.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hong-kong-baptist-university",
+    "university_name": "Hong Kong Baptist University",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 60,
+    "score": null,
+    "source_url": "/universities/hong-kong-baptist-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "50.3",
+        "H-index Citations": "80.7",
+        "Citations per Paper": "91.6",
+        "Academic Reputation": "77.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/humboldt-universitat-zu-berlin",
+    "university_name": "Humboldt-Universität zu Berlin",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 61,
+    "score": null,
+    "source_url": "/universities/humboldt-universitat-zu-berlin",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "67.7",
+        "H-index Citations": "59.7",
+        "Citations per Paper": "76.7",
+        "Academic Reputation": "83.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indiana-university-bloomington",
+    "university_name": "Indiana University Bloomington",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 62,
+    "score": null,
+    "source_url": "/universities/indiana-university-bloomington",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "59.1",
+        "H-index Citations": "84.5",
+        "Citations per Paper": "90.1",
+        "Academic Reputation": "71.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ku-leuven",
+    "university_name": "KU Leuven",
+    "country_hint": "Belgium",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 63,
+    "score": null,
+    "source_url": "/universities/ku-leuven",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "68.4",
+        "H-index Citations": "78.8",
+        "Citations per Paper": "87.4",
+        "Academic Reputation": "75.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/korea-university",
+    "university_name": "Korea University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 64,
+    "score": null,
+    "source_url": "/universities/korea-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "74",
+        "H-index Citations": "69.5",
+        "Citations per Paper": "84.2",
+        "Academic Reputation": "78.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/leiden-university",
+    "university_name": "Leiden University",
+    "country_hint": "Netherlands",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 65,
+    "score": null,
+    "source_url": "/universities/leiden-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "62.6",
+        "H-index Citations": "74.9",
+        "Citations per Paper": "85.4",
+        "Academic Reputation": "74.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/loughborough-university",
+    "university_name": "Loughborough University",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 66,
+    "score": null,
+    "source_url": "/universities/loughborough-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "63",
+        "H-index Citations": "78.3",
+        "Citations per Paper": "93.6",
+        "Academic Reputation": "73.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/lund-university",
+    "university_name": "Lund University",
+    "country_hint": "Sweden",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 67,
+    "score": null,
+    "source_url": "/universities/lund-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "63.7",
+        "H-index Citations": "71.7",
+        "Citations per Paper": "88.3",
+        "Academic Reputation": "72.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/mcgill-university",
+    "university_name": "McGill University",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 68,
+    "score": null,
+    "source_url": "/universities/mcgill-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "76.7",
+        "H-index Citations": "69.5",
+        "Citations per Paper": "82.5",
+        "Academic Reputation": "76.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/monash-university",
+    "university_name": "Monash University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 69,
+    "score": null,
+    "source_url": "/universities/monash-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "73.4",
+        "H-index Citations": "80.2",
+        "Citations per Paper": "85.9",
+        "Academic Reputation": "77.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-taiwan-university-ntu",
+    "university_name": "National Taiwan University (NTU)",
+    "country_hint": "Taiwan",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 70,
+    "score": null,
+    "source_url": "/universities/national-taiwan-university-ntu",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "72.8",
+        "H-index Citations": "69.5",
+        "Citations per Paper": "84.2",
+        "Academic Reputation": "77.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/rmit-university",
+    "university_name": "RMIT University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 71,
+    "score": null,
+    "source_url": "/universities/rmit-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "66.1",
+        "H-index Citations": "79.3",
+        "Citations per Paper": "89.9",
+        "Academic Reputation": "74.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/renmin-peoples-university-china",
+    "university_name": "Renmin (People's) University of China",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 72,
+    "score": null,
+    "source_url": "/universities/renmin-peoples-university-china",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "67.5",
+        "H-index Citations": "67.8",
+        "Citations per Paper": "82.8",
+        "Academic Reputation": "77.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/sungkyunkwan-university-skku",
+    "university_name": "Sungkyunkwan University (SKKU)",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 73,
+    "score": null,
+    "source_url": "/universities/sungkyunkwan-university-skku",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "69.2",
+        "H-index Citations": "67.8",
+        "Citations per Paper": "86.5",
+        "Academic Reputation": "75.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/syracuse-university",
+    "university_name": "Syracuse University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 74,
+    "score": null,
+    "source_url": "/universities/syracuse-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "53.8",
+        "H-index Citations": "79.8",
+        "Citations per Paper": "92.7",
+        "Academic Reputation": "73.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/australian-national-university-anu",
+    "university_name": "Australian National University (ANU)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 75,
+    "score": null,
+    "source_url": "/universities/australian-national-university-anu",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "74.2",
+        "H-index Citations": "74.9",
+        "Citations per Paper": "85.1",
+        "Academic Reputation": "77.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-georgia",
+    "university_name": "The University of Georgia",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 76,
+    "score": null,
+    "source_url": "/universities/university-georgia",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "55.7",
+        "H-index Citations": "84.5",
+        "Citations per Paper": "92.2",
+        "Academic Reputation": "69.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-manchester",
+    "university_name": "The University of Manchester",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 77,
+    "score": null,
+    "source_url": "/universities/university-manchester",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "77.9",
+        "H-index Citations": "72.4",
+        "Citations per Paper": "84.2",
+        "Academic Reputation": "75"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-new-south-wales-unsw-sydney",
+    "university_name": "The University of New South Wales (UNSW Sydney)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 78,
+    "score": null,
+    "source_url": "/universities/university-new-south-wales-unsw-sydney",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "78",
+        "H-index Citations": "77.7",
+        "Citations per Paper": "88.2",
+        "Academic Reputation": "71.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-sheffield",
+    "university_name": "The University of Sheffield",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 79,
+    "score": null,
+    "source_url": "/universities/university-sheffield",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "63.9",
+        "H-index Citations": "76.1",
+        "Citations per Paper": "87.2",
+        "Academic Reputation": "74.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-tokyo",
+    "university_name": "The University of Tokyo",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 80,
+    "score": null,
+    "source_url": "/universities/university-tokyo",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "82.2",
+        "H-index Citations": "59.7",
+        "Citations per Paper": "74.7",
+        "Academic Reputation": "86.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-warwick",
+    "university_name": "The University of Warwick",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 81,
+    "score": null,
+    "source_url": "/universities/university-warwick",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "73.5",
+        "H-index Citations": "70.2",
+        "Citations per Paper": "83.2",
+        "Academic Reputation": "77.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universidad-nacional-autonoma-de-mexico-unam",
+    "university_name": "Universidad Nacional Autónoma de México (UNAM)",
+    "country_hint": "Mexico",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 82,
+    "score": null,
+    "source_url": "/universities/universidad-nacional-autonoma-de-mexico-unam",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "82.6",
+        "H-index Citations": "59.7",
+        "Citations per Paper": "69.6",
+        "Academic Reputation": "85.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universidad-de-buenos-aires-uba",
+    "university_name": "Universidad de Buenos Aires (UBA)",
+    "country_hint": "Argentina",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 83,
+    "score": null,
+    "source_url": "/universities/universidad-de-buenos-aires-uba",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "84",
+        "H-index Citations": "59.7",
+        "Citations per Paper": "64.6",
+        "Academic Reputation": "84.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-birmingham",
+    "university_name": "University of Birmingham",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 84,
+    "score": null,
+    "source_url": "/universities/university-birmingham",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "67.5",
+        "H-index Citations": "63.1",
+        "Citations per Paper": "83",
+        "Academic Reputation": "79.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-davis",
+    "university_name": "University of California, Davis",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 85,
+    "score": null,
+    "source_url": "/universities/university-california-davis",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "61.4",
+        "H-index Citations": "77.7",
+        "Citations per Paper": "87.9",
+        "Academic Reputation": "74.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-san-diego-ucsd",
+    "university_name": "University of California, San Diego (UCSD)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 86,
+    "score": null,
+    "source_url": "/universities/university-california-san-diego-ucsd",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "66.9",
+        "H-index Citations": "71.7",
+        "Citations per Paper": "86.7",
+        "Academic Reputation": "74.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-florida",
+    "university_name": "University of Florida",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 87,
+    "score": null,
+    "source_url": "/universities/university-florida",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "62.6",
+        "H-index Citations": "84.8",
+        "Citations per Paper": "92.5",
+        "Academic Reputation": "70.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-glasgow",
+    "university_name": "University of Glasgow",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 88,
+    "score": null,
+    "source_url": "/universities/university-glasgow",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "68.1",
+        "H-index Citations": "69.5",
+        "Citations per Paper": "83.1",
+        "Academic Reputation": "77.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-groningen",
+    "university_name": "University of Groningen",
+    "country_hint": "Netherlands",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 89,
+    "score": null,
+    "source_url": "/universities/university-groningen",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "59.4",
+        "H-index Citations": "84.5",
+        "Citations per Paper": "96.4",
+        "Academic Reputation": "68.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-helsinki",
+    "university_name": "University of Helsinki",
+    "country_hint": "Finland",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 90,
+    "score": null,
+    "source_url": "/universities/university-helsinki",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "57.4",
+        "H-index Citations": "78.8",
+        "Citations per Paper": "87.4",
+        "Academic Reputation": "75.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-minnesota-system",
+    "university_name": "University of Minnesota (System)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 91,
+    "score": null,
+    "source_url": "/universities/university-minnesota-system",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "60.3",
+        "H-index Citations": "89.2",
+        "Citations per Paper": "93",
+        "Academic Reputation": "66.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-navarra",
+    "university_name": "University of Navarra",
+    "country_hint": "Spain",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 92,
+    "score": null,
+    "source_url": "/universities/university-navarra",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "72.4",
+        "H-index Citations": "81.6",
+        "Citations per Paper": "90.5",
+        "Academic Reputation": "68.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-north-carolina-chapel-hill",
+    "university_name": "University of North Carolina at Chapel Hill",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 93,
+    "score": null,
+    "source_url": "/universities/university-north-carolina-chapel-hill",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "60.8",
+        "H-index Citations": "80.7",
+        "Citations per Paper": "90.2",
+        "Academic Reputation": "78.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-oslo",
+    "university_name": "University of Oslo",
+    "country_hint": "Norway",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 94,
+    "score": null,
+    "source_url": "/universities/university-oslo",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "52.7",
+        "H-index Citations": "80.7",
+        "Citations per Paper": "89.2",
+        "Academic Reputation": "73.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-washington",
+    "university_name": "University of Washington",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 95,
+    "score": null,
+    "source_url": "/universities/university-washington",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "66",
+        "H-index Citations": "80.2",
+        "Citations per Paper": "95.2",
+        "Academic Reputation": "74.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-westminster",
+    "university_name": "University of Westminster",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 96,
+    "score": null,
+    "source_url": "/universities/university-westminster",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "52",
+        "H-index Citations": "71",
+        "Citations per Paper": "84.9",
+        "Academic Reputation": "78.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/utrecht-university",
+    "university_name": "Utrecht University",
+    "country_hint": "Netherlands",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 97,
+    "score": null,
+    "source_url": "/universities/utrecht-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "62.6",
+        "H-index Citations": "75.5",
+        "Citations per Paper": "89.4",
+        "Academic Reputation": "73.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/vrije-universiteit-amsterdam",
+    "university_name": "Vrije Universiteit Amsterdam",
+    "country_hint": "Netherlands",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 98,
+    "score": null,
+    "source_url": "/universities/vrije-universiteit-amsterdam",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "55.2",
+        "H-index Citations": "85.9",
+        "Citations per Paper": "96.2",
+        "Academic Reputation": "71.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-munster",
+    "university_name": "University of Münster",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 99,
+    "score": null,
+    "source_url": "/universities/university-munster",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "45.5",
+        "H-index Citations": "82",
+        "Citations per Paper": "100",
+        "Academic Reputation": "67.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/zhejiang-university",
+    "university_name": "Zhejiang University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:business-management",
+    "rank": 100,
+    "score": null,
+    "source_url": "/universities/zhejiang-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "business-management",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Employer Reputation": "81.4",
+        "H-index Citations": "74.3",
+        "Citations per Paper": "84.7",
+        "Academic Reputation": "75.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "business-management"
+    }
+  }
+]

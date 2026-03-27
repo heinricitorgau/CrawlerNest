@@ -1,17 +1,19 @@
 package clawer.service;
 
+import clawer.domain.ranking.RankedPosition;
+import clawer.domain.ranking.RankingContext;
+import clawer.domain.ranking.ScopedRankedUniversity;
+import clawer.domain.ranking.ScopedRankingReadAdapter;
 import clawer.model.RecommendationGroupResponse;
 import clawer.model.RecommendationResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -72,30 +74,33 @@ public class RecommendationService {
     private static final double AGGRESSIVE_TARGET_BOOST = 0.75;
     private static final double AGGRESSIVE_SAFETY_PENALTY = -1.0;
     private static final int MAX_LIMIT = 50;
-
-    private final JdbcTemplate jdbcTemplate;
+    private final ScopedRankingReadAdapter scopedRankingReadAdapter;
     private final ObjectMapper objectMapper;
 
-    public RecommendationService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
-        this.jdbcTemplate = jdbcTemplate;
+    public RecommendationService(ScopedRankingReadAdapter scopedRankingReadAdapter, ObjectMapper objectMapper) {
+        this.scopedRankingReadAdapter = scopedRankingReadAdapter;
         this.objectMapper = objectMapper;
     }
 
     public List<RecommendationResult> getRecommendations(
             String country,
+            String scope,
+            String region,
+            String shortlist,
             Double ieltsScore,
             Integer targetRank,
             String preferredRankingSource,
             Integer rankingYear,
             Integer limit
     ) {
-        List<Candidate> candidates = fetchCandidates(country, rankingYear);
+        RankingContext scopeContext = RankingContext.fromQuery(scope, region);
+        List<Candidate> candidates = fetchCandidates(country, rankingYear, scopeContext);
         List<RecommendationResult> results = new ArrayList<>();
         for (Candidate candidate : candidates) {
             if (!passesV1Constraints(candidate, country, ieltsScore, targetRank, preferredRankingSource)) {
                 continue;
             }
-            RecommendationResult result = scoreCandidateV1(candidate, country, ieltsScore, targetRank, preferredRankingSource);
+            RecommendationResult result = scoreCandidateV1(candidate, country, ieltsScore, targetRank, preferredRankingSource, scopeContext);
             if (result != null) {
                 results.add(result);
             }
@@ -113,6 +118,9 @@ public class RecommendationService {
 
     public RecommendationGroupResponse getRecommendationsV2(
             String country,
+            String scope,
+            String region,
+            String shortlist,
             Double ieltsScore,
             Integer targetRank,
             String riskProfile,
@@ -124,7 +132,8 @@ public class RecommendationService {
             throw new IllegalArgumentException("targetRank is required for recommendation v2.");
         }
 
-        List<Candidate> candidates = fetchCandidates(country, rankingYear);
+        RankingContext scopeContext = RankingContext.fromQuery(scope, region);
+        List<Candidate> candidates = fetchCandidates(country, rankingYear, scopeContext);
         Map<String, List<RecommendationResult>> grouped = new LinkedHashMap<>();
         grouped.put("reach", new ArrayList<>());
         grouped.put("target", new ArrayList<>());
@@ -135,7 +144,7 @@ public class RecommendationService {
             if (!passesV2Constraints(candidate, country, preferredRankingSource)) {
                 continue;
             }
-            RecommendationResult result = scoreCandidateV2(candidate, country, ieltsScore, targetRank, riskProfile, preferredRankingSource);
+            RecommendationResult result = scoreCandidateV2(candidate, country, ieltsScore, targetRank, riskProfile, preferredRankingSource, scopeContext);
             if (result == null || result.getCategory() == null) {
                 continue;
             }
@@ -157,6 +166,9 @@ public class RecommendationService {
 
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("target_rank", targetRank);
+        metadata.put("scope", scopeContext.apiScope());
+        metadata.put("region", scopeContext.region());
+        metadata.put("shortlist_count", shortlistCount(shortlist));
         metadata.put("risk_profile", normalizeRiskProfile(riskProfile));
         metadata.put("country", country);
         metadata.put("ielts_score", ieltsScore);
@@ -188,6 +200,9 @@ public class RecommendationService {
 
     public RecommendationGroupResponse getRecommendationsV3(
             String country,
+            String scope,
+            String region,
+            String shortlist,
             String countryPolicy,
             Double ieltsScore,
             Integer targetRank,
@@ -201,10 +216,12 @@ public class RecommendationService {
             throw new IllegalArgumentException("targetRank is required for recommendation v3.");
         }
 
+        RankingContext scopeContext = RankingContext.fromQuery(scope, region);
         String resolvedCountryPolicy = normalizeCountryPolicy(countryPolicy);
         List<Candidate> candidates = fetchCandidates(
                 "hard_filter".equals(resolvedCountryPolicy) ? country : null,
-                rankingYear
+                rankingYear,
+                scopeContext
         );
         Map<String, Double> resolvedWeights = resolvePreferenceWeights(preferenceWeights);
         Map<String, List<RecommendationResult>> grouped = new LinkedHashMap<>();
@@ -212,7 +229,7 @@ public class RecommendationService {
         grouped.put("target", new ArrayList<>());
         grouped.put("safety", new ArrayList<>());
 
-        Map<Long, PoolContext> poolContexts = buildPoolContexts(candidates, targetRank, preferredRankingSource);
+        Map<Long, PoolContext> poolContexts = buildPoolContexts(candidates, targetRank, scopeContext);
         int candidateCount = 0;
         for (Candidate candidate : candidates) {
             if (!passesV3Constraints(candidate, country, resolvedCountryPolicy, preferredRankingSource)) {
@@ -227,7 +244,8 @@ public class RecommendationService {
                     riskProfile,
                     resolvedWeights,
                     preferredRankingSource,
-                    poolContexts.get(candidate.canonicalUniversityId)
+                    poolContexts.get(candidate.canonicalUniversityId),
+                    scopeContext
             );
             if (result == null || result.getCategory() == null) {
                 continue;
@@ -250,6 +268,9 @@ public class RecommendationService {
 
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("version", "v3");
+        metadata.put("scope", scopeContext.apiScope());
+        metadata.put("region", scopeContext.region());
+        metadata.put("shortlist_count", shortlistCount(shortlist));
         metadata.put("config_version", CONFIG_VERSION);
         metadata.put("scoring_version", SCORING_VERSION);
         metadata.put("decision_policy_version", DECISION_POLICY_VERSION);
@@ -280,7 +301,12 @@ public class RecommendationService {
                 )
         ));
         if (grouped.get("reach").isEmpty() && grouped.get("target").isEmpty() && grouped.get("safety").isEmpty()) {
-            metadata.put("no_results_reason", "No universities produced a valid decision result for the supplied target rank.");
+            metadata.put(
+                    "no_results_reason",
+                    scopeContext.isRegion()
+                            ? "No universities produced a valid decision result within the selected region."
+                            : "No universities produced a valid decision result for the supplied target rank."
+            );
         }
 
         LOGGER.info(
@@ -306,52 +332,27 @@ public class RecommendationService {
         );
     }
 
-    private List<Candidate> fetchCandidates(String country, Integer rankingYear) {
-        StringBuilder sql = new StringBuilder("""
-                SELECT
-                    canonical_university_id,
-                    university_name,
-                    country,
-                    ranking_year,
-                    aggregated_rank,
-                    composite_score,
-                    coverage_ratio,
-                    ielts_min,
-                    source_ranks_json,
-                    aggregation_method_version
-                FROM analytics.v_recommendation_candidates_latest
-                WHERE 1=1
-                """);
-        List<Object> params = new ArrayList<>();
-        if (country != null && !country.isBlank()) {
-            sql.append(" AND country = ?");
-            params.add(country);
-        }
-        if (rankingYear != null) {
-            sql.append(" AND ranking_year = ?");
-            params.add(rankingYear);
-        }
-        sql.append(" ORDER BY aggregated_rank NULLS LAST, canonical_university_id");
-        return jdbcTemplate.query(sql.toString(), this::mapCandidate, params.toArray());
+    private List<Candidate> fetchCandidates(String country, Integer rankingYear, RankingContext scopeContext) {
+        return scopedRankingReadAdapter.findRecommendationCandidates(scopeContext, rankingYear, country)
+                .stream()
+                .map(this::toCandidate)
+                .toList();
     }
 
-    private Candidate mapCandidate(ResultSet rs, int rowNum) throws SQLException {
+    private Candidate toCandidate(ScopedRankedUniversity row) {
         Candidate candidate = new Candidate();
-        candidate.canonicalUniversityId = rs.getLong("canonical_university_id");
-        candidate.universityName = rs.getString("university_name");
-        candidate.country = rs.getString("country");
-        int rankingYear = rs.getInt("ranking_year");
-        candidate.rankingYear = rs.wasNull() ? null : rankingYear;
-        int aggregatedRank = rs.getInt("aggregated_rank");
-        candidate.aggregatedRank = rs.wasNull() ? null : aggregatedRank;
-        double aggregatedScore = rs.getDouble("composite_score");
-        candidate.aggregatedScore = rs.wasNull() ? null : aggregatedScore;
-        double coverageRatio = rs.getDouble("coverage_ratio");
-        candidate.coverageRatio = rs.wasNull() ? 0.0 : coverageRatio;
-        double ieltsMin = rs.getDouble("ielts_min");
-        candidate.ieltsMin = rs.wasNull() ? null : ieltsMin;
-        candidate.aggregationMethodVersion = rs.getString("aggregation_method_version");
-        candidate.sourceRanks = parseJsonMap(rs.getObject("source_ranks_json"));
+        candidate.canonicalUniversityId = row.getCanonicalUniversityId();
+        candidate.universityName = row.getUniversityName();
+        candidate.country = row.getCountry();
+        candidate.rankingYear = row.getRankingYear();
+        candidate.globalRank = row.getGlobalRank();
+        candidate.scopeRank = row.getScopeRank();
+        candidate.aggregatedRank = candidate.globalRank;
+        candidate.aggregatedScore = row.getCompositeScore();
+        candidate.coverageRatio = row.getCoverageRatio() == null ? 0.0 : row.getCoverageRatio();
+        candidate.ieltsMin = row.getIeltsMin();
+        candidate.aggregationMethodVersion = row.getAggregationMethodVersion();
+        candidate.sourceRanks = row.getSourceRanks();
         return candidate;
     }
 
@@ -384,7 +385,7 @@ public class RecommendationService {
         if (country != null && !country.isBlank() && (candidate.country == null || !candidate.country.equalsIgnoreCase(country.trim()))) {
             return false;
         }
-        return chooseEffectiveRank(candidate, preferredRankingSource).rank != null;
+        return candidate.globalRank != null;
     }
 
     private boolean passesV3Constraints(
@@ -399,7 +400,7 @@ public class RecommendationService {
                 && (candidate.country == null || !candidate.country.equalsIgnoreCase(country.trim()))) {
             return false;
         }
-        return chooseEffectiveRank(candidate, preferredRankingSource).rank != null;
+        return candidate.globalRank != null;
     }
 
     private RecommendationResult scoreCandidateV1(
@@ -407,7 +408,8 @@ public class RecommendationService {
             String country,
             Double ieltsScore,
             Integer targetRank,
-            String preferredRankingSource
+            String preferredRankingSource,
+            RankingContext scopeContext
     ) {
         EffectiveRank effectiveRank = chooseEffectiveRank(candidate, preferredRankingSource);
         Double rankingScore = rankingScore(effectiveRank.rank, targetRank);
@@ -456,11 +458,11 @@ public class RecommendationService {
         scoreBreakdown.put("effective_rank_used", effectiveRank.rank);
         scoreBreakdown.put("effective_rank_source", effectiveRank.source);
 
-        return new RecommendationResult(
+        RecommendationResult result = new RecommendationResult(
                 candidate.canonicalUniversityId,
                 candidate.universityName,
                 candidate.country,
-                candidate.aggregatedRank,
+                displayRank(candidate, scopeContext),
                 candidate.ieltsMin,
                 round(finalScore),
                 null,
@@ -475,6 +477,8 @@ public class RecommendationService {
                 scoreBreakdown,
                 rulesPassed
         );
+        applyScopeContext(result, candidate, scopeContext);
+        return result;
     }
 
     private RecommendationResult scoreCandidateV2(
@@ -483,17 +487,18 @@ public class RecommendationService {
             Double ieltsScore,
             Integer targetRank,
             String riskProfile,
-            String preferredRankingSource
+            String preferredRankingSource,
+            RankingContext scopeContext
     ) {
-        EffectiveRank effectiveRank = chooseEffectiveRank(candidate, preferredRankingSource);
-        if (effectiveRank.rank == null) {
+        Integer decisionRank = decisionRank(candidate, scopeContext);
+        if (decisionRank == null) {
             return null;
         }
 
-        Double rankingScore = rankingScore(effectiveRank.rank, targetRank);
+        Double rankingScore = rankingScoreForContext(candidate, targetRank, scopeContext);
         Double ieltsFitScore = ieltsFitScoreV2(candidate.ieltsMin, ieltsScore);
         Double confidenceScore = confidenceScore(candidate, targetRank, ieltsScore);
-        CategoryDecision categoryDecision = classifyCategory(candidate, effectiveRank.rank, targetRank, ieltsScore, riskProfile, confidenceScore);
+        CategoryDecision categoryDecision = classifyCategory(candidate, decisionRank, targetRank, ieltsScore, riskProfile, confidenceScore, scopeContext);
         Double riskAlignmentScore = riskAlignmentScore(categoryDecision.category, riskProfile);
         Double completenessScore = completenessScore(candidate);
         Double ieltsMargin = ieltsMargin(candidate.ieltsMin, ieltsScore);
@@ -520,8 +525,10 @@ public class RecommendationService {
         scoreBreakdown.put("risk_alignment_score", riskAlignmentScore);
         scoreBreakdown.put("weights_used", weightsUsed);
         scoreBreakdown.put("contributions", componentContributions(weightsUsed, scoreMap));
-        scoreBreakdown.put("effective_rank_used", effectiveRank.rank);
-        scoreBreakdown.put("effective_rank_source", effectiveRank.source);
+        scoreBreakdown.put("effective_rank_used", decisionRank);
+        scoreBreakdown.put("effective_rank_source", scopeContext.isRegion() ? "REGION_SCOPE" : "AGGREGATED");
+        scoreBreakdown.put("global_rank", candidate.globalRank);
+        scoreBreakdown.put("scope_rank", candidate.scopeRank);
         scoreBreakdown.put("category", categoryDecision.category);
         scoreBreakdown.put("category_reason", categoryDecision.reason);
         scoreBreakdown.put("ielts_margin", ieltsMargin);
@@ -538,11 +545,11 @@ public class RecommendationService {
             rulesPassed.add("ielts_margin=" + formatNumber(ieltsMargin));
         }
 
-        return new RecommendationResult(
+        RecommendationResult result = new RecommendationResult(
                 candidate.canonicalUniversityId,
                 candidate.universityName,
                 candidate.country,
-                candidate.aggregatedRank,
+                displayRank(candidate, scopeContext),
                 candidate.ieltsMin,
                 round(finalScore),
                 categoryDecision.category,
@@ -552,11 +559,13 @@ public class RecommendationService {
                 SCORING_VERSION,
                 DECISION_POLICY_VERSION,
                 EXPLANATION_VERSION,
-                buildExplanationV2(candidate, ieltsScore, rankingScore, confidenceLabel, ieltsMargin, finalScore, categoryDecision.reason),
+                buildExplanationV2(candidate, ieltsScore, rankingScore, confidenceLabel, ieltsMargin, finalScore, categoryDecision.reason, scopeContext),
                 candidate.aggregationMethodVersion,
                 scoreBreakdown,
                 rulesPassed
         );
+        applyScopeContext(result, candidate, scopeContext);
+        return result;
     }
 
     private RecommendationResult scoreCandidateV3(
@@ -568,20 +577,21 @@ public class RecommendationService {
             String riskProfile,
             Map<String, Double> resolvedWeights,
             String preferredRankingSource,
-            PoolContext poolContext
+            PoolContext poolContext,
+            RankingContext scopeContext
     ) {
-        EffectiveRank effectiveRank = chooseEffectiveRank(candidate, preferredRankingSource);
-        if (effectiveRank.rank == null) {
+        Integer decisionRank = decisionRank(candidate, scopeContext);
+        if (decisionRank == null) {
             return null;
         }
 
-        Double rankingScore = rankingScore(effectiveRank.rank, targetRank);
+        Double rankingScore = rankingScoreForContext(candidate, targetRank, scopeContext);
         Double ieltsFitScore = ieltsFitScoreV2(candidate.ieltsMin, ieltsScore);
         Double completenessScore = completenessScore(candidate);
         Double confidenceScore = confidenceScore(candidate, targetRank, ieltsScore);
-        CategoryDecision categoryDecision = classifyCategory(candidate, effectiveRank.rank, targetRank, ieltsScore, riskProfile, confidenceScore);
+        CategoryDecision categoryDecision = classifyCategory(candidate, decisionRank, targetRank, ieltsScore, riskProfile, confidenceScore, scopeContext);
         if (poolContext != null && poolContext.elitePool()) {
-            categoryDecision = classifyElitePoolCategory(candidate, effectiveRank.rank, targetRank, ieltsScore, riskProfile, poolContext);
+            categoryDecision = classifyElitePoolCategory(candidate, decisionRank, targetRank, ieltsScore, riskProfile, poolContext, scopeContext);
         }
         Double ieltsMargin = ieltsMargin(candidate.ieltsMin, ieltsScore);
         String confidenceLabel = confidenceLabel(confidenceScore);
@@ -605,8 +615,10 @@ public class RecommendationService {
         scoreBreakdown.put("country_match_score", countryMatchScore);
         scoreBreakdown.put("weights_used", resolvedWeights);
         scoreBreakdown.put("contributions", componentContributions(resolvedWeights, scoreMap));
-        scoreBreakdown.put("effective_rank_used", effectiveRank.rank);
-        scoreBreakdown.put("effective_rank_source", effectiveRank.source);
+        scoreBreakdown.put("effective_rank_used", decisionRank);
+        scoreBreakdown.put("effective_rank_source", scopeContext.isRegion() ? "REGION_SCOPE" : "AGGREGATED");
+        scoreBreakdown.put("global_rank", candidate.globalRank);
+        scoreBreakdown.put("scope_rank", candidate.scopeRank);
         scoreBreakdown.put("category", categoryDecision.category);
         scoreBreakdown.put("category_reason", categoryDecision.reason);
         scoreBreakdown.put("ielts_margin", ieltsMargin);
@@ -632,11 +644,11 @@ public class RecommendationService {
             rulesPassed.add("ielts_margin=" + formatNumber(ieltsMargin));
         }
 
-        return new RecommendationResult(
+        RecommendationResult result = new RecommendationResult(
                 candidate.canonicalUniversityId,
                 candidate.universityName,
                 candidate.country,
-                candidate.aggregatedRank,
+                displayRank(candidate, scopeContext),
                 candidate.ieltsMin,
                 round(finalScore),
                 categoryDecision.category,
@@ -651,19 +663,23 @@ public class RecommendationService {
                         countryPolicy,
                         candidate.country,
                         categoryDecision.category,
-                        effectiveRank.rank,
+                        decisionRank,
                         targetRank,
                         ieltsMargin,
                         confidenceLabel,
                         riskAdjustment,
                         preferenceAlignment,
                         categoryDecision.reason,
-                        riskProfile
+                        riskProfile,
+                        candidate,
+                        scopeContext
                 ),
                 candidate.aggregationMethodVersion,
                 scoreBreakdown,
                 rulesPassed
         );
+        applyScopeContext(result, candidate, scopeContext);
+        return result;
     }
 
     private EffectiveRank chooseEffectiveRank(Candidate candidate, String preferredRankingSource) {
@@ -675,6 +691,46 @@ public class RecommendationService {
             }
         }
         return new EffectiveRank(candidate.aggregatedRank, "AGGREGATED");
+    }
+
+    private RankedPosition rankedPosition(Candidate candidate, RankingContext scopeContext) {
+        return RankedPosition.of(scopeContext, candidate.globalRank, candidate.scopeRank);
+    }
+
+    private Integer decisionRank(Candidate candidate, RankingContext scopeContext) {
+        return rankedPosition(candidate, scopeContext).displayRank();
+    }
+
+    private Integer displayRank(Candidate candidate, RankingContext scopeContext) {
+        return rankedPosition(candidate, scopeContext).compatibilityAggregatedRank();
+    }
+
+    private Double rankingScoreForContext(Candidate candidate, Integer targetRank, RankingContext scopeContext) {
+        if (!scopeContext.isRegion()) {
+            return rankingScore(candidate.globalRank, targetRank);
+        }
+
+        Double scopeScore = rankingScore(candidate.scopeRank, targetRank);
+        Double globalReferenceScore = rankingScore(candidate.globalRank, targetRank);
+        if (scopeScore == null && globalReferenceScore == null) {
+            return null;
+        }
+        if (scopeScore == null) {
+            return globalReferenceScore;
+        }
+        if (globalReferenceScore == null) {
+            return scopeScore;
+        }
+        return round((0.75 * scopeScore) + (0.25 * globalReferenceScore));
+    }
+
+    private void applyScopeContext(RecommendationResult result, Candidate candidate, RankingContext scopeContext) {
+        RankedPosition rankedPosition = rankedPosition(candidate, scopeContext);
+        result.setScope(scopeContext.apiScope());
+        result.setRegion(scopeContext.region());
+        result.setGlobalRank(candidate.globalRank);
+        result.setScopeRank(scopeContext.isRegion() ? rankedPosition.displayRank() : null);
+        result.setAggregatedRank(rankedPosition.compatibilityAggregatedRank());
     }
 
     private Double rankingScore(Integer rankValue, Integer targetRank) {
@@ -779,7 +835,8 @@ public class RecommendationService {
             Integer targetRank,
             Double ieltsScore,
             String riskProfile,
-            Double confidenceScore
+            Double confidenceScore,
+            RankingContext scopeContext
     ) {
         double ratio = effectiveRank / (double) Math.max(1, targetRank);
         Thresholds thresholds = thresholdsForRiskProfile(riskProfile);
@@ -804,12 +861,15 @@ public class RecommendationService {
         }
 
         String reason;
+        String rankLabel = scopeContext.isRegion()
+                ? "regional rank #" + effectiveRank + " in " + scopeContext.region()
+                : "rank #" + effectiveRank + " globally";
         if ("reach".equals(category)) {
-            reason = "Reach: rank #" + effectiveRank + " is clearly above your target level of #" + targetRank + ".";
+            reason = "Reach: " + rankLabel + " is clearly above your target level of #" + targetRank + ".";
         } else if ("safety".equals(category)) {
-            reason = "Safety: rank #" + effectiveRank + " is comfortably below your target level of #" + targetRank + ".";
+            reason = "Safety: " + rankLabel + " is comfortably below your target level of #" + targetRank + ".";
         } else {
-            reason = "Target: rank #" + effectiveRank + " is close to your target level of #" + targetRank + ".";
+            reason = "Target: " + rankLabel + " is close to your target level of #" + targetRank + ".";
         }
         Double margin = ieltsMargin(candidate.ieltsMin, ieltsScore);
         if (margin != null) {
@@ -826,6 +886,9 @@ public class RecommendationService {
         if (confidenceScore < LOW_CONFIDENCE_THRESHOLD) {
             reason += " Confidence is only " + formatNumber(confidenceScore) + "/100.";
         }
+        if (scopeContext.isRegion() && candidate.globalRank != null) {
+            reason += " Global position: #" + candidate.globalRank + ".";
+        }
         return new CategoryDecision(category, reason);
     }
 
@@ -835,7 +898,8 @@ public class RecommendationService {
             Integer targetRank,
             Double ieltsScore,
             String riskProfile,
-            PoolContext poolContext
+            PoolContext poolContext,
+            RankingContext scopeContext
     ) {
         String profile = normalizeRiskProfile(riskProfile);
         double reachShare;
@@ -863,15 +927,18 @@ public class RecommendationService {
         String reason;
         if (poolContext.position() < reachCutoff) {
             category = "reach";
-            reason = "Reach: within this elite filtered pool, rank #" + effectiveRank
+            reason = "Reach: within this elite filtered pool, "
+                    + (scopeContext.isRegion() ? scopeContext.region() + " rank #" : "rank #") + effectiveRank
                     + " sits in the most ambitious band for target #" + targetRank + ".";
         } else if (poolContext.position() < targetCutoff) {
             category = "target";
-            reason = "Target: within this elite filtered pool, rank #" + effectiveRank
+            reason = "Target: within this elite filtered pool, "
+                    + (scopeContext.isRegion() ? scopeContext.region() + " rank #" : "rank #") + effectiveRank
                     + " sits in the balanced middle band for target #" + targetRank + ".";
         } else {
             category = "safety";
-            reason = "Safety: within this elite filtered pool, rank #" + effectiveRank
+            reason = "Safety: within this elite filtered pool, "
+                    + (scopeContext.isRegion() ? scopeContext.region() + " rank #" : "rank #") + effectiveRank
                     + " sits in the safer end of the shortlist for target #" + targetRank + ".";
         }
 
@@ -886,6 +953,9 @@ public class RecommendationService {
             }
         } else if (ieltsScore != null && candidate.ieltsMin == null) {
             reason += " IELTS requirement is missing, so confidence is reduced.";
+        }
+        if (scopeContext.isRegion() && candidate.globalRank != null) {
+            reason += " Global position: #" + candidate.globalRank + ".";
         }
         return new CategoryDecision(category, reason);
     }
@@ -935,7 +1005,7 @@ public class RecommendationService {
     private Map<Long, PoolContext> buildPoolContexts(
             List<Candidate> candidates,
             Integer targetRank,
-            String preferredRankingSource
+            RankingContext scopeContext
     ) {
         if (targetRank == null || targetRank <= 0) {
             return Map.of();
@@ -943,9 +1013,9 @@ public class RecommendationService {
 
         List<PoolRank> ranked = new ArrayList<>();
         for (Candidate candidate : candidates) {
-            EffectiveRank effectiveRank = chooseEffectiveRank(candidate, preferredRankingSource);
-            if (effectiveRank.rank != null) {
-                ranked.add(new PoolRank(candidate, effectiveRank.rank));
+            Integer decisionRank = decisionRank(candidate, scopeContext);
+            if (decisionRank != null) {
+                ranked.add(new PoolRank(candidate, decisionRank));
             }
         }
         if (ranked.isEmpty()) {
@@ -1142,24 +1212,6 @@ public class RecommendationService {
         return contributions;
     }
 
-    private Map<String, Integer> parseJsonMap(Object value) {
-        if (value == null) {
-            return new LinkedHashMap<>();
-        }
-        try {
-            Map<String, Object> raw = objectMapper.readValue(value.toString(), new TypeReference<>() {});
-            Map<String, Integer> parsed = new LinkedHashMap<>();
-            for (Map.Entry<String, Object> entry : raw.entrySet()) {
-                if (entry.getValue() != null) {
-                    parsed.put(entry.getKey().toUpperCase(Locale.ROOT), Integer.parseInt(entry.getValue().toString()));
-                }
-            }
-            return parsed;
-        } catch (Exception e) {
-            return new LinkedHashMap<>();
-        }
-    }
-
     private String buildExplanationV1(
             Candidate candidate,
             Double ieltsScore,
@@ -1196,9 +1248,11 @@ public class RecommendationService {
             String confidenceLabel,
             Double ieltsMargin,
             double finalScore,
-            String categoryReason
+            String categoryReason,
+            RankingContext scopeContext
     ) {
         List<String> recommendationBits = new ArrayList<>();
+        recommendationBits.add(rankSummary(candidate, scopeContext));
         if (rankingScore != null) {
             recommendationBits.add("ranking score is " + formatScore(rankingScore));
         }
@@ -1228,11 +1282,18 @@ public class RecommendationService {
             double riskAdjustment,
             String preferenceAlignment,
             String categoryReason,
-            String riskProfile
+            String riskProfile,
+            Candidate candidate,
+            RankingContext scopeContext
     ) {
         List<String> fitBits = new ArrayList<>();
+        fitBits.add(rankSummary(candidate, scopeContext));
         if (effectiveRank != null && targetRank != null) {
-            fitBits.add("rank #" + effectiveRank + " is judged against target #" + targetRank);
+            if (scopeContext.isRegion()) {
+                fitBits.add(scopeContext.region() + " rank #" + effectiveRank + " is judged against target #" + targetRank);
+            } else {
+                fitBits.add("rank #" + effectiveRank + " is judged against target #" + targetRank);
+            }
         }
         if (ieltsMargin != null) {
             if (ieltsMargin >= 0) {
@@ -1258,6 +1319,9 @@ public class RecommendationService {
         if (!fitBits.isEmpty()) {
             explanation.append(" Recommended because ").append(String.join(", ", fitBits)).append(".");
         }
+        if (scopeContext.isRegion()) {
+            explanation.append(" ").append(regionStrengthPhrase(candidate, scopeContext));
+        }
         if (Math.abs(riskAdjustment) >= 1.0) {
             explanation.append(" The ")
                     .append(normalizeRiskProfile(riskProfile))
@@ -1268,6 +1332,27 @@ public class RecommendationService {
                     .append(" option.");
         }
         return explanation.toString();
+    }
+
+    private String rankSummary(Candidate candidate, RankingContext scopeContext) {
+        return rankedPosition(candidate, scopeContext).primaryRankSummary();
+    }
+
+    private String regionStrengthPhrase(Candidate candidate, RankingContext scopeContext) {
+        if (candidate.scopeRank == null || candidate.globalRank == null) {
+            return "Regional context is used as the primary decision signal.";
+        }
+        int rankGap = candidate.globalRank - candidate.scopeRank;
+        if (candidate.scopeRank <= 25 && candidate.globalRank <= 50) {
+            return "Balanced regional and global strength makes this a strong regional option.";
+        }
+        if (rankGap >= 20) {
+            return "Strong regional option with a slightly weaker global position.";
+        }
+        if (rankGap <= -20) {
+            return "Strong globally but weaker within this region.";
+        }
+        return "Regional and global strength are broadly balanced.";
     }
 
     private int safeLimit(Integer limit, int defaultValue) {
@@ -1295,12 +1380,24 @@ public class RecommendationService {
         return String.format(Locale.ROOT, "%.2f", value);
     }
 
+    private int shortlistCount(String shortlist) {
+        if (shortlist == null || shortlist.isBlank()) {
+            return 0;
+        }
+        return (int) Arrays.stream(shortlist.split(","))
+                .map(String::trim)
+                .filter(token -> !token.isEmpty())
+                .count();
+    }
+
     private static final class Candidate {
         private Long canonicalUniversityId;
         private String universityName;
         private String country;
         private Integer rankingYear;
         private Integer aggregatedRank;
+        private Integer globalRank;
+        private Integer scopeRank;
         private Double aggregatedScore;
         private double coverageRatio;
         private Double ieltsMin;

@@ -1,4 +1,18 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/crawlernest/crawlernest-core",
+        "${workspaceFolder}/crawlernest/crawlernest-extractors",
+        "${workspaceFolder}/crawlernest/crawlernest-jobs",
+        "${workspaceFolder}/crawlernest/crawlernest-db-writer",
+        "${workspaceFolder}/crawlernest/crawlernest-analytics"
+    ],
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/crawlernest/crawlernest-core",
+        "${workspaceFolder}/crawlernest/crawlernest-extractors",
+        "${workspaceFolder}/crawlernest/crawlernest-jobs",
+        "${workspaceFolder}/crawlernest/crawlernest-db-writer",
+        "${workspaceFolder}/crawlernest/crawlernest-analytics"
+    ]
 }

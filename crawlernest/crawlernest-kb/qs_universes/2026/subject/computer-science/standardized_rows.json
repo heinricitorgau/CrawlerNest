@@ -1,0 +1,2602 @@
+[
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/massachusetts-institute-technology-mit",
+    "university_name": "Massachusetts Institute of Technology (MIT)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 1,
+    "score": 94.2,
+    "source_url": "/universities/massachusetts-institute-technology-mit",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "94.2",
+        "Employer Reputation": "97.9",
+        "H-index Citations": "94.5",
+        "Citations per Paper": "95",
+        "Academic Reputation": "91.7",
+        "International Research Network": "88.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/stanford-university",
+    "university_name": "Stanford University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 2,
+    "score": 92.1,
+    "source_url": "/universities/stanford-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "92.1",
+        "Employer Reputation": "95.8",
+        "H-index Citations": "95.2",
+        "Citations per Paper": "97.6",
+        "Academic Reputation": "89.2",
+        "International Research Network": "71.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/carnegie-mellon-university",
+    "university_name": "Carnegie Mellon University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 3,
+    "score": 91.2,
+    "source_url": "/universities/carnegie-mellon-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "91.2",
+        "Employer Reputation": "78",
+        "H-index Citations": "93.2",
+        "Citations per Paper": "96.1",
+        "Academic Reputation": "100",
+        "International Research Network": "82.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-university-singapore-nus",
+    "university_name": "National University of Singapore (NUS)",
+    "country_hint": "Singapore",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 4,
+    "score": 90.6,
+    "source_url": "/universities/national-university-singapore-nus",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "90.6",
+        "Employer Reputation": "94.9",
+        "H-index Citations": "92.4",
+        "Citations per Paper": "95.2",
+        "Academic Reputation": "86.7",
+        "International Research Network": "80.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-oxford",
+    "university_name": "University of Oxford",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 5,
+    "score": 89.8,
+    "source_url": "/universities/university-oxford",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "89.8",
+        "Employer Reputation": "96.6",
+        "H-index Citations": "86.8",
+        "Citations per Paper": "97",
+        "Academic Reputation": "83.5",
+        "International Research Network": "88.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/nanyang-technological-university-singapore-ntu-singapore",
+    "university_name": "Nanyang Technological University, Singapore (NTU Singapore)",
+    "country_hint": "Singapore",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 6,
+    "score": 88.9,
+    "source_url": "/universities/nanyang-technological-university-singapore-ntu-singapore",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "88.9",
+        "Employer Reputation": "91.4",
+        "H-index Citations": "94.9",
+        "Citations per Paper": "94.9",
+        "Academic Reputation": "84.5",
+        "International Research Network": "79.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/harvard-university",
+    "university_name": "Harvard University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 7,
+    "score": 88.7,
+    "source_url": "/universities/harvard-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "88.7",
+        "Employer Reputation": "100",
+        "H-index Citations": "85.4",
+        "Citations per Paper": "92",
+        "Academic Reputation": "81.2",
+        "International Research Network": "81.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-berkeley-ucb",
+    "university_name": "University of California, Berkeley (UCB)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 8,
+    "score": 88.5,
+    "source_url": "/universities/university-california-berkeley-ucb",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "88.5",
+        "Employer Reputation": "88.7",
+        "H-index Citations": "93.6",
+        "Citations per Paper": "99.7",
+        "Academic Reputation": "85.2",
+        "International Research Network": "72.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-cambridge",
+    "university_name": "University of Cambridge",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 9,
+    "score": 87.3,
+    "source_url": "/universities/university-cambridge",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "87.3",
+        "Employer Reputation": "96.1",
+        "H-index Citations": "80.7",
+        "Citations per Paper": "88.3",
+        "Academic Reputation": "83.3",
+        "International Research Network": "81.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/eth-zurich",
+    "university_name": "ETH Zurich",
+    "country_hint": "Switzerland",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 10,
+    "score": 86.4,
+    "source_url": "/universities/eth-zurich",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "86.4",
+        "Employer Reputation": "88.8",
+        "H-index Citations": "91.1",
+        "Citations per Paper": "93.4",
+        "Academic Reputation": "82",
+        "International Research Network": "78.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tsinghua-university",
+    "university_name": "Tsinghua University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 11,
+    "score": 85.3,
+    "source_url": "/universities/tsinghua-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "85.3",
+        "Employer Reputation": "87.9",
+        "H-index Citations": "100",
+        "Citations per Paper": "90.5",
+        "Academic Reputation": "79.8",
+        "International Research Network": "64.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-toronto",
+    "university_name": "University of Toronto",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 12,
+    "score": 84.9,
+    "source_url": "/universities/university-toronto",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "84.9",
+        "Employer Reputation": "86.4",
+        "H-index Citations": "84.9",
+        "Citations per Paper": "89.8",
+        "Academic Reputation": "83.8",
+        "International Research Network": "72.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/princeton-university",
+    "university_name": "Princeton University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 13,
+    "score": 82.9,
+    "source_url": "/universities/princeton-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.9",
+        "Employer Reputation": "83.7",
+        "H-index Citations": "82",
+        "Citations per Paper": "94.6",
+        "Academic Reputation": "80.6",
+        "International Research Network": "68.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/peking-university",
+    "university_name": "Peking University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 14,
+    "score": 81.8,
+    "source_url": "/universities/peking-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.8",
+        "Employer Reputation": "86.8",
+        "H-index Citations": "94.6",
+        "Citations per Paper": "91.4",
+        "Academic Reputation": "74.1",
+        "International Research Network": "56.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/epfl-ecole-polytechnique-federale-de-lausanne",
+    "university_name": "EPFL – École polytechnique fédérale de Lausanne",
+    "country_hint": "Switzerland",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 15,
+    "score": 81.5,
+    "source_url": "/universities/epfl-ecole-polytechnique-federale-de-lausanne",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.5",
+        "Employer Reputation": "84.8",
+        "H-index Citations": "80.4",
+        "Citations per Paper": "88",
+        "Academic Reputation": "78.4",
+        "International Research Network": "72.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-los-angeles-ucla",
+    "university_name": "University of California, Los Angeles (UCLA)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 16,
+    "score": 81.1,
+    "source_url": "/universities/university-california-los-angeles-ucla",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.1",
+        "Employer Reputation": "86",
+        "H-index Citations": "82.6",
+        "Citations per Paper": "88.6",
+        "Academic Reputation": "76.9",
+        "International Research Network": "62.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/new-york-university-nyu",
+    "university_name": "New York University (NYU)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 17,
+    "score": 80.8,
+    "source_url": "/universities/new-york-university-nyu",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.8",
+        "Employer Reputation": "78.8",
+        "H-index Citations": "81.6",
+        "Citations per Paper": "90.2",
+        "Academic Reputation": "80.1",
+        "International Research Network": "73.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/cornell-university",
+    "university_name": "Cornell University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 18,
+    "score": 80.6,
+    "source_url": "/universities/cornell-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.6",
+        "Employer Reputation": "80.3",
+        "H-index Citations": "83",
+        "Citations per Paper": "93.9",
+        "Academic Reputation": "77.2",
+        "International Research Network": "70.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-washington",
+    "university_name": "University of Washington",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 19,
+    "score": 80.1,
+    "source_url": "/universities/university-washington",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.1",
+        "Employer Reputation": "69.6",
+        "H-index Citations": "87.1",
+        "Citations per Paper": "96.8",
+        "Academic Reputation": "80.7",
+        "International Research Network": "78.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/shanghai-jiao-tong-university",
+    "university_name": "Shanghai Jiao Tong University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 20,
+    "score": 79.7,
+    "source_url": "/universities/shanghai-jiao-tong-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "79.7",
+        "Employer Reputation": "82.8",
+        "H-index Citations": "91.3",
+        "Citations per Paper": "84.8",
+        "Academic Reputation": "73.7",
+        "International Research Network": "68"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-hong-kong",
+    "university_name": "The University of Hong Kong",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 21,
+    "score": 79.6,
+    "source_url": "/universities/university-hong-kong",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "79.6",
+        "Employer Reputation": "81.6",
+        "H-index Citations": "83",
+        "Citations per Paper": "93.4",
+        "Academic Reputation": "76.4",
+        "International Research Network": "50.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/imperial-college-london",
+    "university_name": "Imperial College London",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 22,
+    "score": 79.4,
+    "source_url": "/universities/imperial-college-london",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "79.4",
+        "Employer Reputation": "84.8",
+        "H-index Citations": "84.4",
+        "Citations per Paper": "90.3",
+        "Academic Reputation": "69.2",
+        "International Research Network": "89.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-edinburgh",
+    "university_name": "The University of Edinburgh",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 23,
+    "score": 79.0,
+    "source_url": "/universities/university-edinburgh",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "79",
+        "Employer Reputation": "74.5",
+        "H-index Citations": "80.1",
+        "Citations per Paper": "88.4",
+        "Academic Reputation": "78.6",
+        "International Research Network": "83.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hong-kong-university-science-technology",
+    "university_name": "The Hong Kong University of Science and Technology",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 24,
+    "score": 78.9,
+    "source_url": "/universities/hong-kong-university-science-technology",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "78.9",
+        "Employer Reputation": "76.1",
+        "H-index Citations": "84.3",
+        "Citations per Paper": "94.7",
+        "Academic Reputation": "78",
+        "International Research Network": "49"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ucl",
+    "university_name": "UCL",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 25,
+    "score": 78.9,
+    "source_url": "/universities/ucl",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "78.9",
+        "Employer Reputation": "76.7",
+        "H-index Citations": "84.3",
+        "Citations per Paper": "90.6",
+        "Academic Reputation": "74.3",
+        "International Research Network": "85.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/yale-university",
+    "university_name": "Yale University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 26,
+    "score": 78.6,
+    "source_url": "/universities/yale-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "78.6",
+        "Employer Reputation": "88",
+        "H-index Citations": "70.5",
+        "Citations per Paper": "84.6",
+        "Academic Reputation": "75.2",
+        "International Research Network": "55.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/columbia-university",
+    "university_name": "Columbia University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 27,
+    "score": 78.5,
+    "source_url": "/universities/columbia-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "78.5",
+        "Employer Reputation": "80.2",
+        "H-index Citations": "81.6",
+        "Citations per Paper": "90.6",
+        "Academic Reputation": "74.7",
+        "International Research Network": "61.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/chinese-university-hong-kong-cuhk",
+    "university_name": "The Chinese University of Hong Kong (CUHK)",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 28,
+    "score": 78.5,
+    "source_url": "/universities/chinese-university-hong-kong-cuhk",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "78.5",
+        "Employer Reputation": "74.1",
+        "H-index Citations": "90.5",
+        "Citations per Paper": "99.4",
+        "Academic Reputation": "74.6",
+        "International Research Network": "53"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kaist-korea-advanced-institute-science-technology",
+    "university_name": "KAIST - Korea Advanced Institute of Science & Technology",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 29,
+    "score": 78.2,
+    "source_url": "/universities/kaist-korea-advanced-institute-science-technology",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "78.2",
+        "Employer Reputation": "77.8",
+        "H-index Citations": "80.2",
+        "Citations per Paper": "86.9",
+        "Academic Reputation": "76.2",
+        "International Research Network": "70.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-tokyo",
+    "university_name": "The University of Tokyo",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 30,
+    "score": 77.9,
+    "source_url": "/universities/university-tokyo",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.9",
+        "Employer Reputation": "84.5",
+        "H-index Citations": "74.5",
+        "Citations per Paper": "74.5",
+        "Academic Reputation": "76.4",
+        "International Research Network": "66.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-british-columbia",
+    "university_name": "University of British Columbia",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 31,
+    "score": 77.8,
+    "source_url": "/universities/university-british-columbia",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.8",
+        "Employer Reputation": "81.8",
+        "H-index Citations": "80.8",
+        "Citations per Paper": "89.3",
+        "Academic Reputation": "71.2",
+        "International Research Network": "69.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/zhejiang-university",
+    "university_name": "Zhejiang University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 32,
+    "score": 77.8,
+    "source_url": "/universities/zhejiang-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.8",
+        "Employer Reputation": "82.3",
+        "H-index Citations": "92.3",
+        "Citations per Paper": "86.4",
+        "Academic Reputation": "67.3",
+        "International Research Network": "76.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-waterloo",
+    "university_name": "University of Waterloo",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 33,
+    "score": 77.7,
+    "source_url": "/universities/university-waterloo",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.7",
+        "Employer Reputation": "75",
+        "H-index Citations": "83",
+        "Citations per Paper": "86.7",
+        "Academic Reputation": "74.9",
+        "International Research Network": "81.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-illinois-urbana-champaign",
+    "university_name": "University of Illinois Urbana-Champaign",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 34,
+    "score": 77.4,
+    "source_url": "/universities/university-illinois-urbana-champaign",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77.4",
+        "Employer Reputation": "73.4",
+        "H-index Citations": "84.3",
+        "Citations per Paper": "88",
+        "Academic Reputation": "73.7",
+        "International Research Network": "87.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/technical-university-munich",
+    "university_name": "Technical University of Munich",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 35,
+    "score": 77.0,
+    "source_url": "/universities/technical-university-munich",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "77",
+        "Employer Reputation": "72.7",
+        "H-index Citations": "83",
+        "Citations per Paper": "83.1",
+        "Academic Reputation": "75.4",
+        "International Research Network": "84.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-sydney",
+    "university_name": "The University of Sydney",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 36,
+    "score": 76.7,
+    "source_url": "/universities/university-sydney",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "76.7",
+        "Employer Reputation": "76.3",
+        "H-index Citations": "87.4",
+        "Citations per Paper": "95.5",
+        "Academic Reputation": "67.9",
+        "International Research Network": "75.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/australian-national-university-anu",
+    "university_name": "Australian National University (ANU)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 37,
+    "score": 76.1,
+    "source_url": "/universities/australian-national-university-anu",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "76.1",
+        "Employer Reputation": "78.4",
+        "H-index Citations": "77.1",
+        "Citations per Paper": "91.8",
+        "Academic Reputation": "71.3",
+        "International Research Network": "59.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-california-san-diego-ucsd",
+    "university_name": "University of California, San Diego (UCSD)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 38,
+    "score": 76.1,
+    "source_url": "/universities/university-california-san-diego-ucsd",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "76.1",
+        "Employer Reputation": "72.8",
+        "H-index Citations": "81.7",
+        "Citations per Paper": "90.1",
+        "Academic Reputation": "72.7",
+        "International Research Network": "74.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/fudan-university",
+    "university_name": "Fudan University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 39,
+    "score": 76.0,
+    "source_url": "/universities/fudan-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "76",
+        "Employer Reputation": "81.2",
+        "H-index Citations": "82.1",
+        "Citations per Paper": "84",
+        "Academic Reputation": "71.3",
+        "International Research Network": "46.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/georgia-institute-technology",
+    "university_name": "Georgia Institute of Technology",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 40,
+    "score": 75.8,
+    "source_url": "/universities/georgia-institute-technology",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.8",
+        "Employer Reputation": "74.8",
+        "H-index Citations": "87.9",
+        "Citations per Paper": "88.4",
+        "Academic Reputation": "68.8",
+        "International Research Network": "77"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-michigan-ann-arbor",
+    "university_name": "University of Michigan-Ann Arbor",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 41,
+    "score": 75.7,
+    "source_url": "/universities/university-michigan-ann-arbor",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.7",
+        "Employer Reputation": "76.1",
+        "H-index Citations": "85.8",
+        "Citations per Paper": "88.8",
+        "Academic Reputation": "67",
+        "International Research Network": "84"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-pennsylvania",
+    "university_name": "University of Pennsylvania",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 42,
+    "score": 75.7,
+    "source_url": "/universities/university-pennsylvania",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.7",
+        "Employer Reputation": "75.8",
+        "H-index Citations": "76.2",
+        "Citations per Paper": "88.5",
+        "Academic Reputation": "72.1",
+        "International Research Network": "70.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-texas-austin",
+    "university_name": "University of Texas at Austin",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 43,
+    "score": 75.7,
+    "source_url": "/universities/university-texas-austin",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.7",
+        "Employer Reputation": "75.4",
+        "H-index Citations": "81.6",
+        "Citations per Paper": "86.8",
+        "Academic Reputation": "70.7",
+        "International Research Network": "74.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/seoul-national-university",
+    "university_name": "Seoul National University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 44,
+    "score": 75.5,
+    "source_url": "/universities/seoul-national-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.5",
+        "Employer Reputation": "78.4",
+        "H-index Citations": "78.8",
+        "Citations per Paper": "84.1",
+        "Academic Reputation": "72.5",
+        "International Research Network": "52.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-amsterdam",
+    "university_name": "University of Amsterdam",
+    "country_hint": "Netherlands",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 45,
+    "score": 75.4,
+    "source_url": "/universities/university-amsterdam",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.4",
+        "Employer Reputation": "72.6",
+        "H-index Citations": "75.1",
+        "Citations per Paper": "88.1",
+        "Academic Reputation": "75.5",
+        "International Research Network": "61.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-melbourne",
+    "university_name": "The University of Melbourne",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 46,
+    "score": 75.1,
+    "source_url": "/universities/university-melbourne",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.1",
+        "Employer Reputation": "76.9",
+        "H-index Citations": "78.8",
+        "Citations per Paper": "87.1",
+        "Academic Reputation": "68",
+        "International Research Network": "81.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-new-south-wales-unsw-sydney",
+    "university_name": "The University of New South Wales (UNSW Sydney)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 47,
+    "score": 75.1,
+    "source_url": "/universities/university-new-south-wales-unsw-sydney",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75.1",
+        "Employer Reputation": "79.8",
+        "H-index Citations": "85.8",
+        "Citations per Paper": "90.1",
+        "Academic Reputation": "62.9",
+        "International Research Network": "80.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/mcgill-university",
+    "university_name": "McGill University",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 48,
+    "score": 75.0,
+    "source_url": "/universities/mcgill-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "75",
+        "Employer Reputation": "80.2",
+        "H-index Citations": "77.6",
+        "Citations per Paper": "87.5",
+        "Academic Reputation": "67.3",
+        "International Research Network": "67.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-southern-california",
+    "university_name": "University of Southern California",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 49,
+    "score": 74.3,
+    "source_url": "/universities/university-southern-california",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "74.3",
+        "Employer Reputation": "67.3",
+        "H-index Citations": "85.6",
+        "Citations per Paper": "90.8",
+        "Academic Reputation": "70.9",
+        "International Research Network": "74.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-chicago",
+    "university_name": "University of Chicago",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 50,
+    "score": 74.1,
+    "source_url": "/universities/university-chicago",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "74.1",
+        "Employer Reputation": "80.3",
+        "H-index Citations": "67.9",
+        "Citations per Paper": "86.5",
+        "Academic Reputation": "70.4",
+        "International Research Network": "51.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ku-leuven",
+    "university_name": "KU Leuven",
+    "country_hint": "Belgium",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 51,
+    "score": 74.0,
+    "source_url": "/universities/ku-leuven",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "74",
+        "Employer Reputation": "73.4",
+        "H-index Citations": "80.7",
+        "Citations per Paper": "84.9",
+        "Academic Reputation": "67.2",
+        "International Research Network": "88.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/california-institute-technology-caltech",
+    "university_name": "California Institute of Technology (Caltech)",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 52,
+    "score": 73.9,
+    "source_url": "/universities/california-institute-technology-caltech",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "73.9",
+        "Employer Reputation": "82",
+        "H-index Citations": "71.6",
+        "Citations per Paper": "82.9",
+        "Academic Reputation": "67.9",
+        "International Research Network": "56"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/politecnico-di-milano",
+    "university_name": "Politecnico di Milano",
+    "country_hint": "Italy",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 53,
+    "score": 73.8,
+    "source_url": "/universities/politecnico-di-milano",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "73.8",
+        "Employer Reputation": "80.4",
+        "H-index Citations": "77.4",
+        "Citations per Paper": "79.5",
+        "Academic Reputation": "64.2",
+        "International Research Network": "87"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/sorbonne-university",
+    "university_name": "Sorbonne University",
+    "country_hint": "France",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 54,
+    "score": 73.8,
+    "source_url": "/universities/sorbonne-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "73.8",
+        "Employer Reputation": "76.9",
+        "H-index Citations": "72.1",
+        "Citations per Paper": "81.6",
+        "Academic Reputation": "68.5",
+        "International Research Network": "82.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universite-de-montreal",
+    "university_name": "Université de Montréal",
+    "country_hint": "Canada",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 55,
+    "score": 73.4,
+    "source_url": "/universities/universite-de-montreal",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "73.4",
+        "Employer Reputation": "69.3",
+        "H-index Citations": "79.9",
+        "Citations per Paper": "90.4",
+        "Academic Reputation": "68.7",
+        "International Research Network": "76.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/delft-university-technology",
+    "university_name": "Delft University of Technology",
+    "country_hint": "Netherlands",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 56,
+    "score": 73.3,
+    "source_url": "/universities/delft-university-technology",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "73.3",
+        "Employer Reputation": "75.6",
+        "H-index Citations": "80.4",
+        "Citations per Paper": "82.6",
+        "Academic Reputation": "64.3",
+        "International Research Network": "90.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kings-college-london",
+    "university_name": "King's College London",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 57,
+    "score": 73.2,
+    "source_url": "/universities/kings-college-london",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "73.2",
+        "Employer Reputation": "76.1",
+        "H-index Citations": "71.4",
+        "Citations per Paper": "85.7",
+        "Academic Reputation": "67.3",
+        "International Research Network": "77"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universite-psl",
+    "university_name": "Université PSL",
+    "country_hint": "France",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 58,
+    "score": 73.0,
+    "source_url": "/universities/universite-psl",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "73",
+        "Employer Reputation": "76.3",
+        "H-index Citations": "70",
+        "Citations per Paper": "85.1",
+        "Academic Reputation": "66.7",
+        "International Research Network": "80.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/city-university-hong-kong-cityuhk",
+    "university_name": "City University of Hong Kong (CityUHK)",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 59,
+    "score": 72.9,
+    "source_url": "/universities/city-university-hong-kong-cityuhk",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.9",
+        "Employer Reputation": "67",
+        "H-index Citations": "83.2",
+        "Citations per Paper": "91.2",
+        "Academic Reputation": "69.5",
+        "International Research Network": "64.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-science-technology-china",
+    "university_name": "University of Science and Technology of China",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 60,
+    "score": 72.9,
+    "source_url": "/universities/university-science-technology-china",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.9",
+        "Employer Reputation": "68.5",
+        "H-index Citations": "90.8",
+        "Citations per Paper": "89.9",
+        "Academic Reputation": "66.9",
+        "International Research Network": "59.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/yonsei-university",
+    "university_name": "Yonsei University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 61,
+    "score": 72.7,
+    "source_url": "/universities/yonsei-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.7",
+        "Employer Reputation": "71.9",
+        "H-index Citations": "75.8",
+        "Citations per Paper": "86.7",
+        "Academic Reputation": "69.6",
+        "International Research Network": "59.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/monash-university",
+    "university_name": "Monash University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 62,
+    "score": 72.6,
+    "source_url": "/universities/monash-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.6",
+        "Employer Reputation": "74",
+        "H-index Citations": "82.8",
+        "Citations per Paper": "91.7",
+        "Academic Reputation": "61.5",
+        "International Research Network": "80"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-technology-sydney",
+    "university_name": "University of Technology Sydney",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 63,
+    "score": 72.6,
+    "source_url": "/universities/university-technology-sydney",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.6",
+        "Employer Reputation": "64.4",
+        "H-index Citations": "86.9",
+        "Citations per Paper": "94.6",
+        "Academic Reputation": "65.4",
+        "International Research Network": "89.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indian-institute-technology-delhi-iitd",
+    "university_name": "Indian Institute of Technology Delhi (IITD)",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 64,
+    "score": 72.5,
+    "source_url": "/universities/indian-institute-technology-delhi-iitd",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.5",
+        "Employer Reputation": "81.3",
+        "H-index Citations": "71.6",
+        "Citations per Paper": "78",
+        "Academic Reputation": "65.8",
+        "International Research Network": "62.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universiti-malaya-um",
+    "university_name": "Universiti Malaya (UM)",
+    "country_hint": "Malaysia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 65,
+    "score": 72.5,
+    "source_url": "/universities/universiti-malaya-um",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.5",
+        "Employer Reputation": "68.9",
+        "H-index Citations": "76.2",
+        "Citations per Paper": "90.5",
+        "Academic Reputation": "65.8",
+        "International Research Network": "94.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/johns-hopkins-university",
+    "university_name": "Johns Hopkins University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 66,
+    "score": 72.3,
+    "source_url": "/universities/johns-hopkins-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.3",
+        "Employer Reputation": "72.5",
+        "H-index Citations": "78.9",
+        "Citations per Paper": "94.2",
+        "Academic Reputation": "63.6",
+        "International Research Network": "69.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/korea-university",
+    "university_name": "Korea University",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 67,
+    "score": 72.2,
+    "source_url": "/universities/korea-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.2",
+        "Employer Reputation": "73",
+        "H-index Citations": "73.9",
+        "Citations per Paper": "86.6",
+        "Academic Reputation": "68.6",
+        "International Research Network": "56.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-manchester",
+    "university_name": "The University of Manchester",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 68,
+    "score": 72.2,
+    "source_url": "/universities/university-manchester",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.2",
+        "Employer Reputation": "75.4",
+        "H-index Citations": "74.1",
+        "Citations per Paper": "83.4",
+        "Academic Reputation": "62.9",
+        "International Research Network": "95.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kth-royal-institute-technology",
+    "university_name": "KTH Royal Institute of Technology",
+    "country_hint": "Sweden",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 69,
+    "score": 72.1,
+    "source_url": "/universities/kth-royal-institute-technology",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "72.1",
+        "Employer Reputation": "68.7",
+        "H-index Citations": "76.4",
+        "Citations per Paper": "82.6",
+        "Academic Reputation": "68.3",
+        "International Research Network": "85.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/institut-polytechnique-de-paris",
+    "university_name": "Institut Polytechnique de Paris",
+    "country_hint": "France",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 70,
+    "score": 71.9,
+    "source_url": "/universities/institut-polytechnique-de-paris",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.9",
+        "Employer Reputation": "79.5",
+        "H-index Citations": "74.3",
+        "Citations per Paper": "79.6",
+        "Academic Reputation": "62.1",
+        "International Research Network": "80.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/king-abdulaziz-university-kau",
+    "university_name": "King Abdulaziz University (KAU)",
+    "country_hint": "Saudi Arabia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 71,
+    "score": 71.9,
+    "source_url": "/universities/king-abdulaziz-university-kau",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.9",
+        "Employer Reputation": "64.7",
+        "H-index Citations": "84.9",
+        "Citations per Paper": "91.1",
+        "Academic Reputation": "64.8",
+        "International Research Network": "92"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/duke-university",
+    "university_name": "Duke University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 72,
+    "score": 71.8,
+    "source_url": "/universities/duke-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.8",
+        "Employer Reputation": "75.4",
+        "H-index Citations": "74.5",
+        "Citations per Paper": "88.9",
+        "Academic Reputation": "64.6",
+        "International Research Network": "58.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/purdue-university",
+    "university_name": "Purdue University",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 73,
+    "score": 71.6,
+    "source_url": "/universities/purdue-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.6",
+        "Employer Reputation": "71.4",
+        "H-index Citations": "79.3",
+        "Citations per Paper": "81.9",
+        "Academic Reputation": "63.7",
+        "International Research Network": "90.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-maryland-college-park",
+    "university_name": "University of Maryland, College Park",
+    "country_hint": "United States",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 74,
+    "score": 71.5,
+    "source_url": "/universities/university-maryland-college-park",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.5",
+        "Employer Reputation": "62",
+        "H-index Citations": "85.2",
+        "Citations per Paper": "90.2",
+        "Academic Reputation": "68.3",
+        "International Research Network": "72.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universite-paris-saclay",
+    "university_name": "Université Paris-Saclay",
+    "country_hint": "France",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 75,
+    "score": 71.5,
+    "source_url": "/universities/universite-paris-saclay",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.5",
+        "Employer Reputation": "77.1",
+        "H-index Citations": "74.9",
+        "Citations per Paper": "77.7",
+        "Academic Reputation": "61.5",
+        "International Research Network": "93.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/indian-institute-technology-bombay-iitb",
+    "university_name": "Indian Institute of Technology Bombay (IITB)",
+    "country_hint": "India",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 76,
+    "score": 71.4,
+    "source_url": "/universities/indian-institute-technology-bombay-iitb",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.4",
+        "Employer Reputation": "83",
+        "H-index Citations": "62.5",
+        "Citations per Paper": "69.6",
+        "Academic Reputation": "68.9",
+        "International Research Network": "47.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/hong-kong-polytechnic-university",
+    "university_name": "The Hong Kong Polytechnic University",
+    "country_hint": "Hong Kong Sar",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 77,
+    "score": 71.4,
+    "source_url": "/universities/hong-kong-polytechnic-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.4",
+        "Employer Reputation": "68",
+        "H-index Citations": "84.3",
+        "Citations per Paper": "93.1",
+        "Academic Reputation": "62.7",
+        "International Research Network": "74.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/sapienza-university-rome",
+    "university_name": "Sapienza University of Rome",
+    "country_hint": "Italy",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 78,
+    "score": 71.2,
+    "source_url": "/universities/sapienza-university-rome",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.2",
+        "Employer Reputation": "71",
+        "H-index Citations": "71.8",
+        "Citations per Paper": "77.9",
+        "Academic Reputation": "67.2",
+        "International Research Network": "86.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/xian-jiaotong-university",
+    "university_name": "Xi’an Jiaotong University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 79,
+    "score": 71.2,
+    "source_url": "/universities/xian-jiaotong-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.2",
+        "Employer Reputation": "73.1",
+        "H-index Citations": "85.4",
+        "Citations per Paper": "85.2",
+        "Academic Reputation": "62.6",
+        "International Research Network": "58.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/nanjing-university",
+    "university_name": "Nanjing University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 80,
+    "score": 71.1,
+    "source_url": "/universities/nanjing-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.1",
+        "Employer Reputation": "69.6",
+        "H-index Citations": "84.3",
+        "Citations per Paper": "87.9",
+        "Academic Reputation": "64.7",
+        "International Research Network": "56.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/tecnologico-de-monterrey",
+    "university_name": "Tecnológico de Monterrey",
+    "country_hint": "Mexico",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 81,
+    "score": 71.1,
+    "source_url": "/universities/tecnologico-de-monterrey",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "71.1",
+        "Employer Reputation": "85.3",
+        "H-index Citations": "63.1",
+        "Citations per Paper": "77.5",
+        "Academic Reputation": "61.8",
+        "International Research Network": "64.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/harbin-institute-technology",
+    "university_name": "Harbin Institute of Technology",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 82,
+    "score": 70.8,
+    "source_url": "/universities/harbin-institute-technology",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.8",
+        "Employer Reputation": "68.5",
+        "H-index Citations": "88",
+        "Citations per Paper": "83.4",
+        "Academic Reputation": "63.1",
+        "International Research Network": "72.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-warwick",
+    "university_name": "The University of Warwick",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 83,
+    "score": 70.7,
+    "source_url": "/universities/university-warwick",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.7",
+        "Employer Reputation": "71.5",
+        "H-index Citations": "72.9",
+        "Citations per Paper": "88.1",
+        "Academic Reputation": "63.6",
+        "International Research Network": "74.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/huazhong-university-science-technology",
+    "university_name": "Huazhong University of Science and Technology",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 84,
+    "score": 70.5,
+    "source_url": "/universities/huazhong-university-science-technology",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.5",
+        "Employer Reputation": "68.7",
+        "H-index Citations": "91.3",
+        "Citations per Paper": "89.1",
+        "Academic Reputation": "59.1",
+        "International Research Network": "73.9"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/queen-mary-university-london",
+    "university_name": "Queen Mary University of London",
+    "country_hint": "United Kingdom",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 85,
+    "score": 70.5,
+    "source_url": "/universities/queen-mary-university-london",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.5",
+        "Employer Reputation": "70.2",
+        "H-index Citations": "76",
+        "Citations per Paper": "90.7",
+        "Academic Reputation": "61.7",
+        "International Research Network": "77.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/lomonosov-moscow-state-university",
+    "university_name": "Lomonosov Moscow State University",
+    "country_hint": "Russia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 86,
+    "score": 70.1,
+    "source_url": "/universities/lomonosov-moscow-state-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.1",
+        "Employer Reputation": "87.4",
+        "H-index Citations": "54.7",
+        "Citations per Paper": "61.2",
+        "Academic Reputation": "65.9",
+        "International Research Network": "60.1"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/pohang-university-science-technology-postech",
+    "university_name": "Pohang University of Science And Technology (POSTECH)",
+    "country_hint": "South Korea",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 87,
+    "score": 70.1,
+    "source_url": "/universities/pohang-university-science-technology-postech",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "70.1",
+        "Employer Reputation": "72.7",
+        "H-index Citations": "64",
+        "Citations per Paper": "81.7",
+        "Academic Reputation": "70.1",
+        "International Research Network": "41.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/wuhan-university",
+    "university_name": "Wuhan University",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 88,
+    "score": 69.9,
+    "source_url": "/universities/wuhan-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.9",
+        "Employer Reputation": "71.8",
+        "H-index Citations": "84.9",
+        "Citations per Paper": "85.9",
+        "Academic Reputation": "58.8",
+        "International Research Network": "69.8"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/beijing-institute-technology",
+    "university_name": "Beijing Institute of Technology",
+    "country_hint": "China (mainland)",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 89,
+    "score": 69.5,
+    "source_url": "/universities/beijing-institute-technology",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.5",
+        "Employer Reputation": "70.1",
+        "H-index Citations": "83.9",
+        "Citations per Paper": "80.9",
+        "Academic Reputation": "61",
+        "International Research Network": "70"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/ludwig-maximilians-universitat-munchen",
+    "university_name": "Ludwig-Maximilians-Universität München",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 90,
+    "score": 69.5,
+    "source_url": "/universities/ludwig-maximilians-universitat-munchen",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.5",
+        "Employer Reputation": "63.5",
+        "H-index Citations": "68.9",
+        "Citations per Paper": "82.3",
+        "Academic Reputation": "70.9",
+        "International Research Network": "64.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/national-taiwan-university-ntu",
+    "university_name": "National Taiwan University (NTU)",
+    "country_hint": "Taiwan",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 91,
+    "score": 69.4,
+    "source_url": "/universities/national-taiwan-university-ntu",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.4",
+        "Employer Reputation": "74.3",
+        "H-index Citations": "69.1",
+        "Citations per Paper": "79",
+        "Academic Reputation": "66.1",
+        "International Research Network": "42.4"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/vienna-university-technology",
+    "university_name": "Technische Universität Wien",
+    "country_hint": "Austria",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 92,
+    "score": 69.4,
+    "source_url": "/universities/vienna-university-technology",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.4",
+        "Employer Reputation": "61.6",
+        "H-index Citations": "72.9",
+        "Citations per Paper": "77.2",
+        "Academic Reputation": "70.2",
+        "International Research Network": "80.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/alma-mater-studiorum-universita-di-bologna",
+    "university_name": "Alma Mater Studiorum - Università di Bologna",
+    "country_hint": "Italy",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 93,
+    "score": 69.3,
+    "source_url": "/universities/alma-mater-studiorum-universita-di-bologna",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.3",
+        "Employer Reputation": "72.8",
+        "H-index Citations": "72.1",
+        "Citations per Paper": "79",
+        "Academic Reputation": "61.2",
+        "International Research Network": "81.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-adelaide",
+    "university_name": "The University of Adelaide",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 94,
+    "score": 69.2,
+    "source_url": "/universities/university-adelaide",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.2",
+        "Employer Reputation": "65",
+        "H-index Citations": "81.8",
+        "Citations per Paper": "100",
+        "Academic Reputation": "58.7",
+        "International Research Network": "70"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universidade-de-sao-paulo",
+    "university_name": "Universidade de São Paulo",
+    "country_hint": "Brazil",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 95,
+    "score": 69.2,
+    "source_url": "/universities/universidade-de-sao-paulo",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.2",
+        "Employer Reputation": "80.7",
+        "H-index Citations": "68.9",
+        "Citations per Paper": "73.9",
+        "Academic Reputation": "59",
+        "International Research Network": "71.2"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/technische-universitat-berlin-tu-berlin",
+    "university_name": "Technische Universität Berlin (TU Berlin)",
+    "country_hint": "Germany",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 96,
+    "score": 69.0,
+    "source_url": "/universities/technische-universitat-berlin-tu-berlin",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69",
+        "Employer Reputation": "67",
+        "H-index Citations": "72.7",
+        "Citations per Paper": "79.7",
+        "Academic Reputation": "65.5",
+        "International Research Network": "72.7"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-auckland",
+    "university_name": "The University of Auckland",
+    "country_hint": "New Zealand",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 97,
+    "score": 69.0,
+    "source_url": "/universities/university-auckland",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69",
+        "Employer Reputation": "72",
+        "H-index Citations": "71.6",
+        "Citations per Paper": "84.3",
+        "Academic Reputation": "61.2",
+        "International Research Network": "69.5"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-queensland",
+    "university_name": "The University of Queensland",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 98,
+    "score": 68.7,
+    "source_url": "/universities/university-queensland",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "68.7",
+        "Employer Reputation": "71.5",
+        "H-index Citations": "75.1",
+        "Citations per Paper": "88.9",
+        "Academic Reputation": "57.5",
+        "International Research Network": "75.6"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/king-saud-university",
+    "university_name": "King Saud University",
+    "country_hint": "Saudi Arabia",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 99,
+    "score": 68.6,
+    "source_url": "/universities/king-saud-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "68.6",
+        "Employer Reputation": "65.2",
+        "H-index Citations": "82.3",
+        "Citations per Paper": "92.7",
+        "Academic Reputation": "55.5",
+        "International Research Network": "100"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/kyoto-university",
+    "university_name": "Kyoto University",
+    "country_hint": "Japan",
+    "ranking_year": 2026,
+    "ranking_type": "subject:computer-science",
+    "rank": 100,
+    "score": 68.5,
+    "source_url": "/universities/kyoto-university",
+    "source_version": null,
+    "universe_type": "subject",
+    "universe_key": "computer-science",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "68.5",
+        "Employer Reputation": "72.4",
+        "H-index Citations": "66.3",
+        "Citations per Paper": "75.6",
+        "Academic Reputation": "64.4",
+        "International Research Network": "66.3"
+      },
+      "universe_type": "subject",
+      "universe_key": "computer-science"
+    }
+  }
+]

@@ -11,7 +11,7 @@ from entity_resolution import CanonicalProfile, EntityResolver  # noqa: E402
 from multi_source import MultiSourceRankingPipeline  # noqa: E402
 from multi_source.adapters import ARWUAdapter, THEAdapter  # noqa: E402
 from multi_source.types import StandardizedRankingRecord  # noqa: E402
-from ranking_aggregation import RankingRecordInput  # noqa: E402
+from ranking_aggregation import RankingAggregator, RankingRecordInput  # noqa: E402
 
 
 class FakeMultiSourceRepository:
@@ -43,6 +43,8 @@ class FakeMultiSourceRepository:
                 canonical_university_id=int(row.canonical_university_id),
                 source=row.source,
                 year=int(row.year),
+                universe_type=str(getattr(row, "universe_type", "global")),
+                universe_key=str(getattr(row, "universe_key", "global")),
                 rank=row.rank,
                 score=row.score,
                 metadata_json=dict(row.metadata or {}),
@@ -56,10 +58,10 @@ class FakeMultiSourceRepository:
 
 class FakeAggregationRepository:
     def __init__(self) -> None:
-        self.outputs_by_year = {}
+        self.outputs_by_scope = {}
         self.run_id = 0
 
-    def create_aggregation_run(self, year, config, input_record_count, run_label=None, notes=None):
+    def create_aggregation_run(self, year, universe_type, universe_key, config, input_record_count, run_label=None, notes=None):
         self.run_id += 1
         return self.run_id
 
@@ -68,7 +70,8 @@ class FakeAggregationRepository:
 
     def upsert_aggregated_rankings(self, run_id, outputs):
         if outputs:
-            self.outputs_by_year[outputs[0].year] = list(outputs)
+            key = (outputs[0].year, outputs[0].universe_type, outputs[0].universe_key)
+            self.outputs_by_scope[key] = list(outputs)
 
     def finish_aggregation_run(self, run_id, output_record_count, status="finished"):
         return None
@@ -148,7 +151,7 @@ class TestMultiSourcePipeline(unittest.TestCase):
         self.assertEqual(summary.years_aggregated, [2026])
         self.assertEqual(summary.aggregated_row_count, 2)
 
-        outputs = agg_repo.outputs_by_year[2026]
+        outputs = agg_repo.outputs_by_scope[(2026, "global", "global")]
         by_canonical = {row.canonical_university_id: row for row in outputs}
         oxford = by_canonical[1]
 
@@ -164,6 +167,46 @@ class TestMultiSourcePipeline(unittest.TestCase):
         self.assertEqual(cambridge.display_rank, 2)
         self.assertEqual(len(repo.unified_rows), 6)
         self.assertEqual({row.source for row in repo.unified_rows}, {"QS", "THE", "ARWU"})
+
+    def test_aggregation_isolated_per_universe(self):
+        records = [
+            RankingRecordInput(
+                canonical_university_id=1,
+                source="QS",
+                year=2026,
+                universe_type="global",
+                universe_key="global",
+                rank=3,
+            ),
+            RankingRecordInput(
+                canonical_university_id=1,
+                source="QS",
+                year=2026,
+                universe_type="region",
+                universe_key="europe",
+                rank=1,
+            ),
+            RankingRecordInput(
+                canonical_university_id=2,
+                source="QS",
+                year=2026,
+                universe_type="region",
+                universe_key="europe",
+                rank=2,
+            ),
+        ]
+
+        outputs = RankingAggregator().aggregate_rankings(records)
+
+        self.assertEqual(3, len(outputs))
+        grouped = {(row.universe_type, row.universe_key): [] for row in outputs}
+        for row in outputs:
+            grouped.setdefault((row.universe_type, row.universe_key), []).append(row)
+
+        self.assertEqual(1, len(grouped[("global", "global")]))
+        self.assertEqual(2, len(grouped[("region", "europe")]))
+        europe_ranks = sorted(row.display_rank for row in grouped[("region", "europe")])
+        self.assertEqual([1, 2], europe_ranks)
 
 
 if __name__ == "__main__":

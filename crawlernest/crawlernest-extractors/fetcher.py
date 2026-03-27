@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
 import json
 import logging
 import os
@@ -36,6 +37,144 @@ _SYNC_RATE_LOCK = threading.Lock()
 _SYNC_LAST_REQUEST_AT: Dict[str, float] = {}
 _ASYNC_HOST_LOCKS: Dict[str, asyncio.Lock] = {}
 _ASYNC_LAST_REQUEST_AT: Dict[str, float] = {}
+
+
+def _package_root() -> str:
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _default_resolution_cache_path() -> str:
+    return os.path.join(_package_root(), "crawlernest-kb", "qs_universe_resolution_cache.json")
+
+
+def _resolution_cache_key(config: Config) -> str:
+    source = str(getattr(config, "source_name", "QS") or "QS").strip().upper()
+    universe_type = str(getattr(config, "universe_type", "") or "").strip().lower()
+    universe_key = str(getattr(config, "universe_key", "") or "").strip().lower()
+    ranking_year = str(getattr(config, "ranking_year", "") or "").strip()
+    ranking_page_url = str(getattr(config, "ranking_page_url", "") or "").strip()
+    if universe_type and universe_key and ranking_year:
+        return f"{source}|{ranking_year}|{universe_type}|{universe_key}"
+    if ranking_page_url:
+        return f"{source}|page|{ranking_page_url}"
+    return f"{source}|default"
+
+
+def _read_resolution_cache_file(path: str) -> Dict[str, Any]:
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        if isinstance(payload, dict):
+            return payload
+    except FileNotFoundError:
+        return {"entries": {}}
+    except Exception:
+        logger.debug("Failed to read resolution cache from %s", path, exc_info=True)
+    return {"entries": {}}
+
+
+def _write_resolution_cache_file(path: str, payload: Dict[str, Any]) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
+def _read_cached_resolution(config: Config) -> Optional[Dict[str, Any]]:
+    cache_path = str(getattr(config, "resolution_cache_path", "") or _default_resolution_cache_path())
+    key = _resolution_cache_key(config)
+    payload = _read_resolution_cache_file(cache_path)
+    entries = payload.get("entries", {})
+    if not isinstance(entries, dict):
+        return None
+    entry = entries.get(key)
+    if not isinstance(entry, dict):
+        return None
+    ttl_seconds = int(getattr(config, "resolution_cache_ttl_seconds", 0) or 0)
+    resolved_at = str(entry.get("resolved_at", "") or "").strip()
+    if ttl_seconds > 0 and resolved_at:
+        try:
+            resolved_dt = datetime.fromisoformat(resolved_at.replace("Z", "+00:00"))
+            age_seconds = (datetime.now(timezone.utc) - resolved_dt.astimezone(timezone.utc)).total_seconds()
+            if age_seconds > ttl_seconds:
+                return None
+        except Exception:
+            return None
+    ranking_id = str(entry.get("ranking_id", "") or "").strip()
+    if not ranking_id:
+        return None
+    return {
+        "ranking_id": ranking_id,
+        "ranking_id_candidates": [str(v) for v in entry.get("ranking_id_candidates", []) if str(v).strip()],
+        "subregion_id": str(entry.get("subregion_id", "") or "").strip(),
+        "resolved_ranking_page_url": str(entry.get("resolved_ranking_page_url", "") or "").strip(),
+        "api_url": str(entry.get("api_url", "") or "").strip(),
+        "resolved_at": resolved_at,
+    }
+
+
+def _write_cached_resolution(
+    config: Config,
+    *,
+    ranking_id: str,
+    ranking_id_candidates: List[str],
+    resolved_ranking_page_url: str,
+) -> None:
+    cache_path = str(getattr(config, "resolution_cache_path", "") or _default_resolution_cache_path())
+    key = _resolution_cache_key(config)
+    payload = _read_resolution_cache_file(cache_path)
+    entries = payload.get("entries")
+    if not isinstance(entries, dict):
+        entries = {}
+        payload["entries"] = entries
+    entries[key] = {
+        "source": str(getattr(config, "source_name", "QS") or "QS").strip().upper(),
+        "ranking_year": getattr(config, "ranking_year", None),
+        "universe_type": getattr(config, "universe_type", None),
+        "universe_key": getattr(config, "universe_key", None),
+        "ranking_page_url": getattr(config, "ranking_page_url", None),
+        "ranking_id": str(ranking_id or "").strip(),
+        "ranking_id_candidates": [str(v) for v in ranking_id_candidates if str(v).strip()],
+        "subregion_id": str(getattr(config, "_subregion_id", "") or "").strip(),
+        "resolved_ranking_page_url": str(resolved_ranking_page_url or "").strip(),
+        "api_url": str(getattr(config, "api_url", "") or "").strip(),
+        "resolved_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    }
+    _write_resolution_cache_file(cache_path, payload)
+
+
+def _set_failure_classification(config: Config, classification: str, message: str) -> None:
+    setattr(config, "_last_failure_classification", classification)
+    setattr(config, "_last_failure_message", message)
+
+
+def _clear_failure_classification(config: Config) -> None:
+    setattr(config, "_last_failure_classification", "")
+    setattr(config, "_last_failure_message", "")
+
+
+def _apply_cached_resolution(config: Config, cached: Dict[str, Any]) -> str:
+    ranking_id = str(cached.get("ranking_id", "") or "").strip()
+    config.ranking_id = ranking_id
+    config._ranking_id_from_cache = True
+    config._used_resolution_cache = True
+    config._ranking_id_candidates = list(cached.get("ranking_id_candidates", []) or [])
+    config._subregion_id = str(cached.get("subregion_id", "") or "").strip()
+    config._resolved_ranking_page_url = str(cached.get("resolved_ranking_page_url", "") or "").strip()
+    return ranking_id
+
+
+def _clear_cached_resolution_state(config: Config) -> None:
+    config.ranking_id = ""
+    config._ranking_id_from_cache = False
+    config._used_resolution_cache = False
+    config._ranking_id_candidates = []
+    config._prefetched_payload = None
+    config._used_prefetched_payload = False
+
+
+def _is_cloudflare_blocked(text: str) -> bool:
+    lower = str(text or "").lower()
+    return "just a moment" in lower or "cloudflare" in lower or "attention required" in lower
 
 if TYPE_CHECKING:
     import aiohttp as aiohttp_module
@@ -612,16 +751,28 @@ class UniversityFetcher:
         except Exception:
             pass
 
-    def _ensure_ranking_id(self) -> str:
+    def _ensure_ranking_id(self, *, force_refresh: bool = False) -> str:
         nid = getattr(self.config, "ranking_id", None)
-        if nid:
+        if nid and not bool(getattr(self.config, "_ranking_id_from_cache", False)) and not force_refresh:
             return str(nid)
 
         ranking_page_url = getattr(self.config, "ranking_page_url", None)
         if not ranking_page_url:
             raise ValueError("ranking_id or ranking_page_url is required")
 
+        if not force_refresh:
+            cached = _read_cached_resolution(self.config)
+            if cached:
+                logger.info(
+                    "Using cached ranking resolution for %s/%s",
+                    getattr(self.config, "universe_type", "unknown"),
+                    getattr(self.config, "universe_key", "unknown"),
+                )
+                _clear_failure_classification(self.config)
+                return _apply_cached_resolution(self.config, cached)
+
         tried: List[str] = []
+        resolve_blocked = False
         for page_url in _ranking_page_fallbacks(ranking_page_url):
             tried.append(page_url)
             try:
@@ -631,6 +782,10 @@ class UniversityFetcher:
                     timeout=getattr(self.config, "timeout", 15),
                     headers=self.config.get_headers(),
                 )
+                if resp.status_code == 403 and _is_cloudflare_blocked(resp.text):
+                    resolve_blocked = True
+                    logger.warning("Europe entry resolution blocked by Cloudflare on %s", page_url)
+                    continue
                 resp.raise_for_status()
                 prefetched = _extract_prefetched_score_nodes_from_html(resp.text)
                 if prefetched and page_url == ranking_page_url:
@@ -646,26 +801,53 @@ class UniversityFetcher:
                 self.config._ranking_id_candidates = nids
                 self.config._resolved_ranking_page_url = page_url
                 self.config.ranking_id = nid2
+                self.config._ranking_id_from_cache = False
+                self.config._used_resolution_cache = False
+                _write_cached_resolution(
+                    self.config,
+                    ranking_id=str(nid2),
+                    ranking_id_candidates=nids or [str(nid2)],
+                    resolved_ranking_page_url=page_url,
+                )
+                _clear_failure_classification(self.config)
                 return nid2
+            except requests.RequestException as exc:
+                if getattr(exc.response, "status_code", None) == 403:
+                    resolve_blocked = True
+                continue
             except Exception:
                 continue
         # If nid cannot be resolved but page contains prefetched score_nodes,
         # allow caller to use that payload for page 0.
         if getattr(self.config, "_prefetched_payload", None):
             self.config.ranking_id = "0"
+            self.config._ranking_id_from_cache = False
+            self.config._used_resolution_cache = False
+            _clear_failure_classification(self.config)
             return "0"
+        if resolve_blocked:
+            msg = f"Failed to resolve ranking_id: entry resolution blocked while fetching {ranking_page_url}"
+            _set_failure_classification(self.config, "resolve_blocked", msg)
+        else:
+            msg = f"Failed to resolve ranking_id (nid) from ranking_page_url. Tried: {tried}"
+            _set_failure_classification(self.config, "resolve_not_found", msg)
         raise ValueError(
             f"Failed to resolve ranking_id (nid) from ranking_page_url. Tried: {tried}"
         )
 
     @retry(max_attempts=3, delay=1.0, backoff=2.0, exceptions=(requests.RequestException,))
     def fetch_rankings(self) -> Optional[Dict[str, Any]]:
+        return self._fetch_rankings_impl(allow_cache_refresh=True)
+
+    def _fetch_rankings_impl(self, *, allow_cache_refresh: bool) -> Optional[Dict[str, Any]]:
         nid = self._ensure_ranking_id()
         prefetched = getattr(self.config, "_prefetched_payload", None)
         if prefetched and int(getattr(self.config, "page", 0) or 0) == 0:
             self.config._used_prefetched_payload = True
+            _clear_failure_classification(self.config)
             return prefetched
         if nid == "0":
+            _clear_failure_classification(self.config)
             return {"score_nodes": []}
         from_page_url = bool(getattr(self.config, "ranking_page_url", None))
         candidate_nids: List[str] = [nid]
@@ -710,6 +892,7 @@ class UniversityFetcher:
                                 resp.raise_for_status()
                             except requests.RequestException as e:
                                 _mark_pair_failed(self.config, pair_key)
+                                _set_failure_classification(self.config, "list_fetch_failed", str(e))
                                 error_msg = f"{url!r}: {e}"
                                 errors.append(error_msg)
                                 logger.debug(f"Request failed: {error_msg}")
@@ -719,6 +902,11 @@ class UniversityFetcher:
                                 data = resp.json()
                             except ValueError:
                                 _mark_pair_failed(self.config, pair_key)
+                                _set_failure_classification(
+                                    self.config,
+                                    "parse_failed",
+                                    f"Non-JSON response from {url!r}",
+                                )
                                 ct = resp.headers.get("Content-Type", "")
                                 snippet = resp.text[:200]
                                 errors.append(
@@ -737,15 +925,42 @@ class UniversityFetcher:
                             nodes = data.get("score_nodes", []) if isinstance(data, dict) else []
                             if isinstance(nodes, list) and len(nodes) > 0:
                                 self.config.ranking_id = str(cand_nid)
+                                self.config._ranking_id_from_cache = False
+                                if from_page_url:
+                                    _write_cached_resolution(
+                                        self.config,
+                                        ranking_id=str(cand_nid),
+                                        ranking_id_candidates=candidate_nids,
+                                        resolved_ranking_page_url=str(
+                                            getattr(self.config, "_resolved_ranking_page_url", "") or getattr(self.config, "ranking_page_url", "") or ""
+                                        ),
+                                    )
+                                _clear_failure_classification(self.config)
                                 return data
                             if not country_requested and first_success is None:
                                 first_success = data
                             elif first_success is None:
                                 first_success = data
 
+        if (
+            allow_cache_refresh
+            and bool(getattr(self.config, "_used_resolution_cache", False))
+            and from_page_url
+        ):
+            logger.warning(
+                "Cached ranking resolution failed during list fetch for %s/%s; forcing refresh",
+                getattr(self.config, "universe_type", "unknown"),
+                getattr(self.config, "universe_key", "unknown"),
+            )
+            _clear_cached_resolution_state(self.config)
+            self._ensure_ranking_id(force_refresh=True)
+            return self._fetch_rankings_impl(allow_cache_refresh=False)
+
         if first_success is not None:
+            _clear_failure_classification(self.config)
             return first_success
         if errors:
+            _set_failure_classification(self.config, "list_fetch_failed", " | ".join(errors))
             raise RuntimeError(f"Failed to fetch ranking data using all endpoints for nid={nid}: {' | '.join(errors)}")
         return None
 
@@ -816,18 +1031,30 @@ class AsyncUniversityFetcher:
             await self.session.close()
             self.session = None
 
-    async def _ensure_ranking_id(self) -> str:
+    async def _ensure_ranking_id(self, *, force_refresh: bool = False) -> str:
         nid = getattr(self.config, "ranking_id", None)
-        if nid:
+        if nid and not bool(getattr(self.config, "_ranking_id_from_cache", False)) and not force_refresh:
             return str(nid)
 
         ranking_page_url = getattr(self.config, "ranking_page_url", None)
         if not ranking_page_url:
             raise ValueError("ranking_id or ranking_page_url is required")
 
+        if not force_refresh:
+            cached = _read_cached_resolution(self.config)
+            if cached:
+                logger.info(
+                    "Using cached ranking resolution for %s/%s",
+                    getattr(self.config, "universe_type", "unknown"),
+                    getattr(self.config, "universe_key", "unknown"),
+                )
+                _clear_failure_classification(self.config)
+                return _apply_cached_resolution(self.config, cached)
+
         await self._ensure_session()
         assert self.session is not None
         tried: List[str] = []
+        resolve_blocked = False
         for page_url in _ranking_page_fallbacks(ranking_page_url):
             tried.append(page_url)
             try:
@@ -838,6 +1065,12 @@ class AsyncUniversityFetcher:
                     ssl=self._ssl_context,
                 ) as resp:
                     text = await resp.text()
+                    if resp.status == 403 and _is_cloudflare_blocked(text):
+                        resolve_blocked = True
+                        logger.warning("Europe entry resolution blocked by Cloudflare on %s", page_url)
+                        continue
+                    if resp.status >= 400:
+                        continue
                 prefetched = _extract_prefetched_score_nodes_from_html(text)
                 if prefetched and page_url == ranking_page_url:
                     self.config._prefetched_payload = prefetched
@@ -852,24 +1085,47 @@ class AsyncUniversityFetcher:
                 self.config._ranking_id_candidates = nids
                 self.config._resolved_ranking_page_url = page_url
                 self.config.ranking_id = nid2
+                self.config._ranking_id_from_cache = False
+                self.config._used_resolution_cache = False
+                _write_cached_resolution(
+                    self.config,
+                    ranking_id=str(nid2),
+                    ranking_id_candidates=nids or [str(nid2)],
+                    resolved_ranking_page_url=page_url,
+                )
+                _clear_failure_classification(self.config)
                 return nid2
             except Exception:
                 continue
 
         if getattr(self.config, "_prefetched_payload", None):
             self.config.ranking_id = "0"
+            self.config._ranking_id_from_cache = False
+            self.config._used_resolution_cache = False
+            _clear_failure_classification(self.config)
             return "0"
+        if resolve_blocked:
+            msg = f"Failed to resolve ranking_id: entry resolution blocked while fetching {ranking_page_url}"
+            _set_failure_classification(self.config, "resolve_blocked", msg)
+        else:
+            msg = f"Failed to resolve ranking_id (nid) from ranking_page_url. Tried: {tried}"
+            _set_failure_classification(self.config, "resolve_not_found", msg)
         raise ValueError(
             f"Failed to resolve ranking_id (nid) from ranking_page_url. Tried: {tried}"
         )
 
     async def fetch_rankings(self) -> Optional[Dict[str, Any]]:
+        return await self._fetch_rankings_impl(allow_cache_refresh=True)
+
+    async def _fetch_rankings_impl(self, *, allow_cache_refresh: bool) -> Optional[Dict[str, Any]]:
         nid = await self._ensure_ranking_id()
         prefetched = getattr(self.config, "_prefetched_payload", None)
         if prefetched and int(getattr(self.config, "page", 0) or 0) == 0:
             self.config._used_prefetched_payload = True
+            _clear_failure_classification(self.config)
             return prefetched
         if nid == "0":
+            _clear_failure_classification(self.config)
             return {"score_nodes": []}
         await self._ensure_session()
         assert self.session is not None
@@ -917,6 +1173,11 @@ class AsyncUniversityFetcher:
                                     ct = resp.headers.get("Content-Type", "")
                                     if resp.status >= 400:
                                         _mark_pair_failed(self.config, pair_key)
+                                        _set_failure_classification(
+                                            self.config,
+                                            "list_fetch_failed",
+                                            f"HTTP {resp.status} from {url!r}",
+                                        )
                                         text = await resp.text()
                                         errors.append(
                                             f"QS API error from {url!r} (status={resp.status}, content-type={ct}). "
@@ -928,6 +1189,11 @@ class AsyncUniversityFetcher:
                                         data = await resp.json()
                                     except Exception as e:
                                         _mark_pair_failed(self.config, pair_key)
+                                        _set_failure_classification(
+                                            self.config,
+                                            "parse_failed",
+                                            f"Non-JSON response from {url!r}: {e}",
+                                        )
                                         text = await resp.text()
                                         errors.append(
                                             f"QS API did not return JSON from {url!r} "
@@ -937,6 +1203,7 @@ class AsyncUniversityFetcher:
                                         continue
                             except Exception as e:
                                 _mark_pair_failed(self.config, pair_key)
+                                _set_failure_classification(self.config, "list_fetch_failed", str(e))
                                 error_msg = f"{url!r}: {e}"
                                 errors.append(error_msg)
                                 logger.debug(f"Async request failed: {error_msg}")
@@ -951,15 +1218,42 @@ class AsyncUniversityFetcher:
                             nodes = data.get("score_nodes", []) if isinstance(data, dict) else []
                             if isinstance(nodes, list) and len(nodes) > 0:
                                 self.config.ranking_id = str(cand_nid)
+                                self.config._ranking_id_from_cache = False
+                                if from_page_url:
+                                    _write_cached_resolution(
+                                        self.config,
+                                        ranking_id=str(cand_nid),
+                                        ranking_id_candidates=candidate_nids,
+                                        resolved_ranking_page_url=str(
+                                            getattr(self.config, "_resolved_ranking_page_url", "") or getattr(self.config, "ranking_page_url", "") or ""
+                                        ),
+                                    )
+                                _clear_failure_classification(self.config)
                                 return data
                             if not country_requested and first_success is None:
                                 first_success = data
                             elif first_success is None:
                                 first_success = data
 
+        if (
+            allow_cache_refresh
+            and bool(getattr(self.config, "_used_resolution_cache", False))
+            and from_page_url
+        ):
+            logger.warning(
+                "Cached ranking resolution failed during list fetch for %s/%s; forcing refresh",
+                getattr(self.config, "universe_type", "unknown"),
+                getattr(self.config, "universe_key", "unknown"),
+            )
+            _clear_cached_resolution_state(self.config)
+            await self._ensure_ranking_id(force_refresh=True)
+            return await self._fetch_rankings_impl(allow_cache_refresh=False)
+
         if first_success is not None:
+            _clear_failure_classification(self.config)
             return first_success
         if errors:
+            _set_failure_classification(self.config, "list_fetch_failed", " | ".join(errors))
             raise RuntimeError(f"Failed to fetch ranking data using all endpoints for nid={nid}: {' | '.join(errors)}")
         return None
 

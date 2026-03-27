@@ -98,6 +98,8 @@ class MultiSourceRepository:
                     ranking_source_id,
                     row.year,
                     row.ranking_type,
+                    getattr(row, "universe_type", "global"),
+                    getattr(row, "universe_key", "global"),
                     row.rank,
                     row.score,
                     row.source_version,
@@ -115,14 +117,18 @@ class MultiSourceRepository:
                     ranking_source_id,
                     ranking_year,
                     ranking_type,
+                    universe_type,
+                    universe_key,
                     rank_position,
                     score,
                     source_version,
                     source_url,
                     metadata
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
-                ON CONFLICT (canonical_university_id, ranking_source_id, ranking_year, ranking_type)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (canonical_university_id, ranking_source_id, ranking_year, ranking_type, universe_type, universe_key)
                 DO UPDATE SET
+                    universe_type = EXCLUDED.universe_type,
+                    universe_key = EXCLUDED.universe_key,
                     rank_position = EXCLUDED.rank_position,
                     score = EXCLUDED.score,
                     source_version = COALESCE(EXCLUDED.source_version, warehouse.ranking_record.source_version),
@@ -237,6 +243,8 @@ class MultiSourceRepository:
                     rr.canonical_university_id,
                     rs.source_code,
                     rr.ranking_year,
+                    rr.universe_type,
+                    rr.universe_key,
                     rr.rank_position,
                     rr.score,
                     rr.metadata
@@ -245,7 +253,7 @@ class MultiSourceRepository:
                   ON rs.ranking_source_id = rr.ranking_source_id
                 WHERE rr.ranking_year = ANY(%s)
                   AND rr.ranking_type = %s
-                ORDER BY rr.ranking_year, rr.canonical_university_id, rs.source_code
+                ORDER BY rr.ranking_year, rr.universe_type, rr.universe_key, rr.canonical_university_id, rs.source_code
                 """,
                 (years, ranking_type),
             )
@@ -255,9 +263,11 @@ class MultiSourceRepository:
                 canonical_university_id=int(canonical_university_id),
                 source=str(source_code),
                 year=int(ranking_year),
+                universe_type=str(universe_type or "global"),
+                universe_key=str(universe_key or "global"),
                 rank=rank_position,
                 score=float(score) if score is not None else None,
                 metadata_json=dict(metadata or {}),
             )
-            for canonical_university_id, source_code, ranking_year, rank_position, score, metadata in rows
+            for canonical_university_id, source_code, ranking_year, universe_type, universe_key, rank_position, score, metadata in rows
         ]

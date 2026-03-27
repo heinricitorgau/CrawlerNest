@@ -551,6 +551,9 @@ class DBWriter:
     def commit(self):
         self.conn.commit()
 
+    def rollback(self):
+        self.conn.rollback()
+
     def close(self):
         if not self._owns_connection:
             return

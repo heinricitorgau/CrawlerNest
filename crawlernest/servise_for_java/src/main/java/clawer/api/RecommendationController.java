@@ -23,6 +23,9 @@ public class RecommendationController {
     @GetMapping
     public Object getRecommendations(
             @RequestParam(required = false) String country,
+            @RequestParam(required = false) String scope,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String shortlist,
             @RequestParam(name = "ielts", required = false) Double ielts,
             @RequestParam(name = "ieltsScore", required = false) Double ieltsScore,
             @RequestParam(name = "targetRank", required = false) Integer targetRank,
@@ -52,6 +55,9 @@ public class RecommendationController {
             if ("v1".equalsIgnoreCase(version)) {
                 return clawer.dto.ApiResponse.success(recommendationService.getRecommendations(
                         country,
+                        scope,
+                        region,
+                        shortlist,
                         resolvedIelts,
                         resolvedTargetRank,
                         resolvedPreferredRankingSource,
@@ -65,6 +71,9 @@ public class RecommendationController {
                 }
                 clawer.model.RecommendationGroupResponse res = recommendationService.getRecommendationsV3(
                         country,
+                        scope,
+                        region,
+                        shortlist,
                         resolvedCountryPolicy,
                         resolvedIelts,
                         resolvedTargetRank,
@@ -85,6 +94,9 @@ public class RecommendationController {
             }
             clawer.model.RecommendationGroupResponse res = recommendationService.getRecommendationsV2(
                     country,
+                    scope,
+                    region,
+                    shortlist,
                     resolvedIelts,
                     resolvedTargetRank,
                     resolvedRiskProfile,

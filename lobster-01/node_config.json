@@ -1,0 +1,23 @@
+{
+  "source_name": "QS",
+  "ranking_year": 2026,
+  "ranking_limit": 2500,
+  "workers": 1,
+  "max_concurrent_requests": 1,
+  "request_delay": 10.0,
+  "fetch_details": true,
+  "resource_guard": true,
+  "use_async": true,
+  "local_parse_workers": 2,
+  "write_batch_size": 100,
+  "detail_forbidden_streak_threshold": 5,
+  "detail_chunk_size": 10,
+  "show_progress": true,
+  "enable_cache": true,
+  "output_format": "console",
+  "pg_host": "localhost",
+  "pg_port": 5432,
+  "pg_database": "clawer",
+  "pg_user": "test",
+  "pg_password": ""
+}

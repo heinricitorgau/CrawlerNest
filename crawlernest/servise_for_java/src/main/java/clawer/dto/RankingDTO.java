@@ -10,6 +10,8 @@ public class RankingDTO {
     private String primarySource;
     private Integer sourceCount;
     private String slug;
+    private Integer globalRank;
+    private Integer scopeRank;
 
     public RankingDTO() {}
 
@@ -39,4 +41,10 @@ public class RankingDTO {
 
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }
+
+    public Integer getGlobalRank() { return globalRank; }
+    public void setGlobalRank(Integer globalRank) { this.globalRank = globalRank; }
+
+    public Integer getScopeRank() { return scopeRank; }
+    public void setScopeRank(Integer scopeRank) { this.scopeRank = scopeRank; }
 }

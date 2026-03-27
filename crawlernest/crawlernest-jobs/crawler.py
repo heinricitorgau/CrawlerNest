@@ -674,10 +674,10 @@ class UniversityCrawler:
             nodes.reverse()
 
         if self.is_region and len(nodes) == 0:
-            print("Note: 0 rows after sub-region filtering. Check source route/nid mapping.")
+            print(f"{self._progress_prefix()}Note: 0 rows after sub-region filtering. Check source route/nid mapping.")
         if self.is_region and self.config.ranking_limit and len(nodes) < self.config.ranking_limit:
             print(
-                f"Note: only {len(nodes)} rows matched sub-region filter "
+                f"{self._progress_prefix()}Note: only {len(nodes)} rows matched sub-region filter "
                 f"(requested top {self.config.ranking_limit})."
             )
 
@@ -689,7 +689,7 @@ class UniversityCrawler:
                 pct = int(i / max(1, len(nodes)) * 100)
                 filled = pct // 5          # 20 blocks total
                 bar = "█" * filled + "░" * (20 - filled)
-                print(f"\r  [{bar}] {pct:>3}%  {i}/{len(nodes)} universities", end="", flush=True)
+                print(f"\r{self._progress_prefix()}[crawl] [{bar}] {pct:>3}%  {i}/{len(nodes)} universities", end="", flush=True)
 
             uni = self._process_university(node)
             if uni is None:
@@ -735,7 +735,7 @@ class UniversityCrawler:
                         details_enabled = False
                         detail_fallback_triggered = True
                         print(
-                            f"\n[degrade] detected consecutive detail 403 (>= {detail_forbidden_threshold}), "
+                            f"\n{self._progress_prefix()}[degrade] detected consecutive detail 403 (>= {detail_forbidden_threshold}), "
                             "switching to rankings-only for remaining schools."
                         )
                 else:
@@ -787,10 +787,10 @@ class UniversityCrawler:
                 nodes.reverse()
 
             if self.is_region and len(nodes) == 0:
-                print("Note: 0 rows after sub-region filtering. Check source route/nid mapping.")
+                print(f"{self._progress_prefix()}Note: 0 rows after sub-region filtering. Check source route/nid mapping.")
             if self.is_region and self.config.ranking_limit and len(nodes) < self.config.ranking_limit:
                 print(
-                    f"Note: only {len(nodes)} rows matched sub-region filter "
+                    f"{self._progress_prefix()}Note: only {len(nodes)} rows matched sub-region filter "
                     f"(requested top {self.config.ranking_limit})."
                 )
 
@@ -809,7 +809,7 @@ class UniversityCrawler:
                         pct = int(i / max(1, len(nodes)) * 100)
                         filled = pct // 5
                         bar = "█" * filled + "░" * (20 - filled)
-                        print(f"\r  [{bar}] {pct:>3}%  {i}/{len(nodes)} universities", end="", flush=True)
+                        print(f"\r{self._progress_prefix()}[crawl] [{bar}] {pct:>3}%  {i}/{len(nodes)} universities", end="", flush=True)
                 if self.config.show_progress:
                     print()
                 setattr(self.config, "_detail_fallback_triggered", False)
@@ -873,7 +873,7 @@ class UniversityCrawler:
                                 details_enabled = False
                                 detail_fallback_triggered = True
                                 print(
-                                    f"\n[degrade] detected consecutive detail 403 (>= {detail_forbidden_threshold}), "
+                                    f"\n{self._progress_prefix()}[degrade] detected consecutive detail 403 (>= {detail_forbidden_threshold}), "
                                     "switching to rankings-only for remaining schools."
                                 )
                         else:
@@ -884,7 +884,7 @@ class UniversityCrawler:
                         pct = int(i / max(1, len(nodes)) * 100)
                         filled = pct // 5
                         bar = "█" * filled + "░" * (20 - filled)
-                        print(f"\r  [{bar}] {pct:>3}%  {i}/{len(nodes)} universities", end="", flush=True)
+                        print(f"\r{self._progress_prefix()}[crawl] [{bar}] {pct:>3}%  {i}/{len(nodes)} universities", end="", flush=True)
 
             if pending_parse:
                 sem = asyncio.Semaphore(local_parse_workers)
@@ -916,6 +916,12 @@ class UniversityCrawler:
                 await fetcher.close()
             except Exception:
                 pass
+
+    def _progress_prefix(self) -> str:
+        label = str(getattr(self.config, "progress_label", "") or "").strip()
+        if not label:
+            return ""
+        return f"[{label}] "
 
 
 def run_crawler(

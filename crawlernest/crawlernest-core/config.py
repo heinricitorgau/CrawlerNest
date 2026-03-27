@@ -30,6 +30,8 @@ class Config:
     ranking_id: str = "4023722"                                               
     ranking_page_url: Optional[str] = None
     region_name: Optional[str] = None
+    universe_type: Optional[str] = None
+    universe_key: Optional[str] = None
     country: Union[str, List[str], None] = None
     items_per_page: int = 500
     page: int = 0
@@ -60,8 +62,11 @@ class Config:
     detail_forbidden_streak_threshold: int = 8  # Auto-degrade when consecutive detail 403 reaches this value
     detail_chunk_size: int = 20  # Async detail fetch chunk size for faster degrade reaction
     show_progress: bool = True
+    progress_label: str = ""
     enable_cache: bool = True
     cache_ttl: int = 3600          
+    resolution_cache_path: Optional[str] = None
+    resolution_cache_ttl_seconds: int = 60 * 60 * 24 * 30
     
                               
     master_section_keywords: List[str] = field(default_factory=lambda: [

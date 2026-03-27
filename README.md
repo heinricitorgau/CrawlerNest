@@ -9,9 +9,10 @@ CrawlerNest is an end-to-end data platform that transforms fragmented web data (
 While APIs and CLIs validate the data, students and advisors need a visual, comparative interface to make life-altering decisions. Raw data is overwhelming; by layering a deterministic decision engine and a clean UX over our data infrastructure, we provide clarity instead of just volume.
 
 ## Current Capabilities
-*   **Data Pipeline:** Asynchronous, compliance-aware crawlers fetching global rankings.
+*   **Data Pipeline:** Asynchronous, compliance-aware crawlers fetching global rankings (1500+ universities scaled).
 *   **Decision Engine:** An explainable recommendation engine providing deterministic groupings (reach/target/safety).
-*   **API Platform:** Java Spring Boot APIs (API v1) serving normalized analytical data to the frontend.
+*   **API Platform:** Repaired Java Spring Boot APIs (API v1) serving normalized analytical data with support for scoped/regional filtering.
+*   **Database Reliability:** Robust PostgreSQL transaction handling with automatic rollbacks on batch failures.
 
 ## High-Level Architecture
 CrawlerNest is built on a strict, decoupled 5-layer architecture:
@@ -21,16 +22,17 @@ CrawlerNest is built on a strict, decoupled 5-layer architecture:
 4.  **Decision Layer:** Recommendation engine and comparison logic.
 5.  **API (Product) Layer:** Java Spring Boot APIs and the Consumer Website.
 
-For a deep dive into the engineering principles, see the [Whitepaper](Whitepaper.md).
-For engineering operations, API invariants, and testing logic, see the [Engineering Validation & Maintenance Guide](TESTING_GUIDE.md).
+For a deep dive into the engineering principles, see the [Whitepaper](docs/foundation/Whitepaper.md).
+For engineering operations, API invariants, and testing logic, see the [Engineering Validation & Maintenance Guide](docs/foundation/TESTING_GUIDE.md).
+For the current repository map and working paths, see [Repository Structure](docs/REPO_STRUCTURE.md).
 
 ## Current System Status
 This reflects our actual engineering maturity:
-*   ✅ **production-safe pipeline:** DONE
-*   ✅ **PostgreSQL integration:** DONE (single store)
+*   ✅ **production-safe pipeline:** DONE (scaled to 1500+ universities)
+*   ✅ **PostgreSQL integration:** DONE (transaction-safe with rollback)
 *   ✅ **recommendation engine (v3 decision system):** DONE
-*   ✅ **API v1 readiness:** DONE
-*   ✅ **node deployment (Lobster-01):** DONE
+*   ✅ **API v1 readiness:** DONE (repaired & pagination-aligned)
+*   ✅ **node deployment (Lobster-01):** DONE (dedicated `lobster-01/` runtime)
 *   🟡 **multi-source (QS only currently):** PARTIAL
 *   🔄 **website layer:** IN PROGRESS
 
@@ -51,3 +53,18 @@ CrawlerNest's engineering depth is built on a history of rigorous milestones:
 ### Future
 *   Public API platform commercialization.
 *   AI-driven insights overlaying the deterministic engine.
+
+## Repository Map
+
+The repo currently has two layers:
+
+- outer workspace: docs, deployment assets, editor config, top-level project material
+- inner platform workspace: [`crawlernest/`](crawlernest) containing the runnable pipeline, backend, schema, and frontend
+
+Most day-to-day engineering work happens in:
+
+- [`crawlernest/run_pipeline.py`](crawlernest/run_pipeline.py)
+- [`crawlernest/crawlernest-core/`](crawlernest/crawlernest-core)
+- [`crawlernest/crawlernest-schema/`](crawlernest/crawlernest-schema)
+- [`crawlernest/servise_for_java/`](crawlernest/servise_for_java)
+- [`crawlernest/crawlernest-web/`](crawlernest/crawlernest-web)

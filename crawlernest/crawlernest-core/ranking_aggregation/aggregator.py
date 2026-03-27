@@ -17,16 +17,30 @@ class RankingAggregator:
         if not rows:
             return []
 
-        by_year: dict[int, list[RankingRecordInput]] = defaultdict(list)
+        by_year_and_universe: dict[tuple[int, str, str], list[RankingRecordInput]] = defaultdict(list)
         for r in rows:
-            by_year[int(r.year)].append(r)
+            by_year_and_universe[
+                (
+                    int(r.year),
+                    str(r.universe_type or "global").strip().lower(),
+                    str(r.universe_key or "global").strip().lower(),
+                )
+            ].append(r)
 
         all_outputs: list[AggregatedRankingOutput] = []
-        for year, year_rows in sorted(by_year.items()):
-            all_outputs.extend(self._aggregate_single_year(year_rows, year))
+        for (year, universe_type, universe_key), grouped_rows in sorted(by_year_and_universe.items()):
+            all_outputs.extend(
+                self._aggregate_single_universe(grouped_rows, year, universe_type, universe_key)
+            )
         return all_outputs
 
-    def _aggregate_single_year(self, rows: list[RankingRecordInput], year: int) -> list[AggregatedRankingOutput]:
+    def _aggregate_single_universe(
+        self,
+        rows: list[RankingRecordInput],
+        year: int,
+        universe_type: str,
+        universe_key: str,
+    ) -> list[AggregatedRankingOutput]:
         max_rank_by_source = self._max_rank_by_source(rows)
         grouped: dict[int, list[RankingRecordInput]] = defaultdict(list)
         for r in rows:
@@ -89,6 +103,8 @@ class RankingAggregator:
                 AggregatedRankingOutput(
                     canonical_university_id=cid,
                     year=year,
+                    universe_type=universe_type,
+                    universe_key=universe_key,
                     source_ranks=source_ranks,
                     source_normalized_scores=source_norm_scores,
                     source_weights_used=source_weights_used,
