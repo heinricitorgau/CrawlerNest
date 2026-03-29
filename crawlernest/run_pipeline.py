@@ -732,6 +732,7 @@ def write_universities(
     checkpoint_file: Path,
     resource_guard: bool,
     workers: int,
+    resume: bool = False,
     ranking_year: Optional[int] = None,
     write_batch_size: int = WRITE_BATCH_SIZE,
 ) -> tuple[int, int, int]:
@@ -739,7 +740,7 @@ def write_universities(
         raise ValueError("CrawlerNest is now PostgreSQL-only. Use db_type='postgres'.")
     writer = DBWriter(db_type="postgres", host=pg_host, port=pg_port, database=pg_database, user=pg_user, password=pg_password)
 
-    done_slugs = load_checkpoint(checkpoint_file)
+    done_slugs = load_checkpoint(checkpoint_file) if resume else set()
     inserted = 0
     skipped = 0
     failed = 0

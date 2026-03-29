@@ -4,6 +4,26 @@ This document defines CrawlerNest's testing flows, API contract invariants, reco
 
 ---
 
+## 0. Python Environment
+
+CrawlerNest's Python validation and ingestion commands should run inside the project virtual environment.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+If `.venv` already exists, prefer invoking Python explicitly as:
+
+```bash
+./.venv/bin/python
+```
+
+This avoids accidental fallback to a system Python that may be missing `psycopg2-binary`, `aiohttp`, or other required packages.
+
+---
+
 ## 1. Schema Source of Truth
 
 **PostgreSQL is the ONLY operational datastore.**
@@ -67,7 +87,7 @@ SELECT count(*) FROM analytics.v_aggregated_rankings_latest;
 
 **Verify Pipeline Write Status:**
 ```bash
-python3 crawlernest/run_pipeline.py run \
+./.venv/bin/python crawlernest/run_pipeline.py run \
   --limit 30 \
   --pg-host localhost --pg-port 5432 --pg-database clawer --pg-user test
 ```
@@ -78,13 +98,13 @@ Use the CLI to output and diff the JSON payloads mathematically:
 
 ```bash
 # Generate Conservative Baseline
-python3 crawlernest/run_pipeline.py recommend-v3 \
+./.venv/bin/python crawlernest/run_pipeline.py recommend-v3 \
   --target-rank 100 --ielts 6.5 --risk-profile conservative \
   --country "United Kingdom" --country-policy hard_filter \
   --pg-user test --pg-database clawer > /tmp/rec_conservative.json
 
 # Generate Aggressive Baseline
-python3 crawlernest/run_pipeline.py recommend-v3 \
+./.venv/bin/python crawlernest/run_pipeline.py recommend-v3 \
   --target-rank 100 --ielts 6.5 --risk-profile aggressive \
   --country "United Kingdom" --country-policy hard_filter \
   --pg-user test --pg-database clawer > /tmp/rec_aggressive.json

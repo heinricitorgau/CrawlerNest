@@ -24,6 +24,33 @@ CrawlerNest is built on a strict, decoupled 5-layer architecture:
 
 For a deep dive into the engineering principles, see the [Whitepaper](docs/foundation/Whitepaper.md).
 
+## Python Environment Setup
+
+CrawlerNest's Python pipeline should run inside the project virtual environment.
+
+### 1. Create the virtual environment
+```bash
+python3 -m venv .venv
+```
+
+### 2. Activate it
+```bash
+source .venv/bin/activate
+```
+
+### 3. Install Python dependencies
+```bash
+pip install -r requirements.txt
+```
+
+The production-safe runner already prefers:
+
+```bash
+/Users/test/Desktop/crawlernest/.venv/bin/python
+```
+
+So keeping `.venv` healthy is the safest way to run the crawler, validation scripts, and PostgreSQL ingestion pipeline.
+
 ## How to Run the Web Platform (Website MVP)
 
 To start the full stack (Backend API + Frontend UI), follow these steps in two separate terminals:
@@ -59,7 +86,7 @@ bash crawlernest/scripts/run_production_safe.sh
 ### 2. Manual / Custom Pipeline Run
 You can also run the pipeline directly using Python for more control (e.g., limiting the number of universities for testing).
 ```bash
-python3 run_pipeline.py run-qs-universes --ranking-year 2026 --limit 100 --pg-user test --pg-database clawer
+./.venv/bin/python crawlernest/run_pipeline.py run-qs-universes --ranking-year 2026 --limit 2500 --pg-user test --pg-database clawer
 ```
 
 ---
@@ -105,7 +132,7 @@ The repo currently has two layers:
 ### 3. All-in-One Major Rankings Run
 This single command runs the World ranking and all 5 major regional rankings (Europe, Asia, Latin America, Oceania, Africa) sequentially in a continuous loop.
 ```bash
-python3 run_pipeline.py run-qs-major --ranking-year 2026
+./.venv/bin/python crawlernest/run_pipeline.py run-qs-major --ranking-year 2026
 ```
 
 ---

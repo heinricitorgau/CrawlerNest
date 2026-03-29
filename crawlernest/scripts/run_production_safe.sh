@@ -24,6 +24,7 @@ cd "${REPO_ROOT}"
 PIPELINE="crawlernest/run_pipeline.py"
 # Default deferred-enrichment file (mirrors run_pipeline.py default)
 DEFERRED_FILE="crawlernest/crawlernest-kb/databases/pending_detail_enrichment.json"
+PYTHON_BIN="${REPO_ROOT}/.venv/bin/python"
 
 # ---------------------------------------------------------------------------
 # 2. Timestamped log file
@@ -36,13 +37,77 @@ LOG_FILE="${LOG_DIR}/run_${TIMESTAMP}.log"
 # Tee all output (stdout + stderr) to log file AND to terminal.
 exec > >(tee -a "${LOG_FILE}") 2>&1
 
+render_single_progress_line() {
+    "${PYTHON_BIN}" -u -c '
+import sys
+
+normal_buffer = []
+progress_buffer = []
+in_progress = False
+
+def flush_normal() -> None:
+    global normal_buffer
+    if normal_buffer:
+        sys.stdout.write("".join(normal_buffer))
+        sys.stdout.flush()
+        normal_buffer = []
+
+def flush_progress(final: bool) -> None:
+    global progress_buffer, in_progress
+    if progress_buffer:
+        line = "".join(progress_buffer)
+        if final:
+            sys.stdout.write("\r" + line + "\n")
+        else:
+            sys.stdout.write("\r" + line)
+        sys.stdout.flush()
+    progress_buffer = []
+    in_progress = False
+
+while True:
+    chunk = sys.stdin.read(1)
+    if not chunk:
+        break
+    if chunk == "\r":
+        flush_normal()
+        progress_buffer = []
+        in_progress = True
+        continue
+    if chunk == "\n":
+        if in_progress:
+            flush_progress(final=True)
+        else:
+            normal_buffer.append(chunk)
+            flush_normal()
+        continue
+    if in_progress:
+        progress_buffer.append(chunk)
+    else:
+        normal_buffer.append(chunk)
+
+flush_normal()
+if in_progress:
+    flush_progress(final=True)
+'
+}
+
+run_with_single_progress_line() {
+    "$@" 2>&1 | render_single_progress_line
+}
+
 # ---------------------------------------------------------------------------
 # 3. Pre-flight environment checks
 # ---------------------------------------------------------------------------
 if ! command -v python3 &>/dev/null; then
-    echo "[ERROR] python3 not found in PATH. Is your virtual environment activated?"
-    echo "        Hint: source /path/to/venv/bin/activate"
-    exit 1
+    if [[ ! -x "${PYTHON_BIN}" ]]; then
+        echo "[ERROR] python3 not found in PATH and project venv is unavailable."
+        echo "        Expected interpreter: ${PYTHON_BIN}"
+        exit 1
+    fi
+fi
+
+if [[ ! -x "${PYTHON_BIN}" ]]; then
+    PYTHON_BIN="$(command -v python3)"
 fi
 
 if [[ ! -f "${REPO_ROOT}/${PIPELINE}" ]]; then
@@ -60,6 +125,7 @@ echo "============================================================"
 echo "[START]  $(date '+%Y-%m-%d %H:%M:%S')"
 echo "         Log  : ${LOG_FILE}"
 echo "         Root : ${REPO_ROOT}"
+echo "         Py   : ${PYTHON_BIN}"
 echo "============================================================"
 echo ""
 
@@ -71,12 +137,12 @@ echo ""
 LIMIT=${1:-2500}
 
 echo "[STEP 1] Starting rankings-only crawl (LIMIT: ${LIMIT})  ($(date '+%H:%M:%S'))"
-echo "         python3 ${PIPELINE} run --limit ${LIMIT} --ranking-year 2026 \\"
+echo "         ${PYTHON_BIN} ${PIPELINE} run --limit ${LIMIT} --ranking-year 2026 \\"
 echo "           --workers 1 --request-delay 10 --local-parse-workers 4 \\"
 echo "           --write-batch-size 200 --rankings-only --resource-guard"
 echo ""
 
-python3 "${PIPELINE}" run \
+run_with_single_progress_line "${PYTHON_BIN}" "${PIPELINE}" run \
     --limit "${LIMIT}" \
     --ranking-year 2026 \
     --workers 1 \
@@ -106,7 +172,7 @@ STEP2_TRIGGERED=false
 if [[ -f "${DEFERRED_FILE}" ]]; then
     # Check file is non-empty (non-empty JSON array means at least "[]" — 2 bytes;
     # we require at least one entry, so the file must contain '[{' somewhere).
-    if python3 -c "
+    if "${PYTHON_BIN}" -c "
 import json, sys
 try:
     data = json.load(open('${DEFERRED_FILE}'))
@@ -116,11 +182,11 @@ except Exception:
 " 2>/dev/null; then
         STEP2_TRIGGERED=true
         echo "[STEP 2] pending_detail_enrichment.json found with entries — starting enrichment  ($(date '+%H:%M:%S'))"
-        echo "         python3 ${PIPELINE} enrich-details --limit 30 --request-delay 20"
+        echo "         ${PYTHON_BIN} ${PIPELINE} enrich-details --limit 30 --request-delay 20"
         echo "         (20s delay: high-traffic QS pages require longer inter-request gap)"
         echo ""
 
-        python3 "${PIPELINE}" enrich-details \
+        run_with_single_progress_line "${PYTHON_BIN}" "${PIPELINE}" enrich-details \
             --limit 30 \
             --request-delay 20
 

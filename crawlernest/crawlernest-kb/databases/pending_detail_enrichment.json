@@ -5,10 +5,10 @@
     "name": "Massachusetts Institute of Technology (MIT)",
     "rank": "1",
     "country": "United States",
-    "failure_count": 3,
+    "failure_count": 4,
     "last_failure_type": "http_403",
-    "last_attempt_at": "2026-03-27T16:06:28.911730+00:00",
-    "next_retry_at": "2026-03-29T04:06:28.911730+00:00"
+    "last_attempt_at": "2026-03-29T06:02:59.645388+00:00",
+    "next_retry_at": "2026-03-31T06:02:59.645388+00:00"
   },
   {
     "school_slug": "imperial-college-london",
@@ -16,10 +16,10 @@
     "name": "Imperial College London",
     "rank": "2",
     "country": "United Kingdom",
-    "failure_count": 3,
+    "failure_count": 4,
     "last_failure_type": "http_403",
-    "last_attempt_at": "2026-03-27T16:06:28.911730+00:00",
-    "next_retry_at": "2026-03-29T04:06:28.911730+00:00"
+    "last_attempt_at": "2026-03-29T06:02:59.645388+00:00",
+    "next_retry_at": "2026-03-31T06:02:59.645388+00:00"
   },
   {
     "school_slug": "university-of-oxford",
@@ -27,10 +27,10 @@
     "name": "University of Oxford",
     "rank": "3",
     "country": "United Kingdom",
-    "failure_count": 3,
+    "failure_count": 4,
     "last_failure_type": "http_403",
-    "last_attempt_at": "2026-03-27T16:06:28.911730+00:00",
-    "next_retry_at": "2026-03-29T04:06:28.911730+00:00"
+    "last_attempt_at": "2026-03-29T06:02:59.645388+00:00",
+    "next_retry_at": "2026-03-31T06:02:59.645388+00:00"
   },
   {
     "school_slug": "harvard-university",
@@ -38,10 +38,10 @@
     "name": "Harvard University",
     "rank": "4",
     "country": "United States",
-    "failure_count": 3,
+    "failure_count": 4,
     "last_failure_type": "http_403",
-    "last_attempt_at": "2026-03-27T16:06:28.911730+00:00",
-    "next_retry_at": "2026-03-29T04:06:28.911730+00:00"
+    "last_attempt_at": "2026-03-29T06:02:59.645388+00:00",
+    "next_retry_at": "2026-03-31T06:02:59.645388+00:00"
   },
   {
     "school_slug": "university-of-cambridge",
@@ -49,9 +49,9 @@
     "name": "University of Cambridge",
     "rank": "5",
     "country": "United Kingdom",
-    "failure_count": 3,
+    "failure_count": 4,
     "last_failure_type": "http_403",
-    "last_attempt_at": "2026-03-27T16:06:28.911730+00:00",
-    "next_retry_at": "2026-03-29T04:06:28.911730+00:00"
+    "last_attempt_at": "2026-03-29T06:02:59.645388+00:00",
+    "next_retry_at": "2026-03-31T06:02:59.645388+00:00"
   }
 ]

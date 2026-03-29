@@ -103,6 +103,7 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
             checkpoint_file=checkpoint_file,
             resource_guard=args.resource_guard,
             workers=max(1, args.workers),
+            resume=bool(args.resume),
             ranking_year=args.ranking_year,
             write_batch_size=max(1, args.write_batch_size),
         )
