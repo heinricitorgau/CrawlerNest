@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getApiBaseUrl } from "@/lib/api";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
+const NO_STORE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+};
+
 export async function GET(request: NextRequest) {
   const apiBaseUrl = getApiBaseUrl();
   const upstreamUrl = new URL("/api/v1/rankings", apiBaseUrl);
@@ -26,6 +36,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "content-type":
           upstreamResponse.headers.get("content-type") ?? "application/json",
+        ...NO_STORE_HEADERS,
       },
     });
   } catch {
@@ -34,7 +45,10 @@ export async function GET(request: NextRequest) {
         success: false,
         error: "Unable to load rankings. Please confirm the API server is running.",
       },
-      { status: 502 }
+      {
+        status: 502,
+        headers: NO_STORE_HEADERS,
+      }
     );
   }
 }

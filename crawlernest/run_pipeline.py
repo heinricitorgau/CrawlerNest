@@ -1537,7 +1537,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run QS global rankings ingestion into the multi-universe store",
     )
     qs_global_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_global_parser.add_argument("--limit", type=int, default=100)
+    qs_global_parser.add_argument("--limit", type=int, default=0)
     qs_global_parser.add_argument("--workers", type=int, default=1)
     qs_global_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_global_parser.add_argument("--local-parse-workers", type=int, default=4)
@@ -1559,7 +1559,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["europe", "asia", "latin-america", "arab-region", "oceania", "africa", "north-america"],
     )
     qs_region_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_region_parser.add_argument("--limit", type=int, default=100)
+    qs_region_parser.add_argument("--limit", type=int, default=0)
     qs_region_parser.add_argument("--workers", type=int, default=1)
     qs_region_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_region_parser.add_argument("--local-parse-workers", type=int, default=4)
@@ -1581,7 +1581,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["engineering-technology", "computer-science", "business-management"],
     )
     qs_subject_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_subject_parser.add_argument("--limit", type=int, default=100)
+    qs_subject_parser.add_argument("--limit", type=int, default=0)
     qs_subject_parser.add_argument("--workers", type=int, default=1)
     qs_subject_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_subject_parser.add_argument("--local-parse-workers", type=int, default=4)
@@ -1603,7 +1603,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["sustainability", "mba", "business-masters"],
     )
     qs_special_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_special_parser.add_argument("--limit", type=int, default=100)
+    qs_special_parser.add_argument("--limit", type=int, default=0)
     qs_special_parser.add_argument("--workers", type=int, default=1)
     qs_special_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_special_parser.add_argument("--local-parse-workers", type=int, default=4)
@@ -1620,7 +1620,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run every configured QS ranking universe independently with failure isolation",
     )
     qs_all_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_all_parser.add_argument("--limit", type=int, default=100)
+    qs_all_parser.add_argument("--limit", type=int, default=0)
     qs_all_parser.add_argument("--workers", type=int, default=1)
     qs_all_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_all_parser.add_argument("--local-parse-workers", type=int, default=4)
@@ -1637,7 +1637,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run only the major QS ranking universes (Global + 5 Regions) independently",
     )
     qs_major_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_major_parser.add_argument("--limit", type=int, default=100)
+    qs_major_parser.add_argument("--limit", type=int, default=0)
     qs_major_parser.add_argument("--workers", type=int, default=1)
     qs_major_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_major_parser.add_argument("--local-parse-workers", type=int, default=4)
@@ -1660,7 +1660,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     qs_universes_parser.add_argument("--universe-key", default=None)
     qs_universes_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_universes_parser.add_argument("--limit", type=int, default=100)
+    qs_universes_parser.add_argument("--limit", type=int, default=0)
     qs_universes_parser.add_argument("--workers", type=int, default=1)
     qs_universes_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_universes_parser.add_argument("--local-parse-workers", type=int, default=4)

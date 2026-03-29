@@ -15,6 +15,10 @@ export async function fetchJson<T>(
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
     cache: "no-store",
+    next: {
+      revalidate: 0,
+      ...(init as RequestInit & { next?: { revalidate?: number } }).next,
+    },
   });
 
   if (!res.ok) {
@@ -31,6 +35,10 @@ export async function fetchAppJson<T>(
   const res = await fetch(path, {
     ...init,
     cache: "no-store",
+    next: {
+      revalidate: 0,
+      ...(init as RequestInit & { next?: { revalidate?: number } }).next,
+    },
   });
 
   if (!res.ok) {

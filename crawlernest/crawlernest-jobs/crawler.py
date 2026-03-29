@@ -324,7 +324,7 @@ class UniversityCrawler:
         return []
 
     def _collect_region_nodes_sync(self, fetcher: UniversityFetcher, first_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        target = self.config.ranking_limit or 100
+        target = self.config.ranking_limit if self.config.ranking_limit > 0 else 1000000
         max_pages = 40
         original_page = self.config.page
         page = original_page
@@ -370,7 +370,7 @@ class UniversityCrawler:
         return collected
 
     def _collect_nodes_sync(self, fetcher: UniversityFetcher, first_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        target = self.config.ranking_limit or 100
+        target = self.config.ranking_limit if self.config.ranking_limit > 0 else 1000000
         max_pages = 40
         original_page = self.config.page
         page = original_page
@@ -416,7 +416,7 @@ class UniversityCrawler:
         return collected
 
     async def _collect_region_nodes_async(self, fetcher: AsyncUniversityFetcher, first_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        target = self.config.ranking_limit or 100
+        target = self.config.ranking_limit if self.config.ranking_limit > 0 else 1000000
         max_pages = 40
         original_page = self.config.page
         page = original_page
@@ -462,7 +462,7 @@ class UniversityCrawler:
         return collected
 
     async def _collect_nodes_async(self, fetcher: AsyncUniversityFetcher, first_data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        target = self.config.ranking_limit or 100
+        target = self.config.ranking_limit if self.config.ranking_limit > 0 else 1000000
         max_pages = 40
         original_page = self.config.page
         page = original_page
@@ -828,7 +828,7 @@ def run_crawler(
     country: Union[str, List[str], None] = None,
     output_format: str = "console",
     output_file: Optional[str] = None,
-    ranking_limit: int = 100,
+    ranking_limit: int = 0,
     sort_ascending: bool = False,
     use_async: bool = False,
     show_progress: bool = True,
