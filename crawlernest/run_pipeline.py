@@ -58,6 +58,10 @@ from qs_universe_registry import (  # noqa: E402
     iter_all_qs_universes,
     iter_major_qs_universes,
 )
+from pipeline_command_router import (  # noqa: E402
+    PipelineCommandDependencies,
+    dispatch_command,
+)
 from entity_resolution import EntityResolver  # noqa: E402
 from entity_resolution.repository import EntityResolutionRepository  # noqa: E402
 from multi_source import MultiSourceRankingPipeline  # noqa: E402
@@ -2138,6 +2142,34 @@ def main() -> int:
         return 0
 
     return 1
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+    deps = PipelineCommandDependencies(
+        ensure_postgres_schema=ensure_postgres_schema,
+        load_snapshot=load_snapshot,
+        run_qs_crawl=run_qs_crawl,
+        save_snapshot=save_snapshot,
+        save_deferred_detail_list=save_deferred_detail_list,
+        normalize_universities=normalize_universities,
+        write_universities=write_universities,
+        sync_qs_multi_source_rankings=sync_qs_multi_source_rankings,
+        query_rankings=query_rankings,
+        enrich_deferred_details=enrich_deferred_details,
+        load_json_payload=load_json_payload,
+        ingest_rankings_payload=ingest_rankings_payload,
+        run_qs_universe_ingestion=run_qs_universe_ingestion,
+        iter_all_qs_universes=iter_all_qs_universes,
+        iter_major_qs_universes=iter_major_qs_universes,
+        get_qs_universe_spec=get_qs_universe_spec,
+        recommend_universities_from_db=recommend_universities_from_db,
+        recommend_universities_v2_from_db=recommend_universities_v2_from_db,
+        recommend_universities_v3_from_db=recommend_universities_v3_from_db,
+        compare_universities_from_db=compare_universities_from_db,
+        parse_preference_weights=_parse_preference_weights,
+    )
+    return dispatch_command(args, deps)
 
 
 if __name__ == "__main__":

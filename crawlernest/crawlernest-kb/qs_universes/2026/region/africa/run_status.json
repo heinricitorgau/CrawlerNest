@@ -28,10 +28,10 @@
       "enable_aggregation": true
     }
   },
-  "normalized_count": 1,
-  "standardized_count": 1,
+  "normalized_count": 40,
+  "standardized_count": 40,
   "matched_count": 1,
-  "unresolved_count": 0,
+  "unresolved_count": 39,
   "aggregated_years": [
     2026
   ]

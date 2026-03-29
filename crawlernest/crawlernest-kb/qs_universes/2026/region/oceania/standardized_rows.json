@@ -28,5 +28,1355 @@
       "universe_type": "region",
       "universe_key": "oceania"
     }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-sydney",
+    "university_name": "The University of Sydney",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 18,
+    "score": 87.3,
+    "source_url": "/universities/university-sydney",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "87.3",
+        "Academic Reputation": "96.4",
+        "Citations per Faculty": "93.7",
+        "Faculty Student Ratio": "10.9",
+        "Employer Reputation": "90",
+        "Employment Outcomes": "93.1",
+        "International Student Ratio": "100",
+        "International Research Network": "95.8",
+        "International Faculty Ratio": "99.9",
+        "Sustainability Score": "99.6"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-new-south-wales-unsw-sydney",
+    "university_name": "The University of New South Wales (UNSW Sydney)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 19,
+    "score": 87.1,
+    "source_url": "/universities/university-new-south-wales-unsw-sydney",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "87.1",
+        "Academic Reputation": "90.5",
+        "Citations per Faculty": "94.9",
+        "Faculty Student Ratio": "20.6",
+        "Employer Reputation": "90.4",
+        "Employment Outcomes": "97.7",
+        "International Student Ratio": "99.4",
+        "International Research Network": "98.3",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "99.2"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/australian-national-university-anu",
+    "university_name": "Australian National University (ANU)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 30,
+    "score": 82.4,
+    "source_url": "/universities/australian-national-university-anu",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "82.4",
+        "Academic Reputation": "93.8",
+        "Citations per Faculty": "84.6",
+        "Faculty Student Ratio": "34.6",
+        "Employer Reputation": "75.4",
+        "Employment Outcomes": "56.6",
+        "International Student Ratio": "96.2",
+        "International Research Network": "91.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "97.1"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/monash-university",
+    "university_name": "Monash University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 37,
+    "score": 81.2,
+    "source_url": "/universities/monash-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "81.2",
+        "Academic Reputation": "89.2",
+        "Citations per Faculty": "87.6",
+        "Faculty Student Ratio": "9.4",
+        "Employer Reputation": "79.6",
+        "Employment Outcomes": "79.4",
+        "International Student Ratio": "100",
+        "International Research Network": "94.8",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "98.2"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-queensland",
+    "university_name": "The University of Queensland",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 41,
+    "score": 80.2,
+    "source_url": "/universities/university-queensland",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "80.2",
+        "Academic Reputation": "86.7",
+        "Citations per Faculty": "90.2",
+        "Faculty Student Ratio": "21.2",
+        "Employer Reputation": "74",
+        "Employment Outcomes": "56.7",
+        "International Student Ratio": "100",
+        "International Research Network": "96.7",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "96.7"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-auckland",
+    "university_name": "The University of Auckland",
+    "country_hint": "New Zealand",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 65,
+    "score": 69.7,
+    "source_url": "/universities/university-auckland",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "69.7",
+        "Academic Reputation": "82.2",
+        "Citations per Faculty": "66.9",
+        "Faculty Student Ratio": "15.5",
+        "Employer Reputation": "44.7",
+        "Employment Outcomes": "92.9",
+        "International Student Ratio": "84",
+        "International Research Network": "87.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "99.7"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-western-australia",
+    "university_name": "The University of Western Australia",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 77,
+    "score": 65.2,
+    "source_url": "/universities/university-western-australia",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "65.2",
+        "Academic Reputation": "55.5",
+        "Citations per Faculty": "98.8",
+        "Faculty Student Ratio": "13.1",
+        "Employer Reputation": "41.8",
+        "Employment Outcomes": "78",
+        "International Student Ratio": "99.8",
+        "International Research Network": "94.2",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "50.8"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-adelaide",
+    "university_name": "The University of Adelaide",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 82,
+    "score": 63.8,
+    "source_url": "/universities/university-adelaide",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "63.8",
+        "Academic Reputation": "56",
+        "Citations per Faculty": "87",
+        "Faculty Student Ratio": "17.9",
+        "Employer Reputation": "38.9",
+        "Employment Outcomes": "51.5",
+        "International Student Ratio": "99.3",
+        "International Research Network": "93.6",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "95.7"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-technology-sydney",
+    "university_name": "University of Technology Sydney",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 88,
+    "score": 62.4,
+    "source_url": "/universities/university-technology-sydney",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "62.4",
+        "Academic Reputation": "43.9",
+        "Citations per Faculty": "97.7",
+        "Faculty Student Ratio": "9.8",
+        "Employer Reputation": "55",
+        "Employment Outcomes": "40.2",
+        "International Student Ratio": "86",
+        "International Research Network": "91.4",
+        "International Faculty Ratio": "96.6",
+        "Sustainability Score": "96.3"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/rmit-university",
+    "university_name": "RMIT University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 123,
+    "score": 55.5,
+    "source_url": "/universities/rmit-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "55.5",
+        "Academic Reputation": "40.4",
+        "Citations per Faculty": "77.7",
+        "Faculty Student Ratio": "5.2",
+        "Employer Reputation": "48",
+        "Employment Outcomes": "38.4",
+        "International Student Ratio": "91.4",
+        "International Research Network": "83.2",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "93.9"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/macquarie-university-sydney-australia",
+    "university_name": "Macquarie University (Sydney, Australia)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 134,
+    "score": 54.1,
+    "source_url": "/universities/macquarie-university-sydney-australia",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "54.1",
+        "Academic Reputation": "33.4",
+        "Citations per Faculty": "79.6",
+        "Faculty Student Ratio": "9.1",
+        "Employer Reputation": "39.2",
+        "Employment Outcomes": "54.1",
+        "International Student Ratio": "91.6",
+        "International Research Network": "90.9",
+        "International Faculty Ratio": "99.9",
+        "Sustainability Score": "95"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-wollongong",
+    "university_name": "University of Wollongong",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 168,
+    "score": 50.3,
+    "source_url": "/universities/university-wollongong",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "50.3",
+        "Academic Reputation": "29.5",
+        "Citations per Faculty": "94.6",
+        "Faculty Student Ratio": "17",
+        "Employer Reputation": "24.5",
+        "Employment Outcomes": "18.3",
+        "International Student Ratio": "56.3",
+        "International Research Network": "89",
+        "International Faculty Ratio": "91.8",
+        "Sustainability Score": "93.9"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/curtin-university",
+    "university_name": "Curtin University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 175,
+    "score": 49.3,
+    "source_url": "/universities/curtin-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "49.3",
+        "Academic Reputation": "33.1",
+        "Citations per Faculty": "84.7",
+        "Faculty Student Ratio": "15.7",
+        "Employer Reputation": "27.7",
+        "Employment Outcomes": "31",
+        "International Student Ratio": "24.3",
+        "International Research Network": "94.2",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "90.7"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-newcastle-australia-uon",
+    "university_name": "The University of Newcastle, Australia (UON)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 179,
+    "score": 48.7,
+    "source_url": "/universities/university-newcastle-australia-uon",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "48.7",
+        "Academic Reputation": "28.3",
+        "Citations per Faculty": "91.7",
+        "Faculty Student Ratio": "28.7",
+        "Employer Reputation": "24.5",
+        "Employment Outcomes": "14.8",
+        "International Student Ratio": "24.2",
+        "International Research Network": "82",
+        "International Faculty Ratio": "99.9",
+        "Sustainability Score": "92.4"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/deakin-university",
+    "university_name": "Deakin University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 197,
+    "score": 46.4,
+    "source_url": "/universities/deakin-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "46.4",
+        "Academic Reputation": "31.3",
+        "Citations per Faculty": "73.6",
+        "Faculty Student Ratio": "4.6",
+        "Employer Reputation": "23.9",
+        "Employment Outcomes": "36.8",
+        "International Student Ratio": "63.8",
+        "International Research Network": "82.7",
+        "International Faculty Ratio": "96.4",
+        "Sustainability Score": "93.7"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/queensland-university-technology-qut",
+    "university_name": "Queensland University of Technology (QUT)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 213,
+    "score": 44.7,
+    "source_url": "/universities/queensland-university-technology-qut",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "44.7",
+        "Academic Reputation": "39.8",
+        "Citations per Faculty": "59.9",
+        "Faculty Student Ratio": "8.1",
+        "Employer Reputation": "33.1",
+        "Employment Outcomes": "19",
+        "International Student Ratio": "20.7",
+        "International Research Network": "83.4",
+        "International Faculty Ratio": "97.9",
+        "Sustainability Score": "89.4"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-otago",
+    "university_name": "University of Otago",
+    "country_hint": "New Zealand",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 214,
+    "score": 44.4,
+    "source_url": "/universities/university-otago",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "44.4",
+        "Academic Reputation": "45",
+        "Citations per Faculty": "38.8",
+        "Faculty Student Ratio": "12.8",
+        "Employer Reputation": "24.6",
+        "Employment Outcomes": "59.1",
+        "International Student Ratio": "37.6",
+        "International Research Network": "79.5",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "96"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/la-trobe-university",
+    "university_name": "La Trobe University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 217,
+    "score": 44.1,
+    "source_url": "/universities/la-trobe-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "44.1",
+        "Academic Reputation": "23.6",
+        "Citations per Faculty": "77.7",
+        "Faculty Student Ratio": "8",
+        "Employer Reputation": "19.8",
+        "Employment Outcomes": "19.6",
+        "International Student Ratio": "95",
+        "International Research Network": "78.6",
+        "International Faculty Ratio": "92.6",
+        "Sustainability Score": "78.4"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-waikato",
+    "university_name": "University of Waikato",
+    "country_hint": "New Zealand",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 235,
+    "score": 42.5,
+    "source_url": "/universities/university-waikato",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "42.5",
+        "Academic Reputation": "19.1",
+        "Citations per Faculty": "84.7",
+        "Faculty Student Ratio": "12.4",
+        "Employer Reputation": "11.7",
+        "Employment Outcomes": "46.4",
+        "International Student Ratio": "56.9",
+        "International Research Network": "55.1",
+        "International Faculty Ratio": "99",
+        "Sustainability Score": "89.5"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/massey-university",
+    "university_name": "Massey University",
+    "country_hint": "New Zealand",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 240,
+    "score": 41.8,
+    "source_url": "/universities/massey-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "41.8",
+        "Academic Reputation": "30.1",
+        "Citations per Faculty": "27.4",
+        "Faculty Student Ratio": "48",
+        "Employer Reputation": "14",
+        "Employment Outcomes": "49.2",
+        "International Student Ratio": "95.2",
+        "International Research Network": "85.1",
+        "International Faculty Ratio": "98.5",
+        "Sustainability Score": "91.4"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/victoria-university-wellington",
+    "university_name": "Victoria University of Wellington",
+    "country_hint": "New Zealand",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 244,
+    "score": 41.2,
+    "source_url": "/universities/victoria-university-wellington",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "41.2",
+        "Academic Reputation": "42.8",
+        "Citations per Faculty": "32.1",
+        "Faculty Student Ratio": "10.1",
+        "Employer Reputation": "21.4",
+        "Employment Outcomes": "71.6",
+        "International Student Ratio": "31",
+        "International Research Network": "70.7",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "91.4"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/griffith-university",
+    "university_name": "Griffith University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 255,
+    "score": 40.1,
+    "source_url": "/universities/griffith-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "40.1",
+        "Academic Reputation": "27",
+        "Citations per Faculty": "62.5",
+        "Faculty Student Ratio": "8.4",
+        "Employer Reputation": "13.7",
+        "Employment Outcomes": "17.9",
+        "International Student Ratio": "38.5",
+        "International Research Network": "92.1",
+        "International Faculty Ratio": "99.8",
+        "Sustainability Score": "96.4"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-canterbury-te-whare-wananga-o-waitaha",
+    "university_name": "University of Canterbury | Te Whare Wānanga o Waitaha",
+    "country_hint": "New Zealand",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 262,
+    "score": 39.4,
+    "source_url": "/universities/university-canterbury-te-whare-wananga-o-waitaha",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "39.4",
+        "Academic Reputation": "34.7",
+        "Citations per Faculty": "31.4",
+        "Faculty Student Ratio": "10.4",
+        "Employer Reputation": "27.3",
+        "Employment Outcomes": "82.3",
+        "International Student Ratio": "27.7",
+        "International Research Network": "63",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "91.1"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/swinburne-university-technology",
+    "university_name": "Swinburne University of Technology",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 291,
+    "score": 37.1,
+    "source_url": "/universities/swinburne-university-technology",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "37.1",
+        "Academic Reputation": "13.9",
+        "Citations per Faculty": "86.5",
+        "Faculty Student Ratio": "12.4",
+        "Employer Reputation": "11.4",
+        "Employment Outcomes": "13.9",
+        "International Student Ratio": "77.3",
+        "International Research Network": "66.1",
+        "International Faculty Ratio": "94.9",
+        "Sustainability Score": "15.4"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-tasmania",
+    "university_name": "University of Tasmania",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 294,
+    "score": 37.0,
+    "source_url": "/universities/university-tasmania",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "37",
+        "Academic Reputation": "16",
+        "Citations per Faculty": "59.8",
+        "Faculty Student Ratio": "22.1",
+        "Employer Reputation": "7.4",
+        "Employment Outcomes": "15.9",
+        "International Student Ratio": "89.7",
+        "International Research Network": "80",
+        "International Faculty Ratio": "79.9",
+        "Sustainability Score": "85.6"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/flinders-university",
+    "university_name": "Flinders University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 336,
+    "score": 33.3,
+    "source_url": "/universities/flinders-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "33.3",
+        "Academic Reputation": "13.5",
+        "Citations per Faculty": "51.8",
+        "Faculty Student Ratio": "7.2",
+        "Employer Reputation": "5.6",
+        "Employment Outcomes": "7.4",
+        "International Student Ratio": "88.8",
+        "International Research Network": "80.8",
+        "International Faculty Ratio": "97.2",
+        "Sustainability Score": "87.4"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-south-australia",
+    "university_name": "University of South Australia",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 341,
+    "score": 33.2,
+    "source_url": "/universities/university-south-australia",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "33.2",
+        "Academic Reputation": "21.3",
+        "Citations per Faculty": "31.9",
+        "Faculty Student Ratio": "24.9",
+        "Employer Reputation": "12.7",
+        "Employment Outcomes": "15.5",
+        "International Student Ratio": "50.9",
+        "International Research Network": "85.5",
+        "International Faculty Ratio": "99.8",
+        "Sustainability Score": "83.6"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/lincoln-university",
+    "university_name": "Lincoln University",
+    "country_hint": "New Zealand",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 372,
+    "score": 31.3,
+    "source_url": "/universities/lincoln-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "31.3",
+        "Academic Reputation": "8.2",
+        "Citations per Faculty": "52.1",
+        "Faculty Student Ratio": "31.8",
+        "Employer Reputation": "5",
+        "Employment Outcomes": "40",
+        "International Student Ratio": "96.3",
+        "International Research Network": "20.2",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "48.9"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/western-sydney-university",
+    "university_name": "Western Sydney University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 384,
+    "score": 30.5,
+    "source_url": "/universities/western-sydney-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "30.5",
+        "Academic Reputation": "19.9",
+        "Citations per Faculty": "31",
+        "Faculty Student Ratio": "4.8",
+        "Employer Reputation": "14.2",
+        "Employment Outcomes": "8.9",
+        "International Student Ratio": "45.5",
+        "International Research Network": "87.4",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "89.2"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-southern-queensland",
+    "university_name": "University of Southern Queensland",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 399,
+    "score": 29.7,
+    "source_url": "/universities/university-southern-queensland",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "29.7",
+        "Academic Reputation": "8.8",
+        "Citations per Faculty": "73.1",
+        "Faculty Student Ratio": "4.8",
+        "Employer Reputation": "5.7",
+        "Employment Outcomes": "8.6",
+        "International Student Ratio": "23",
+        "International Research Network": "81",
+        "International Faculty Ratio": "84.1",
+        "Sustainability Score": "43"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-canberra",
+    "university_name": "University of Canberra",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 404,
+    "score": 29.5,
+    "source_url": "/universities/university-canberra",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "29.5",
+        "Academic Reputation": "14.3",
+        "Citations per Faculty": "51.2",
+        "Faculty Student Ratio": "2.4",
+        "Employer Reputation": "7.7",
+        "Employment Outcomes": "5.6",
+        "International Student Ratio": "69.4",
+        "International Research Network": "63.1",
+        "International Faculty Ratio": "79.6",
+        "Sustainability Score": "70.9"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/auckland-university-technology-aut",
+    "university_name": "Auckland University of Technology (AUT)",
+    "country_hint": "New Zealand",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 412,
+    "score": 28.9,
+    "source_url": "/universities/auckland-university-technology-aut",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "28.9",
+        "Academic Reputation": "19.3",
+        "Citations per Faculty": "21.7",
+        "Faculty Student Ratio": "10.6",
+        "Employer Reputation": "11.2",
+        "Employment Outcomes": "12.4",
+        "International Student Ratio": "99.8",
+        "International Research Network": "52.6",
+        "International Faculty Ratio": "100",
+        "Sustainability Score": "72.6"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/murdoch-university",
+    "university_name": "Murdoch University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 437,
+    "score": 27.2,
+    "source_url": "/universities/murdoch-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "27.2",
+        "Academic Reputation": "8",
+        "Citations per Faculty": "57.3",
+        "Faculty Student Ratio": "5.2",
+        "Employer Reputation": "4.5",
+        "Employment Outcomes": "14.8",
+        "International Student Ratio": "73.9",
+        "International Research Network": "74.9",
+        "International Faculty Ratio": "85.6",
+        "Sustainability Score": "11.3"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/james-cook-university",
+    "university_name": "James Cook University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 445,
+    "score": 26.7,
+    "source_url": "/universities/james-cook-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "26.7",
+        "Academic Reputation": "14.4",
+        "Citations per Faculty": "46.9",
+        "Faculty Student Ratio": "17.5",
+        "Employer Reputation": "6.5",
+        "Employment Outcomes": "6.7",
+        "International Student Ratio": "16",
+        "International Research Network": "76",
+        "International Faculty Ratio": "36.7",
+        "Sustainability Score": "88.9"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/central-queensland-university-cquniversity-australia",
+    "university_name": "Central Queensland University (CQUniversity Australia)",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 495,
+    "score": 24.4,
+    "source_url": "/universities/central-queensland-university-cquniversity-australia",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "24.4",
+        "Academic Reputation": "9",
+        "Citations per Faculty": "20.9",
+        "Faculty Student Ratio": "29.4",
+        "Employer Reputation": "6.7",
+        "Employment Outcomes": "3.1",
+        "International Student Ratio": "97.8",
+        "International Research Network": "44",
+        "International Faculty Ratio": "97.1",
+        "Sustainability Score": "49.8"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/edith-cowan-university",
+    "university_name": "Edith Cowan University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 517,
+    "score": 23.6,
+    "source_url": "/universities/edith-cowan-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "23.6",
+        "Academic Reputation": "8.5",
+        "Citations per Faculty": "49.8",
+        "Faculty Student Ratio": "4.8",
+        "Employer Reputation": "6.8",
+        "Employment Outcomes": "4.7",
+        "International Student Ratio": "57.7",
+        "International Research Network": "64.5",
+        "International Faculty Ratio": "78.5",
+        "Sustainability Score": "5.8"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/southern-cross-university",
+    "university_name": "Southern Cross University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 578,
+    "score": 21.4,
+    "source_url": "/universities/southern-cross-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "21.4",
+        "Academic Reputation": "4.4",
+        "Citations per Faculty": "46.3",
+        "Faculty Student Ratio": "2.9",
+        "Employer Reputation": "2.8",
+        "Employment Outcomes": "4.8",
+        "International Student Ratio": "44.8",
+        "International Research Network": "44.2",
+        "International Faculty Ratio": "81.1",
+        "Sustainability Score": "48.2"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/bond-university",
+    "university_name": "Bond University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 587,
+    "score": 21.1,
+    "source_url": "/universities/bond-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "21.1",
+        "Academic Reputation": "4.3",
+        "Citations per Faculty": "28.8",
+        "Faculty Student Ratio": "47.8",
+        "Employer Reputation": "4.6",
+        "Employment Outcomes": "8.4",
+        "International Student Ratio": "86.6",
+        "International Research Network": "26.5",
+        "International Faculty Ratio": "70.4",
+        "Sustainability Score": "1"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/charles-darwin-university",
+    "university_name": "Charles Darwin University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 625,
+    "score": null,
+    "source_url": "/universities/charles-darwin-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Academic Reputation": "5.7",
+        "Citations per Faculty": "44.2",
+        "Faculty Student Ratio": "4.5",
+        "Employer Reputation": "4.2",
+        "Employment Outcomes": "3.9",
+        "International Student Ratio": "55.2",
+        "International Research Network": "41.3",
+        "International Faculty Ratio": "25.4",
+        "Sustainability Score": "63.7"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/victoria-university",
+    "university_name": "Victoria University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 751,
+    "score": null,
+    "source_url": "/universities/victoria-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Academic Reputation": "6.9",
+        "Citations per Faculty": "34.1",
+        "Faculty Student Ratio": "2.4",
+        "Employer Reputation": "6.1",
+        "Employment Outcomes": "6.4",
+        "International Student Ratio": "41.5",
+        "International Research Network": "44.9",
+        "International Faculty Ratio": "32.7",
+        "Sustainability Score": "34.8"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/charles-sturt-university",
+    "university_name": "Charles Sturt University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 856,
+    "score": null,
+    "source_url": "/universities/charles-sturt-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Academic Reputation": "5.1",
+        "Citations per Faculty": "8.1",
+        "Faculty Student Ratio": "8.2",
+        "Employer Reputation": "5.4",
+        "Employment Outcomes": "7.4",
+        "International Student Ratio": "47.9",
+        "International Research Network": "53.4",
+        "International Faculty Ratio": "45.4",
+        "Sustainability Score": "41.7"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/australian-catholic-university",
+    "university_name": "Australian Catholic University",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 902,
+    "score": null,
+    "source_url": "/universities/australian-catholic-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Academic Reputation": "8.2",
+        "Citations per Faculty": "12.1",
+        "Faculty Student Ratio": "5.1",
+        "Employer Reputation": "8.9",
+        "Employment Outcomes": "1.7",
+        "International Student Ratio": "41.7",
+        "International Research Network": "33.9",
+        "International Faculty Ratio": "71",
+        "Sustainability Score": "2.7"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-new-england-australia",
+    "university_name": "University of New England Australia",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 1165,
+    "score": null,
+    "source_url": "/universities/university-new-england-australia",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Academic Reputation": "10.7",
+        "Citations per Faculty": "14.7",
+        "Faculty Student Ratio": "3.7",
+        "Employer Reputation": "7.2",
+        "Employment Outcomes": "9.8",
+        "International Student Ratio": "3.3",
+        "International Research Network": "62.9",
+        "International Faculty Ratio": "4.6",
+        "Sustainability Score": "10.8"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-sunshine-coast",
+    "university_name": "University of the Sunshine Coast",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 1183,
+    "score": null,
+    "source_url": "/universities/university-sunshine-coast",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Academic Reputation": "3.6",
+        "Citations per Faculty": "25.2",
+        "Faculty Student Ratio": "2.6",
+        "Employer Reputation": "1.9",
+        "Employment Outcomes": "1.6",
+        "International Student Ratio": "16.4",
+        "International Research Network": "48.3",
+        "International Faculty Ratio": "2.7",
+        "Sustainability Score": "6.5"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-notre-dame-australia",
+    "university_name": "The University of Notre Dame, Australia",
+    "country_hint": "Australia",
+    "ranking_year": 2026,
+    "ranking_type": "region:oceania",
+    "rank": 1439,
+    "score": null,
+    "source_url": "/universities/university-notre-dame-australia",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "oceania",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Academic Reputation": "3",
+        "Citations per Faculty": "7.2",
+        "Faculty Student Ratio": "3.5",
+        "Employer Reputation": "3.7",
+        "Employment Outcomes": "1.7",
+        "International Student Ratio": "2.2",
+        "International Research Network": "10.6",
+        "International Faculty Ratio": "21.4",
+        "Sustainability Score": "1"
+      },
+      "universe_type": "region",
+      "universe_key": "oceania"
+    }
   }
 ]

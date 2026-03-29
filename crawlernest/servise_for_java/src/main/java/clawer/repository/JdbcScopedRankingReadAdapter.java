@@ -87,7 +87,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                         canonical_university_id,
                         MIN(display_rank) AS global_rank
                     FROM analytics.v_aggregated_rankings_latest
-                    WHERE (? IS NULL OR ranking_year = ?)
+                    WHERE (?::integer IS NULL OR ranking_year = ?::integer)
                       AND universe_type = 'global'
                       AND universe_key = 'global'
                     GROUP BY canonical_university_id
@@ -172,7 +172,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                       ON global_ref.canonical_university_id = ar.canonical_university_id
                     LEFT JOIN admission_summary ads
                       ON ads.canonical_university_id = ar.canonical_university_id
-                    WHERE (? IS NULL OR ar.ranking_year = ?)
+                    WHERE (?::integer IS NULL OR ar.ranking_year = ?::integer)
                       AND ar.universe_type = ?
                       AND ar.universe_key = ?
                 ),

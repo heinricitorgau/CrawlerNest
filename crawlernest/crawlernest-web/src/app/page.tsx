@@ -15,7 +15,6 @@ import {
   useState,
 } from "react";
 
-import { fetchAppJson } from "@/lib/api";
 import { formatRank, formatScore } from "@/lib/format";
 
 type RankingItem = {
@@ -49,6 +48,43 @@ type RankingsResponse = {
     timestamp?: string;
   };
 };
+
+async function fetchRankingsFromApi(queryString: string): Promise<RankingsResponse> {
+  const response = await fetch(`/api/rankings?${queryString}`, {
+    cache: "no-store",
+  });
+
+  let payload: unknown = null;
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error("Invalid rankings API response.");
+  }
+
+  if (!response.ok) {
+    throw new Error("Rankings API request failed.");
+  }
+
+  const result = payload as Partial<RankingsResponse> & {
+    data?: { items?: RankingItem[] };
+    items?: RankingItem[];
+    metadata?: { timestamp?: string };
+  };
+
+  const items = Array.isArray(result?.data?.items)
+    ? result.data.items
+    : Array.isArray(result?.items)
+      ? result.items
+      : [];
+
+  return {
+    success: result?.success ?? true,
+    data: {
+      items,
+    },
+    metadata: result?.metadata,
+  };
+}
 
 const DEFAULT_SOURCE = "AGGREGATED";
 const DEFAULT_YEAR = 2026;
@@ -404,25 +440,24 @@ function RankingsHomeContent() {
           params.set("search", search.trim());
         }
 
-        const result = await fetchAppJson<RankingsResponse>(
-          `/api/rankings?${params.toString()}`
-        );
+        const result = await fetchRankingsFromApi(params.toString());
 
         if (!cancelled) {
-          setItems(result.data.items ?? []);
+          const nextItems = Array.isArray(result?.data?.items)
+            ? result.data.items
+            : [];
+          setItems(nextItems);
           setTimestamp(result.metadata?.timestamp);
+          setError(null);
         }
-      } catch {
+      } catch (caughtError) {
+        console.error("Failed to load rankings", caughtError);
         if (!cancelled) {
           setError(
             "Unable to load rankings. Please check backend or try again."
           );
           setItems([]);
           setTimestamp(undefined);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
         }
       }
     }
