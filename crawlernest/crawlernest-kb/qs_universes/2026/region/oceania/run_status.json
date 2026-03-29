@@ -2,6 +2,7 @@
   "status": "ok",
   "failure_classification": "",
   "message": "",
+  "run_id": "qs-region-oceania-2026-2026-03-29T11:34:45Z",
   "universe_type": "region",
   "universe_key": "oceania",
   "ranking_year": 2026,
@@ -30,8 +31,10 @@
   },
   "normalized_count": 46,
   "standardized_count": 46,
-  "matched_count": 16,
-  "unresolved_count": 30,
+  "rows_written": 31,
+  "rows_updated": 0,
+  "matched_count": 31,
+  "unresolved_count": 15,
   "aggregated_years": [
     2026
   ]

@@ -120,7 +120,7 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
                 pg_database=args.pg_database,
                 pg_user=args.pg_user,
                 pg_password=args.pg_password,
-                batch_id=f"qs-run-{args.ranking_year}",
+                batch_id=None,
             )
             print(
                 "[multi-source] "
@@ -208,7 +208,7 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
             pg_database=args.pg_database,
             pg_user=args.pg_user,
             pg_password=args.pg_password,
-            batch_id=args.batch_id or f"{args.source.lower()}-{args.ranking_year}",
+            batch_id=args.batch_id,
         )
         print(
             f"source={args.source} rows={summary.standardized_count} matched={summary.matched_count} "
@@ -256,11 +256,13 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
                 pg_user=args.pg_user,
                 pg_password=args.pg_password,
                 output_dir=Path(args.output_dir),
+                resume=bool(getattr(args, "resume", False)),
             )
             print(
                 f"[qs-universe] {universe_type}/{universe_key} "
                 f"normalized={len(normalized)} standardized={len(standardized)} "
                 f"matched={summary.matched_count} unresolved={summary.unresolved_count} "
+                f"rows_written={summary.rows_written} run_id={summary.run_id} "
                 f"aggregated_years={summary.years_aggregated}"
             )
             if interrupted:
@@ -320,6 +322,7 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
                         pg_user=args.pg_user,
                         pg_password=args.pg_password,
                         output_dir=Path(args.output_dir),
+                        resume=bool(getattr(args, "resume", False)),
                     )
                     results.append(
                         {
@@ -335,7 +338,8 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
                     print(
                         f"=== [{current_index}/{total_specs}] Completed QS universe: {label} | "
                         f"normalized={len(normalized)} standardized={len(standardized)} "
-                        f"matched={summary.matched_count} unresolved={summary.unresolved_count} ==="
+                        f"matched={summary.matched_count} unresolved={summary.unresolved_count} "
+                        f"rows_written={summary.rows_written} run_id={summary.run_id} ==="
                     )
                     if interrupted:
                         print(f"\n[pipeline] Graceful shutdown completed for {label}. Stopping crawler loop.")

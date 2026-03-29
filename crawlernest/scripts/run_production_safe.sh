@@ -22,6 +22,8 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 cd "${REPO_ROOT}"
 
 PIPELINE="crawlernest/run_pipeline.py"
+PG_USER="${PG_USER:-test}"
+PG_DATABASE="${PG_DATABASE:-clawer}"
 # Default deferred-enrichment file (mirrors run_pipeline.py default)
 DEFERRED_FILE="crawlernest/crawlernest-kb/databases/pending_detail_enrichment.json"
 PYTHON_BIN="${REPO_ROOT}/.venv/bin/python"
@@ -135,11 +137,20 @@ echo ""
 # QS World Ranking 2026 generally contains ~1500-1700 rows.
 # Set LIMIT to 2500 to ensure we capture the entire dataset.
 LIMIT=${1:-2500}
+RESUME_FLAG="${2:-}"
+RESUME_ARGS=()
+RESUME_LABEL="disabled"
+
+if [[ "${RESUME_FLAG}" == "--resume" ]]; then
+    RESUME_ARGS+=("--resume")
+    RESUME_LABEL="enabled"
+fi
 
 echo "[STEP 1] Starting rankings-only crawl (LIMIT: ${LIMIT})  ($(date '+%H:%M:%S'))"
+echo "         Resume: ${RESUME_LABEL}"
 echo "         ${PYTHON_BIN} ${PIPELINE} run --limit ${LIMIT} --ranking-year 2026 \\"
 echo "           --workers 1 --request-delay 10 --local-parse-workers 4 \\"
-echo "           --write-batch-size 200 --rankings-only --resource-guard"
+echo "           --write-batch-size 200 --rankings-only --resource-guard ${RESUME_FLAG}"
 echo ""
 
 run_with_single_progress_line "${PYTHON_BIN}" "${PIPELINE}" run \
@@ -150,7 +161,8 @@ run_with_single_progress_line "${PYTHON_BIN}" "${PIPELINE}" run \
     --local-parse-workers 4 \
     --write-batch-size 200 \
     --rankings-only \
-    --resource-guard
+    --resource-guard \
+    ${RESUME_ARGS[@]+"${RESUME_ARGS[@]}"}
 
 STEP1_EXIT=$?
 if [[ ${STEP1_EXIT} -ne 0 ]]; then
@@ -210,7 +222,33 @@ fi
 echo ""
 
 # ---------------------------------------------------------------------------
-# 7. Summary
+# 7. STEP 3 — THE world rankings ingestion
+# ---------------------------------------------------------------------------
+STEP3_TRIGGERED=true
+STEP3_EXIT=0
+
+echo "[STEP 3] Starting THE rankings ingestion  ($(date '+%H:%M:%S'))"
+echo "         ${PYTHON_BIN} ${PIPELINE} run-the-rankings \\"
+echo "           --ranking-year 2026 --pg-user ${PG_USER} --pg-database ${PG_DATABASE}"
+echo ""
+
+if run_with_single_progress_line "${PYTHON_BIN}" "${PIPELINE}" run-the-rankings \
+    --ranking-year 2026 \
+    --pg-user "${PG_USER}" \
+    --pg-database "${PG_DATABASE}"; then
+    STEP3_EXIT=0
+    echo ""
+    echo "[STEP 3] THE rankings ingestion completed.  ($(date '+%H:%M:%S'))"
+else
+    STEP3_EXIT=$?
+    echo ""
+    echo "[WARN] STEP 3 (THE rankings) exited with code ${STEP3_EXIT}. Continuing."
+fi
+
+echo ""
+
+# ---------------------------------------------------------------------------
+# 8. Summary
 # ---------------------------------------------------------------------------
 END_TS="$(date +%s)"
 DURATION=$(( END_TS - START_TS ))
@@ -220,9 +258,21 @@ echo "============================================================"
 echo "[END]      $(date '+%Y-%m-%d %H:%M:%S')"
 echo "[DURATION] ${DURATION_FMT}  (${DURATION}s)"
 if [[ "${STEP2_TRIGGERED}" == "true" ]]; then
-    echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment"
+    if [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -eq 0 ]]; then
+        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings"
+    elif [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -ne 0 ]]; then
+        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings (warn)"
+    else
+        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment"
+    fi
 else
-    echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)"
+    if [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -eq 0 ]]; then
+        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings"
+    elif [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -ne 0 ]]; then
+        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings (warn)"
+    else
+        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)"
+    fi
 fi
 echo "           Log written to: ${LOG_FILE}"
 echo "============================================================"

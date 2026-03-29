@@ -46,12 +46,29 @@ type RankingsResponse = {
   };
   metadata?: {
     timestamp?: string;
+    totalCount?: number;
+    page?: number;
+    pageSize?: number;
   };
 };
 
-async function fetchRankingsFromApi(queryString: string): Promise<RankingsResponse> {
-  const response = await fetch(`/api/rankings?${queryString}`, {
+type RankingCountSummary = {
+  label: string;
+  scope: "global" | "region";
+  region?: string;
+  totalCount: number | null;
+};
+
+async function fetchRankingsFromApi(
+  queryString: string,
+  signal?: AbortSignal
+): Promise<RankingsResponse> {
+  const requestQuery = queryString
+    ? `${queryString}&_ts=${Date.now()}`
+    : `_ts=${Date.now()}`;
+  const response = await fetch(`/api/rankings?${requestQuery}`, {
     cache: "no-store",
+    signal,
   });
 
   let payload: unknown = null;
@@ -68,7 +85,7 @@ async function fetchRankingsFromApi(queryString: string): Promise<RankingsRespon
   const result = payload as Partial<RankingsResponse> & {
     data?: { items?: RankingItem[] };
     items?: RankingItem[];
-    metadata?: { timestamp?: string };
+    metadata?: { timestamp?: string; totalCount?: number; page?: number; pageSize?: number };
   };
 
   const items = Array.isArray(result?.data?.items)
@@ -84,6 +101,23 @@ async function fetchRankingsFromApi(queryString: string): Promise<RankingsRespon
     },
     metadata: result?.metadata,
   };
+}
+
+function isAbortLikeError(error: unknown): boolean {
+  if (error instanceof DOMException && error.name === "AbortError") {
+    return true;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error as { name?: string }).name === "AbortError"
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 const DEFAULT_SOURCE = "AGGREGATED";
@@ -102,6 +136,19 @@ const REGION_OPTIONS = [
   "Africa",
 ];
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
+const COUNT_SUMMARY_GROUPS: Array<{
+  label: string;
+  scope: "global" | "region";
+  region?: string;
+}> = [
+  { label: "Global", scope: "global" },
+  { label: "Europe", scope: "region", region: "Europe" },
+  { label: "Asia", scope: "region", region: "Asia" },
+  { label: "North America", scope: "region", region: "North America" },
+  { label: "Latin America", scope: "region", region: "Latin America" },
+  { label: "Oceania", scope: "region", region: "Oceania" },
+  { label: "Africa", scope: "region", region: "Africa" },
+];
 
 function getDecisionContext(rank: number) {
   if (rank <= 50) {
@@ -336,6 +383,13 @@ function RankingsHomeContent() {
 
   const [items, setItems] = useState<RankingItem[]>([]);
   const [timestamp, setTimestamp] = useState<string | undefined>();
+  const [totalCount, setTotalCount] = useState(0);
+  const [countSummaries, setCountSummaries] = useState<RankingCountSummary[]>(
+    COUNT_SUMMARY_GROUPS.map((group) => ({
+      ...group,
+      totalCount: null,
+    }))
+  );
   const [searchInput, setSearchInput] = useState(search);
   const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -343,7 +397,7 @@ function RankingsHomeContent() {
   const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
 
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const REFRESH_INTERVAL_MS = 30000; // 30 seconds
+  const REFRESH_INTERVAL_MS = 5000; // 5 seconds
 
   useEffect(() => {
     setIsMounted(true);
@@ -363,8 +417,95 @@ function RankingsHomeContent() {
   }, [isMounted, loading]);
 
   useEffect(() => {
+    if (!isMounted) {
+      return;
+    }
+
+    function triggerRefresh() {
+      setRefreshTrigger((prev) => prev + 1);
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        triggerRefresh();
+      }
+    }
+
+    window.addEventListener("focus", triggerRefresh);
+    window.addEventListener("online", triggerRefresh);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", triggerRefresh);
+      window.removeEventListener("online", triggerRefresh);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isMounted]);
+
+  useEffect(() => {
     setSearchInput(search);
   }, [search]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadCountSummaries() {
+      try {
+        const summaries = await Promise.all(
+          COUNT_SUMMARY_GROUPS.map(async (group) => {
+            const params = new URLSearchParams({
+              page: "1",
+              pageSize: "1",
+              source: DEFAULT_SOURCE,
+              year: String(year),
+              scope: group.scope,
+            });
+
+            if (group.scope === "region" && group.region) {
+              params.set("region", group.region);
+            }
+
+            const result = await fetchRankingsFromApi(
+              params.toString(),
+              controller.signal
+            );
+
+            return {
+              ...group,
+              totalCount:
+                typeof result.metadata?.totalCount === "number"
+                  ? result.metadata.totalCount
+                  : null,
+            };
+          })
+        );
+
+        if (!cancelled) {
+          setCountSummaries(summaries);
+        }
+      } catch (caughtError) {
+        if (isAbortLikeError(caughtError) || controller.signal.aborted) {
+          return;
+        }
+        if (!cancelled) {
+          setCountSummaries(
+            COUNT_SUMMARY_GROUPS.map((group) => ({
+              ...group,
+              totalCount: null,
+            }))
+          );
+        }
+      }
+    }
+
+    loadCountSummaries();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [year]);
 
   useEffect(() => {
     if (!isMounted) {
@@ -413,6 +554,7 @@ function RankingsHomeContent() {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     async function loadRankings() {
       // Only show loading skeleton on initial load or manual filter change
@@ -440,7 +582,10 @@ function RankingsHomeContent() {
           params.set("search", search.trim());
         }
 
-        const result = await fetchRankingsFromApi(params.toString());
+        const result = await fetchRankingsFromApi(
+          params.toString(),
+          controller.signal
+        );
 
         if (!cancelled) {
           const nextItems = Array.isArray(result?.data?.items)
@@ -448,9 +593,17 @@ function RankingsHomeContent() {
             : [];
           setItems(nextItems);
           setTimestamp(result.metadata?.timestamp);
+          setTotalCount(
+            typeof result.metadata?.totalCount === "number"
+              ? result.metadata.totalCount
+              : nextItems.length
+          );
           setError(null);
         }
       } catch (caughtError) {
+        if (isAbortLikeError(caughtError) || controller.signal.aborted) {
+          return;
+        }
         console.error("Failed to load rankings", caughtError);
         if (!cancelled) {
           setError(
@@ -458,6 +611,11 @@ function RankingsHomeContent() {
           );
           setItems([]);
           setTimestamp(undefined);
+          setTotalCount(0);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
         }
       }
     }
@@ -466,8 +624,9 @@ function RankingsHomeContent() {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [page, pageSize, source, year, scope, region, search, refreshTrigger]);
+  }, [isMounted, page, pageSize, source, year, scope, region, search, refreshTrigger]);
 
   const shortlistIds = useMemo(
     () => new Set(shortlist.map((item) => item.canonicalUniversityId)),
@@ -482,7 +641,7 @@ function RankingsHomeContent() {
   }, [page, pageSize]);
 
   const canGoPrevious = page > 1 && !loading;
-  const canGoNext = !loading && items.length === pageSize;
+  const canGoNext = !loading && page * pageSize < totalCount;
   const isRegionScope = scope === "region";
   const scopeLabel = isRegionScope ? `${region} Rankings` : "Global Rankings";
   const heroTitle = isRegionScope
@@ -665,6 +824,25 @@ function RankingsHomeContent() {
                   : "Add universities to your shortlist to unlock recommendation flow."}
               </p>
             </div>
+          </div>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {countSummaries.map((summary) => (
+              <div
+                key={`${summary.scope}-${summary.region ?? "global"}`}
+                className="rounded-2xl border border-gray-200 bg-white/80 px-4 py-3"
+              >
+                <div className="text-xs font-medium uppercase tracking-[0.18em] text-gray-400">
+                  {summary.label}
+                </div>
+                <div className="mt-2 text-2xl font-bold tracking-tight text-gray-900">
+                  {summary.totalCount === null ? "..." : formatRank(summary.totalCount)}
+                </div>
+                <div className="mt-1 text-sm text-gray-500">
+                  ranking rows in {year}
+                </div>
+              </div>
+            ))}
           </div>
         </header>
 

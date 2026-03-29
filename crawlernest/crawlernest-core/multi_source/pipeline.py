@@ -30,6 +30,9 @@ class MultiSourceIngestionSummary:
     unresolved_count: int
     duplicate_input_count: int
     by_source_count: dict[str, int]
+    run_id: str | None = None
+    rows_written: int = 0
+    rows_updated: int = 0
     years_aggregated: list[int] = field(default_factory=list)
     aggregated_row_count: int = 0
 
@@ -66,6 +69,9 @@ class MultiSourceRankingPipeline:
                 unresolved_count=0,
                 duplicate_input_count=0,
                 by_source_count={},
+                run_id=batch_id,
+                rows_written=0,
+                rows_updated=0,
                 years_aggregated=[],
                 aggregated_row_count=0,
             )
@@ -74,7 +80,11 @@ class MultiSourceRankingPipeline:
         source_defs = self._collect_source_defs(raw_rows)
         source_id_map = self.multi_source_repo.upsert_ranking_sources(source_defs)
         self.multi_source_repo.upsert_source_university_mappings(unified_rows, source_id_map)
-        self.multi_source_repo.upsert_ranking_records(unified_rows, source_id_map)
+        rows_written = self.multi_source_repo.upsert_ranking_records(
+            unified_rows,
+            source_id_map,
+            run_id=batch_id,
+        )
         self.multi_source_repo.log_missing_entities(raw_rows, unified_rows)
         self.multi_source_repo.log_merge_diagnostics(diagnostics, batch_id=batch_id)
 
@@ -117,12 +127,37 @@ class MultiSourceRankingPipeline:
             unresolved_count=len(unified_rows) - matched_count,
             duplicate_input_count=duplicate_input_count,
             by_source_count=dict(diagnostics.by_source_count),
+            run_id=batch_id,
+            rows_written=rows_written,
+            rows_updated=0,
             years_aggregated=aggregated_years,
             aggregated_row_count=aggregated_row_count,
         )
+        universe_counts: dict[tuple[int, str, str], int] = {}
+        for row in unified_rows:
+            if row.canonical_university_id is None:
+                continue
+            key = (
+                int(row.year),
+                str(getattr(row, "universe_type", "global")),
+                str(getattr(row, "universe_key", "global")),
+            )
+            universe_counts[key] = universe_counts.get(key, 0) + 1
+        for (year, universe_type, universe_key), count in sorted(universe_counts.items()):
+            logger.info(
+                "[INGEST] run_id=%s rows_written=%s rows_updated=%s year=%s universe=%s/%s",
+                batch_id,
+                count,
+                0,
+                year,
+                universe_type,
+                universe_key,
+            )
         logger.info(
-            "Multi-source ingestion complete: rows=%s matched=%s unresolved=%s duplicates=%s years=%s aggregated_rows=%s",
+            "Multi-source ingestion complete: run_id=%s rows=%s rows_written=%s matched=%s unresolved=%s duplicates=%s years=%s aggregated_rows=%s",
+            summary.run_id,
             summary.standardized_count,
+            summary.rows_written,
             summary.matched_count,
             summary.unresolved_count,
             summary.duplicate_input_count,

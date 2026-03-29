@@ -150,6 +150,16 @@ def _extract_table_metrics(node: Dict[str, Any]) -> Dict[str, str]:
     return metrics
 
 
+def _resume_node_key(node: Dict[str, Any]) -> str:
+    path = str(node.get("path") or node.get("url") or node.get("link") or "").strip()
+    if path:
+        return f"path:{path}"
+
+    rank = str(node.get("rank") or node.get("position") or "").strip()
+    name = str(node.get("title") or node.get("name") or node.get("institution") or "").strip().lower()
+    return f"rank-name:{rank}|{name}"
+
+
 def _is_forbidden_error(exc: Exception) -> bool:
     msg = str(exc).lower()
     return "403" in msg or "forbidden" in msg
@@ -566,6 +576,30 @@ class UniversityCrawler:
             if self.config.sort_ascending:
                 nodes.reverse()
 
+            resume_paths = {
+                str(path).strip()
+                for path in list(getattr(self.config, "_resume_paths", []) or [])
+                if str(path).strip()
+            }
+            resume_keys = {
+                str(key).strip()
+                for key in list(getattr(self.config, "_resume_node_keys", []) or [])
+                if str(key).strip()
+            }
+            if resume_paths or resume_keys:
+                original_count = len(nodes)
+                nodes = [
+                    node
+                    for node in nodes
+                    if (
+                        str(node.get("path") or node.get("url") or node.get("link") or "").strip() not in resume_paths
+                        and _resume_node_key(node) not in resume_keys
+                    )
+                ]
+                resumed_count = original_count - len(nodes)
+                if resumed_count > 0:
+                    print(f"{self._progress_prefix()}[resume] skipping {resumed_count} previously crawled universities.")
+
             if self.is_region and len(nodes) == 0:
                 print(f"{self._progress_prefix()}Note: 0 rows after sub-region filtering. Check source route/nid mapping.")
             if self.is_region and self.config.ranking_limit and len(nodes) < self.config.ranking_limit:
@@ -679,6 +713,30 @@ class UniversityCrawler:
                 nodes = nodes[: self.config.ranking_limit]
             if self.config.sort_ascending:
                 nodes.reverse()
+
+            resume_paths = {
+                str(path).strip()
+                for path in list(getattr(self.config, "_resume_paths", []) or [])
+                if str(path).strip()
+            }
+            resume_keys = {
+                str(key).strip()
+                for key in list(getattr(self.config, "_resume_node_keys", []) or [])
+                if str(key).strip()
+            }
+            if resume_paths or resume_keys:
+                original_count = len(nodes)
+                nodes = [
+                    node
+                    for node in nodes
+                    if (
+                        str(node.get("path") or node.get("url") or node.get("link") or "").strip() not in resume_paths
+                        and _resume_node_key(node) not in resume_keys
+                    )
+                ]
+                resumed_count = original_count - len(nodes)
+                if resumed_count > 0:
+                    print(f"{self._progress_prefix()}[resume] skipping {resumed_count} previously crawled universities.")
 
             if self.is_region and len(nodes) == 0:
                 print(f"{self._progress_prefix()}Note: 0 rows after sub-region filtering. Check source route/nid mapping.")

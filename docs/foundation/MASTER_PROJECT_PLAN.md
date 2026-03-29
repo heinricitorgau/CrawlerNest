@@ -21,9 +21,10 @@ Our core evolution path:
 | Python Normalization | Country standardization, safe value conversion | Operational | ~75% |
 | C Normalization Engine | High-performance parsing for names/rankings | In Dev | ~25% |
 | Identity Resolution | Alias mapping, fuzzy matching baseline | Operational | ~40% |
-| Storage / Warehouse | PostgreSQL schema, DB writer, Spring Data JPA | Operational | ~95% |
-| API Layer | Spring Boot endpoints (`/universities`, `/recommendations`, etc.) | Operational | ~92% |
-| Website MVP | Next.js frontend, University Detail, Recommendation UI | Operational | ~88% |
+| Multi-Universe Aggregation | Global / region / subject scoped aggregation truth | Operational | ~88% |
+| Storage / Warehouse | PostgreSQL schema, DB writer, Spring Data JPA, ingest traceability | Operational | ~95% |
+| API Layer | Spring Boot endpoints (`/universities`, `/recommendations`, `/rankings`) | Operational | ~92% |
+| Website MVP | Next.js frontend, University Detail, Recommendation UI, live freshness refresh | Operational | ~90% |
 | Quality & Validation | Transaction safety, JUnit, AutoEval baseline | Operational | ~90% |
 | Low-Spec Runtime | `lobster-01` optimized workspace and scripts | Completed | 100% |
 
@@ -44,6 +45,8 @@ CrawlerNest is built on a decoupled 5-layer system to ensure scalability:
 - **Explainable Recommendation (v3):** Uses a hybrid deterministic scoring model with calibrated categories.
 - **Entity Resolution:** Maps multiple data sources (QS, THE, future ARWU) to a single `canonical_university` entity.
 - **Production-Safe Pipeline:** Conservative throttling (`request_delay ≈ 30s`) and automatic 403 degradation.
+- **Visibility Recovery Path:** If crawled universities are stuck in `warehouse.universities`, `seed-canonical` and `backfill-ranking-records` now provide an explicit recovery path into visible aggregated truth.
+- **Frontend Freshness:** The website reads through a same-origin proxy with `no-store`, periodic polling, and focus/visibility refresh so DB-side updates surface quickly in the UI.
 
 ---
 
@@ -59,6 +62,8 @@ CrawlerNest is built on a decoupled 5-layer system to ensure scalability:
 - Launch of the Website MVP (Rankings Browser, University Details) with live polling.
 - Implementation of Continuous Crawler Resilience and Expanded Regional Coverage (v1.0).
 - Implementation of AutoEval for automated data quality assurance.
+- Multi-universe aggregation promoted region rankings from filtered approximations into first-class aggregated truth.
+- Canonical recovery + ranking-record backfill expanded visible global aggregated rows from `221` to `1323`.
 
 ### Milestone 3: Platform Expansion (Next 6-18 Months)
 - Integration of THE and ARWU data sources.
@@ -76,3 +81,4 @@ CrawlerNest is built on a decoupled 5-layer system to ensure scalability:
 - **Node Management:** Using `systemd` timers for background jobs.
 - **Resilience:** Automatic checkpoint/resume and incremental journal writing.
 - **Regional Data:** Ensuring global coverage through manual geographic mapping backfills.
+- **Visibility Repair:** When crawler data exists but API-visible rows remain too low, run `seed-canonical` followed by `backfill-ranking-records`.

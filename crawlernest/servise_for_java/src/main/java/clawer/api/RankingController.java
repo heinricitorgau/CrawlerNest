@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -65,8 +67,16 @@ public class RankingController {
         if (validationError != null) {
             return validationError;
         }
+        List<RankingDTO> items = rankingService.getRankings(safePage, safeSize, year, search, safeScope, safeRegion);
+        long totalCount = rankingService.countRankings(year, search, safeScope, safeRegion);
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("timestamp", Instant.now().toString());
+        metadata.put("totalCount", totalCount);
+        metadata.put("page", safePage + 1);
+        metadata.put("pageSize", safeSize);
         return ResponseEntity.ok(ApiResponse.success(
-                Map.of("items", rankingService.getRankings(safePage, safeSize, year, search, safeScope, safeRegion))
+                Map.of("items", items),
+                metadata
         ));
     }
 
@@ -106,8 +116,16 @@ public class RankingController {
         if (validationError != null) {
             return validationError;
         }
+        List<RankingDTO> items = rankingService.getRankings(safePage, safeSize, year, search, safeScope, safeRegion);
+        long totalCount = rankingService.countRankings(year, search, safeScope, safeRegion);
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("timestamp", Instant.now().toString());
+        metadata.put("totalCount", totalCount);
+        metadata.put("page", safePage + 1);
+        metadata.put("pageSize", safeSize);
         return ResponseEntity.ok(ApiResponse.success(
-                Map.of("items", rankingService.getRankings(safePage, safeSize, year, search, safeScope, safeRegion))
+                Map.of("items", items),
+                metadata
         ));
     }
 

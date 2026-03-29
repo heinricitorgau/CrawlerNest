@@ -327,11 +327,29 @@ class DBWriter:
             self._country_id_cache[normalized_country] = country_id
             return country_id
 
-        self.cur.execute(f"INSERT INTO {table} (country_name) VALUES ({p}) ON CONFLICT DO NOTHING", (normalized_country,))
+        savepoint_name = "save_country"
+        try:
+            self.cur.execute(f"SAVEPOINT {savepoint_name}")
+            self.cur.execute(
+                f"INSERT INTO {table} (country_name) VALUES ({p}) ON CONFLICT DO NOTHING",
+                (normalized_country,),
+            )
+            self.cur.execute(f"RELEASE SAVEPOINT {savepoint_name}")
+        except Exception:
+            self._country_id_cache.pop(normalized_country, None)
+            try:
+                self.cur.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name}")
+            finally:
+                try:
+                    self.cur.execute(f"RELEASE SAVEPOINT {savepoint_name}")
+                except Exception:
+                    pass
+            raise
 
         self.cur.execute(f"SELECT country_id FROM {table} WHERE country_name = {p}", (normalized_country,))
         row = self.cur.fetchone()
         if not row:
+            self._country_id_cache.pop(normalized_country, None)
             return None
         country_id = int(row[0])
         self._country_id_cache[normalized_country] = country_id
@@ -342,8 +360,13 @@ class DBWriter:
     # -----------------------------
 
     def upsert_university(self, uni: University, embedding: Optional[list] = None) -> int:
+        name = str(getattr(uni, "name", "") or "").strip()
+        slug = self._slugify(name)
+        if not name or name.lower() == "n/a" or not slug or slug.lower() == "n/a":
+            print(f"[warn] skip invalid university placeholder row: name={name!r} slug={slug!r}")
+            raise ValueError("Invalid placeholder university row")
+
         country_id = self.get_or_create_country(uni.country)
-        slug = self._slugify(uni.name)
         p = self._get_placeholder()
         table = self._get_schema_prefix("universities")
         embedding_payload = Json(embedding) if embedding is not None else None
@@ -552,6 +575,7 @@ class DBWriter:
         self.conn.commit()
 
     def rollback(self):
+        self._country_id_cache.clear()
         self.conn.rollback()
 
     def close(self):

@@ -58,6 +58,7 @@ from qs_universe_registry import (  # noqa: E402
     iter_all_qs_universes,
     iter_major_qs_universes,
 )
+from the_crawler import crawl_the_rankings  # noqa: E402
 from pipeline_command_router import (  # noqa: E402
     PipelineCommandDependencies,
     dispatch_command,
@@ -1016,6 +1017,7 @@ def sync_qs_multi_source_rankings(
     universe_key: str = "global",
     enable_aggregation: bool = True,
 ) -> Any:
+    effective_run_id = batch_id or dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
     conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
     try:
         pipeline = _build_multi_source_pipeline(conn)
@@ -1027,7 +1029,7 @@ def sync_qs_multi_source_rankings(
         ).adapt(list(universities))
         return pipeline.ingest_records(
             standardized,
-            batch_id=batch_id,
+            batch_id=effective_run_id,
             run_label_prefix="qs_pipeline_sync",
             ranking_type=ranking_type,
             enable_aggregation=enable_aggregation,
@@ -1082,6 +1084,7 @@ def run_qs_universe_ingestion(
     pg_user: Optional[str],
     pg_password: Optional[str],
     output_dir: Path,
+    resume: bool = False,
 ) -> tuple[Any, list[University], list[Any], bool]:
     spec, crawler = _build_qs_universe_crawler(
         universe_type,
@@ -1094,7 +1097,15 @@ def run_qs_universe_ingestion(
         local_parse_workers=local_parse_workers,
     )
     universe_dir = output_dir / str(ranking_year) / spec.universe_type / spec.universe_key
-    universities, crawl_meta = crawler.crawl()
+    raw_snapshot_path = universe_dir / "raw_snapshot.json"
+    existing_universities: list[University] = []
+    if resume and raw_snapshot_path.exists():
+        existing_universities = load_snapshot(raw_snapshot_path)
+        print(
+            f"[{spec.universe_type}/{spec.universe_key}] [resume] "
+            f"loaded {len(existing_universities)} universities from {raw_snapshot_path}"
+        )
+    universities, crawl_meta = crawler.crawl(existing_universities=existing_universities)
     save_json_artifact(universe_dir / "crawl_meta.json", crawl_meta)
     try:
         normalized = normalize_universities(universities)
@@ -1124,6 +1135,11 @@ def run_qs_universe_ingestion(
     save_universe_snapshot(universe_dir / "normalized_snapshot.json", normalized, spec, ranking_year)
     save_standardized_rows(universe_dir / "standardized_rows.json", standardized)
 
+    run_id = (
+        f"qs-{spec.universe_type}-{spec.universe_key}-{ranking_year}-"
+        f"{dt.datetime.utcnow().replace(microsecond=0).isoformat()}Z"
+    )
+
     try:
         summary = sync_qs_multi_source_rankings(
             normalized,
@@ -1133,7 +1149,7 @@ def run_qs_universe_ingestion(
             pg_database=pg_database,
             pg_user=pg_user,
             pg_password=pg_password,
-            batch_id=f"qs-{spec.universe_type}-{spec.universe_key}-{ranking_year}",
+            batch_id=run_id,
             ranking_type=spec.ranking_type,
             universe_type=spec.universe_type,
             universe_key=spec.universe_key,
@@ -1146,6 +1162,7 @@ def run_qs_universe_ingestion(
                 "status": "failed",
                 "failure_classification": "ingest_failed",
                 "message": str(exc),
+                "run_id": run_id,
                 "universe_type": spec.universe_type,
                 "universe_key": spec.universe_key,
                 "ranking_year": ranking_year,
@@ -1161,12 +1178,15 @@ def run_qs_universe_ingestion(
             "status": "ok",
             "failure_classification": str(crawl_meta.get("failure_classification", "") or ""),
             "message": str(crawl_meta.get("failure_message", "") or ""),
+            "run_id": run_id,
             "universe_type": spec.universe_type,
             "universe_key": spec.universe_key,
             "ranking_year": ranking_year,
             "crawl_meta": crawl_meta,
             "normalized_count": len(normalized),
             "standardized_count": len(standardized),
+            "rows_written": summary.rows_written,
+            "rows_updated": summary.rows_updated,
             "matched_count": summary.matched_count,
             "unresolved_count": summary.unresolved_count,
             "aggregated_years": list(summary.years_aggregated),
@@ -1201,13 +1221,18 @@ def ingest_rankings_payload(
     else:
         raise ValueError(f"Unsupported source: {source}. Expected one of QS, THE, ARWU.")
 
+    effective_run_id = batch_id or (
+        f"{source_code.lower()}-{ranking_type}-{ranking_year}-"
+        f"{dt.datetime.utcnow().replace(microsecond=0).isoformat()}Z"
+    )
+
     conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
     try:
         pipeline = _build_multi_source_pipeline(conn)
         standardized = adapter.adapt(adapter_payload)
         return pipeline.ingest_records(
             standardized,
-            batch_id=batch_id,
+            batch_id=effective_run_id,
             run_label_prefix=f"{source_code.lower()}_payload_ingest",
             ranking_type=ranking_type,
         )
@@ -1225,6 +1250,466 @@ def load_json_payload(path: Path) -> list[Any]:
         if isinstance(rows, list):
             return rows
     raise ValueError(f"Unsupported payload format in {path}. Expected a JSON array or an object with a 'rows' array.")
+
+
+def run_the_rankings_ingestion(
+    *,
+    ranking_year: int,
+    output_dir: Path,
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+    skip_seed: bool = False,
+) -> dict[str, Any]:
+    print(f"[the-rankings] crawling THE world rankings for year={ranking_year}...")
+    output_file = crawl_the_rankings(year=ranking_year, output_dir=output_dir)
+    payload = load_json_payload(output_file)
+
+    print(f"[the-rankings] ingesting {len(payload)} rows into multi-source pipeline...")
+    ingest_summary = ingest_rankings_payload(
+        source="THE",
+        payload=payload,
+        ranking_year=ranking_year,
+        ranking_type="world",
+        source_version=None,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        batch_id=f"the-{ranking_year}",
+    )
+
+    aggregated_rows = int(getattr(ingest_summary, "aggregated_row_count", 0) or 0)
+    if not skip_seed:
+        print("[the-rankings] seeding canonical entities...")
+        seed_canonical_universities(
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+
+        print("[the-rankings] backfilling ranking records...")
+        backfill_summary = backfill_qs_ranking_records_from_legacy(
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+        aggregated_rows = int(backfill_summary.get("aggregated_rows") or aggregated_rows)
+
+    summary = {
+        "rows_crawled": len(payload),
+        "matched_count": int(getattr(ingest_summary, "matched_count", 0) or 0),
+        "unresolved_count": int(getattr(ingest_summary, "unresolved_count", 0) or 0),
+        "aggregated_rows": aggregated_rows,
+        "output_file": str(output_file),
+    }
+    print(
+        f"[the-rankings] done. matched={summary['matched_count']} "
+        f"unresolved={summary['unresolved_count']} aggregated_rows={summary['aggregated_rows']}"
+    )
+    return summary
+
+
+def _normalize_display_name_for_canonical(display_name: str) -> str:
+    normalized = re.sub(r"[^a-z0-9]+", " ", str(display_name or "").strip().lower())
+    return " ".join(normalized.split())
+
+
+def seed_canonical_universities(
+    *,
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> dict[str, Any]:
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    seeded = 0
+    skipped = 0
+    failed = 0
+    refreshed_years: list[int] = []
+    aggregated_rows = 0
+
+    unresolved_sql = """
+        SELECT
+            u.university_id,
+            u.school_slug,
+            u.display_name,
+            u.country_id,
+            u.city_name,
+            u.website_url
+        FROM warehouse.universities u
+        LEFT JOIN warehouse.canonical_university_link cul
+          ON cul.university_id = u.university_id
+        WHERE cul.university_id IS NULL
+        ORDER BY u.university_id ASC
+    """
+
+    total_skipped_sql = """
+        SELECT COUNT(*)
+        FROM warehouse.universities u
+        JOIN warehouse.canonical_university_link cul
+          ON cul.university_id = u.university_id
+    """
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(total_skipped_sql)
+            skipped = int(cur.fetchone()[0] or 0)
+
+            cur.execute(unresolved_sql)
+            unresolved_rows = cur.fetchall()
+
+            for (
+                university_id,
+                school_slug,
+                display_name,
+                country_id,
+                city_name,
+                website_url,
+            ) in unresolved_rows:
+                normalized_name = _normalize_display_name_for_canonical(str(display_name or ""))
+
+                cur.execute(
+                    """
+                    INSERT INTO warehouse.canonical_university (
+                        canonical_slug,
+                        display_name,
+                        display_name_normalized,
+                        country_id,
+                        city_name,
+                        website_url,
+                        status
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, 'active')
+                    ON CONFLICT (canonical_slug) DO NOTHING
+                    RETURNING canonical_university_id
+                    """,
+                    (
+                        school_slug,
+                        display_name,
+                        normalized_name,
+                        country_id,
+                        city_name,
+                        website_url,
+                    ),
+                )
+                row = cur.fetchone()
+                if row is not None:
+                    canonical_university_id = int(row[0])
+                else:
+                    cur.execute(
+                        """
+                        SELECT canonical_university_id
+                        FROM warehouse.canonical_university
+                        WHERE canonical_slug = %s
+                        """,
+                        (school_slug,),
+                    )
+                    existing = cur.fetchone()
+                    if existing is None:
+                        failed += 1
+                        continue
+                    canonical_university_id = int(existing[0])
+
+                cur.execute(
+                    """
+                    INSERT INTO warehouse.canonical_university_link (
+                        canonical_university_id,
+                        university_id,
+                        link_method,
+                        confidence_score,
+                        is_primary
+                    )
+                    VALUES (%s, %s, 'seed_canonical', 1.0000, TRUE)
+                    ON CONFLICT (university_id) DO NOTHING
+                    RETURNING canonical_university_link_id
+                    """,
+                    (canonical_university_id, university_id),
+                )
+                linked = cur.fetchone()
+                if linked is not None:
+                    seeded += 1
+                else:
+                    skipped += 1
+
+            cur.execute(
+                """
+                SELECT DISTINCT ranking_year
+                FROM warehouse.ranking_record
+                WHERE ranking_type = 'world'
+                ORDER BY ranking_year
+                """
+            )
+            years = [int(row[0]) for row in cur.fetchall() if row and row[0] is not None]
+
+        if years:
+            pipeline = _build_multi_source_pipeline(conn)
+            aggregated_rows = pipeline._refresh_aggregations(  # type: ignore[attr-defined]
+                years,
+                ranking_type="world",
+                run_label_prefix="seed_canonical",
+            )
+            refreshed_years = years
+
+        conn.commit()
+        return {
+            "seeded": seeded,
+            "skipped": skipped,
+            "failed": failed,
+            "years_aggregated": refreshed_years,
+            "aggregated_rows": aggregated_rows,
+        }
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def backfill_qs_ranking_records_from_legacy(
+    *,
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> dict[str, Any]:
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    backfilled = 0
+    skipped = 0
+    failed = 0
+    refreshed_years: list[int] = []
+    aggregated_rows = 0
+    run_id = (
+        "backfill-qs-ranking-records-"
+        f"{dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat().replace('+00:00', 'Z')}"
+    )
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO warehouse.ranking_source (source_code, source_name, source_version)
+                VALUES ('QS', 'QS World University Rankings', NULL)
+                ON CONFLICT (source_code)
+                DO UPDATE SET source_name = EXCLUDED.source_name
+                RETURNING ranking_source_id
+                """
+            )
+            row = cur.fetchone()
+            if row is not None:
+                ranking_source_id = int(row[0])
+            else:
+                cur.execute(
+                    """
+                    SELECT ranking_source_id
+                    FROM warehouse.ranking_source
+                    WHERE source_code = 'QS'
+                    """
+                )
+                existing_source = cur.fetchone()
+                if existing_source is None:
+                    raise RuntimeError("Unable to resolve QS ranking_source_id for backfill.")
+                ranking_source_id = int(existing_source[0])
+
+            cur.execute(
+                """
+                WITH candidate_rows AS (
+                    SELECT DISTINCT ON (
+                        cul.canonical_university_id,
+                        r.ranking_year,
+                        COALESCE(NULLIF(r.ranking_type, ''), 'world')
+                    )
+                        cul.canonical_university_id,
+                        %s::smallint AS ranking_source_id,
+                        r.ranking_year,
+                        COALESCE(NULLIF(r.ranking_type, ''), 'world') AS ranking_type,
+                        'global'::text AS universe_type,
+                        'global'::text AS universe_key,
+                        r.rank_start AS rank_position,
+                        r.score,
+                        r.source_url,
+                        COALESCE(r.metrics_json, '{}'::jsonb) AS metadata
+                    FROM warehouse.rankings r
+                    JOIN warehouse.canonical_university_link cul
+                      ON cul.university_id = r.university_id
+                    WHERE COALESCE(NULLIF(r.ranking_type, ''), 'world') = 'world'
+                    ORDER BY
+                        cul.canonical_university_id,
+                        r.ranking_year,
+                        COALESCE(NULLIF(r.ranking_type, ''), 'world'),
+                        r.rank_start ASC,
+                        r.ranking_id DESC
+                )
+                SELECT COUNT(*)
+                FROM candidate_rows
+                """
+                ,
+                (ranking_source_id,),
+            )
+            total_candidates = int(cur.fetchone()[0] or 0)
+
+            cur.execute(
+                """
+                WITH candidate_rows AS (
+                    SELECT DISTINCT ON (
+                        cul.canonical_university_id,
+                        r.ranking_year,
+                        COALESCE(NULLIF(r.ranking_type, ''), 'world')
+                    )
+                        cul.canonical_university_id,
+                        %s::smallint AS ranking_source_id,
+                        r.ranking_year,
+                        COALESCE(NULLIF(r.ranking_type, ''), 'world') AS ranking_type,
+                        'global'::text AS universe_type,
+                        'global'::text AS universe_key
+                    FROM warehouse.rankings r
+                    JOIN warehouse.canonical_university_link cul
+                      ON cul.university_id = r.university_id
+                    WHERE COALESCE(NULLIF(r.ranking_type, ''), 'world') = 'world'
+                    ORDER BY
+                        cul.canonical_university_id,
+                        r.ranking_year,
+                        COALESCE(NULLIF(r.ranking_type, ''), 'world'),
+                        r.rank_start ASC,
+                        r.ranking_id DESC
+                )
+                SELECT COUNT(*)
+                FROM candidate_rows c
+                JOIN warehouse.ranking_record rr
+                  ON rr.canonical_university_id = c.canonical_university_id
+                 AND rr.ranking_source_id = c.ranking_source_id
+                 AND rr.ranking_year = c.ranking_year
+                 AND rr.ranking_type = c.ranking_type
+                 AND rr.universe_type = c.universe_type
+                 AND rr.universe_key = c.universe_key
+                """
+                ,
+                (ranking_source_id,),
+            )
+            skipped = int(cur.fetchone()[0] or 0)
+
+            cur.execute(
+                """
+                WITH candidate_rows AS (
+                    SELECT DISTINCT ON (
+                        cul.canonical_university_id,
+                        r.ranking_year,
+                        COALESCE(NULLIF(r.ranking_type, ''), 'world')
+                    )
+                        cul.canonical_university_id,
+                        %s::smallint AS ranking_source_id,
+                        r.ranking_year,
+                        COALESCE(NULLIF(r.ranking_type, ''), 'world') AS ranking_type,
+                        'global'::text AS universe_type,
+                        'global'::text AS universe_key,
+                        r.rank_start AS rank_position,
+                        r.score,
+                        r.source_url,
+                        COALESCE(r.metrics_json, '{}'::jsonb) AS metadata
+                    FROM warehouse.rankings r
+                    JOIN warehouse.canonical_university_link cul
+                      ON cul.university_id = r.university_id
+                    WHERE COALESCE(NULLIF(r.ranking_type, ''), 'world') = 'world'
+                    ORDER BY
+                        cul.canonical_university_id,
+                        r.ranking_year,
+                        COALESCE(NULLIF(r.ranking_type, ''), 'world'),
+                        r.rank_start ASC,
+                        r.ranking_id DESC
+                )
+                INSERT INTO warehouse.ranking_record (
+                    canonical_university_id,
+                    ranking_source_id,
+                    ranking_year,
+                    ranking_type,
+                    universe_type,
+                    universe_key,
+                    rank_position,
+                    score,
+                    source_url,
+                    metadata,
+                    updated_at,
+                    run_id
+                )
+                SELECT
+                    canonical_university_id,
+                    ranking_source_id,
+                    ranking_year,
+                    ranking_type,
+                    universe_type,
+                    universe_key,
+                    rank_position,
+                    score,
+                    source_url,
+                    metadata,
+                    CURRENT_TIMESTAMP,
+                    %s
+                FROM candidate_rows
+                ON CONFLICT (
+                    canonical_university_id,
+                    ranking_source_id,
+                    ranking_year,
+                    ranking_type,
+                    universe_type,
+                    universe_key
+                )
+                DO UPDATE SET
+                    rank_position = EXCLUDED.rank_position,
+                    score = EXCLUDED.score,
+                    source_url = COALESCE(EXCLUDED.source_url, warehouse.ranking_record.source_url),
+                    metadata = EXCLUDED.metadata,
+                    updated_at = CURRENT_TIMESTAMP,
+                    run_id = EXCLUDED.run_id,
+                    ingested_at = CURRENT_TIMESTAMP
+                """
+                ,
+                (ranking_source_id, run_id),
+            )
+
+            backfilled = max(0, total_candidates - skipped)
+
+            cur.execute(
+                """
+                SELECT DISTINCT ranking_year
+                FROM warehouse.ranking_record
+                WHERE ranking_type = 'world'
+                ORDER BY ranking_year
+                """
+            )
+            years = [int(row[0]) for row in cur.fetchall() if row and row[0] is not None]
+
+        if years:
+            pipeline = _build_multi_source_pipeline(conn)
+            aggregated_rows = pipeline._refresh_aggregations(  # type: ignore[attr-defined]
+                years,
+                ranking_type="world",
+                run_label_prefix="backfill_qs_ranking_records",
+            )
+            refreshed_years = years
+
+        conn.commit()
+        return {
+            "run_id": run_id,
+            "backfilled": backfilled,
+            "skipped": skipped,
+            "failed": failed,
+            "years_aggregated": refreshed_years,
+            "aggregated_rows": aggregated_rows,
+        }
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 def query_rankings(
@@ -1537,6 +2022,42 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_parser.add_argument("--pg-user", default="test")
     ingest_parser.add_argument("--pg-password", default="")
 
+    seed_canonical_parser = subparsers.add_parser(
+        "seed-canonical",
+        help="Promote unresolved warehouse.universities rows into canonical_university and canonical_university_link",
+    )
+    seed_canonical_parser.add_argument("--pg-host", default="localhost")
+    seed_canonical_parser.add_argument("--pg-port", type=int, default=5432)
+    seed_canonical_parser.add_argument("--pg-database", default="clawer")
+    seed_canonical_parser.add_argument("--pg-user", default="test")
+    seed_canonical_parser.add_argument("--pg-password", default="")
+
+    backfill_ranking_parser = subparsers.add_parser(
+        "backfill-ranking-records",
+        help="Backfill multi-source warehouse.ranking_record rows from legacy warehouse.rankings using canonical_university_link",
+    )
+    backfill_ranking_parser.add_argument("--pg-host", default="localhost")
+    backfill_ranking_parser.add_argument("--pg-port", type=int, default=5432)
+    backfill_ranking_parser.add_argument("--pg-database", default="clawer")
+    backfill_ranking_parser.add_argument("--pg-user", default="test")
+    backfill_ranking_parser.add_argument("--pg-password", default="")
+
+    the_rankings_parser = subparsers.add_parser(
+        "run-the-rankings",
+        help="Crawl THE world rankings, ingest into multi-source tables, and optionally seed/backfill visibility",
+    )
+    the_rankings_parser.add_argument("--ranking-year", type=int, default=2026)
+    the_rankings_parser.add_argument(
+        "--output-dir",
+        default=str(MODULE_ROOT / "crawlernest-kb" / "databases"),
+    )
+    the_rankings_parser.add_argument("--skip-seed", action="store_true")
+    the_rankings_parser.add_argument("--pg-host", default="localhost")
+    the_rankings_parser.add_argument("--pg-port", type=int, default=5432)
+    the_rankings_parser.add_argument("--pg-database", default="clawer")
+    the_rankings_parser.add_argument("--pg-user", default="test")
+    the_rankings_parser.add_argument("--pg-password", default="")
+
     qs_global_parser = subparsers.add_parser(
         "run-qs-global",
         help="Run QS global rankings ingestion into the multi-universe store",
@@ -1547,6 +2068,7 @@ def build_parser() -> argparse.ArgumentParser:
     qs_global_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_global_parser.add_argument("--local-parse-workers", type=int, default=4)
     qs_global_parser.add_argument("--use-async", action="store_true")
+    qs_global_parser.add_argument("--resume", action="store_true", help="Resume from the last saved raw snapshot for this universe")
     qs_global_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
     qs_global_parser.add_argument("--pg-host", default="localhost")
     qs_global_parser.add_argument("--pg-port", type=int, default=5432)
@@ -1569,6 +2091,7 @@ def build_parser() -> argparse.ArgumentParser:
     qs_region_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_region_parser.add_argument("--local-parse-workers", type=int, default=4)
     qs_region_parser.add_argument("--use-async", action="store_true")
+    qs_region_parser.add_argument("--resume", action="store_true", help="Resume from the last saved raw snapshot for this universe")
     qs_region_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
     qs_region_parser.add_argument("--pg-host", default="localhost")
     qs_region_parser.add_argument("--pg-port", type=int, default=5432)
@@ -1591,6 +2114,7 @@ def build_parser() -> argparse.ArgumentParser:
     qs_subject_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_subject_parser.add_argument("--local-parse-workers", type=int, default=4)
     qs_subject_parser.add_argument("--use-async", action="store_true")
+    qs_subject_parser.add_argument("--resume", action="store_true", help="Resume from the last saved raw snapshot for this universe")
     qs_subject_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
     qs_subject_parser.add_argument("--pg-host", default="localhost")
     qs_subject_parser.add_argument("--pg-port", type=int, default=5432)
@@ -1613,6 +2137,7 @@ def build_parser() -> argparse.ArgumentParser:
     qs_special_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_special_parser.add_argument("--local-parse-workers", type=int, default=4)
     qs_special_parser.add_argument("--use-async", action="store_true")
+    qs_special_parser.add_argument("--resume", action="store_true", help="Resume from the last saved raw snapshot for this universe")
     qs_special_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
     qs_special_parser.add_argument("--pg-host", default="localhost")
     qs_special_parser.add_argument("--pg-port", type=int, default=5432)
@@ -1630,6 +2155,7 @@ def build_parser() -> argparse.ArgumentParser:
     qs_all_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_all_parser.add_argument("--local-parse-workers", type=int, default=4)
     qs_all_parser.add_argument("--use-async", action="store_true")
+    qs_all_parser.add_argument("--resume", action="store_true", help="Resume each universe from its last saved raw snapshot")
     qs_all_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
     qs_all_parser.add_argument("--pg-host", default="localhost")
     qs_all_parser.add_argument("--pg-port", type=int, default=5432)
@@ -1647,6 +2173,7 @@ def build_parser() -> argparse.ArgumentParser:
     qs_major_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_major_parser.add_argument("--local-parse-workers", type=int, default=4)
     qs_major_parser.add_argument("--use-async", action="store_true")
+    qs_major_parser.add_argument("--resume", action="store_true", help="Resume each universe from its last saved raw snapshot")
     qs_major_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
     qs_major_parser.add_argument("--pg-host", default="localhost")
     qs_major_parser.add_argument("--pg-port", type=int, default=5432)
@@ -1670,6 +2197,7 @@ def build_parser() -> argparse.ArgumentParser:
     qs_universes_parser.add_argument("--request-delay", type=float, default=10.0)
     qs_universes_parser.add_argument("--local-parse-workers", type=int, default=4)
     qs_universes_parser.add_argument("--use-async", action="store_true")
+    qs_universes_parser.add_argument("--resume", action="store_true", help="Resume each selected universe from its last saved raw snapshot")
     qs_universes_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
     qs_universes_parser.add_argument("--pg-host", default="localhost")
     qs_universes_parser.add_argument("--pg-port", type=int, default=5432)
@@ -2147,6 +2675,77 @@ def main() -> int:
 
 def main() -> int:
     args = build_parser().parse_args()
+    if args.command == "seed-canonical":
+        ensure_postgres_schema(
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+        )
+        summary = seed_canonical_universities(
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+        )
+        print(
+            f"[seed-canonical] seeded={summary['seeded']} "
+            f"skipped={summary['skipped']} failed={summary['failed']}"
+        )
+        print(
+            f"[seed-canonical] years_aggregated={summary['years_aggregated']} "
+            f"aggregated_rows={summary['aggregated_rows']}"
+        )
+        return 0
+
+    if args.command == "backfill-ranking-records":
+        ensure_postgres_schema(
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+        )
+        summary = backfill_qs_ranking_records_from_legacy(
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+        )
+        print(
+            f"[backfill-ranking-records] run_id={summary['run_id']} "
+            f"backfilled={summary['backfilled']} skipped={summary['skipped']} failed={summary['failed']}"
+        )
+        print(
+            f"[backfill-ranking-records] years_aggregated={summary['years_aggregated']} "
+            f"aggregated_rows={summary['aggregated_rows']}"
+        )
+        return 0
+
+    if args.command == "run-the-rankings":
+        ensure_postgres_schema(
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+        )
+        summary = run_the_rankings_ingestion(
+            ranking_year=args.ranking_year,
+            output_dir=Path(args.output_dir),
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+            skip_seed=bool(args.skip_seed),
+        )
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0
+
     deps = PipelineCommandDependencies(
         ensure_postgres_schema=ensure_postgres_schema,
         load_snapshot=load_snapshot,

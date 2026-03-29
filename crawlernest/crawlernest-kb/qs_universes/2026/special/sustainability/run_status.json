@@ -2,6 +2,7 @@
   "status": "ok",
   "failure_classification": "",
   "message": "",
+  "run_id": "qs-special-sustainability-2026-2026-03-29T11:47:24Z",
   "universe_type": "special",
   "universe_key": "sustainability",
   "ranking_year": 2026,
@@ -30,8 +31,10 @@
   },
   "normalized_count": 1503,
   "standardized_count": 1503,
-  "matched_count": 219,
-  "unresolved_count": 1284,
+  "rows_written": 1321,
+  "rows_updated": 0,
+  "matched_count": 1321,
+  "unresolved_count": 182,
   "aggregated_years": [
     2026
   ]

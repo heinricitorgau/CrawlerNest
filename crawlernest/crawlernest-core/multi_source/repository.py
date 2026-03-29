@@ -84,7 +84,12 @@ class MultiSourceRepository:
             )
         self.conn.commit()
 
-    def upsert_ranking_records(self, unified_rows: list[UnifiedRankingRecord], source_id_map: dict[str, int]) -> None:
+    def upsert_ranking_records(
+        self,
+        unified_rows: list[UnifiedRankingRecord],
+        source_id_map: dict[str, int],
+        run_id: str | None = None,
+    ) -> int:
         params: list[tuple[Any, ...]] = []
         for row in unified_rows:
             if row.canonical_university_id is None:
@@ -105,10 +110,11 @@ class MultiSourceRepository:
                     row.source_version,
                     row.source_url,
                     json.dumps(row.metadata, ensure_ascii=False),
+                    run_id,
                 )
             )
         if not params:
-            return
+            return 0
         with self.conn.cursor() as cur:
             cur.executemany(
                 """
@@ -123,8 +129,10 @@ class MultiSourceRepository:
                     score,
                     source_version,
                     source_url,
-                    metadata
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                    metadata,
+                    updated_at,
+                    run_id
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, CURRENT_TIMESTAMP, %s)
                 ON CONFLICT (canonical_university_id, ranking_source_id, ranking_year, ranking_type, universe_type, universe_key)
                 DO UPDATE SET
                     universe_type = EXCLUDED.universe_type,
@@ -134,11 +142,14 @@ class MultiSourceRepository:
                     source_version = COALESCE(EXCLUDED.source_version, warehouse.ranking_record.source_version),
                     source_url = COALESCE(EXCLUDED.source_url, warehouse.ranking_record.source_url),
                     metadata = EXCLUDED.metadata,
+                    updated_at = CURRENT_TIMESTAMP,
+                    run_id = EXCLUDED.run_id,
                     ingested_at = CURRENT_TIMESTAMP
                 """,
                 params,
             )
         self.conn.commit()
+        return len(params)
 
     def log_ingestion(self, source_code: str, diagnostics: IntegrationDiagnostics, inserted_count: int, updated_count: int, batch_id: str | None = None) -> None:
         with self.conn.cursor() as cur:

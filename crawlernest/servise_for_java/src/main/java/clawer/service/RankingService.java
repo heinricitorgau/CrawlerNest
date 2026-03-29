@@ -62,6 +62,17 @@ public class RankingService {
         );
     }
 
+    public long countRankings(Integer year, String search, String scope, String region) {
+        String normalizedSearch = normalizeSearch(search);
+        RankingContext rankingContext = RankingContext.fromQuery(scope, region);
+        return aggregatedRankingReadRepository.countRankings(
+                year,
+                normalizedSearch,
+                rankingContext.apiScope(),
+                rankingContext.region()
+        );
+    }
+
     public boolean isSupportedSource(String source) {
         return source == null || source.isBlank() || "AGGREGATED".equalsIgnoreCase(source);
     }

@@ -60,6 +60,8 @@ CREATE TABLE IF NOT EXISTS warehouse.ranking_record (
     source_url TEXT,
     metadata JSONB,
     ingested_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    run_id TEXT,
     CHECK (rank_position IS NULL OR rank_position > 0),
     CHECK (score IS NULL OR score >= 0)
 );
@@ -69,6 +71,12 @@ ALTER TABLE warehouse.ranking_record
 
 ALTER TABLE warehouse.ranking_record
     ADD COLUMN IF NOT EXISTS universe_key TEXT NOT NULL DEFAULT 'global';
+
+ALTER TABLE warehouse.ranking_record
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE warehouse.ranking_record
+    ADD COLUMN IF NOT EXISTS run_id TEXT;
 
 ALTER TABLE warehouse.ranking_record
     DROP CONSTRAINT IF EXISTS ranking_record_canonical_university_id_ranking_source_id_ra_key;

@@ -2,6 +2,7 @@
   "status": "ok",
   "failure_classification": "",
   "message": "",
+  "run_id": "qs-subject-computer-science-2026-2026-03-29T11:45:54Z",
   "universe_type": "subject",
   "universe_key": "computer-science",
   "ranking_year": 2026,
@@ -30,8 +31,10 @@
   },
   "normalized_count": 850,
   "standardized_count": 850,
-  "matched_count": 218,
-  "unresolved_count": 632,
+  "rows_written": 627,
+  "rows_updated": 0,
+  "matched_count": 627,
+  "unresolved_count": 223,
   "aggregated_years": [
     2026
   ]

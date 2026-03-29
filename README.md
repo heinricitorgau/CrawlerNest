@@ -10,9 +10,14 @@ While APIs and CLIs validate the data, students and advisors need a visual, comp
 
 ## Current Capabilities
 *   **Data Pipeline:** Asynchronous, compliance-aware crawlers fetching global rankings (1500+ universities scaled).
+*   **Multi-Universe Ingestion:** QS global / region / subject / special universes can be ingested through one unified runner.
+*   **Ingestion Traceability:** Every ingest run now writes `run_id` / `updated_at` trace fields into PostgreSQL ranking records.
+*   **Canonical Recovery Path:** Unlinked crawled universities can now be promoted into `canonical_university` and backfilled into `warehouse.ranking_record` without changing crawler behavior.
+*   **Aggregation Truth:** Aggregation now supports multi-universe truth, and the visible global ranking count has already expanded from 221 to 1323 after canonical seeding + ranking backfill.
 *   **Decision Engine:** An explainable recommendation engine providing deterministic groupings (reach/target/safety).
 *   **API Platform:** Repaired Java Spring Boot APIs (API v1) serving normalized analytical data with support for scoped/regional filtering.
 *   **Database Reliability:** Robust PostgreSQL transaction handling with automatic rollbacks on batch failures.
+*   **Frontend Freshness:** The Next.js rankings browser uses same-origin proxying, `no-store` fetches, periodic polling, and focus/visibility refresh to keep the UI close to live database state.
 
 ## High-Level Architecture
 CrawlerNest is built on a strict, decoupled 5-layer architecture:
@@ -51,6 +56,20 @@ The production-safe runner already prefers:
 
 So keeping `.venv` healthy is the safest way to run the crawler, validation scripts, and PostgreSQL ingestion pipeline.
 
+## Data Visibility Model
+
+CrawlerNest now has a clear database visibility chain:
+
+1. crawler writes raw university / ranking facts into PostgreSQL
+2. canonical identity layer links raw universities to `canonical_university`
+3. `warehouse.ranking_record` stores universe-aware ranking truth
+4. aggregation refreshes `analytics.v_aggregated_rankings_latest`
+5. Spring Boot API reads aggregated truth
+6. Next.js frontend reads through `/api/rankings`
+
+This matters because universities stored only in `warehouse.universities` are not automatically visible in the API.  
+They become visible only after canonical linking and ranking-record backfill are complete.
+
 ## How to Run the Web Platform (Website MVP)
 
 To start the full stack (Backend API + Frontend UI), follow these steps in two separate terminals:
@@ -71,6 +90,12 @@ npm run dev
 
 The application will be available at `http://localhost:3000`.
 
+The frontend rankings browser is designed to stay close to the database state:
+- same-origin API proxy at `/api/rankings`
+- `no-store` fetches through the proxy
+- periodic polling
+- immediate refresh on focus / visibility / reconnect
+
 ---
 
 ## How to Run the Data Pipeline (Crawler)
@@ -83,11 +108,89 @@ This script runs the pipeline with conservative settings to avoid IP blocks and 
 bash crawlernest/scripts/run_production_safe.sh
 ```
 
+To resume after an interruption:
+```bash
+bash crawlernest/scripts/run_production_safe.sh 2500 --resume
+```
+
+The production-safe script now:
+- prefers the project `.venv` automatically
+- keeps the crawler progress to a single live progress line
+- supports resume mode for interrupted runs
+- continues writing each completed crawl pass into PostgreSQL
+
 ### 2. Manual / Custom Pipeline Run
 You can also run the pipeline directly using Python for more control (e.g., limiting the number of universities for testing).
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-universes --ranking-year 2026 --limit 2500 --pg-user test --pg-database clawer
 ```
+
+To resume an interrupted QS multi-universe run:
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run-qs-universes --ranking-year 2026 --limit 2500 --resume --pg-user test --pg-database clawer
+```
+
+To resume a single region universe:
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run-qs-region --region europe --ranking-year 2026 --limit 2500 --resume --pg-user test --pg-database clawer
+```
+
+Important runtime behavior:
+- continuous QS universe commands run in a loop until `Ctrl+C`
+- each completed pass is written to PostgreSQL before the next pass starts
+- if interrupted, the next run with `--resume` continues from the last saved universe snapshot instead of starting from scratch
+
+### 3. Validate Aggregation Output
+After aggregation runs, use the validation script to confirm one-university-per-row correctness, rank continuity, and country distribution for a universe.
+
+Example:
+```bash
+./.venv/bin/python crawlernest/scripts/validate_aggregation.py --year 2026 --universe-type region --universe-key europe
+```
+
+The validator reports:
+- row count
+- distinct university count
+- duplicate count
+- null rank count
+- missing ranks
+- top countries
+- top 20 preview
+
+### 4. Recover Missing Visible Universities
+If universities have already been crawled into `warehouse.universities` but do not appear in the API or frontend, the usual cause is missing canonical/link/backfill steps.
+
+Run these two commands in order:
+
+1. Seed unresolved universities into the canonical layer:
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py seed-canonical --pg-user test --pg-database clawer
+```
+
+2. Backfill legacy `warehouse.rankings` into multi-source `warehouse.ranking_record` and refresh aggregation:
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py backfill-ranking-records --pg-user test --pg-database clawer
+```
+
+What these commands do:
+- `seed-canonical`
+  - finds `warehouse.universities` rows with no `canonical_university_link`
+  - creates `warehouse.canonical_university`
+  - creates `warehouse.canonical_university_link`
+- `backfill-ranking-records`
+  - reads legacy `warehouse.rankings`
+  - maps them through `warehouse.canonical_university_link`
+  - writes them into `warehouse.ranking_record`
+  - refreshes aggregation so the API and frontend can see the new rows immediately
+
+Observed result from the current environment:
+- visible global aggregated rows increased from `221` to `1323`
+- `/api/v1/rankings` now reports `metadata.totalCount = 1323`
+
+This is the recovery path when:
+- crawler data exists in PostgreSQL
+- but visible ranking count is stuck too low
+- and the frontend cannot show the newly crawled universities
 
 ---
 

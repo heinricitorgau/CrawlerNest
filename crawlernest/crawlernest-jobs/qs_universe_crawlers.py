@@ -102,9 +102,19 @@ class BaseQSUniverseCrawler:
             ),
         )
 
-    def crawl(self) -> tuple[list[University], dict[str, Any]]:
+    def crawl(self, existing_universities: list[University] | None = None) -> tuple[list[University], dict[str, Any]]:
         config = self.build_config()
+        existing_universities = list(existing_universities or [])
+        if existing_universities:
+            config._resume_paths = [str(uni.path).strip() for uni in existing_universities if str(uni.path or "").strip()]
+            config._resume_node_keys = [
+                f"path:{str(uni.path).strip()}" if str(uni.path or "").strip()
+                else f"rank-name:{str(uni.rank or '').strip()}|{str(uni.name or '').strip().lower()}"
+                for uni in existing_universities
+            ]
         crawler = UniversityCrawler(config)
+        if existing_universities:
+            crawler.universities = existing_universities.copy()
         universities = asyncio.run(crawler.crawl_async()) if self.use_async else crawler.crawl()
         self.interrupted = getattr(crawler, "interrupted", False)
         if universities:
