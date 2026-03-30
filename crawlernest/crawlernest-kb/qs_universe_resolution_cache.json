@@ -58,7 +58,7 @@
       "subregion_id": "",
       "resolved_ranking_page_url": "https://www.topuniversities.com/europe-university-rankings",
       "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T01:34:14.926934Z"
+      "resolved_at": "2026-03-30T02:30:17.175466Z"
     },
     "QS|2026|region|asia": {
       "source": "QS",
@@ -73,7 +73,7 @@
       "subregion_id": "",
       "resolved_ranking_page_url": "https://www.topuniversities.com/asia-university-rankings",
       "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T00:43:25.561441Z"
+      "resolved_at": "2026-03-30T01:41:03.924626Z"
     },
     "QS|2026|region|latin-america": {
       "source": "QS",
@@ -88,7 +88,7 @@
       "subregion_id": "",
       "resolved_ranking_page_url": "https://www.topuniversities.com/latin-america-university-rankings",
       "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T00:48:25.839179Z"
+      "resolved_at": "2026-03-30T01:45:18.443407Z"
     },
     "QS|2026|region|oceania": {
       "source": "QS",

@@ -1542,6 +1542,7 @@ def backfill_qs_ranking_records_from_legacy(
                     JOIN warehouse.canonical_university_link cul
                       ON cul.university_id = r.university_id
                     WHERE COALESCE(NULLIF(r.ranking_type, ''), 'world') = 'world'
+                      AND r.ranking_year IS NOT NULL
                     ORDER BY
                         cul.canonical_university_id,
                         r.ranking_year,
@@ -1575,6 +1576,7 @@ def backfill_qs_ranking_records_from_legacy(
                     JOIN warehouse.canonical_university_link cul
                       ON cul.university_id = r.university_id
                     WHERE COALESCE(NULLIF(r.ranking_type, ''), 'world') = 'world'
+                      AND r.ranking_year IS NOT NULL
                     ORDER BY
                         cul.canonical_university_id,
                         r.ranking_year,
@@ -1619,6 +1621,7 @@ def backfill_qs_ranking_records_from_legacy(
                     JOIN warehouse.canonical_university_link cul
                       ON cul.university_id = r.university_id
                     WHERE COALESCE(NULLIF(r.ranking_type, ''), 'world') = 'world'
+                      AND r.ranking_year IS NOT NULL
                     ORDER BY
                         cul.canonical_university_id,
                         r.ranking_year,

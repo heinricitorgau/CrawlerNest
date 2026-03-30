@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from difflib import SequenceMatcher
+import re
 from typing import Callable, Optional
 
 from .normalizer import normalize_university_name, tokenize_for_blocking
@@ -13,8 +14,8 @@ EmbeddingMatcher = Callable[[EntityRecord, list[CanonicalProfile]], Optional[tup
 
 @dataclass(frozen=True)
 class ResolverThresholds:
-    fuzzy_accept: float = 0.93
-    fuzzy_review: float = 0.88
+    fuzzy_accept: float = 0.88
+    fuzzy_review: float = 0.82
     embedding_accept: float = 0.90
     embedding_review: float = 0.84
 
@@ -51,16 +52,23 @@ class EntityResolver:
         for profile in canonical_profiles:
             aliases = {profile.display_name, *profile.aliases}
             for alias in aliases:
-                raw_key = alias.strip().lower()
-                norm_key = normalize_university_name(alias)
-                if raw_key:
-                    self._raw_alias_index.setdefault(raw_key, (profile.canonical_university_id, alias))
-                if norm_key:
-                    self._normalized_alias_index.setdefault(norm_key, (profile.canonical_university_id, alias))
-                    for tok in tokenize_for_blocking(alias):
-                        self._token_inverted[tok].add(profile.canonical_university_id)
+                stripped_alias = self._strip_parenthetical_suffix(alias)
+                alias_variants = {alias}
+                if stripped_alias and stripped_alias != alias:
+                    alias_variants.add(stripped_alias)
+
+                for alias_variant in alias_variants:
+                    raw_key = alias_variant.strip().lower()
+                    norm_key = normalize_university_name(alias_variant)
+                    if raw_key:
+                        self._raw_alias_index.setdefault(raw_key, (profile.canonical_university_id, alias))
+                    if norm_key:
+                        self._normalized_alias_index.setdefault(norm_key, (profile.canonical_university_id, alias))
+                        for tok in tokenize_for_blocking(alias_variant):
+                            self._token_inverted[tok].add(profile.canonical_university_id)
             if profile.country_hint:
-                self._country_index[profile.country_hint.strip().lower()].add(profile.canonical_university_id)
+                for country_variant in self._country_variants(profile.country_hint):
+                    self._country_index[country_variant].add(profile.canonical_university_id)
 
     def resolve_batch(self, records: list[EntityRecord]) -> list[ResolutionResult]:
         return [self.resolve_one(r) for r in records]
@@ -159,7 +167,9 @@ class EntityResolver:
         # fall back to the full token_union rather than returning no candidates, which
         # would force an unresolved result even for a strong name match.
         if record.country_hint:
-            country_set = self._country_index.get(record.country_hint.strip().lower(), set())
+            country_set: set[int] = set()
+            for country_variant in self._country_variants(record.country_hint):
+                country_set.update(self._country_index.get(country_variant, set()))
             if country_set:
                 narrowed = token_union.intersection(country_set) if token_union else country_set
                 token_union = narrowed if narrowed else token_union
@@ -182,17 +192,53 @@ class EntityResolver:
             profile = self._profiles_by_id[cid]
             alias_pool = (profile.display_name, *profile.aliases)
             for alias in alias_pool:
-                alias_norm = normalize_university_name(alias)
-                if not alias_norm:
+                alias_variants = [alias]
+                stripped_alias = self._strip_parenthetical_suffix(alias)
+                if stripped_alias and stripped_alias != alias:
+                    alias_variants.append(stripped_alias)
+
+                best_alias_score: Optional[float] = None
+                for alias_variant in alias_variants:
+                    alias_norm = normalize_university_name(alias_variant)
+                    if not alias_norm:
+                        continue
+                    seq = SequenceMatcher(None, normalized_name, alias_norm).ratio()
+                    alias_tokens = set(tokenize_for_blocking(alias_variant))
+                    token_jaccard = (
+                        len(record_tokens & alias_tokens) / len(record_tokens | alias_tokens)
+                        if record_tokens or alias_tokens
+                        else 0.0
+                    )
+                    score = 0.75 * seq + 0.25 * token_jaccard
+                    if best_alias_score is None or score > best_alias_score:
+                        best_alias_score = score
+
+                if best_alias_score is None:
                     continue
-                seq = SequenceMatcher(None, normalized_name, alias_norm).ratio()
-                alias_tokens = set(tokenize_for_blocking(alias))
-                token_jaccard = (
-                    len(record_tokens & alias_tokens) / len(record_tokens | alias_tokens)
-                    if record_tokens or alias_tokens
-                    else 0.0
-                )
-                score = 0.75 * seq + 0.25 * token_jaccard
+                score = best_alias_score
                 if best is None or score > best[2]:
                     best = (cid, alias, score)
         return best
+
+    @staticmethod
+    def _strip_parenthetical_suffix(alias: str) -> str:
+        return re.sub(r"\s*\([^)]*\)\s*$", "", str(alias or "")).strip()
+
+    @staticmethod
+    def _country_variants(country_hint: str) -> list[str]:
+        base = str(country_hint or "").strip().lower()
+        if not base:
+            return []
+        variant_groups = {
+            "china": ["china", "china (mainland)", "china mainland"],
+            "united states": ["united states", "united states of america", "usa"],
+            "south korea": ["south korea", "korea, south", "republic of korea"],
+            "taiwan": ["taiwan", "taiwan (province of china)"],
+            "hong kong": ["hong kong", "hong kong sar", "hong kong s.a.r."],
+            "iran": ["iran", "iran (islamic republic of)"],
+            "russia": ["russia", "russian federation"],
+        }
+        for variants in variant_groups.values():
+            if base in variants:
+                return variants
+        return [base]

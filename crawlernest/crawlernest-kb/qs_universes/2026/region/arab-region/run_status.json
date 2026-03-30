@@ -1,8 +1,8 @@
 {
   "status": "ok",
-  "failure_classification": "",
-  "message": "",
-  "run_id": "qs-region-arab-region-2026-2026-03-30T00:53:26Z",
+  "failure_classification": "list_fetch_failed",
+  "message": "403 Client Error: Forbidden for url: https://www.topuniversities.com/rankings/api/ranking/3990755?nid=3990755&page=0&items_per_page=500&tab=indicators&regions=arab+region",
+  "run_id": "qs-region-arab-region-2026-2026-03-30T01:46:49Z",
   "universe_type": "region",
   "universe_key": "arab-region",
   "ranking_year": 2026,
@@ -10,8 +10,8 @@
     "detail_fallback_triggered": false,
     "detail_deferred_paths": [],
     "detail_forbidden_count": 0,
-    "failure_classification": "",
-    "failure_message": "",
+    "failure_classification": "list_fetch_failed",
+    "failure_message": "403 Client Error: Forbidden for url: https://www.topuniversities.com/rankings/api/ranking/3990755?nid=3990755&page=0&items_per_page=500&tab=indicators&regions=arab+region",
     "used_resolution_cache": false,
     "resolved_ranking_id": "3990755",
     "ranking_id_candidates": [],
@@ -29,13 +29,11 @@
       "enable_aggregation": true
     }
   },
-  "normalized_count": 99,
-  "standardized_count": 99,
-  "rows_written": 99,
+  "normalized_count": 0,
+  "standardized_count": 0,
+  "rows_written": 0,
   "rows_updated": 0,
-  "matched_count": 99,
+  "matched_count": 0,
   "unresolved_count": 0,
-  "aggregated_years": [
-    2026
-  ]
+  "aggregated_years": []
 }

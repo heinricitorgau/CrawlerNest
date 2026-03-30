@@ -97,6 +97,60 @@ run_with_single_progress_line() {
     "$@" 2>&1 | render_single_progress_line
 }
 
+run_qs_region_single_pass() {
+    local region="$1"
+    local limit="$2"
+
+    "${PYTHON_BIN}" -u - "${PYTHON_BIN}" "${PIPELINE}" "${region}" "${PG_USER}" "${PG_DATABASE}" "${limit}" <<'PY'
+import signal
+import subprocess
+import sys
+
+python_bin, pipeline, region, pg_user, pg_database, limit = sys.argv[1:]
+cmd = [
+    python_bin,
+    pipeline,
+    "run-qs-region",
+    "--region",
+    region,
+    "--ranking-year",
+    "2026",
+    "--limit",
+    limit,
+    "--pg-user",
+    pg_user,
+    "--pg-database",
+    pg_database,
+]
+
+completion_marker = f"[qs-universe] region/{region} "
+saw_completion = False
+proc = subprocess.Popen(
+    cmd,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    text=True,
+    bufsize=1,
+)
+
+assert proc.stdout is not None
+for line in proc.stdout:
+    sys.stdout.write(line)
+    sys.stdout.flush()
+    if not saw_completion and completion_marker in line and "matched=" in line:
+        saw_completion = True
+        try:
+            proc.send_signal(signal.SIGINT)
+        except ProcessLookupError:
+            pass
+
+return_code = proc.wait()
+if saw_completion and return_code in (0, -signal.SIGINT, 130):
+    sys.exit(0)
+sys.exit(return_code)
+PY
+}
+
 # ---------------------------------------------------------------------------
 # 3. Pre-flight environment checks
 # ---------------------------------------------------------------------------
@@ -248,7 +302,40 @@ fi
 echo ""
 
 # ---------------------------------------------------------------------------
-# 8. Summary
+# 9. STEP 4 — QS major universe rankings
+# ---------------------------------------------------------------------------
+STEP4_TRIGGERED=true
+STEP4_EXIT=0
+STEP4_SUCCEEDED=()
+STEP4_FAILED=()
+STEP4_REGIONS=(europe asia latin-america arab-region oceania africa north-america)
+
+echo "[STEP 4] Starting QS major universe ingestion  ($(date '+%H:%M:%S'))"
+
+for region in "${STEP4_REGIONS[@]}"; do
+    echo "         ${PYTHON_BIN} ${PIPELINE} run-qs-region --region ${region} \\"
+    echo "           --ranking-year 2026 --limit 2500 --pg-user ${PG_USER} --pg-database ${PG_DATABASE}"
+    echo ""
+
+    if run_with_single_progress_line run_qs_region_single_pass "${region}" "2500"; then
+        STEP4_SUCCEEDED+=("${region}")
+        echo ""
+        echo "[STEP 4] region ${region} completed.  ($(date '+%H:%M:%S'))"
+    else
+        STEP4_EXIT=1
+        STEP4_FAILED+=("${region}")
+        echo ""
+        echo "[WARN] STEP 4 region ${region} failed. Continuing."
+    fi
+    echo ""
+done
+
+echo "[STEP 4] succeeded regions: ${STEP4_SUCCEEDED[*]:-none}"
+echo "[STEP 4] failed regions: ${STEP4_FAILED[*]:-none}"
+echo ""
+
+# ---------------------------------------------------------------------------
+# 10. Summary
 # ---------------------------------------------------------------------------
 END_TS="$(date +%s)"
 DURATION=$(( END_TS - START_TS ))
@@ -259,19 +346,55 @@ echo "[END]      $(date '+%Y-%m-%d %H:%M:%S')"
 echo "[DURATION] ${DURATION_FMT}  (${DURATION}s)"
 if [[ "${STEP2_TRIGGERED}" == "true" ]]; then
     if [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -eq 0 ]]; then
-        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings"
+        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings  |  Step 4: QS major universes"
+        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings  |  Step 4: QS major universes (warn)"
+        else
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings"
+        fi
     elif [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -ne 0 ]]; then
-        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings (warn)"
+        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings (warn)  |  Step 4: QS major universes"
+        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings (warn)  |  Step 4: QS major universes (warn)"
+        else
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings (warn)"
+        fi
     else
-        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment"
+        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 4: QS major universes"
+        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 4: QS major universes (warn)"
+        else
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment"
+        fi
     fi
 else
     if [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -eq 0 ]]; then
-        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings"
+        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings  |  Step 4: QS major universes"
+        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings  |  Step 4: QS major universes (warn)"
+        else
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings"
+        fi
     elif [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -ne 0 ]]; then
-        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings (warn)"
+        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings (warn)  |  Step 4: QS major universes"
+        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings (warn)  |  Step 4: QS major universes (warn)"
+        else
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings (warn)"
+        fi
     else
-        echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)"
+        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 4: QS major universes"
+        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 4: QS major universes (warn)"
+        else
+            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)"
+        fi
     fi
 fi
 echo "           Log written to: ${LOG_FILE}"

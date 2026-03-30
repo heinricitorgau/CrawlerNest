@@ -4,6 +4,8 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
 .venv-1/
 
@@ -18,6 +20,15 @@ target/
 # Logs / local artifacts
 logs/
 *.log
+
+# Runtime crawler artifacts
+crawlernest/crawlernest-kb/databases/the_rankings_*.json
+crawlernest/crawlernest-kb/qs_universe_resolution_cache.json
+crawlernest/crawlernest-kb/qs_universes/**/crawl_meta.json
+crawlernest/crawlernest-kb/qs_universes/**/run_status.json
+crawlernest/crawlernest-kb/qs_universes/**/raw_snapshot.json
+crawlernest/crawlernest-kb/qs_universes/**/normalized_snapshot.json
+crawlernest/crawlernest-kb/qs_universes/**/standardized_rows.json
 
 # Local databases
 *.db
