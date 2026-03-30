@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "",
   "message": "",
-  "run_id": "qs-global-global-2026-2026-03-30T00:32:24Z",
+  "run_id": "qs-global-global-2026-2026-03-30T01:34:17Z",
   "universe_type": "global",
   "universe_key": "global",
   "ranking_year": 2026,
@@ -29,12 +29,12 @@
       "enable_aggregation": true
     }
   },
-  "normalized_count": 1503,
-  "standardized_count": 1503,
-  "rows_written": 1499,
+  "normalized_count": 1,
+  "standardized_count": 1,
+  "rows_written": 1,
   "rows_updated": 0,
-  "matched_count": 1499,
-  "unresolved_count": 4,
+  "matched_count": 1,
+  "unresolved_count": 0,
   "aggregated_years": [
     2026
   ]
