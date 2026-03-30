@@ -107,7 +107,16 @@ http://localhost:3000
 
 ## 如何執行資料管線
 
-### 1. Production-safe 方式
+目前建議依用途分成四類：
+
+- **日常安全執行**：用 production-safe script
+- **手動抓取 / 測試 / 指定 scope 重跑**：直接用 QS / THE commands
+- **驗證與診斷**：確認 aggregation 是否正確、哪些 universe 缺資料
+- **可見性修復**：資料已在 PostgreSQL，但 API / 前端還看不到時使用
+
+### 1. Production-safe 方式（建議日常使用）
+
+如果你想用一條最安全的命令定期刷新資料庫，請用這條：
 
 ```bash
 bash crawlernest/scripts/run_production_safe.sh
@@ -119,15 +128,33 @@ bash crawlernest/scripts/run_production_safe.sh
 bash crawlernest/scripts/run_production_safe.sh 2500 --resume
 ```
 
-這支 script 目前具備：
+這支 script 目前會依序執行：
+
+- **Step 1**：QS global rankings crawl
+- **Step 2**：如果有 deferred items，就跑 detail enrichment
+- **Step 3**：THE world rankings ingestion
+- **Step 4**：QS major regions 各跑一輪
+  - europe
+  - asia
+  - latin-america
+  - arab-region
+  - oceania
+  - africa
+  - north-america
+
+執行特性：
 
 - 自動優先使用專案 `.venv`
 - 單一進度列輸出
 - 支援 `--resume`
-- 每輪 crawl 完成就先寫入 PostgreSQL
-- 會額外執行 THE rankings ingestion（失敗只警告，不阻擋整體流程）
+- 每輪完成就先寫入 PostgreSQL
+- 非關鍵步驟失敗時會警告但繼續往下跑
 
-### 2. 手動執行 QS multi-universe pipeline
+### 2. 手動執行資料抓取 / ingestion
+
+當你需要更細的控制，例如只跑 QS、只跑某個 region、或只跑 THE，可以直接用下面這些命令。
+
+#### 2.1 跑全部 QS universes
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-universes --ranking-year 2026 --limit 2500 --pg-user test --pg-database clawer
@@ -139,21 +166,42 @@ bash crawlernest/scripts/run_production_safe.sh 2500 --resume
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-universes --ranking-year 2026 --limit 2500 --resume --pg-user test --pg-database clawer
 ```
 
-單跑 Europe region 並續跑：
+#### 2.2 單跑一個 QS region
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run-qs-region --region europe --ranking-year 2026 --limit 2500 --pg-user test --pg-database clawer
+```
+
+中斷後續跑：
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-region --region europe --ranking-year 2026 --limit 2500 --resume --pg-user test --pg-database clawer
 ```
 
-執行語意：
+#### 2.3 跑 THE 世界排名
 
-- continuous QS universe commands 會一直跑到 `Ctrl+C`
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --pg-user test --pg-database clawer
+```
+
+如果只想先 ingest，不做額外 seed / backfill：
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --skip-seed --pg-user test --pg-database clawer
+```
+
+QS universe commands 的執行語意：
+
+- `run-qs-*` 與 `run-qs-universes` 都是 continuous commands
+- 會一直跑到你按 `Ctrl+C`
 - 每一輪完成都會先寫 DB
 - 下次帶 `--resume` 會從上次 snapshot 接著跑
 
 ---
 
-## 驗證 aggregation 結果
+## 驗證與診斷
+
+### 1. 驗證 aggregation 結果
 
 ```bash
 ./.venv/bin/python crawlernest/scripts/validate_aggregation.py --year 2026 --universe-type region --universe-key europe
@@ -169,23 +217,32 @@ bash crawlernest/scripts/run_production_safe.sh 2500 --resume
 - top countries
 - top 20 preview
 
+### 2. 診斷哪些 QS universe 缺資料
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py rebuild-universe-records --ranking-year 2026 --pg-user test --pg-database clawer
+```
+
+它會：
+
+- 檢查所有 QS universes
+- 找出哪些 universe 在指定年份的 `warehouse.ranking_record` 是 0 rows
+- 印出應重新 re-crawl 的 universe
+
+它 **不會** 自動重抓，只做診斷。
+
 ---
 
-## 補回「已抓到但前端看不到」的學校
+## 可見性修復
+
+### 1. 補回「已抓到但前端看不到」的 QS 學校
 
 如果資料已經進了 `warehouse.universities`，但 API / frontend 看不到，通常是 canonical / link / ranking_record 還沒補齊。
 
 請依序執行：
 
-### 1. Seed canonical entities
-
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py seed-canonical --pg-user test --pg-database clawer
-```
-
-### 2. Backfill ranking records
-
-```bash
 ./.venv/bin/python crawlernest/run_pipeline.py backfill-ranking-records --pg-user test --pg-database clawer
 ```
 
@@ -201,47 +258,26 @@ bash crawlernest/scripts/run_production_safe.sh 2500 --resume
 - visible global aggregated rows 已從 `221` 擴大到 `1323`
 - `/api/v1/rankings` 會回傳 `metadata.totalCount = 1323`
 
----
+### 2. 補回卡在 missing log 裡的 THE 學校
 
-## THE 世界排名一鍵流程
-
-CrawlerNest 現在也支援直接跑 THE rankings：
+THE universities 不會先進 `warehouse.universities`，所以不能只靠 `seed-canonical` 修復。
 
 ```bash
-./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --pg-user test --pg-database clawer
+./.venv/bin/python crawlernest/run_pipeline.py seed-canonical-from-missing --pg-user test --pg-database clawer
 ```
 
 這條 command 會：
 
-1. 抓 THE world rankings  
-2. ingest 到 multi-source pipeline  
-3. 執行 canonical seeding  
-4. 執行 ranking backfill  
-5. refresh aggregation  
+- 從 `analytics.missing_entity_log` 讀 THE unresolved rows
+- 用 `(raw_name, country_hint)` 補種 `canonical_university`
+- 自動重跑一次 THE ingestion
 
-如果只想先 ingest，不做 seed / backfill：
+目前實際觀察結果：
 
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --skip-seed --pg-user test --pg-database clawer
-```
-
----
-
-## Universe 缺資料診斷
-
-若懷疑某些 QS universe 在 `warehouse.ranking_record` 中遺失，可用這條純診斷 command：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py rebuild-universe-records --ranking-year 2026 --pg-user test --pg-database clawer
-```
-
-它會：
-
-- 檢查所有 QS universes
-- 找出哪些 universe 在指定年份的 `warehouse.ranking_record` 是 0 rows
-- 印出應重新 re-crawl 的 universe
-
-它 **不會** 自動重抓，只做診斷。
+- `seeded=1283`
+- THE re-ingest 後 `matched=2191`
+- `unresolved=0`
+- aggregated visible rows 擴大到 `2736`
 
 ---
 

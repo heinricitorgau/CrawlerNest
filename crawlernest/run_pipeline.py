@@ -1322,6 +1322,150 @@ def _normalize_display_name_for_canonical(display_name: str) -> str:
     return " ".join(normalized.split())
 
 
+def _slugify_canonical_name(display_name: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", str(display_name or "").strip().lower())
+    slug = re.sub(r"-{2,}", "-", slug)
+    return slug.strip("-")
+
+
+def seed_canonical_from_missing_entities(
+    *,
+    source_code: str,
+    ranking_year: int,
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> dict[str, Any]:
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    seeded = 0
+    skipped = 0
+    failed = 0
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT DISTINCT raw_name, country_hint
+                FROM analytics.missing_entity_log
+                WHERE source_code = %s
+                  AND COALESCE(raw_name, '') <> ''
+                ORDER BY raw_name ASC, country_hint ASC NULLS LAST
+                """,
+                (source_code,),
+            )
+            missing_rows = cur.fetchall()
+
+            for raw_name, country_hint in missing_rows:
+                display_name = str(raw_name or "").strip()
+                if not display_name:
+                    skipped += 1
+                    continue
+
+                canonical_slug = _slugify_canonical_name(display_name)
+                if not canonical_slug:
+                    failed += 1
+                    continue
+
+                display_name_normalized = _normalize_display_name_for_canonical(display_name)
+
+                cur.execute(
+                    """
+                    SELECT canonical_university_id
+                    FROM warehouse.canonical_university
+                    WHERE canonical_slug = %s
+                    """,
+                    (canonical_slug,),
+                )
+                existing = cur.fetchone()
+                if existing is not None:
+                    skipped += 1
+                    continue
+
+                country_id = None
+                country_hint_text = str(country_hint or "").strip()
+                if country_hint_text:
+                    cur.execute(
+                        """
+                        SELECT country_id
+                        FROM warehouse.countries
+                        WHERE country_name ILIKE %s
+                        LIMIT 1
+                        """,
+                        (country_hint_text,),
+                    )
+                    country_row = cur.fetchone()
+                    if country_row is not None:
+                        country_id = int(country_row[0])
+                    else:
+                        cur.execute(
+                            """
+                            INSERT INTO warehouse.countries (country_name)
+                            VALUES (%s)
+                            ON CONFLICT (country_name) DO NOTHING
+                            RETURNING country_id
+                            """,
+                            (country_hint_text,),
+                        )
+                        inserted_country = cur.fetchone()
+                        if inserted_country is not None:
+                            country_id = int(inserted_country[0])
+                        else:
+                            cur.execute(
+                                """
+                                SELECT country_id
+                                FROM warehouse.countries
+                                WHERE country_name ILIKE %s
+                                LIMIT 1
+                                """,
+                                (country_hint_text,),
+                            )
+                            fallback_country = cur.fetchone()
+                            if fallback_country is not None:
+                                country_id = int(fallback_country[0])
+
+                cur.execute(
+                    """
+                    INSERT INTO warehouse.canonical_university (
+                        canonical_slug,
+                        display_name,
+                        display_name_normalized,
+                        country_id,
+                        status
+                    )
+                    VALUES (%s, %s, %s, %s, 'active')
+                    ON CONFLICT (canonical_slug) DO NOTHING
+                    RETURNING canonical_university_id
+                    """,
+                    (
+                        canonical_slug,
+                        display_name,
+                        display_name_normalized,
+                        country_id,
+                    ),
+                )
+                inserted_row = cur.fetchone()
+                if inserted_row is not None:
+                    seeded += 1
+                else:
+                    skipped += 1
+
+        conn.commit()
+        return {
+            "seeded": seeded,
+            "skipped": skipped,
+            "failed": failed,
+            "source_code": source_code,
+            "ranking_year": ranking_year,
+        }
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def seed_canonical_universities(
     *,
     pg_host: Optional[str],
@@ -2096,6 +2240,18 @@ def build_parser() -> argparse.ArgumentParser:
     seed_canonical_parser.add_argument("--pg-user", default="test")
     seed_canonical_parser.add_argument("--pg-password", default="")
 
+    seed_canonical_missing_parser = subparsers.add_parser(
+        "seed-canonical-from-missing",
+        help="Seed canonical_university rows from unresolved analytics.missing_entity_log entries and re-ingest THE",
+    )
+    seed_canonical_missing_parser.add_argument("--source", default="THE")
+    seed_canonical_missing_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
+    seed_canonical_missing_parser.add_argument("--pg-host", default="localhost")
+    seed_canonical_missing_parser.add_argument("--pg-port", type=int, default=5432)
+    seed_canonical_missing_parser.add_argument("--pg-database", default="clawer")
+    seed_canonical_missing_parser.add_argument("--pg-user", default="test")
+    seed_canonical_missing_parser.add_argument("--pg-password", default="")
+
     backfill_ranking_parser = subparsers.add_parser(
         "backfill-ranking-records",
         help="Backfill multi-source warehouse.ranking_record rows from legacy warehouse.rankings using canonical_university_link",
@@ -2773,6 +2929,46 @@ def main() -> int:
             f"[seed-canonical] years_aggregated={summary['years_aggregated']} "
             f"aggregated_rows={summary['aggregated_rows']}"
         )
+        return 0
+
+    if args.command == "seed-canonical-from-missing":
+        ensure_postgres_schema(
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+        )
+        summary = seed_canonical_from_missing_entities(
+            source_code=str(args.source or "THE").strip().upper(),
+            ranking_year=args.ranking_year,
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+        )
+        print(
+            f"[seed-canonical-from-missing] seeded={summary['seeded']} "
+            f"skipped={summary['skipped']} failed={summary['failed']}"
+        )
+        if summary["source_code"] == "THE":
+            print("[seed-canonical-from-missing] re-ingesting THE rankings...")
+            the_summary = run_the_rankings_ingestion(
+                ranking_year=args.ranking_year,
+                output_dir=MODULE_ROOT / "crawlernest-kb" / "databases",
+                pg_host=args.pg_host,
+                pg_port=args.pg_port,
+                pg_database=args.pg_database,
+                pg_user=args.pg_user,
+                pg_password=args.pg_password,
+                skip_seed=True,
+            )
+            print(
+                f"[seed-canonical-from-missing] matched={the_summary['matched_count']} "
+                f"unresolved={the_summary['unresolved_count']} "
+                f"aggregated_rows={the_summary['aggregated_rows']}"
+            )
         return 0
 
     if args.command == "backfill-ranking-records":

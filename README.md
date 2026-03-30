@@ -15,7 +15,7 @@ While APIs and CLIs validate the data, students and advisors need a visual, comp
 *   **Multi-Universe Ingestion:** QS global / region / subject / special universes can be ingested through one unified runner.
 *   **Ingestion Traceability:** Every ingest run now writes `run_id` / `updated_at` trace fields into PostgreSQL ranking records.
 *   **Canonical Recovery Path:** Unlinked crawled universities can now be promoted into `canonical_university` and backfilled into `warehouse.ranking_record` without changing crawler behavior.
-*   **Aggregation Truth:** Aggregation now supports multi-universe truth, and the visible global ranking count has already expanded from 221 to 1323 after canonical seeding + ranking backfill.
+*   **Aggregation Truth:** Aggregation now supports multi-universe truth, and the visible aggregated ranking count has expanded from 221 to 2736 after canonical seeding, ranking backfill, and THE missing-entity recovery.
 *   **Decision Engine:** An explainable recommendation engine providing deterministic groupings (reach/target/safety).
 *   **API Platform:** Repaired Java Spring Boot APIs (API v1) serving normalized analytical data with support for scoped/regional filtering.
 *   **Database Reliability:** Robust PostgreSQL transaction handling with automatic rollbacks on batch failures.
@@ -102,55 +102,107 @@ The frontend rankings browser is designed to stay close to the database state:
 
 ## How to Run the Data Pipeline (Crawler)
 
-The crawler fetches data from global sources like QS Rankings and populates the PostgreSQL database.
+Use the pipeline commands according to the job you want to perform:
 
-### 1. Production-Safe Run (Recommended)
-This script runs the pipeline with conservative settings to avoid IP blocks and ensure high resilience.
+- **daily safe operation**: use the production-safe runner
+- **manual crawl / targeted reruns**: use the QS / THE commands directly
+- **verification**: use validation and diagnostic commands
+- **visibility repair**: use canonical / backfill recovery commands
+
+### 1. Production-Safe Run (Recommended Daily Entry)
+
+Use this when you want the safest default command for regular operation.
+
 ```bash
 bash crawlernest/scripts/run_production_safe.sh
 ```
 
 To resume after an interruption:
+
 ```bash
 bash crawlernest/scripts/run_production_safe.sh 2500 --resume
 ```
 
-The production-safe script now:
+The production-safe script currently runs:
+
+- **Step 1**: QS global rankings crawl
+- **Step 2**: deferred detail enrichment if pending items exist
+- **Step 3**: THE world rankings ingestion
+- **Step 4**: QS major region universes, one pass each
+  - europe
+  - asia
+  - latin-america
+  - arab-region
+  - oceania
+  - africa
+  - north-america
+
+Operational behavior:
+
 - prefers the project `.venv` automatically
 - keeps the crawler progress to a single live progress line
 - supports resume mode for interrupted runs
-- continues writing each completed crawl pass into PostgreSQL
+- continues writing each completed pass into PostgreSQL
+- warns and continues if non-critical stages fail
 
-### 2. Manual / Custom Pipeline Run
-You can also run the pipeline directly using Python for more control (e.g., limiting the number of universities for testing).
+### 2. Manual Crawl / Ingest Commands
+
+Use these commands when you need direct control over scope, resume behavior, or testing.
+
+#### 2.1 Run all QS universes
+
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-universes --ranking-year 2026 --limit 2500 --pg-user test --pg-database clawer
 ```
 
 To resume an interrupted QS multi-universe run:
+
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-universes --ranking-year 2026 --limit 2500 --resume --pg-user test --pg-database clawer
 ```
 
-To resume a single region universe:
+#### 2.2 Run a single QS region universe
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run-qs-region --region europe --ranking-year 2026 --limit 2500 --pg-user test --pg-database clawer
+```
+
+To resume the same region:
+
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-region --region europe --ranking-year 2026 --limit 2500 --resume --pg-user test --pg-database clawer
 ```
 
-Important runtime behavior:
-- continuous QS universe commands run in a loop until `Ctrl+C`
+#### 2.3 Run THE world rankings
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --pg-user test --pg-database clawer
+```
+
+If you only want THE ingest without extra seed/backfill recovery:
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --skip-seed --pg-user test --pg-database clawer
+```
+
+Important runtime behavior for QS universe commands:
+
+- `run-qs-*` and `run-qs-universes` are continuous commands and keep running until `Ctrl+C`
 - each completed pass is written to PostgreSQL before the next pass starts
-- if interrupted, the next run with `--resume` continues from the last saved universe snapshot instead of starting from scratch
+- if interrupted, rerun with `--resume` to continue from the last saved universe snapshot instead of starting from scratch
 
-### 3. Validate Aggregation Output
-After aggregation runs, use the validation script to confirm one-university-per-row correctness, rank continuity, and country distribution for a universe.
+### 3. Validation and Diagnostics
 
-Example:
+Use these commands after crawl/ingest when you want to confirm data correctness or identify missing universes.
+
+#### 3.1 Validate aggregation output
+
 ```bash
 ./.venv/bin/python crawlernest/scripts/validate_aggregation.py --year 2026 --universe-type region --universe-key europe
 ```
 
 The validator reports:
+
 - row count
 - distinct university count
 - duplicate count
@@ -159,40 +211,65 @@ The validator reports:
 - top countries
 - top 20 preview
 
-### 4. Recover Missing Visible Universities
+#### 3.2 Diagnose missing QS universes
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py rebuild-universe-records --ranking-year 2026 --pg-user test --pg-database clawer
+```
+
+This command:
+
+- checks all configured QS universes
+- reports which universe/year pairs currently have `0` rows in `warehouse.ranking_record`
+- does **not** re-crawl by itself
+
+### 4. Visibility Recovery Commands
+
+Use these only when data exists in PostgreSQL but is still missing from the API or frontend.
+
+#### 4.1 Recover universities already present in `warehouse.universities`
+
 If universities have already been crawled into `warehouse.universities` but do not appear in the API or frontend, the usual cause is missing canonical/link/backfill steps.
 
 Run these two commands in order:
 
-1. Seed unresolved universities into the canonical layer:
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py seed-canonical --pg-user test --pg-database clawer
-```
-
-2. Backfill legacy `warehouse.rankings` into multi-source `warehouse.ranking_record` and refresh aggregation:
-```bash
 ./.venv/bin/python crawlernest/run_pipeline.py backfill-ranking-records --pg-user test --pg-database clawer
 ```
 
-What these commands do:
-- `seed-canonical`
-  - finds `warehouse.universities` rows with no `canonical_university_link`
-  - creates `warehouse.canonical_university`
-  - creates `warehouse.canonical_university_link`
-- `backfill-ranking-records`
-  - reads legacy `warehouse.rankings`
-  - maps them through `warehouse.canonical_university_link`
-  - writes them into `warehouse.ranking_record`
-  - refreshes aggregation so the API and frontend can see the new rows immediately
+These commands:
+
+- create missing `canonical_university` rows
+- create missing `canonical_university_link` rows
+- backfill legacy `warehouse.rankings` into `warehouse.ranking_record`
+- refresh aggregation so the API/frontend can see the new rows immediately
 
 Observed result from the current environment:
-- visible global aggregated rows increased from `221` to `1323`
-- `/api/v1/rankings` now reports `metadata.totalCount = 1323`
 
-This is the recovery path when:
-- crawler data exists in PostgreSQL
-- but visible ranking count is stuck too low
-- and the frontend cannot show the newly crawled universities
+- visible global aggregated rows increased from `221` to `1323`
+- `/api/v1/rankings` reported `metadata.totalCount = 1323`
+
+#### 4.2 Recover THE-only universities from `analytics.missing_entity_log`
+
+THE universities do not come from `warehouse.universities`, so `seed-canonical` alone cannot recover them.
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py seed-canonical-from-missing --pg-user test --pg-database clawer
+```
+
+This command:
+
+- reads unresolved rows from `analytics.missing_entity_log` (default source: `THE`)
+- seeds new `canonical_university` entities from `(raw_name, country_hint)`
+- re-runs THE ingestion so the newly seeded entities can be matched immediately
+
+Observed result from the current environment:
+
+- `seeded=1283`
+- THE re-ingest reached `matched=2191`
+- THE `unresolved=0`
+- aggregated visible rows expanded to `2736`
 
 ---
 

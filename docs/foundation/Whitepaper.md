@@ -43,7 +43,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 
 目前 CrawlerNest 的核心策略如下：
 
-1. **資料聚合優先**：以 QS 為主來源，THE / ARWU 為下一階段整合目標
+1. **資料聚合優先**：以 QS 為主來源，THE 已完成接入與可見性修復，ARWU 為下一階段整合目標
 2. **知識庫優先**：建立可查詢、可維護、可追溯的大學資料基底
 3. **決策系統先 explainable 再 intelligent**：先以 deterministic recommendation / comparison 打穩決策層，再逐步推進 AI 能力
 4. **模組解耦**：crawler、extractor、normalization、db、analytics、API 彼此保持相對獨立
@@ -237,7 +237,7 @@ CrawlerNest 的競爭優勢與市場定位如下：
 - **排名聚合 (Ranking Aggregation)**：多來源數據經由數學模型結合為 `aggregated_rank`。目前聚合已支援 multi-universe truth：`global`、`region:*`、`subject:*` 可分 universe 獨立計算，不再以 global filter 假裝 region truth。
 - **推薦決策系統 (v3) 與信心模型 (Confidence Model)**：最新推薦器將學校嚴格分類為 Reach、Target 與 Safety。動態信心模型會根據底層數據品質 (如是否缺失錄取分數要求) 調整預測準確度。
 - **Lobster-01 基礎設施節點**：專用的低規控制節點，利用 systemd timers 與批次 I/O 執行長時間背景 pipeline，確保在受限硬體上的高韌性運作。
-- **可見性修復路徑 (Visibility Recovery Path)**：若 crawler 已將學校寫入 `warehouse.universities`，但尚未 canonical 化或尚未回填為 `warehouse.ranking_record`，系統可透過 `seed-canonical` 與 `backfill-ranking-records` 讓資料重新進入可見聚合真相。
+- **可見性修復路徑 (Visibility Recovery Path)**：若 crawler 已將學校寫入 `warehouse.universities`，但尚未 canonical 化或尚未回填為 `warehouse.ranking_record`，系統可透過 `seed-canonical` 與 `backfill-ranking-records` 讓資料重新進入可見聚合真相。對於 THE 這類不經過 `warehouse.universities` 的來源，則可透過 `seed-canonical-from-missing` 直接從 `analytics.missing_entity_log` 補種 canonical entities 後再重跑 ingestion。
 
 ### 7.2 全域參數與組態
 
@@ -651,6 +651,8 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | **Data Platform** | **Canonical Visibility Recovery** | 已完成 | 新增 canonical seeding 與 ranking-record backfill，使不可見 crawled universities 可重新進入 aggregated truth。 |
 | **Aggregation** | **Visible Global Expansion** | 已完成 | 完成 canonical/backfill 後，global visible aggregated rows 從 221 擴張到 1323。 |
 | **Web Product** | **Live Freshness Hardening** | 已完成 | 前端同源 proxy、`no-store`、polling 與 focus/visibility refresh 組合，確保網站能持續載入資料庫最新資料。 |
+| **Data Platform** | **THE Visible Recovery** | 已完成 | 新增 `seed-canonical-from-missing`，將 THE unresolved entities 直接補入 canonical layer，重跑後 THE `matched=2191`、`unresolved=0`。 |
+| **Aggregation** | **Cross-Source Visible Expansion** | 已完成 | 在 THE 補種與重 ingest 後，aggregated visible rows 由 1323 進一步擴張到 2736。 |
 
 *詳細執行日誌：*
 
@@ -709,6 +711,9 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-29 | 新增 `backfill-ranking-records` 命令，將 legacy `warehouse.rankings` 回填至 multi-source `warehouse.ranking_record` 並刷新 aggregation | 已完成 |
 | 2026-03-29 | 完成可見性修復鏈路打通，global aggregated visible rows 由 221 增長至 1323，`/api/v1/rankings` 同步反映新總數 | 已完成 |
 | 2026-03-29 | 補強 Website MVP 資料新鮮度策略，前端以 same-origin proxy、`no-store`、5 秒 polling 與 focus/visibility refresh 持續載入 DB 最新資料 | 已完成 |
+| 2026-03-30 | 完成 THE crawler 與 `run-the-rankings` 一鍵流程，成功抓取 2026 THE world rankings 3118 rows / 2191 valid ranked rows | 已完成 |
+| 2026-03-30 | 新增 `seed-canonical-from-missing` 命令，直接從 `analytics.missing_entity_log` 補種 THE unresolved canonical entities | 已完成 |
+| 2026-03-30 | 完成 THE 可見性修復：THE 重 ingest 後 `matched=2191`、`unresolved=0`，aggregated visible rows 由 1323 增長至 2736 | 已完成 |
 
 ### 13.4 未來階段規劃
 
