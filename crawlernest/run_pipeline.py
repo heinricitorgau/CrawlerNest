@@ -1921,6 +1921,67 @@ def recommend_universities_v3_from_db(
         conn.close()
 
 
+def rebuild_universe_records_diagnostic(
+    *,
+    ranking_year: int,
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> dict[str, Any]:
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT COUNT(*)
+                FROM warehouse.rankings r
+                JOIN warehouse.canonical_university_link cul
+                  ON cul.university_id = r.university_id
+                WHERE COALESCE(NULLIF(r.ranking_type, ''), 'world') = 'world'
+                  AND r.ranking_year = %s
+                """,
+                (ranking_year,),
+            )
+            legacy_global_count = int(cur.fetchone()[0] or 0)
+
+            universe_statuses: list[dict[str, Any]] = []
+            missing_universes: list[str] = []
+            for spec in iter_all_qs_universes():
+                cur.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM warehouse.ranking_record
+                    WHERE ranking_year = %s
+                      AND universe_type = %s
+                      AND universe_key = %s
+                    """,
+                    (ranking_year, spec.universe_type, spec.universe_key),
+                )
+                record_count = int(cur.fetchone()[0] or 0)
+                label = f"{spec.universe_type}/{spec.universe_key}"
+                universe_statuses.append(
+                    {
+                        "universe_type": spec.universe_type,
+                        "universe_key": spec.universe_key,
+                        "record_count": record_count,
+                    }
+                )
+                if record_count == 0:
+                    print(f"[rebuild] universe {label} has 0 records — marking for re-crawl")
+                    missing_universes.append(label)
+
+        return {
+            "ranking_year": ranking_year,
+            "legacy_global_count": legacy_global_count,
+            "missing_universes": missing_universes,
+            "universe_statuses": universe_statuses,
+        }
+    finally:
+        conn.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
     default_snapshot = MODULE_ROOT / "crawlernest-kb" / "databases" / "last_crawl_snapshot.json"
     default_checkpoint = MODULE_ROOT / "crawlernest-kb" / "databases" / "pipeline_checkpoint.json"
@@ -2041,6 +2102,17 @@ def build_parser() -> argparse.ArgumentParser:
     backfill_ranking_parser.add_argument("--pg-database", default="clawer")
     backfill_ranking_parser.add_argument("--pg-user", default="test")
     backfill_ranking_parser.add_argument("--pg-password", default="")
+
+    rebuild_universe_parser = subparsers.add_parser(
+        "rebuild-universe-records",
+        help="Diagnose which QS universes are missing ranking_record rows for a given year",
+    )
+    rebuild_universe_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
+    rebuild_universe_parser.add_argument("--pg-host", default="localhost")
+    rebuild_universe_parser.add_argument("--pg-port", type=int, default=5432)
+    rebuild_universe_parser.add_argument("--pg-database", default="clawer")
+    rebuild_universe_parser.add_argument("--pg-user", default="test")
+    rebuild_universe_parser.add_argument("--pg-password", default="")
 
     the_rankings_parser = subparsers.add_parser(
         "run-the-rankings",
@@ -2723,6 +2795,35 @@ def main() -> int:
             f"[backfill-ranking-records] years_aggregated={summary['years_aggregated']} "
             f"aggregated_rows={summary['aggregated_rows']}"
         )
+        return 0
+
+    if args.command == "rebuild-universe-records":
+        ensure_postgres_schema(
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+        )
+        summary = rebuild_universe_records_diagnostic(
+            ranking_year=args.ranking_year,
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+        )
+        print(
+            f"[rebuild] legacy global candidate rows for {summary['ranking_year']}: "
+            f"{summary['legacy_global_count']}"
+        )
+        if summary["missing_universes"]:
+            print("[rebuild] universes requiring re-crawl:")
+            for label in summary["missing_universes"]:
+                print(f"- {label}")
+        else:
+            print("[rebuild] all configured QS universes have ranking_record rows.")
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 0
 
     if args.command == "run-the-rankings":

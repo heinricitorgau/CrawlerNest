@@ -1,5 +1,7 @@
 # CrawlerNest: University Data Infrastructure + Web Platform
 
+Traditional Chinese version: [README.zh-TW.md](/Users/test/Desktop/crawlernest/README.zh-TW.md)
+
 **CrawlerNest** has evolved from an infrastructure-focused data pipeline into a comprehensive **University Data Infrastructure and Web Platform**. It bridges the gap between raw, scattered global education data and actionable, consumer-facing insights.
 
 ## What is this system?

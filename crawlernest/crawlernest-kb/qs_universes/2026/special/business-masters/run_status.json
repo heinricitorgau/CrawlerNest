@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "",
   "message": "",
-  "run_id": "qs-special-business-masters-2026-2026-03-29T11:49:24Z",
+  "run_id": "qs-special-business-masters-2026-2026-03-30T00:31:04Z",
   "universe_type": "special",
   "universe_key": "business-masters",
   "ranking_year": 2026,
@@ -31,10 +31,10 @@
   },
   "normalized_count": 1503,
   "standardized_count": 1503,
-  "rows_written": 1321,
+  "rows_written": 1499,
   "rows_updated": 0,
-  "matched_count": 1321,
-  "unresolved_count": 182,
+  "matched_count": 1499,
+  "unresolved_count": 4,
   "aggregated_years": [
     2026
   ]
