@@ -16,6 +16,7 @@ import {
 } from "react";
 
 import { formatRank, formatScore } from "@/lib/format";
+import ErrorBanner from "@/components/ErrorBanner";
 
 type RankingItem = {
   canonicalUniversityId: number;
@@ -845,6 +846,12 @@ function RankingsHomeContent() {
             ))}
           </div>
         </header>
+
+        {error ? (
+          <div className="mb-6">
+            <ErrorBanner message={error} onDismiss={() => setError(null)} />
+          </div>
+        ) : null}
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-6">
