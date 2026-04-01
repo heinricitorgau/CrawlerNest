@@ -1,12 +1,10 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formatRank, formatScore } from "@/lib/format";
-import ErrorBanner from "@/components/ErrorBanner";
 
-// ─── Constants ───
 const REFRESH_INTERVAL_MS = 5000;
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
 const PAGE_SIZE = 20;
@@ -21,7 +19,6 @@ const REGION_OPTIONS = [
   "Oceania",
 ];
 
-// ─── Types ───
 type RankingItem = {
   canonicalUniversityId: number;
   universityName: string;
@@ -44,39 +41,27 @@ type ShortlistItem = {
   slug: string;
 };
 
-// ─── Inner Component (needs useSearchParams → must be inside Suspense) ───
 function RankingsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // URL-synced state (read-only; mutations go through navigate())
   const scope = (searchParams.get("scope") as "global" | "region") ?? "global";
   const region = searchParams.get("region") ?? "Europe";
   const year = Number(searchParams.get("year") ?? "2026");
   const page = Number(searchParams.get("page") ?? "1");
   const searchQuery = searchParams.get("search") ?? "";
 
-  // Local UI state
   const [searchInput, setSearchInput] = useState(searchQuery);
   const [items, setItems] = useState<RankingItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
-  // Shortlist
   const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
 
   useEffect(() => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
-
-  // ─── URL navigation helper ───
-  // Keep a stable ref so debounce effect can call latest navigate without
-  // having navigate itself as a dependency (avoids re-trigger loop).
-  const navigateRef = useRef<(updates: Record<string, string | number | null>) => void>(
-    () => undefined
-  );
 
   const navigate = useCallback(
     (updates: Record<string, string | number | null>) => {
@@ -93,53 +78,37 @@ function RankingsPageContent() {
     [router, searchParams]
   );
 
-  // Keep ref in sync
-  useEffect(() => {
-    navigateRef.current = navigate;
-  }, [navigate]);
-
-  // ─── Debounce search: auto-trigger after 400 ms of inactivity ───
-  useEffect(() => {
-    if (searchInput === searchQuery) return;
-    const timer = setTimeout(() => {
-      navigateRef.current({ search: searchInput || null, page: 1 });
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [searchInput, searchQuery]);
-
-  // ─── Load shortlist from localStorage on mount ───
   useEffect(() => {
     try {
       const stored = localStorage.getItem(SHORTLIST_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) setShortlist(parsed);
+        if (Array.isArray(parsed)) {
+          setShortlist(parsed);
+        }
       }
     } catch {
-      // ignore parse errors
+      // ignore localStorage parse errors
     }
   }, []);
 
-  // ─── Persist shortlist to localStorage ───
   useEffect(() => {
     try {
       localStorage.setItem(SHORTLIST_STORAGE_KEY, JSON.stringify(shortlist));
     } catch {
-      // ignore
+      // ignore localStorage write errors
     }
   }, [shortlist]);
 
-  // ─── Polling ───
   useEffect(() => {
     const id = setInterval(() => {
-      setRefreshTrigger((n) => n + 1);
+      setRefreshTrigger((value) => value + 1);
     }, REFRESH_INTERVAL_MS);
     return () => clearInterval(id);
   }, []);
 
-  // ─── Visibility / focus / online refresh ───
   useEffect(() => {
-    const bump = () => setRefreshTrigger((n) => n + 1);
+    const bump = () => setRefreshTrigger((value) => value + 1);
     window.addEventListener("focus", bump);
     document.addEventListener("visibilitychange", bump);
     window.addEventListener("online", bump);
@@ -150,7 +119,6 @@ function RankingsPageContent() {
     };
   }, []);
 
-  // ─── Data fetching ───
   useEffect(() => {
     let isMounted = true;
     const controller = new AbortController();
@@ -170,25 +138,34 @@ function RankingsPageContent() {
         });
 
         const res = await fetch(`/api/rankings?${params.toString()}`, {
+          cache: "no-store",
           signal: controller.signal,
         });
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
         const payload = await res.json();
 
         if (isMounted) {
-          setItems(payload?.data?.items ?? []);
+          setItems(Array.isArray(payload?.data?.items) ? payload.data.items : []);
           setTotalCount(payload?.metadata?.totalCount ?? 0);
         }
       } catch (err) {
-        if (err instanceof Error && err.name === "AbortError") return;
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
+
         if (isMounted) {
           setError("Failed to load rankings. Please retry.");
           setItems([]);
           setTotalCount(0);
         }
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
@@ -200,14 +177,15 @@ function RankingsPageContent() {
     };
   }, [page, year, scope, region, searchQuery, refreshTrigger]);
 
-  // ─── Shortlist helpers ───
   const isInShortlist = (id: number) =>
-    shortlist.some((s) => s.canonicalUniversityId === id);
+    shortlist.some((item) => item.canonicalUniversityId === id);
 
   const toggleShortlist = (item: RankingItem) => {
     setShortlist((prev) =>
       isInShortlist(item.canonicalUniversityId)
-        ? prev.filter((s) => s.canonicalUniversityId !== item.canonicalUniversityId)
+        ? prev.filter(
+            (entry) => entry.canonicalUniversityId !== item.canonicalUniversityId
+          )
         : [
             ...prev,
             {
@@ -226,14 +204,12 @@ function RankingsPageContent() {
     router.push("/recommendations");
   };
 
-  // ─── Pagination ───
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const canGoPrevious = page > 1;
   const canGoNext = page < totalPages;
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
-      {/* ── Hero ── */}
       <section
         className="relative overflow-hidden py-16"
         style={{ background: "linear-gradient(135deg, #1a3d2e 0%, #0f2318 100%)" }}
@@ -260,370 +236,20 @@ function RankingsPageContent() {
         </div>
       </section>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {countSummaries.map((summary) => (
-              <div
-                key={`${summary.scope}-${summary.region ?? "global"}`}
-                className="rounded-2xl border border-gray-200 bg-white/80 px-4 py-3"
-              >
-                <div className="text-xs font-medium uppercase tracking-[0.18em] text-gray-400">
-                  {summary.label}
-                </div>
-                <div className="mt-2 text-2xl font-bold tracking-tight text-gray-900">
-                  {summary.totalCount === null ? "..." : formatRank(summary.totalCount)}
-                </div>
-                <div className="mt-1 text-sm text-gray-500">
-                  ranking rows in {year}
-                </div>
-              </div>
-            ))}
-          </div>
-        </header>
-
-        {error ? (
-          <div className="mb-6">
-            <ErrorBanner message={error} onDismiss={() => setError(null)} />
-          </div>
-        ) : null}
-
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-6">
-            <section className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Explore Rankings
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    {browserDescription}
-                  </p>
-                </div>
-
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Scope
-                      </span>
-                      <select
-                        className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
-                        value={scope}
-                        onChange={(e) => handleScopeChange(e.target.value)}
-                      >
-                        <option value="global">Global</option>
-                        <option value="region">Region</option>
-                      </select>
-                    </label>
-
-                    {isRegionScope ? (
-                      <label className="flex flex-col gap-2">
-                        <span className="text-sm font-medium text-gray-700">
-                          Region
-                        </span>
-                        <select
-                          className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
-                          value={region}
-                          onChange={(e) => handleRegionChange(e.target.value)}
-                        >
-                          {REGION_OPTIONS.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    ) : null}
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Source
-                      </span>
-                      <div className="relative">
-                        <select
-                          className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-600 outline-none"
-                          value={source}
-                          disabled
-                        >
-                          <option value="AGGREGATED">AGGREGATED</option>
-                        </select>
-                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                          Locked
-                        </span>
-                      </div>
-                    </label>
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">Year</span>
-                      <input
-                        className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
-                        type="number"
-                        value={year}
-                        onChange={(e) => handleYearChange(e.target.value)}
-                      />
-                    </label>
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Page Size
-                      </span>
-                      <select
-                        className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
-                        value={pageSize}
-                        onChange={(e) =>
-                          handlePageSizeChange(Number(e.target.value))
-                        }
-                      >
-                        {PAGE_SIZE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Search
-                      </span>
-                      <div className="flex items-center gap-2 rounded-xl border border-gray-300 px-3 py-2 focus-within:border-gray-900">
-                        <input
-                          className="w-full border-0 bg-transparent px-1 py-1.5 outline-none"
-                          value={searchInput}
-                          onChange={(e) => handleSearchChange(e.target.value)}
-                          placeholder="Search university or country"
-                        />
-                        {searchInput ? (
-                          <button
-                            type="button"
-                            onClick={() => handleSearchChange("")}
-                            className="rounded-full px-2 py-1 text-xs font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-                          >
-                            ×
-                          </button>
-                        ) : null}
-                      </div>
-                    </label>
-                  </div>
-
-                    <div className="rounded-2xl bg-gray-50 px-4 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {scopeLabel}
-                      </div>
-                    <div className="mt-2 text-sm leading-6 text-gray-500">
-                      {loading ? "Loading rankings..." : null}
-                      {!loading && items.length > 0 ? (
-                        <span>Rows {pageRowRangeLabel}</span>
-                      ) : null}
-                      {!loading && items.length === 0 ? (
-                        <span>No rankings loaded</span>
-                      ) : null}
-                    </div>
-                    {!loading && search.trim() ? (
-                      <div className="mt-2 text-sm leading-6 text-gray-500">
-                        Showing {items.length} matching results on this page
-                      </div>
-                    ) : null}
-                    <div className="mt-3 text-xs uppercase tracking-[0.18em] text-gray-400">
-                      {isRegionScope ? `${region} product view` : "Aggregated product view"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-100 pt-4">
-                  <p className="text-sm text-gray-500">
-                    {isRegionScope
-                      ? `Browse ${region.toLowerCase()} rankings, shortlist strong regional options, then move into recommendation.`
-                      : "Browse, shortlist, compare mentally, then move into recommendation."}
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            <section className="overflow-hidden rounded-[2rem] border border-gray-200 bg-white shadow-sm">
-              <div className="flex flex-col gap-2 border-b border-gray-100 bg-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {scopeLabel}
-                  </h2>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {isRegionScope
-                      ? `Scan regional rank first, then use global position and score to compare universities inside ${region}.`
-                      : "Scan rank, score, shortlist signal, and add strong candidates as you browse."}
-                  </p>
-                </div>
-                <div className="text-sm text-gray-400">
-                  Click any row to view details
-                </div>
-              </div>
-
-              {error ? (
-                <div className="p-6">
-                  <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700">
-                    <div className="font-medium">Unable to load rankings.</div>
-                    <div className="mt-1 text-sm text-red-600">
-                      Please check backend or try again.
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleRetry}
-                      className="mt-4 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                </div>
-              ) : loading && items.length === 0 ? (
-                <LoadingSkeleton />
-              ) : items.length === 0 ? (
-                <div className="p-6">
-                  <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-gray-600">
-                    {search.trim()
-                      ? "No rankings match your search."
-                      : isRegionScope
-                      ? "No rankings available for this region."
-                      : "No rankings found."}
-                    <div className="mt-1 text-sm text-gray-500">
-                      Try adjusting filters or search.
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative">
-                  {loading ? (
-                    <div className="border-b border-blue-100 bg-blue-50 px-6 py-3 text-sm text-blue-700">
-                      Loading rankings...
-                    </div>
-                  ) : null}
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead className="sticky top-0 bg-gray-50 text-sm text-gray-600">
-                        <tr>
-                          <th className="px-6 py-4 text-left">Rank</th>
-                          <th className="px-6 py-4 text-left">University</th>
-                          <th className="px-6 py-4 text-left">Score</th>
-                          <th className="px-6 py-4 text-left">Source Coverage</th>
-                          <th className="px-6 py-4 text-left">Selection</th>
-                        </tr>
-                      </thead>
-                      <tbody className={loading ? "opacity-70" : ""}>
-                        {items.map((item, index) => {
-                          const displayRank = item.scopeRank ?? item.aggregatedRank;
-                          const globalRank = item.globalRank ?? item.aggregatedRank;
-                          const context = getDecisionContext(displayRank);
-                          const isShortlisted = shortlistIds.has(
-                            item.canonicalUniversityId
-                          );
-                          const rowKey = [
-                            item.canonicalUniversityId,
-                            item.slug,
-                            displayRank,
-                            globalRank,
-                            index,
-                          ].join("-");
-
-                          return (
-                            <tr
-                              key={rowKey}
-                              tabIndex={0}
-                              role="link"
-                              onClick={(event) => handleRowClick(event, item.slug)}
-                              onKeyDown={(event) =>
-                                handleRowKeyDown(event, item.slug)
-                              }
-                              className={`group cursor-pointer border-t border-gray-100 transition hover:bg-blue-50/60 focus-visible:bg-blue-50/60 focus-visible:outline-none ${
-                                isShortlisted ? "bg-amber-50/70" : ""
-                              }`}
-                            >
-                              <td className="px-6 py-5 align-top">
-                                <div className="text-2xl font-bold tracking-tight text-gray-900">
-                                  #{formatRank(displayRank)}
-                                </div>
-                                {isRegionScope && globalRank !== displayRank ? (
-                                  <div className="mt-2 text-xs font-medium tracking-wide text-gray-400">
-                                    Global #{formatRank(globalRank)}
-                                  </div>
-                                ) : null}
-                                <div className="mt-2">
-                                  <span
-                                    className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${context.tone}`}
-                                  >
-                                    {context.label}
-                                  </span>
-                                </div>
-                              </td>
-
-                              <td className="px-6 py-5 align-top">
-                                <Link
-                                  href={`/universities/${item.slug}`}
-                                  className="block"
-                                >
-                                  <div className="text-base font-semibold text-gray-900 underline-offset-4 transition group-hover:text-blue-700 group-hover:underline">
-                                    {item.universityName}
-                                  </div>
-                                  <div className="mt-1 text-sm text-gray-500">
-                                    {item.country}
-                                  </div>
-                                  <div className="mt-3 text-xs font-medium tracking-wide text-blue-600">
-                                    Click to view details
-                                  </div>
-                                </Link>
-                              </td>
-
-                              <td className="px-6 py-5 align-top">
-                                <div className="text-base font-semibold text-gray-900">
-                                  {formatScore(item.compositeScore)}
-                                </div>
-                                <div className="mt-2 text-sm text-gray-500">
-                                  {isRegionScope
-                                    ? `${context.caption} · Global #${formatRank(globalRank)}`
-                                    : context.caption}
-                                </div>
-                              </td>
-
-                              <td className="px-6 py-5 align-top">
-                                <div className="text-base font-medium text-gray-900">
-                                  {item.sourceCount}
-                                </div>
-                                <div className="mt-2 text-sm text-gray-500">
-                                  ranking sources included
-                                </div>
-                              </td>
-
-                              <td className="px-6 py-5 align-top">
-                                <button
-                                  type="button"
-                                  onClick={() => toggleShortlist(item)}
-                                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                                    isShortlisted
-                                      ? "border border-amber-300 bg-amber-100 text-amber-800"
-                                      : "border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:text-gray-900"
-                                  }`}
-                                >
-                                  {isShortlisted ? "Added" : "+ Shortlist"}
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </section>
-          </div>
-
-          <div className="xl:sticky xl:top-6 xl:self-start">
-            <ShortlistPanel
-              shortlist={shortlist}
-              onRemove={removeFromShortlist}
-              page={page}
-              canGoPrevious={canGoPrevious}
-              canGoNext={canGoNext}
-              onPreviousPage={() => handlePageChange(page - 1)}
-              onNextPage={() => handlePageChange(page + 1)}
->>>>>>> claude/wizardly-johnson
+      <div className="sticky top-0 z-40 border-b border-[#e0ddd8] bg-white/95 shadow-sm backdrop-blur-sm">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-6 lg:px-8">
+          <div className="max-w-lg flex-1">
+            <input
+              type="text"
+              placeholder="Search universities… (press Enter)"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  navigate({ search: searchInput || null, page: 1 });
+                }
+              }}
+              className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-4 py-2 text-sm outline-none transition focus:border-[#1a3d2e] focus:bg-white"
             />
           </div>
           <div className="hidden text-sm text-[#6b7068] sm:block">
@@ -631,7 +257,9 @@ function RankingsPageContent() {
               <span className="animate-pulse">Loading…</span>
             ) : (
               <span>
-                <span className="font-semibold text-[#1a1a1a]">{totalCount.toLocaleString()}</span>{" "}
+                <span className="font-semibold text-[#1a1a1a]">
+                  {totalCount.toLocaleString()}
+                </span>{" "}
                 universities
               </span>
             )}
@@ -639,17 +267,14 @@ function RankingsPageContent() {
         </div>
       </div>
 
-      {/* ── Main layout ── */}
       <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
         <div className="flex gap-6">
-          {/* ── Filter sidebar ── */}
           <aside className="w-52 flex-shrink-0">
             <div className="rounded-2xl border border-[#e0ddd8] bg-white p-5 shadow-sm">
               <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.15em] text-[#6b7068]">
                 Filters
               </h3>
 
-              {/* Year */}
               <div className="mb-5">
                 <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
                   Year
@@ -665,29 +290,27 @@ function RankingsPageContent() {
                 </select>
               </div>
 
-              {/* Scope toggle */}
               <div className="mb-5">
                 <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
                   Scope
                 </label>
                 <div className="flex overflow-hidden rounded-lg border border-[#e0ddd8]">
-                  {(["global", "region"] as const).map((s) => (
+                  {(["global", "region"] as const).map((nextScope) => (
                     <button
-                      key={s}
-                      onClick={() => navigate({ scope: s, page: 1 })}
+                      key={nextScope}
+                      onClick={() => navigate({ scope: nextScope, page: 1 })}
                       className={`flex-1 py-2 text-xs font-semibold capitalize transition ${
-                        scope === s
+                        scope === nextScope
                           ? "bg-[#1a3d2e] text-white"
                           : "bg-white text-[#6b7068] hover:bg-[#f5f3ee]"
                       }`}
                     >
-                      {s}
+                      {nextScope}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Region (visible only when scope=region) */}
               {scope === "region" && (
                 <div className="mb-5">
                   <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
@@ -698,9 +321,9 @@ function RankingsPageContent() {
                     onChange={(e) => navigate({ region: e.target.value, page: 1 })}
                     className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e]"
                   >
-                    {REGION_OPTIONS.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
+                    {REGION_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
                       </option>
                     ))}
                   </select>
@@ -724,13 +347,10 @@ function RankingsPageContent() {
             </div>
           </aside>
 
-          {/* ── Table + pagination ── */}
           <div className="min-w-0 flex-1">
-            {/* Sub-header */}
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-[#1a3d2e]">
-                {year} Rankings ·{" "}
-                {scope === "region" ? region : "Global"}
+                {year} Rankings · {scope === "region" ? region : "Global"}
               </h2>
               {shortlist.length > 0 && (
                 <button
@@ -742,12 +362,11 @@ function RankingsPageContent() {
               )}
             </div>
 
-            {/* Error banner */}
             {error && (
               <div className="mb-4 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 <span>{error}</span>
                 <button
-                  onClick={() => setRefreshTrigger((n) => n + 1)}
+                  onClick={() => setRefreshTrigger((value) => value + 1)}
                   className="ml-4 font-semibold underline"
                 >
                   Retry
@@ -755,12 +374,11 @@ function RankingsPageContent() {
               </div>
             )}
 
-            {/* Table */}
             <div className="overflow-x-auto rounded-2xl border border-[#e0ddd8] bg-white shadow-sm">
               {loading ? (
                 <div className="divide-y divide-[#e0ddd8]">
-                  {Array.from({ length: 10 }).map((_, i) => (
-                    <div key={i} className="flex h-14 items-center gap-4 px-4">
+                  {Array.from({ length: 10 }).map((_, index) => (
+                    <div key={index} className="flex h-14 items-center gap-4 px-4">
                       <div className="h-4 w-8 animate-pulse rounded bg-[#e0ddd8]" />
                       <div className="h-4 flex-1 animate-pulse rounded bg-[#e0ddd8]" />
                       <div className="h-4 w-24 animate-pulse rounded bg-[#e0ddd8]" />
@@ -858,7 +476,6 @@ function RankingsPageContent() {
               )}
             </div>
 
-            {/* Pagination */}
             <div className="mt-6 flex items-center justify-between">
               <span className="text-sm text-[#6b7068]">
                 Page {page} of {totalPages}
@@ -885,7 +502,6 @@ function RankingsPageContent() {
             </div>
           </div>
 
-          {/* ── Shortlist panel ── */}
           {shortlist.length > 0 && (
             <aside className="w-60 flex-shrink-0">
               <div className="sticky top-20 rounded-2xl border border-[#e0ddd8] bg-white p-5 shadow-sm">
@@ -919,8 +535,8 @@ function RankingsPageContent() {
                         onClick={() =>
                           setShortlist((prev) =>
                             prev.filter(
-                              (s) =>
-                                s.canonicalUniversityId !==
+                              (entry) =>
+                                entry.canonicalUniversityId !==
                                 item.canonicalUniversityId
                             )
                           )
@@ -948,7 +564,6 @@ function RankingsPageContent() {
   );
 }
 
-// ─── Page export: wraps in Suspense (required by useSearchParams) ───
 export default function RankingsHomePage() {
   return (
     <Suspense

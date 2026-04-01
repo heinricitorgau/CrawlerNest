@@ -15,4 +15,3 @@ const config: Config = {
 };
 
 export default createJestConfig(config);
->>>>>>> claude/wizardly-johnson
