@@ -25,7 +25,7 @@ class FakeMultiSourceRepository:
     def upsert_source_university_mappings(self, unified_rows, source_id_map):
         self.unified_rows.extend(unified_rows)
 
-    def upsert_ranking_records(self, unified_rows, source_id_map):
+    def upsert_ranking_records(self, unified_rows, source_id_map, run_id=None):
         self.unified_rows = [row for row in self.unified_rows if row.canonical_university_id is not None]
 
     def log_missing_entities(self, raw_rows, unified_rows):

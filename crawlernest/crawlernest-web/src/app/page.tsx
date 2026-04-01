@@ -1,32 +1,36 @@
 "use client";
 
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  usePathname,
-  useRouter,
-  useSearchParams,
-} from "next/navigation";
-import {
-  type KeyboardEvent as ReactKeyboardEvent,
-  type MouseEvent as ReactMouseEvent,
-  Suspense,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
+import { useRouter, useSearchParams } from "next/navigation";
 import { formatRank, formatScore } from "@/lib/format";
 
+// ─── Constants ───
+const REFRESH_INTERVAL_MS = 5000;
+const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
+const PAGE_SIZE = 20;
+
+const REGION_OPTIONS = [
+  "Africa",
+  "Arab Region",
+  "Asia",
+  "Europe",
+  "Latin America",
+  "North America",
+  "Oceania",
+];
+
+// ─── Types ───
 type RankingItem = {
   canonicalUniversityId: number;
   universityName: string;
   country: string;
   aggregatedRank: number;
-  globalRank?: number | null;
-  scopeRank?: number | null;
+  globalRank?: number;
+  scopeRank?: number;
   compositeScore: number;
-  rankingYear: number;
-  primarySource: string;
+  rankingYear?: number;
+  primarySource?: string;
   sourceCount: number;
   slug: string;
 };
@@ -39,1162 +43,583 @@ type ShortlistItem = {
   slug: string;
 };
 
-type RankingsResponse = {
-  success: boolean;
-  data: {
-    items: RankingItem[];
-  };
-  metadata?: {
-    timestamp?: string;
-    totalCount?: number;
-    page?: number;
-    pageSize?: number;
-  };
-};
-
-type RankingCountSummary = {
-  label: string;
-  scope: "global" | "region";
-  region?: string;
-  totalCount: number | null;
-};
-
-async function fetchRankingsFromApi(
-  queryString: string,
-  signal?: AbortSignal
-): Promise<RankingsResponse> {
-  const requestQuery = queryString
-    ? `${queryString}&_ts=${Date.now()}`
-    : `_ts=${Date.now()}`;
-  const response = await fetch(`/api/rankings?${requestQuery}`, {
-    cache: "no-store",
-    signal,
-  });
-
-  let payload: unknown = null;
-  try {
-    payload = await response.json();
-  } catch {
-    throw new Error("Invalid rankings API response.");
-  }
-
-  if (!response.ok) {
-    throw new Error("Rankings API request failed.");
-  }
-
-  const result = payload as Partial<RankingsResponse> & {
-    data?: { items?: RankingItem[] };
-    items?: RankingItem[];
-    metadata?: { timestamp?: string; totalCount?: number; page?: number; pageSize?: number };
-  };
-
-  const items = Array.isArray(result?.data?.items)
-    ? result.data.items
-    : Array.isArray(result?.items)
-      ? result.items
-      : [];
-
-  return {
-    success: result?.success ?? true,
-    data: {
-      items,
-    },
-    metadata: result?.metadata,
-  };
-}
-
-function isAbortLikeError(error: unknown): boolean {
-  if (error instanceof DOMException && error.name === "AbortError") {
-    return true;
-  }
-
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "name" in error &&
-    (error as { name?: string }).name === "AbortError"
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
-const DEFAULT_SOURCE = "AGGREGATED";
-const DEFAULT_YEAR = 2026;
-const DEFAULT_PAGE = 1;
-const DEFAULT_PAGE_SIZE = 20;
-const DEFAULT_SCOPE = "global";
-const DEFAULT_REGION = "Europe";
-const PAGE_SIZE_OPTIONS = [20, 50, 100];
-const REGION_OPTIONS = [
-  "Europe",
-  "Asia",
-  "North America",
-  "Latin America",
-  "Oceania",
-  "Africa",
-];
-const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
-const COUNT_SUMMARY_GROUPS: Array<{
-  label: string;
-  scope: "global" | "region";
-  region?: string;
-}> = [
-  { label: "Global", scope: "global" },
-  { label: "Europe", scope: "region", region: "Europe" },
-  { label: "Asia", scope: "region", region: "Asia" },
-  { label: "North America", scope: "region", region: "North America" },
-  { label: "Latin America", scope: "region", region: "Latin America" },
-  { label: "Oceania", scope: "region", region: "Oceania" },
-  { label: "Africa", scope: "region", region: "Africa" },
-];
-
-function getDecisionContext(rank: number) {
-  if (rank <= 50) {
-    return {
-      label: "Top-tier",
-      caption: "Strong global position",
-      tone: "bg-blue-100 text-blue-800 ring-1 ring-blue-200",
-    };
-  }
-
-  if (rank <= 150) {
-    return {
-      label: "Target",
-      caption: "Balanced shortlist fit",
-      tone: "bg-emerald-100 text-emerald-800 ring-1 ring-emerald-200",
-    };
-  }
-
-  return {
-    label: "Safety",
-    caption: "More accessible option",
-    tone: "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
-  };
-}
-
-function parsePositiveInt(value: string | null, fallback: number) {
-  if (!value) {
-    return fallback;
-  }
-
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed < 1) {
-    return fallback;
-  }
-
-  return Math.floor(parsed);
-}
-
-function parseScope(value: string | null) {
-  return value === "region" ? "region" : DEFAULT_SCOPE;
-}
-
-function parseRegion(value: string | null) {
-  if (!value) {
-    return DEFAULT_REGION;
-  }
-
-  return REGION_OPTIONS.includes(value) ? value : DEFAULT_REGION;
-}
-
-function buildQueryString(params: URLSearchParams) {
-  const next = new URLSearchParams(params);
-  return next.toString();
-}
-
-function toShortlistItem(item: RankingItem): ShortlistItem {
-  return {
-    canonicalUniversityId: item.canonicalUniversityId,
-    universityName: item.universityName,
-    country: item.country,
-    aggregatedRank: item.aggregatedRank,
-    slug: item.slug,
-  };
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="p-6">
-      <div className="animate-pulse space-y-4">
-        <div className="h-12 rounded-2xl bg-gray-100" />
-        <div className="h-20 rounded-2xl bg-gray-50" />
-        <div className="h-20 rounded-2xl bg-gray-50" />
-        <div className="h-20 rounded-2xl bg-gray-50" />
-      </div>
-    </div>
-  );
-}
-
-function RankingsShell({ message }: Readonly<{ message: string }>) {
-  return (
-    <main className="min-h-screen bg-white text-gray-900">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-gray-600">
-          {message}
-        </div>
-      </div>
-    </main>
-  );
-}
-
-function ShortlistPanel({
-  shortlist,
-  onRemove,
-  page,
-  canGoPrevious,
-  canGoNext,
-  onPreviousPage,
-  onNextPage,
-}: Readonly<{
-  shortlist: ShortlistItem[];
-  onRemove: (id: number) => void;
-  page: number;
-  canGoPrevious: boolean;
-  canGoNext: boolean;
-  onPreviousPage: () => void;
-  onNextPage: () => void;
-}>) {
-  return (
-    <div className="space-y-4">
-      <section className="rounded-[1.75rem] border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Your Shortlist</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              {shortlist.length} selected {shortlist.length === 1 ? "university" : "universities"}
-            </p>
-          </div>
-          <div className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
-            {shortlist.length}
-          </div>
-        </div>
-
-        {shortlist.length === 0 ? (
-          <div className="mt-4 rounded-2xl bg-gray-50 p-4 text-sm text-gray-600">
-            Add universities from the rankings table to build a shortlist before generating recommendations.
-          </div>
-        ) : (
-          <div className="mt-4 space-y-4">
-            <Link
-              href="/recommendations"
-              className="inline-flex w-full items-center justify-center rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
-            >
-              Generate Recommendation
-            </Link>
-
-            {shortlist.length >= 2 ? (
-              <Link
-                href="/recommendations#comparison"
-                className="inline-flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-gray-300 hover:text-gray-900"
-              >
-                Compare Selected
-              </Link>
-            ) : null}
-
-            <div className="space-y-3">
-              {shortlist.map((item) => (
-                <div
-                  key={item.canonicalUniversityId}
-                  className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <Link
-                        href={`/universities/${item.slug}`}
-                        className="block text-sm font-semibold text-gray-900 underline-offset-4 transition hover:text-blue-700 hover:underline"
-                      >
-                        {item.universityName}
-                      </Link>
-                      <div className="mt-1 text-sm text-gray-500">
-                        {item.country}
-                      </div>
-                      <div className="mt-2 text-xs font-medium tracking-wide text-gray-400">
-                        Rank #{formatRank(item.aggregatedRank)}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onRemove(item.canonicalUniversityId)}
-                      className="shrink-0 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-gray-300 hover:text-gray-900"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-[1.75rem] border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Page Control</h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Navigate the rankings browser from here while you review your shortlist.
-            </p>
-          </div>
-          <div className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-700">
-            Page {page}
-          </div>
-        </div>
-
-        <div className="mt-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onPreviousPage}
-            disabled={!canGoPrevious}
-            className="flex-1 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:text-gray-900 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
-          >
-            Previous
-          </button>
-          <button
-            type="button"
-            onClick={onNextPage}
-            disabled={!canGoNext}
-            className="flex-1 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:text-gray-900 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
-          >
-            Next
-          </button>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function RankingsHomeContent() {
+// ─── Inner Component (needs useSearchParams → must be inside Suspense) ───
+function RankingsPageContent() {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const page = parsePositiveInt(searchParams.get("page"), DEFAULT_PAGE);
-  const pageSize = parsePositiveInt(
-    searchParams.get("pageSize"),
-    DEFAULT_PAGE_SIZE
-  );
-  const year = parsePositiveInt(searchParams.get("year"), DEFAULT_YEAR);
-  const source = searchParams.get("source") ?? DEFAULT_SOURCE;
-  const search = searchParams.get("search") ?? "";
-  const scope = parseScope(searchParams.get("scope"));
-  const region = parseRegion(searchParams.get("region"));
+  // URL-synced state (read-only; mutations go through navigate())
+  const scope = (searchParams.get("scope") as "global" | "region") ?? "global";
+  const region = searchParams.get("region") ?? "Europe";
+  const year = Number(searchParams.get("year") ?? "2026");
+  const page = Number(searchParams.get("page") ?? "1");
+  const searchQuery = searchParams.get("search") ?? "";
 
+  // Local UI state
+  const [searchInput, setSearchInput] = useState(searchQuery);
   const [items, setItems] = useState<RankingItem[]>([]);
-  const [timestamp, setTimestamp] = useState<string | undefined>();
   const [totalCount, setTotalCount] = useState(0);
-  const [countSummaries, setCountSummaries] = useState<RankingCountSummary[]>(
-    COUNT_SUMMARY_GROUPS.map((group) => ({
-      ...group,
-      totalCount: null,
-    }))
-  );
-  const [searchInput, setSearchInput] = useState(search);
-  const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Shortlist
   const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
 
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const REFRESH_INTERVAL_MS = 5000; // 5 seconds
-
   useEffect(() => {
-    setIsMounted(true);
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
+
+  // ─── URL navigation helper ───
+  // Keep a stable ref so debounce effect can call latest navigate without
+  // having navigate itself as a dependency (avoids re-trigger loop).
+  const navigateRef = useRef<(updates: Record<string, string | number | null>) => void>(
+    () => undefined
+  );
+
+  const navigate = useCallback(
+    (updates: Record<string, string | number | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === null || value === "") {
+          params.delete(key);
+        } else {
+          params.set(key, String(value));
+        }
+      }
+      router.replace(`/?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
+  // Keep ref in sync
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
+
+  // ─── Debounce search: auto-trigger after 400 ms of inactivity ───
+  useEffect(() => {
+    if (searchInput === searchQuery) return;
+    const timer = setTimeout(() => {
+      navigateRef.current({ search: searchInput || null, page: 1 });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput, searchQuery]);
+
+  // ─── Load shortlist from localStorage on mount ───
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(SHORTLIST_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) setShortlist(parsed);
+      }
+    } catch {
+      // ignore parse errors
+    }
   }, []);
 
-  // Polling effect: increment refreshTrigger every 30s to trigger re-fetch
+  // ─── Persist shortlist to localStorage ───
   useEffect(() => {
-    if (!isMounted || loading) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setRefreshTrigger((prev) => prev + 1);
-    }, REFRESH_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [isMounted, loading]);
-
-  useEffect(() => {
-    if (!isMounted) {
-      return;
-    }
-
-    function triggerRefresh() {
-      setRefreshTrigger((prev) => prev + 1);
-    }
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === "visible") {
-        triggerRefresh();
-      }
-    }
-
-    window.addEventListener("focus", triggerRefresh);
-    window.addEventListener("online", triggerRefresh);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener("focus", triggerRefresh);
-      window.removeEventListener("online", triggerRefresh);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [isMounted]);
-
-  useEffect(() => {
-    setSearchInput(search);
-  }, [search]);
-
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-
-    async function loadCountSummaries() {
-      try {
-        const summaries = await Promise.all(
-          COUNT_SUMMARY_GROUPS.map(async (group) => {
-            const params = new URLSearchParams({
-              page: "1",
-              pageSize: "1",
-              source: DEFAULT_SOURCE,
-              year: String(year),
-              scope: group.scope,
-            });
-
-            if (group.scope === "region" && group.region) {
-              params.set("region", group.region);
-            }
-
-            const result = await fetchRankingsFromApi(
-              params.toString(),
-              controller.signal
-            );
-
-            return {
-              ...group,
-              totalCount:
-                typeof result.metadata?.totalCount === "number"
-                  ? result.metadata.totalCount
-                  : null,
-            };
-          })
-        );
-
-        if (!cancelled) {
-          setCountSummaries(summaries);
-        }
-      } catch (caughtError) {
-        if (isAbortLikeError(caughtError) || controller.signal.aborted) {
-          return;
-        }
-        if (!cancelled) {
-          setCountSummaries(
-            COUNT_SUMMARY_GROUPS.map((group) => ({
-              ...group,
-              totalCount: null,
-            }))
-          );
-        }
-      }
-    }
-
-    loadCountSummaries();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [year]);
-
-  useEffect(() => {
-    if (!isMounted) {
-      return;
-    }
-
     try {
-      const storedValue = window.localStorage.getItem(SHORTLIST_STORAGE_KEY);
-      if (!storedValue) {
-        setShortlist([]);
-        return;
-      }
-
-      const parsedValue = JSON.parse(storedValue);
-      if (!Array.isArray(parsedValue)) {
-        setShortlist([]);
-        return;
-      }
-
-      setShortlist(
-        parsedValue.filter((item): item is ShortlistItem => {
-          return (
-            typeof item?.canonicalUniversityId === "number" &&
-            typeof item?.universityName === "string" &&
-            typeof item?.country === "string" &&
-            typeof item?.aggregatedRank === "number" &&
-            typeof item?.slug === "string"
-          );
-        })
-      );
+      localStorage.setItem(SHORTLIST_STORAGE_KEY, JSON.stringify(shortlist));
     } catch {
-      setShortlist([]);
+      // ignore
     }
-  }, [isMounted]);
+  }, [shortlist]);
 
+  // ─── Polling ───
   useEffect(() => {
-    if (!isMounted) {
-      return;
-    }
+    const id = setInterval(() => {
+      setRefreshTrigger((n) => n + 1);
+    }, REFRESH_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, []);
 
-    window.localStorage.setItem(
-      SHORTLIST_STORAGE_KEY,
-      JSON.stringify(shortlist)
-    );
-  }, [isMounted, shortlist]);
-
+  // ─── Visibility / focus / online refresh ───
   useEffect(() => {
-    let cancelled = false;
+    const bump = () => setRefreshTrigger((n) => n + 1);
+    window.addEventListener("focus", bump);
+    document.addEventListener("visibilitychange", bump);
+    window.addEventListener("online", bump);
+    return () => {
+      window.removeEventListener("focus", bump);
+      document.removeEventListener("visibilitychange", bump);
+      window.removeEventListener("online", bump);
+    };
+  }, []);
+
+  // ─── Data fetching ───
+  useEffect(() => {
+    let isMounted = true;
     const controller = new AbortController();
 
-    async function loadRankings() {
-      // Only show loading skeleton on initial load or manual filter change
-      // Avoid flickering during background polling
-      const isPolling = refreshTrigger > 0 && !loading;
-      if (!isPolling) {
-        setLoading(true);
-      }
+    async function fetchRankings() {
+      setLoading(true);
       setError(null);
 
       try {
         const params = new URLSearchParams({
           page: String(page),
-          pageSize: String(pageSize),
-          source,
+          pageSize: String(PAGE_SIZE),
           year: String(year),
           scope,
+          ...(scope === "region" ? { region } : {}),
+          ...(searchQuery ? { search: searchQuery } : {}),
         });
 
-        if (scope === "region") {
-          params.set("region", region);
-        }
+        const res = await fetch(`/api/rankings?${params.toString()}`, {
+          signal: controller.signal,
+        });
 
-        if (search.trim()) {
-          params.set("search", search.trim());
-        }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const payload = await res.json();
 
-        const result = await fetchRankingsFromApi(
-          params.toString(),
-          controller.signal
-        );
-
-        if (!cancelled) {
-          const nextItems = Array.isArray(result?.data?.items)
-            ? result.data.items
-            : [];
-          setItems(nextItems);
-          setTimestamp(result.metadata?.timestamp);
-          setTotalCount(
-            typeof result.metadata?.totalCount === "number"
-              ? result.metadata.totalCount
-              : nextItems.length
-          );
-          setError(null);
+        if (isMounted) {
+          setItems(payload?.data?.items ?? []);
+          setTotalCount(payload?.metadata?.totalCount ?? 0);
         }
-      } catch (caughtError) {
-        if (isAbortLikeError(caughtError) || controller.signal.aborted) {
-          return;
-        }
-        console.error("Failed to load rankings", caughtError);
-        if (!cancelled) {
-          setError(
-            "Unable to load rankings. Please check backend or try again."
-          );
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
+        if (isMounted) {
+          setError("Failed to load rankings. Please retry.");
           setItems([]);
-          setTimestamp(undefined);
           setTotalCount(0);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     }
 
-    loadRankings();
+    fetchRankings();
 
     return () => {
-      cancelled = true;
+      isMounted = false;
       controller.abort();
     };
-  }, [isMounted, page, pageSize, source, year, scope, region, search, refreshTrigger]);
+  }, [page, year, scope, region, searchQuery, refreshTrigger]);
 
-  const shortlistIds = useMemo(
-    () => new Set(shortlist.map((item) => item.canonicalUniversityId)),
-    [shortlist]
-  );
+  // ─── Shortlist helpers ───
+  const isInShortlist = (id: number) =>
+    shortlist.some((s) => s.canonicalUniversityId === id);
 
-  const pageRowRangeLabel = useMemo(() => {
-    const startRow = (page - 1) * pageSize + 1;
-    const endRow = page * pageSize;
-
-    return `${formatRank(startRow)}-${formatRank(endRow)}`;
-  }, [page, pageSize]);
-
-  const canGoPrevious = page > 1 && !loading;
-  const canGoNext = !loading && page * pageSize < totalCount;
-  const isRegionScope = scope === "region";
-  const scopeLabel = isRegionScope ? `${region} Rankings` : "Global Rankings";
-  const heroTitle = isRegionScope
-    ? `${region} University Rankings`
-    : "Global University Rankings";
-  const browserDescription = isRegionScope
-    ? `Browse the ${region} ranking universe, search within this region, and open detailed profiles.`
-    : "Browse the aggregated ranking view, search across the active ranking universe, and refine results without leaving the browser.";
-
-  function updateRoute(
-    nextValues: Record<string, string | number | null>,
-    mode: "push" | "replace" = "replace"
-  ) {
-    const nextParams = new URLSearchParams(searchParams.toString());
-
-    Object.entries(nextValues).forEach(([key, value]) => {
-      if (value === null || value === "") {
-        nextParams.delete(key);
-      } else {
-        nextParams.set(key, String(value));
-      }
-    });
-
-    const query = buildQueryString(nextParams);
-    const nextUrl = query ? `${pathname}?${query}` : pathname;
-
-    if (mode === "push") {
-      router.push(nextUrl, { scroll: false });
-      return;
-    }
-
-    router.replace(nextUrl, { scroll: false });
-  }
-
-  function handlePageChange(nextPage: number) {
-    updateRoute({ page: nextPage }, "push");
-  }
-
-  function handlePageSizeChange(nextPageSize: number) {
-    updateRoute({ pageSize: nextPageSize, page: 1 }, "push");
-  }
-
-  function handleScopeChange(nextScope: string) {
-    updateRoute(
-      {
-        scope: nextScope,
-        region: nextScope === "region" ? region || DEFAULT_REGION : null,
-        page: 1,
-      },
-      "push"
+  const toggleShortlist = (item: RankingItem) => {
+    setShortlist((prev) =>
+      isInShortlist(item.canonicalUniversityId)
+        ? prev.filter((s) => s.canonicalUniversityId !== item.canonicalUniversityId)
+        : [
+            ...prev,
+            {
+              canonicalUniversityId: item.canonicalUniversityId,
+              universityName: item.universityName,
+              country: item.country,
+              aggregatedRank: item.aggregatedRank,
+              slug: item.slug,
+            },
+          ]
     );
-  }
+  };
 
-  function handleRegionChange(nextRegion: string) {
-    updateRoute({ region: nextRegion, page: 1 }, "push");
-  }
+  const goToRecommendations = () => {
+    localStorage.setItem(SHORTLIST_STORAGE_KEY, JSON.stringify(shortlist));
+    router.push("/recommendations");
+  };
 
-  function handleYearChange(nextYear: string) {
-    const normalizedYear = nextYear.trim();
-    if (!normalizedYear) {
-      return;
-    }
-
-    updateRoute({ year: normalizedYear, page: 1 }, "push");
-  }
-
-  function handleSearchChange(value: string) {
-    setSearchInput(value);
-    updateRoute({ search: value || null, page: 1 });
-  }
-
-  function handleRetry() {
-    router.refresh();
-  }
-
-  function handleRowClick(
-    event: ReactMouseEvent<HTMLTableRowElement>,
-    slug: string
-  ) {
-    const target = event.target as HTMLElement;
-    if (target.closest("a, button, input, select")) {
-      return;
-    }
-
-    router.push(`/universities/${slug}`);
-  }
-
-  function handleRowKeyDown(
-    event: ReactKeyboardEvent<HTMLTableRowElement>,
-    slug: string
-  ) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      router.push(`/universities/${slug}`);
-    }
-  }
-
-  function toggleShortlist(item: RankingItem) {
-    setShortlist((currentShortlist) => {
-      const exists = currentShortlist.some(
-        (shortlisted) =>
-          shortlisted.canonicalUniversityId === item.canonicalUniversityId
-      );
-
-      if (exists) {
-        return currentShortlist.filter(
-          (shortlisted) =>
-            shortlisted.canonicalUniversityId !== item.canonicalUniversityId
-        );
-      }
-
-      return [...currentShortlist, toShortlistItem(item)];
-    });
-  }
-
-  function removeFromShortlist(id: number) {
-    setShortlist((currentShortlist) =>
-      currentShortlist.filter(
-        (shortlisted) => shortlisted.canonicalUniversityId !== id
-      )
-    );
-  }
-
-  if (!isMounted) {
-    return <RankingsShell message="Loading rankings browser..." />;
-  }
+  // ─── Pagination ───
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const canGoPrevious = page > 1;
+  const canGoNext = page < totalPages;
 
   return (
-    <main className="min-h-screen bg-white text-gray-900">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <header className="mb-8 rounded-[2rem] border border-gray-200 bg-gray-50/70 p-8 shadow-sm">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-3xl">
-              <p className="text-sm font-medium uppercase tracking-[0.18em] text-gray-500">
-                Rankings Browser
-              </p>
-              <h1 className="mt-3 text-4xl font-bold tracking-tight">
-                {heroTitle}
-              </h1>
-              <p className="mt-3 text-gray-600">
-                Structured university ranking data powered by CrawlerNest
-              </p>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
-                {isRegionScope
-                  ? `Use ${region.toLowerCase()} rankings, score signals, and source coverage to compare universities inside this region.`
-                  : "Use rankings, score signals, and source coverage to quickly evaluate university strength, shortlist promising options, and open deeper decision context for each university."}
-              </p>
-              {isRegionScope ? (
-                <p className="mt-2 text-sm text-gray-400">
-                  Browsing universities ranked within {region}.
-                </p>
-              ) : null}
-              {timestamp ? (
-                <p className="mt-4 text-sm text-gray-400">
-                  Updated: {new Date(timestamp).toLocaleString()}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="flex flex-col gap-3 lg:items-end">
-              {shortlist.length > 0 ? (
-                <Link
-                  href="/recommendations"
-                  className="inline-flex items-center justify-center rounded-full bg-gray-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
-                >
-                  Generate Recommendation based on your shortlist
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="inline-flex items-center justify-center rounded-full bg-gray-300 px-5 py-3 text-sm font-semibold text-white"
-                >
-                  Generate Recommendation based on your shortlist
-                </button>
-              )}
-              <p className="text-sm text-gray-500">
-                {shortlist.length > 0
-                  ? "Move from browsing into a shortlist-driven recommendation flow."
-                  : "Add universities to your shortlist to unlock recommendation flow."}
-              </p>
-            </div>
+    <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
+      {/* ── Hero ── */}
+      <section
+        className="relative overflow-hidden py-16"
+        style={{ background: "linear-gradient(135deg, #1a3d2e 0%, #0f2318 100%)" }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 30% 50%, rgba(61,122,90,0.3), transparent 55%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="max-w-2xl">
+            <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#7dbf9a]">
+              CrawlerNest
+            </p>
+            <h1 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+              World University Rankings
+            </h1>
+            <p className="mt-4 text-lg leading-7 text-[#a8c5b5]">
+              Comparing 1,500+ global institutions. Aggregate data from QS, THE, and more.
+            </p>
           </div>
+        </div>
+      </section>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {countSummaries.map((summary) => (
-              <div
-                key={`${summary.scope}-${summary.region ?? "global"}`}
-                className="rounded-2xl border border-gray-200 bg-white/80 px-4 py-3"
-              >
-                <div className="text-xs font-medium uppercase tracking-[0.18em] text-gray-400">
-                  {summary.label}
-                </div>
-                <div className="mt-2 text-2xl font-bold tracking-tight text-gray-900">
-                  {summary.totalCount === null ? "..." : formatRank(summary.totalCount)}
-                </div>
-                <div className="mt-1 text-sm text-gray-500">
-                  ranking rows in {year}
-                </div>
-              </div>
-            ))}
-          </div>
-        </header>
-
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-6">
-            <section className="rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Explore Rankings
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    {browserDescription}
-                  </p>
-                </div>
-
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Scope
-                      </span>
-                      <select
-                        className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
-                        value={scope}
-                        onChange={(e) => handleScopeChange(e.target.value)}
-                      >
-                        <option value="global">Global</option>
-                        <option value="region">Region</option>
-                      </select>
-                    </label>
-
-                    {isRegionScope ? (
-                      <label className="flex flex-col gap-2">
-                        <span className="text-sm font-medium text-gray-700">
-                          Region
-                        </span>
-                        <select
-                          className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
-                          value={region}
-                          onChange={(e) => handleRegionChange(e.target.value)}
-                        >
-                          {REGION_OPTIONS.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    ) : null}
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Source
-                      </span>
-                      <div className="relative">
-                        <select
-                          className="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-600 outline-none"
-                          value={source}
-                          disabled
-                        >
-                          <option value="AGGREGATED">AGGREGATED</option>
-                        </select>
-                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                          Locked
-                        </span>
-                      </div>
-                    </label>
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">Year</span>
-                      <input
-                        className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
-                        type="number"
-                        value={year}
-                        onChange={(e) => handleYearChange(e.target.value)}
-                      />
-                    </label>
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Page Size
-                      </span>
-                      <select
-                        className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
-                        value={pageSize}
-                        onChange={(e) =>
-                          handlePageSizeChange(Number(e.target.value))
-                        }
-                      >
-                        {PAGE_SIZE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Search
-                      </span>
-                      <div className="flex items-center gap-2 rounded-xl border border-gray-300 px-3 py-2 focus-within:border-gray-900">
-                        <input
-                          className="w-full border-0 bg-transparent px-1 py-1.5 outline-none"
-                          value={searchInput}
-                          onChange={(e) => handleSearchChange(e.target.value)}
-                          placeholder="Search university or country"
-                        />
-                        {searchInput ? (
-                          <button
-                            type="button"
-                            onClick={() => handleSearchChange("")}
-                            className="rounded-full px-2 py-1 text-xs font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
-                          >
-                            ×
-                          </button>
-                        ) : null}
-                      </div>
-                    </label>
-                  </div>
-
-                    <div className="rounded-2xl bg-gray-50 px-4 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {scopeLabel}
-                      </div>
-                    <div className="mt-2 text-sm leading-6 text-gray-500">
-                      {loading ? "Loading rankings..." : null}
-                      {!loading && items.length > 0 ? (
-                        <span>Rows {pageRowRangeLabel}</span>
-                      ) : null}
-                      {!loading && items.length === 0 ? (
-                        <span>No rankings loaded</span>
-                      ) : null}
-                    </div>
-                    {!loading && search.trim() ? (
-                      <div className="mt-2 text-sm leading-6 text-gray-500">
-                        Showing {items.length} matching results on this page
-                      </div>
-                    ) : null}
-                    <div className="mt-3 text-xs uppercase tracking-[0.18em] text-gray-400">
-                      {isRegionScope ? `${region} product view` : "Aggregated product view"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-100 pt-4">
-                  <p className="text-sm text-gray-500">
-                    {isRegionScope
-                      ? `Browse ${region.toLowerCase()} rankings, shortlist strong regional options, then move into recommendation.`
-                      : "Browse, shortlist, compare mentally, then move into recommendation."}
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            <section className="overflow-hidden rounded-[2rem] border border-gray-200 bg-white shadow-sm">
-              <div className="flex flex-col gap-2 border-b border-gray-100 bg-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {scopeLabel}
-                  </h2>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {isRegionScope
-                      ? `Scan regional rank first, then use global position and score to compare universities inside ${region}.`
-                      : "Scan rank, score, shortlist signal, and add strong candidates as you browse."}
-                  </p>
-                </div>
-                <div className="text-sm text-gray-400">
-                  Click any row to view details
-                </div>
-              </div>
-
-              {error ? (
-                <div className="p-6">
-                  <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700">
-                    <div className="font-medium">Unable to load rankings.</div>
-                    <div className="mt-1 text-sm text-red-600">
-                      Please check backend or try again.
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleRetry}
-                      className="mt-4 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                </div>
-              ) : loading && items.length === 0 ? (
-                <LoadingSkeleton />
-              ) : items.length === 0 ? (
-                <div className="p-6">
-                  <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-gray-600">
-                    {search.trim()
-                      ? "No rankings match your search."
-                      : isRegionScope
-                      ? "No rankings available for this region."
-                      : "No rankings found."}
-                    <div className="mt-1 text-sm text-gray-500">
-                      Try adjusting filters or search.
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative">
-                  {loading ? (
-                    <div className="border-b border-blue-100 bg-blue-50 px-6 py-3 text-sm text-blue-700">
-                      Loading rankings...
-                    </div>
-                  ) : null}
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead className="sticky top-0 bg-gray-50 text-sm text-gray-600">
-                        <tr>
-                          <th className="px-6 py-4 text-left">Rank</th>
-                          <th className="px-6 py-4 text-left">University</th>
-                          <th className="px-6 py-4 text-left">Score</th>
-                          <th className="px-6 py-4 text-left">Source Coverage</th>
-                          <th className="px-6 py-4 text-left">Selection</th>
-                        </tr>
-                      </thead>
-                      <tbody className={loading ? "opacity-70" : ""}>
-                        {items.map((item, index) => {
-                          const displayRank = item.scopeRank ?? item.aggregatedRank;
-                          const globalRank = item.globalRank ?? item.aggregatedRank;
-                          const context = getDecisionContext(displayRank);
-                          const isShortlisted = shortlistIds.has(
-                            item.canonicalUniversityId
-                          );
-                          const rowKey = [
-                            item.canonicalUniversityId,
-                            item.slug,
-                            displayRank,
-                            globalRank,
-                            index,
-                          ].join("-");
-
-                          return (
-                            <tr
-                              key={rowKey}
-                              tabIndex={0}
-                              role="link"
-                              onClick={(event) => handleRowClick(event, item.slug)}
-                              onKeyDown={(event) =>
-                                handleRowKeyDown(event, item.slug)
-                              }
-                              className={`group cursor-pointer border-t border-gray-100 transition hover:bg-blue-50/60 focus-visible:bg-blue-50/60 focus-visible:outline-none ${
-                                isShortlisted ? "bg-amber-50/70" : ""
-                              }`}
-                            >
-                              <td className="px-6 py-5 align-top">
-                                <div className="text-2xl font-bold tracking-tight text-gray-900">
-                                  #{formatRank(displayRank)}
-                                </div>
-                                {isRegionScope && globalRank !== displayRank ? (
-                                  <div className="mt-2 text-xs font-medium tracking-wide text-gray-400">
-                                    Global #{formatRank(globalRank)}
-                                  </div>
-                                ) : null}
-                                <div className="mt-2">
-                                  <span
-                                    className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${context.tone}`}
-                                  >
-                                    {context.label}
-                                  </span>
-                                </div>
-                              </td>
-
-                              <td className="px-6 py-5 align-top">
-                                <Link
-                                  href={`/universities/${item.slug}`}
-                                  className="block"
-                                >
-                                  <div className="text-base font-semibold text-gray-900 underline-offset-4 transition group-hover:text-blue-700 group-hover:underline">
-                                    {item.universityName}
-                                  </div>
-                                  <div className="mt-1 text-sm text-gray-500">
-                                    {item.country}
-                                  </div>
-                                  <div className="mt-3 text-xs font-medium tracking-wide text-blue-600">
-                                    Click to view details
-                                  </div>
-                                </Link>
-                              </td>
-
-                              <td className="px-6 py-5 align-top">
-                                <div className="text-base font-semibold text-gray-900">
-                                  {formatScore(item.compositeScore)}
-                                </div>
-                                <div className="mt-2 text-sm text-gray-500">
-                                  {isRegionScope
-                                    ? `${context.caption} · Global #${formatRank(globalRank)}`
-                                    : context.caption}
-                                </div>
-                              </td>
-
-                              <td className="px-6 py-5 align-top">
-                                <div className="text-base font-medium text-gray-900">
-                                  {item.sourceCount}
-                                </div>
-                                <div className="mt-2 text-sm text-gray-500">
-                                  ranking sources included
-                                </div>
-                              </td>
-
-                              <td className="px-6 py-5 align-top">
-                                <button
-                                  type="button"
-                                  onClick={() => toggleShortlist(item)}
-                                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                                    isShortlisted
-                                      ? "border border-amber-300 bg-amber-100 text-amber-800"
-                                      : "border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:text-gray-900"
-                                  }`}
-                                >
-                                  {isShortlisted ? "Added" : "+ Shortlist"}
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </section>
-          </div>
-
-          <div className="xl:sticky xl:top-6 xl:self-start">
-            <ShortlistPanel
-              shortlist={shortlist}
-              onRemove={removeFromShortlist}
-              page={page}
-              canGoPrevious={canGoPrevious}
-              canGoNext={canGoNext}
-              onPreviousPage={() => handlePageChange(page - 1)}
-              onNextPage={() => handlePageChange(page + 1)}
+      {/* ── Sticky search bar ── */}
+      <div className="sticky top-0 z-40 border-b border-[#e0ddd8] bg-white/95 shadow-sm backdrop-blur-sm">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-6 lg:px-8">
+          <div className="flex-1 max-w-lg">
+            <input
+              type="text"
+              placeholder="Search universities… (press Enter)"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  navigate({ search: searchInput || null, page: 1 });
+                }
+              }}
+              className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-4 py-2 text-sm outline-none transition focus:border-[#1a3d2e] focus:bg-white"
             />
           </div>
+          <div className="hidden text-sm text-[#6b7068] sm:block">
+            {loading ? (
+              <span className="animate-pulse">Loading…</span>
+            ) : (
+              <span>
+                <span className="font-semibold text-[#1a1a1a]">{totalCount.toLocaleString()}</span>{" "}
+                universities
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main layout ── */}
+      <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+        <div className="flex gap-6">
+          {/* ── Filter sidebar ── */}
+          <aside className="w-52 flex-shrink-0">
+            <div className="rounded-2xl border border-[#e0ddd8] bg-white p-5 shadow-sm">
+              <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.15em] text-[#6b7068]">
+                Filters
+              </h3>
+
+              {/* Year */}
+              <div className="mb-5">
+                <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
+                  Year
+                </label>
+                <select
+                  value={year}
+                  onChange={(e) => navigate({ year: e.target.value, page: 1 })}
+                  className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e]"
+                >
+                  <option value="2026">2026</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                </select>
+              </div>
+
+              {/* Scope toggle */}
+              <div className="mb-5">
+                <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
+                  Scope
+                </label>
+                <div className="flex overflow-hidden rounded-lg border border-[#e0ddd8]">
+                  {(["global", "region"] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => navigate({ scope: s, page: 1 })}
+                      className={`flex-1 py-2 text-xs font-semibold capitalize transition ${
+                        scope === s
+                          ? "bg-[#1a3d2e] text-white"
+                          : "bg-white text-[#6b7068] hover:bg-[#f5f3ee]"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Region (visible only when scope=region) */}
+              {scope === "region" && (
+                <div className="mb-5">
+                  <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
+                    Region
+                  </label>
+                  <select
+                    value={region}
+                    onChange={(e) => navigate({ region: e.target.value, page: 1 })}
+                    className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e]"
+                  >
+                    {REGION_OPTIONS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <button
+                onClick={() =>
+                  navigate({
+                    scope: "global",
+                    region: null,
+                    year: 2026,
+                    search: null,
+                    page: 1,
+                  })
+                }
+                className="w-full rounded-lg border border-[#e0ddd8] py-2 text-xs font-semibold text-[#6b7068] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+              >
+                Reset Filters
+              </button>
+            </div>
+          </aside>
+
+          {/* ── Table + pagination ── */}
+          <div className="min-w-0 flex-1">
+            {/* Sub-header */}
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-[#1a3d2e]">
+                {year} Rankings ·{" "}
+                {scope === "region" ? region : "Global"}
+              </h2>
+              {shortlist.length > 0 && (
+                <button
+                  onClick={goToRecommendations}
+                  className="rounded-full bg-[#1a3d2e] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+                >
+                  Generate Recommendation ({shortlist.length})
+                </button>
+              )}
+            </div>
+
+            {/* Error banner */}
+            {error && (
+              <div className="mb-4 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <span>{error}</span>
+                <button
+                  onClick={() => setRefreshTrigger((n) => n + 1)}
+                  className="ml-4 font-semibold underline"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+
+            {/* Table */}
+            <div className="overflow-x-auto rounded-2xl border border-[#e0ddd8] bg-white shadow-sm">
+              {loading ? (
+                <div className="divide-y divide-[#e0ddd8]">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <div key={i} className="flex h-14 items-center gap-4 px-4">
+                      <div className="h-4 w-8 animate-pulse rounded bg-[#e0ddd8]" />
+                      <div className="h-4 flex-1 animate-pulse rounded bg-[#e0ddd8]" />
+                      <div className="h-4 w-24 animate-pulse rounded bg-[#e0ddd8]" />
+                      <div className="h-4 w-16 animate-pulse rounded bg-[#e0ddd8]" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <table className="min-w-full border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-[#e0ddd8] bg-[#f5f3ee]">
+                      <th className="w-16 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                        Rank
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                        University
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                        Location
+                      </th>
+                      <th className="w-28 px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                        Agg. Score
+                      </th>
+                      <th className="w-24 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                        Sources
+                      </th>
+                      <th className="w-16 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                        Save
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="py-20 text-center italic text-[#6b7068]"
+                        >
+                          No universities found.
+                        </td>
+                      </tr>
+                    ) : (
+                      items.map((item) => {
+                        const inList = isInShortlist(item.canonicalUniversityId);
+                        return (
+                          <tr
+                            key={`${item.canonicalUniversityId}-${item.slug}-${item.aggregatedRank}`}
+                            className="border-t border-[#e0ddd8] transition hover:bg-[#f5f3ee]"
+                          >
+                            <td className="px-4 py-3.5 text-center font-bold text-[#1a3d2e]">
+                              {formatRank(item.aggregatedRank)}
+                            </td>
+                            <td className="px-4 py-3.5">
+                              <Link
+                                href={`/universities/${item.slug}`}
+                                className="font-medium text-[#1a1a1a] underline decoration-[#c0bdb8] underline-offset-2 transition hover:text-[#1a3d2e] hover:decoration-[#1a3d2e]"
+                              >
+                                {item.universityName}
+                              </Link>
+                            </td>
+                            <td className="px-4 py-3.5 text-[#6b7068]">
+                              {item.country}
+                            </td>
+                            <td className="px-4 py-3.5 text-right font-mono font-semibold text-[#1a1a1a]">
+                              {formatScore(item.compositeScore)}
+                            </td>
+                            <td className="px-4 py-3.5 text-center">
+                              <span className="inline-flex items-center rounded-full bg-[#e8f2ec] px-2.5 py-0.5 text-xs font-medium text-[#1a3d2e]">
+                                {item.sourceCount}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3.5 text-center">
+                              <button
+                                onClick={() => toggleShortlist(item)}
+                                title={
+                                  inList
+                                    ? "Remove from shortlist"
+                                    : "Add to shortlist"
+                                }
+                                className={`h-7 w-7 rounded-full text-sm font-bold transition ${
+                                  inList
+                                    ? "bg-[#1a3d2e] text-white"
+                                    : "bg-[#f5f3ee] text-[#6b7068] hover:bg-[#e8f2ec] hover:text-[#1a3d2e]"
+                                }`}
+                              >
+                                {inList ? "✓" : "+"}
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            {/* Pagination */}
+            <div className="mt-6 flex items-center justify-between">
+              <span className="text-sm text-[#6b7068]">
+                Page {page} of {totalPages}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={!canGoPrevious}
+                  onClick={() => navigate({ page: page - 1 })}
+                  className="rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-sm font-medium text-[#1a1a1a] transition hover:border-[#1a3d2e] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <span className="rounded-lg bg-[#1a3d2e] px-4 py-2 text-sm font-semibold text-white">
+                  {page}
+                </span>
+                <button
+                  disabled={!canGoNext}
+                  onClick={() => navigate({ page: page + 1 })}
+                  className="rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-sm font-medium text-[#1a1a1a] transition hover:border-[#1a3d2e] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Shortlist panel ── */}
+          {shortlist.length > 0 && (
+            <aside className="w-60 flex-shrink-0">
+              <div className="sticky top-20 rounded-2xl border border-[#e0ddd8] bg-white p-5 shadow-sm">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-[#1a3d2e]">
+                    Shortlist ({shortlist.length})
+                  </h3>
+                  <button
+                    onClick={() => setShortlist([])}
+                    className="text-xs text-[#6b7068] transition hover:text-red-600"
+                  >
+                    Clear all
+                  </button>
+                </div>
+
+                <ul className="space-y-2">
+                  {shortlist.map((item) => (
+                    <li
+                      key={item.canonicalUniversityId}
+                      className="flex items-start justify-between gap-2 rounded-xl border border-[#e8f2ec] bg-[#f5f3ee] px-3 py-2.5"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate text-xs font-semibold text-[#1a1a1a]">
+                          {item.universityName}
+                        </div>
+                        <div className="mt-0.5 text-xs text-[#6b7068]">
+                          #{formatRank(item.aggregatedRank)} · {item.country}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() =>
+                          setShortlist((prev) =>
+                            prev.filter(
+                              (s) =>
+                                s.canonicalUniversityId !==
+                                item.canonicalUniversityId
+                            )
+                          )
+                        }
+                        className="mt-0.5 flex-shrink-0 text-[#6b7068] transition hover:text-red-600"
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={goToRecommendations}
+                  className="mt-4 w-full rounded-full bg-[#1a3d2e] py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+                >
+                  Generate Recommendation
+                </button>
+              </div>
+            </aside>
+          )}
         </div>
       </div>
     </main>
   );
 }
 
-export default function HomePage() {
+// ─── Page export: wraps in Suspense (required by useSearchParams) ───
+export default function RankingsHomePage() {
   return (
-    <Suspense fallback={<RankingsShell message="Loading rankings browser..." />}>
-      <RankingsHomeContent />
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[#f5f3ee]">
+          <div
+            className="py-16"
+            style={{
+              background: "linear-gradient(135deg, #1a3d2e 0%, #0f2318 100%)",
+            }}
+          >
+            <div className="mx-auto max-w-7xl px-6 lg:px-8">
+              <div className="h-6 w-24 animate-pulse rounded bg-white/20" />
+              <div className="mt-3 h-10 w-80 animate-pulse rounded bg-white/20" />
+              <div className="mt-3 h-5 w-96 animate-pulse rounded bg-white/10" />
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <RankingsPageContent />
     </Suspense>
   );
 }

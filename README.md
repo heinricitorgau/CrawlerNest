@@ -1,4 +1,4 @@
-# CrawlerNest: University Data Infrastructure + Web Platform
+# University Data Infrastructure + Web Platform
 
 Traditional Chinese version: [README.zh-TW.md](README.zh-TW.md)
 

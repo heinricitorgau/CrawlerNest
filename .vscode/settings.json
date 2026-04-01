@@ -85,7 +85,7 @@
   "python.terminal.activateEnvironment": true,
   "editor.minimap.enabled": false,
   "editor.codeLens": false,
-  "editor.occurrencesHighlight": false,
+  "editor.occurrencesHighlight": "off",
   "editor.selectionHighlight": false,
   "breadcrumbs.enabled": false,
   "explorer.autoReveal": false,

@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "",
   "message": "",
-  "run_id": "qs-region-latin-america-2026-2026-03-30T01:45:18Z",
+  "run_id": "qs-region-latin-america-2026-2026-03-30T16:47:35Z",
   "universe_type": "region",
   "universe_key": "latin-america",
   "ranking_year": 2026,
@@ -29,11 +29,11 @@
       "enable_aggregation": true
     }
   },
-  "normalized_count": 1,
-  "standardized_count": 1,
-  "rows_written": 1,
+  "normalized_count": 193,
+  "standardized_count": 193,
+  "rows_written": 193,
   "rows_updated": 0,
-  "matched_count": 1,
+  "matched_count": 193,
   "unresolved_count": 0,
   "aggregated_years": [
     2026

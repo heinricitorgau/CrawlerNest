@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "",
   "message": "",
-  "run_id": "qs-subject-business-management-2026-2026-03-30T00:28:04Z",
+  "run_id": "qs-subject-business-management-2026-2026-03-30T17:09:10Z",
   "universe_type": "subject",
   "universe_key": "business-management",
   "ranking_year": 2026,
@@ -31,10 +31,10 @@
   },
   "normalized_count": 277,
   "standardized_count": 277,
-  "rows_written": 270,
+  "rows_written": 274,
   "rows_updated": 0,
-  "matched_count": 270,
-  "unresolved_count": 7,
+  "matched_count": 274,
+  "unresolved_count": 3,
   "aggregated_years": [
     2026
   ]

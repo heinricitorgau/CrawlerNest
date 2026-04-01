@@ -8,16 +8,18 @@ export function getApiBaseUrl(): string {
   );
 }
 
+type NextRequestInit = RequestInit & { next?: { revalidate?: number } };
+
 export async function fetchJson<T>(
   path: string,
-  init?: RequestInit
+  init?: NextRequestInit
 ): Promise<T> {
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
     cache: "no-store",
     next: {
       revalidate: 0,
-      ...(init as RequestInit & { next?: { revalidate?: number } }).next,
+      ...(init?.next || {}),
     },
   });
 
@@ -30,14 +32,14 @@ export async function fetchJson<T>(
 
 export async function fetchAppJson<T>(
   path: string,
-  init?: RequestInit
+  init?: NextRequestInit
 ): Promise<T> {
   const res = await fetch(path, {
     ...init,
     cache: "no-store",
     next: {
       revalidate: 0,
-      ...(init as RequestInit & { next?: { revalidate?: number } }).next,
+      ...(init?.next || {}),
     },
   });
 

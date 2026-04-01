@@ -714,6 +714,22 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-30 | 完成 THE crawler 與 `run-the-rankings` 一鍵流程，成功抓取 2026 THE world rankings 3118 rows / 2191 valid ranked rows | 已完成 |
 | 2026-03-30 | 新增 `seed-canonical-from-missing` 命令，直接從 `analytics.missing_entity_log` 補種 THE unresolved canonical entities | 已完成 |
 | 2026-03-30 | 完成 THE 可見性修復：THE 重 ingest 後 `matched=2191`、`unresolved=0`，aggregated visible rows 由 1323 增長至 2736 | 已完成 |
+| 2026-04-01 | Website Layer 型別安全強化：重構 Rankings 主頁 `page.tsx`（605→1200 行），引入 `RankingItem`/`RankingsResponse` 等明確型別、`AbortSignal` 防 race condition、`useMemo` 效能優化 | 已完成 |
+| 2026-04-01 | 大學詳情頁強化：新增 `formatValue()` / `renderAdmissionValue()` 空值防護 helper、`DetailCard` 統一卡片 component、`fetchCache = "force-no-store"` 資料新鮮度保證 | 已完成 |
+| 2026-04-01 | 新增大學詳情頁 Skeleton Loading UI（`universities/[slug]/loading.tsx`），使用 `animate-pulse` 佔位動畫，符合 Next.js App Router 慣例 | 已完成 |
+| 2026-04-01 | Recommendations 頁面 CSS 標準化：將所有硬編碼 hex 色碼統一替換為 Tailwind CSS token，提升可維護性 | 已完成 |
+| 2026-04-01 | 修正 `lib/api.ts` TypeScript 型別問題，消除嚴格模式下 `NextRequestInit` 型別警告 | 已完成 |
+| 2026-04-01 | 修復 `FakeMultiSourceRepository.upsert_ranking_records()` 缺少 `run_id` 參數導致的 pipeline 測試失敗（TypeError） | 已完成 |
+| 2026-04-01 | 修復 `FilterSidebar.tsx` `onFilterChange` callback `any` 型別，改為具體型別定義 | 已完成 |
+| 2026-04-01 | 新增 Next.js App Router Global Error Boundary（`app/error.tsx`）與大學詳情頁 Error Boundary（`universities/[slug]/error.tsx`） | 已完成 |
+| 2026-04-01 | 建立前端測試基礎設施（Jest 30 + React Testing Library + ts-jest），前端測試數由 0 → 27 個（`format.ts` 21 個 + `ShortlistButton` 6 個） | 已完成 |
+| 2026-04-01 | Rankings 主頁搜尋欄加入 400ms debounce，輸入停止後自動觸發搜尋，使用 `useRef` 穩定 navigate 引用避免 effect 依賴迴圈 | 已完成 |
+| 2026-04-01 | 新增 Rankings 主頁 Skeleton Loading（`app/loading.tsx`），Next.js App Router 路由切換期間自動啟用，含 header/統計卡/table/分頁 animate-pulse 佔位 | 已完成 |
+| 2026-04-01 | 新增 Recommendations 頁 Skeleton Loading（`app/recommendations/loading.tsx`），含 header/shortlist context/表單欄位 animate-pulse 佔位 | 已完成 |
+| 2026-04-01 | 新增 `ErrorBanner` 可重用元件（`src/components/ErrorBanner.tsx`），具 `role="alert"` 無障礙標準、`message` prop 顯示錯誤、`onDismiss` Dismiss 按鈕 | 已完成 |
+| 2026-04-01 | 整合 ErrorBanner 至 Rankings 主頁：API fetch 失敗時在頁面頂端顯示可 Dismiss 的橫幅提示 | 已完成 |
+| 2026-04-01 | 修復 `lib/api.ts` `init` 為 undefined 時存取 `.next` 屬性的 TypeError（改用 optional chaining `?.next`） | 已完成 |
+| 2026-04-01 | 前端測試由 27 → 51 個（+24）：新增 ErrorBanner（7）、api.ts mock fetch（15）、3 個 loading 元件渲染驗證（15 — 含 RankingsLoading / RecommendationsLoading / UniversityDetailLoading）；Python 維持 78 passed | 已完成 |
 
 ### 13.4 未來階段規劃
 

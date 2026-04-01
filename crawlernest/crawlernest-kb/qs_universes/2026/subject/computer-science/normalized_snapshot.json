@@ -6631,7 +6631,7 @@
     }
   },
   {
-    "university_name": "Université de Rennes 1",
+    "university_name": "Université de Rennes",
     "country": "France",
     "rank": "350",
     "score": "n/a",
@@ -6639,7 +6639,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/universite-de-rennes-1",
+    "detail_url": "/universities/universite-de-rennes",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "48.9",

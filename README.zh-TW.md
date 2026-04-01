@@ -1,4 +1,4 @@
-# CrawlerNest：大學資料基礎設施與網站平台
+# 大學資料基礎設施與網站平台
 
 這是 **CrawlerNest** 的獨立繁體中文版 README。  
 英文版請參考 [README.md](README.md)。

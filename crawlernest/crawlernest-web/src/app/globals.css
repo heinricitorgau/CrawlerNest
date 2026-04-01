@@ -2,28 +2,73 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827;
+  --color-primary: #1e293b;
+  --color-accent: #2563eb;
+  --color-accent-light: #eff6ff;
+  --color-bg: #ffffff;
+  --color-card: #ffffff;
+  --color-border: #e5e7eb;
+  --color-muted: #64748b;
+  --color-text: #111827;
+  --nav-bg: rgba(255, 255, 255, 0.9);
+}
+
+.dark {
+  --color-primary: #f8fafc;
+  --color-accent: #3b82f6;
+  --color-accent-light: #1e3a8a;
+  --color-bg: #0f172a;
+  --color-card: #1e293b;
+  --color-border: #334155;
+  --color-muted: #94a3b8;
+  --color-text: #f8fafc;
+  --nav-bg: rgba(15, 23, 42, 0.9);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans:
-    "Segoe UI", "Helvetica Neue", "Arial Nova", Arial, sans-serif;
+    "Inter", system-ui, -apple-system, sans-serif;
   --font-mono:
     "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  transition: background-color 0.2s, color 0.2s;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+/* Data-dense table styles */
+.ranking-table {
+  @apply w-full border-collapse text-sm;
+}
+
+.ranking-table thead tr {
+  @apply border-b border-gray-200 bg-gray-50;
+}
+
+.ranking-table th {
+  @apply px-4 py-3 text-left font-semibold text-gray-900;
+}
+
+.ranking-table td {
+  @apply px-4 py-3 border-b border-gray-100;
+}
+
+.ranking-table tbody tr {
+  @apply transition-colors duration-150;
+}
+
+.ranking-table tbody tr:hover {
+  @apply bg-blue-50/50;
+}
+
+.ranking-table tbody tr:nth-child(even) {
+  @apply bg-gray-50/30;
 }
 
 .site-watermark {
@@ -40,7 +85,7 @@ body {
 .site-watermark-image {
   width: min(34vw, 420px);
   max-width: 420px;
-  opacity: 0.09;
+  opacity: 0.04;
   filter: grayscale(1);
   mix-blend-mode: multiply;
   transform: translateY(5vh);
@@ -49,7 +94,7 @@ body {
 @media (max-width: 768px) {
   .site-watermark-image {
     width: min(56vw, 320px);
-    opacity: 0.08;
+    opacity: 0.03;
     transform: translateY(8vh);
   }
 }

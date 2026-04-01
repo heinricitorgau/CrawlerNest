@@ -264,42 +264,42 @@ function RecommendationPageContent() {
   }
 
   return (
-    <main className="min-h-screen bg-white text-gray-900">
+    <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
       <div className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.18em] text-gray-500">
+            <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#6b7068]">
               Decision Support
             </p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#1a3d2e]">
               Recommendation Engine
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6b7068]">
               Generate a shortlist using ranking targets, English requirements,
               and risk profile.
             </p>
           </div>
           <Link
             href="/"
-            className="inline-flex items-center rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:border-gray-300 hover:text-gray-900"
+            className="inline-flex items-center rounded-full border border-[#e0ddd8] bg-white px-4 py-2 text-sm font-medium text-[#1a3d2e] shadow-sm transition hover:border-[#3d7a5a] hover:bg-[#e8f2ec]"
           >
             Back to rankings
           </Link>
         </div>
 
         {shortlistContext.length > 0 ? (
-          <section className="mb-6 rounded-3xl border border-blue-100 bg-blue-50/70 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">
+          <section className="mb-6 rounded-3xl border border-[#e0ddd8] bg-[#e8f2ec] p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#1a3d2e]">
               Using your shortlist ({shortlistContext.length})
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-[#6b7068]">
               These shortlisted universities are carried into your recommendation workflow.
             </p>
             <ul className="mt-4 space-y-2">
               {shortlistContext.map((item) => (
                 <li
                   key={item.canonicalUniversityId}
-                  className="rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-medium text-blue-900"
+                  className="rounded-2xl border border-[#3d7a5a] bg-white px-4 py-3 text-sm font-medium text-[#1a3d2e]"
                 >
                   {item.universityName}
                 </li>
@@ -307,16 +307,16 @@ function RecommendationPageContent() {
             </ul>
           </section>
         ) : (
-          <section className="mb-6 rounded-3xl border border-gray-200 bg-gray-50 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">
+          <section className="mb-6 rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#1a3d2e]">
               No shortlist detected. Start from rankings.
             </h2>
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-[#6b7068]">
               Add universities to your shortlist on the rankings page, then return here to continue.
             </p>
             <Link
               href="/"
-              className="mt-4 inline-flex items-center justify-center rounded-xl bg-gray-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
+              className="mt-4 inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
             >
               Back to rankings
             </Link>
@@ -326,16 +326,16 @@ function RecommendationPageContent() {
         {comparisonItems.length >= 2 ? (
           <section
             id="comparison"
-            className="mb-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm"
+            className="mb-6 rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm"
           >
-            <h2 className="text-xl font-semibold text-gray-900">Comparison</h2>
-            <p className="mt-2 text-sm text-gray-500">
+            <h2 className="text-xl font-semibold text-[#1a3d2e]">Comparison</h2>
+            <p className="mt-2 text-sm text-[#6b7068]">
               Compare shortlisted universities side by side before generating a final recommendation.
             </p>
 
             <div className="mt-5 overflow-x-auto">
               <table className="w-full border-collapse">
-                <thead className="bg-gray-50 text-sm text-gray-600">
+                <thead className="bg-[#f5f3ee] text-sm text-[#6b7068]">
                   <tr>
                     <th className="px-4 py-3 text-left">University</th>
                     <th className="px-4 py-3 text-left">Country</th>
@@ -348,17 +348,17 @@ function RecommendationPageContent() {
                   {comparisonItems.map((item) => (
                     <tr
                       key={item.canonicalUniversityId}
-                      className="border-t border-gray-100"
+                      className="border-t border-[#e0ddd8]"
                     >
-                      <td className="px-4 py-4 font-semibold text-gray-900">
+                      <td className="px-4 py-4 font-semibold text-[#1a1a1a]">
                         {item.universityName}
                       </td>
-                      <td className="px-4 py-4 text-gray-600">{item.country}</td>
+                      <td className="px-4 py-4 text-[#6b7068]">{item.country}</td>
                       <td
                         className={`px-4 py-4 ${
                           bestRank !== null && item.aggregatedRank === bestRank
-                            ? "font-semibold text-emerald-700"
-                            : "text-gray-700"
+                            ? "font-semibold text-[#1a3d2e]"
+                            : "text-[#6b7068]"
                         }`}
                       >
                         #{formatRank(item.aggregatedRank)}
@@ -366,8 +366,8 @@ function RecommendationPageContent() {
                       <td
                         className={`px-4 py-4 ${
                           bestIelts !== null && item.ieltsMin === bestIelts
-                            ? "font-semibold text-emerald-700"
-                            : "text-gray-700"
+                            ? "font-semibold text-[#1a3d2e]"
+                            : "text-[#6b7068]"
                         }`}
                       >
                         {item.ieltsMin !== undefined
@@ -378,8 +378,8 @@ function RecommendationPageContent() {
                         className={`px-4 py-4 ${
                           bestMatchScore !== null &&
                           item.matchingScore === bestMatchScore
-                            ? "font-semibold text-emerald-700"
-                            : "text-gray-700"
+                            ? "font-semibold text-[#1a3d2e]"
+                            : "text-[#6b7068]"
                         }`}
                       >
                         {item.matchingScore !== undefined
@@ -393,11 +393,11 @@ function RecommendationPageContent() {
             </div>
 
             {comparisonExplanations.length > 0 ? (
-              <div className="mt-6 rounded-2xl bg-gray-50 p-5">
-                <h3 className="text-base font-semibold text-gray-900">
+              <div className="mt-6 rounded-2xl bg-[#f5f3ee] p-5">
+                <h3 className="text-base font-semibold text-[#1a3d2e]">
                   Explanation
                 </h3>
-                <ul className="mt-3 space-y-2 text-sm leading-6 text-gray-700">
+                <ul className="mt-3 space-y-2 text-sm leading-6 text-[#6b7068]">
                   {comparisonExplanations.map((explanation) => (
                     <li key={explanation}>{explanation}</li>
                   ))}
@@ -407,12 +407,12 @@ function RecommendationPageContent() {
           </section>
         ) : null}
 
-        <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+        <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-gray-700">Country</span>
+              <span className="text-sm font-medium text-[#1a3d2e]">Country</span>
               <input
-                className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
+                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 placeholder="Country"
@@ -420,9 +420,9 @@ function RecommendationPageContent() {
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-gray-700">IELTS Score</span>
+              <span className="text-sm font-medium text-[#1a3d2e]">IELTS Score</span>
               <input
-                className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
+                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
                 type="number"
                 step="0.5"
                 value={ielts}
@@ -431,9 +431,9 @@ function RecommendationPageContent() {
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-gray-700">Target Rank</span>
+              <span className="text-sm font-medium text-[#1a3d2e]">Target Rank</span>
               <input
-                className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
+                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
                 type="number"
                 value={targetRank}
                 onChange={(e) => setTargetRank(Number(e.target.value))}
@@ -441,9 +441,9 @@ function RecommendationPageContent() {
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-gray-700">Risk Profile</span>
+              <span className="text-sm font-medium text-[#1a3d2e]">Risk Profile</span>
               <select
-                className="rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-gray-900"
+                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
                 value={riskProfile}
                 onChange={(e) => setRiskProfile(e.target.value)}
               >
@@ -457,12 +457,12 @@ function RecommendationPageContent() {
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <button
               onClick={fetchRecommendations}
-              className="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400"
+              className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42] disabled:cursor-not-allowed disabled:bg-[#c0bdb8]"
               disabled={loading}
             >
               {loading ? "Generating..." : "Generate Recommendations"}
             </button>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-[#6b7068]">
               Results are fetched through the frontend recommendation service.
             </span>
           </div>
@@ -476,9 +476,9 @@ function RecommendationPageContent() {
 
         {data ? (
           <div className="mt-8 space-y-8">
-            <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-gray-900">Summary</h2>
-              <p className="mt-2 text-sm text-gray-500">
+            <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-[#1a3d2e]">Summary</h2>
+              <p className="mt-2 text-sm text-[#6b7068]">
                 A compact view of the assumptions and the current recommendation spread.
               </p>
               <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -528,9 +528,9 @@ export default function RecommendationPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-white text-gray-900">
+        <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
           <div className="mx-auto max-w-5xl px-6 py-10">
-            <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-gray-600">
+            <div className="rounded-2xl border border-[#e0ddd8] bg-white p-6 text-[#6b7068]">
               Loading recommendation context...
             </div>
           </div>
@@ -544,9 +544,9 @@ export default function RecommendationPage() {
 
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-gray-50 px-4 py-3">
-      <div className="text-sm text-gray-500">{label}</div>
-      <div className="mt-1 font-medium text-gray-900">{value}</div>
+    <div className="rounded-xl bg-[#f5f3ee] px-4 py-3">
+      <div className="text-sm text-[#6b7068]">{label}</div>
+      <div className="mt-1 font-medium text-[#1a1a1a]">{value}</div>
     </div>
   );
 }
@@ -561,12 +561,12 @@ function Section({
   items: RecommendationItem[];
 }) {
   return (
-    <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
-      <p className="mt-2 text-sm text-gray-500">{description}</p>
+    <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+      <h2 className="text-2xl font-semibold text-[#1a3d2e]">{title}</h2>
+      <p className="mt-2 text-sm text-[#6b7068]">{description}</p>
 
       {items.length === 0 ? (
-        <div className="mt-5 rounded-xl bg-gray-50 p-4 text-gray-600">
+        <div className="mt-5 rounded-xl bg-[#f5f3ee] p-4 text-[#6b7068]">
           No universities available in this bucket.
         </div>
       ) : (
@@ -574,20 +574,20 @@ function Section({
           {items.map((item) => (
             <div
               key={item.canonicalUniversityId}
-              className="rounded-2xl border border-gray-200 p-5"
+              className="rounded-2xl border border-[#e0ddd8] p-5"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <div className="text-xl font-semibold text-gray-900">
+                  <div className="text-xl font-semibold text-[#1a1a1a]">
                     {item.universityName}
                   </div>
-                  <div className="mt-1 text-sm text-gray-500">{item.country}</div>
+                  <div className="mt-1 text-sm text-[#6b7068]">{item.country}</div>
                 </div>
-                <div className="rounded-xl bg-gray-50 px-4 py-3 text-right">
-                  <div className="text-xs uppercase tracking-[0.18em] text-gray-500">
+                <div className="rounded-xl bg-[#f5f3ee] px-4 py-3 text-right">
+                  <div className="text-xs uppercase tracking-[0.18em] text-[#6b7068]">
                     Match Score
                   </div>
-                  <div className="mt-1 text-xl font-semibold text-gray-900">
+                  <div className="mt-1 text-xl font-semibold text-[#1a3d2e]">
                     {formatScore(item.matchingScore)}
                   </div>
                 </div>
@@ -605,7 +605,7 @@ function Section({
                 />
               </div>
 
-              <div className="mt-4 rounded-xl bg-gray-50 p-4 text-sm leading-6 text-gray-700">
+              <div className="mt-4 rounded-xl bg-[#f5f3ee] p-4 text-sm leading-6 text-[#6b7068]">
                 {item.explanation}
               </div>
             </div>
