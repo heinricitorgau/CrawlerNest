@@ -1,3 +1,4 @@
+import datetime
 import unittest
 import sys
 import json
@@ -127,6 +128,94 @@ class TestUniversityFetcher(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.fetcher._ensure_ranking_id()
             self.assertEqual(getattr(self.config, "_last_failure_classification", ""), "resolve_blocked")
+
+class TestResolutionCacheTTL(unittest.TestCase):
+    """Tests for TTL-based cache expiry in _read_cached_resolution."""
+
+    def _write_cache(self, path: Path, ranking_id: str, resolved_at: str) -> None:
+        payload = {
+            "entries": {
+                "QS|2026|region|europe": {
+                    "ranking_id": ranking_id,
+                    "ranking_id_candidates": [ranking_id],
+                    "resolved_ranking_page_url": "https://www.topuniversities.com/europe-university-rankings",
+                    "resolved_at": resolved_at,
+                }
+            }
+        }
+        path.write_text(json.dumps(payload), encoding="utf-8")
+
+    def _make_config(self, cache_path: str, ttl: int) -> Config:
+        config = Config()
+        config.ranking_id = ""
+        config.ranking_year = 2026
+        config.universe_type = "region"
+        config.universe_key = "europe"
+        config.ranking_page_url = "https://www.topuniversities.com/europe-university-rankings"
+        config.resolution_cache_path = cache_path
+        config.resolution_cache_ttl_seconds = ttl
+        return config
+
+    def test_fresh_cache_is_used(self):
+        """Cache entry within TTL should be returned without HTTP calls."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_path = Path(tmpdir) / "cache.json"
+            now = datetime.datetime.now(datetime.timezone.utc)
+            self._write_cache(cache_path, "9999", now.isoformat().replace("+00:00", "Z"))
+
+            fetcher = UniversityFetcher(Config())
+            config = self._make_config(str(cache_path), ttl=3600)  # 1 hour TTL
+
+            with patch.object(fetcher.session, "get") as mock_get:
+                nid = fetcher._ensure_ranking_id.__func__(fetcher) if False else None
+                # Use the fetcher we already have but reassign config
+                fetcher.config = config
+                nid = fetcher._ensure_ranking_id()
+
+            self.assertEqual(nid, "9999")
+            mock_get.assert_not_called()
+
+    def test_expired_cache_is_ignored(self):
+        """Cache entry beyond TTL should be bypassed; falls through to HTML resolution."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_path = Path(tmpdir) / "cache.json"
+            # Timestamp 2 hours in the past
+            old_time = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=2)
+            self._write_cache(cache_path, "OLD_ID", old_time.isoformat().replace("+00:00", "Z"))
+
+            config = self._make_config(str(cache_path), ttl=3600)  # 1 hour TTL
+            fetcher = UniversityFetcher(Config())
+            fetcher.config = config
+
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.text = '<div data-nid="54321"></div>'
+
+            with patch.object(fetcher.session, "get", return_value=mock_response) as mock_get:
+                nid = fetcher._ensure_ranking_id()
+
+            # The expired cache should have been ignored; HTML resolution fires
+            self.assertEqual(nid, "54321")
+            mock_get.assert_called()
+
+    def test_zero_ttl_always_uses_cache(self):
+        """TTL=0 means no expiry check — any cache entry should be accepted."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cache_path = Path(tmpdir) / "cache.json"
+            # Entry written a long time ago
+            ancient = "2000-01-01T00:00:00Z"
+            self._write_cache(cache_path, "ANCIENT_ID", ancient)
+
+            config = self._make_config(str(cache_path), ttl=0)
+            fetcher = UniversityFetcher(Config())
+            fetcher.config = config
+
+            with patch.object(fetcher.session, "get") as mock_get:
+                nid = fetcher._ensure_ranking_id()
+
+            self.assertEqual(nid, "ANCIENT_ID")
+            mock_get.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()

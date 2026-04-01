@@ -730,6 +730,12 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-04-01 | 整合 ErrorBanner 至 Rankings 主頁：API fetch 失敗時在頁面頂端顯示可 Dismiss 的橫幅提示 | 已完成 |
 | 2026-04-01 | 修復 `lib/api.ts` `init` 為 undefined 時存取 `.next` 屬性的 TypeError（改用 optional chaining `?.next`） | 已完成 |
 | 2026-04-01 | 前端測試由 27 → 51 個（+24）：新增 ErrorBanner（7）、api.ts mock fetch（15）、3 個 loading 元件渲染驗證（15 — 含 RankingsLoading / RecommendationsLoading / UniversityDetailLoading）；Python 維持 78 passed | 已完成 |
+| 2026-04-01 | 修復 `qs_universe_crawlers.py` `datetime.utcnow()` Python 3.12+ DeprecationWarning，改用時區感知 `datetime.now(timezone.utc)` | 已完成 |
+| 2026-04-01 | 新增爬蟲核心測試 `test_crawler.py`（24 tests）：覆蓋 `UniversityCrawler.crawl()`、`_process_university()`、resume checkpoint、detail 403 degrade、stats tracking、node deduplication | 已完成 |
+| 2026-04-01 | 新增 `test_retry.py`（13 tests）：覆蓋 retry 裝飾器指數退避、exception filter、functools.wraps 保留、logging flags | 已完成 |
+| 2026-04-01 | 補強 `test_fetcher.py` resolution cache TTL 測試（+3 tests）：fresh cache 使用、expired cache 繞過、zero-TTL 永不過期 | 已完成 |
+| 2026-04-01 | 新增 THE crawler utility 函數測試 `test_the_crawler.py`（43 tests）：覆蓋 `_to_int`、`_to_float`、`_pick_first`、`_extract_rows`、`_normalize_row`、`_discover_data_urls`、`_extract_rows_from_next_data`、`_extract_rows_from_html_tables` | 已完成 |
+| 2026-04-01 | Python 測試總數由 78 → **161 passed**（+83 tests，+106%），TypeScript 測試維持 51 passed，tsc 無錯誤 | 已完成 |
 
 ### 13.4 未來階段規劃
 

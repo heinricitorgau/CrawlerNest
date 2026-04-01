@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime as _dt
 import json
 from dataclasses import asdict
 from pathlib import Path
@@ -51,7 +52,7 @@ def _persist_resolution_cache(config: Config) -> None:
             getattr(config, "_resolved_ranking_page_url", "") or getattr(config, "ranking_page_url", "") or ""
         ),
         "api_url": str(getattr(config, "api_url", "") or "").strip(),
-        "resolved_at": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+        "resolved_at": _dt.datetime.now(_dt.timezone.utc).isoformat().replace("+00:00", "Z"),
     }
     cache_file.parent.mkdir(parents=True, exist_ok=True)
     cache_file.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -19,7 +19,7 @@ export async function fetchJson<T>(
     cache: "no-store",
     next: {
       revalidate: 0,
-      ...(init?.next || {}),
+      ...(init as RequestInit & { next?: { revalidate?: number } } | undefined)?.next,
     },
   });
 
@@ -39,7 +39,7 @@ export async function fetchAppJson<T>(
     cache: "no-store",
     next: {
       revalidate: 0,
-      ...(init?.next || {}),
+      ...(init as RequestInit & { next?: { revalidate?: number } } | undefined)?.next,
     },
   });
 

@@ -281,3 +281,144 @@ Next.js App Router 自動在路由切換期間使用此元件作為 loading fall
 | TypeScript (`tsc --noEmit`) | ✅ 無錯誤 | — |
 
 *下午工作循環結束時間：2026-04-01 17:45*
+
+---
+
+## 七、爬蟲引擎強化工作循環（18:00–22:00）
+
+**目標：** 強化 Layer 1 Data Acquisition + Layer 2 Canonical Processing
+
+---
+
+### 7.1 基線確認
+
+**時間：** 18:00
+
+執行完整測試套件確認基線：
+
+| 測試層 | 通過 | 跳過 | 失敗 |
+|--------|------|------|------|
+| Python (pytest) | **78** | 4 | 0 |
+
+---
+
+### 7.2 程式碼審查發現
+
+**閱讀檔案：**
+- `crawlernest/crawlernest-jobs/crawler.py`（共 1018 行）
+- `crawlernest/crawlernest-extractors/fetcher.py`
+- `crawlernest/crawlernest-core/utils/retry.py`
+- `crawlernest/crawlernest-jobs/the_crawler.py`
+- `crawlernest/crawlernest-jobs/qs_universe_crawlers.py`
+
+**發現的主要缺口：**
+
+| 問題類型 | 位置 | 說明 |
+|----------|------|------|
+| 測試覆蓋率 | `crawler.py` → `UniversityCrawler` | 整個核心爬蟲類別完全沒有單元測試：`crawl()`、`_process_university()`、resume checkpoint、403 degrade 邏輯均未被覆蓋 |
+| 測試覆蓋率 | `utils/retry.py` | retry 裝飾器無任何直接測試（指數退避、exception filter、functools.wraps 未驗證） |
+| 測試覆蓋率 | `the_crawler.py` | `_to_int`、`_to_float`、`_extract_rows`、`_normalize_row`、`_discover_data_urls`、`_extract_rows_from_next_data`、`_extract_rows_from_html_tables` 等 utility 函數完全未測試 |
+| Bug / DeprecationWarning | `qs_universe_crawlers.py:54` | `datetime.utcnow()` 在 Python 3.12+ 被廢棄，會產生 `DeprecationWarning`，計劃於未來版本移除 |
+| 測試覆蓋率 | `fetcher.py` | resolution cache TTL 過期行為未被任何測試覆蓋 |
+
+---
+
+### 7.3 修復：qs_universe_crawlers.py datetime.utcnow() 廢棄警告
+
+**問題：** `_persist_resolution_cache()` 使用 `__import__("datetime").datetime.utcnow()` 生成 timestamp，Python 3.12+ 中此 API 已廢棄。
+
+**修復：** 改用時區感知 API `datetime.datetime.now(datetime.timezone.utc)`，並加入標準 `import datetime as _dt`。
+
+```python
+# 修前（廢棄）
+"resolved_at": __import__("datetime").datetime.utcnow().isoformat() + "Z"
+
+# 修後（正確）
+"resolved_at": _dt.datetime.now(_dt.timezone.utc).isoformat().replace("+00:00", "Z")
+```
+
+---
+
+### 7.4 新增：test_crawler.py — UniversityCrawler 核心測試
+
+**檔案：** `crawlernest/crawlernest-tests/test_crawler.py`（新建）
+
+| 測試類別 | 測試數 | 說明 |
+|----------|--------|------|
+| `TestResumeNodeKey` | 4 | path 優先、url 欄位、rank-name fallback、空節點穩定性 |
+| `TestProcessUniversity` | 5 | valid node、非 dict 回傳 None、缺字段預設 N/A、備用欄位名、table_metrics 提取 |
+| `TestCrawlSuccess` | 7 | 正常路徑、空節點、fetch 失敗、缺 score_nodes、ranking_limit、stats 計數 |
+| `TestCrawlResume` | 3 | path 跳過、key 跳過、無 resume state |
+| `TestDetail403Degrade` | 4 | 連續 403 觸發降級、非 403 不降級、details 關閉不發請求、成功後重置 streak |
+| `TestNodeDeduplication` | 1 | 分頁重複節點只出現一次 |
+| **合計** | **24** | 全部通過 |
+
+---
+
+### 7.5 新增：test_retry.py — retry 裝飾器測試
+
+**檔案：** `crawlernest/crawlernest-tests/test_retry.py`（新建）
+
+| 測試類別 | 測試數 | 說明 |
+|----------|--------|------|
+| `TestRetryBasic` | 4 | 首次成功、一次失敗後成功、全部耗盡重拋、回傳值保留 |
+| `TestRetryBackoff` | 2 | 指數退避 sleep 呼叫次數與數值、zero delay 不阻塞 |
+| `TestRetryExceptionFilter` | 3 | 非指定 exception 立即傳播、指定 exception 重試、多種 exception 類型 |
+| `TestRetryLogging` | 2 | `log_attempt_failures=False` 抑制 warning、`log_final_failure=False` 抑制 error |
+| `TestRetryFunctoolsWraps` | 2 | `__name__` 保留、`__doc__` 保留 |
+| **合計** | **13** | 全部通過 |
+
+---
+
+### 7.6 新增：resolution cache TTL 測試（補入 test_fetcher.py）
+
+**修改：** `crawlernest/crawlernest-tests/test_fetcher.py`
+
+新增 `TestResolutionCacheTTL` 類別，覆蓋以下場景：
+
+| 測試 | 說明 |
+|------|------|
+| `test_fresh_cache_is_used` | TTL 內的 cache 直接使用，不發 HTTP 請求 |
+| `test_expired_cache_is_ignored` | 超過 TTL 的 cache 被略過，改用 HTML 解析 |
+| `test_zero_ttl_always_uses_cache` | TTL=0 時不做過期判斷，任何年代的 cache 都接受 |
+
+---
+
+### 7.7 新增：test_the_crawler.py — THE crawler utility 函數測試
+
+**檔案：** `crawlernest/crawlernest-tests/test_the_crawler.py`（新建）
+
+| 測試類別 | 測試數 | 說明 |
+|----------|--------|------|
+| `TestToInt` | 5 | 整數、rank range "51-100"、"=3" 前綴、None/空值、float string |
+| `TestToFloat` | 4 | float、百分比剝離、整數字串、None/空值 |
+| `TestPickFirst` | 5 | 第一個非 None、key 優先順序、缺鍵、空 row、零值保留 |
+| `TestExtractRows` | 6 | rows/data/results key、list payload、非 dict 過濾、None/空 list |
+| `TestNormalizeRow` | 7 | valid row、缺 name、無法解析 rank、備用欄位名、nested scores dict、rank range、metadata |
+| `TestDiscoverDataUrls` | 5 | 直接年份 URL、generic JSON URL、去重、空 HTML、無匹配 |
+| `TestExtractRowsFromNextData` | 5 | 有效結構、非 dict 過濾、無 script tag、無效 JSON、缺嵌套 key |
+| `TestExtractRowsFromHtmlTables` | 5 | 完整排名表、缺必要欄位跳過、無法解析 rank 跳過、空 HTML、year/ranking_type 填充 |
+| **合計** | **43** | 全部通過（修正測試一次：空 dict `{}` 因 `all()` vacuous truth 回傳 `[{}]` 為現有行為） |
+
+---
+
+### 7.8 最終測試結果
+
+| 測試層 | 通過 | 跳過 | 失敗 |
+|--------|------|------|------|
+| Python (pytest) 最終 | **161** | 4 | **0** |
+
+**增長：** +83 個測試（78 → 161），增長率 **+106%**
+
+**新增測試檔案：**
+- `test_crawler.py`（24 tests）
+- `test_retry.py`（13 tests）
+- `test_the_crawler.py`（43 tests）
+
+**修改測試檔案：**
+- `test_fetcher.py` +3 tests（`TestResolutionCacheTTL`）
+
+**Bug 修復：**
+- `qs_universe_crawlers.py`：`datetime.utcnow()` → `datetime.now(timezone.utc)`（Python 3.12+ DeprecationWarning）
+
+*晚間工作循環結束時間：2026-04-01 21:45*
