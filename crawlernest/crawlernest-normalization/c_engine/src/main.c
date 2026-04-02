@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "record.h"
 #include "normalizer.h"
@@ -50,13 +51,144 @@ static void show_menu(void) {
     printf("請輸入選項: ");
 }
 
-int main(void) {
+/*
+ * run_pipe_name
+ *
+ * Reads university name strings line-by-line from stdin,
+ * outputs normalized names to stdout, one per line.
+ * Used by the Python bridge for subprocess-based normalization.
+ */
+static void run_pipe_name(void) {
+    char line[NAME_LEN];
+    char output[NAME_LEN];
+
+    while (fgets(line, (int)sizeof(line), stdin) != NULL) {
+        /* Strip trailing newline */
+        size_t len = strlen(line);
+        if (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r')) {
+            line[--len] = '\0';
+        }
+        if (len > 0 && (line[len - 1] == '\r')) {
+            line[--len] = '\0';
+        }
+
+        normalize_name(line, output, (int)sizeof(output));
+        printf("%s\n", output);
+        fflush(stdout);
+    }
+}
+
+/*
+ * run_pipe_country
+ *
+ * Reads country strings line-by-line from stdin,
+ * outputs normalized canonical country names to stdout, one per line.
+ */
+static void run_pipe_country(void) {
+    char line[COUNTRY_LEN];
+    char output[COUNTRY_LEN];
+
+    while (fgets(line, (int)sizeof(line), stdin) != NULL) {
+        size_t len = strlen(line);
+        if (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r')) {
+            line[--len] = '\0';
+        }
+        if (len > 0 && (line[len - 1] == '\r')) {
+            line[--len] = '\0';
+        }
+
+        normalize_country(line, output, (int)sizeof(output));
+        printf("%s\n", output);
+        fflush(stdout);
+    }
+}
+
+/*
+ * run_pipe_batch
+ *
+ * Reads CSV records line-by-line from stdin in the format:
+ *   name,country
+ * Outputs normalized CSV to stdout:
+ *   normalized_name,normalized_country
+ *
+ * A comma inside a quoted field is not supported; use simple CSV.
+ */
+static void run_pipe_batch(void) {
+    char line[NAME_LEN + COUNTRY_LEN + 4];
+    char name_buf[NAME_LEN];
+    char country_buf[COUNTRY_LEN];
+    char norm_name[NAME_LEN];
+    char norm_country[COUNTRY_LEN];
+    char *comma;
+
+    /* Print header */
+    printf("normalized_name,normalized_country\n");
+    fflush(stdout);
+
+    while (fgets(line, (int)sizeof(line), stdin) != NULL) {
+        /* Strip trailing newline */
+        size_t len = strlen(line);
+        if (len > 0 && (line[len - 1] == '\n' || line[len - 1] == '\r')) {
+            line[--len] = '\0';
+        }
+        if (len > 0 && (line[len - 1] == '\r')) {
+            line[--len] = '\0';
+        }
+
+        /* Skip empty lines and header */
+        if (len == 0) continue;
+        if (strncmp(line, "name,", 5) == 0 || strncmp(line, "Name,", 5) == 0) continue;
+
+        comma = strchr(line, ',');
+        if (comma == NULL) {
+            /* No comma: treat entire line as name, empty country */
+            strncpy(name_buf, line, sizeof(name_buf) - 1);
+            name_buf[sizeof(name_buf) - 1] = '\0';
+            country_buf[0] = '\0';
+        } else {
+            size_t name_len = (size_t)(comma - line);
+            if (name_len >= sizeof(name_buf)) name_len = sizeof(name_buf) - 1;
+            strncpy(name_buf, line, name_len);
+            name_buf[name_len] = '\0';
+
+            strncpy(country_buf, comma + 1, sizeof(country_buf) - 1);
+            country_buf[sizeof(country_buf) - 1] = '\0';
+        }
+
+        normalize_name(name_buf, norm_name, (int)sizeof(norm_name));
+        normalize_country(country_buf, norm_country, (int)sizeof(norm_country));
+
+        printf("%s,%s\n", norm_name, norm_country);
+        fflush(stdout);
+    }
+}
+
+int main(int argc, char *argv[]) {
     UniversityRecord records[MAX_RECORDS];
     int record_count = 0;
     int is_loaded = 0;
     int is_normalized = 0;
     int choice;
 
+    /* --pipe-name: normalize names from stdin, one per line */
+    if (argc >= 2 && strcmp(argv[1], "--pipe-name") == 0) {
+        run_pipe_name();
+        return 0;
+    }
+
+    /* --pipe-country: normalize countries from stdin, one per line */
+    if (argc >= 2 && strcmp(argv[1], "--pipe-country") == 0) {
+        run_pipe_country();
+        return 0;
+    }
+
+    /* --pipe-batch: normalize CSV (name,country) from stdin */
+    if (argc >= 2 && strcmp(argv[1], "--pipe-batch") == 0) {
+        run_pipe_batch();
+        return 0;
+    }
+
+    /* Interactive menu mode */
     printf("Clawer C Data Normalization Engine 啟動中...\n");
 
     while (1) {
