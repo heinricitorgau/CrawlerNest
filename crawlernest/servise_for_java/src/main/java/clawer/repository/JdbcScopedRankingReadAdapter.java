@@ -238,7 +238,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             argsList.add(normalizedSearch);
         }
         if (recommendationMode && country != null && !country.isBlank()) {
-            sql.append(" AND country = ?");
+            sql.append(" AND country = ?\n");
             argsList.add(country);
         }
 
