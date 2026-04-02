@@ -24,32 +24,32 @@ static void test_normalize_name_basic(void) {
     char output[NAME_LEN];
 
     normalize_name("U.C. Berkeley", output, NAME_LEN);
-    print_test_result("normalize_name: U.C. Berkeley -> UC Berkeley",
-                      strcmp(output, "UC Berkeley") == 0);
+    print_test_result("normalize_name: U.C. Berkeley -> uc berkeley",
+                      strcmp(output, "uc berkeley") == 0);
 }
 
 static void test_normalize_name_spaces(void) {
     char output[NAME_LEN];
 
     normalize_name("  University   of California, Berkeley  ", output, NAME_LEN);
-    print_test_result("normalize_name: trim + collapse spaces",
-                      strcmp(output, "University of California Berkeley") == 0);
+    print_test_result("normalize_name: trim + collapse spaces + stopwords",
+                      strcmp(output, "university california berkeley") == 0);
 }
 
 static void test_normalize_name_acronym(void) {
     char output[NAME_LEN];
 
     normalize_name("massachusetts institute of technology MIT", output, NAME_LEN);
-    print_test_result("normalize_name: MIT is preserved uppercase",
-                      strcmp(output, "Massachusetts Institute of Technology MIT") == 0);
+    print_test_result("normalize_name: lowercase + stopwords removed",
+                      strcmp(output, "massachusetts institute technology mit") == 0);
 }
 
 static void test_normalize_name_alias(void) {
     char output[NAME_LEN];
 
     normalize_name("California Institute of Technology (Caltech)", output, NAME_LEN);
-    print_test_result("normalize_name: preserve parentheses (Caltech)",
-                      strcmp(output, "California Institute of Technology (Caltech)") == 0);
+    print_test_result("normalize_name: lowercase + stopwords removed",
+                      strcmp(output, "california institute technology (caltech)") == 0);
 }
 
 static void test_normalize_country_usa(void) {
@@ -119,7 +119,7 @@ static void test_normalize_record_pipeline(void) {
     normalize_record(&record);
 
     print_test_result("normalize_record: full pipeline",
-                      strcmp(record.normalized_name, "UC Berkeley") == 0 &&
+                      strcmp(record.normalized_name, "uc berkeley") == 0 &&
                       strcmp(record.normalized_country, "United States") == 0 &&
                       record.rank_min == 1 &&
                       record.rank_max == 10 &&

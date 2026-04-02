@@ -25,7 +25,7 @@ ABBREVIATION_MAP = {
     "engr": "engineering",
 }
 
-STOPWORDS = {"the", "of", "and", "for"}
+STOPWORDS = {"the", "of", "and", "for", "de", "la", "le", "les", "a", "an"}
 
 COUNTRY_VARIANTS: dict[str, str] = {
     "usa": "United States", "us": "United States",
@@ -33,6 +33,7 @@ COUNTRY_VARIANTS: dict[str, str] = {
     "uk": "United Kingdom", "great britain": "United Kingdom",
     "china mainland": "China (Mainland)",
     "peoples republic of china": "China (Mainland)",
+    "people s republic of china": "China (Mainland)",
     "prc": "China (Mainland)",
     "hong kong sar": "Hong Kong SAR",
     "hong kong": "Hong Kong SAR",
