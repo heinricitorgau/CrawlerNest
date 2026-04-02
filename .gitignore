@@ -35,5 +35,9 @@ crawlernest/crawlernest-kb/qs_universes/**/standardized_rows.json
 *.db.bak
 
 # Build outputs
-build/
+.claude/
+.venv/
+node_modules/
+.next/
 dist/
+build/

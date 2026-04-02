@@ -335,68 +335,70 @@ echo "[STEP 4] failed regions: ${STEP4_FAILED[*]:-none}"
 echo ""
 
 # ---------------------------------------------------------------------------
-# 10. Summary
+# 10. STEP 5 — Seed canonical from missing THE entities
+# ---------------------------------------------------------------------------
+STEP5_TRIGGERED=true
+STEP5_EXIT=0
+
+echo "[STEP 5] Seeding canonical entities from missing THE log  ($(date '+%H:%M:%S'))"
+echo "         ${PYTHON_BIN} ${PIPELINE} seed-canonical-from-missing \\"
+echo "           --pg-user ${PG_USER} --pg-database ${PG_DATABASE}"
+echo ""
+
+if run_with_single_progress_line "${PYTHON_BIN}" "${PIPELINE}" seed-canonical-from-missing \
+    --pg-user "${PG_USER}" \
+    --pg-database "${PG_DATABASE}"; then
+    STEP5_EXIT=0
+    echo ""
+    echo "[STEP 5] Seeding completed.  ($(date '+%H:%M:%S'))"
+else
+    STEP5_EXIT=$?
+    echo ""
+    echo "[WARN] STEP 5 failed with exit ${STEP5_EXIT}. Continuing."
+fi
+
+echo ""
+
+# ---------------------------------------------------------------------------
+# 11. Summary
 # ---------------------------------------------------------------------------
 END_TS="$(date +%s)"
 DURATION=$(( END_TS - START_TS ))
 DURATION_FMT="$(printf '%02dh %02dm %02ds' $((DURATION/3600)) $((DURATION%3600/60)) $((DURATION%60)))"
 
+STEP2_SUMMARY="Step 2: skipped (no pending enrichment)"
+if [[ "${STEP2_TRIGGERED}" == "true" ]]; then
+    STEP2_SUMMARY="Step 2: detail enrichment"
+fi
+
+STEP3_SUMMARY=""
+if [[ "${STEP3_TRIGGERED}" == "true" ]]; then
+    STEP3_SUMMARY="Step 3: THE rankings"
+    if [[ ${STEP3_EXIT} -ne 0 ]]; then
+        STEP3_SUMMARY="${STEP3_SUMMARY} (warn)"
+    fi
+fi
+
+STEP4_SUMMARY=""
+if [[ "${STEP4_TRIGGERED}" == "true" ]]; then
+    STEP4_SUMMARY="Step 4: QS major universes"
+    if [[ ${STEP4_EXIT} -ne 0 ]]; then
+        STEP4_SUMMARY="${STEP4_SUMMARY} (warn)"
+    fi
+fi
+
+STEP5_SUMMARY=""
+if [[ "${STEP5_TRIGGERED}" == "true" ]]; then
+    STEP5_SUMMARY="Step 5: seed canonical from missing THE"
+    if [[ ${STEP5_EXIT} -ne 0 ]]; then
+        STEP5_SUMMARY="${STEP5_SUMMARY} (warn)"
+    fi
+fi
+
 echo "============================================================"
 echo "[END]      $(date '+%Y-%m-%d %H:%M:%S')"
 echo "[DURATION] ${DURATION_FMT}  (${DURATION}s)"
-if [[ "${STEP2_TRIGGERED}" == "true" ]]; then
-    if [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -eq 0 ]]; then
-        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings  |  Step 4: QS major universes"
-        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings  |  Step 4: QS major universes (warn)"
-        else
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings"
-        fi
-    elif [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -ne 0 ]]; then
-        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings (warn)  |  Step 4: QS major universes"
-        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings (warn)  |  Step 4: QS major universes (warn)"
-        else
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 3: THE rankings (warn)"
-        fi
-    else
-        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 4: QS major universes"
-        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment  |  Step 4: QS major universes (warn)"
-        else
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: detail enrichment"
-        fi
-    fi
-else
-    if [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -eq 0 ]]; then
-        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings  |  Step 4: QS major universes"
-        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings  |  Step 4: QS major universes (warn)"
-        else
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings"
-        fi
-    elif [[ "${STEP3_TRIGGERED}" == "true" && ${STEP3_EXIT} -ne 0 ]]; then
-        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings (warn)  |  Step 4: QS major universes"
-        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings (warn)  |  Step 4: QS major universes (warn)"
-        else
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 3: THE rankings (warn)"
-        fi
-    else
-        if [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -eq 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 4: QS major universes"
-        elif [[ "${STEP4_TRIGGERED}" == "true" && ${STEP4_EXIT} -ne 0 ]]; then
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)  |  Step 4: QS major universes (warn)"
-        else
-            echo "[STAGES]   Step 1: rankings crawl  |  Step 2: skipped (no pending enrichment)"
-        fi
-    fi
-fi
+echo "[STAGES]   Step 1: rankings crawl  |  ${STEP2_SUMMARY}  |  ${STEP3_SUMMARY}  |  ${STEP4_SUMMARY}  |  ${STEP5_SUMMARY}"
 echo "           Log written to: ${LOG_FILE}"
 echo "============================================================"
 echo ""

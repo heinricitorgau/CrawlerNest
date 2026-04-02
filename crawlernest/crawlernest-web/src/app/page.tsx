@@ -7,7 +7,6 @@ import { formatRank, formatScore } from "@/lib/format";
 
 const REFRESH_INTERVAL_MS = 5000;
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
-const PAGE_SIZE = 20;
 
 const REGION_OPTIONS = [
   "Africa",
@@ -49,6 +48,7 @@ function RankingsPageContent() {
   const region = searchParams.get("region") ?? "Europe";
   const year = Number(searchParams.get("year") ?? "2026");
   const page = Number(searchParams.get("page") ?? "1");
+  const pageSize = Number(searchParams.get("pageSize") ?? "20");
   const searchQuery = searchParams.get("search") ?? "";
 
   const [searchInput, setSearchInput] = useState(searchQuery);
@@ -130,11 +130,12 @@ function RankingsPageContent() {
       try {
         const params = new URLSearchParams({
           page: String(page),
-          pageSize: String(PAGE_SIZE),
+          pageSize: String(pageSize),
           year: String(year),
           scope,
           ...(scope === "region" ? { region } : {}),
           ...(searchQuery ? { search: searchQuery } : {}),
+          _ts: Date.now().toString(),
         });
 
         const res = await fetch(`/api/rankings?${params.toString()}`, {
@@ -175,7 +176,7 @@ function RankingsPageContent() {
       isMounted = false;
       controller.abort();
     };
-  }, [page, year, scope, region, searchQuery, refreshTrigger]);
+  }, [page, pageSize, year, scope, region, searchQuery, refreshTrigger]);
 
   const isInShortlist = (id: number) =>
     shortlist.some((item) => item.canonicalUniversityId === id);
@@ -204,9 +205,9 @@ function RankingsPageContent() {
     router.push("/recommendations");
   };
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  const canGoPrevious = page > 1;
-  const canGoNext = page < totalPages;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const canGoPrevious = page > 1 && !loading;
+  const canGoNext = !loading && items.length === pageSize;
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
@@ -230,7 +231,7 @@ function RankingsPageContent() {
               World University Rankings
             </h1>
             <p className="mt-4 text-lg leading-7 text-[#a8c5b5]">
-              Comparing 1,500+ global institutions. Aggregate data from QS, THE, and more.
+              Comparing 2,736 global institutions. Aggregate data from QS + THE (Times Higher Education).
             </p>
           </div>
         </div>
@@ -238,7 +239,7 @@ function RankingsPageContent() {
 
       <div className="sticky top-0 z-40 border-b border-[#e0ddd8] bg-white/95 shadow-sm backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-6 lg:px-8">
-          <div className="max-w-lg flex-1">
+          <div className="relative max-w-lg flex-1">
             <input
               type="text"
               placeholder="Search universities… (press Enter)"
@@ -249,8 +250,20 @@ function RankingsPageContent() {
                   navigate({ search: searchInput || null, page: 1 });
                 }
               }}
-              className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-4 py-2 text-sm outline-none transition focus:border-[#1a3d2e] focus:bg-white"
+              className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-4 py-2 pr-8 text-sm outline-none transition focus:border-[#1a3d2e] focus:bg-white"
             />
+            {searchInput && (
+              <button
+                onClick={() => {
+                  setSearchInput("");
+                  navigate({ search: null, page: 1 });
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#6b7068] transition hover:text-[#1a1a1a]"
+                aria-label="Clear search"
+              >
+                ×
+              </button>
+            )}
           </div>
           <div className="hidden text-sm text-[#6b7068] sm:block">
             {loading ? (
@@ -329,6 +342,21 @@ function RankingsPageContent() {
                   </select>
                 </div>
               )}
+
+              <div className="mb-5">
+                <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
+                  Per Page
+                </label>
+                <select
+                  value={pageSize}
+                  onChange={(e) => navigate({ pageSize: e.target.value, page: 1 })}
+                  className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e]"
+                >
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
 
               <button
                 onClick={() =>
@@ -429,7 +457,7 @@ function RankingsPageContent() {
                             className="border-t border-[#e0ddd8] transition hover:bg-[#f5f3ee]"
                           >
                             <td className="px-4 py-3.5 text-center font-bold text-[#1a3d2e]">
-                              {formatRank(item.aggregatedRank)}
+                              #{formatRank(item.aggregatedRank)}
                             </td>
                             <td className="px-4 py-3.5">
                               <Link
@@ -549,9 +577,18 @@ function RankingsPageContent() {
                   ))}
                 </ul>
 
+                {shortlist.length >= 2 && (
+                  <Link
+                    href="/recommendations#comparison"
+                    className="mt-3 block w-full rounded-full border border-[#1a3d2e] py-2 text-center text-sm font-semibold text-[#1a3d2e] transition hover:bg-[#e8f2ec]"
+                  >
+                    Compare Selected
+                  </Link>
+                )}
+
                 <button
                   onClick={goToRecommendations}
-                  className="mt-4 w-full rounded-full bg-[#1a3d2e] py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+                  className="mt-3 w-full rounded-full bg-[#1a3d2e] py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
                 >
                   Generate Recommendation
                 </button>

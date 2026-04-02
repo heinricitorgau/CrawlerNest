@@ -11,11 +11,11 @@ CrawlerNest is an end-to-end data platform that transforms fragmented web data (
 While APIs and CLIs validate the data, students and advisors need a visual, comparative interface to make life-altering decisions. Raw data is overwhelming; by layering a deterministic decision engine and a clean UX over our data infrastructure, we provide clarity instead of just volume.
 
 ## Current Capabilities
-*   **Data Pipeline:** Asynchronous, compliance-aware crawlers fetching global rankings (1500+ universities scaled).
+*   **Data Pipeline:** Asynchronous, compliance-aware crawlers fetching global rankings (2,736 universities from QS + THE dual source).
 *   **Multi-Universe Ingestion:** QS global / region / subject / special universes can be ingested through one unified runner.
 *   **Ingestion Traceability:** Every ingest run now writes `run_id` / `updated_at` trace fields into PostgreSQL ranking records.
 *   **Canonical Recovery Path:** Unlinked crawled universities can now be promoted into `canonical_university` and backfilled into `warehouse.ranking_record` without changing crawler behavior.
-*   **Aggregation Truth:** Aggregation now supports multi-universe truth, and the visible aggregated ranking count has expanded from 221 to 2736 after canonical seeding, ranking backfill, and THE missing-entity recovery.
+*   **Aggregation Truth:** Aggregation now supports multi-universe truth, and the visible aggregated ranking count has expanded to 2,736 universities (QS + THE dual source) after canonical seeding, ranking backfill, and THE missing-entity recovery.
 *   **Decision Engine:** An explainable recommendation engine providing deterministic groupings (reach/target/safety).
 *   **API Platform:** Repaired Java Spring Boot APIs (API v1) serving normalized analytical data with support for scoped/regional filtering.
 *   **Database Reliability:** Robust PostgreSQL transaction handling with automatic rollbacks on batch failures.
@@ -278,13 +278,13 @@ For the current repository map and working paths, see [Repository Structure](doc
 
 ## Current System Status
 This reflects our actual engineering maturity:
-*   ✅ **production-safe pipeline:** DONE (scaled to 1500+ universities)
+*   ✅ **production-safe pipeline:** DONE (2,736 universities — QS + THE dual source)
 *   ✅ **PostgreSQL integration:** DONE (transaction-safe with rollback)
 *   ✅ **recommendation engine (v3 decision system):** DONE
 *   ✅ **API v1 readiness:** DONE (repaired & pagination-aligned)
 *   ✅ **node deployment (Lobster-01):** DONE (dedicated `lobster-01/` runtime)
-*   🟡 **multi-source (QS only currently):** PARTIAL
-*   🔄 **website layer:** IN PROGRESS
+*   ✅ **multi-source (QS + THE):** OPERATIONAL (2,191 THE universities matched)
+*   🔄 **website layer:** IN PROGRESS (~92%)
 
 ## Milestones & Development History
 CrawlerNest's engineering depth is built on a history of rigorous milestones:

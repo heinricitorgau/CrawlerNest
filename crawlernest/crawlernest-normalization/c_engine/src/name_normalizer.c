@@ -291,8 +291,12 @@ static void expand_abbreviations(char *str, size_t str_size) {
     str[str_size - 1] = '\0';
 }
 
+/* Maximum token length for abbreviation/stopword processing */
+#define MAX_TOKEN 128
+#define MAX_BUF   2048
+
 /*
- * normalize_name
+ * accent_to_ascii
  *
  * Normalizes a raw university name string into a simplified comparable form.
  *
@@ -312,6 +316,8 @@ void normalize_name(const char *input, char *output, int size) {
     if (input == NULL || output == NULL || size <= 0) {
         return;
     }
+    output[out_pos] = '\0';
+}
 
     /* Step 1: Strip UTF-8 accent sequences to ASCII */
     strip_accents_utf8(accent_buf, sizeof(accent_buf), input);
