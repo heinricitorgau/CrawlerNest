@@ -457,7 +457,7 @@ function RankingsPageContent() {
                             className="border-t border-[#e0ddd8] transition hover:bg-[#f5f3ee]"
                           >
                             <td className="px-4 py-3.5 text-center font-bold text-[#1a3d2e]">
-                              {formatRank(item.aggregatedRank)}
+                              #{formatRank(item.aggregatedRank)}
                             </td>
                             <td className="px-4 py-3.5">
                               <Link
