@@ -37,3 +37,4 @@ crawlernest/crawlernest-kb/qs_universes/**/standardized_rows.json
 # Build outputs
 build/
 dist/
+.claude/
