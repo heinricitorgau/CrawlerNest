@@ -19,12 +19,13 @@ Our core evolution path:
 | Crawler / Network | Async requests, endpoint detection, conservative throttling | Operational | ~85% |
 | Extraction Layer | Admission requirements, deadlines, scoring rules | Operational | ~80% |
 | Python Normalization | Country standardization, safe value conversion | Operational | ~75% |
-| C Normalization Engine | High-performance parsing for names/rankings | In Dev | ~25% |
-| Identity Resolution | Alias mapping, fuzzy matching baseline | Operational | ~40% |
-| Multi-Universe Aggregation | Global / region / subject scoped aggregation truth | Operational | ~88% |
+| C Normalization Engine | High-performance parsing for names/rankings | Operational | ~65% |
+| Identity Resolution | Alias mapping, fuzzy matching, alias seeding, country variants | Operational | ~65% |
+| Multi-Universe Aggregation | Global / region / subject scoped aggregation truth | Operational | ~95% |
+| THE Integration | Times Higher Education crawler + full entity ingestion | Operational | 100% |
 | Storage / Warehouse | PostgreSQL schema, DB writer, Spring Data JPA, ingest traceability | Operational | ~95% |
 | API Layer | Spring Boot endpoints (`/universities`, `/recommendations`, `/rankings`) | Operational | ~92% |
-| Website MVP | Next.js frontend, University Detail, Recommendation UI, live freshness refresh | Operational | ~90% |
+| Website MVP | Next.js frontend, University Detail, Recommendation UI, live freshness refresh | Operational | ~92% |
 | Quality & Validation | Transaction safety, JUnit, AutoEval baseline | Operational | ~90% |
 | Low-Spec Runtime | `lobster-01` optimized workspace and scripts | Completed | 100% |
 
@@ -64,9 +65,15 @@ CrawlerNest is built on a decoupled 5-layer system to ensure scalability:
 - Implementation of AutoEval for automated data quality assurance.
 - Multi-universe aggregation promoted region rankings from filtered approximations into first-class aggregated truth.
 - Canonical recovery + ranking-record backfill expanded visible global aggregated rows from `221` to `1323`.
+- THE crawler and full integration (2,191 universities, 100% match rate after seed-canonical-from-missing).
+- `seed-canonical-from-missing` command: THE-only universities now visible in API and frontend.
+- Entity resolver improvements: fuzzy threshold tuning, parenthetical stripping, country variant normalization.
+- `production_safe.sh` 5-step automation (QS global → deferred enrichment → THE → QS regions).
+- About page and premium NavBar with dark mode toggle.
+- Aggregated visible rows expanded to 2,736 (QS + THE dual source).
 
 ### Milestone 3: Platform Expansion (Next 6-18 Months)
-- Integration of THE and ARWU data sources.
+- Integration of ARWU and additional data sources (THE already complete).
 - Deepening of Program-level and Degree-level analytics.
 - Enhanced Identity Resolution using fuzzy matching and embeddings.
 

@@ -76,6 +76,18 @@ void normalize_country(const char *input, char *output, int size) {
         {"south korea", "South Korea"},
         {"korea", "South Korea"},
         {"republic of korea", "South Korea"},
+        {"peoples republic of china", "China (Mainland)"},
+        {"prc", "China (Mainland)"},
+        {"russia", "Russia"},
+        {"russian federation", "Russia"},
+        {"iran", "Iran"},
+        {"islamic republic of iran", "Iran"},
+        {"macau", "Macau SAR"},
+        {"macau sar", "Macau SAR"},
+        {"macao", "Macau SAR"},
+        {"england", "United Kingdom"},
+        {"scotland", "United Kingdom"},
+        {"wales", "United Kingdom"},
         {NULL, NULL}
     };
 

@@ -255,8 +255,7 @@ QS universe commands 的執行語意：
 
 目前實際觀察結果：
 
-- visible global aggregated rows 已從 `221` 擴大到 `1323`
-- `/api/v1/rankings` 會回傳 `metadata.totalCount = 1323`
+- visible global aggregated rows 已從 `221` 擴大到 `1323`（seed-canonical + backfill 階段）
 
 ### 2. 補回卡在 missing log 裡的 THE 學校
 
@@ -283,13 +282,13 @@ THE universities 不會先進 `warehouse.universities`，所以不能只靠 `see
 
 ## 目前系統狀態
 
-- ✅ production-safe pipeline：已完成
+- ✅ production-safe pipeline：已完成（2,736 所大學，QS + THE 雙來源）
 - ✅ PostgreSQL integration：已完成
 - ✅ recommendation engine：已完成
 - ✅ API v1：已完成
 - ✅ visible global recovery path：已完成
-- 🟡 multi-source：已具備實用能力，但 entity resolution coverage 仍持續加強中
-- 🔄 website layer：持續擴充中
+- ✅ multi-source（QS + THE）：已上線，THE 2,191 所大學完整匹配
+- 🔄 website layer：持續擴充中（~92%）
 
 更多工程維運與驗證細節：
 
