@@ -3,8 +3,8 @@ import NavBar from "@/components/NavBar";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CrawlerNest — Global University Intelligence",
-  description: "CrawlerNest rankings and university detail explorer",
+  title: "CrawlerNest — Global University Rankings",
+  description: "Browse rankings of 2,736+ global universities. Aggregate data from QS and THE (Times Higher Education).",
   icons: {
     icon: "/icon.png",
     shortcut: "/icon.png",

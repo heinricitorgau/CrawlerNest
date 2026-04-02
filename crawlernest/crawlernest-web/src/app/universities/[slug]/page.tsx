@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchJson } from "@/lib/api";
 import { formatRank, formatRankingScore } from "@/lib/format";
@@ -9,6 +10,19 @@ import ShortlistButton from "@/components/ShortlistButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+export async function generateMetadata({ params }: UniversityDetailPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const response = await fetchUniversityDetail(slug);
+    if (response.success && response.data) {
+      return { title: `${response.data.universityName} | CrawlerNest` };
+    }
+  } catch {
+    // fall through to default
+  }
+  return { title: "University | CrawlerNest" };
+}
 
 type UniversityDetailPageProps = {
   params: Promise<{
