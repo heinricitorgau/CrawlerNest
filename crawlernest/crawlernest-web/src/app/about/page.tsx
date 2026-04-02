@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "About | CrawlerNest",
+  description: "Learn about CrawlerNest — the open-source university ranking intelligence platform aggregating QS and THE data for 2,736+ institutions.",
+};
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
 function Section({
