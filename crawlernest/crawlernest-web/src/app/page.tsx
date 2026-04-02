@@ -7,7 +7,6 @@ import { formatRank, formatScore } from "@/lib/format";
 
 const REFRESH_INTERVAL_MS = 5000;
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
-const PAGE_SIZE = 20;
 
 const REGION_OPTIONS = [
   "Africa",
@@ -49,6 +48,7 @@ function RankingsPageContent() {
   const region = searchParams.get("region") ?? "Europe";
   const year = Number(searchParams.get("year") ?? "2026");
   const page = Number(searchParams.get("page") ?? "1");
+  const pageSize = Number(searchParams.get("pageSize") ?? "20");
   const searchQuery = searchParams.get("search") ?? "";
 
   const [searchInput, setSearchInput] = useState(searchQuery);
