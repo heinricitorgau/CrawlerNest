@@ -23,10 +23,15 @@ try:
 except ImportError:
     aiohttp = None  # type: ignore
 
-# Used in AsyncUniversityFetcher except clauses (must not reference aiohttp.* when aiohttp is None).
+# Transport-layer failures only (do not retry HTTP 4xx/5xx from the server).
 _AIOHTTP_RETRY_EXCEPTIONS: tuple[type[BaseException], ...] = (asyncio.TimeoutError,)
 if aiohttp is not None:
-    _AIOHTTP_RETRY_EXCEPTIONS = (aiohttp.ClientError, asyncio.TimeoutError)  # type: ignore[misc, assignment]
+    _AIOHTTP_RETRY_EXCEPTIONS = (
+        asyncio.TimeoutError,
+        aiohttp.ClientConnectorError,  # type: ignore[attr-defined]
+        aiohttp.ClientOSError,  # type: ignore[attr-defined]
+        aiohttp.ServerDisconnectedError,  # type: ignore[attr-defined]
+    )
 
 try:
     import certifi
@@ -157,12 +162,6 @@ def _clear_failure_classification(config: Config) -> None:
     setattr(config, "_last_failure_message", "")
 
 
-def _classify_http_block(url: str, status_code: int, text: str = "") -> tuple[str, str]:
-    if status_code == 403 or _is_cloudflare_blocked(text):
-        return "upstream_blocked", f"QS blocked request to {url} (HTTP {status_code})"
-    return "fetch_failed", f"QS request failed at {url} (HTTP {status_code})"
-
-
 def _safe_response_preview(text: str, max_len: int = 200) -> str:
     """Readable snippet for logs when body may be binary, brotli/gzip mishandled, or HTML."""
     if text is None:
@@ -179,6 +178,138 @@ def _safe_response_preview(text: str, max_len: int = 200) -> str:
     if len(s) > max_len:
         out += "…"
     return out
+
+
+def _endpoint_path_for_log(url: str) -> str:
+    try:
+        p = urlparse(url)
+        path = (p.path or "").strip() or "/"
+        return path if path.startswith("/") else f"/{path}"
+    except Exception:
+        return (url or "")[:160]
+
+
+def _headers_from_requests_response(resp: Any) -> Dict[str, str]:
+    if resp is None or not hasattr(resp, "headers") or resp.headers is None:
+        return {}
+    try:
+        return {str(k): str(v) for k, v in resp.headers.items()}
+    except Exception:
+        return {}
+
+
+def _normalize_header_map(headers: Optional[Dict[str, str]]) -> Dict[str, str]:
+    if not headers:
+        return {}
+    return {str(k).lower(): str(v) for k, v in headers.items()}
+
+
+def _is_upstream_maintenance_body(text: str) -> bool:
+    lower = (text or "").lower()
+    return "maintenance notice" in lower or "scheduled upgrade" in lower
+
+
+def _is_cloudflare_blocked(text: str) -> bool:
+    """HTML challenge / interstitial (body heuristics)."""
+    lower = str(text or "").lower()
+    if "just a moment" in lower or "cf-browser-verification" in lower:
+        return True
+    if "cloudflare" in lower and ("checking your browser" in lower or "ray id" in lower):
+        return True
+    if "attention required" in lower and "cloudflare" in lower:
+        return True
+    return False
+
+
+def _is_cf_challenge_signal(status_code: int, text: str, headers: Dict[str, str]) -> bool:
+    """
+    Cloudflare / bot interstitial. Avoid treating CF CDN success JSON as a block:
+    require HTML-ish body or explicit challenge markers with 403.
+    """
+    if _is_cloudflare_blocked(text):
+        return True
+    hl = _normalize_header_map(headers)
+    ct = (hl.get("content-type") or "").lower()
+    body = (text or "").lstrip()
+    if status_code == 403:
+        return True
+    if status_code >= 400 and hl.get("cf-ray") and (body.startswith("<") or "text/html" in ct):
+        return True
+    if "cf-ray" in hl and status_code >= 400 and "just a moment" in (text or "").lower():
+        return True
+    return False
+
+
+def _classify_qs_http_response(
+    url: str,
+    status_code: int,
+    text: str,
+    headers: Optional[Dict[str, str]] = None,
+) -> tuple[str, str]:
+    hdr = headers or {}
+    if _is_upstream_maintenance_body(text):
+        return "upstream_maintenance", f"QS maintenance / upgrade page at {url} (HTTP {status_code})"
+    if status_code == 403 or _is_cf_challenge_signal(status_code, text, hdr):
+        return "upstream_blocked", f"QS blocked request to {url} (HTTP {status_code})"
+    if status_code >= 400:
+        return "fetch_failed", f"QS request failed at {url} (HTTP {status_code})"
+    return "live_ok", ""
+
+
+def _classify_transport_exception_sync(exc: BaseException, url: str) -> tuple[str, str]:
+    if isinstance(exc, (requests.Timeout, requests.ConnectionError)):
+        return "network_error", f"QS network error at {url}: {exc}"
+    if isinstance(exc, requests.RequestException):
+        return "fetch_failed", f"QS request failed at {url}: {exc}"
+    return "fetch_failed", f"QS unexpected error at {url}: {exc}"
+
+
+def _classify_transport_exception_async(exc: BaseException, url: str) -> tuple[str, str]:
+    if isinstance(exc, asyncio.TimeoutError):
+        return "network_error", f"QS network error at {url}: {exc}"
+    if aiohttp is not None:
+        try:
+            if isinstance(exc, aiohttp.ClientConnectorError):  # type: ignore[attr-defined]
+                return "network_error", f"QS network error at {url}: {exc}"
+            if isinstance(exc, aiohttp.ClientError):  # type: ignore[attr-defined]
+                return "fetch_failed", f"QS request failed at {url}: {exc}"
+        except Exception:
+            pass
+    return "fetch_failed", f"QS unexpected error at {url}: {exc}"
+
+
+def _log_fetch_line(
+    *,
+    endpoint: str,
+    params: Optional[Dict[str, Any]],
+    status_code: Optional[int],
+    classification: str,
+    retry_count: int,
+    response_size: Optional[int],
+    preview: str,
+    purpose: str = "",
+) -> None:
+    pv = _safe_response_preview(preview, 120)
+    param_s = ""
+    if params:
+        try:
+            param_s = json.dumps(params, sort_keys=True, ensure_ascii=False)
+        except Exception:
+            param_s = str(params)
+        if len(param_s) > 280:
+            param_s = param_s[:277] + "..."
+    logger.info(
+        "[FETCH] endpoint=%s purpose=%s status=%s classification=%s retry_count=%s "
+        "response_size=%s params=%s preview=%r",
+        endpoint,
+        purpose or "-",
+        "-" if status_code is None else str(status_code),
+        classification,
+        retry_count,
+        "-" if response_size is None else str(response_size),
+        param_s or "-",
+        pv,
+    )
 
 
 def _log_qs_acquire_event(logger: logging.Logger, event: str, **fields: Any) -> None:
@@ -202,32 +333,6 @@ def _jittered_request_delay_seconds(config: Config) -> float:
         return max(0.0, base)
     span = base * ratio
     return max(0.0, base + random.uniform(-span, span))
-
-
-def _is_transient_http_status(status_code: int) -> bool:
-    return status_code in (408, 425, 429, 500, 502, 503, 504)
-
-
-def _parse_retry_after_seconds(resp: Any) -> Optional[float]:
-    raw = None
-    if resp is not None and hasattr(resp, "headers") and resp.headers is not None:
-        raw = resp.headers.get("Retry-After")
-    if raw is None:
-        return None
-    try:
-        return float(str(raw).strip())
-    except ValueError:
-        return None
-
-
-def _retry_after_from_header_map(headers: Dict[str, str]) -> Optional[float]:
-    raw = headers.get("Retry-After") or headers.get("retry-after")
-    if raw is None:
-        return None
-    try:
-        return float(str(raw).strip())
-    except ValueError:
-        return None
 
 
 def _qs_ranking_fetch_urls(config: Config, cand_nid: str) -> List[str]:
@@ -277,10 +382,6 @@ def _clear_cached_resolution_state(config: Config) -> None:
     config._page_resolution_skipped = False
     config._page_resolution_attempted = False
 
-
-def _is_cloudflare_blocked(text: str) -> bool:
-    lower = str(text or "").lower()
-    return "just a moment" in lower or "cloudflare" in lower or "attention required" in lower
 
 if TYPE_CHECKING:
     import aiohttp as aiohttp_module
@@ -843,6 +944,14 @@ class UniversityFetcher:
     def __init__(self, config: Config):
         self.config = config
         self.session = requests.Session()
+        self.session.headers.update(
+            {
+                "User-Agent": config.user_agent,
+                "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+                "Accept-Encoding": "gzip, deflate",
+                "Connection": "keep-alive",
+            }
+        )
         self._last_request_time = 0.0
 
     def _wait_for_delay(self, url: Optional[str] = None):
@@ -859,20 +968,29 @@ class UniversityFetcher:
         headers: Optional[Dict[str, str]] = None,
         purpose: str = "qs",
     ) -> Any:
-        """GET with rate limiting on first attempt; soft retries only for transient HTTP/network errors (not 403)."""
+        """
+        GET with jittered rate limit on the first attempt.
+        Retries only on timeout / connection errors (max qs_network_retry_max_attempts, backoff 1s→3s by default).
+        Does not retry HTTP 403, 5xx, or maintenance pages.
+        """
         timeout = getattr(self.config, "timeout", 15)
-        max_attempts = int(getattr(self.config, "qs_transient_retry_max_attempts", 3) or 1)
-        max_attempts = max(1, min(8, max_attempts))
-        backoff = float(getattr(self.config, "qs_transient_retry_backoff_seconds", 3.0) or 3.0)
-        max_sleep = float(getattr(self.config, "qs_transient_retry_max_sleep_seconds", 45.0) or 45.0)
+        max_attempts = int(getattr(self.config, "qs_network_retry_max_attempts", 3) or 1)
+        max_attempts = max(1, min(6, max_attempts))
+        raw_sleeps = getattr(self.config, "qs_network_retry_sleep_seconds", None)
+        if isinstance(raw_sleeps, (list, tuple)) and raw_sleeps:
+            sleep_schedule = [float(x) for x in raw_sleeps]
+        else:
+            sleep_schedule = [1.0, 3.0]
         headers = headers if headers is not None else self.config.get_headers("api")
         params = params or {}
+        endpoint = _endpoint_path_for_log(url)
         last_exc: Optional[BaseException] = None
         for attempt in range(max_attempts):
             if attempt == 0:
                 self._wait_for_delay(url)
             else:
-                sleep_s = min(backoff * (2 ** (attempt - 1)), max_sleep)
+                si = attempt - 1
+                sleep_s = sleep_schedule[si] if si < len(sleep_schedule) else sleep_schedule[-1]
                 _log_qs_acquire_event(
                     logger,
                     "retry_attempted",
@@ -880,45 +998,48 @@ class UniversityFetcher:
                     purpose=purpose,
                     attempt=attempt + 1,
                     sleep_seconds=f"{sleep_s:.2f}",
+                    reason="network_backoff",
                 )
                 time.sleep(sleep_s)
             try:
                 resp = self.session.get(url, timeout=timeout, headers=headers, params=params)
             except (requests.Timeout, requests.ConnectionError) as exc:
                 last_exc = exc
-                if attempt < max_attempts - 1:
-                    _log_qs_acquire_event(
-                        logger,
-                        "retry_attempted",
-                        url=url,
-                        purpose=purpose,
-                        attempt=attempt + 1,
-                        reason=type(exc).__name__,
-                    )
-                    continue
-                raise
-            if resp.status_code == 403 or _is_cloudflare_blocked(getattr(resp, "text", "") or ""):
-                return resp
-            if _is_transient_http_status(resp.status_code) and attempt < max_attempts - 1:
-                ra = _parse_retry_after_seconds(resp)
-                sleep_s = min(backoff * (2 ** attempt), max_sleep)
-                if ra is not None and ra > 0:
-                    sleep_s = min(max(ra, sleep_s), max_sleep)
-                _log_qs_acquire_event(
-                    logger,
-                    "retry_attempted",
-                    url=url,
+                cls_t, _msg_t = _classify_transport_exception_sync(exc, url)
+                _log_fetch_line(
+                    endpoint=endpoint,
+                    params=params,
+                    status_code=None,
+                    classification=cls_t,
+                    retry_count=attempt,
+                    response_size=None,
+                    preview=str(exc),
                     purpose=purpose,
-                    attempt=attempt + 1,
-                    http_status=resp.status_code,
-                    sleep_seconds=f"{sleep_s:.2f}",
                 )
-                time.sleep(sleep_s)
-                continue
+                if attempt < max_attempts - 1:
+                    continue
+                _set_failure_classification(self.config, cls_t, str(exc))
+                raise
+            text = getattr(resp, "text", "") or ""
+            hdrs = _headers_from_requests_response(resp)
+            cls, _msg = _classify_qs_http_response(url, resp.status_code, text, hdrs)
+            log_cls = cls
+            if purpose == "page_resolve" and cls == "upstream_blocked":
+                log_cls = "entry_resolution_blocked"
+            _log_fetch_line(
+                endpoint=endpoint,
+                params=params,
+                status_code=resp.status_code,
+                classification=log_cls,
+                retry_count=attempt,
+                response_size=len(text),
+                preview=text,
+                purpose=purpose,
+            )
             return resp
         if last_exc is not None:
             raise last_exc
-        raise RuntimeError("transient retry exhausted without response")
+        raise RuntimeError("network retry exhausted without response")
 
     def close(self):
         try:
@@ -971,14 +1092,16 @@ class UniversityFetcher:
                     headers=self.config.get_headers("page"),
                     purpose="page_resolve",
                 )
-                if resp.status_code == 403 and _is_cloudflare_blocked(resp.text):
+                phdrs = _headers_from_requests_response(resp)
+                pcls, pmsg = _classify_qs_http_response(page_url, resp.status_code, resp.text or "", phdrs)
+                if pcls == "upstream_maintenance":
+                    _set_failure_classification(self.config, pcls, pmsg)
+                    logger.warning("QS entry resolution: maintenance page while fetching %s", page_url)
+                    continue
+                if pcls == "upstream_blocked":
                     resolve_blocked = True
-                    _set_failure_classification(
-                        self.config,
-                        "upstream_blocked",
-                        f"QS entry resolution blocked by Cloudflare on {page_url}",
-                    )
-                    logger.warning("QS entry resolution blocked by Cloudflare on %s", page_url)
+                    _set_failure_classification(self.config, pcls, pmsg)
+                    logger.warning("QS entry resolution blocked on %s", page_url)
                     continue
                 resp.raise_for_status()
                 prefetched = _extract_prefetched_score_nodes_from_html(resp.text)
@@ -1098,10 +1221,11 @@ class UniversityFetcher:
                                     purpose="ranking_api",
                                 )
                                 if resp.status_code >= 400:
-                                    classification, message = _classify_http_block(
+                                    classification, message = _classify_qs_http_response(
                                         url,
                                         resp.status_code,
-                                        resp.text,
+                                        resp.text or "",
+                                        _headers_from_requests_response(resp),
                                     )
                                     _mark_pair_failed(self.config, pair_key)
                                     _set_failure_classification(self.config, classification, message)
@@ -1111,10 +1235,10 @@ class UniversityFetcher:
                                         f"params={params}; body_preview={preview!r}"
                                     )
                                     errors.append(error_msg)
-                                    if classification == "upstream_blocked":
+                                    if classification in ("upstream_blocked", "upstream_maintenance"):
                                         _log_qs_acquire_event(
                                             logger,
-                                            "upstream_blocked",
+                                            classification,
                                             url=url,
                                             http_status=resp.status_code,
                                             universe_type=getattr(self.config, "universe_type", ""),
@@ -1133,16 +1257,14 @@ class UniversityFetcher:
                                 _mark_pair_failed(self.config, pair_key)
                                 status_code = getattr(getattr(e, "response", None), "status_code", None)
                                 if status_code is not None:
-                                    classification, message = _classify_http_block(
+                                    classification, message = _classify_qs_http_response(
                                         url,
                                         int(status_code),
                                         getattr(getattr(e, "response", None), "text", "") or "",
+                                        _headers_from_requests_response(getattr(e, "response", None)),
                                     )
                                 else:
-                                    classification, message = (
-                                        "fetch_failed",
-                                        f"QS request failed at {url}: {e}",
-                                    )
+                                    classification, message = _classify_transport_exception_sync(e, url)
                                 _set_failure_classification(self.config, classification, message)
                                 error_msg = f"{url!r}: {e}"
                                 errors.append(error_msg)
@@ -1155,8 +1277,8 @@ class UniversityFetcher:
                                 _mark_pair_failed(self.config, pair_key)
                                 _set_failure_classification(
                                     self.config,
-                                    "parse_failed",
-                                    f"Non-JSON response from {url!r}",
+                                    "data_unavailable",
+                                    f"Non-JSON or malformed response from {url!r}",
                                 )
                                 ct = resp.headers.get("Content-Type", "")
                                 snippet = _safe_response_preview(resp.text)
@@ -1317,18 +1439,23 @@ class AsyncUniversityFetcher:
         assert self.session is not None
         aiohttp_mod = cast("aiohttp_module", aiohttp)
         timeout = aiohttp_mod.ClientTimeout(total=float(getattr(self.config, "timeout", 15) or 15))
-        max_attempts = int(getattr(self.config, "qs_transient_retry_max_attempts", 3) or 1)
-        max_attempts = max(1, min(8, max_attempts))
-        backoff = float(getattr(self.config, "qs_transient_retry_backoff_seconds", 3.0) or 3.0)
-        max_sleep = float(getattr(self.config, "qs_transient_retry_max_sleep_seconds", 45.0) or 45.0)
+        max_attempts = int(getattr(self.config, "qs_network_retry_max_attempts", 3) or 1)
+        max_attempts = max(1, min(6, max_attempts))
+        raw_sleeps = getattr(self.config, "qs_network_retry_sleep_seconds", None)
+        if isinstance(raw_sleeps, (list, tuple)) and raw_sleeps:
+            sleep_schedule = [float(x) for x in raw_sleeps]
+        else:
+            sleep_schedule = [1.0, 3.0]
         headers = headers if headers is not None else self.config.get_headers("api")
         params = params if params is not None else {}
+        endpoint = _endpoint_path_for_log(url)
         last_exc: Optional[BaseException] = None
         for attempt in range(max_attempts):
             if attempt == 0:
                 await self._wait_for_delay(url)
             else:
-                sleep_s = min(backoff * (2 ** (attempt - 1)), max_sleep)
+                si = attempt - 1
+                sleep_s = sleep_schedule[si] if si < len(sleep_schedule) else sleep_schedule[-1]
                 _log_qs_acquire_event(
                     logger,
                     "retry_attempted",
@@ -1336,6 +1463,7 @@ class AsyncUniversityFetcher:
                     purpose=purpose,
                     attempt=attempt + 1,
                     sleep_seconds=f"{sleep_s:.2f}",
+                    reason="network_backoff",
                 )
                 await asyncio.sleep(sleep_s)
             try:
@@ -1351,39 +1479,39 @@ class AsyncUniversityFetcher:
                     text = await resp.text()
             except _AIOHTTP_RETRY_EXCEPTIONS as exc:
                 last_exc = exc
-                if attempt < max_attempts - 1:
-                    _log_qs_acquire_event(
-                        logger,
-                        "retry_attempted",
-                        url=url,
-                        purpose=purpose,
-                        attempt=attempt + 1,
-                        reason=type(exc).__name__,
-                    )
-                    continue
-                raise
-            if status == 403 or _is_cloudflare_blocked(text):
-                return status, text, hdr_dict
-            if _is_transient_http_status(status) and attempt < max_attempts - 1:
-                ra = _retry_after_from_header_map(hdr_dict)
-                sleep_s = min(backoff * (2 ** attempt), max_sleep)
-                if ra is not None and ra > 0:
-                    sleep_s = min(max(ra, sleep_s), max_sleep)
-                _log_qs_acquire_event(
-                    logger,
-                    "retry_attempted",
-                    url=url,
+                cls_t, _msg_t = _classify_transport_exception_async(exc, url)
+                _log_fetch_line(
+                    endpoint=endpoint,
+                    params=params,
+                    status_code=None,
+                    classification=cls_t,
+                    retry_count=attempt,
+                    response_size=None,
+                    preview=str(exc),
                     purpose=purpose,
-                    attempt=attempt + 1,
-                    http_status=status,
-                    sleep_seconds=f"{sleep_s:.2f}",
                 )
-                await asyncio.sleep(sleep_s)
-                continue
+                if attempt < max_attempts - 1:
+                    continue
+                _set_failure_classification(self.config, cls_t, str(exc))
+                raise
+            cls, _msg = _classify_qs_http_response(url, status, text, hdr_dict)
+            log_cls = cls
+            if purpose == "page_resolve" and cls == "upstream_blocked":
+                log_cls = "entry_resolution_blocked"
+            _log_fetch_line(
+                endpoint=endpoint,
+                params=params,
+                status_code=status,
+                classification=log_cls,
+                retry_count=attempt,
+                response_size=len(text or ""),
+                preview=text or "",
+                purpose=purpose,
+            )
             return status, text, hdr_dict
         if last_exc is not None:
             raise last_exc
-        raise RuntimeError("async transient retry exhausted without response")
+        raise RuntimeError("async network retry exhausted without response")
 
     async def _ensure_ranking_id(self, *, force_refresh: bool = False) -> str:
         direct_ranking_id = str(
@@ -1426,24 +1554,24 @@ class AsyncUniversityFetcher:
         for page_url in _ranking_page_fallbacks(ranking_page_url):
             tried.append(page_url)
             try:
-                status, text, _hdrs = await self._async_session_get_transient_retry(
+                status, text, phdrs = await self._async_session_get_transient_retry(
                     page_url,
                     params=None,
                     headers=self.config.get_headers("page"),
                     purpose="page_resolve",
                 )
-                if status == 403 and _is_cloudflare_blocked(text):
+                pcls, pmsg = _classify_qs_http_response(page_url, status, text or "", phdrs)
+                if pcls == "upstream_maintenance":
+                    _set_failure_classification(self.config, pcls, pmsg)
+                    logger.warning("QS entry resolution: maintenance page while fetching %s", page_url)
+                    continue
+                if pcls == "upstream_blocked":
                     resolve_blocked = True
-                    _set_failure_classification(
-                        self.config,
-                        "upstream_blocked",
-                        f"QS entry resolution blocked by Cloudflare on {page_url}",
-                    )
-                    logger.warning("QS entry resolution blocked by Cloudflare on %s", page_url)
+                    _set_failure_classification(self.config, pcls, pmsg)
+                    logger.warning("QS entry resolution blocked on %s", page_url)
                     continue
                 if status >= 400:
-                    classification, message = _classify_http_block(page_url, status, text)
-                    _set_failure_classification(self.config, classification, message)
+                    _set_failure_classification(self.config, pcls, pmsg)
                     continue
                 prefetched = _extract_prefetched_score_nodes_from_html(text)
                 if prefetched and page_url == ranking_page_url:
@@ -1556,10 +1684,11 @@ class AsyncUniversityFetcher:
                                 )
                                 ct = hdrs.get("Content-Type", "") or hdrs.get("content-type", "")
                                 if status >= 400:
-                                    classification, message = _classify_http_block(
+                                    classification, message = _classify_qs_http_response(
                                         url,
                                         status,
-                                        text,
+                                        text or "",
+                                        hdrs,
                                     )
                                     _mark_pair_failed(self.config, pair_key)
                                     _set_failure_classification(self.config, classification, message)
@@ -1568,10 +1697,10 @@ class AsyncUniversityFetcher:
                                         f"QS API error from {url!r} (status={status}, content-type={ct}). "
                                         f"params={params}; body_preview={preview!r}"
                                     )
-                                    if classification == "upstream_blocked":
+                                    if classification in ("upstream_blocked", "upstream_maintenance"):
                                         _log_qs_acquire_event(
                                             logger,
-                                            "upstream_blocked",
+                                            classification,
                                             url=url,
                                             http_status=status,
                                             universe_type=getattr(self.config, "universe_type", ""),
@@ -1591,8 +1720,8 @@ class AsyncUniversityFetcher:
                                     _mark_pair_failed(self.config, pair_key)
                                     _set_failure_classification(
                                         self.config,
-                                        "parse_failed",
-                                        f"Non-JSON response from {url!r}: {e}",
+                                        "data_unavailable",
+                                        f"Non-JSON or malformed response from {url!r}: {e}",
                                     )
                                     errors.append(
                                         f"QS API did not return JSON from {url!r} "
@@ -1602,11 +1731,8 @@ class AsyncUniversityFetcher:
                                     continue
                             except Exception as e:
                                 _mark_pair_failed(self.config, pair_key)
-                                _set_failure_classification(
-                                    self.config,
-                                    "fetch_failed",
-                                    f"QS request failed at {url}: {e}",
-                                )
+                                cls_e, msg_e = _classify_transport_exception_async(e, url)
+                                _set_failure_classification(self.config, cls_e, msg_e)
                                 error_msg = f"{url!r}: {e}"
                                 errors.append(error_msg)
                                 logger.debug("Async request failed: %s", error_msg)

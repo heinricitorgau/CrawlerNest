@@ -419,7 +419,7 @@ def _apply_qs_snapshot_fallback(
     updated_meta.setdefault("used_snapshot_fallback", False)
     updated_meta.setdefault("snapshot_fallback_path", "")
     updated_meta.setdefault("run_backing", "live")
-    if universities or failure_classification != "upstream_blocked":
+    if universities or failure_classification not in ("upstream_blocked", "upstream_maintenance"):
         return universities, updated_meta
 
     fallback_universities, snapshot_path = _load_known_good_qs_snapshot(
@@ -459,7 +459,15 @@ def _apply_qs_snapshot_fallback(
 def _qs_terminal_fetch_for_continuous_loop(crawl_meta: dict[str, Any]) -> bool:
     """If True, do not spin the run-qs-* ``while True`` daemon another pass (blocked / unrecoverable this run)."""
     fc = str(crawl_meta.get("failure_classification", "") or "").strip()
-    if fc in {"upstream_blocked", "resolve_blocked", "resolve_not_found", "fetch_failed"}:
+    if fc in {
+        "upstream_blocked",
+        "upstream_maintenance",
+        "resolve_blocked",
+        "resolve_not_found",
+        "fetch_failed",
+        "network_error",
+        "data_unavailable",
+    }:
         return True
     run_backing = str(crawl_meta.get("run_backing", "") or "").strip()
     if run_backing == "live_blocked_no_fallback":

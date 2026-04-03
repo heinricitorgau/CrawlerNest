@@ -37,7 +37,11 @@ class Config:
     page: int = 0
     
                            
-    user_agent: str = "CrawlerNestBot/1.0 (+https://github.com/CrawlerNest/UniGraph-University-Knowledge-Graph-Engine)"
+    # Browser-like UA reduces trivial bot filtering; still identify as automated via CrawlerNest suffix.
+    user_agent: str = (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/122.0.0.0 Safari/537.36 CrawlerNest/1.0 (+https://github.com/CrawlerNest)"
+    )
     timeout: int = 30  # 增加到 30 秒以避免超時
     request_delay: float = 10.0  # 增加延遲以符合 robots.txt 規範 (10秒)
     # Uniform jitter in [-ratio*base, +ratio*base] applied to each inter-request wait (reduces burst patterns).
@@ -46,10 +50,13 @@ class Config:
 
     # QS list API: try REST path first vs generic /rankings/endpoint first (both may be tried; order affects success latency).
     qs_endpoint_order: Literal["api_first", "endpoint_first"] = "api_first"
-    # Soft retries only for transient HTTP/network conditions (never for 403 / Cloudflare blocks).
+    # Legacy knobs (kept for config file compatibility; ranking fetches use qs_network_retry_* only).
     qs_transient_retry_max_attempts: int = 3
     qs_transient_retry_backoff_seconds: float = 3.0
     qs_transient_retry_max_sleep_seconds: float = 45.0
+    # Retries only for transport failures (timeout, connection error) — not for 403/5xx/maintenance.
+    qs_network_retry_max_attempts: int = 3
+    qs_network_retry_sleep_seconds: List[float] = field(default_factory=lambda: [1.0, 3.0])
     
                          
     max_retries: int = 3
@@ -124,20 +131,26 @@ class Config:
             return {
                 **common,
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Cache-Control": "max-age=0",
+                "Pragma": "no-cache",
                 "Upgrade-Insecure-Requests": "1",
                 "Sec-Fetch-Dest": "document",
                 "Sec-Fetch-Mode": "navigate",
                 "Sec-Fetch-Site": "same-origin",
                 "Referer": referer,
+                "Origin": self.base_url,
             }
         if context == "detail":
             return {
                 **common,
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Cache-Control": "max-age=0",
+                "Pragma": "no-cache",
                 "Sec-Fetch-Dest": "document",
                 "Sec-Fetch-Mode": "navigate",
                 "Sec-Fetch-Site": "same-origin",
                 "Referer": referer,
+                "Origin": self.base_url,
             }
         # api + default: XHR / JSON (legacy default)
         return {
