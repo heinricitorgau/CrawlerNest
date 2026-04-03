@@ -2537,6 +2537,27 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--pg-database", default="clawer")
     run_parser.add_argument("--pg-user", default="test")
     run_parser.add_argument("--pg-password", default="")
+    run_parser.add_argument(
+        "--with-the-rankings",
+        action="store_true",
+        help="After QS multi-source sync, ingest THE world rankings (warehouse.ranking_record, batch_id the-<year>)",
+    )
+    run_parser.add_argument(
+        "--the-ranking-year",
+        type=int,
+        default=2026,
+        help="THE edition when --with-the-rankings is set (default: 2026)",
+    )
+    run_parser.add_argument(
+        "--the-output-dir",
+        default=str(MODULE_ROOT / "crawlernest-kb" / "databases"),
+        help="THE crawl JSON output directory when --with-the-rankings is set",
+    )
+    run_parser.add_argument(
+        "--the-skip-seed",
+        action="store_true",
+        help="With --with-the-rankings, skip canonical seed/backfill after THE ingest",
+    )
 
     query_parser = subparsers.add_parser("query", help="Query stored QS rankings from DB")
     query_parser.add_argument("keyword")
@@ -2995,6 +3016,31 @@ def main() -> int:
             )
         except Exception as exc:
             print(f"[warn] QS multi-source sync skipped: {exc}")
+
+        if getattr(args, "with_the_rankings", False):
+            try:
+                _ty = int(getattr(args, "the_ranking_year", 2026))
+                print(
+                    f"[THE] Ingesting THE world rankings (structured JSON / __NEXT_DATA__ path; "
+                    f"batch_id=the-{_ty})..."
+                )
+                the_summary = run_the_rankings_ingestion(
+                    ranking_year=_ty,
+                    output_dir=Path(getattr(args, "the_output_dir", str(MODULE_ROOT / "crawlernest-kb" / "databases"))),
+                    pg_host=args.pg_host,
+                    pg_port=args.pg_port,
+                    pg_database=args.pg_database,
+                    pg_user=args.pg_user,
+                    pg_password=args.pg_password,
+                    skip_seed=bool(getattr(args, "the_skip_seed", False)),
+                )
+                print(
+                    f"[THE_CRAWL] pipeline_done rows={the_summary['rows_crawled']} "
+                    f"matched={the_summary['matched_count']} unresolved={the_summary['unresolved_count']} "
+                    f"source=THE year={_ty}"
+                )
+            except Exception as exc:
+                print(f"[warn] THE rankings ingestion skipped: {exc}")
         return 0
 
     if args.command == "query":
@@ -3504,6 +3550,7 @@ def main() -> int:
         normalize_universities=normalize_universities,
         write_universities=write_universities,
         sync_qs_multi_source_rankings=sync_qs_multi_source_rankings,
+        run_the_rankings_ingestion=run_the_rankings_ingestion,
         query_rankings=query_rankings,
         enrich_deferred_details=enrich_deferred_details,
         load_json_payload=load_json_payload,

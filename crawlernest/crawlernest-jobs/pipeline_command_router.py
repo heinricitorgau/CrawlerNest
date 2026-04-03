@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
+_DEFAULT_THE_OUTPUT_DIR = Path(__file__).resolve().parents[1] / "crawlernest-kb" / "databases"
+
 
 @dataclass(frozen=True)
 class PipelineCommandDependencies:
@@ -18,6 +20,7 @@ class PipelineCommandDependencies:
     normalize_universities: Callable[[list[Any]], list[Any]]
     write_universities: Callable[..., tuple[int, int, int]]
     sync_qs_multi_source_rankings: Callable[..., Any]
+    run_the_rankings_ingestion: Callable[..., dict[str, Any]]
     query_rankings: Callable[..., list[Any]]
     enrich_deferred_details: Callable[..., tuple[int, int, int, int, int]]
     load_json_payload: Callable[[Path], list[Any]]
@@ -132,6 +135,28 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
             )
         except Exception as exc:
             print(f"[warn] QS multi-source sync skipped: {exc}")
+
+        if getattr(args, "with_the_rankings", False):
+            try:
+                ty = int(getattr(args, "the_ranking_year", 2026))
+                print(f"[THE] Ingesting THE world rankings (batch_id=the-{ty})...")
+                the_summary = deps.run_the_rankings_ingestion(
+                    ranking_year=ty,
+                    output_dir=Path(getattr(args, "the_output_dir", str(_DEFAULT_THE_OUTPUT_DIR))),
+                    pg_host=args.pg_host,
+                    pg_port=args.pg_port,
+                    pg_database=args.pg_database,
+                    pg_user=args.pg_user,
+                    pg_password=args.pg_password,
+                    skip_seed=bool(getattr(args, "the_skip_seed", False)),
+                )
+                print(
+                    f"[THE_CRAWL] pipeline_done rows={the_summary['rows_crawled']} "
+                    f"matched={the_summary['matched_count']} unresolved={the_summary['unresolved_count']} "
+                    f"source=THE year={ty}"
+                )
+            except Exception as exc:
+                print(f"[warn] THE rankings ingestion skipped: {exc}")
         return 0
 
     if args.command == "query":

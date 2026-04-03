@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "upstream_blocked",
   "message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/3990755 (HTTP 403)",
-  "run_id": "qs-region-africa-2026-2026-04-03T04:09:08Z",
+  "run_id": "qs-region-africa-2026-2026-04-03T05:01:38Z",
   "universe_type": "region",
   "universe_key": "africa",
   "ranking_year": 2026,
