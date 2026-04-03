@@ -13,7 +13,14 @@ PACKAGE_ROOT = TESTS_DIR.parent
 sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-core"))
 sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-extractors"))
 
-from fetcher import _abs_url, _extract_nid_from_html, _ranking_page_fallbacks, UniversityFetcher
+from fetcher import (
+    _abs_url,
+    _extract_nid_from_html,
+    _jittered_request_delay_seconds,
+    _qs_ranking_fetch_urls,
+    _ranking_page_fallbacks,
+    UniversityFetcher,
+)
 from config import Config
 
 class TestFetcherUtils(unittest.TestCase):
@@ -37,6 +44,28 @@ class TestFetcherUtils(unittest.TestCase):
         url = "https://www.topuniversities.com/asia-university-rankings/south-eastern-asia"
         fallbacks = _ranking_page_fallbacks(url)
         self.assertIn("https://www.topuniversities.com/asia-university-rankings", fallbacks)
+
+    def test_qs_ranking_fetch_urls_respects_endpoint_order(self):
+        c = Config()
+        c.api_url = "https://www.topuniversities.com/rankings/endpoint"
+        c.qs_endpoint_order = "api_first"
+        u = _qs_ranking_fetch_urls(c, "42")
+        self.assertEqual(
+            u[0],
+            "https://www.topuniversities.com/rankings/api/ranking/42",
+        )
+        c.qs_endpoint_order = "endpoint_first"
+        u = _qs_ranking_fetch_urls(c, "42")
+        self.assertEqual(u[0], "https://www.topuniversities.com/rankings/endpoint")
+
+    def test_request_delay_jitter_is_bounded(self):
+        c = Config()
+        c.request_delay = 10.0
+        c.request_delay_jitter_ratio = 0.2
+        for _ in range(50):
+            d = _jittered_request_delay_seconds(c)
+            self.assertGreaterEqual(d, 8.0)
+            self.assertLessEqual(d, 12.0)
 
 class TestUniversityFetcher(unittest.TestCase):
     def setUp(self):

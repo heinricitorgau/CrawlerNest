@@ -1187,7 +1187,9 @@ def sync_qs_multi_source_rankings(
     universe_key: str = "global",
     enable_aggregation: bool = True,
 ) -> Any:
-    effective_run_id = batch_id or dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    effective_run_id = batch_id or (
+        dt.datetime.now(dt.timezone.utc).replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
+    )
     conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
     try:
         pipeline = _build_multi_source_pipeline(conn)
@@ -1323,7 +1325,7 @@ def run_qs_universe_ingestion(
 
     run_id = (
         f"qs-{spec.universe_type}-{spec.universe_key}-{ranking_year}-"
-        f"{dt.datetime.utcnow().replace(microsecond=0).isoformat()}Z"
+        f"{dt.datetime.now(dt.timezone.utc).replace(microsecond=0).strftime('%Y-%m-%dT%H:%M:%SZ')}"
     )
 
     try:
@@ -1409,7 +1411,7 @@ def ingest_rankings_payload(
 
     effective_run_id = batch_id or (
         f"{source_code.lower()}-{ranking_type}-{ranking_year}-"
-        f"{dt.datetime.utcnow().replace(microsecond=0).isoformat()}Z"
+        f"{dt.datetime.now(dt.timezone.utc).replace(microsecond=0).strftime('%Y-%m-%dT%H:%M:%SZ')}"
     )
 
     conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)

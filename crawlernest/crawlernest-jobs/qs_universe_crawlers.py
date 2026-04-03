@@ -82,8 +82,9 @@ class BaseQSUniverseCrawler:
         effective_request_delay = self.request_delay
         if self.spec.universe_type == "region" and self.spec.universe_key == "europe":
             effective_request_delay = max(effective_request_delay, 12.0)
+        preferred_ranking_id = self.spec.ranking_id or "3990755"
         return Config(
-            ranking_id=self.spec.ranking_id or "3990755",
+            ranking_id=preferred_ranking_id,
             ranking_page_url=self.spec.ranking_page_url,
             region_name=self.spec.region_name,
             universe_type=self.spec.universe_type,
@@ -105,6 +106,7 @@ class BaseQSUniverseCrawler:
 
     def crawl(self, existing_universities: list[University] | None = None) -> tuple[list[University], dict[str, Any]]:
         config = self.build_config()
+        setattr(config, "_stable_ranking_id", str(self.spec.ranking_id or "").strip())
         existing_universities = list(existing_universities or [])
         if existing_universities:
             config._resume_paths = [str(uni.path).strip() for uni in existing_universities if str(uni.path or "").strip()]
@@ -126,10 +128,13 @@ class BaseQSUniverseCrawler:
             "detail_forbidden_count": int(getattr(config, "_detail_forbidden_count", 0) or 0),
             "failure_classification": str(getattr(config, "_last_failure_classification", "") or ""),
             "failure_message": str(getattr(config, "_last_failure_message", "") or ""),
+            "ranking_id_source": str(getattr(config, "_ranking_id_source", "") or ""),
             "used_resolution_cache": bool(getattr(config, "_used_resolution_cache", False)),
             "resolved_ranking_id": str(getattr(config, "ranking_id", "") or ""),
             "ranking_id_candidates": list(getattr(config, "_ranking_id_candidates", []) or []),
             "resolved_ranking_page_url": str(getattr(config, "_resolved_ranking_page_url", "") or ""),
+            "page_resolution_skipped": bool(getattr(config, "_page_resolution_skipped", False)),
+            "page_resolution_attempted": bool(getattr(config, "_page_resolution_attempted", False)),
             "subregion_id": str(getattr(config, "_subregion_id", "") or ""),
             "resolution_cache_path": str(getattr(config, "resolution_cache_path", "") or ""),
             "universe": asdict(self.spec),

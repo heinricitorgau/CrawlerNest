@@ -2,12 +2,17 @@
   "detail_fallback_triggered": false,
   "detail_deferred_paths": [],
   "detail_forbidden_count": 0,
-  "failure_classification": "",
-  "failure_message": "",
-  "used_resolution_cache": false,
+  "failure_classification": "upstream_blocked",
+  "failure_message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/3990755 (HTTP 403)",
+  "ranking_id_source": "cache",
+  "used_resolution_cache": true,
   "resolved_ranking_id": "3990755",
-  "ranking_id_candidates": [],
-  "resolved_ranking_page_url": "",
+  "ranking_id_candidates": [
+    "3990755"
+  ],
+  "resolved_ranking_page_url": "https://www.topuniversities.com/oceania-university-rankings",
+  "page_resolution_skipped": true,
+  "page_resolution_attempted": false,
   "subregion_id": "",
   "resolution_cache_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
   "universe": {
@@ -19,5 +24,10 @@
     "region_name": "Oceania",
     "fetch_details": false,
     "enable_aggregation": true
-  }
+  },
+  "live_fetch_classification": "upstream_blocked",
+  "live_fetch_message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/3990755 (HTTP 403)",
+  "used_snapshot_fallback": true,
+  "snapshot_fallback_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universes/2026/region/oceania/raw_snapshot.json",
+  "run_backing": "fallback_snapshot"
 }
