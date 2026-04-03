@@ -93,6 +93,13 @@ class Config:
     _ranking_id_candidates: List[str] = field(default_factory=list, init=False, repr=False)
     _resolved_ranking_page_url: str = field(default="", init=False, repr=False)
     _used_prefetched_payload: bool = field(default=False, init=False, repr=False)
+    _ranking_id_from_cache: bool = field(default=False, init=False, repr=False)
+    _used_resolution_cache: bool = field(default=False, init=False, repr=False)
+    _ranking_id_source: str = field(default="", init=False, repr=False)
+    _page_resolution_skipped: bool = field(default=False, init=False, repr=False)
+    _page_resolution_attempted: bool = field(default=False, init=False, repr=False)
+    _last_failure_classification: str = field(default="", init=False, repr=False)
+    _last_failure_message: str = field(default="", init=False, repr=False)
     
     def get_api_params(self) -> Dict[str, str]:
 

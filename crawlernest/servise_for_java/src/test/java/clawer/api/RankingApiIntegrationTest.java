@@ -120,8 +120,8 @@ class RankingApiIntegrationTest {
         assertEquals(25, pageOne.size(), "Page 1 should contain exactly 25 rows");
         assertEquals(4, pageTwo.size(), "Page 2 should contain the remaining rows after the first 25");
         assertEquals(25, pageOne.get(pageOne.size() - 1).get("aggregatedRank").asInt());
-        assertEquals(25, pageTwo.get(0).get("aggregatedRank").asInt());
-        assertEquals(26, pageTwo.get(1).get("aggregatedRank").asInt());
+        assertEquals(26, pageTwo.get(0).get("aggregatedRank").asInt());
+        assertEquals(27, pageTwo.get(1).get("aggregatedRank").asInt());
     }
 
     @Test
@@ -423,6 +423,71 @@ class RankingApiIntegrationTest {
         assertEquals("University of Oxford", items.get(0).get("universityName").asText());
         assertEquals("United Kingdom", items.get(0).get("country").asText());
         assertEquals(3, items.get(0).get("scopeRank").asInt());
+    }
+
+    @Test
+    void latestUniverseViewDeduplicatesCanonicalRowsInsideLatestRunAndKeepsRanksTrustworthy() throws Exception {
+        jdbcTemplate.update("""
+                INSERT INTO analytics.aggregated_rankings (
+                    aggregation_run_id,
+                    canonical_university_id,
+                    ranking_year,
+                    universe_type,
+                    universe_key,
+                    display_rank,
+                    composite_score,
+                    coverage_ratio,
+                    source_ranks_json,
+                    source_normalized_scores_json,
+                    source_weights_used_json,
+                    aggregation_method_version
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?::jsonb, ?)
+                """,
+                990002L,
+                990003L,
+                2099,
+                "region",
+                "europe",
+                99,
+                0.100000,
+                1.0,
+                "{\"QS\":999}",
+                "{\"QS\":0.1}",
+                "{\"QS\":1.0}",
+                "rank_agg_shadow_v9"
+        );
+
+        Integer europeCount = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM analytics.v_aggregated_rankings_latest
+                WHERE ranking_year = 2099
+                  AND universe_type = 'region'
+                  AND universe_key = 'europe'
+                """, Integer.class);
+        Integer europeDistinct = jdbcTemplate.queryForObject("""
+                SELECT COUNT(DISTINCT canonical_university_id)
+                FROM analytics.v_aggregated_rankings_latest
+                WHERE ranking_year = 2099
+                  AND universe_type = 'region'
+                  AND universe_key = 'europe'
+                """, Integer.class);
+
+        assertEquals(4, europeCount);
+        assertEquals(4, europeDistinct);
+
+        JsonNode europe = fetchItems(
+                "/api/v1/rankings?page=1&pageSize=20&source=AGGREGATED&year=2099&scope=region&region=Europe"
+        );
+
+        assertEquals(4, europe.size());
+        assertEquals("ETH Zurich", europe.get(0).get("universityName").asText());
+        assertEquals(1, europe.get(0).get("scopeRank").asInt());
+        assertEquals("Delft University of Technology", europe.get(1).get("universityName").asText());
+        assertEquals(2, europe.get(1).get("scopeRank").asInt());
+        assertEquals("University of Oxford", europe.get(2).get("universityName").asText());
+        assertEquals(3, europe.get(2).get("scopeRank").asInt());
+        assertEquals("University of Barcelona", europe.get(3).get("universityName").asText());
+        assertEquals(4, europe.get(3).get("scopeRank").asInt());
     }
 
     @Test
