@@ -14,7 +14,7 @@
 
 ## 目前能做什麼？
 
-- **資料管線**：可穩定抓取 QS 與 THE 等排名資料，並寫入 PostgreSQL。
+- **資料管線**：可穩定抓取 QS 與 THE 等排名資料，並寫入 PostgreSQL。THE 世界排名優先使用**結構化 JSON**（官網 CDN 上的資料檔，若無則從 Next.js 頁內嵌的 `__NEXT_DATA__` 取得），不以脆弱的主流程 HTML 表格解析為主。
 - **多宇宙排名 ingestion**：已支援 QS 的 `global / region / subject / special` universes。
 - **寫入可追蹤性**：每次 ingest 都會帶 `run_id` 與 `updated_at`。
 - **可見性修復路徑**：若學校已抓到 `warehouse.universities` 但尚未出現在 API / 前端，可透過 canonical seeding 與 ranking backfill 補齊。
@@ -190,6 +190,32 @@ bash crawlernest/scripts/run_production_safe.sh 2500 --resume
 ./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --skip-seed --pg-user test --pg-database clawer
 ```
 
+#### 2.4 在主流程 `run` 一併跑 THE（選用）
+
+在完成「QS 抓取 → 正規化 → 寫入 DB → QS multi-source 同步」之後，可在同一個指令中接著跑 THE ingestion（**預設不會**執行，需加上旗標）：
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run --limit 2500 --ranking-year 2026 \
+  --with-the-rankings --the-ranking-year 2026 \
+  --pg-user test --pg-database clawer
+```
+
+相關參數：
+
+- `--the-ranking-year`：THE 版本年度（預設 `2026`）
+- `--the-output-dir`：寫出 `the_rankings_<year>.json` 的目錄（預設為 `crawlernest/crawlernest-kb/databases`）
+- `--the-skip-seed`：THE ingest 後略過 canonical seed／legacy backfill（較快，修復較少）
+
+THE 抓取階段日誌會出現 `[THE_CRAWL]`；multi-source 寫入時批次識別為 `the-<year>` 風格。
+
+#### 2.5 一次跑 QS 主要區域（連續迴圈）
+
+下列指令會依序連續執行 World 與五大區域排名（歐、亞、拉丁美洲、大洋洲、非洲），直到手動停止：
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run-qs-major --ranking-year 2026
+```
+
 QS universe commands 的執行語意：
 
 - `run-qs-*` 與 `run-qs-universes` 都是 continuous commands
@@ -230,6 +256,17 @@ QS universe commands 的執行語意：
 - 印出應重新 re-crawl 的 universe
 
 它 **不會** 自動重抓，只做診斷。
+
+### 3. 統計 `warehouse.ranking_record` 中的 THE 筆數
+
+`ranking_record` 以 `ranking_source_id` 關聯來源，沒有單獨的 `source` 文字欄位。請 join `warehouse.ranking_source`：
+
+```sql
+SELECT COUNT(*)
+FROM warehouse.ranking_record rr
+JOIN warehouse.ranking_source rs ON rs.ranking_source_id = rr.ranking_source_id
+WHERE rs.source_code = 'THE';
+```
 
 ---
 
@@ -294,3 +331,9 @@ THE universities 不會先進 `warehouse.universities`，所以不能只靠 `see
 
 - [Engineering Validation & Maintenance Guide](docs/foundation/TESTING_GUIDE.md)
 - [Repository Structure](docs/REPO_STRUCTURE.md)
+
+---
+
+## 版本對照
+
+- 英文版完整說明（含 Milestones、Repository Map）：[README.md](README.md)
