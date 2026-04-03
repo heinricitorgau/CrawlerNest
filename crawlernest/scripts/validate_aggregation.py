@@ -17,10 +17,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument(
         "--universe-type",
-        choices=["global", "region", "subject"],
-        required=True,
+        choices=["global", "region", "subject", "special"],
     )
     parser.add_argument("--universe-key")
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Validate every universe found for the selected year.",
+    )
     parser.add_argument("--pg-host", default=os.getenv("PGHOST", "localhost"))
     parser.add_argument("--pg-port", type=int, default=int(os.getenv("PGPORT", "5432")))
     parser.add_argument("--pg-database", default=os.getenv("PGDATABASE", "clawer"))
@@ -33,8 +37,20 @@ def resolve_universe_key(universe_type: str, universe_key: str | None) -> str:
     if universe_type == "global":
         return universe_key or "global"
     if not universe_key:
-        raise SystemExit("--universe-key is required for region and subject validation")
+        raise SystemExit("--universe-key is required for region, subject, and special validation")
     return universe_key
+
+
+def fetch_universes(conn: Any, *, year: int) -> list[tuple[str, str]]:
+    sql = """
+        SELECT DISTINCT universe_type, universe_key
+        FROM analytics.v_aggregated_rankings_latest
+        WHERE ranking_year = %s
+        ORDER BY universe_type, universe_key
+    """
+    with conn.cursor() as cur:
+        cur.execute(sql, (year,))
+        return [(row[0], row[1]) for row in cur.fetchall()]
 
 
 def connect(args: argparse.Namespace) -> Any:
@@ -148,10 +164,38 @@ def print_report(
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
-    universe_key = resolve_universe_key(args.universe_type, args.universe_key)
 
     conn = connect(args)
     try:
+        if args.all:
+            universes = fetch_universes(conn, year=args.year)
+            if not universes:
+                print(f"No ranking universes found for year {args.year}.")
+                return 1
+
+            exit_code = 0
+            for universe_type, universe_key in universes:
+                rows = fetch_rows(
+                    conn,
+                    year=args.year,
+                    universe_type=universe_type,
+                    universe_key=universe_key,
+                )
+                exit_code = max(
+                    exit_code,
+                    print_report(
+                        year=args.year,
+                        universe_type=universe_type,
+                        universe_key=universe_key,
+                        rows=rows,
+                    ),
+                )
+            return exit_code
+
+        if not args.universe_type:
+            raise SystemExit("--universe-type is required unless --all is used")
+
+        universe_key = resolve_universe_key(args.universe_type, args.universe_key)
         rows = fetch_rows(
             conn,
             year=args.year,
