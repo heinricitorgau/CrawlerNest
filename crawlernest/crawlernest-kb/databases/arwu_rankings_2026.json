@@ -1,0 +1,821 @@
+{
+  "rows": [
+    {
+      "id": "https://www.shanghairanking.com/institution/harvard-university",
+      "name": "Harvard University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 1,
+      "score": 100.0,
+      "url": "https://www.shanghairanking.com/institution/harvard-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "1",
+          "Harvard University Harvard University United States",
+          "1",
+          "100.0",
+          "100.0",
+          "97.1",
+          "100.0",
+          "100.0",
+          "100.0",
+          "85.7"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/stanford-university",
+      "name": "Stanford University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 2,
+      "score": 75.6,
+      "url": "https://www.shanghairanking.com/institution/stanford-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "2",
+          "Stanford University Stanford University United States",
+          "2",
+          "75.6",
+          "45.3",
+          "88.1",
+          "73.1",
+          "83.9",
+          "73.1",
+          "59.6"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/massachusetts-institute-of-technology-mit",
+      "name": "Massachusetts Institute of Technology (MIT)",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 3,
+      "score": 69.5,
+      "url": "https://www.shanghairanking.com/institution/massachusetts-institute-of-technology-mit",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "3",
+          "Massachusetts Institute of Technology (MIT) Massachusetts Institute of Technology (MIT) United States",
+          "3",
+          "69.5",
+          "71.9",
+          "82.8",
+          "55.2",
+          "70.8",
+          "59.1",
+          "73.6"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-cambridge",
+      "name": "University of Cambridge",
+      "country": "United Kingdom",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 4,
+      "score": 67.8,
+      "url": "https://www.shanghairanking.com/institution/university-of-cambridge",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "4",
+          "University of Cambridge University of Cambridge United Kingdom",
+          "1",
+          "67.8",
+          "78.2",
+          "90.8",
+          "45.1",
+          "59.8",
+          "67.2",
+          "60.6"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-california-berkeley",
+      "name": "University of California, Berkeley",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 5,
+      "score": 62.0,
+      "url": "https://www.shanghairanking.com/institution/university-of-california-berkeley",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "5",
+          "University of California, Berkeley University of California, Berkeley United States",
+          "4",
+          "62.0",
+          "65.3",
+          "76.5",
+          "46.9",
+          "62.8",
+          "57.1",
+          "55.5"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-oxford",
+      "name": "University of Oxford",
+      "country": "United Kingdom",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 6,
+      "score": 60.0,
+      "url": "https://www.shanghairanking.com/institution/university-of-oxford",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "6",
+          "University of Oxford University of Oxford United Kingdom",
+          "2",
+          "60.0",
+          "49.5",
+          "59.7",
+          "51.3",
+          "57.2",
+          "77.1",
+          "47.9"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/princeton-university",
+      "name": "Princeton University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 7,
+      "score": 58.8,
+      "url": "https://www.shanghairanking.com/institution/princeton-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "7",
+          "Princeton University Princeton University United States",
+          "5",
+          "58.8",
+          "61.2",
+          "100.0",
+          "26.0",
+          "51.3",
+          "42.3",
+          "75.3"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/california-institute-of-technology",
+      "name": "California Institute of Technology",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 8,
+      "score": 55.1,
+      "url": "https://www.shanghairanking.com/institution/california-institute-of-technology",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "8",
+          "California Institute of Technology California Institute of Technology United States",
+          "6-7",
+          "55.1",
+          "55.7",
+          "63.4",
+          "29.8",
+          "57.9",
+          "41.0",
+          "100.0"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/columbia-university",
+      "name": "Columbia University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 8,
+      "score": 55.1,
+      "url": "https://www.shanghairanking.com/institution/columbia-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "8",
+          "Columbia University Columbia University United States",
+          "6-7",
+          "55.1",
+          "59.4",
+          "63.2",
+          "42.7",
+          "51.9",
+          "67.0",
+          "31.6"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-chicago",
+      "name": "University of Chicago",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 10,
+      "score": 54.4,
+      "url": "https://www.shanghairanking.com/institution/university-of-chicago",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "10",
+          "University of Chicago University of Chicago United States",
+          "8",
+          "54.4",
+          "59.0",
+          "84.5",
+          "32.5",
+          "44.9",
+          "53.0",
+          "44.2"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/yale-university",
+      "name": "Yale University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 11,
+      "score": 52.8,
+      "url": "https://www.shanghairanking.com/institution/yale-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "11",
+          "Yale University Yale University United States",
+          "9",
+          "52.8",
+          "50.3",
+          "49.6",
+          "45.1",
+          "54.3",
+          "65.2",
+          "38.6"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/cornell-university",
+      "name": "Cornell University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 12,
+      "score": 50.8,
+      "url": "https://www.shanghairanking.com/institution/cornell-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "12",
+          "Cornell University Cornell University United States",
+          "10",
+          "50.8",
+          "42.2",
+          "44.2",
+          "41.7",
+          "55.8",
+          "63.9",
+          "45.0"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/paris-saclay-university",
+      "name": "Paris-Saclay University",
+      "country": "France",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 12,
+      "score": 50.8,
+      "url": "https://www.shanghairanking.com/institution/paris-saclay-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "12",
+          "Paris-Saclay University Paris-Saclay University France",
+          "1",
+          "50.8",
+          "36.9",
+          "73.8",
+          "33.8",
+          "33.9",
+          "65.7",
+          "47.1"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-pennsylvania",
+      "name": "University of Pennsylvania",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 14,
+      "score": 49.3,
+      "url": "https://www.shanghairanking.com/institution/university-of-pennsylvania",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "14",
+          "University of Pennsylvania University of Pennsylvania United States",
+          "11",
+          "49.3",
+          "32.0",
+          "39.6",
+          "51.7",
+          "44.5",
+          "68.5",
+          "42.6"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-california-los-angeles",
+      "name": "University of California, Los Angeles",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 15,
+      "score": 48.4,
+      "url": "https://www.shanghairanking.com/institution/university-of-california-los-angeles",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "15",
+          "University of California, Los Angeles University of California, Los Angeles United States",
+          "12",
+          "48.4",
+          "29.8",
+          "45.0",
+          "44.6",
+          "51.0",
+          "67.2",
+          "29.1"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-college-london",
+      "name": "University College London",
+      "country": "United Kingdom",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 16,
+      "score": 47.1,
+      "url": "https://www.shanghairanking.com/institution/university-college-london",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "16",
+          "University College London University College London United Kingdom",
+          "3",
+          "47.1",
+          "27.0",
+          "31.5",
+          "48.7",
+          "41.7",
+          "78.5",
+          "34.1"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/johns-hopkins-university",
+      "name": "Johns Hopkins University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 17,
+      "score": 46.0,
+      "url": "https://www.shanghairanking.com/institution/johns-hopkins-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "17",
+          "Johns Hopkins University Johns Hopkins University United States",
+          "13",
+          "46.0",
+          "34.0",
+          "34.6",
+          "45.6",
+          "38.7",
+          "74.6",
+          "29.3"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-california-san-diego",
+      "name": "University of California, San Diego",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 18,
+      "score": 45.9,
+      "url": "https://www.shanghairanking.com/institution/university-of-california-san-diego",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "18",
+          "University of California, San Diego University of California, San Diego United States",
+          "14-15",
+          "45.9",
+          "18.0",
+          "32.4",
+          "54.5",
+          "51.7",
+          "60.8",
+          "32.7"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-washington",
+      "name": "University of Washington",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 18,
+      "score": 45.9,
+      "url": "https://www.shanghairanking.com/institution/university-of-washington",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "18",
+          "University of Washington University of Washington United States",
+          "14-15",
+          "45.9",
+          "22.6",
+          "33.2",
+          "43.7",
+          "52.3",
+          "71.4",
+          "25.9"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-california-san-francisco",
+      "name": "University of California, San Francisco",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 20,
+      "score": 45.4,
+      "url": "https://www.shanghairanking.com/institution/university-of-california-san-francisco",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "20",
+          "University of California, San Francisco University of California, San Francisco United States",
+          "16",
+          "45.4",
+          "0.0",
+          "41.9",
+          "49.6",
+          "55.6",
+          "60.1",
+          "31.1"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/eth-zurich",
+      "name": "ETH Zurich",
+      "country": "Switzerland",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 21,
+      "score": 44.5,
+      "url": "https://www.shanghairanking.com/institution/eth-zurich",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "21",
+          "ETH Zurich ETH Zurich Switzerland",
+          "1",
+          "44.5",
+          "26.5",
+          "42.2",
+          "30.5",
+          "53.3",
+          "54.6",
+          "48.8"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/tsinghua-university",
+      "name": "Tsinghua University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 22,
+      "score": 43.3,
+      "url": "https://www.shanghairanking.com/institution/tsinghua-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "22",
+          "Tsinghua University Tsinghua University China",
+          "1",
+          "43.3",
+          "9.0",
+          "0.0",
+          "57.5",
+          "47.1",
+          "86.2",
+          "34.0"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/washington-university-in-st-louis",
+      "name": "Washington University in St. Louis",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 23,
+      "score": 40.1,
+      "url": "https://www.shanghairanking.com/institution/washington-university-in-st-louis",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "23",
+          "Washington University in St. Louis Washington University in St. Louis United States",
+          "17",
+          "40.1",
+          "20.8",
+          "27.4",
+          "47.8",
+          "39.1",
+          "53.2",
+          "36.7"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/peking-university",
+      "name": "Peking University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 24,
+      "score": 39.9,
+      "url": "https://www.shanghairanking.com/institution/peking-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "24",
+          "Peking University Peking University China",
+          "2",
+          "39.9",
+          "10.4",
+          "0.0",
+          "41.2",
+          "44.0",
+          "89.2",
+          "32.2"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/imperial-college-london",
+      "name": "Imperial College London",
+      "country": "United Kingdom",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 25,
+      "score": 39.7,
+      "url": "https://www.shanghairanking.com/institution/imperial-college-london",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "25",
+          "Imperial College London Imperial College London United Kingdom",
+          "4",
+          "39.7",
+          "12.7",
+          "31.3",
+          "37.4",
+          "36.2",
+          "63.7",
+          "39.2"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-toronto",
+      "name": "University of Toronto",
+      "country": "Canada",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 26,
+      "score": 39.6,
+      "url": "https://www.shanghairanking.com/institution/university-of-toronto",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "26",
+          "University of Toronto University of Toronto Canada",
+          "1",
+          "39.6",
+          "16.4",
+          "13.0",
+          "39.1",
+          "36.6",
+          "82.0",
+          "30.3"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/zhejiang-university",
+      "name": "Zhejiang University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 27,
+      "score": 39.0,
+      "url": "https://www.shanghairanking.com/institution/zhejiang-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "27",
+          "Zhejiang University Zhejiang University China",
+          "3",
+          "39.0",
+          "0.0",
+          "0.0",
+          "41.2",
+          "37.0",
+          "99.5",
+          "27.0"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/the-university-of-tokyo",
+      "name": "The University of Tokyo",
+      "country": "Japan",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 28,
+      "score": 38.6,
+      "url": "https://www.shanghairanking.com/institution/the-university-of-tokyo",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "28",
+          "The University of Tokyo The University of Tokyo Japan",
+          "1",
+          "38.6",
+          "36.3",
+          "23.5",
+          "21.6",
+          "45.3",
+          "68.6",
+          "24.0"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/rockefeller-university",
+      "name": "Rockefeller University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 29,
+      "score": 38.2,
+      "url": "https://www.shanghairanking.com/institution/rockefeller-university",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "29",
+          "Rockefeller University Rockefeller University United States",
+          "18",
+          "38.2",
+          "15.6",
+          "57.6",
+          "26.8",
+          "41.7",
+          "16.0",
+          "74.4"
+        ]
+      }
+    },
+    {
+      "id": "https://www.shanghairanking.com/institution/university-of-michigan-ann-arbor",
+      "name": "University of Michigan-Ann Arbor",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 30,
+      "score": 38.0,
+      "url": "https://www.shanghairanking.com/institution/university-of-michigan-ann-arbor",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "html_table",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2024",
+        "raw_row": [
+          "30",
+          "University of Michigan-Ann Arbor University of Michigan-Ann Arbor United States",
+          "19",
+          "38.0",
+          "37.1",
+          "9.8",
+          "33.2",
+          "39.1",
+          "74.0",
+          "23.3"
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "source": "ARWU",
+    "ranking_type": "world",
+    "ranking_year": 2026,
+    "resolved_page_url": "https://www.shanghairanking.com/rankings/arwu/2024",
+    "valid_rank_count": 30
+  }
+}
