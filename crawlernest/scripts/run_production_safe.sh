@@ -102,6 +102,7 @@ run_qs_region_single_pass() {
     local limit="$2"
 
     "${PYTHON_BIN}" -u - "${PYTHON_BIN}" "${PIPELINE}" "${region}" "${PG_USER}" "${PG_DATABASE}" "${limit}" <<'PY'
+import re
 import signal
 import subprocess
 import sys
@@ -125,6 +126,8 @@ cmd = [
 
 completion_marker = f"[qs-universe] region/{region} "
 saw_completion = False
+rows_written = None
+_rows_m = re.compile(r"rows_written=(\d+)")
 proc = subprocess.Popen(
     cmd,
     stdout=subprocess.PIPE,
@@ -139,6 +142,9 @@ for line in proc.stdout:
     sys.stdout.flush()
     if not saw_completion and completion_marker in line and "matched=" in line:
         saw_completion = True
+        m = _rows_m.search(line)
+        if m:
+            rows_written = int(m.group(1))
         try:
             proc.send_signal(signal.SIGINT)
         except ProcessLookupError:
@@ -146,6 +152,9 @@ for line in proc.stdout:
 
 return_code = proc.wait()
 if saw_completion and return_code in (0, -signal.SIGINT, 130):
+    # Exit 3: run finished but wrote 0 rows (e.g. live_blocked_no_fallback) — not a subprocess crash.
+    if rows_written is not None and rows_written == 0:
+        sys.exit(3)
     sys.exit(0)
 sys.exit(return_code)
 PY
@@ -317,15 +326,22 @@ for region in "${STEP4_REGIONS[@]}"; do
     echo "           --ranking-year 2026 --limit 2500 --pg-user ${PG_USER} --pg-database ${PG_DATABASE}"
     echo ""
 
-    if run_with_single_progress_line run_qs_region_single_pass "${region}" "2500"; then
+    region_exit=0
+    run_with_single_progress_line run_qs_region_single_pass "${region}" "2500" || region_exit=$?
+    if [[ ${region_exit} -eq 0 ]]; then
         STEP4_SUCCEEDED+=("${region}")
         echo ""
         echo "[STEP 4] region ${region} completed.  ($(date '+%H:%M:%S'))"
+    elif [[ ${region_exit} -eq 3 ]]; then
+        STEP4_EXIT=1
+        STEP4_FAILED+=("${region}")
+        echo ""
+        echo "[WARN] STEP 4 region ${region} finished with 0 rows_written (live blocked / no fallback data). Continuing."
     else
         STEP4_EXIT=1
         STEP4_FAILED+=("${region}")
         echo ""
-        echo "[WARN] STEP 4 region ${region} failed. Continuing."
+        echo "[WARN] STEP 4 region ${region} failed (exit ${region_exit}). Continuing."
     fi
     echo ""
 done
