@@ -311,6 +311,32 @@ fi
 echo ""
 
 # ---------------------------------------------------------------------------
+# 8. STEP 3.5 — ARWU world rankings ingestion
+# ---------------------------------------------------------------------------
+STEParwu_TRIGGERED=true
+STEParwu_EXIT=0
+
+echo "[STEP 3.5] Starting ARWU world rankings ingestion  ($(date '+%H:%M:%S'))"
+echo "         ${PYTHON_BIN} ${PIPELINE} run-arwu-rankings \\"
+echo "           --ranking-year 2026 --pg-user ${PG_USER} --pg-database ${PG_DATABASE}"
+echo ""
+
+if run_with_single_progress_line "${PYTHON_BIN}" "${PIPELINE}" run-arwu-rankings \
+    --ranking-year 2026 \
+    --pg-user "${PG_USER}" \
+    --pg-database "${PG_DATABASE}"; then
+    STEParwu_EXIT=0
+    echo ""
+    echo "[STEP 3.5] ARWU rankings ingestion completed.  ($(date '+%H:%M:%S'))"
+else
+    STEParwu_EXIT=$?
+    echo ""
+    echo "[WARN] STEP 3.5 (ARWU rankings) exited with code ${STEParwu_EXIT}. Continuing."
+fi
+
+echo ""
+
+# ---------------------------------------------------------------------------
 # 9. STEP 4 — QS major universe rankings
 # ---------------------------------------------------------------------------
 STEP4_TRIGGERED=true
@@ -411,10 +437,18 @@ if [[ "${STEP5_TRIGGERED}" == "true" ]]; then
     fi
 fi
 
+STEParwu_SUMMARY=""
+if [[ "${STEParwu_TRIGGERED}" == "true" ]]; then
+    STEParwu_SUMMARY="Step 3.5: ARWU rankings"
+    if [[ ${STEParwu_EXIT} -ne 0 ]]; then
+        STEParwu_SUMMARY="${STEParwu_SUMMARY} (warn)"
+    fi
+fi
+
 echo "============================================================"
 echo "[END]      $(date '+%Y-%m-%d %H:%M:%S')"
 echo "[DURATION] ${DURATION_FMT}  (${DURATION}s)"
-echo "[STAGES]   Step 1: rankings crawl  |  ${STEP2_SUMMARY}  |  ${STEP3_SUMMARY}  |  ${STEP4_SUMMARY}  |  ${STEP5_SUMMARY}"
+echo "[STAGES]   Step 1: rankings crawl  |  ${STEP2_SUMMARY}  |  ${STEP3_SUMMARY}  |  ${STEParwu_SUMMARY}  |  ${STEP4_SUMMARY}  |  ${STEP5_SUMMARY}"
 echo "           Log written to: ${LOG_FILE}"
 echo "============================================================"
 echo ""
