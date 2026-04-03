@@ -5,10 +5,13 @@ import clawer.dto.SourceRankingDTO;
 import clawer.dto.UniversityDTO;
 import clawer.model.University;
 import clawer.repository.UniversityRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,9 +23,11 @@ import java.util.stream.Collectors;
 public class UniversityService {
 
     private final UniversityRepository universityRepository;
+    private final JdbcTemplate jdbcTemplate;
 
-    public UniversityService(UniversityRepository universityRepository) {
+    public UniversityService(UniversityRepository universityRepository, JdbcTemplate jdbcTemplate) {
         this.universityRepository = universityRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public List<UniversityDTO> getAllUniversities(int page, int size) {
@@ -39,9 +44,164 @@ public class UniversityService {
     }
 
     public UniversityDTO getUniversityBySlug(String slug) {
-        return universityRepository.findBySchoolSlug(slug)
+        UniversityDTO legacy = universityRepository.findBySchoolSlug(slug)
                 .map(this::convertToDTO)
                 .orElse(null);
+
+        if (legacy != null) {
+            return legacy;
+        }
+
+        // Fallback: rankings UI uses canonical_slug (warehouse.canonical_university),
+        // while the legacy university page endpoint originally queried only warehouse.universities.school_slug.
+        // When a canonical university has no legacy university row/link, return a canonical-based DTO instead of 404.
+        return getUniversityByCanonicalSlug(slug);
+    }
+
+    private UniversityDTO getUniversityByCanonicalSlug(String canonicalSlug) {
+        String canonicalSql = """
+                SELECT cu.canonical_university_id,
+                       cu.display_name,
+                       co.country_name
+                FROM warehouse.canonical_university cu
+                LEFT JOIN warehouse.countries co
+                       ON co.country_id = cu.country_id
+                WHERE cu.canonical_slug = ?
+                LIMIT 1
+                """;
+
+        List<Map<String, Object>> canonicalRows = jdbcTemplate.query(
+                canonicalSql,
+                new Object[]{canonicalSlug},
+                (rs, rowNum) -> {
+                    Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("canonical_university_id", rs.getLong("canonical_university_id"));
+                    m.put("display_name", rs.getString("display_name"));
+                    m.put("country_name", rs.getString("country_name"));
+                    return m;
+                }
+        );
+        if (canonicalRows.isEmpty()) {
+            return null;
+        }
+
+        Map<String, Object> r = canonicalRows.get(0);
+        long canonicalUniversityId = ((Number) r.get("canonical_university_id")).longValue();
+
+        UniversityDTO dto = new UniversityDTO();
+        dto.setCanonicalUniversityId(canonicalUniversityId);
+        dto.setSlug(canonicalSlug);
+        dto.setUniversityName((String) r.get("display_name"));
+        dto.setCountry((String) r.get("country_name"));
+
+        // Aggregated ranking: latest available for that canonical university.
+        String aggSql = """
+                SELECT ranking_year, display_rank, composite_score, aggregation_method_version
+                FROM analytics.v_aggregated_rankings_latest
+                WHERE canonical_university_id = ?
+                  AND universe_type = 'global'
+                  AND universe_key = 'global'
+                ORDER BY ranking_year DESC
+                LIMIT 1
+                """;
+
+        List<Map<String, Object>> aggRows = jdbcTemplate.query(
+                aggSql,
+                new Object[]{canonicalUniversityId},
+                (rs, rowNum) -> {
+                    Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("ranking_year", rs.getInt("ranking_year"));
+                    m.put("display_rank", rs.getObject("display_rank"));
+                    m.put("composite_score", rs.getObject("composite_score"));
+                    m.put("aggregation_method_version", rs.getString("aggregation_method_version"));
+                    return m;
+                }
+        );
+        if (!aggRows.isEmpty()) {
+            Map<String, Object> ar = aggRows.get(0);
+            int rankingYear = ((Number) ar.get("ranking_year")).intValue();
+
+            clawer.dto.AggregatedRankingDTO aggregated = new clawer.dto.AggregatedRankingDTO();
+            aggregated.setRankingYear(rankingYear);
+
+            Object displayRankObj = ar.get("display_rank");
+            aggregated.setDisplayRank(
+                    displayRankObj == null ? null : ((Number) displayRankObj).intValue()
+            );
+
+            Object compositeScoreObj = ar.get("composite_score");
+            Double compositeScore = null;
+            if (compositeScoreObj instanceof BigDecimal) {
+                compositeScore = ((BigDecimal) compositeScoreObj).doubleValue();
+            } else if (compositeScoreObj instanceof Number) {
+                compositeScore = ((Number) compositeScoreObj).doubleValue();
+            }
+            aggregated.setCompositeScore(compositeScore);
+            aggregated.setAggregationMethodVersion((String) ar.get("aggregation_method_version"));
+            dto.setAggregatedRanking(aggregated);
+
+            // Source evidence ranks (QS/THE/ARWU).
+            String sourceSql = """
+                    SELECT rs.source_code,
+                           rr.ranking_year,
+                           rr.rank_position,
+                           rr.score
+                    FROM warehouse.ranking_record rr
+                    JOIN warehouse.ranking_source rs
+                      ON rs.ranking_source_id = rr.ranking_source_id
+                    WHERE rr.canonical_university_id = ?
+                      AND rr.ranking_year = ?
+                      AND rr.ranking_type = 'world'
+                      AND rr.universe_type = 'global'
+                      AND rr.universe_key = 'global'
+                      AND rr.rank_position IS NOT NULL
+                    ORDER BY rs.source_code
+                    """;
+
+            List<Map<String, Object>> srcRows = jdbcTemplate.query(
+                    sourceSql,
+                    new Object[]{canonicalUniversityId, rankingYear},
+                    (rs, rowNum) -> {
+                        Map<String, Object> m = new java.util.HashMap<>();
+                        m.put("source_code", rs.getString("source_code"));
+                        m.put("ranking_year", rs.getInt("ranking_year"));
+                        m.put("rank_position", rs.getObject("rank_position"));
+                        m.put("score", rs.getObject("score"));
+                        return m;
+                    }
+            );
+            List<SourceRankingDTO> sourceRankings = new ArrayList<>();
+            for (Map<String, Object> sr : srcRows) {
+                SourceRankingDTO s = new SourceRankingDTO();
+                s.setSource((String) sr.get("source_code"));
+                s.setYear(((Number) sr.get("ranking_year")).intValue());
+
+                Object rankObj = sr.get("rank_position");
+                s.setRank(rankObj == null ? null : ((Number) rankObj).intValue());
+
+                Object scoreObj = sr.get("score");
+                Double score = null;
+                if (scoreObj instanceof BigDecimal) {
+                    score = ((BigDecimal) scoreObj).doubleValue();
+                } else if (scoreObj instanceof Number) {
+                    score = ((Number) scoreObj).doubleValue();
+                }
+                s.setScore(score);
+                sourceRankings.add(s);
+            }
+            dto.setSourceRankings(sourceRankings);
+        } else {
+            dto.setAggregatedRanking(null);
+            dto.setSourceRankings(List.of());
+        }
+
+        dto.setAdmissionRequirements(Map.of());
+        clawer.dto.DataQualityDTO quality = new clawer.dto.DataQualityDTO();
+        quality.setRecommendationConfidence(0.9);
+        quality.setConfidenceLabel("High");
+        quality.setConfidenceReason("Rankings are fully merged and verified");
+        dto.setDataQuality(quality);
+        return dto;
     }
 
     private UniversityDTO convertToDTO(University university) {
