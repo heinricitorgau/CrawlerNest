@@ -53,11 +53,22 @@ class RankingAggregator:
             source_ranks: dict[str, Optional[float]] = {}
             source_norm_scores: dict[str, Optional[float]] = {}
             source_weights_used: dict[str, float] = {}
+            rank_weighted_sum = 0.0
+            rank_weight_sum = 0.0
+            available_rank_count = 0
 
             for rec in uni_rows:
                 source = rec.source.upper().strip()
                 rank_v = _parse_rank(rec.rank)
                 source_ranks[source] = rank_v
+                configured_weight = max(0.0, float(self.config.source_weights.get(source, 0.0)))
+                effective_weight = configured_weight if configured_weight > 0 else 1.0
+
+                if rank_v is not None:
+                    rank_weighted_sum += effective_weight * rank_v
+                    rank_weight_sum += effective_weight
+                    available_rank_count += 1
+                    source_weights_used[source] = effective_weight
 
                 rank_norm = None
                 if rank_v is not None:
@@ -72,15 +83,10 @@ class RankingAggregator:
                     score_scales=self.config.source_score_scales,
                 )
 
-                if rank_norm is not None and score_norm is not None:
-                    blend = min(1.0, max(0.0, float(self.config.score_rank_blend)))
-                    norm = blend * score_norm + (1.0 - blend) * rank_norm
-                else:
-                    norm = score_norm if score_norm is not None else rank_norm
-
-                source_norm_scores[source] = round(norm, 6) if norm is not None else None
-                if norm is not None:
-                    source_weights_used[source] = max(0.0, float(self.config.source_weights.get(source, 0.0)))
+                display_score = score_norm if score_norm is not None else rank_norm
+                source_norm_scores[source] = round(display_score, 6) if display_score is not None else None
+                if display_score is not None and source not in source_weights_used:
+                    source_weights_used[source] = effective_weight
 
             weighted_sum = 0.0
             used_weight_sum = 0.0
@@ -97,6 +103,7 @@ class RankingAggregator:
             # divide only by used weights (not all configured weights),
             # so schools missing one source are not automatically penalized.
             composite = (weighted_sum / used_weight_sum) if used_weight_sum > 0 else None
+            aggregated_rank_value = (rank_weighted_sum / rank_weight_sum) if rank_weight_sum > 0 else None
             coverage_ratio = used_weight_sum / configured_total_weight
 
             outputs.append(
@@ -113,6 +120,8 @@ class RankingAggregator:
                     coverage_ratio=round(coverage_ratio, 6),
                     aggregation_method_version=self.config.aggregation_method_version,
                     metadata={
+                        "aggregated_rank_value": round(aggregated_rank_value, 6) if aggregated_rank_value is not None else None,
+                        "available_rank_count": available_rank_count,
                         "configured_total_weight": configured_total_weight,
                         "used_weight_sum": round(used_weight_sum, 6),
                         "max_rank_by_source": max_rank_by_source,
@@ -177,14 +186,6 @@ def _parse_rank(rank: object) -> Optional[float]:
         return None
 
 
-def _normalize_rank_to_100(rank: float, max_rank: int) -> Optional[float]:
-    if rank <= 0 or max_rank <= 0:
-        return None
-    # rank=1 => near 100, rank=max_rank => near 0
-    score = 100.0 * (max_rank - rank + 1.0) / max_rank
-    return min(100.0, max(0.0, score))
-
-
 def _normalize_score_to_100(source: str, score: Optional[float], score_scales: dict[str, float]) -> Optional[float]:
     if score is None:
         return None
@@ -205,20 +206,33 @@ def _normalize_score_to_100(source: str, score: Optional[float], score_scales: d
     return None
 
 
+def _normalize_rank_to_100(rank: float, max_rank: int) -> Optional[float]:
+    if rank <= 0 or max_rank <= 0:
+        return None
+    score = 100.0 * (max_rank - rank + 1.0) / max_rank
+    return min(100.0, max(0.0, score))
+
+
 def _assign_dense_display_rank(rows: list[AggregatedRankingOutput], tie_epsilon: float) -> list[AggregatedRankingOutput]:
     sorted_rows = sorted(
         rows,
-        key=lambda r: (r.composite_score is None, -(r.composite_score or 0.0), r.canonical_university_id),
+        key=lambda r: (
+            r.metadata.get("aggregated_rank_value") is None,
+            float(r.metadata.get("aggregated_rank_value") or 0.0),
+            r.canonical_university_id,
+        ),
     )
     out: list[AggregatedRankingOutput] = []
     cur_rank = 0
-    prev_score: Optional[float] = None
+    prev_aggregate_rank: Optional[float] = None
     for row in sorted_rows:
-        if row.composite_score is None:
+        aggregate_rank_value = row.metadata.get("aggregated_rank_value")
+        if aggregate_rank_value is None:
             out.append(replace(row, display_rank=None))
             continue
-        if prev_score is None or abs((row.composite_score or 0.0) - prev_score) > tie_epsilon:
+        current_aggregate_rank = float(aggregate_rank_value)
+        if prev_aggregate_rank is None or abs(current_aggregate_rank - prev_aggregate_rank) > tie_epsilon:
             cur_rank += 1
-            prev_score = row.composite_score
+            prev_aggregate_rank = current_aggregate_rank
         out.append(replace(row, display_rank=cur_rank))
     return out

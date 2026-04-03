@@ -46,7 +46,6 @@ class RankingAggregationRepository:
                             "source_weights": config.source_weights,
                             "source_score_scales": config.source_score_scales,
                             "source_rank_fallback_max": config.source_rank_fallback_max,
-                            "score_rank_blend": config.score_rank_blend,
                             "tie_epsilon": config.tie_epsilon,
                         },
                         ensure_ascii=False,

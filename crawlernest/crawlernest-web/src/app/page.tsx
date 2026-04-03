@@ -3,7 +3,14 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { formatRank, formatScore } from "@/lib/format";
+import { rankingUniverseConfig } from "@/lib/rankingUniverseConfig";
+import { buildRankingViewModel } from "@/lib/rankingViewModel";
+import { formatRank } from "@/lib/format";
+import type {
+  RankingApiRow,
+  RankingPresentationRow,
+  RankingScope,
+} from "@/types/ranking";
 
 const REFRESH_INTERVAL_MS = 5000;
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
@@ -18,20 +25,6 @@ const REGION_OPTIONS = [
   "Oceania",
 ];
 
-type RankingItem = {
-  canonicalUniversityId: number;
-  universityName: string;
-  country: string;
-  aggregatedRank: number;
-  globalRank?: number;
-  scopeRank?: number;
-  compositeScore: number;
-  rankingYear?: number;
-  primarySource?: string;
-  sourceCount: number;
-  slug: string;
-};
-
 type ShortlistItem = {
   canonicalUniversityId: number;
   universityName: string;
@@ -44,15 +37,17 @@ function RankingsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const scope = (searchParams.get("scope") as "global" | "region") ?? "global";
+  const scope = (searchParams.get("scope") as RankingScope) ?? "global";
   const region = searchParams.get("region") ?? "Europe";
   const year = Number(searchParams.get("year") ?? "2026");
   const page = Number(searchParams.get("page") ?? "1");
   const pageSize = Number(searchParams.get("pageSize") ?? "20");
   const searchQuery = searchParams.get("search") ?? "";
+  const universe = scope === "region" ? "region" : "global";
+  const universeConfig = rankingUniverseConfig[universe];
 
   const [searchInput, setSearchInput] = useState(searchQuery);
-  const [items, setItems] = useState<RankingItem[]>([]);
+  const [items, setItems] = useState<RankingApiRow[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -181,7 +176,11 @@ function RankingsPageContent() {
   const isInShortlist = (id: number) =>
     shortlist.some((item) => item.canonicalUniversityId === id);
 
-  const toggleShortlist = (item: RankingItem) => {
+  const presentationItems: RankingPresentationRow[] = items.map((item) =>
+    buildRankingViewModel(item, { scope, region })
+  );
+
+  const toggleShortlist = (item: RankingPresentationRow) => {
     setShortlist((prev) =>
       isInShortlist(item.canonicalUniversityId)
         ? prev.filter(
@@ -191,9 +190,9 @@ function RankingsPageContent() {
             ...prev,
             {
               canonicalUniversityId: item.canonicalUniversityId,
-              universityName: item.universityName,
+              universityName: item.title,
               country: item.country,
-              aggregatedRank: item.aggregatedRank,
+              aggregatedRank: item.shortlistRank,
               slug: item.slug,
             },
           ]
@@ -231,7 +230,7 @@ function RankingsPageContent() {
               World University Rankings
             </h1>
             <p className="mt-4 text-lg leading-7 text-[#a8c5b5]">
-              Comparing 2,736 global institutions. Aggregate data from QS + THE (Times Higher Education).
+              Comparing universities across ranking universes with aggregated multi-source signals.
             </p>
           </div>
         </div>
@@ -419,7 +418,7 @@ function RankingsPageContent() {
                   <thead>
                     <tr className="border-b border-[#e0ddd8] bg-[#f5f3ee]">
                       <th className="w-16 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
-                        Rank
+                        {universeConfig.rankHeading}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
                         University
@@ -428,7 +427,7 @@ function RankingsPageContent() {
                         Location
                       </th>
                       <th className="w-28 px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
-                        Agg. Score
+                        {universeConfig.scoreHeading}
                       </th>
                       <th className="w-24 px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
                         Sources
@@ -439,7 +438,7 @@ function RankingsPageContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {items.length === 0 ? (
+                    {presentationItems.length === 0 ? (
                       <tr>
                         <td
                           colSpan={6}
@@ -449,34 +448,57 @@ function RankingsPageContent() {
                         </td>
                       </tr>
                     ) : (
-                      items.map((item) => {
+                      presentationItems.map((item) => {
                         const inList = isInShortlist(item.canonicalUniversityId);
                         return (
                           <tr
-                            key={`${item.canonicalUniversityId}-${item.slug}-${item.aggregatedRank}`}
+                            key={`${item.canonicalUniversityId}-${item.slug}-${item.shortlistRank}`}
                             className="border-t border-[#e0ddd8] transition hover:bg-[#f5f3ee]"
                           >
                             <td className="px-4 py-3.5 text-center font-bold text-[#1a3d2e]">
-                              #{formatRank(item.aggregatedRank)}
+                              <div>{item.primaryRankLabel}</div>
+                              {item.secondaryRankLabel && (
+                                <div className="mt-0.5 text-[11px] font-medium text-[#6b7068]">
+                                  {item.secondaryRankLabel}
+                                </div>
+                              )}
                             </td>
                             <td className="px-4 py-3.5">
                               <Link
                                 href={`/universities/${item.slug}`}
                                 className="font-medium text-[#1a1a1a] underline decoration-[#c0bdb8] underline-offset-2 transition hover:text-[#1a3d2e] hover:decoration-[#1a3d2e]"
                               >
-                                {item.universityName}
+                                {item.title}
                               </Link>
+                              <div className="mt-1 flex items-center gap-2 text-xs text-[#6b7068]">
+                                <span>{item.subtitle}</span>
+                                <span
+                                  className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${
+                                    item.badgeTone === "accent"
+                                      ? "bg-[#e8f2ec] text-[#1a3d2e]"
+                                      : "bg-[#f0ede7] text-[#6b7068]"
+                                  }`}
+                                >
+                                  {item.badgeLabel}
+                                </span>
+                              </div>
                             </td>
                             <td className="px-4 py-3.5 text-[#6b7068]">
                               {item.country}
                             </td>
                             <td className="px-4 py-3.5 text-right font-mono font-semibold text-[#1a1a1a]">
-                              {formatScore(item.compositeScore)}
+                              <div>{item.scoreLabel}</div>
+                              <div className="mt-0.5 text-[11px] font-sans font-medium text-[#6b7068]">
+                                {item.scoreCaption}
+                              </div>
                             </td>
                             <td className="px-4 py-3.5 text-center">
                               <span className="inline-flex items-center rounded-full bg-[#e8f2ec] px-2.5 py-0.5 text-xs font-medium text-[#1a3d2e]">
-                                {item.sourceCount}
+                                {item.sourceCoverageLabel}
                               </span>
+                              <div className="mt-1 text-[11px] text-[#6b7068]">
+                                {item.rankingUniverseLabel}
+                              </div>
                             </td>
                             <td className="px-4 py-3.5 text-center">
                               <button
