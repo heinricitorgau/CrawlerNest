@@ -11,11 +11,11 @@ CrawlerNest is an end-to-end data platform that transforms fragmented web data (
 While APIs and CLIs validate the data, students and advisors need a visual, comparative interface to make life-altering decisions. Raw data is overwhelming; by layering a deterministic decision engine and a clean UX over our data infrastructure, we provide clarity instead of just volume.
 
 ## Current Capabilities
-*   **Data Pipeline:** Asynchronous, compliance-aware crawlers fetching global rankings (2,736 universities from QS + THE dual source). THE world rankings prefer **structured JSON** (CDN blobs when published, else Next.js `__NEXT_DATA__` on official pages)—not brittle HTML-table scraping as the primary path.
+*   **Data Pipeline:** Asynchronous, compliance-aware crawlers fetching global rankings (QS + THE dual source; ARWU ingestion supported for multi-source aggregation). THE world rankings prefer **structured JSON** (CDN blobs when published, else Next.js `__NEXT_DATA__` on official pages)—not brittle HTML-table scraping as the primary path.
 *   **Multi-Universe Ingestion:** QS global / region / subject / special universes can be ingested through one unified runner.
 *   **Ingestion Traceability:** Every ingest run now writes `run_id` / `updated_at` trace fields into PostgreSQL ranking records.
 *   **Canonical Recovery Path:** Unlinked crawled universities can now be promoted into `canonical_university` and backfilled into `warehouse.ranking_record` without changing crawler behavior.
-*   **Aggregation Truth:** Aggregation now supports multi-universe truth, and the visible aggregated ranking count has expanded to 2,736 universities (QS + THE dual source) after canonical seeding, ranking backfill, and THE missing-entity recovery.
+*   **Aggregation Truth:** Aggregation now supports multi-universe truth, with the QS + THE dual source reaching 2,736 visible universities after canonical seeding, ranking backfill, and THE missing-entity recovery (ARWU is also supported for multi-source aggregation).
 *   **Decision Engine:** An explainable recommendation engine providing deterministic groupings (reach/target/safety).
 *   **API Platform:** Repaired Java Spring Boot APIs (API v1) serving normalized analytical data with support for scoped/regional filtering.
 *   **Database Reliability:** Robust PostgreSQL transaction handling with automatic rollbacks on batch failures.
@@ -128,6 +128,7 @@ The production-safe script currently runs:
 - **Step 1**: QS global rankings crawl
 - **Step 2**: deferred detail enrichment if pending items exist
 - **Step 3**: THE world rankings ingestion
+- **Step 3.5**: ARWU world rankings ingestion
 - **Step 4**: QS major region universes, one pass each
   - europe
   - asia
@@ -136,6 +137,7 @@ The production-safe script currently runs:
   - oceania
   - africa
   - north-america
+- **Step 5**: seed canonical entities from missing THE entities
 
 Operational behavior:
 

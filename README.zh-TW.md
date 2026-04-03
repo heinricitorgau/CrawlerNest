@@ -14,7 +14,7 @@
 
 ## 目前能做什麼？
 
-- **資料管線**：可穩定抓取 QS 與 THE 等排名資料，並寫入 PostgreSQL。THE 世界排名優先使用**結構化 JSON**（官網 CDN 上的資料檔，若無則從 Next.js 頁內嵌的 `__NEXT_DATA__` 取得），不以脆弱的主流程 HTML 表格解析為主。
+- **資料管線**：可穩定抓取 QS 與 THE 等排名資料，並寫入 PostgreSQL；同時支援透過 ARWU pipeline 進行 multi-source aggregation。THE 世界排名優先使用**結構化 JSON**（官網 CDN 上的資料檔，若無則從 Next.js 頁內嵌的 `__NEXT_DATA__` 取得），不以脆弱的主流程 HTML 表格解析為主。
 - **多宇宙排名 ingestion**：已支援 QS 的 `global / region / subject / special` universes。
 - **寫入可追蹤性**：每次 ingest 都會帶 `run_id` 與 `updated_at`。
 - **可見性修復路徑**：若學校已抓到 `warehouse.universities` 但尚未出現在 API / 前端，可透過 canonical seeding 與 ranking backfill 補齊。
@@ -133,6 +133,7 @@ bash crawlernest/scripts/run_production_safe.sh 2500 --resume
 - **Step 1**：QS global rankings crawl
 - **Step 2**：如果有 deferred items，就跑 detail enrichment
 - **Step 3**：THE world rankings ingestion
+- **Step 3.5**：ARWU world rankings ingestion
 - **Step 4**：QS major regions 各跑一輪
   - europe
   - asia
@@ -141,6 +142,7 @@ bash crawlernest/scripts/run_production_safe.sh 2500 --resume
   - oceania
   - africa
   - north-america
+- **Step 5**：seed canonical entities from missing THE entities
 
 執行特性：
 
