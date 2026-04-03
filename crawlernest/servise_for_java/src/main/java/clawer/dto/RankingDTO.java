@@ -12,6 +12,10 @@ public class RankingDTO {
     private String slug;
     private Integer globalRank;
     private Integer scopeRank;
+    private AggregationExplainDTO aggregationExplain;
+    private Double trustScore;
+    private String trustLevel;
+    private TrustExplainDTO trustExplain;
 
     public RankingDTO() {}
 
@@ -47,4 +51,16 @@ public class RankingDTO {
 
     public Integer getScopeRank() { return scopeRank; }
     public void setScopeRank(Integer scopeRank) { this.scopeRank = scopeRank; }
+
+    public AggregationExplainDTO getAggregationExplain() { return aggregationExplain; }
+    public void setAggregationExplain(AggregationExplainDTO aggregationExplain) { this.aggregationExplain = aggregationExplain; }
+
+    public Double getTrustScore() { return trustScore; }
+    public void setTrustScore(Double trustScore) { this.trustScore = trustScore; }
+
+    public String getTrustLevel() { return trustLevel; }
+    public void setTrustLevel(String trustLevel) { this.trustLevel = trustLevel; }
+
+    public TrustExplainDTO getTrustExplain() { return trustExplain; }
+    public void setTrustExplain(TrustExplainDTO trustExplain) { this.trustExplain = trustExplain; }
 }

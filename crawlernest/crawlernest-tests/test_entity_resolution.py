@@ -123,5 +123,84 @@ class TestResolverR3CountryFallback(unittest.TestCase):
         self.assertIsNone(result.canonical_university_id)
 
 
+class TestHighConfidenceAliases(unittest.TestCase):
+    def _make_resolver(self) -> EntityResolver:
+        profiles = [
+            CanonicalProfile(
+                canonical_university_id=10,
+                display_name="Ludwig-Maximilians-Universität München",
+                country_hint="germany",
+            ),
+            CanonicalProfile(
+                canonical_university_id=20,
+                display_name="University of California, Berkeley",
+                country_hint="united states",
+            ),
+            CanonicalProfile(
+                canonical_university_id=30,
+                display_name="The University of Hong Kong",
+                country_hint="hong kong",
+            ),
+            CanonicalProfile(
+                canonical_university_id=40,
+                display_name="National University of Singapore",
+                country_hint="singapore",
+            ),
+            CanonicalProfile(
+                canonical_university_id=50,
+                display_name="EPFL – École polytechnique fédérale de Lausanne",
+                country_hint="switzerland",
+            ),
+        ]
+        return EntityResolver(profiles)
+
+    def test_lmu_munich_resolves_to_lmu_full_name(self):
+        resolver = self._make_resolver()
+        result = resolver.resolve_one(
+            EntityRecord("THE", "lmu", "LMU Munich", "germany")
+        )
+        self.assertEqual(10, result.canonical_university_id)
+
+    def test_ucb_resolves_to_berkeley(self):
+        resolver = self._make_resolver()
+        result = resolver.resolve_one(
+            EntityRecord("ARWU", "ucb", "UCB", "united states")
+        )
+        self.assertEqual(20, result.canonical_university_id)
+
+    def test_hku_resolves_to_the_university_of_hong_kong(self):
+        resolver = self._make_resolver()
+        result = resolver.resolve_one(
+            EntityRecord("QS", "hku", "HKU", "hong kong")
+        )
+        self.assertEqual(30, result.canonical_university_id)
+
+    def test_nus_resolves_to_national_university_of_singapore(self):
+        resolver = self._make_resolver()
+        result = resolver.resolve_one(
+            EntityRecord("QS", "nus", "NUS", "singapore")
+        )
+        self.assertEqual(40, result.canonical_university_id)
+
+    def test_epfl_resolves_to_full_epfl_name(self):
+        resolver = self._make_resolver()
+        result = resolver.resolve_one(
+            EntityRecord("THE", "epfl", "EPFL", "switzerland")
+        )
+        self.assertEqual(50, result.canonical_university_id)
+
+    def test_similar_name_does_not_merge(self):
+        resolver = self._make_resolver()
+        result = resolver.resolve_one(
+            EntityRecord(
+                "QS",
+                "uc-davis",
+                "University of California, Davis",
+                "united states",
+            )
+        )
+        self.assertIsNone(result.canonical_university_id)
+
+
 if __name__ == "__main__":
     unittest.main()

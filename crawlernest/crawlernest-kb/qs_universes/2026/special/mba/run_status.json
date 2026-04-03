@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "upstream_blocked",
   "message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/3990755 (HTTP 403)",
-  "run_id": "qs-special-mba-2026-2026-04-03T05:02:43Z",
+  "run_id": "qs-special-mba-2026-2026-04-03T12:01:57Z",
   "universe_type": "special",
   "universe_key": "mba",
   "ranking_year": 2026,

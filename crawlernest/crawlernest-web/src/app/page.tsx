@@ -33,26 +33,104 @@ type ShortlistItem = {
   slug: string;
 };
 
+function RankingsPageShell() {
+  return (
+    <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
+      <section
+        className="relative overflow-hidden py-16"
+        style={{ background: "linear-gradient(135deg, #1a3d2e 0%, #0f2318 100%)" }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 30% 50%, rgba(61,122,90,0.3), transparent 55%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="max-w-2xl">
+            <div className="h-4 w-24 animate-pulse rounded bg-white/20" />
+            <div className="mt-3 h-12 w-80 animate-pulse rounded bg-white/20" />
+            <div className="mt-4 h-5 w-96 animate-pulse rounded bg-white/10" />
+          </div>
+        </div>
+      </section>
+
+      <div className="sticky top-0 z-40 border-b border-[#e0ddd8] bg-white/95 shadow-sm backdrop-blur-sm">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-6 lg:px-8">
+          <div className="h-10 max-w-lg flex-1 animate-pulse rounded-lg bg-[#e0ddd8]" />
+          <div className="hidden h-4 w-28 animate-pulse rounded bg-[#e0ddd8] sm:block" />
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
+        <div className="flex gap-6">
+          <aside className="w-52 flex-shrink-0">
+            <div className="rounded-2xl border border-[#e0ddd8] bg-white p-5 shadow-sm">
+              <div className="h-3 w-16 animate-pulse rounded bg-[#e0ddd8]" />
+              <div className="mt-5 space-y-4">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index}>
+                    <div className="mb-2 h-3 w-12 animate-pulse rounded bg-[#e0ddd8]" />
+                    <div className="h-10 animate-pulse rounded-lg bg-[#f5f3ee]" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          <div className="min-w-0 flex-1">
+            <div className="mb-4">
+              <div className="h-4 w-48 animate-pulse rounded bg-[#e0ddd8]" />
+              <div className="mt-2 h-3 w-96 animate-pulse rounded bg-[#e0ddd8]" />
+              <div className="mt-2 h-3 w-80 animate-pulse rounded bg-[#e0ddd8]" />
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-[#e0ddd8] bg-white shadow-sm">
+              <div className="divide-y divide-[#e0ddd8]">
+                {Array.from({ length: 10 }).map((_, index) => (
+                  <div key={index} className="flex h-14 items-center gap-4 px-4">
+                    <div className="h-4 w-8 animate-pulse rounded bg-[#e0ddd8]" />
+                    <div className="h-4 flex-1 animate-pulse rounded bg-[#e0ddd8]" />
+                    <div className="h-4 w-24 animate-pulse rounded bg-[#e0ddd8]" />
+                    <div className="h-4 w-16 animate-pulse rounded bg-[#e0ddd8]" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 function RankingsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const scope = (searchParams.get("scope") as RankingScope) ?? "global";
-  const region = searchParams.get("region") ?? "Europe";
-  const year = Number(searchParams.get("year") ?? "2026");
-  const page = Number(searchParams.get("page") ?? "1");
-  const pageSize = Number(searchParams.get("pageSize") ?? "20");
-  const searchQuery = searchParams.get("search") ?? "";
-  const universe = scope === "region" ? "region" : "global";
-  const universeConfig = rankingUniverseConfig[universe];
-
-  const [searchInput, setSearchInput] = useState(searchQuery);
+  const [isClientReady, setIsClientReady] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
   const [items, setItems] = useState<RankingApiRow[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
+
+  useEffect(() => {
+    setIsClientReady(true);
+  }, []);
+
+  const scope = isClientReady
+    ? ((searchParams.get("scope") as RankingScope) ?? "global")
+    : "global";
+  const region = isClientReady ? (searchParams.get("region") ?? "Europe") : "Europe";
+  const year = isClientReady ? Number(searchParams.get("year") ?? "2026") : 2026;
+  const page = isClientReady ? Number(searchParams.get("page") ?? "1") : 1;
+  const pageSize = isClientReady ? Number(searchParams.get("pageSize") ?? "20") : 20;
+  const searchQuery = isClientReady ? (searchParams.get("search") ?? "") : "";
+  const universe = scope === "region" ? "region" : "global";
+  const universeConfig = rankingUniverseConfig[universe];
 
   useEffect(() => {
     setSearchInput(searchQuery);
@@ -74,6 +152,10 @@ function RankingsPageContent() {
   );
 
   useEffect(() => {
+    if (!isClientReady) {
+      return;
+    }
+
     try {
       const stored = localStorage.getItem(SHORTLIST_STORAGE_KEY);
       if (stored) {
@@ -85,24 +167,36 @@ function RankingsPageContent() {
     } catch {
       // ignore localStorage parse errors
     }
-  }, []);
+  }, [isClientReady]);
 
   useEffect(() => {
+    if (!isClientReady) {
+      return;
+    }
+
     try {
       localStorage.setItem(SHORTLIST_STORAGE_KEY, JSON.stringify(shortlist));
     } catch {
       // ignore localStorage write errors
     }
-  }, [shortlist]);
+  }, [isClientReady, shortlist]);
 
   useEffect(() => {
+    if (!isClientReady) {
+      return;
+    }
+
     const id = setInterval(() => {
       setRefreshTrigger((value) => value + 1);
     }, REFRESH_INTERVAL_MS);
     return () => clearInterval(id);
-  }, []);
+  }, [isClientReady]);
 
   useEffect(() => {
+    if (!isClientReady) {
+      return;
+    }
+
     const bump = () => setRefreshTrigger((value) => value + 1);
     window.addEventListener("focus", bump);
     document.addEventListener("visibilitychange", bump);
@@ -112,9 +206,13 @@ function RankingsPageContent() {
       document.removeEventListener("visibilitychange", bump);
       window.removeEventListener("online", bump);
     };
-  }, []);
+  }, [isClientReady]);
 
   useEffect(() => {
+    if (!isClientReady) {
+      return;
+    }
+
     let isMounted = true;
     const controller = new AbortController();
 
@@ -171,7 +269,7 @@ function RankingsPageContent() {
       isMounted = false;
       controller.abort();
     };
-  }, [page, pageSize, year, scope, region, searchQuery, refreshTrigger]);
+  }, [isClientReady, page, pageSize, year, scope, region, searchQuery, refreshTrigger]);
 
   const isInShortlist = (id: number) =>
     shortlist.some((item) => item.canonicalUniversityId === id);
@@ -207,6 +305,46 @@ function RankingsPageContent() {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const canGoPrevious = page > 1 && !loading;
   const canGoNext = !loading && items.length === pageSize;
+  const trustSources = (item: RankingPresentationRow) =>
+    (["QS", "THE", "ARWU"] as const)
+      .filter((source) => item.trustExplain?.sources[source] != null)
+      .join(", ");
+  const evidenceRows = (item: RankingPresentationRow) => {
+    const sources = item.aggregationExplain?.sources;
+    const availableRanks = (["QS", "THE", "ARWU"] as const)
+      .map((source) => sources?.[source] ?? null)
+      .filter((value): value is number => value != null);
+    const bestRank = availableRanks.length > 0 ? Math.min(...availableRanks) : null;
+
+    return (["QS", "THE", "ARWU"] as const).map((source) => {
+      const rank = sources?.[source] ?? null;
+      return {
+        source,
+        rank,
+        hasLargeDifference:
+          rank != null && bestRank != null && Math.abs(rank - bestRank) > 20,
+      };
+    });
+  };
+  const evidenceHint = (item: RankingPresentationRow) => {
+    const available = evidenceRows(item).filter((row) => row.rank != null);
+    if (available.length <= 1) {
+      return "Only one source available";
+    }
+    const ranks = available.map((row) => row.rank as number);
+    const spread = Math.max(...ranks) - Math.min(...ranks);
+    if (spread <= 5) {
+      return "Strong agreement across ranking sources";
+    }
+    if (spread <= 20) {
+      return "Moderate variation across sources";
+    }
+    return "High disagreement — interpret carefully";
+  };
+
+  if (!isClientReady) {
+    return <RankingsPageShell />;
+  }
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
@@ -376,9 +514,20 @@ function RankingsPageContent() {
 
           <div className="min-w-0 flex-1">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-[#1a3d2e]">
-                {year} Rankings · {scope === "region" ? region : "Global"}
-              </h2>
+              <div>
+                <h2 className="text-sm font-semibold text-[#1a3d2e]">
+                  {year} Rankings · {scope === "region" ? region : "Global"}
+                </h2>
+                <p className="mt-1 text-xs text-[#6b7068]">
+                  This ranking is computed by combining multiple sources (QS, THE, ARWU) using a weighted rank model.
+                </p>
+                <p className="mt-1 text-xs text-[#6b7068]">
+                  Trust score reflects data completeness and consistency across ranking sources.
+                </p>
+                <p className="mt-1 text-xs text-[#6b7068]">
+                  Rankings are aggregated from multiple sources (QS, THE, ARWU). Differences between sources are shown for transparency.
+                </p>
+              </div>
               {shortlist.length > 0 && (
                 <button
                   onClick={goToRecommendations}
@@ -481,6 +630,24 @@ function RankingsPageContent() {
                                 >
                                   {item.badgeLabel}
                                 </span>
+                                {item.trustLevel && (
+                                  <span
+                                    className={`inline-flex items-center rounded-full px-2 py-0.5 font-semibold uppercase tracking-[0.08em] ${
+                                      item.trustLevel === "high"
+                                        ? "bg-[#e8f2ec] text-[#1a3d2e]"
+                                        : item.trustLevel === "medium"
+                                          ? "bg-[#f3ecd6] text-[#8a6116]"
+                                          : "bg-[#f3e7e4] text-[#8b3a2b]"
+                                    }`}
+                                  >
+                                    {item.trustLevel} {item.trustScore != null ? Math.round(item.trustScore) : ""}
+                                  </span>
+                                )}
+                                {item.trustLevel === "low" && (
+                                  <span className="text-[11px] font-medium text-[#8b3a2b]">
+                                    Limited data — interpret with caution.
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="px-4 py-3.5 text-[#6b7068]">
@@ -499,6 +666,93 @@ function RankingsPageContent() {
                               <div className="mt-1 text-[11px] text-[#6b7068]">
                                 {item.rankingUniverseLabel}
                               </div>
+                              {item.aggregationExplain && item.aggregationExplain.availableSourceCount > 0 && (
+                                <details className="mt-2 text-left">
+                                  <summary className="cursor-pointer text-[11px] font-medium text-[#1a3d2e]">
+                                    Ranking Evidence
+                                  </summary>
+                                  <div className="mt-2 rounded-xl border border-[#e0ddd8] bg-[#f5f3ee] p-3 text-[11px] text-[#4f544d] shadow-sm">
+                                    <div className="font-semibold text-[#1a1a1a]">
+                                      Ranking Evidence
+                                    </div>
+                                    <div className="mt-2 space-y-1.5">
+                                      {evidenceRows(item).map((row) => (
+                                        <div key={row.source} className="flex items-center justify-between">
+                                          <span className="font-medium text-[#4f544d]">
+                                            {row.source}
+                                          </span>
+                                          <span
+                                            className={`font-semibold ${
+                                              row.hasLargeDifference
+                                                ? "text-[#8b3a2b]"
+                                                : "text-[#1a1a1a]"
+                                            }`}
+                                          >
+                                            {row.rank != null ? `#${formatRank(row.rank)}` : "—"}
+                                            {row.hasLargeDifference ? "  Large difference" : ""}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div className="mt-2 border-t border-[#ddd7cf] pt-2">
+                                      <div className="flex items-center justify-between">
+                                        <span>Aggregated Rank (weighted)</span>
+                                        <span className="font-semibold text-[#1a1a1a]">
+                                          {item.aggregationExplain.aggregatedRankValue.toFixed(2)}
+                                        </span>
+                                      </div>
+                                      <div className="mt-2 font-semibold text-[#1a1a1a]">
+                                        Weights
+                                      </div>
+                                      <div className="mt-1 space-y-1">
+                                        {(["QS", "THE", "ARWU"] as const).map((source) => (
+                                          <div key={source} className="flex items-center justify-between">
+                                            <span>{source}</span>
+                                            <span>{Math.round((item.aggregationExplain?.weights[source] ?? 0) * 100)}%</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                      <div className="mt-2 rounded-lg bg-white/70 px-2.5 py-2 text-[#6b7068]">
+                                        {evidenceHint(item)}
+                                      </div>
+                                      {item.trustLevel && item.trustExplain && item.trustScore != null && (
+                                        <div className="mt-2 border-t border-[#ddd7cf] pt-2">
+                                          <div className="flex items-center justify-between">
+                                            <span>Trust</span>
+                                            <span className="font-semibold uppercase text-[#1a1a1a]">
+                                              {item.trustLevel} ({Math.round(item.trustScore)})
+                                            </span>
+                                          </div>
+                                          <div className="mt-1">
+                                            Sources: {trustSources(item).split(", ").filter(Boolean).length}
+                                            {" "}
+                                            ({trustSources(item)})
+                                          </div>
+                                          <div className="mt-1">
+                                            Consistency: {item.trustExplain.consistencyScore >= 100 ? "strong" : item.trustExplain.consistencyScore >= 70 ? "moderate" : "weak"}
+                                            {" "}(std = {item.trustExplain.stdDeviation.toFixed(1)})
+                                          </div>
+                                          <div className="mt-1">
+                                            Coverage: {item.trustExplain.coverageScore >= 100 ? "full" : item.trustExplain.coverageScore >= 65 ? "partial" : "limited"}
+                                          </div>
+                                          <div className="mt-2">
+                                            <div className="font-semibold text-[#1a1a1a]">
+                                              Trust Analysis
+                                            </div>
+                                            <div className="mt-1 space-y-1">
+                                              {item.trustExplain.notes.map((note) => (
+                                                <div key={note}>
+                                                  {note.toLowerCase().includes("strong agreement") ? "✓" : "⚠"} {note}
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </details>
+                              )}
                             </td>
                             <td className="px-4 py-3.5 text-center">
                               <button
@@ -570,7 +824,7 @@ function RankingsPageContent() {
                 <ul className="space-y-2">
                   {shortlist.map((item) => (
                     <li
-                      key={item.canonicalUniversityId}
+                      key={`${item.canonicalUniversityId}-${item.slug}`}
                       className="flex items-start justify-between gap-2 rounded-xl border border-[#e8f2ec] bg-[#f5f3ee] px-3 py-2.5"
                     >
                       <div className="min-w-0">
@@ -625,24 +879,7 @@ function RankingsPageContent() {
 
 export default function RankingsHomePage() {
   return (
-    <Suspense
-      fallback={
-        <main className="min-h-screen bg-[#f5f3ee]">
-          <div
-            className="py-16"
-            style={{
-              background: "linear-gradient(135deg, #1a3d2e 0%, #0f2318 100%)",
-            }}
-          >
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
-              <div className="h-6 w-24 animate-pulse rounded bg-white/20" />
-              <div className="mt-3 h-10 w-80 animate-pulse rounded bg-white/20" />
-              <div className="mt-3 h-5 w-96 animate-pulse rounded bg-white/10" />
-            </div>
-          </div>
-        </main>
-      }
-    >
+    <Suspense fallback={<RankingsPageShell />}>
       <RankingsPageContent />
     </Suspense>
   );

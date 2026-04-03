@@ -208,6 +208,35 @@ class TestMultiSourcePipeline(unittest.TestCase):
         europe_ranks = sorted(row.display_rank for row in grouped[("region", "europe")])
         self.assertEqual([1, 2], europe_ranks)
 
+    def test_high_confidence_aliases_merge_same_university_across_sources(self):
+        resolver = EntityResolver(
+            [
+                CanonicalProfile(
+                    canonical_university_id=10,
+                    display_name="Ludwig-Maximilians-Universität München",
+                    country_hint="germany",
+                ),
+            ]
+        )
+        repo = FakeMultiSourceRepository()
+        agg_repo = FakeAggregationRepository()
+        pipeline = MultiSourceRankingPipeline(resolver=resolver, multi_source_repo=repo, aggregation_repo=agg_repo)
+
+        records = [
+            StandardizedRankingRecord("QS", "qs:lmu", "Ludwig-Maximilians-Universität München", "Germany", 2026, "world", 59, 71.6),
+            StandardizedRankingRecord("THE", "the:lmu", "LMU Munich", "Germany", 2026, "world", 34, None),
+        ]
+
+        summary = pipeline.ingest_records(records, batch_id="alias-merge-test", run_label_prefix="alias-merge-test")
+
+        self.assertEqual(2, summary.matched_count)
+        outputs = agg_repo.outputs_by_scope[(2026, "global", "global")]
+        self.assertEqual(1, len(outputs))
+        lmu = outputs[0]
+        self.assertEqual(10, lmu.canonical_university_id)
+        self.assertEqual({"QS": 59.0, "THE": 34.0}, lmu.source_ranks)
+        self.assertEqual(2, lmu.metadata["available_rank_count"])
+
 
 if __name__ == "__main__":
     unittest.main()

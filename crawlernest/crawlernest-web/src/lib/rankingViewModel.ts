@@ -59,5 +59,9 @@ export function buildRankingViewModel(
         : `${config.label} scope`,
     badgeTone: config.badgeTone,
     rankingUniverseLabel,
+    aggregationExplain: row.aggregationExplain,
+    trustScore: row.trustScore,
+    trustLevel: row.trustLevel,
+    trustExplain: row.trustExplain,
   };
 }

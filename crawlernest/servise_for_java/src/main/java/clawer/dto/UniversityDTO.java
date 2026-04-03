@@ -10,6 +10,7 @@ public class UniversityDTO {
     private String country;
     private AggregatedRankingDTO aggregatedRanking;
     private List<SourceRankingDTO> sourceRankings;
+    private List<SourceRankingDTO> rankingEvidence;
     private Map<String, Object> admissionRequirements;
     private DataQualityDTO dataQuality;
 
@@ -32,6 +33,9 @@ public class UniversityDTO {
 
     public List<SourceRankingDTO> getSourceRankings() { return sourceRankings; }
     public void setSourceRankings(List<SourceRankingDTO> sourceRankings) { this.sourceRankings = sourceRankings; }
+
+    public List<SourceRankingDTO> getRankingEvidence() { return rankingEvidence; }
+    public void setRankingEvidence(List<SourceRankingDTO> rankingEvidence) { this.rankingEvidence = rankingEvidence; }
 
     public Map<String, Object> getAdmissionRequirements() { return admissionRequirements; }
     public void setAdmissionRequirements(Map<String, Object> admissionRequirements) { this.admissionRequirements = admissionRequirements; }

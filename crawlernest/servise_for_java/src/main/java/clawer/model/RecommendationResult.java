@@ -25,6 +25,7 @@ public class RecommendationResult {
     private String aggregationMethodVersion;
     private Map<String, Object> scoreBreakdown;
     private List<String> rulesPassed;
+    private RecommendationExplain recommendationExplain;
 
     public RecommendationResult() {
     }
@@ -233,5 +234,13 @@ public class RecommendationResult {
 
     public void setRulesPassed(List<String> rulesPassed) {
         this.rulesPassed = rulesPassed;
+    }
+
+    public RecommendationExplain getRecommendationExplain() {
+        return recommendationExplain;
+    }
+
+    public void setRecommendationExplain(RecommendationExplain recommendationExplain) {
+        this.recommendationExplain = recommendationExplain;
     }
 }
