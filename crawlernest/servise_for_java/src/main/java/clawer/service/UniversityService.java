@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class UniversityService {
+    private static final List<String> SOURCE_PRIORITY = List.of("QS", "THE", "ARWU");
 
     private final UniversityRepository universityRepository;
     private final JdbcTemplate jdbcTemplate;
@@ -45,7 +47,7 @@ public class UniversityService {
 
     public UniversityDTO getUniversityBySlug(String slug) {
         UniversityDTO legacy = universityRepository.findBySchoolSlug(slug)
-                .map(this::convertToDTO)
+                .map(this::convertToCanonicalBackedDTO)
                 .orElse(null);
 
         if (legacy != null) {
@@ -93,8 +95,113 @@ public class UniversityService {
         dto.setSlug(canonicalSlug);
         dto.setUniversityName((String) r.get("display_name"));
         dto.setCountry((String) r.get("country_name"));
+        hydrateCanonicalRankings(dto, canonicalUniversityId);
 
-        // Aggregated ranking: latest available for that canonical university.
+        dto.setAdmissionRequirements(Map.of());
+        clawer.dto.DataQualityDTO quality = new clawer.dto.DataQualityDTO();
+        quality.setRecommendationConfidence(0.9);
+        quality.setConfidenceLabel("High");
+        quality.setConfidenceReason("Rankings are fully merged and verified");
+        dto.setDataQuality(quality);
+        return dto;
+    }
+
+    private UniversityDTO convertToCanonicalBackedDTO(University university) {
+        UniversityDTO dto = new UniversityDTO();
+        dto.setSlug(university.getSchoolSlug());
+        dto.setUniversityName(university.getDisplayName());
+        dto.setCountry(university.getCountry() != null ? university.getCountry().getCountryName() : null);
+        Long canonicalUniversityId = resolveCanonicalUniversityId(university.getId());
+        dto.setCanonicalUniversityId(canonicalUniversityId);
+
+        if (canonicalUniversityId != null) {
+            hydrateCanonicalRankings(dto, canonicalUniversityId);
+        } else {
+            dto.setAggregatedRanking(null);
+            dto.setSourceRankings(List.of());
+            dto.setRankingEvidence(List.of());
+        }
+
+        dto.setAdmissionRequirements(Map.of());
+        clawer.dto.DataQualityDTO quality = new clawer.dto.DataQualityDTO();
+        quality.setRecommendationConfidence(0.9);
+        quality.setConfidenceLabel("High");
+        quality.setConfidenceReason("Rankings are fully merged and verified");
+        dto.setDataQuality(quality);
+        return dto;
+    }
+
+    private UniversityDTO convertToDTO(University university) {
+        UniversityDTO dto = new UniversityDTO();
+        dto.setCanonicalUniversityId(university.getId());
+        dto.setSlug(university.getSchoolSlug());
+        dto.setUniversityName(university.getDisplayName());
+        dto.setCountry(university.getCountry() != null ? university.getCountry().getCountryName() : null);
+
+        if (university.getRankings() != null && !university.getRankings().isEmpty()) {
+            clawer.dto.AggregatedRankingDTO aggRank = university.getRankings().stream()
+                    .filter(r -> r.getRankStart() != null)
+                    .map(r -> {
+                        clawer.dto.AggregatedRankingDTO aDto = new clawer.dto.AggregatedRankingDTO();
+                        aDto.setDisplayRank(r.getRankStart());
+                        aDto.setCompositeScore(r.getScore());
+                        aDto.setRankingYear(r.getRankingYear());
+                        aDto.setAggregationMethodVersion("v1");
+                        return aDto;
+                    })
+                    .findFirst()
+                    .orElse(null);
+            dto.setAggregatedRanking(aggRank);
+
+            List<SourceRankingDTO> sourceRankings = university.getRankings().stream()
+                    .filter(r -> r.getRankStart() != null)
+                    .collect(Collectors.toMap(
+                            r -> r.getRankingSource() + "-" + r.getRankingYear(),
+                            r -> r,
+                            (r1, r2) -> r1.getRankStart() < r2.getRankStart() ? r1 : r2
+                    ))
+                    .values().stream()
+                    .map(ranking -> {
+                        SourceRankingDTO rDto = new SourceRankingDTO();
+                        rDto.setSource(ranking.getRankingSource());
+                        rDto.setYear(ranking.getRankingYear());
+                        rDto.setRank(ranking.getRankStart());
+                        rDto.setScore(ranking.getScore());
+                        return rDto;
+                    }).collect(Collectors.toList());
+            dto.setSourceRankings(sourceRankings);
+            dto.setRankingEvidence(sourceRankings);
+        } else {
+            dto.setSourceRankings(List.of());
+            dto.setRankingEvidence(List.of());
+        }
+
+        dto.setAdmissionRequirements(Map.of());
+        clawer.dto.DataQualityDTO quality = new clawer.dto.DataQualityDTO();
+        quality.setRecommendationConfidence(0.9);
+        quality.setConfidenceLabel("High");
+        quality.setConfidenceReason("Rankings are fully merged and verified");
+        dto.setDataQuality(quality);
+        return dto;
+    }
+
+    private Long resolveCanonicalUniversityId(Long universityId) {
+        String canonicalLinkSql = """
+                SELECT cul.canonical_university_id
+                FROM warehouse.canonical_university_link cul
+                WHERE cul.university_id = ?
+                LIMIT 1
+                """;
+
+        List<Long> canonicalIds = jdbcTemplate.query(
+                canonicalLinkSql,
+                new Object[]{universityId},
+                (rs, rowNum) -> rs.getLong("canonical_university_id")
+        );
+        return canonicalIds.isEmpty() ? null : canonicalIds.get(0);
+    }
+
+    private void hydrateCanonicalRankings(UniversityDTO dto, Long canonicalUniversityId) {
         String aggSql = """
                 SELECT ranking_year, display_rank, composite_score, aggregation_method_version
                 FROM analytics.v_aggregated_rankings_latest
@@ -117,35 +224,51 @@ public class UniversityService {
                     return m;
                 }
         );
-        if (!aggRows.isEmpty()) {
-            Map<String, Object> ar = aggRows.get(0);
-            int rankingYear = ((Number) ar.get("ranking_year")).intValue();
 
-            clawer.dto.AggregatedRankingDTO aggregated = new clawer.dto.AggregatedRankingDTO();
-            aggregated.setRankingYear(rankingYear);
+        if (aggRows.isEmpty()) {
+            dto.setAggregatedRanking(null);
+            dto.setSourceRankings(List.of());
+            dto.setRankingEvidence(List.of());
+            return;
+        }
 
-            Object displayRankObj = ar.get("display_rank");
-            aggregated.setDisplayRank(
-                    displayRankObj == null ? null : ((Number) displayRankObj).intValue()
-            );
+        Map<String, Object> ar = aggRows.get(0);
+        int rankingYear = ((Number) ar.get("ranking_year")).intValue();
 
-            Object compositeScoreObj = ar.get("composite_score");
-            Double compositeScore = null;
-            if (compositeScoreObj instanceof BigDecimal) {
-                compositeScore = ((BigDecimal) compositeScoreObj).doubleValue();
-            } else if (compositeScoreObj instanceof Number) {
-                compositeScore = ((Number) compositeScoreObj).doubleValue();
-            }
-            aggregated.setCompositeScore(compositeScore);
-            aggregated.setAggregationMethodVersion((String) ar.get("aggregation_method_version"));
-            dto.setAggregatedRanking(aggregated);
+        clawer.dto.AggregatedRankingDTO aggregated = new clawer.dto.AggregatedRankingDTO();
+        aggregated.setRankingYear(rankingYear);
 
-            // Source evidence ranks (QS/THE/ARWU).
-            String sourceSql = """
+        Object displayRankObj = ar.get("display_rank");
+        aggregated.setDisplayRank(
+                displayRankObj == null ? null : ((Number) displayRankObj).intValue()
+        );
+
+        Object compositeScoreObj = ar.get("composite_score");
+        Double compositeScore = null;
+        if (compositeScoreObj instanceof BigDecimal) {
+            compositeScore = ((BigDecimal) compositeScoreObj).doubleValue();
+        } else if (compositeScoreObj instanceof Number) {
+            compositeScore = ((Number) compositeScoreObj).doubleValue();
+        }
+        aggregated.setCompositeScore(compositeScore);
+        aggregated.setAggregationMethodVersion((String) ar.get("aggregation_method_version"));
+        dto.setAggregatedRanking(aggregated);
+
+        dto.setSourceRankings(loadRankingEvidence(canonicalUniversityId, rankingYear));
+        dto.setRankingEvidence(dto.getSourceRankings());
+    }
+
+    private List<SourceRankingDTO> loadRankingEvidence(Long canonicalUniversityId, int rankingYear) {
+        String sourceSql = """
+                WITH ranked_source_rows AS (
                     SELECT rs.source_code,
                            rr.ranking_year,
                            rr.rank_position,
-                           rr.score
+                           rr.score,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY rs.source_code
+                               ORDER BY rr.rank_position ASC NULLS LAST, rr.score DESC NULLS LAST
+                           ) AS row_num
                     FROM warehouse.ranking_record rr
                     JOIN warehouse.ranking_source rs
                       ON rs.ranking_source_id = rr.ranking_source_id
@@ -155,103 +278,57 @@ public class UniversityService {
                       AND rr.universe_type = 'global'
                       AND rr.universe_key = 'global'
                       AND rr.rank_position IS NOT NULL
-                    ORDER BY rs.source_code
-                    """;
+                )
+                SELECT source_code,
+                       ranking_year,
+                       rank_position,
+                       score
+                FROM ranked_source_rows
+                WHERE row_num = 1
+                """;
 
-            List<Map<String, Object>> srcRows = jdbcTemplate.query(
-                    sourceSql,
-                    new Object[]{canonicalUniversityId, rankingYear},
-                    (rs, rowNum) -> {
-                        Map<String, Object> m = new java.util.HashMap<>();
-                        m.put("source_code", rs.getString("source_code"));
-                        m.put("ranking_year", rs.getInt("ranking_year"));
-                        m.put("rank_position", rs.getObject("rank_position"));
-                        m.put("score", rs.getObject("score"));
-                        return m;
-                    }
-            );
-            List<SourceRankingDTO> sourceRankings = new ArrayList<>();
-            for (Map<String, Object> sr : srcRows) {
-                SourceRankingDTO s = new SourceRankingDTO();
-                s.setSource((String) sr.get("source_code"));
-                s.setYear(((Number) sr.get("ranking_year")).intValue());
-
-                Object rankObj = sr.get("rank_position");
-                s.setRank(rankObj == null ? null : ((Number) rankObj).intValue());
-
-                Object scoreObj = sr.get("score");
-                Double score = null;
-                if (scoreObj instanceof BigDecimal) {
-                    score = ((BigDecimal) scoreObj).doubleValue();
-                } else if (scoreObj instanceof Number) {
-                    score = ((Number) scoreObj).doubleValue();
+        List<Map<String, Object>> srcRows = jdbcTemplate.query(
+                sourceSql,
+                new Object[]{canonicalUniversityId, rankingYear},
+                (rs, rowNum) -> {
+                    Map<String, Object> m = new java.util.HashMap<>();
+                    m.put("source_code", rs.getString("source_code"));
+                    m.put("ranking_year", rs.getInt("ranking_year"));
+                    m.put("rank_position", rs.getObject("rank_position"));
+                    m.put("score", rs.getObject("score"));
+                    return m;
                 }
-                s.setScore(score);
-                sourceRankings.add(s);
-            }
-            dto.setSourceRankings(sourceRankings);
-        } else {
-            dto.setAggregatedRanking(null);
-            dto.setSourceRankings(List.of());
-        }
+        );
 
-        dto.setAdmissionRequirements(Map.of());
-        clawer.dto.DataQualityDTO quality = new clawer.dto.DataQualityDTO();
-        quality.setRecommendationConfidence(0.9);
-        quality.setConfidenceLabel("High");
-        quality.setConfidenceReason("Rankings are fully merged and verified");
-        dto.setDataQuality(quality);
-        return dto;
+        return srcRows.stream()
+                .map(this::toSourceRanking)
+                .sorted(Comparator
+                        .comparingInt((SourceRankingDTO row) -> sourcePriority(row.getSource()))
+                        .thenComparing(SourceRankingDTO::getSource, Comparator.nullsLast(String::compareTo)))
+                .collect(Collectors.toList());
     }
 
-    private UniversityDTO convertToDTO(University university) {
-        UniversityDTO dto = new UniversityDTO();
-        dto.setCanonicalUniversityId(university.getId());
-        dto.setSlug(university.getSchoolSlug());
-        dto.setUniversityName(university.getDisplayName());
-        dto.setCountry(university.getCountry() != null ? university.getCountry().getCountryName() : null);
+    private SourceRankingDTO toSourceRanking(Map<String, Object> row) {
+        SourceRankingDTO sourceRanking = new SourceRankingDTO();
+        sourceRanking.setSource((String) row.get("source_code"));
+        sourceRanking.setYear(((Number) row.get("ranking_year")).intValue());
 
-        if (university.getRankings() != null && !university.getRankings().isEmpty()) {
-            clawer.dto.AggregatedRankingDTO aggRank = university.getRankings().stream()
-                .filter(r -> r.getRankStart() != null)
-                .map(r -> {
-                    clawer.dto.AggregatedRankingDTO aDto = new clawer.dto.AggregatedRankingDTO();
-                    aDto.setDisplayRank(r.getRankStart());
-                    aDto.setCompositeScore(r.getScore());
-                    aDto.setRankingYear(r.getRankingYear());
-                    aDto.setAggregationMethodVersion("v1");
-                    return aDto;
-                })
-                .findFirst()
-                .orElse(null);
-            dto.setAggregatedRanking(aggRank);
+        Object rankObj = row.get("rank_position");
+        sourceRanking.setRank(rankObj == null ? null : ((Number) rankObj).intValue());
 
-            dto.setSourceRankings(university.getRankings().stream()
-                .filter(r -> r.getRankStart() != null)
-                .collect(Collectors.toMap(
-                    r -> r.getRankingSource() + "-" + r.getRankingYear(),
-                    r -> r,
-                    (r1, r2) -> r1.getRankStart() < r2.getRankStart() ? r1 : r2
-                ))
-                .values().stream()
-                .map(ranking -> {
-                    SourceRankingDTO rDto = new SourceRankingDTO();
-                    rDto.setSource(ranking.getRankingSource());
-                    rDto.setYear(ranking.getRankingYear());
-                    rDto.setRank(ranking.getRankStart());
-                    rDto.setScore(ranking.getScore());
-                    return rDto;
-                }).collect(Collectors.toList()));
-        } else {
-            dto.setSourceRankings(List.of());
+        Object scoreObj = row.get("score");
+        Double score = null;
+        if (scoreObj instanceof BigDecimal) {
+            score = ((BigDecimal) scoreObj).doubleValue();
+        } else if (scoreObj instanceof Number) {
+            score = ((Number) scoreObj).doubleValue();
         }
+        sourceRanking.setScore(score);
+        return sourceRanking;
+    }
 
-        dto.setAdmissionRequirements(Map.of());
-        clawer.dto.DataQualityDTO quality = new clawer.dto.DataQualityDTO();
-        quality.setRecommendationConfidence(0.9);
-        quality.setConfidenceLabel("High");
-        quality.setConfidenceReason("Rankings are fully merged and verified");
-        dto.setDataQuality(quality);
-        return dto;
+    private int sourcePriority(String source) {
+        int index = SOURCE_PRIORITY.indexOf(source);
+        return index >= 0 ? index : SOURCE_PRIORITY.size();
     }
 }

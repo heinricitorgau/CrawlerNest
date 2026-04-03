@@ -33,6 +33,17 @@ type RecommendationItem = {
   matchingScore: number;
   recommendationConfidence: number;
   explanation: string;
+  recommendationExplain?: {
+    fitScore: number;
+    dimensions: {
+      rankingFit: number;
+      riskFit: number;
+      languageFit: number;
+      dataConfidence: number;
+    };
+    reasons: string[];
+    warnings: string[];
+  };
 };
 
 type RecommendationResponse = {
@@ -296,9 +307,9 @@ function RecommendationPageContent() {
               These shortlisted universities are carried into your recommendation workflow.
             </p>
             <ul className="mt-4 space-y-2">
-              {shortlistContext.map((item) => (
+              {shortlistContext.map((item, index) => (
                 <li
-                  key={item.canonicalUniversityId}
+                  key={`${item.canonicalUniversityId}-${item.slug}-${index}`}
                   className="rounded-2xl border border-[#3d7a5a] bg-white px-4 py-3 text-sm font-medium text-[#1a3d2e]"
                 >
                   {item.universityName}
@@ -345,9 +356,9 @@ function RecommendationPageContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {comparisonItems.map((item) => (
+                  {comparisonItems.map((item, index) => (
                     <tr
-                      key={item.canonicalUniversityId}
+                      key={`${item.canonicalUniversityId}-${item.slug}-${index}`}
                       className="border-t border-[#e0ddd8]"
                     >
                       <td className="px-4 py-4 font-semibold text-[#1a1a1a]">
@@ -524,6 +535,19 @@ function RecommendationPageContent() {
   );
 }
 
+function fitLevel(score: number | null | undefined) {
+  if (score === null || score === undefined || Number.isNaN(score)) {
+    return "low";
+  }
+  if (score >= 80) {
+    return "high";
+  }
+  if (score >= 60) {
+    return "medium";
+  }
+  return "low";
+}
+
 export default function RecommendationPage() {
   return (
     <Suspense
@@ -571,9 +595,9 @@ function Section({
         </div>
       ) : (
         <div className="mt-5 grid gap-4">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <div
-              key={item.canonicalUniversityId}
+              key={`${title.toLowerCase()}-${item.canonicalUniversityId}-${index}`}
               className="rounded-2xl border border-[#e0ddd8] p-5"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -585,10 +609,23 @@ function Section({
                 </div>
                 <div className="rounded-xl bg-[#f5f3ee] px-4 py-3 text-right">
                   <div className="text-xs uppercase tracking-[0.18em] text-[#6b7068]">
-                    Match Score
+                    Fit Score
                   </div>
-                  <div className="mt-1 text-xl font-semibold text-[#1a3d2e]">
-                    {formatScore(item.matchingScore)}
+                  <div className="mt-1 flex items-center justify-end gap-2">
+                    <div className="text-xl font-semibold text-[#1a3d2e]">
+                      {formatScore(item.recommendationExplain?.fitScore ?? item.matchingScore)}
+                    </div>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${
+                        fitLevel(item.recommendationExplain?.fitScore ?? item.matchingScore) === "high"
+                          ? "bg-[#e8f2ec] text-[#1a3d2e]"
+                          : fitLevel(item.recommendationExplain?.fitScore ?? item.matchingScore) === "medium"
+                            ? "bg-[#f3ecd6] text-[#8a6116]"
+                            : "bg-[#f3e7e4] text-[#8b3a2b]"
+                      }`}
+                    >
+                      {fitLevel(item.recommendationExplain?.fitScore ?? item.matchingScore)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -608,6 +645,39 @@ function Section({
               <div className="mt-4 rounded-xl bg-[#f5f3ee] p-4 text-sm leading-6 text-[#6b7068]">
                 {item.explanation}
               </div>
+
+              {item.recommendationExplain && (
+                <div className="mt-4 rounded-xl border border-[#e0ddd8] bg-white p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                    Why This Fits You
+                  </div>
+                  <div className="mt-3 space-y-2 text-sm text-[#415046]">
+                    {item.recommendationExplain.reasons.map((reason) => (
+                      <div key={reason}>✓ {reason}</div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-[#8b3a2b]">
+                    Watch Out
+                  </div>
+                  <div className="mt-3 space-y-2 text-sm text-[#6b554f]">
+                    {item.recommendationExplain.warnings.length > 0 ? (
+                      item.recommendationExplain.warnings.map((warning) => (
+                        <div key={warning}>⚠ {warning}</div>
+                      ))
+                    ) : (
+                      <div>⚠ No major warnings detected from current data.</div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-4">
+                    <SummaryItem label="Ranking Fit" value={formatScore(item.recommendationExplain.dimensions.rankingFit)} />
+                    <SummaryItem label="Risk Fit" value={formatScore(item.recommendationExplain.dimensions.riskFit)} />
+                    <SummaryItem label="Language Fit" value={formatScore(item.recommendationExplain.dimensions.languageFit)} />
+                    <SummaryItem label="Data Confidence" value={formatScore(item.recommendationExplain.dimensions.dataConfidence)} />
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

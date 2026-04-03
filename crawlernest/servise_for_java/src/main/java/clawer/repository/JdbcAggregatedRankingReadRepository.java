@@ -4,6 +4,9 @@ import clawer.domain.ranking.RankingContext;
 import clawer.domain.ranking.ScopedRankedUniversity;
 import clawer.domain.ranking.ScopedRankingReadAdapter;
 import clawer.dto.RankingDTO;
+import clawer.dto.RankingTrustDTO;
+import clawer.service.AggregationExplainability;
+import clawer.service.RankingTrustLayer;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -51,6 +54,11 @@ public class JdbcAggregatedRankingReadRepository implements AggregatedRankingRea
         dto.setRankingYear(row.getRankingYear());
         dto.setPrimarySource("AGGREGATED");
         dto.setSourceCount(row.getSourceCount());
+        dto.setAggregationExplain(AggregationExplainability.buildAggregationExplain(row));
+        RankingTrustDTO trust = RankingTrustLayer.buildTrustScore(row);
+        dto.setTrustScore(trust.getTrustScore());
+        dto.setTrustLevel(trust.getTrustLevel());
+        dto.setTrustExplain(trust.getTrustExplain());
         return dto;
     }
 }

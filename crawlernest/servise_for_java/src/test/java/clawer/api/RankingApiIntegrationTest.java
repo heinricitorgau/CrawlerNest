@@ -63,6 +63,9 @@ class RankingApiIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.items.length()").value(20))
                 .andExpect(jsonPath("$.data.items[0].aggregatedRank").value(1))
+                .andExpect(jsonPath("$.data.items[0].aggregationExplain.sources.QS").exists())
+                .andExpect(jsonPath("$.data.items[0].aggregationExplain.weights.QS").value(0.4))
+                .andExpect(jsonPath("$.data.items[0].aggregationExplain.availableSourceCount").value(2))
                 .andExpect(jsonPath("$.data.items[19].aggregatedRank").value(20));
     }
 

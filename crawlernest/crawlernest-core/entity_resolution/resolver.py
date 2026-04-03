@@ -6,6 +6,7 @@ from difflib import SequenceMatcher
 import re
 from typing import Callable, Optional
 
+from .alias_catalog import curated_alias_variants
 from .normalizer import normalize_university_name, tokenize_for_blocking
 from .types import CanonicalProfile, EntityRecord, ResolutionResult
 
@@ -41,6 +42,8 @@ class EntityResolver:
         self.max_fuzzy_candidates = max(10, int(max_fuzzy_candidates))
 
         self._profiles_by_id = {p.canonical_university_id: p for p in canonical_profiles}
+        self._raw_display_name_index: dict[str, tuple[int, str]] = {}
+        self._normalized_display_name_index: dict[str, tuple[int, str]] = {}
         self._raw_alias_index: dict[str, tuple[int, str]] = {}
         self._normalized_alias_index: dict[str, tuple[int, str]] = {}
         self._token_inverted: dict[str, set[int]] = defaultdict(set)
@@ -49,8 +52,31 @@ class EntityResolver:
         self._build_indexes(canonical_profiles)
 
     def _build_indexes(self, canonical_profiles: list[CanonicalProfile]) -> None:
+        raw_display_candidates: dict[str, list[tuple[int, str]]] = defaultdict(list)
+        normalized_display_candidates: dict[str, list[tuple[int, str]]] = defaultdict(list)
+        raw_alias_candidates: dict[str, list[tuple[int, str]]] = defaultdict(list)
+        normalized_alias_candidates: dict[str, list[tuple[int, str]]] = defaultdict(list)
+
         for profile in canonical_profiles:
-            aliases = {profile.display_name, *profile.aliases}
+            display_variants = {profile.display_name}
+            stripped_display = self._strip_parenthetical_suffix(profile.display_name)
+            if stripped_display and stripped_display != profile.display_name:
+                display_variants.add(stripped_display)
+
+            for display_variant in display_variants:
+                raw_key = display_variant.strip().lower()
+                norm_key = normalize_university_name(display_variant)
+                if raw_key:
+                    raw_display_candidates[raw_key].append((profile.canonical_university_id, profile.display_name))
+                if norm_key:
+                    normalized_display_candidates[norm_key].append((profile.canonical_university_id, profile.display_name))
+                    for tok in tokenize_for_blocking(display_variant):
+                        self._token_inverted[tok].add(profile.canonical_university_id)
+
+            aliases = {
+                *profile.aliases,
+                *curated_alias_variants(profile.display_name, profile.aliases),
+            }
             for alias in aliases:
                 stripped_alias = self._strip_parenthetical_suffix(alias)
                 alias_variants = {alias}
@@ -61,14 +87,19 @@ class EntityResolver:
                     raw_key = alias_variant.strip().lower()
                     norm_key = normalize_university_name(alias_variant)
                     if raw_key:
-                        self._raw_alias_index.setdefault(raw_key, (profile.canonical_university_id, alias))
+                        raw_alias_candidates[raw_key].append((profile.canonical_university_id, alias_variant))
                     if norm_key:
-                        self._normalized_alias_index.setdefault(norm_key, (profile.canonical_university_id, alias))
+                        normalized_alias_candidates[norm_key].append((profile.canonical_university_id, alias_variant))
                         for tok in tokenize_for_blocking(alias_variant):
                             self._token_inverted[tok].add(profile.canonical_university_id)
             if profile.country_hint:
                 for country_variant in self._country_variants(profile.country_hint):
                     self._country_index[country_variant].add(profile.canonical_university_id)
+
+        self._raw_display_name_index = self._finalize_unique_index(raw_display_candidates)
+        self._normalized_display_name_index = self._finalize_unique_index(normalized_display_candidates)
+        self._raw_alias_index = self._finalize_unique_index(raw_alias_candidates)
+        self._normalized_alias_index = self._finalize_unique_index(normalized_alias_candidates)
 
     def resolve_batch(self, records: list[EntityRecord]) -> list[ResolutionResult]:
         return [self.resolve_one(r) for r in records]
@@ -93,7 +124,7 @@ class EntityResolver:
                 metadata={"normalized_name": norm_name},
             )
 
-        # Stage 2: Normalized exact
+        # Stage 2: Normalized alias exact
         norm_exact = self._normalized_alias_index.get(norm_name)
         if norm_exact:
             cid, matched_alias = norm_exact
@@ -108,7 +139,37 @@ class EntityResolver:
                 metadata={"normalized_name": norm_name},
             )
 
-        # Stage 3: Fuzzy on blocked candidates
+        # Stage 3: Exact canonical display-name match
+        exact_display = self._raw_display_name_index.get(raw_key)
+        if exact_display:
+            cid, matched_alias = exact_display
+            return ResolutionResult(
+                source_name=record.source_name,
+                source_entity_id=record.source_entity_id,
+                canonical_university_id=cid,
+                matched_alias=matched_alias,
+                confidence_score=0.99,
+                matching_method="exact_display",
+                candidate_count=1,
+                metadata={"normalized_name": norm_name},
+            )
+
+        # Stage 4: Normalized canonical display-name match
+        normalized_display = self._normalized_display_name_index.get(norm_name)
+        if normalized_display:
+            cid, matched_alias = normalized_display
+            return ResolutionResult(
+                source_name=record.source_name,
+                source_entity_id=record.source_entity_id,
+                canonical_university_id=cid,
+                matched_alias=matched_alias,
+                confidence_score=0.97,
+                matching_method="normalized_display",
+                candidate_count=1,
+                metadata={"normalized_name": norm_name},
+            )
+
+        # Stage 5: Fuzzy on blocked candidates
         blocked = self._candidate_ids(record, norm_name)
         if blocked:
             fuzzy = self._fuzzy_best_match(record, blocked, norm_name)
@@ -156,6 +217,18 @@ class EntityResolver:
             candidate_count=len(blocked),
             metadata={"normalized_name": norm_name},
         )
+
+    @staticmethod
+    def _finalize_unique_index(candidates: dict[str, list[tuple[int, str]]]) -> dict[str, tuple[int, str]]:
+        out: dict[str, tuple[int, str]] = {}
+        for key, values in candidates.items():
+            distinct_ids = {cid for cid, _ in values}
+            if len(distinct_ids) != 1:
+                continue
+            cid = next(iter(distinct_ids))
+            matched_alias = sorted({alias for _, alias in values}, key=lambda alias: (len(alias), alias))[0]
+            out[key] = (cid, matched_alias)
+        return out
 
     def _candidate_ids(self, record: EntityRecord, normalized_name: str) -> list[int]:
         # Token blocking

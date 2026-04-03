@@ -30,11 +30,81 @@ type UniversityDetailPageProps = {
   }>;
 };
 
+const SOURCE_PRIORITY = ["QS", "THE", "ARWU"] as const;
+
 // ─── Helpers ───
 function formatDate(value?: string): string | null {
   if (!value) return null;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString();
+}
+
+function sourcePriority(source: string): number {
+  const index = SOURCE_PRIORITY.indexOf(source as (typeof SOURCE_PRIORITY)[number]);
+  return index === -1 ? SOURCE_PRIORITY.length : index;
+}
+
+function buildRankingEvidenceSummary(evidence: UniversityDetail["sourceRankings"]) {
+  const ranks = evidence
+    .map((row) => row.rank)
+    .filter((rank): rank is number => rank != null);
+
+  if (ranks.length === 0) {
+    return {
+      availableSourceCount: 0,
+      bestRank: null,
+      worstRank: null,
+      rankSpread: null,
+      agreementLevel: "limited" as const,
+      note: "No ranking evidence is available for this university yet.",
+    };
+  }
+
+  if (ranks.length === 1) {
+    return {
+      availableSourceCount: 1,
+      bestRank: ranks[0],
+      worstRank: ranks[0],
+      rankSpread: 0,
+      agreementLevel: "limited" as const,
+      note: "Only one source is available for this university.",
+    };
+  }
+
+  const bestRank = Math.min(...ranks);
+  const worstRank = Math.max(...ranks);
+  const rankSpread = worstRank - bestRank;
+
+  if (rankSpread <= 5) {
+    return {
+      availableSourceCount: ranks.length,
+      bestRank,
+      worstRank,
+      rankSpread,
+      agreementLevel: "strong" as const,
+      note: "Multiple ranking sources broadly agree.",
+    };
+  }
+
+  if (rankSpread <= 20) {
+    return {
+      availableSourceCount: ranks.length,
+      bestRank,
+      worstRank,
+      rankSpread,
+      agreementLevel: "moderate" as const,
+      note: "Ranking sources show moderate variation.",
+    };
+  }
+
+  return {
+    availableSourceCount: ranks.length,
+    bestRank,
+    worstRank,
+    rankSpread,
+    agreementLevel: "weak" as const,
+    note: "Large disagreement across sources — interpret carefully.",
+  };
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -83,6 +153,16 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
   }
 
   const primaryRank = detail.aggregatedRanking?.displayRank;
+  const rankingEvidence = (detail.rankingEvidence ?? detail.sourceRankings ?? []).slice().sort((left, right) => {
+    return sourcePriority(left.source) - sourcePriority(right.source);
+  });
+  const evidenceSummary = buildRankingEvidenceSummary(rankingEvidence);
+  const agreementTone =
+    evidenceSummary.agreementLevel === "strong"
+      ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+      : evidenceSummary.agreementLevel === "moderate"
+        ? "bg-amber-50 text-amber-800 border-amber-200"
+        : "bg-rose-50 text-rose-800 border-rose-200";
 
   return (
     <main className="min-h-screen bg-slate-50 pb-20">
@@ -140,7 +220,66 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
           
           {/* Main Column */}
           <div className="lg:col-span-2">
-            <Section title="Ranking Evidence (QS vs THE)">
+            <Section title="Ranking Evidence (QS / THE / ARWU)">
+              <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                      Ranking Evidence Summary
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-slate-700 sm:grid-cols-5">
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Sources available
+                        </div>
+                        <div className="mt-1 font-semibold text-slate-900">
+                          {evidenceSummary.availableSourceCount}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Best rank
+                        </div>
+                        <div className="mt-1 font-semibold text-slate-900">
+                          {evidenceSummary.bestRank != null ? `#${formatRank(evidenceSummary.bestRank)}` : "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Worst rank
+                        </div>
+                        <div className="mt-1 font-semibold text-slate-900">
+                          {evidenceSummary.worstRank != null ? `#${formatRank(evidenceSummary.worstRank)}` : "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Rank spread
+                        </div>
+                        <div className="mt-1 font-semibold text-slate-900">
+                          {evidenceSummary.rankSpread != null ? formatRank(evidenceSummary.rankSpread) : "—"}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Agreement
+                        </div>
+                        <div className="mt-1 font-semibold capitalize text-slate-900">
+                          {evidenceSummary.agreementLevel}
+                          {evidenceSummary.agreementLevel === "limited" ? " evidence" : ""}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] ${agreementTone}`}
+                  >
+                    {evidenceSummary.agreementLevel}
+                  </div>
+                </div>
+                <p className="mt-3 text-sm text-slate-600">{evidenceSummary.note}</p>
+              </div>
+
               <div className="overflow-hidden rounded border border-slate-100">
                 <table className="ranking-table">
                   <thead>
@@ -152,12 +291,12 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
                     </tr>
                   </thead>
                   <tbody>
-                    {(detail.sourceRankings ?? []).length > 0 ? (detail.sourceRankings ?? []).map((r, i) => (
-                      <tr key={i}>
+                    {rankingEvidence.length > 0 ? rankingEvidence.map((r) => (
+                      <tr key={`${r.source}-${r.year ?? "unknown"}`}>
                         <td className="font-bold text-slate-900">{r.source}</td>
                         <td className="text-center font-mono">{formatRank(r.rank)}</td>
                         <td className="text-center font-mono">{formatRankingScore(r.score)}</td>
-                        <td className="text-center text-slate-500">{r.year}</td>
+                        <td className="text-center text-slate-500">{r.year ?? "—"}</td>
                       </tr>
                     )) : (
                       <tr><td colSpan={4} className="text-center py-10 text-slate-400 italic">No source evidence found.</td></tr>

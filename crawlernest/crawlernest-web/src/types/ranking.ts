@@ -14,6 +14,33 @@ export type RankingApiRow = {
   primarySource?: string;
   sourceCount: number;
   slug: string;
+  aggregationExplain?: {
+    sources: {
+      QS: number | null;
+      THE: number | null;
+      ARWU: number | null;
+    };
+    weights: {
+      QS: number;
+      THE: number;
+      ARWU: number;
+    };
+    aggregatedRankValue: number;
+    availableSourceCount: number;
+  };
+  trustScore?: number;
+  trustLevel?: "high" | "medium" | "low";
+  trustExplain?: {
+    sources: {
+      QS: number | null;
+      THE: number | null;
+      ARWU: number | null;
+    };
+    coverageScore: number;
+    consistencyScore: number;
+    stdDeviation: number;
+    notes: string[];
+  };
 };
 
 export type RankingPresentationRow = {
@@ -32,4 +59,8 @@ export type RankingPresentationRow = {
   badgeLabel: string;
   badgeTone: "accent" | "muted";
   rankingUniverseLabel: string;
+  aggregationExplain?: RankingApiRow["aggregationExplain"];
+  trustScore?: number;
+  trustLevel?: RankingApiRow["trustLevel"];
+  trustExplain?: RankingApiRow["trustExplain"];
 };

@@ -30,6 +30,17 @@ STOPWORDS = {
 }
 
 
+def _strip_safe_parenthetical_alias_noise(text: str) -> str:
+    match = re.search(r"\s*\(([^)]{1,16})\)\s*$", str(text or "").strip())
+    if not match:
+        return str(text or "")
+    inner = match.group(1).strip()
+    compact = re.sub(r"[^A-Za-z0-9]+", "", inner)
+    if compact and len(compact) <= 10 and compact.upper() == compact:
+        return re.sub(r"\s*\([^)]*\)\s*$", "", str(text or "")).strip()
+    return str(text or "")
+
+
 def _strip_accents(text: str) -> str:
     return "".join(ch for ch in unicodedata.normalize("NFKD", text) if not unicodedata.combining(ch))
 
@@ -39,7 +50,7 @@ def normalize_university_name(name: str) -> str:
         return ""
 
     # Fix R2: decode HTML entities (e.g. &amp; → &) before any other processing
-    s = _html.unescape(name)
+    s = _strip_safe_parenthetical_alias_noise(_html.unescape(name))
     s = _strip_accents(s).lower().strip()
     s = s.replace("&", " and ")
     s = re.sub(r"[\u2010-\u2015]", "-", s)

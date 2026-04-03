@@ -25,6 +25,7 @@ export type UniversityDetail = {
   country: string;
   aggregatedRanking: AggregatedRanking | null;
   sourceRankings: UniversityRanking[];
+  rankingEvidence?: UniversityRanking[];
   admissionRequirements: Record<string, unknown>;
   dataQuality: DataQuality | null;
 };

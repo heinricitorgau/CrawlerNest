@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "upstream_blocked",
   "message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/4023765 (HTTP 403)",
-  "run_id": "qs-subject-engineering-technology-2026-2026-04-03T05:01:59Z",
+  "run_id": "qs-subject-engineering-technology-2026-2026-04-03T12:01:19Z",
   "universe_type": "subject",
   "universe_key": "engineering-technology",
   "ranking_year": 2026,

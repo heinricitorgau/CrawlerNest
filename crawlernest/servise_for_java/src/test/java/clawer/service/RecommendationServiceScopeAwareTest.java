@@ -3,16 +3,19 @@ package clawer.service;
 import clawer.domain.ranking.RankingContext;
 import clawer.domain.ranking.ScopedRankedUniversity;
 import clawer.domain.ranking.ScopedRankingReadAdapter;
+import clawer.model.RecommendationGroupResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RecommendationServiceScopeAwareTest {
@@ -61,6 +64,46 @@ class RecommendationServiceScopeAwareTest {
         assertEquals(readString(first, "explanation"), readString(second, "explanation"));
     }
 
+    @Test
+    void recommendationExplainShowsReasonsAndWarnings() throws Exception {
+        RecommendationService service = new RecommendationService(new NoopScopedRankingReadAdapter(), new ObjectMapper());
+        Object candidate = candidate(4L, "Imperial College London", "United Kingdom", 42, 42, 7.5, Map.of("QS", 6, "THE", 9, "ARWU", 11));
+        Object globalContext = scopeContext("global", null);
+
+        Object result = invokeScoreCandidateV3(service, candidate, globalContext, 50, "balanced");
+        Object explain = readObject(result, "recommendationExplain");
+
+        assertNotNull(explain);
+        assertTrue(readDouble(explain, "fitScore") > 0.0);
+        assertTrue(readStringList(explain, "reasons").stream().anyMatch(value -> value.contains("target")));
+        assertTrue(readStringList(explain, "warnings").stream().anyMatch(value -> value.contains("IELTS") || value.contains("confidence") || value.contains("source")));
+    }
+
+    @Test
+    void recommendationResultsAreDeduplicatedByCanonicalUniversityId() {
+        RecommendationService service = new RecommendationService(new DuplicateScopedRankingReadAdapter(), new ObjectMapper());
+        RecommendationGroupResponse response = service.getRecommendationsV3(
+                "United Kingdom",
+                "global",
+                null,
+                null,
+                "hard_filter",
+                6.5,
+                50,
+                "balanced",
+                null,
+                null,
+                2026,
+                5
+        );
+
+        long duplicateIdCount = response.getTarget().stream()
+                .filter(item -> item.getCanonicalUniversityId() == 101L)
+                .count();
+
+        assertEquals(1L, duplicateIdCount);
+    }
+
     private Object invokeScoreCandidateV3(
             RecommendationService service,
             Object candidate,
@@ -98,6 +141,10 @@ class RecommendationServiceScopeAwareTest {
     }
 
     private Object candidate(Long id, String name, String country, Integer globalRank, Integer scopeRank, Double ieltsMin) throws Exception {
+        return candidate(id, name, country, globalRank, scopeRank, ieltsMin, Map.of("QS", globalRank));
+    }
+
+    private Object candidate(Long id, String name, String country, Integer globalRank, Integer scopeRank, Double ieltsMin, Map<String, Integer> sourceRanks) throws Exception {
         Class<?> candidateClass = Class.forName("clawer.service.RecommendationService$Candidate");
         Constructor<?> constructor = candidateClass.getDeclaredConstructor();
         constructor.setAccessible(true);
@@ -111,7 +158,7 @@ class RecommendationServiceScopeAwareTest {
         write(candidate, "coverageRatio", 1.0);
         write(candidate, "ieltsMin", ieltsMin);
         write(candidate, "aggregationMethodVersion", "rank_agg_v1");
-        write(candidate, "sourceRanks", Map.of("QS", globalRank));
+        write(candidate, "sourceRanks", sourceRanks);
         return candidate;
     }
 
@@ -143,6 +190,19 @@ class RecommendationServiceScopeAwareTest {
         return (String) field.get(target);
     }
 
+    private Object readObject(Object target, String fieldName) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return field.get(target);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> readStringList(Object target, String fieldName) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        return (List<String>) field.get(target);
+    }
+
     private static final class NoopScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         @Override
         public java.util.List<ScopedRankedUniversity> findRankings(RankingContext context, Integer year, String search, int page, int pageSize) {
@@ -157,6 +217,47 @@ class RecommendationServiceScopeAwareTest {
         @Override
         public java.util.List<ScopedRankedUniversity> findRecommendationCandidates(RankingContext context, Integer year, String country) {
             return java.util.List.of();
+        }
+    }
+
+    private static final class DuplicateScopedRankingReadAdapter implements ScopedRankingReadAdapter {
+        @Override
+        public java.util.List<ScopedRankedUniversity> findRankings(RankingContext context, Integer year, String search, int page, int pageSize) {
+            return java.util.List.of();
+        }
+
+        @Override
+        public long countRankings(RankingContext context, Integer year, String search) {
+            return 0;
+        }
+
+        @Override
+        public java.util.List<ScopedRankedUniversity> findRecommendationCandidates(RankingContext context, Integer year, String country) {
+            ScopedRankedUniversity stronger = new ScopedRankedUniversity();
+            stronger.setCanonicalUniversityId(101L);
+            stronger.setUniversityName("Duplicate University");
+            stronger.setCountry("United Kingdom");
+            stronger.setRankingYear(2026);
+            stronger.setGlobalRank(42);
+            stronger.setScopeRank(42);
+            stronger.setCoverageRatio(1.0);
+            stronger.setIeltsMin(6.5);
+            stronger.setAggregationMethodVersion("rank_agg_v2");
+            stronger.setSourceRanks(Map.of("QS", 42, "THE", 45));
+
+            ScopedRankedUniversity weaker = new ScopedRankedUniversity();
+            weaker.setCanonicalUniversityId(101L);
+            weaker.setUniversityName("Duplicate University");
+            weaker.setCountry("United Kingdom");
+            weaker.setRankingYear(2026);
+            weaker.setGlobalRank(90);
+            weaker.setScopeRank(90);
+            weaker.setCoverageRatio(0.5);
+            weaker.setIeltsMin(7.0);
+            weaker.setAggregationMethodVersion("rank_agg_v2");
+            weaker.setSourceRanks(Map.of("QS", 90));
+
+            return java.util.List.of(stronger, weaker);
         }
     }
 }

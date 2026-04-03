@@ -4,6 +4,9 @@ import clawer.domain.ranking.RankedPosition;
 import clawer.domain.ranking.RankingContext;
 import clawer.domain.ranking.ScopedRankedUniversity;
 import clawer.domain.ranking.ScopedRankingReadAdapter;
+import clawer.dto.RankingTrustDTO;
+import clawer.model.RecommendationExplain;
+import clawer.model.RecommendationExplainDimensions;
 import clawer.model.RecommendationGroupResponse;
 import clawer.model.RecommendationResult;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -159,6 +162,9 @@ public class RecommendationService {
         int safeLimit = safeLimit(limit, 5);
         for (List<RecommendationResult> rows : grouped.values()) {
             rows.sort(comparator);
+            List<RecommendationResult> deduped = dedupeRecommendationResults(rows);
+            rows.clear();
+            rows.addAll(deduped);
             if (rows.size() > safeLimit) {
                 rows.subList(safeLimit, rows.size()).clear();
             }
@@ -261,6 +267,9 @@ public class RecommendationService {
         int safeLimit = safeLimit(limit, 5);
         for (List<RecommendationResult> rows : grouped.values()) {
             rows.sort(comparator);
+            List<RecommendationResult> deduped = dedupeRecommendationResults(rows);
+            rows.clear();
+            rows.addAll(deduped);
             if (rows.size() > safeLimit) {
                 rows.subList(safeLimit, rows.size()).clear();
             }
@@ -333,10 +342,11 @@ public class RecommendationService {
     }
 
     private List<Candidate> fetchCandidates(String country, Integer rankingYear, RankingContext scopeContext) {
-        return scopedRankingReadAdapter.findRecommendationCandidates(scopeContext, rankingYear, country)
+        List<Candidate> candidates = scopedRankingReadAdapter.findRecommendationCandidates(scopeContext, rankingYear, country)
                 .stream()
                 .map(this::toCandidate)
                 .toList();
+        return dedupeCandidates(candidates, scopeContext);
     }
 
     private Candidate toCandidate(ScopedRankedUniversity row) {
@@ -564,6 +574,19 @@ public class RecommendationService {
                 scoreBreakdown,
                 rulesPassed
         );
+        result.setRecommendationExplain(
+                buildRecommendationExplain(
+                        candidate,
+                        targetRank,
+                        riskProfile,
+                        rankingScore,
+                        riskAlignmentScore(categoryDecision.category, riskProfile),
+                        ieltsFitScore,
+                        RankingTrustLayer.buildTrustScore(candidate.sourceRanks),
+                        ieltsScore,
+                        scopeContext
+                )
+        );
         applyScopeContext(result, candidate, scopeContext);
         return result;
     }
@@ -677,6 +700,19 @@ public class RecommendationService {
                 candidate.aggregationMethodVersion,
                 scoreBreakdown,
                 rulesPassed
+        );
+        result.setRecommendationExplain(
+                buildRecommendationExplain(
+                        candidate,
+                        targetRank,
+                        riskProfile,
+                        rankingScore,
+                        riskAlignmentScore(categoryDecision.category, riskProfile),
+                        ieltsFitScore,
+                        RankingTrustLayer.buildTrustScore(candidate.sourceRanks),
+                        ieltsScore,
+                        scopeContext
+                )
         );
         applyScopeContext(result, candidate, scopeContext);
         return result;
@@ -1332,6 +1368,191 @@ public class RecommendationService {
                     .append(" option.");
         }
         return explanation.toString();
+    }
+
+    private RecommendationExplain buildRecommendationExplain(
+            Candidate candidate,
+            Integer targetRank,
+            String riskProfile,
+            Double rankingFit,
+            Double riskFit,
+            Double languageFit,
+            RankingTrustDTO trust,
+            Double ieltsScore,
+            RankingContext scopeContext
+    ) {
+        double resolvedRankingFit = rankingFit == null ? 0.0 : rankingFit;
+        double resolvedRiskFit = riskFit == null ? 50.0 : riskFit;
+        double resolvedLanguageFit = languageFit == null ? 40.0 : languageFit;
+        double resolvedDataConfidence = trust == null ? 0.0 : trust.getTrustScore();
+
+        RecommendationExplainDimensions dimensions = new RecommendationExplainDimensions();
+        dimensions.setRankingFit(round(resolvedRankingFit));
+        dimensions.setRiskFit(round(resolvedRiskFit));
+        dimensions.setLanguageFit(round(resolvedLanguageFit));
+        dimensions.setDataConfidence(round(resolvedDataConfidence));
+
+        double fitScore = round(
+                (resolvedRankingFit * 0.40)
+                        + (resolvedRiskFit * 0.20)
+                        + (resolvedLanguageFit * 0.20)
+                        + (resolvedDataConfidence * 0.20)
+        );
+
+        List<String> reasons = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+
+        Integer displayRank = displayRank(candidate, scopeContext);
+        if (displayRank != null && targetRank != null) {
+            if (resolvedRankingFit >= 80.0) {
+                reasons.add("Rank #" + displayRank + " is close to your target #" + targetRank + ".");
+            } else if (resolvedRankingFit >= 60.0) {
+                reasons.add("Rank #" + displayRank + " is within a workable range of your target #" + targetRank + ".");
+            } else {
+                warnings.add("Rank #" + displayRank + " is far from your target #" + targetRank + ".");
+            }
+        }
+
+        Double margin = ieltsMargin(candidate.ieltsMin, ieltsScore);
+        if (ieltsScore == null) {
+            warnings.add("No IELTS score provided, so language fit is estimated conservatively.");
+        } else if (candidate.ieltsMin == null) {
+            warnings.add("Language requirement data is missing.");
+        } else if (margin != null && margin >= 0) {
+            reasons.add("Your IELTS (" + formatNumber(ieltsScore) + ") meets the typical requirement of " + formatNumber(candidate.ieltsMin) + ".");
+        } else if (margin != null) {
+            warnings.add("IELTS may be below requirement by " + formatNumber(Math.abs(margin)) + ".");
+        }
+
+        String normalizedRiskProfile = normalizeRiskProfile(riskProfile);
+        if (resolvedRiskFit >= 85.0) {
+            reasons.add("This " + candidateFitLabel(candidate, scopeContext) + " aligns well with your " + normalizedRiskProfile + " risk profile.");
+        } else if (resolvedRiskFit < 60.0) {
+            warnings.add("This option is a weaker fit for your " + normalizedRiskProfile + " risk profile.");
+        }
+
+        if (trust != null && trust.getTrustExplain() != null) {
+            List<String> trustNotes = trust.getTrustExplain().getNotes();
+            for (String note : trustNotes) {
+                if (note.toLowerCase(Locale.ROOT).contains("strong agreement")) {
+                    reasons.add(note);
+                } else {
+                    warnings.add(note);
+                }
+            }
+            if (trust.getTrustScore() < 60.0) {
+                warnings.add("Ranking data has low confidence.");
+            }
+        } else {
+            warnings.add("Ranking confidence data is unavailable.");
+        }
+
+        RecommendationExplain explain = new RecommendationExplain();
+        explain.setFitScore(fitScore);
+        explain.setDimensions(dimensions);
+        explain.setReasons(deduplicate(reasons));
+        explain.setWarnings(deduplicate(warnings));
+        return explain;
+    }
+
+    private List<String> deduplicate(List<String> values) {
+        List<String> out = new ArrayList<>();
+        for (String value : values) {
+            if (value == null || value.isBlank() || out.contains(value)) {
+                continue;
+            }
+            out.add(value);
+        }
+        return out;
+    }
+
+    private List<Candidate> dedupeCandidates(List<Candidate> candidates, RankingContext scopeContext) {
+        Map<Long, Candidate> deduped = new LinkedHashMap<>();
+        for (Candidate candidate : candidates) {
+            if (candidate == null || candidate.canonicalUniversityId == null) {
+                continue;
+            }
+            Candidate existing = deduped.get(candidate.canonicalUniversityId);
+            if (existing == null || compareCandidatePriority(candidate, existing, scopeContext) < 0) {
+                deduped.put(candidate.canonicalUniversityId, candidate);
+            }
+        }
+        return new ArrayList<>(deduped.values());
+    }
+
+    private int compareCandidatePriority(Candidate left, Candidate right, RankingContext scopeContext) {
+        int decisionRankCompare = compareNullableInts(decisionRank(left, scopeContext), decisionRank(right, scopeContext));
+        if (decisionRankCompare != 0) {
+            return decisionRankCompare;
+        }
+
+        int globalRankCompare = compareNullableInts(left.globalRank, right.globalRank);
+        if (globalRankCompare != 0) {
+            return globalRankCompare;
+        }
+
+        int coverageCompare = -Double.compare(left.coverageRatio, right.coverageRatio);
+        if (coverageCompare != 0) {
+            return coverageCompare;
+        }
+
+        int sourceCountCompare = -Integer.compare(left.sourceRanks.size(), right.sourceRanks.size());
+        if (sourceCountCompare != 0) {
+            return sourceCountCompare;
+        }
+
+        return compareNullableDoubles(left.ieltsMin, right.ieltsMin);
+    }
+
+    private List<RecommendationResult> dedupeRecommendationResults(List<RecommendationResult> rows) {
+        Map<Long, RecommendationResult> deduped = new LinkedHashMap<>();
+        for (RecommendationResult row : rows) {
+            if (row == null || row.getCanonicalUniversityId() == null) {
+                continue;
+            }
+            deduped.putIfAbsent(row.getCanonicalUniversityId(), row);
+        }
+        return new ArrayList<>(deduped.values());
+    }
+
+    private int compareNullableInts(Integer left, Integer right) {
+        if (left == null && right == null) {
+            return 0;
+        }
+        if (left == null) {
+            return 1;
+        }
+        if (right == null) {
+            return -1;
+        }
+        return Integer.compare(left, right);
+    }
+
+    private int compareNullableDoubles(Double left, Double right) {
+        if (left == null && right == null) {
+            return 0;
+        }
+        if (left == null) {
+            return 1;
+        }
+        if (right == null) {
+            return -1;
+        }
+        return Double.compare(left, right);
+    }
+
+    private String candidateFitLabel(Candidate candidate, RankingContext scopeContext) {
+        Integer displayRank = decisionRank(candidate, scopeContext);
+        if (displayRank == null) {
+            return "option";
+        }
+        if (displayRank <= 50) {
+            return "higher-ranked option";
+        }
+        if (displayRank <= 150) {
+            return "balanced option";
+        }
+        return "safer option";
     }
 
     private String rankSummary(Candidate candidate, RankingContext scopeContext) {
