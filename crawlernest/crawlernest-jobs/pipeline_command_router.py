@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
+_DEFAULT_THE_OUTPUT_DIR = Path(__file__).resolve().parents[1] / "crawlernest-kb" / "databases"
+
 
 @dataclass(frozen=True)
 class PipelineCommandDependencies:
@@ -18,11 +20,13 @@ class PipelineCommandDependencies:
     normalize_universities: Callable[[list[Any]], list[Any]]
     write_universities: Callable[..., tuple[int, int, int]]
     sync_qs_multi_source_rankings: Callable[..., Any]
+    run_the_rankings_ingestion: Callable[..., dict[str, Any]]
     query_rankings: Callable[..., list[Any]]
     enrich_deferred_details: Callable[..., tuple[int, int, int, int, int]]
     load_json_payload: Callable[[Path], list[Any]]
     ingest_rankings_payload: Callable[..., Any]
-    run_qs_universe_ingestion: Callable[..., tuple[Any, list[Any], list[Any], bool]]
+    run_qs_universe_ingestion: Callable[..., tuple[Any, list[Any], list[Any], bool, dict[str, Any]]]
+    qs_terminal_fetch_for_continuous_loop: Callable[[dict[str, Any]], bool]
     iter_all_qs_universes: Callable[[], Any]
     iter_major_qs_universes: Callable[[], Any]
     get_qs_universe_spec: Callable[[str, str], Any]
@@ -55,6 +59,7 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
             print("[1/4] Crawling QS data...")
             universities, crawl_meta = deps.run_qs_crawl(
                 args.limit,
+                args.ranking_year,
                 args.ranking_id,
                 args.use_async,
                 args.workers,
@@ -130,6 +135,28 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
             )
         except Exception as exc:
             print(f"[warn] QS multi-source sync skipped: {exc}")
+
+        if getattr(args, "with_the_rankings", False):
+            try:
+                ty = int(getattr(args, "the_ranking_year", 2026))
+                print(f"[THE] Ingesting THE world rankings (batch_id=the-{ty})...")
+                the_summary = deps.run_the_rankings_ingestion(
+                    ranking_year=ty,
+                    output_dir=Path(getattr(args, "the_output_dir", str(_DEFAULT_THE_OUTPUT_DIR))),
+                    pg_host=args.pg_host,
+                    pg_port=args.pg_port,
+                    pg_database=args.pg_database,
+                    pg_user=args.pg_user,
+                    pg_password=args.pg_password,
+                    skip_seed=bool(getattr(args, "the_skip_seed", False)),
+                )
+                print(
+                    f"[THE_CRAWL] pipeline_done rows={the_summary['rows_crawled']} "
+                    f"matched={the_summary['matched_count']} unresolved={the_summary['unresolved_count']} "
+                    f"source=THE year={ty}"
+                )
+            except Exception as exc:
+                print(f"[warn] THE rankings ingestion skipped: {exc}")
         return 0
 
     if args.command == "query":
@@ -241,7 +268,7 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
             universe_key = args.special
 
         while True:
-            summary, normalized, standardized, interrupted = deps.run_qs_universe_ingestion(
+            summary, normalized, standardized, interrupted, crawl_meta = deps.run_qs_universe_ingestion(
                 universe_type=universe_type,
                 universe_key=universe_key,
                 limit=args.limit,
@@ -267,6 +294,13 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
             )
             if interrupted:
                 print(f"\n[pipeline] Graceful shutdown completed for {universe_type}/{universe_key}. Exiting.")
+                break
+            if deps.qs_terminal_fetch_for_continuous_loop(crawl_meta):
+                fc = str(crawl_meta.get("failure_classification", "") or "").strip()
+                print(
+                    f"\n[pipeline] Stopping continuous pass loop for {universe_type}/{universe_key} "
+                    f"(failure_classification={fc!r} run_backing={crawl_meta.get('run_backing', '')!r})."
+                )
                 break
             print(
                 f"\n--- [continuous] Completed pass for {universe_type}/{universe_key}. "
@@ -302,12 +336,13 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
 
         while True:
             total_specs = len(selected_specs)
+            had_terminal_fetch = False
             for spec in selected_specs:
                 current_index = len(results) + 1
                 label = f"{spec.universe_type}/{spec.universe_key}"
                 print(f"\n=== [{current_index}/{total_specs}] Starting QS universe: {label} ===")
                 try:
-                    summary, normalized, standardized, interrupted = deps.run_qs_universe_ingestion(
+                    summary, normalized, standardized, interrupted, crawl_meta = deps.run_qs_universe_ingestion(
                         universe_type=spec.universe_type,
                         universe_key=spec.universe_key,
                         limit=args.limit,
@@ -324,6 +359,8 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
                         output_dir=Path(args.output_dir),
                         resume=bool(getattr(args, "resume", False)),
                     )
+                    if deps.qs_terminal_fetch_for_continuous_loop(crawl_meta):
+                        had_terminal_fetch = True
                     results.append(
                         {
                             "universe_type": spec.universe_type,
@@ -358,6 +395,14 @@ def dispatch_command(args: Any, deps: PipelineCommandDependencies) -> int:
                         f"[warn] QS universe failed but pipeline continues: "
                         f"{spec.universe_type}/{spec.universe_key} -> {exc}"
                     )
+
+            if had_terminal_fetch:
+                print(
+                    "\n[pipeline] Terminal upstream/fetch state detected; stopping continuous universe loop "
+                    "(no point retrying until block clears or cache is refreshed)."
+                )
+                print(json.dumps({"failures": failures, "results": results}, ensure_ascii=False, indent=2))
+                return 0
 
             print("\n--- [continuous] Completed full pass of all universes. Starting next pass in 30s... ---")
             results = []

@@ -13,7 +13,17 @@ PACKAGE_ROOT = TESTS_DIR.parent
 sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-core"))
 sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-extractors"))
 
-from fetcher import _abs_url, _extract_nid_from_html, _ranking_page_fallbacks, UniversityFetcher
+from fetcher import (
+    _abs_url,
+    _classify_qs_http_response,
+    _classify_transport_exception_sync,
+    _extract_nid_from_html,
+    _jittered_request_delay_seconds,
+    _qs_ranking_fetch_urls,
+    _ranking_page_fallbacks,
+    UniversityFetcher,
+)
+import requests
 from config import Config
 
 class TestFetcherUtils(unittest.TestCase):
@@ -38,6 +48,28 @@ class TestFetcherUtils(unittest.TestCase):
         fallbacks = _ranking_page_fallbacks(url)
         self.assertIn("https://www.topuniversities.com/asia-university-rankings", fallbacks)
 
+    def test_qs_ranking_fetch_urls_respects_endpoint_order(self):
+        c = Config()
+        c.api_url = "https://www.topuniversities.com/rankings/endpoint"
+        c.qs_endpoint_order = "api_first"
+        u = _qs_ranking_fetch_urls(c, "42")
+        self.assertEqual(
+            u[0],
+            "https://www.topuniversities.com/rankings/api/ranking/42",
+        )
+        c.qs_endpoint_order = "endpoint_first"
+        u = _qs_ranking_fetch_urls(c, "42")
+        self.assertEqual(u[0], "https://www.topuniversities.com/rankings/endpoint")
+
+    def test_request_delay_jitter_is_bounded(self):
+        c = Config()
+        c.request_delay = 10.0
+        c.request_delay_jitter_ratio = 0.2
+        for _ in range(50):
+            d = _jittered_request_delay_seconds(c)
+            self.assertGreaterEqual(d, 8.0)
+            self.assertLessEqual(d, 12.0)
+
 class TestUniversityFetcher(unittest.TestCase):
     def setUp(self):
         self.config = Config()
@@ -47,6 +79,8 @@ class TestUniversityFetcher(unittest.TestCase):
     def test_fetch_rankings_success(self):
         mock_response = MagicMock()
         mock_response.status_code = 200
+        mock_response.headers = {}
+        mock_response.text = '{"score_nodes": [{"uniname": "Test Uni"}]}'
         mock_response.json.return_value = {"score_nodes": [{"uniname": "Test Uni"}]}
 
         with patch.object(self.fetcher.session, "get", return_value=mock_response) as mock_get:
@@ -108,6 +142,7 @@ class TestUniversityFetcher(unittest.TestCase):
             mock_response = MagicMock()
             mock_response.status_code = 200
             mock_response.text = '<div data-nid="12345"></div>'
+            mock_response.headers = {}
             with patch.object(self.fetcher.session, "get", return_value=mock_response) as mock_get:
                 nid = self.fetcher._ensure_ranking_id()
             self.assertEqual(nid, "12345")
@@ -124,10 +159,54 @@ class TestUniversityFetcher(unittest.TestCase):
             mock_response = MagicMock()
             mock_response.status_code = 403
             mock_response.text = "Just a moment..."
+            mock_response.headers = {}
             with patch.object(self.fetcher.session, "get", return_value=mock_response):
                 with self.assertRaises(ValueError):
                     self.fetcher._ensure_ranking_id()
             self.assertEqual(getattr(self.config, "_last_failure_classification", ""), "resolve_blocked")
+
+
+class TestQsClassification(unittest.TestCase):
+    def test_maintenance_body(self):
+        cls, _msg = _classify_qs_http_response(
+            "https://www.topuniversities.com/x",
+            503,
+            "<html>Maintenance Notice — scheduled upgrade</html>",
+            {},
+        )
+        self.assertEqual(cls, "upstream_maintenance")
+
+    def test_cloudflare_interstitial_403(self):
+        cls, _msg = _classify_qs_http_response(
+            "https://www.topuniversities.com/rankings/api/ranking/1",
+            403,
+            "<!DOCTYPE html><title>Just a moment...</title>",
+            {"cf-ray": "abc-dead-beef"},
+        )
+        self.assertEqual(cls, "upstream_blocked")
+
+    def test_generic_404_fetch_failed(self):
+        cls, _msg = _classify_qs_http_response(
+            "https://www.topuniversities.com/missing",
+            404,
+            "not found",
+            {},
+        )
+        self.assertEqual(cls, "fetch_failed")
+
+    def test_live_ok_200(self):
+        cls, _msg = _classify_qs_http_response(
+            "https://www.topuniversities.com/rankings/endpoint",
+            200,
+            '{"score_nodes":[]}',
+            {"Content-Type": "application/json"},
+        )
+        self.assertEqual(cls, "live_ok")
+
+    def test_network_error_timeout(self):
+        cls, _msg = _classify_transport_exception_sync(requests.Timeout("slow"), "https://x")
+        self.assertEqual(cls, "network_error")
+
 
 class TestResolutionCacheTTL(unittest.TestCase):
     """Tests for TTL-based cache expiry in _read_cached_resolution."""
@@ -190,6 +269,7 @@ class TestResolutionCacheTTL(unittest.TestCase):
             mock_response = MagicMock()
             mock_response.status_code = 200
             mock_response.text = '<div data-nid="54321"></div>'
+            mock_response.headers = {}
 
             with patch.object(fetcher.session, "get", return_value=mock_response) as mock_get:
                 nid = fetcher._ensure_ranking_id()
