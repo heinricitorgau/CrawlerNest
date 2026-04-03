@@ -58,6 +58,7 @@ from qs_universe_registry import (  # noqa: E402
     iter_all_qs_universes,
     iter_major_qs_universes,
 )
+from arwu_crawler import crawl_arwu_rankings  # noqa: E402
 from the_crawler import crawl_the_rankings  # noqa: E402
 from pipeline_command_router import (  # noqa: E402
     PipelineCommandDependencies,
@@ -88,6 +89,7 @@ except ImportError:
 
 WRITE_BATCH_SIZE = 100
 DEFAULT_RANKING_YEAR = dt.datetime.now().year
+_QS_PIPELINE_LOG = logging.getLogger("CrawlerNest.qs")
 
 
 def _normalize_space(value: str) -> str:
@@ -201,6 +203,7 @@ def _is_postgres_duplicate_error(exc: Exception) -> bool:
 
 def run_qs_crawl(
     limit: int,
+    ranking_year: int,
     ranking_id: str,
     use_async: bool,
     workers: int,
@@ -210,8 +213,17 @@ def run_qs_crawl(
     detail_403_streak_threshold: int,
     detail_chunk_size: int,
 ) -> tuple[list[University], dict[str, Any]]:
+    global_spec = get_qs_universe_spec("global", "global")
+    preferred_ranking_id = str(ranking_id or "").strip()
+    if not preferred_ranking_id:
+        preferred_ranking_id = str(global_spec.ranking_id or "").strip()
     config = Config(
-        ranking_id=ranking_id,
+        ranking_id=preferred_ranking_id,
+        ranking_page_url=global_spec.ranking_page_url,
+        source_name="QS",
+        ranking_year=ranking_year,
+        universe_type="global",
+        universe_key="global",
         ranking_limit=limit,
         use_async=use_async,
         show_progress=True,
@@ -222,15 +234,77 @@ def run_qs_crawl(
         fetch_details=bool(fetch_details),
         detail_forbidden_streak_threshold=max(1, detail_403_streak_threshold),
         detail_chunk_size=max(1, detail_chunk_size),
+        resolution_cache_path=str(REPO_ROOT / "crawlernest-kb" / "qs_universe_resolution_cache.json"),
     )
+    setattr(config, "_stable_ranking_id", str(global_spec.ranking_id or preferred_ranking_id or "").strip())
+    setattr(config, "progress_label", "global/global")
     crawler = UniversityCrawler(config)
     universities = asyncio.run(crawler.crawl_async()) if use_async else crawler.crawl()
     crawl_meta = {
         "detail_fallback_triggered": bool(getattr(config, "_detail_fallback_triggered", False)),
         "detail_deferred_paths": list(getattr(config, "_detail_deferred_paths", []) or []),
         "detail_forbidden_count": int(getattr(config, "_detail_forbidden_count", 0) or 0),
+        "failure_classification": str(getattr(config, "_last_failure_classification", "") or ""),
+        "failure_message": str(getattr(config, "_last_failure_message", "") or ""),
+        "live_fetch_classification": str(getattr(config, "_last_failure_classification", "") or "") or "live_ok",
+        "live_fetch_message": str(getattr(config, "_last_failure_message", "") or ""),
+        "ranking_id_source": str(getattr(config, "_ranking_id_source", "") or ""),
+        "used_resolution_cache": bool(getattr(config, "_used_resolution_cache", False)),
+        "resolved_ranking_id": str(getattr(config, "ranking_id", "") or ""),
+        "ranking_id_candidates": list(getattr(config, "_ranking_id_candidates", []) or []),
+        "resolved_ranking_page_url": str(getattr(config, "_resolved_ranking_page_url", "") or getattr(config, "ranking_page_url", "") or ""),
+        "page_resolution_skipped": bool(getattr(config, "_page_resolution_skipped", False)),
+        "page_resolution_attempted": bool(getattr(config, "_page_resolution_attempted", False)),
+        "resolution_cache_path": str(getattr(config, "resolution_cache_path", "") or ""),
+        "used_snapshot_fallback": False,
+        "snapshot_fallback_path": "",
+        "run_backing": "live",
     }
+    universities, crawl_meta = _apply_qs_snapshot_fallback(
+        universities,
+        crawl_meta,
+        artifact_base_dir=REPO_ROOT / "crawlernest-kb" / "qs_universes",
+        ranking_year=ranking_year,
+        universe_type="global",
+        universe_key="global",
+    )
     return universities, crawl_meta
+
+
+def _print_qs_entry_strategy(crawl_meta: dict[str, Any], *, prefix: str = "[entry]") -> None:
+    ranking_id_source = str(crawl_meta.get("ranking_id_source", "") or "").strip() or "unknown"
+    used_cache = bool(crawl_meta.get("used_resolution_cache", False))
+    resolved_ranking_id = str(crawl_meta.get("resolved_ranking_id", "") or "").strip() or "n/a"
+    page_resolution_skipped = bool(crawl_meta.get("page_resolution_skipped", False))
+    page_resolution_attempted = bool(crawl_meta.get("page_resolution_attempted", False))
+    live_fetch_classification = str(crawl_meta.get("live_fetch_classification", "") or "").strip() or "live_ok"
+    run_backing = str(crawl_meta.get("run_backing", "") or "").strip() or "live"
+    used_snapshot_fallback = bool(crawl_meta.get("used_snapshot_fallback", False))
+    print(
+        f"{prefix} ranking_id_source={ranking_id_source} "
+        f"used_cache={'yes' if used_cache else 'no'} "
+        f"ranking_id={resolved_ranking_id} "
+        f"page_resolution_skipped={'yes' if page_resolution_skipped else 'no'}"
+    )
+    print(
+        f"{prefix} live_fetch_classification={live_fetch_classification} "
+        f"run_backing={run_backing} "
+        f"fallback_snapshot_used={'yes' if used_snapshot_fallback else 'no'}"
+    )
+    resolved_page = str(crawl_meta.get("resolved_ranking_page_url", "") or "").strip()
+    if resolved_page:
+        print(f"{prefix} resolved_ranking_page_url={resolved_page}")
+    cache_path = str(crawl_meta.get("resolution_cache_path", "") or "").strip()
+    if cache_path and used_cache:
+        print(f"{prefix} resolution_cache_path={cache_path}")
+    if page_resolution_attempted:
+        print(f"{prefix} page_resolution_attempted=yes")
+    live_fetch_message = str(crawl_meta.get("live_fetch_message", "") or "").strip()
+    if live_fetch_message:
+        print(f"{prefix} live_fetch_message={live_fetch_message}")
+    snapshot_path = str(crawl_meta.get("snapshot_fallback_path", "") or "").strip()
+    if snapshot_path:
+        print(f"{prefix} fallback_snapshot_path={snapshot_path}")
 
 
 def _read_mem_available_mb() -> Optional[float]:
@@ -295,6 +369,110 @@ def save_json_artifact(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
+def _qs_universe_artifact_dir(base_dir: Path, ranking_year: int, universe_type: str, universe_key: str) -> Path:
+    return base_dir / str(ranking_year) / str(universe_type) / str(universe_key)
+
+
+def _load_known_good_qs_snapshot(
+    base_dir: Path,
+    *,
+    ranking_year: int,
+    universe_type: str,
+    universe_key: str,
+) -> tuple[list[University], Path] | tuple[None, Path]:
+    universe_dir = _qs_universe_artifact_dir(base_dir, ranking_year, universe_type, universe_key)
+    raw_snapshot_path = universe_dir / "raw_snapshot.json"
+    run_status_path = universe_dir / "run_status.json"
+    if not raw_snapshot_path.exists() or not run_status_path.exists():
+        return None, raw_snapshot_path
+    try:
+        run_status = json.loads(run_status_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None, raw_snapshot_path
+    if str(run_status.get("status", "") or "").strip().lower() != "ok":
+        return None, raw_snapshot_path
+    try:
+        universities = load_snapshot(raw_snapshot_path)
+    except Exception:
+        return None, raw_snapshot_path
+    if not universities:
+        return None, raw_snapshot_path
+    return universities, raw_snapshot_path
+
+
+def _apply_qs_snapshot_fallback(
+    universities: list[University],
+    crawl_meta: dict[str, Any],
+    *,
+    artifact_base_dir: Path,
+    ranking_year: int,
+    universe_type: str,
+    universe_key: str,
+) -> tuple[list[University], dict[str, Any]]:
+    updated_meta = dict(crawl_meta)
+    failure_classification = str(updated_meta.get("failure_classification", "") or "").strip()
+    failure_message = str(updated_meta.get("failure_message", "") or "").strip()
+    updated_meta.setdefault("live_fetch_classification", failure_classification or "live_ok")
+    updated_meta.setdefault("live_fetch_message", failure_message)
+    updated_meta.setdefault("used_snapshot_fallback", False)
+    updated_meta.setdefault("snapshot_fallback_path", "")
+    updated_meta.setdefault("run_backing", "live")
+    if universities or failure_classification not in ("upstream_blocked", "upstream_maintenance"):
+        return universities, updated_meta
+
+    fallback_universities, snapshot_path = _load_known_good_qs_snapshot(
+        artifact_base_dir,
+        ranking_year=ranking_year,
+        universe_type=universe_type,
+        universe_key=universe_key,
+    )
+    updated_meta["snapshot_fallback_path"] = str(snapshot_path)
+    if fallback_universities is None:
+        updated_meta["used_snapshot_fallback"] = False
+        updated_meta["run_backing"] = "live_blocked_no_fallback"
+        _QS_PIPELINE_LOG.info(
+            "qs_acquire event=fallback_used status=failed reason=no_snapshot "
+            "universe_type=%s universe_key=%s ranking_year=%s snapshot_path=%s",
+            universe_type,
+            universe_key,
+            ranking_year,
+            snapshot_path,
+        )
+        return universities, updated_meta
+
+    updated_meta["used_snapshot_fallback"] = True
+    updated_meta["run_backing"] = "fallback_snapshot"
+    _QS_PIPELINE_LOG.info(
+        "qs_acquire event=fallback_used status=ok universe_type=%s universe_key=%s ranking_year=%s "
+        "snapshot_path=%s row_count=%s",
+        universe_type,
+        universe_key,
+        ranking_year,
+        snapshot_path,
+        len(fallback_universities),
+    )
+    return fallback_universities, updated_meta
+
+
+def _qs_terminal_fetch_for_continuous_loop(crawl_meta: dict[str, Any]) -> bool:
+    """If True, do not spin the run-qs-* ``while True`` daemon another pass (blocked / unrecoverable this run)."""
+    fc = str(crawl_meta.get("failure_classification", "") or "").strip()
+    if fc in {
+        "upstream_blocked",
+        "upstream_maintenance",
+        "resolve_blocked",
+        "resolve_not_found",
+        "fetch_failed",
+        "network_error",
+        "data_unavailable",
+    }:
+        return True
+    run_backing = str(crawl_meta.get("run_backing", "") or "").strip()
+    if run_backing == "live_blocked_no_fallback":
+        return True
+    return False
 
 
 def save_deferred_detail_list(path: Path, universities: Iterable[University], deferred_paths: Iterable[str]) -> int:
@@ -1017,7 +1195,9 @@ def sync_qs_multi_source_rankings(
     universe_key: str = "global",
     enable_aggregation: bool = True,
 ) -> Any:
-    effective_run_id = batch_id or dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    effective_run_id = batch_id or (
+        dt.datetime.now(dt.timezone.utc).replace(microsecond=0).strftime("%Y-%m-%dT%H:%M:%SZ")
+    )
     conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
     try:
         pipeline = _build_multi_source_pipeline(conn)
@@ -1085,7 +1265,7 @@ def run_qs_universe_ingestion(
     pg_password: Optional[str],
     output_dir: Path,
     resume: bool = False,
-) -> tuple[Any, list[University], list[Any], bool]:
+) -> tuple[Any, list[University], list[Any], bool, dict[str, Any]]:
     spec, crawler = _build_qs_universe_crawler(
         universe_type,
         universe_key,
@@ -1106,6 +1286,22 @@ def run_qs_universe_ingestion(
             f"loaded {len(existing_universities)} universities from {raw_snapshot_path}"
         )
     universities, crawl_meta = crawler.crawl(existing_universities=existing_universities)
+    universities, crawl_meta = _apply_qs_snapshot_fallback(
+        universities,
+        crawl_meta,
+        artifact_base_dir=output_dir,
+        ranking_year=ranking_year,
+        universe_type=spec.universe_type,
+        universe_key=spec.universe_key,
+    )
+    _print_qs_entry_strategy(crawl_meta, prefix=f"[{spec.universe_type}/{spec.universe_key}] [entry]")
+    failure_classification = str(crawl_meta.get("failure_classification", "") or "").strip()
+    if failure_classification:
+        failure_message = str(crawl_meta.get("failure_message", "") or "").strip() or "no additional detail"
+        print(
+            f"[{spec.universe_type}/{spec.universe_key}] [entry] "
+            f"failure_classification={failure_classification} message={failure_message}"
+        )
     save_json_artifact(universe_dir / "crawl_meta.json", crawl_meta)
     try:
         normalized = normalize_universities(universities)
@@ -1137,7 +1333,7 @@ def run_qs_universe_ingestion(
 
     run_id = (
         f"qs-{spec.universe_type}-{spec.universe_key}-{ranking_year}-"
-        f"{dt.datetime.utcnow().replace(microsecond=0).isoformat()}Z"
+        f"{dt.datetime.now(dt.timezone.utc).replace(microsecond=0).strftime('%Y-%m-%dT%H:%M:%SZ')}"
     )
 
     try:
@@ -1192,7 +1388,7 @@ def run_qs_universe_ingestion(
             "aggregated_years": list(summary.years_aggregated),
         },
     )
-    return summary, normalized, standardized, crawler.interrupted
+    return summary, normalized, standardized, crawler.interrupted, crawl_meta
 
 
 def ingest_rankings_payload(
@@ -1223,7 +1419,7 @@ def ingest_rankings_payload(
 
     effective_run_id = batch_id or (
         f"{source_code.lower()}-{ranking_type}-{ranking_year}-"
-        f"{dt.datetime.utcnow().replace(microsecond=0).isoformat()}Z"
+        f"{dt.datetime.now(dt.timezone.utc).replace(microsecond=0).strftime('%Y-%m-%dT%H:%M:%SZ')}"
     )
 
     conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
@@ -1315,6 +1511,159 @@ def run_the_rankings_ingestion(
         f"unresolved={summary['unresolved_count']} aggregated_rows={summary['aggregated_rows']}"
     )
     return summary
+
+
+def run_arwu_rankings_ingestion(
+    *,
+    ranking_year: int,
+    output_dir: Path,
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+    skip_seed: bool = False,
+) -> dict[str, Any]:
+    print(f"[arwu-rankings] crawling ARWU world rankings for year={ranking_year}...")
+    output_file = crawl_arwu_rankings(year=ranking_year, output_dir=output_dir)
+    payload = load_json_payload(output_file)
+
+    print(f"[arwu-rankings] ingesting {len(payload)} rows into multi-source pipeline...")
+    ingest_summary = ingest_rankings_payload(
+        source="ARWU",
+        payload=payload,
+        ranking_year=ranking_year,
+        ranking_type="world",
+        source_version=None,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        batch_id=f"arwu-{ranking_year}",
+    )
+
+    aggregated_rows = int(getattr(ingest_summary, "aggregated_row_count", 0) or 0)
+    if not skip_seed:
+        print("[arwu-rankings] seeding canonical entities...")
+        seed_canonical_universities(
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+
+        print("[arwu-rankings] backfilling ranking records...")
+        backfill_summary = backfill_qs_ranking_records_from_legacy(
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+        aggregated_rows = int(backfill_summary.get("aggregated_rows") or aggregated_rows)
+
+    summary = {
+        "rows_crawled": len(payload),
+        "matched_count": int(getattr(ingest_summary, "matched_count", 0) or 0),
+        "unresolved_count": int(getattr(ingest_summary, "unresolved_count", 0) or 0),
+        "aggregated_rows": aggregated_rows,
+        "output_file": str(output_file),
+    }
+    print(
+        f"[arwu-rankings] done. matched={summary['matched_count']} "
+        f"unresolved={summary['unresolved_count']} aggregated_rows={summary['aggregated_rows']}"
+    )
+    return summary
+
+
+def validate_global_multi_source(
+    *,
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+    ranking_year: Optional[int] = None,
+) -> dict[str, Any]:
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    try:
+        with conn.cursor() as cur:
+            params: list[Any] = []
+            year_clause = ""
+            year_clause_agg = ""
+            if ranking_year is not None:
+                year_clause = "AND rr.ranking_year = %s"
+                year_clause_agg = "AND ar.ranking_year = %s"
+                params.append(int(ranking_year))
+
+            cur.execute(
+                f"""
+                SELECT rs.source_code, COUNT(*)::INT
+                FROM warehouse.ranking_record rr
+                JOIN warehouse.ranking_source rs
+                  ON rs.ranking_source_id = rr.ranking_source_id
+                WHERE rr.universe_type = 'global'
+                  AND rr.universe_key = 'global'
+                  {year_clause}
+                GROUP BY rs.source_code
+                ORDER BY rs.source_code
+                """,
+                tuple(params),
+            )
+            source_rows = cur.fetchall()
+            source_counts = {str(source_code): int(count) for source_code, count in source_rows}
+
+            cur.execute(
+                f"""
+                SELECT COUNT(*)::INT
+                FROM (
+                    SELECT rr.canonical_university_id
+                    FROM warehouse.ranking_record rr
+                    JOIN warehouse.ranking_source rs
+                      ON rs.ranking_source_id = rr.ranking_source_id
+                    WHERE rr.universe_type = 'global'
+                      AND rr.universe_key = 'global'
+                      {year_clause}
+                    GROUP BY rr.canonical_university_id
+                    HAVING COUNT(DISTINCT rs.source_code) > 1
+                ) t
+                """,
+                tuple(params),
+            )
+            multi_source_canonical_count = int(cur.fetchone()[0] or 0)
+
+            cur.execute(
+                f"""
+                SELECT COUNT(*)::INT
+                FROM analytics.aggregated_rankings ar
+                WHERE ar.universe_type = 'global'
+                  AND ar.universe_key = 'global'
+                  {year_clause_agg}
+                  AND (
+                      SELECT COUNT(*)
+                      FROM jsonb_object_keys(ar.source_ranks_json)
+                  ) > 1
+                """,
+                tuple([int(ranking_year)]) if ranking_year is not None else (),
+            )
+            aggregated_multi_source_rows = int(cur.fetchone()[0] or 0)
+
+        return {
+            "ranking_year": ranking_year,
+            "universe_type": "global",
+            "universe_key": "global",
+            "sources_present": {
+                source: source_counts.get(source, 0) > 0
+                for source in ("QS", "THE", "ARWU")
+            },
+            "source_row_counts": source_counts,
+            "multi_source_canonical_count": multi_source_canonical_count,
+            "aggregated_multi_source_rows": aggregated_multi_source_rows,
+        }
+    finally:
+        conn.close()
 
 
 def _normalize_display_name_for_canonical(display_name: str) -> str:
@@ -2188,6 +2537,27 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--pg-database", default="clawer")
     run_parser.add_argument("--pg-user", default="test")
     run_parser.add_argument("--pg-password", default="")
+    run_parser.add_argument(
+        "--with-the-rankings",
+        action="store_true",
+        help="After QS multi-source sync, ingest THE world rankings (warehouse.ranking_record, batch_id the-<year>)",
+    )
+    run_parser.add_argument(
+        "--the-ranking-year",
+        type=int,
+        default=2026,
+        help="THE edition when --with-the-rankings is set (default: 2026)",
+    )
+    run_parser.add_argument(
+        "--the-output-dir",
+        default=str(MODULE_ROOT / "crawlernest-kb" / "databases"),
+        help="THE crawl JSON output directory when --with-the-rankings is set",
+    )
+    run_parser.add_argument(
+        "--the-skip-seed",
+        action="store_true",
+        help="With --with-the-rankings, skip canonical seed/backfill after THE ingest",
+    )
 
     query_parser = subparsers.add_parser("query", help="Query stored QS rankings from DB")
     query_parser.add_argument("keyword")
@@ -2288,6 +2658,33 @@ def build_parser() -> argparse.ArgumentParser:
     the_rankings_parser.add_argument("--pg-database", default="clawer")
     the_rankings_parser.add_argument("--pg-user", default="test")
     the_rankings_parser.add_argument("--pg-password", default="")
+
+    arwu_rankings_parser = subparsers.add_parser(
+        "run-arwu-rankings",
+        help="Crawl ARWU world rankings, ingest into multi-source tables, and optionally seed/backfill visibility",
+    )
+    arwu_rankings_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
+    arwu_rankings_parser.add_argument(
+        "--output-dir",
+        default=str(MODULE_ROOT / "crawlernest-kb" / "databases"),
+    )
+    arwu_rankings_parser.add_argument("--skip-seed", action="store_true")
+    arwu_rankings_parser.add_argument("--pg-host", default="localhost")
+    arwu_rankings_parser.add_argument("--pg-port", type=int, default=5432)
+    arwu_rankings_parser.add_argument("--pg-database", default="clawer")
+    arwu_rankings_parser.add_argument("--pg-user", default="test")
+    arwu_rankings_parser.add_argument("--pg-password", default="")
+
+    validate_global_sources_parser = subparsers.add_parser(
+        "validate-global-multi-source",
+        help="Validate presence of QS/THE/ARWU global rows and multi-source aggregation coverage",
+    )
+    validate_global_sources_parser.add_argument("--ranking-year", type=int, default=None)
+    validate_global_sources_parser.add_argument("--pg-host", default="localhost")
+    validate_global_sources_parser.add_argument("--pg-port", type=int, default=5432)
+    validate_global_sources_parser.add_argument("--pg-database", default="clawer")
+    validate_global_sources_parser.add_argument("--pg-user", default="test")
+    validate_global_sources_parser.add_argument("--pg-password", default="")
 
     qs_global_parser = subparsers.add_parser(
         "run-qs-global",
@@ -2530,6 +2927,7 @@ def main() -> int:
             print("[1/4] Crawling QS data...")
             universities, crawl_meta = run_qs_crawl(
                 args.limit,
+                args.ranking_year,
                 args.ranking_id,
                 args.use_async,
                 args.workers,
@@ -2539,7 +2937,21 @@ def main() -> int:
                 args.detail_403_streak_threshold,
                 args.detail_chunk_size,
             )
+            _print_qs_entry_strategy(crawl_meta)
             if not universities:
+                failure_classification = str(crawl_meta.get("failure_classification", "") or "").strip()
+                failure_message = str(crawl_meta.get("failure_message", "") or "").strip()
+                if failure_classification:
+                    print(
+                        f"[error] QS acquisition failed with classification={failure_classification}: "
+                        f"{failure_message or 'no additional detail'}"
+                    )
+                    resolved_page = str(crawl_meta.get("resolved_ranking_page_url", "") or "").strip()
+                    resolved_id = str(crawl_meta.get("resolved_ranking_id", "") or "").strip()
+                    if resolved_page:
+                        print(f"[error] ranking_page_url={resolved_page}")
+                    if resolved_id:
+                        print(f"[error] resolved_ranking_id={resolved_id}")
                 print("No universities crawled. Exiting.")
                 return 1
             save_snapshot(snapshot_file, universities)
@@ -2604,6 +3016,31 @@ def main() -> int:
             )
         except Exception as exc:
             print(f"[warn] QS multi-source sync skipped: {exc}")
+
+        if getattr(args, "with_the_rankings", False):
+            try:
+                _ty = int(getattr(args, "the_ranking_year", 2026))
+                print(
+                    f"[THE] Ingesting THE world rankings (structured JSON / __NEXT_DATA__ path; "
+                    f"batch_id=the-{_ty})..."
+                )
+                the_summary = run_the_rankings_ingestion(
+                    ranking_year=_ty,
+                    output_dir=Path(getattr(args, "the_output_dir", str(MODULE_ROOT / "crawlernest-kb" / "databases"))),
+                    pg_host=args.pg_host,
+                    pg_port=args.pg_port,
+                    pg_database=args.pg_database,
+                    pg_user=args.pg_user,
+                    pg_password=args.pg_password,
+                    skip_seed=bool(getattr(args, "the_skip_seed", False)),
+                )
+                print(
+                    f"[THE_CRAWL] pipeline_done rows={the_summary['rows_crawled']} "
+                    f"matched={the_summary['matched_count']} unresolved={the_summary['unresolved_count']} "
+                    f"source=THE year={_ty}"
+                )
+            except Exception as exc:
+                print(f"[warn] THE rankings ingestion skipped: {exc}")
         return 0
 
     if args.command == "query":
@@ -2694,7 +3131,7 @@ def main() -> int:
             universe_key = args.special
 
         while True:
-            summary, normalized, standardized, interrupted = run_qs_universe_ingestion(
+            summary, normalized, standardized, interrupted, crawl_meta = run_qs_universe_ingestion(
                 universe_type=universe_type,
                 universe_key=universe_key,
                 limit=args.limit,
@@ -2718,6 +3155,13 @@ def main() -> int:
             )
             if interrupted:
                 print(f"\n[pipeline] Graceful shutdown completed for {universe_type}/{universe_key}. Exiting.")
+                break
+            if _qs_terminal_fetch_for_continuous_loop(crawl_meta):
+                fc = str(crawl_meta.get("failure_classification", "") or "").strip()
+                print(
+                    f"\n[pipeline] Stopping continuous pass loop for {universe_type}/{universe_key} "
+                    f"(failure_classification={fc!r} run_backing={crawl_meta.get('run_backing', '')!r})."
+                )
                 break
             print(f"\n--- [continuous] Completed pass for {universe_type}/{universe_key}. Starting next pass in 5s... ---")
             time.sleep(5)
@@ -2744,12 +3188,13 @@ def main() -> int:
 
         while True:
             total_specs = len(selected_specs)
+            had_terminal_fetch = False
             for spec in selected_specs:
                 current_index = len(results) + 1
                 label = f"{spec.universe_type}/{spec.universe_key}"
                 print(f"\n=== [{current_index}/{total_specs}] Starting QS universe: {label} ===")
                 try:
-                    summary, normalized, standardized, interrupted = run_qs_universe_ingestion(
+                    summary, normalized, standardized, interrupted, crawl_meta = run_qs_universe_ingestion(
                         universe_type=spec.universe_type,
                         universe_key=spec.universe_key,
                         limit=args.limit,
@@ -2765,6 +3210,8 @@ def main() -> int:
                         pg_password=args.pg_password,
                         output_dir=Path(args.output_dir),
                     )
+                    if _qs_terminal_fetch_for_continuous_loop(crawl_meta):
+                        had_terminal_fetch = True
                     results.append(
                         {
                             "universe_type": spec.universe_type,
@@ -2795,7 +3242,15 @@ def main() -> int:
                         }
                     )
                     print(f"[warn] QS universe failed but pipeline continues: {spec.universe_type}/{spec.universe_key} -> {exc}")
-            
+
+            if had_terminal_fetch:
+                print(
+                    "\n[pipeline] Terminal upstream/fetch state detected; stopping continuous universe loop "
+                    "(no point retrying until block clears or cache is refreshed)."
+                )
+                print(json.dumps({"failures": failures, "results": results}, ensure_ascii=False, indent=2))
+                return 0
+
             print("\n--- [continuous] Completed full pass of all universes. Starting next pass in 30s... ---")
             results = []  # Clear results for next pass summary
             time.sleep(30)
@@ -3046,6 +3501,46 @@ def main() -> int:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 0
 
+    if args.command == "run-arwu-rankings":
+        ensure_postgres_schema(
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+        )
+        summary = run_arwu_rankings_ingestion(
+            ranking_year=args.ranking_year,
+            output_dir=Path(args.output_dir),
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+            skip_seed=bool(args.skip_seed),
+        )
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "validate-global-multi-source":
+        ensure_postgres_schema(
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+        )
+        summary = validate_global_multi_source(
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+            ranking_year=args.ranking_year,
+        )
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0
+
     deps = PipelineCommandDependencies(
         ensure_postgres_schema=ensure_postgres_schema,
         load_snapshot=load_snapshot,
@@ -3055,11 +3550,13 @@ def main() -> int:
         normalize_universities=normalize_universities,
         write_universities=write_universities,
         sync_qs_multi_source_rankings=sync_qs_multi_source_rankings,
+        run_the_rankings_ingestion=run_the_rankings_ingestion,
         query_rankings=query_rankings,
         enrich_deferred_details=enrich_deferred_details,
         load_json_payload=load_json_payload,
         ingest_rankings_payload=ingest_rankings_payload,
         run_qs_universe_ingestion=run_qs_universe_ingestion,
+        qs_terminal_fetch_for_continuous_loop=_qs_terminal_fetch_for_continuous_loop,
         iter_all_qs_universes=iter_all_qs_universes,
         iter_major_qs_universes=iter_major_qs_universes,
         get_qs_universe_spec=get_qs_universe_spec,

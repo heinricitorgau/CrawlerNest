@@ -37,6 +37,7 @@ from the_crawler import (
     _pick_first,
     _extract_rows,
     _normalize_row,
+    extract_the_ranking_record,
     _discover_data_urls,
     _extract_rows_from_next_data,
     _extract_rows_from_html_tables,
@@ -215,6 +216,32 @@ class TestNormalizeRow(unittest.TestCase):
         result = _normalize_row(self._valid_row(), 2026)
         self.assertIsNotNone(result)
         self.assertEqual(result["metadata"]["raw_source"], "THE")
+
+
+# ---------------------------------------------------------------------------
+# extract_the_ranking_record
+# ---------------------------------------------------------------------------
+
+class TestExtractTheRankingRecord(unittest.TestCase):
+    def test_maps_normalized_row(self):
+        norm = _normalize_row(
+            {"name": "Oxford", "rank": 1, "country": "United Kingdom", "score": 98.2},
+            2026,
+        )
+        self.assertIsNotNone(norm)
+        rec = extract_the_ranking_record(norm)  # type: ignore[arg-type]
+        self.assertEqual(rec["university_name"], "Oxford")
+        self.assertEqual(rec["country"], "United Kingdom")
+        self.assertEqual(rec["rank"], 1)
+        self.assertAlmostEqual(rec["score"], 98.2)
+        self.assertEqual(rec["source"], "THE")
+        self.assertEqual(rec["ranking_year"], 2026)
+
+    def test_empty_country_becomes_blank(self):
+        norm = _normalize_row({"name": "MIT", "rank": 2}, 2026)
+        self.assertIsNotNone(norm)
+        rec = extract_the_ranking_record(norm)  # type: ignore[arg-type]
+        self.assertEqual(rec["country"], "")
 
 
 # ---------------------------------------------------------------------------

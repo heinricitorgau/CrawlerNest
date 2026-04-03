@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 import json
 import logging
 import os
+import random
 import re
 import ssl
 import threading
@@ -22,6 +23,16 @@ try:
 except ImportError:
     aiohttp = None  # type: ignore
 
+# Transport-layer failures only (do not retry HTTP 4xx/5xx from the server).
+_AIOHTTP_RETRY_EXCEPTIONS: tuple[type[BaseException], ...] = (asyncio.TimeoutError,)
+if aiohttp is not None:
+    _AIOHTTP_RETRY_EXCEPTIONS = (
+        asyncio.TimeoutError,
+        aiohttp.ClientConnectorError,  # type: ignore[attr-defined]
+        aiohttp.ClientOSError,  # type: ignore[attr-defined]
+        aiohttp.ServerDisconnectedError,  # type: ignore[attr-defined]
+    )
+
 try:
     import certifi
 except ImportError:
@@ -29,7 +40,6 @@ except ImportError:
 
 from config import Config
 from constants.countries import COUNTRY_CODES, get_available_countries
-from utils import retry
 
 logger = logging.getLogger("UniversityFetcher")
 
@@ -152,6 +162,188 @@ def _clear_failure_classification(config: Config) -> None:
     setattr(config, "_last_failure_message", "")
 
 
+def _safe_response_preview(text: str, max_len: int = 200) -> str:
+    """Readable snippet for logs when body may be binary, brotli/gzip mishandled, or HTML."""
+    if text is None:
+        return ""
+    s = str(text)
+    if not s:
+        return ""
+    sample = s[:4096]
+    ctrl = sum(1 for ch in sample if ord(ch) < 32 and ch not in "\n\r\t")
+    if len(sample) > 24 and ctrl > len(sample) * 0.22:
+        b = s.encode("utf-8", errors="replace")
+        return f"[non_text_or_compressed len={len(b)} hex24={b[:24].hex()}]"
+    out = s[:max_len].replace("\r", "\\r")
+    if len(s) > max_len:
+        out += "…"
+    return out
+
+
+def _endpoint_path_for_log(url: str) -> str:
+    try:
+        p = urlparse(url)
+        path = (p.path or "").strip() or "/"
+        return path if path.startswith("/") else f"/{path}"
+    except Exception:
+        return (url or "")[:160]
+
+
+def _headers_from_requests_response(resp: Any) -> Dict[str, str]:
+    if resp is None or not hasattr(resp, "headers") or resp.headers is None:
+        return {}
+    try:
+        return {str(k): str(v) for k, v in resp.headers.items()}
+    except Exception:
+        return {}
+
+
+def _normalize_header_map(headers: Optional[Dict[str, str]]) -> Dict[str, str]:
+    if not headers:
+        return {}
+    return {str(k).lower(): str(v) for k, v in headers.items()}
+
+
+def _is_upstream_maintenance_body(text: str) -> bool:
+    lower = (text or "").lower()
+    return "maintenance notice" in lower or "scheduled upgrade" in lower
+
+
+def _is_cloudflare_blocked(text: str) -> bool:
+    """HTML challenge / interstitial (body heuristics)."""
+    lower = str(text or "").lower()
+    if "just a moment" in lower or "cf-browser-verification" in lower:
+        return True
+    if "cloudflare" in lower and ("checking your browser" in lower or "ray id" in lower):
+        return True
+    if "attention required" in lower and "cloudflare" in lower:
+        return True
+    return False
+
+
+def _is_cf_challenge_signal(status_code: int, text: str, headers: Dict[str, str]) -> bool:
+    """
+    Cloudflare / bot interstitial. Avoid treating CF CDN success JSON as a block:
+    require HTML-ish body or explicit challenge markers with 403.
+    """
+    if _is_cloudflare_blocked(text):
+        return True
+    hl = _normalize_header_map(headers)
+    ct = (hl.get("content-type") or "").lower()
+    body = (text or "").lstrip()
+    if status_code == 403:
+        return True
+    if status_code >= 400 and hl.get("cf-ray") and (body.startswith("<") or "text/html" in ct):
+        return True
+    if "cf-ray" in hl and status_code >= 400 and "just a moment" in (text or "").lower():
+        return True
+    return False
+
+
+def _classify_qs_http_response(
+    url: str,
+    status_code: int,
+    text: str,
+    headers: Optional[Dict[str, str]] = None,
+) -> tuple[str, str]:
+    hdr = headers or {}
+    if _is_upstream_maintenance_body(text):
+        return "upstream_maintenance", f"QS maintenance / upgrade page at {url} (HTTP {status_code})"
+    if status_code == 403 or _is_cf_challenge_signal(status_code, text, hdr):
+        return "upstream_blocked", f"QS blocked request to {url} (HTTP {status_code})"
+    if status_code >= 400:
+        return "fetch_failed", f"QS request failed at {url} (HTTP {status_code})"
+    return "live_ok", ""
+
+
+def _classify_transport_exception_sync(exc: BaseException, url: str) -> tuple[str, str]:
+    if isinstance(exc, (requests.Timeout, requests.ConnectionError)):
+        return "network_error", f"QS network error at {url}: {exc}"
+    if isinstance(exc, requests.RequestException):
+        return "fetch_failed", f"QS request failed at {url}: {exc}"
+    return "fetch_failed", f"QS unexpected error at {url}: {exc}"
+
+
+def _classify_transport_exception_async(exc: BaseException, url: str) -> tuple[str, str]:
+    if isinstance(exc, asyncio.TimeoutError):
+        return "network_error", f"QS network error at {url}: {exc}"
+    if aiohttp is not None:
+        try:
+            if isinstance(exc, aiohttp.ClientConnectorError):  # type: ignore[attr-defined]
+                return "network_error", f"QS network error at {url}: {exc}"
+            if isinstance(exc, aiohttp.ClientError):  # type: ignore[attr-defined]
+                return "fetch_failed", f"QS request failed at {url}: {exc}"
+        except Exception:
+            pass
+    return "fetch_failed", f"QS unexpected error at {url}: {exc}"
+
+
+def _log_fetch_line(
+    *,
+    endpoint: str,
+    params: Optional[Dict[str, Any]],
+    status_code: Optional[int],
+    classification: str,
+    retry_count: int,
+    response_size: Optional[int],
+    preview: str,
+    purpose: str = "",
+) -> None:
+    pv = _safe_response_preview(preview, 120)
+    param_s = ""
+    if params:
+        try:
+            param_s = json.dumps(params, sort_keys=True, ensure_ascii=False)
+        except Exception:
+            param_s = str(params)
+        if len(param_s) > 280:
+            param_s = param_s[:277] + "..."
+    logger.info(
+        "[FETCH] endpoint=%s purpose=%s status=%s classification=%s retry_count=%s "
+        "response_size=%s params=%s preview=%r",
+        endpoint,
+        purpose or "-",
+        "-" if status_code is None else str(status_code),
+        classification,
+        retry_count,
+        "-" if response_size is None else str(response_size),
+        param_s or "-",
+        pv,
+    )
+
+
+def _log_qs_acquire_event(logger: logging.Logger, event: str, **fields: Any) -> None:
+    parts: List[str] = [f"event={event}"]
+    for key in sorted(fields.keys()):
+        val = fields[key]
+        if val is None:
+            continue
+        s = str(val).replace("\n", " ").strip()
+        if len(s) > 220:
+            s = s[:217] + "..."
+        parts.append(f"{key}={s}")
+    logger.info("qs_acquire %s", " ".join(parts))
+
+
+def _jittered_request_delay_seconds(config: Config) -> float:
+    base = float(getattr(config, "request_delay", 0.0) or 0.0)
+    ratio = float(getattr(config, "request_delay_jitter_ratio", 0.0) or 0.0)
+    ratio = max(0.0, min(0.9, ratio))
+    if base <= 0.0 or ratio <= 0.0:
+        return max(0.0, base)
+    span = base * ratio
+    return max(0.0, base + random.uniform(-span, span))
+
+
+def _qs_ranking_fetch_urls(config: Config, cand_nid: str) -> List[str]:
+    api_rest = f"https://www.topuniversities.com/rankings/api/ranking/{cand_nid}"
+    endpoint = str(getattr(config, "api_url", "") or "").strip() or "https://www.topuniversities.com/rankings/endpoint"
+    order = str(getattr(config, "qs_endpoint_order", "api_first") or "api_first").strip().lower()
+    if order == "endpoint_first":
+        return [endpoint, api_rest]
+    return [api_rest, endpoint]
+
+
 def _apply_cached_resolution(config: Config, cached: Dict[str, Any]) -> str:
     ranking_id = str(cached.get("ranking_id", "") or "").strip()
     config.ranking_id = ranking_id
@@ -160,7 +352,23 @@ def _apply_cached_resolution(config: Config, cached: Dict[str, Any]) -> str:
     config._ranking_id_candidates = list(cached.get("ranking_id_candidates", []) or [])
     config._subregion_id = str(cached.get("subregion_id", "") or "").strip()
     config._resolved_ranking_page_url = str(cached.get("resolved_ranking_page_url", "") or "").strip()
+    config._ranking_id_source = "cache"
+    config._page_resolution_skipped = True
+    config._page_resolution_attempted = False
     return ranking_id
+
+
+def _apply_direct_ranking_id(config: Config, ranking_id: str) -> str:
+    direct_ranking_id = str(ranking_id or "").strip()
+    config.ranking_id = direct_ranking_id
+    config._ranking_id_from_cache = False
+    config._used_resolution_cache = False
+    config._ranking_id_candidates = [direct_ranking_id] if direct_ranking_id else []
+    config._resolved_ranking_page_url = ""
+    config._ranking_id_source = "direct"
+    config._page_resolution_skipped = True
+    config._page_resolution_attempted = False
+    return direct_ranking_id
 
 
 def _clear_cached_resolution_state(config: Config) -> None:
@@ -170,11 +378,10 @@ def _clear_cached_resolution_state(config: Config) -> None:
     config._ranking_id_candidates = []
     config._prefetched_payload = None
     config._used_prefetched_payload = False
+    config._ranking_id_source = ""
+    config._page_resolution_skipped = False
+    config._page_resolution_attempted = False
 
-
-def _is_cloudflare_blocked(text: str) -> bool:
-    lower = str(text or "").lower()
-    return "just a moment" in lower or "cloudflare" in lower or "attention required" in lower
 
 if TYPE_CHECKING:
     import aiohttp as aiohttp_module
@@ -737,13 +944,102 @@ class UniversityFetcher:
     def __init__(self, config: Config):
         self.config = config
         self.session = requests.Session()
+        self.session.headers.update(
+            {
+                "User-Agent": config.user_agent,
+                "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+                "Accept-Encoding": "gzip, deflate",
+                "Connection": "keep-alive",
+            }
+        )
         self._last_request_time = 0.0
 
     def _wait_for_delay(self, url: Optional[str] = None):
-        delay = getattr(self.config, "request_delay", 0.0)
+        delay = _jittered_request_delay_seconds(self.config)
         if delay > 0:
             _global_wait_sync(url, delay)
         self._last_request_time = time.time()
+
+    def _session_get_transient_retry(
+        self,
+        url: str,
+        *,
+        params: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        purpose: str = "qs",
+    ) -> Any:
+        """
+        GET with jittered rate limit on the first attempt.
+        Retries only on timeout / connection errors (max qs_network_retry_max_attempts, backoff 1s→3s by default).
+        Does not retry HTTP 403, 5xx, or maintenance pages.
+        """
+        timeout = getattr(self.config, "timeout", 15)
+        max_attempts = int(getattr(self.config, "qs_network_retry_max_attempts", 3) or 1)
+        max_attempts = max(1, min(6, max_attempts))
+        raw_sleeps = getattr(self.config, "qs_network_retry_sleep_seconds", None)
+        if isinstance(raw_sleeps, (list, tuple)) and raw_sleeps:
+            sleep_schedule = [float(x) for x in raw_sleeps]
+        else:
+            sleep_schedule = [1.0, 3.0]
+        headers = headers if headers is not None else self.config.get_headers("api")
+        params = params or {}
+        endpoint = _endpoint_path_for_log(url)
+        last_exc: Optional[BaseException] = None
+        for attempt in range(max_attempts):
+            if attempt == 0:
+                self._wait_for_delay(url)
+            else:
+                si = attempt - 1
+                sleep_s = sleep_schedule[si] if si < len(sleep_schedule) else sleep_schedule[-1]
+                _log_qs_acquire_event(
+                    logger,
+                    "retry_attempted",
+                    url=url,
+                    purpose=purpose,
+                    attempt=attempt + 1,
+                    sleep_seconds=f"{sleep_s:.2f}",
+                    reason="network_backoff",
+                )
+                time.sleep(sleep_s)
+            try:
+                resp = self.session.get(url, timeout=timeout, headers=headers, params=params)
+            except (requests.Timeout, requests.ConnectionError) as exc:
+                last_exc = exc
+                cls_t, _msg_t = _classify_transport_exception_sync(exc, url)
+                _log_fetch_line(
+                    endpoint=endpoint,
+                    params=params,
+                    status_code=None,
+                    classification=cls_t,
+                    retry_count=attempt,
+                    response_size=None,
+                    preview=str(exc),
+                    purpose=purpose,
+                )
+                if attempt < max_attempts - 1:
+                    continue
+                _set_failure_classification(self.config, cls_t, str(exc))
+                raise
+            text = getattr(resp, "text", "") or ""
+            hdrs = _headers_from_requests_response(resp)
+            cls, _msg = _classify_qs_http_response(url, resp.status_code, text, hdrs)
+            log_cls = cls
+            if purpose == "page_resolve" and cls == "upstream_blocked":
+                log_cls = "entry_resolution_blocked"
+            _log_fetch_line(
+                endpoint=endpoint,
+                params=params,
+                status_code=resp.status_code,
+                classification=log_cls,
+                retry_count=attempt,
+                response_size=len(text),
+                preview=text,
+                purpose=purpose,
+            )
+            return resp
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("network retry exhausted without response")
 
     def close(self):
         try:
@@ -752,12 +1048,12 @@ class UniversityFetcher:
             pass
 
     def _ensure_ranking_id(self, *, force_refresh: bool = False) -> str:
-        nid = getattr(self.config, "ranking_id", None)
-        if nid and not bool(getattr(self.config, "_ranking_id_from_cache", False)) and not force_refresh:
-            return str(nid)
+        direct_ranking_id = str(
+            getattr(self.config, "_stable_ranking_id", "") or getattr(self.config, "ranking_id", "") or ""
+        ).strip()
 
         ranking_page_url = getattr(self.config, "ranking_page_url", None)
-        if not ranking_page_url:
+        if not ranking_page_url and not direct_ranking_id:
             raise ValueError("ranking_id or ranking_page_url is required")
 
         if not force_refresh:
@@ -770,21 +1066,42 @@ class UniversityFetcher:
                 )
                 _clear_failure_classification(self.config)
                 return _apply_cached_resolution(self.config, cached)
+            if direct_ranking_id:
+                logger.info(
+                    "Using direct ranking_id for %s/%s: %s",
+                    getattr(self.config, "universe_type", "unknown"),
+                    getattr(self.config, "universe_key", "unknown"),
+                    direct_ranking_id,
+                )
+                _clear_failure_classification(self.config)
+                return _apply_direct_ranking_id(self.config, direct_ranking_id)
+
+        if not ranking_page_url:
+            raise ValueError("ranking_page_url is required when cached/direct ranking_id is unavailable")
 
         tried: List[str] = []
         resolve_blocked = False
+        self.config._page_resolution_attempted = True
+        self.config._page_resolution_skipped = False
         for page_url in _ranking_page_fallbacks(ranking_page_url):
             tried.append(page_url)
             try:
-                self._wait_for_delay(page_url)
-                resp = self.session.get(
+                resp = self._session_get_transient_retry(
                     page_url,
-                    timeout=getattr(self.config, "timeout", 15),
-                    headers=self.config.get_headers(),
+                    params=None,
+                    headers=self.config.get_headers("page"),
+                    purpose="page_resolve",
                 )
-                if resp.status_code == 403 and _is_cloudflare_blocked(resp.text):
+                phdrs = _headers_from_requests_response(resp)
+                pcls, pmsg = _classify_qs_http_response(page_url, resp.status_code, resp.text or "", phdrs)
+                if pcls == "upstream_maintenance":
+                    _set_failure_classification(self.config, pcls, pmsg)
+                    logger.warning("QS entry resolution: maintenance page while fetching %s", page_url)
+                    continue
+                if pcls == "upstream_blocked":
                     resolve_blocked = True
-                    logger.warning("Europe entry resolution blocked by Cloudflare on %s", page_url)
+                    _set_failure_classification(self.config, pcls, pmsg)
+                    logger.warning("QS entry resolution blocked on %s", page_url)
                     continue
                 resp.raise_for_status()
                 prefetched = _extract_prefetched_score_nodes_from_html(resp.text)
@@ -803,6 +1120,7 @@ class UniversityFetcher:
                 self.config.ranking_id = nid2
                 self.config._ranking_id_from_cache = False
                 self.config._used_resolution_cache = False
+                self.config._ranking_id_source = "page_resolution"
                 _write_cached_resolution(
                     self.config,
                     ranking_id=str(nid2),
@@ -814,6 +1132,11 @@ class UniversityFetcher:
             except requests.RequestException as exc:
                 if getattr(exc.response, "status_code", None) == 403:
                     resolve_blocked = True
+                    _set_failure_classification(
+                        self.config,
+                        "upstream_blocked",
+                        f"QS entry resolution blocked on {page_url} (HTTP 403)",
+                    )
                 continue
             except Exception:
                 continue
@@ -823,6 +1146,7 @@ class UniversityFetcher:
             self.config.ranking_id = "0"
             self.config._ranking_id_from_cache = False
             self.config._used_resolution_cache = False
+            self.config._ranking_id_source = "page_prefetch"
             _clear_failure_classification(self.config)
             return "0"
         if resolve_blocked:
@@ -835,7 +1159,6 @@ class UniversityFetcher:
             f"Failed to resolve ranking_id (nid) from ranking_page_url. Tried: {tried}"
         )
 
-    @retry(max_attempts=3, delay=1.0, backoff=2.0, exceptions=(requests.RequestException,))
     def fetch_rankings(self) -> Optional[Dict[str, Any]]:
         return self._fetch_rankings_impl(allow_cache_refresh=True)
 
@@ -845,6 +1168,14 @@ class UniversityFetcher:
         if prefetched and int(getattr(self.config, "page", 0) or 0) == 0:
             self.config._used_prefetched_payload = True
             _clear_failure_classification(self.config)
+            _log_qs_acquire_event(
+                logger,
+                "live_success",
+                universe_type=getattr(self.config, "universe_type", ""),
+                universe_key=getattr(self.config, "universe_key", ""),
+                note="html_prefetch_score_nodes",
+                page="0",
+            )
             return prefetched
         if nid == "0":
             _clear_failure_classification(self.config)
@@ -861,15 +1192,16 @@ class UniversityFetcher:
         country_requested = bool(str(getattr(self.config, "country", "") or "").strip())
         region_variants = _region_param_variants(self.config)
         country_variants = _country_param_variants(self.config)
+        self._abort_ranking_fetch = False
+        self._upstream_block_warning_emitted = False
         for cand_nid in candidate_nids:
-            urls = [
-                f"https://www.topuniversities.com/rankings/api/ranking/{cand_nid}",
-                getattr(self.config, "api_url", "https://www.topuniversities.com/rankings/endpoint"),
-            ]
+            urls = _qs_ranking_fetch_urls(self.config, str(cand_nid))
             for url in urls:
                 key = _hint_key(str(cand_nid), url)
                 hint = _get_request_hint(self.config, key)
                 for extra, country_v in _ordered_param_pairs(region_variants, country_variants, hint):
+                            if self._abort_ranking_fetch:
+                                break
                             pair_key = _pair_key(str(cand_nid), url, extra, country_v)
                             if _is_pair_blacklisted(self.config, pair_key):
                                 continue
@@ -882,17 +1214,58 @@ class UniversityFetcher:
                                 params["countries"] = country_v
 
                             try:
-                                self._wait_for_delay(url)
-                                resp = self.session.get(
+                                resp = self._session_get_transient_retry(
                                     url,
-                                    timeout=getattr(self.config, "timeout", 15),
-                                    headers=self.config.get_headers(),
                                     params=params,
+                                    headers=self.config.get_headers("api"),
+                                    purpose="ranking_api",
                                 )
+                                if resp.status_code >= 400:
+                                    classification, message = _classify_qs_http_response(
+                                        url,
+                                        resp.status_code,
+                                        resp.text or "",
+                                        _headers_from_requests_response(resp),
+                                    )
+                                    _mark_pair_failed(self.config, pair_key)
+                                    _set_failure_classification(self.config, classification, message)
+                                    preview = _safe_response_preview(resp.text)
+                                    error_msg = (
+                                        f"{url!r}: HTTP {resp.status_code}; "
+                                        f"params={params}; body_preview={preview!r}"
+                                    )
+                                    errors.append(error_msg)
+                                    if classification in ("upstream_blocked", "upstream_maintenance"):
+                                        _log_qs_acquire_event(
+                                            logger,
+                                            classification,
+                                            url=url,
+                                            http_status=resp.status_code,
+                                            universe_type=getattr(self.config, "universe_type", ""),
+                                            universe_key=getattr(self.config, "universe_key", ""),
+                                            nid=str(cand_nid),
+                                        )
+                                        if not self._upstream_block_warning_emitted:
+                                            self._upstream_block_warning_emitted = True
+                                            logger.warning("%s", message)
+                                        self._abort_ranking_fetch = True
+                                        break
+                                    logger.warning("%s", message)
+                                    continue
                                 resp.raise_for_status()
                             except requests.RequestException as e:
                                 _mark_pair_failed(self.config, pair_key)
-                                _set_failure_classification(self.config, "list_fetch_failed", str(e))
+                                status_code = getattr(getattr(e, "response", None), "status_code", None)
+                                if status_code is not None:
+                                    classification, message = _classify_qs_http_response(
+                                        url,
+                                        int(status_code),
+                                        getattr(getattr(e, "response", None), "text", "") or "",
+                                        _headers_from_requests_response(getattr(e, "response", None)),
+                                    )
+                                else:
+                                    classification, message = _classify_transport_exception_sync(e, url)
+                                _set_failure_classification(self.config, classification, message)
                                 error_msg = f"{url!r}: {e}"
                                 errors.append(error_msg)
                                 logger.debug(f"Request failed: {error_msg}")
@@ -904,11 +1277,11 @@ class UniversityFetcher:
                                 _mark_pair_failed(self.config, pair_key)
                                 _set_failure_classification(
                                     self.config,
-                                    "parse_failed",
-                                    f"Non-JSON response from {url!r}",
+                                    "data_unavailable",
+                                    f"Non-JSON or malformed response from {url!r}",
                                 )
                                 ct = resp.headers.get("Content-Type", "")
-                                snippet = resp.text[:200]
+                                snippet = _safe_response_preview(resp.text)
                                 errors.append(
                                     f"QS API did not return JSON from {url!r} "
                                     f"(status={resp.status_code}, content-type={ct}). "
@@ -936,52 +1309,75 @@ class UniversityFetcher:
                                         ),
                                     )
                                 _clear_failure_classification(self.config)
+                                _log_qs_acquire_event(
+                                    logger,
+                                    "live_success",
+                                    url=url,
+                                    nid=str(cand_nid),
+                                    universe_type=getattr(self.config, "universe_type", ""),
+                                    universe_key=getattr(self.config, "universe_key", ""),
+                                    endpoint_kind=("rest" if "/rankings/api/ranking/" in url else "endpoint"),
+                                    page=str(getattr(self.config, "page", "")),
+                                )
                                 return data
                             if not country_requested and first_success is None:
                                 first_success = data
                             elif first_success is None:
                                 first_success = data
 
+                if self._abort_ranking_fetch:
+                    break
+            if self._abort_ranking_fetch:
+                break
+
         if (
             allow_cache_refresh
             and bool(getattr(self.config, "_used_resolution_cache", False))
             and from_page_url
         ):
+            direct_ranking_id = str(getattr(self.config, "_stable_ranking_id", "") or "").strip()
+            if direct_ranking_id and direct_ranking_id != str(nid):
+                logger.warning(
+                    "Cached ranking resolution failed during list fetch for %s/%s; falling back to direct ranking_id=%s",
+                    getattr(self.config, "universe_type", "unknown"),
+                    getattr(self.config, "universe_key", "unknown"),
+                    direct_ranking_id,
+                )
+                _apply_direct_ranking_id(self.config, direct_ranking_id)
+                return self._fetch_rankings_impl(allow_cache_refresh=False)
             logger.warning(
-                "Cached ranking resolution failed during list fetch for %s/%s; forcing refresh",
+                "Cached ranking resolution failed during list fetch for %s/%s; skipping page resolution fallback under stable-entry policy",
                 getattr(self.config, "universe_type", "unknown"),
                 getattr(self.config, "universe_key", "unknown"),
             )
-            _clear_cached_resolution_state(self.config)
-            self._ensure_ranking_id(force_refresh=True)
-            return self._fetch_rankings_impl(allow_cache_refresh=False)
 
         if first_success is not None:
             _clear_failure_classification(self.config)
+            _log_qs_acquire_event(
+                logger,
+                "live_success",
+                universe_type=getattr(self.config, "universe_type", ""),
+                universe_key=getattr(self.config, "universe_key", ""),
+                note="payload_mismatch_or_empty_nodes",
+                page=str(getattr(self.config, "page", "")),
+            )
             return first_success
         if errors:
-            _set_failure_classification(self.config, "list_fetch_failed", " | ".join(errors))
+            if str(getattr(self.config, "_last_failure_classification", "") or "").strip() == "":
+                _set_failure_classification(self.config, "fetch_failed", " | ".join(errors))
             raise RuntimeError(f"Failed to fetch ranking data using all endpoints for nid={nid}: {' | '.join(errors)}")
         return None
 
-    @retry(
-        max_attempts=3,
-        delay=1.0,
-        backoff=2.0,
-        exceptions=(requests.RequestException,),
-        log_attempt_failures=False,
-        log_final_failure=False,
-    )
     def fetch_university_detail(self, path: str) -> Optional[str]:
 
         if not path:
             return None
         url = _abs_url(getattr(self.config, "base_url", "https://www.topuniversities.com"), path)
-        self._wait_for_delay(url)
-        resp = self.session.get(
+        resp = self._session_get_transient_retry(
             url,
-            timeout=getattr(self.config, "timeout", 15),
-            headers=self.config.get_headers(),
+            params=None,
+            headers=self.config.get_headers("detail"),
+            purpose="detail_page",
         )
         resp.raise_for_status()
         return resp.text
@@ -1009,7 +1405,7 @@ class AsyncUniversityFetcher:
         self._last_request_time = 0.0
 
     async def _wait_for_delay(self, url: Optional[str] = None):
-        delay = getattr(self.config, "request_delay", 0.0)
+        delay = _jittered_request_delay_seconds(self.config)
         if delay > 0:
             await _global_wait_async(url, delay)
         self._last_request_time = time.time()
@@ -1031,13 +1427,99 @@ class AsyncUniversityFetcher:
             await self.session.close()
             self.session = None
 
+    async def _async_session_get_transient_retry(
+        self,
+        url: str,
+        *,
+        params: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        purpose: str = "qs",
+    ) -> tuple[int, str, Dict[str, str]]:
+        await self._ensure_session()
+        assert self.session is not None
+        aiohttp_mod = cast("aiohttp_module", aiohttp)
+        timeout = aiohttp_mod.ClientTimeout(total=float(getattr(self.config, "timeout", 15) or 15))
+        max_attempts = int(getattr(self.config, "qs_network_retry_max_attempts", 3) or 1)
+        max_attempts = max(1, min(6, max_attempts))
+        raw_sleeps = getattr(self.config, "qs_network_retry_sleep_seconds", None)
+        if isinstance(raw_sleeps, (list, tuple)) and raw_sleeps:
+            sleep_schedule = [float(x) for x in raw_sleeps]
+        else:
+            sleep_schedule = [1.0, 3.0]
+        headers = headers if headers is not None else self.config.get_headers("api")
+        params = params if params is not None else {}
+        endpoint = _endpoint_path_for_log(url)
+        last_exc: Optional[BaseException] = None
+        for attempt in range(max_attempts):
+            if attempt == 0:
+                await self._wait_for_delay(url)
+            else:
+                si = attempt - 1
+                sleep_s = sleep_schedule[si] if si < len(sleep_schedule) else sleep_schedule[-1]
+                _log_qs_acquire_event(
+                    logger,
+                    "retry_attempted",
+                    url=url,
+                    purpose=purpose,
+                    attempt=attempt + 1,
+                    sleep_seconds=f"{sleep_s:.2f}",
+                    reason="network_backoff",
+                )
+                await asyncio.sleep(sleep_s)
+            try:
+                async with self.session.get(
+                    url,
+                    params=params or None,
+                    headers=headers,
+                    ssl=self._ssl_context,
+                    timeout=timeout,
+                ) as resp:
+                    status = resp.status
+                    hdr_dict = {str(k): str(v) for k, v in resp.headers.items()}
+                    text = await resp.text()
+            except _AIOHTTP_RETRY_EXCEPTIONS as exc:
+                last_exc = exc
+                cls_t, _msg_t = _classify_transport_exception_async(exc, url)
+                _log_fetch_line(
+                    endpoint=endpoint,
+                    params=params,
+                    status_code=None,
+                    classification=cls_t,
+                    retry_count=attempt,
+                    response_size=None,
+                    preview=str(exc),
+                    purpose=purpose,
+                )
+                if attempt < max_attempts - 1:
+                    continue
+                _set_failure_classification(self.config, cls_t, str(exc))
+                raise
+            cls, _msg = _classify_qs_http_response(url, status, text, hdr_dict)
+            log_cls = cls
+            if purpose == "page_resolve" and cls == "upstream_blocked":
+                log_cls = "entry_resolution_blocked"
+            _log_fetch_line(
+                endpoint=endpoint,
+                params=params,
+                status_code=status,
+                classification=log_cls,
+                retry_count=attempt,
+                response_size=len(text or ""),
+                preview=text or "",
+                purpose=purpose,
+            )
+            return status, text, hdr_dict
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("async network retry exhausted without response")
+
     async def _ensure_ranking_id(self, *, force_refresh: bool = False) -> str:
-        nid = getattr(self.config, "ranking_id", None)
-        if nid and not bool(getattr(self.config, "_ranking_id_from_cache", False)) and not force_refresh:
-            return str(nid)
+        direct_ranking_id = str(
+            getattr(self.config, "_stable_ranking_id", "") or getattr(self.config, "ranking_id", "") or ""
+        ).strip()
 
         ranking_page_url = getattr(self.config, "ranking_page_url", None)
-        if not ranking_page_url:
+        if not ranking_page_url and not direct_ranking_id:
             raise ValueError("ranking_id or ranking_page_url is required")
 
         if not force_refresh:
@@ -1050,27 +1532,47 @@ class AsyncUniversityFetcher:
                 )
                 _clear_failure_classification(self.config)
                 return _apply_cached_resolution(self.config, cached)
+            if direct_ranking_id:
+                logger.info(
+                    "Using direct ranking_id for %s/%s: %s",
+                    getattr(self.config, "universe_type", "unknown"),
+                    getattr(self.config, "universe_key", "unknown"),
+                    direct_ranking_id,
+                )
+                _clear_failure_classification(self.config)
+                return _apply_direct_ranking_id(self.config, direct_ranking_id)
+
+        if not ranking_page_url:
+            raise ValueError("ranking_page_url is required when cached/direct ranking_id is unavailable")
 
         await self._ensure_session()
         assert self.session is not None
         tried: List[str] = []
         resolve_blocked = False
+        self.config._page_resolution_attempted = True
+        self.config._page_resolution_skipped = False
         for page_url in _ranking_page_fallbacks(ranking_page_url):
             tried.append(page_url)
             try:
-                await self._wait_for_delay(page_url)
-                async with self.session.get(
+                status, text, phdrs = await self._async_session_get_transient_retry(
                     page_url,
-                    timeout=getattr(self.config, "timeout", 15),
-                    ssl=self._ssl_context,
-                ) as resp:
-                    text = await resp.text()
-                    if resp.status == 403 and _is_cloudflare_blocked(text):
-                        resolve_blocked = True
-                        logger.warning("Europe entry resolution blocked by Cloudflare on %s", page_url)
-                        continue
-                    if resp.status >= 400:
-                        continue
+                    params=None,
+                    headers=self.config.get_headers("page"),
+                    purpose="page_resolve",
+                )
+                pcls, pmsg = _classify_qs_http_response(page_url, status, text or "", phdrs)
+                if pcls == "upstream_maintenance":
+                    _set_failure_classification(self.config, pcls, pmsg)
+                    logger.warning("QS entry resolution: maintenance page while fetching %s", page_url)
+                    continue
+                if pcls == "upstream_blocked":
+                    resolve_blocked = True
+                    _set_failure_classification(self.config, pcls, pmsg)
+                    logger.warning("QS entry resolution blocked on %s", page_url)
+                    continue
+                if status >= 400:
+                    _set_failure_classification(self.config, pcls, pmsg)
+                    continue
                 prefetched = _extract_prefetched_score_nodes_from_html(text)
                 if prefetched and page_url == ranking_page_url:
                     self.config._prefetched_payload = prefetched
@@ -1087,6 +1589,7 @@ class AsyncUniversityFetcher:
                 self.config.ranking_id = nid2
                 self.config._ranking_id_from_cache = False
                 self.config._used_resolution_cache = False
+                self.config._ranking_id_source = "page_resolution"
                 _write_cached_resolution(
                     self.config,
                     ranking_id=str(nid2),
@@ -1102,6 +1605,7 @@ class AsyncUniversityFetcher:
             self.config.ranking_id = "0"
             self.config._ranking_id_from_cache = False
             self.config._used_resolution_cache = False
+            self.config._ranking_id_source = "page_prefetch"
             _clear_failure_classification(self.config)
             return "0"
         if resolve_blocked:
@@ -1123,6 +1627,14 @@ class AsyncUniversityFetcher:
         if prefetched and int(getattr(self.config, "page", 0) or 0) == 0:
             self.config._used_prefetched_payload = True
             _clear_failure_classification(self.config)
+            _log_qs_acquire_event(
+                logger,
+                "live_success",
+                universe_type=getattr(self.config, "universe_type", ""),
+                universe_key=getattr(self.config, "universe_key", ""),
+                note="html_prefetch_score_nodes",
+                page="0",
+            )
             return prefetched
         if nid == "0":
             _clear_failure_classification(self.config)
@@ -1142,15 +1654,16 @@ class AsyncUniversityFetcher:
         country_requested = bool(str(getattr(self.config, "country", "") or "").strip())
         region_variants = _region_param_variants(self.config)
         country_variants = _country_param_variants(self.config)
+        self._abort_ranking_fetch = False
+        self._upstream_block_warning_emitted = False
         for cand_nid in candidate_nids:
-            urls = [
-                f"https://www.topuniversities.com/rankings/api/ranking/{cand_nid}",
-                getattr(self.config, "api_url", "https://www.topuniversities.com/rankings/endpoint"),
-            ]
+            urls = _qs_ranking_fetch_urls(self.config, str(cand_nid))
             for url in urls:
                 key = _hint_key(str(cand_nid), url)
                 hint = _get_request_hint(self.config, key)
                 for extra, country_v in _ordered_param_pairs(region_variants, country_variants, hint):
+                            if self._abort_ranking_fetch:
+                                break
                             pair_key = _pair_key(str(cand_nid), url, extra, country_v)
                             if _is_pair_blacklisted(self.config, pair_key):
                                 continue
@@ -1163,50 +1676,66 @@ class AsyncUniversityFetcher:
                                 params["countries"] = country_v
 
                             try:
-                                await self._wait_for_delay(url)
-                                async with self.session.get(
+                                status, text, hdrs = await self._async_session_get_transient_retry(
                                     url,
-                                    timeout=getattr(self.config, "timeout", 15),
-                                    ssl=self._ssl_context,
                                     params=params,
-                                ) as resp:
-                                    ct = resp.headers.get("Content-Type", "")
-                                    if resp.status >= 400:
-                                        _mark_pair_failed(self.config, pair_key)
-                                        _set_failure_classification(
-                                            self.config,
-                                            "list_fetch_failed",
-                                            f"HTTP {resp.status} from {url!r}",
+                                    headers=self.config.get_headers("api"),
+                                    purpose="ranking_api",
+                                )
+                                ct = hdrs.get("Content-Type", "") or hdrs.get("content-type", "")
+                                if status >= 400:
+                                    classification, message = _classify_qs_http_response(
+                                        url,
+                                        status,
+                                        text or "",
+                                        hdrs,
+                                    )
+                                    _mark_pair_failed(self.config, pair_key)
+                                    _set_failure_classification(self.config, classification, message)
+                                    preview = _safe_response_preview(text)
+                                    errors.append(
+                                        f"QS API error from {url!r} (status={status}, content-type={ct}). "
+                                        f"params={params}; body_preview={preview!r}"
+                                    )
+                                    if classification in ("upstream_blocked", "upstream_maintenance"):
+                                        _log_qs_acquire_event(
+                                            logger,
+                                            classification,
+                                            url=url,
+                                            http_status=status,
+                                            universe_type=getattr(self.config, "universe_type", ""),
+                                            universe_key=getattr(self.config, "universe_key", ""),
+                                            nid=str(cand_nid),
                                         )
-                                        text = await resp.text()
-                                        errors.append(
-                                            f"QS API error from {url!r} (status={resp.status}, content-type={ct}). "
-                                            f"First 200 chars: {text[:200]!r}"
-                                        )
-                                        continue
-
-                                    try:
-                                        data = await resp.json()
-                                    except Exception as e:
-                                        _mark_pair_failed(self.config, pair_key)
-                                        _set_failure_classification(
-                                            self.config,
-                                            "parse_failed",
-                                            f"Non-JSON response from {url!r}: {e}",
-                                        )
-                                        text = await resp.text()
-                                        errors.append(
-                                            f"QS API did not return JSON from {url!r} "
-                                            f"(status={resp.status}, content-type={ct}). "
-                                            f"First 200 chars: {text[:200]!r}; parser_error={e}"
-                                        )
-                                        continue
+                                        if not self._upstream_block_warning_emitted:
+                                            self._upstream_block_warning_emitted = True
+                                            logger.warning("%s", message)
+                                        self._abort_ranking_fetch = True
+                                        break
+                                    logger.warning("%s", message)
+                                    continue
+                                try:
+                                    data = json.loads(text)
+                                except ValueError as e:
+                                    _mark_pair_failed(self.config, pair_key)
+                                    _set_failure_classification(
+                                        self.config,
+                                        "data_unavailable",
+                                        f"Non-JSON or malformed response from {url!r}: {e}",
+                                    )
+                                    errors.append(
+                                        f"QS API did not return JSON from {url!r} "
+                                        f"(status={status}, content-type={ct}). "
+                                        f"First 200 chars: {_safe_response_preview(text)!r}; parser_error={e}"
+                                    )
+                                    continue
                             except Exception as e:
                                 _mark_pair_failed(self.config, pair_key)
-                                _set_failure_classification(self.config, "list_fetch_failed", str(e))
+                                cls_e, msg_e = _classify_transport_exception_async(e, url)
+                                _set_failure_classification(self.config, cls_e, msg_e)
                                 error_msg = f"{url!r}: {e}"
                                 errors.append(error_msg)
-                                logger.debug(f"Async request failed: {error_msg}")
+                                logger.debug("Async request failed: %s", error_msg)
                                 continue
 
                             if not _payload_matches_page(data, getattr(self.config, "ranking_page_url", None)):
@@ -1229,31 +1758,62 @@ class AsyncUniversityFetcher:
                                         ),
                                     )
                                 _clear_failure_classification(self.config)
+                                _log_qs_acquire_event(
+                                    logger,
+                                    "live_success",
+                                    url=url,
+                                    nid=str(cand_nid),
+                                    universe_type=getattr(self.config, "universe_type", ""),
+                                    universe_key=getattr(self.config, "universe_key", ""),
+                                    endpoint_kind=("rest" if "/rankings/api/ranking/" in url else "endpoint"),
+                                    page=str(getattr(self.config, "page", "")),
+                                )
                                 return data
                             if not country_requested and first_success is None:
                                 first_success = data
                             elif first_success is None:
                                 first_success = data
 
+                if self._abort_ranking_fetch:
+                    break
+            if self._abort_ranking_fetch:
+                break
+
         if (
             allow_cache_refresh
             and bool(getattr(self.config, "_used_resolution_cache", False))
             and from_page_url
         ):
+            direct_ranking_id = str(getattr(self.config, "_stable_ranking_id", "") or "").strip()
+            if direct_ranking_id and direct_ranking_id != str(nid):
+                logger.warning(
+                    "Cached ranking resolution failed during list fetch for %s/%s; falling back to direct ranking_id=%s",
+                    getattr(self.config, "universe_type", "unknown"),
+                    getattr(self.config, "universe_key", "unknown"),
+                    direct_ranking_id,
+                )
+                _apply_direct_ranking_id(self.config, direct_ranking_id)
+                return await self._fetch_rankings_impl(allow_cache_refresh=False)
             logger.warning(
-                "Cached ranking resolution failed during list fetch for %s/%s; forcing refresh",
+                "Cached ranking resolution failed during list fetch for %s/%s; skipping page resolution fallback under stable-entry policy",
                 getattr(self.config, "universe_type", "unknown"),
                 getattr(self.config, "universe_key", "unknown"),
             )
-            _clear_cached_resolution_state(self.config)
-            await self._ensure_ranking_id(force_refresh=True)
-            return await self._fetch_rankings_impl(allow_cache_refresh=False)
 
         if first_success is not None:
             _clear_failure_classification(self.config)
+            _log_qs_acquire_event(
+                logger,
+                "live_success",
+                universe_type=getattr(self.config, "universe_type", ""),
+                universe_key=getattr(self.config, "universe_key", ""),
+                note="payload_mismatch_or_empty_nodes",
+                page=str(getattr(self.config, "page", "")),
+            )
             return first_success
         if errors:
-            _set_failure_classification(self.config, "list_fetch_failed", " | ".join(errors))
+            if str(getattr(self.config, "_last_failure_classification", "") or "").strip() == "":
+                _set_failure_classification(self.config, "fetch_failed", " | ".join(errors))
             raise RuntimeError(f"Failed to fetch ranking data using all endpoints for nid={nid}: {' | '.join(errors)}")
         return None
 
@@ -1282,6 +1842,7 @@ class AsyncUniversityFetcher:
                         url,
                         timeout=getattr(self.config, "timeout", 15),
                         ssl=self._ssl_context,
+                        headers=self.config.get_headers("detail"),
                     ) as resp:
                         resp.raise_for_status()
                         return await resp.text()

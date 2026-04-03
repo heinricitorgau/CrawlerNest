@@ -273,6 +273,33 @@ def _make_profile_url(row: dict[str, Any]) -> str | None:
     return None
 
 
+def extract_the_ranking_record(row: dict[str, Any]) -> dict[str, Any]:
+    """Map a normalized THE row (see `_normalize_row`) to the documented ingestion shape."""
+    name = row.get("name") or row.get("university_name")
+    if not name:
+        raise ValueError("row must include name or university_name")
+    ry = row.get("ranking_year", row.get("year"))
+    if ry is None:
+        raise ValueError("row must include year or ranking_year")
+    rank = row.get("rank")
+    if rank is None:
+        raise ValueError("row must include rank")
+    country = row.get("country")
+    return {
+        "university_name": str(name).strip(),
+        "country": str(country).strip() if country else "",
+        "rank": int(rank),
+        "score": row.get("score"),
+        "source": "THE",
+        "ranking_year": int(ry),
+    }
+
+
+def run_the_crawl(year: int = 2026, output_dir: Path | None = None) -> Path:
+    """Pipeline alias for QS parity (`run_qs_crawl` / `run_the_crawl`)."""
+    return crawl_the_rankings(year=year, output_dir=output_dir)
+
+
 def _normalize_row(row: dict[str, Any], year: int) -> dict[str, Any] | None:
     name = _pick_first(row, "name", "university_name", "institution", "school")
     if not name:
@@ -379,26 +406,35 @@ def _extract_rows_from_html_tables(html: str, year: int, page_url: str) -> list[
 
 
 def _load_payload_for_year(year: int, session: requests.Session) -> tuple[Any | None, str | None]:
+    """Prefer static JSON blobs, then `__NEXT_DATA__` on the rankings page, then fallbacks."""
+    seen: set[str] = set()
+    ordered_json: list[str] = []
+    for url in _fallback_urls(year):
+        if url in seen:
+            continue
+        seen.add(url)
+        ordered_json.append(url)
+
+    for url in ordered_json:
+        payload = _request_json(url, session)
+        rows = _extract_rows(payload)
+        if rows:
+            return payload, url
+
     html = _request_text(WORLD_RANKINGS_PAGE, session)
-    candidate_urls: list[str] = []
+    extra_json: list[str] = []
 
     if html:
         next_data_rows = _extract_rows_from_next_data(html)
         if next_data_rows:
             return {"rows": next_data_rows}, WORLD_RANKINGS_PAGE
-        candidate_urls.extend(_discover_data_urls(html, year))
+        for url in _discover_data_urls(html, year):
+            if url in seen:
+                continue
+            seen.add(url)
+            extra_json.append(url)
 
-    candidate_urls.extend(_fallback_urls(year))
-
-    seen: set[str] = set()
-    ordered_urls: list[str] = []
-    for url in candidate_urls:
-        if url in seen:
-            continue
-        seen.add(url)
-        ordered_urls.append(url)
-
-    for url in ordered_urls:
+    for url in extra_json:
         payload = _request_json(url, session)
         rows = _extract_rows(payload)
         if rows:
@@ -410,7 +446,7 @@ def _load_payload_for_year(year: int, session: requests.Session) -> tuple[Any | 
         if page_url in seen_pages:
             continue
         seen_pages.add(page_url)
-        page_html = html if page_url == WORLD_RANKINGS_PAGE else _request_text(page_url, session)
+        page_html = html if page_url == WORLD_RANKINGS_PAGE and html else _request_text(page_url, session)
         if not page_html:
             continue
 
@@ -418,8 +454,7 @@ def _load_payload_for_year(year: int, session: requests.Session) -> tuple[Any | 
         if next_data_rows:
             return {"rows": next_data_rows}, page_url
 
-        discovered_urls = _discover_data_urls(page_html, year)
-        for url in discovered_urls:
+        for url in _discover_data_urls(page_html, year):
             if url in seen:
                 continue
             seen.add(url)
@@ -440,8 +475,7 @@ def crawl_the_rankings(year: int = 2026, output_dir: Path | None = None) -> Path
     output_base.mkdir(parents=True, exist_ok=True)
     output_path = output_base / f"the_rankings_{year}.json"
 
-    print(f"[the] starting crawl for year={year}")
-    print(f"[the] page={WORLD_RANKINGS_PAGE}")
+    print(f"[THE_CRAWL] start year={year} source=THE primary_page={WORLD_RANKINGS_PAGE}")
 
     session = requests.Session()
     try:
@@ -475,9 +509,11 @@ def crawl_the_rankings(year: int = 2026, output_dir: Path | None = None) -> Path
     }
     output_path.write_text(json.dumps(output_payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(f"[the] total rows fetched: {len(raw_rows)}")
-    print(f"[the] rows with valid rank: {valid_rank_count}")
-    print(f"[the] output: {output_path}")
+    print(
+        f"[THE_CRAWL] rows_fetched={len(raw_rows)} year={year} source=THE "
+        f"valid_rows={valid_rank_count} resolved={resolved_url!r}"
+    )
+    print(f"[THE_CRAWL] output={output_path}")
     return output_path
 
 
