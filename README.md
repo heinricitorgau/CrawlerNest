@@ -11,7 +11,7 @@ CrawlerNest is an end-to-end data platform that transforms fragmented web data (
 While APIs and CLIs validate the data, students and advisors need a visual, comparative interface to make life-altering decisions. Raw data is overwhelming; by layering a deterministic decision engine and a clean UX over our data infrastructure, we provide clarity instead of just volume.
 
 ## Current Capabilities
-*   **Data Pipeline:** Asynchronous, compliance-aware crawlers fetching global rankings (2,736 universities from QS + THE dual source).
+*   **Data Pipeline:** Asynchronous, compliance-aware crawlers fetching global rankings (2,736 universities from QS + THE dual source). THE world rankings prefer **structured JSON** (CDN blobs when published, else Next.js `__NEXT_DATA__` on official pages)—not brittle HTML-table scraping as the primary path.
 *   **Multi-Universe Ingestion:** QS global / region / subject / special universes can be ingested through one unified runner.
 *   **Ingestion Traceability:** Every ingest run now writes `run_id` / `updated_at` trace fields into PostgreSQL ranking records.
 *   **Canonical Recovery Path:** Unlinked crawled universities can now be promoted into `canonical_university` and backfilled into `warehouse.ranking_record` without changing crawler behavior.
@@ -185,6 +185,32 @@ If you only want THE ingest without extra seed/backfill recovery:
 ./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --skip-seed --pg-user test --pg-database clawer
 ```
 
+#### 2.4 Chain the main `run` command with THE (optional)
+
+After QS crawl → normalize → DB write → QS multi-source sync, you can ingest THE in the same invocation (does not change default behavior unless you pass the flag):
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run --limit 2500 --ranking-year 2026 \
+  --with-the-rankings --the-ranking-year 2026 \
+  --pg-user test --pg-database clawer
+```
+
+Useful flags:
+
+- `--the-ranking-year` — THE edition (default: `2026`)
+- `--the-output-dir` — where `the_rankings_<year>.json` is written (defaults to `crawlernest/crawlernest-kb/databases`)
+- `--the-skip-seed` — skip canonical seed / legacy backfill after THE ingest (faster, less recovery)
+
+Pipeline logs include `[THE_CRAWL]` during the THE crawl; THE rows use `run_id` batch style `the-<year>` in the multi-source ingest path.
+
+#### 2.5 All-in-one QS major regions (continuous loop)
+
+This single command runs the World ranking and all five major regional rankings (Europe, Asia, Latin America, Oceania, Africa) sequentially in a continuous loop:
+
+```bash
+./.venv/bin/python crawlernest/run_pipeline.py run-qs-major --ranking-year 2026
+```
+
 Important runtime behavior for QS universe commands:
 
 - `run-qs-*` and `run-qs-universes` are continuous commands and keep running until `Ctrl+C`
@@ -222,6 +248,17 @@ This command:
 - checks all configured QS universes
 - reports which universe/year pairs currently have `0` rows in `warehouse.ranking_record`
 - does **not** re-crawl by itself
+
+#### 3.3 Count THE rows in `warehouse.ranking_record`
+
+`ranking_record` stores `ranking_source_id`, not a plain `source` text column. Join the registry:
+
+```sql
+SELECT COUNT(*)
+FROM warehouse.ranking_record rr
+JOIN warehouse.ranking_source rs ON rs.ranking_source_id = rr.ranking_source_id
+WHERE rs.source_code = 'THE';
+```
 
 ### 4. Visibility Recovery Commands
 
@@ -310,13 +347,3 @@ The repo currently has two layers:
 
 - outer workspace: docs, deployment assets, editor config, top-level project material
 - inner platform workspace: [`crawlernest/`](crawlernest) containing the runnable pipeline, backend, schema, and frontend
-
-### 3. All-in-One Major Rankings Run
-This single command runs the World ranking and all 5 major regional rankings (Europe, Asia, Latin America, Oceania, Africa) sequentially in a continuous loop.
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py run-qs-major --ranking-year 2026
-```
-
----
-
-For engineering operations, API invariants, and testing logic, see the [Engineering Validation & Maintenance Guide](docs/foundation/TESTING_GUIDE.md).
