@@ -15,24 +15,26 @@ crawler -> extractor -> normalize -> entity resolution
 
 ## Deterministic Stages
 
-1. Per-source normalization
-- if raw score exists: convert to 0-100 using source scale
-- if rank exists: convert to 0-100 by rank percentile against source max rank
-- if both exist: blended by `score_rank_blend` (default 0.7)
+1. Per-source rank collection
+- collect available source ranks from QS / THE / ARWU
+- preserve the source ranks as the only ranking-order input
 
-2. Source weighting
+2. Rank aggregation
 - configurable per source
 - default:
   - QS: 0.40
   - THE: 0.35
   - ARWU: 0.25
+- aggregated rank value = weighted average of available source ranks
+- lower aggregated rank value is better
 
 3. Composite score
-- weighted average over **available** sources only
-- no unfair penalty for missing source rows
+- optional display metric only
+- weighted average over available source scores only when scores exist
+- never used for ranking order
 
 4. Display rank
-- sort by composite score desc
+- sort by aggregated rank value asc
 - dense rank assignment (ties share rank)
 
 ## Explainability Output
@@ -50,10 +52,10 @@ Per university output includes:
 
 ## Edge Case Handling
 
-- Missing source data: weighted average renormalizes by used weights
+- Missing source data: weighted average renormalizes by used rank weights
 - Tied scores: dense rank
 - Rank ranges (`201-250`): midpoint
-- Conflicting score scales: source-specific scale config + safe fallback
+- Conflicting score scales: source-specific scale config affects display only
 - Partial year coverage: aggregate per year independently
 - Single-source universities: still aggregated, lower `coverage_ratio`
 
