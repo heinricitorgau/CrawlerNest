@@ -3,7 +3,7 @@
   "detail_deferred_paths": [],
   "detail_forbidden_count": 0,
   "failure_classification": "upstream_blocked",
-  "failure_message": "QS blocked request to https://www.topuniversities.com/rankings/endpoint (HTTP 403)",
+  "failure_message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/4023765 (HTTP 403)",
   "ranking_id_source": "direct",
   "used_resolution_cache": false,
   "resolved_ranking_id": "4023765",
@@ -26,7 +26,7 @@
     "enable_aggregation": true
   },
   "live_fetch_classification": "upstream_blocked",
-  "live_fetch_message": "QS blocked request to https://www.topuniversities.com/rankings/endpoint (HTTP 403)",
+  "live_fetch_message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/4023765 (HTTP 403)",
   "used_snapshot_fallback": false,
   "snapshot_fallback_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universes/2026/subject/engineering-technology/raw_snapshot.json",
   "run_backing": "live_blocked_no_fallback"

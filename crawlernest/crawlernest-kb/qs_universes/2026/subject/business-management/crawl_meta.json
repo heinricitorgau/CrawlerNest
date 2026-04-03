@@ -3,7 +3,7 @@
   "detail_deferred_paths": [],
   "detail_forbidden_count": 0,
   "failure_classification": "upstream_blocked",
-  "failure_message": "QS blocked request to https://www.topuniversities.com/rankings/endpoint (HTTP 403)",
+  "failure_message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/4023720 (HTTP 403)",
   "ranking_id_source": "cache",
   "used_resolution_cache": true,
   "resolved_ranking_id": "4023720",
@@ -26,7 +26,7 @@
     "enable_aggregation": true
   },
   "live_fetch_classification": "upstream_blocked",
-  "live_fetch_message": "QS blocked request to https://www.topuniversities.com/rankings/endpoint (HTTP 403)",
+  "live_fetch_message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/4023720 (HTTP 403)",
   "used_snapshot_fallback": true,
   "snapshot_fallback_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universes/2026/subject/business-management/raw_snapshot.json",
   "run_backing": "fallback_snapshot"
