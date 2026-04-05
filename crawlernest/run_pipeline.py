@@ -9,38 +9,22 @@ import datetime as dt
 import json
 import logging
 import os
-import re
 import sys
 import time
-import unicodedata
 from pathlib import Path
 from typing import Iterable, Optional, Any
 
-
-REPO_ROOT = Path(__file__).resolve().parent
-if (REPO_ROOT / "crawlernest-core").is_dir():
-    MODULE_ROOT = REPO_ROOT
-else:
-    MODULE_ROOT = REPO_ROOT / "crawlernest"
-
-
-def _bootstrap_module_paths() -> None:
-    module_dirs = [
-        MODULE_ROOT / "crawlernest-core",
-        MODULE_ROOT / "crawlernest-extractors",
-        MODULE_ROOT / "crawlernest-jobs",
-        MODULE_ROOT / "crawlernest-db-writer",
-        MODULE_ROOT / "crawlernest-analytics",
-    ]
-    for mod_dir in module_dirs:
-        if mod_dir.is_dir() and str(mod_dir) not in sys.path:
-            sys.path.insert(0, str(mod_dir))
+from pipeline.bootstrap import bootstrap_module_paths, resolve_repo_paths
+from pipeline.cli import build_parser as build_pipeline_parser
+from pipeline.router import dispatch as dispatch_basic_commands
+from pipeline.stages.crawl_stage import execute_run_crawl_stage
+from pipeline.stages.write_stage import execute_run_write_stage
 
 
-_bootstrap_module_paths()
+REPO_ROOT, MODULE_ROOT = resolve_repo_paths(__file__)
+bootstrap_module_paths(MODULE_ROOT)
 
 from config import Config  # noqa: E402
-from constants import COUNTRY_CODES, COUNTRY_NAME_ALIASES  # noqa: E402
 from crawler import UniversityCrawler  # noqa: E402
 from db_writer import DBWriter  # noqa: E402
 from extractor import DataExtractor  # noqa: E402
@@ -79,6 +63,7 @@ from recommendation_engine import (  # noqa: E402
     recommend_universities_v3,
 )
 from ranking_aggregation.repository import RankingAggregationRepository  # noqa: E402
+from pipeline.utils.normalization import normalize_universities  # noqa: E402
 
 try:  # noqa: E402
     import psycopg2
@@ -92,47 +77,8 @@ DEFAULT_RANKING_YEAR = dt.datetime.now().year
 _QS_PIPELINE_LOG = logging.getLogger("CrawlerNest.qs")
 
 
-def _normalize_space(value: str) -> str:
-    return " ".join((value or "").strip().split())
-
-
-def _normalize_country(value: str) -> str:
-    cleaned = _normalize_space(value)
-    if not cleaned:
-        return cleaned
-    lowered = COUNTRY_NAME_ALIASES.get(cleaned.lower(), cleaned.lower())
-    lowered = "".join(ch for ch in unicodedata.normalize("NFKD", lowered) if not unicodedata.combining(ch))
-    lowered = re.sub(r"[^a-z0-9 ]+", " ", lowered)
-    lowered = COUNTRY_NAME_ALIASES.get(_normalize_space(lowered), _normalize_space(lowered))
-    for code, name in COUNTRY_CODES.items():
-        if lowered in (code.lower(), name.lower()):
-            return name
-    return " ".join(part.capitalize() for part in lowered.split())
-
-
-def _normalize_rank(rank_text: str) -> str:
-    match = re.search(r"\d+", str(rank_text or ""))
-    return match.group(0) if match else str(rank_text or "N/A")
-
-
 def _uni_slug(uni: University) -> str:
     return uni.name.lower().replace(" ", "-").replace("(", "").replace(")", "")
-
-
-def normalize_universities(universities: Iterable[University]) -> list[University]:
-    out: list[University] = []
-    for uni in universities:
-        uni.rank = _normalize_rank(uni.rank)
-        uni.name = _normalize_space(uni.name)
-        uni.country = _normalize_country(uni.country)
-        uni.path = _normalize_space(uni.path)
-        uni.table_metrics = {
-            _normalize_space(str(k)): _normalize_space(str(v))
-            for k, v in (uni.table_metrics or {}).items()
-            if _normalize_space(str(k))
-        }
-        out.append(uni)
-    return out
 
 
 def ensure_postgres_schema(
@@ -2478,889 +2424,158 @@ def rebuild_universe_records_diagnostic(
         conn.close()
 
 
+
+
 def build_parser() -> argparse.ArgumentParser:
-    default_snapshot = MODULE_ROOT / "crawlernest-kb" / "databases" / "last_crawl_snapshot.json"
-    default_checkpoint = MODULE_ROOT / "crawlernest-kb" / "databases" / "pipeline_checkpoint.json"
-    default_deferred = MODULE_ROOT / "crawlernest-kb" / "databases" / "pending_detail_enrichment.json"
-
-    parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
-    subparsers = parser.add_subparsers(dest="command", required=True)
-
-    run_parser = subparsers.add_parser("run", help="Crawl QS -> normalize -> write to DB")
-    run_parser.add_argument("--ranking-id", default="3990755")
-    run_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    run_parser.add_argument("--limit", type=int, default=30)
-    run_parser.add_argument("--workers", type=int, default=1, help="Max concurrent requests per crawler")
-    run_parser.add_argument("--request-delay", type=float, default=10.0, help="Delay (seconds) between requests")
-    run_parser.add_argument(
-        "--local-parse-workers",
-        type=int,
-        default=4,
-        help="Local CPU workers for parsing HTML into requirements (does not increase web request concurrency)",
-    )
-    run_parser.add_argument(
-        "--rankings-only",
-        action="store_true",
-        help="Fetch rankings list only; skip per-university detail page fetching/extraction",
-    )
-    run_parser.add_argument(
-        "--write-batch-size",
-        type=int,
-        default=WRITE_BATCH_SIZE,
-        help="Commit/checkpoint interval during DB writes",
-    )
-    run_parser.add_argument("--use-async", action="store_true")
-    run_parser.add_argument("--resource-guard", action="store_true", help="Auto slow down on high load / low memory")
-    run_parser.add_argument("--resume", action="store_true", help="Resume from snapshot + checkpoint if available")
-    run_parser.add_argument("--snapshot-file", default=str(default_snapshot))
-    run_parser.add_argument("--checkpoint-file", default=str(default_checkpoint))
-    run_parser.add_argument(
-        "--deferred-details-file",
-        default=str(default_deferred),
-        help="JSON output path for deferred detail-enrichment items when anti-403 degrade is triggered",
-    )
-    run_parser.add_argument(
-        "--detail-403-streak-threshold",
-        type=int,
-        default=8,
-        help="Auto-degrade to rankings-only when this many consecutive detail 403 responses are observed",
-    )
-    run_parser.add_argument(
-        "--detail-chunk-size",
-        type=int,
-        default=20,
-        help="Async detail fetch chunk size for degrade checks (smaller chunks react to 403 sooner)",
-    )
-    run_parser.add_argument("--db-type", choices=["postgres"], default="postgres")
-    run_parser.add_argument("--pg-host", default="localhost")
-    run_parser.add_argument("--pg-port", type=int, default=5432)
-    run_parser.add_argument("--pg-database", default="clawer")
-    run_parser.add_argument("--pg-user", default="test")
-    run_parser.add_argument("--pg-password", default="")
-    run_parser.add_argument(
-        "--with-the-rankings",
-        action="store_true",
-        help="After QS multi-source sync, ingest THE world rankings (warehouse.ranking_record, batch_id the-<year>)",
-    )
-    run_parser.add_argument(
-        "--the-ranking-year",
-        type=int,
-        default=2026,
-        help="THE edition when --with-the-rankings is set (default: 2026)",
-    )
-    run_parser.add_argument(
-        "--the-output-dir",
-        default=str(MODULE_ROOT / "crawlernest-kb" / "databases"),
-        help="THE crawl JSON output directory when --with-the-rankings is set",
-    )
-    run_parser.add_argument(
-        "--the-skip-seed",
-        action="store_true",
-        help="With --with-the-rankings, skip canonical seed/backfill after THE ingest",
+    return build_pipeline_parser(
+        MODULE_ROOT,
+        default_ranking_year=DEFAULT_RANKING_YEAR,
+        write_batch_size=WRITE_BATCH_SIZE,
     )
 
-    query_parser = subparsers.add_parser("query", help="Query stored QS rankings from DB")
-    query_parser.add_argument("keyword")
-    query_parser.add_argument("--limit", type=int, default=20)
-    query_parser.add_argument("--db-type", choices=["postgres"], default="postgres")
-    query_parser.add_argument("--pg-host", default="localhost")
-    query_parser.add_argument("--pg-port", type=int, default=5432)
-    query_parser.add_argument("--pg-database", default="clawer")
-    query_parser.add_argument("--pg-user", default="test")
-    query_parser.add_argument("--pg-password", default="")
 
-    enrich_parser = subparsers.add_parser(
-        "enrich-details",
-        help="Enrich admissions by crawling deferred university detail pages in small batches",
+def _handle_run_command(args: argparse.Namespace) -> int:
+    crawl_result = execute_run_crawl_stage(
+        args,
+        ensure_postgres_schema=ensure_postgres_schema,
+        load_snapshot=load_snapshot,
+        run_qs_crawl=run_qs_crawl,
+        save_snapshot=save_snapshot,
+        save_deferred_detail_list=save_deferred_detail_list,
+        print_qs_entry_strategy=_print_qs_entry_strategy,
     )
-    enrich_parser.add_argument("--limit", type=int, default=30, help="How many deferred schools to process this run")
-    enrich_parser.add_argument("--request-delay", type=float, default=10.0, help="Delay (seconds) between detail requests")
-    enrich_parser.add_argument("--timeout", type=int, default=30, help="HTTP timeout in seconds for detail requests")
-    enrich_parser.add_argument("--deferred-details-file", default=str(default_deferred))
-    enrich_parser.add_argument("--db-type", choices=["postgres"], default="postgres")
-    enrich_parser.add_argument("--pg-host", default="localhost")
-    enrich_parser.add_argument("--pg-port", type=int, default=5432)
-    enrich_parser.add_argument("--pg-database", default="clawer")
-    enrich_parser.add_argument("--pg-user", default="test")
-    enrich_parser.add_argument("--pg-password", default="")
 
-    ingest_parser = subparsers.add_parser(
-        "ingest-rankings",
-        help="Ingest standardized ranking payloads for QS/THE/ARWU into multi-source tables and refresh aggregation",
-    )
-    ingest_parser.add_argument("--source", required=True, choices=["QS", "THE", "ARWU"])
-    ingest_parser.add_argument("--input-file", required=True, help="JSON array or {\"rows\": [...]} payload")
-    ingest_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    ingest_parser.add_argument("--ranking-type", default="world")
-    ingest_parser.add_argument("--source-version", default=None)
-    ingest_parser.add_argument("--batch-id", default=None)
-    ingest_parser.add_argument("--pg-host", default="localhost")
-    ingest_parser.add_argument("--pg-port", type=int, default=5432)
-    ingest_parser.add_argument("--pg-database", default="clawer")
-    ingest_parser.add_argument("--pg-user", default="test")
-    ingest_parser.add_argument("--pg-password", default="")
-
-    seed_canonical_parser = subparsers.add_parser(
-        "seed-canonical",
-        help="Promote unresolved warehouse.universities rows into canonical_university and canonical_university_link",
-    )
-    seed_canonical_parser.add_argument("--pg-host", default="localhost")
-    seed_canonical_parser.add_argument("--pg-port", type=int, default=5432)
-    seed_canonical_parser.add_argument("--pg-database", default="clawer")
-    seed_canonical_parser.add_argument("--pg-user", default="test")
-    seed_canonical_parser.add_argument("--pg-password", default="")
-
-    seed_canonical_missing_parser = subparsers.add_parser(
-        "seed-canonical-from-missing",
-        help="Seed canonical_university rows from unresolved analytics.missing_entity_log entries and re-ingest THE",
-    )
-    seed_canonical_missing_parser.add_argument("--source", default="THE")
-    seed_canonical_missing_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    seed_canonical_missing_parser.add_argument("--pg-host", default="localhost")
-    seed_canonical_missing_parser.add_argument("--pg-port", type=int, default=5432)
-    seed_canonical_missing_parser.add_argument("--pg-database", default="clawer")
-    seed_canonical_missing_parser.add_argument("--pg-user", default="test")
-    seed_canonical_missing_parser.add_argument("--pg-password", default="")
-
-    backfill_ranking_parser = subparsers.add_parser(
-        "backfill-ranking-records",
-        help="Backfill multi-source warehouse.ranking_record rows from legacy warehouse.rankings using canonical_university_link",
-    )
-    backfill_ranking_parser.add_argument("--pg-host", default="localhost")
-    backfill_ranking_parser.add_argument("--pg-port", type=int, default=5432)
-    backfill_ranking_parser.add_argument("--pg-database", default="clawer")
-    backfill_ranking_parser.add_argument("--pg-user", default="test")
-    backfill_ranking_parser.add_argument("--pg-password", default="")
-
-    rebuild_universe_parser = subparsers.add_parser(
-        "rebuild-universe-records",
-        help="Diagnose which QS universes are missing ranking_record rows for a given year",
-    )
-    rebuild_universe_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    rebuild_universe_parser.add_argument("--pg-host", default="localhost")
-    rebuild_universe_parser.add_argument("--pg-port", type=int, default=5432)
-    rebuild_universe_parser.add_argument("--pg-database", default="clawer")
-    rebuild_universe_parser.add_argument("--pg-user", default="test")
-    rebuild_universe_parser.add_argument("--pg-password", default="")
-
-    the_rankings_parser = subparsers.add_parser(
-        "run-the-rankings",
-        help="Crawl THE world rankings, ingest into multi-source tables, and optionally seed/backfill visibility",
-    )
-    the_rankings_parser.add_argument("--ranking-year", type=int, default=2026)
-    the_rankings_parser.add_argument(
-        "--output-dir",
-        default=str(MODULE_ROOT / "crawlernest-kb" / "databases"),
-    )
-    the_rankings_parser.add_argument("--skip-seed", action="store_true")
-    the_rankings_parser.add_argument("--pg-host", default="localhost")
-    the_rankings_parser.add_argument("--pg-port", type=int, default=5432)
-    the_rankings_parser.add_argument("--pg-database", default="clawer")
-    the_rankings_parser.add_argument("--pg-user", default="test")
-    the_rankings_parser.add_argument("--pg-password", default="")
-
-    arwu_rankings_parser = subparsers.add_parser(
-        "run-arwu-rankings",
-        help="Crawl ARWU world rankings, ingest into multi-source tables, and optionally seed/backfill visibility",
-    )
-    arwu_rankings_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    arwu_rankings_parser.add_argument(
-        "--output-dir",
-        default=str(MODULE_ROOT / "crawlernest-kb" / "databases"),
-    )
-    arwu_rankings_parser.add_argument("--skip-seed", action="store_true")
-    arwu_rankings_parser.add_argument("--pg-host", default="localhost")
-    arwu_rankings_parser.add_argument("--pg-port", type=int, default=5432)
-    arwu_rankings_parser.add_argument("--pg-database", default="clawer")
-    arwu_rankings_parser.add_argument("--pg-user", default="test")
-    arwu_rankings_parser.add_argument("--pg-password", default="")
-
-    validate_global_sources_parser = subparsers.add_parser(
-        "validate-global-multi-source",
-        help="Validate presence of QS/THE/ARWU global rows and multi-source aggregation coverage",
-    )
-    validate_global_sources_parser.add_argument("--ranking-year", type=int, default=None)
-    validate_global_sources_parser.add_argument("--pg-host", default="localhost")
-    validate_global_sources_parser.add_argument("--pg-port", type=int, default=5432)
-    validate_global_sources_parser.add_argument("--pg-database", default="clawer")
-    validate_global_sources_parser.add_argument("--pg-user", default="test")
-    validate_global_sources_parser.add_argument("--pg-password", default="")
-
-    qs_global_parser = subparsers.add_parser(
-        "run-qs-global",
-        help="Run QS global rankings ingestion into the multi-universe store",
-    )
-    qs_global_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_global_parser.add_argument("--limit", type=int, default=0)
-    qs_global_parser.add_argument("--workers", type=int, default=1)
-    qs_global_parser.add_argument("--request-delay", type=float, default=10.0)
-    qs_global_parser.add_argument("--local-parse-workers", type=int, default=4)
-    qs_global_parser.add_argument("--use-async", action="store_true")
-    qs_global_parser.add_argument("--resume", action="store_true", help="Resume from the last saved raw snapshot for this universe")
-    qs_global_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
-    qs_global_parser.add_argument("--pg-host", default="localhost")
-    qs_global_parser.add_argument("--pg-port", type=int, default=5432)
-    qs_global_parser.add_argument("--pg-database", default="clawer")
-    qs_global_parser.add_argument("--pg-user", default="test")
-    qs_global_parser.add_argument("--pg-password", default="")
-
-    qs_region_parser = subparsers.add_parser(
-        "run-qs-region",
-        help="Run one QS regional ranking universe ingestion",
-    )
-    qs_region_parser.add_argument(
-        "--region",
-        required=True,
-        choices=["europe", "asia", "latin-america", "arab-region", "oceania", "africa", "north-america"],
-    )
-    qs_region_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_region_parser.add_argument("--limit", type=int, default=0)
-    qs_region_parser.add_argument("--workers", type=int, default=1)
-    qs_region_parser.add_argument("--request-delay", type=float, default=10.0)
-    qs_region_parser.add_argument("--local-parse-workers", type=int, default=4)
-    qs_region_parser.add_argument("--use-async", action="store_true")
-    qs_region_parser.add_argument("--resume", action="store_true", help="Resume from the last saved raw snapshot for this universe")
-    qs_region_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
-    qs_region_parser.add_argument("--pg-host", default="localhost")
-    qs_region_parser.add_argument("--pg-port", type=int, default=5432)
-    qs_region_parser.add_argument("--pg-database", default="clawer")
-    qs_region_parser.add_argument("--pg-user", default="test")
-    qs_region_parser.add_argument("--pg-password", default="")
-
-    qs_subject_parser = subparsers.add_parser(
-        "run-qs-subject",
-        help="Run one QS subject ranking universe ingestion",
-    )
-    qs_subject_parser.add_argument(
-        "--subject",
-        required=True,
-        choices=["engineering-technology", "computer-science", "business-management"],
-    )
-    qs_subject_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_subject_parser.add_argument("--limit", type=int, default=0)
-    qs_subject_parser.add_argument("--workers", type=int, default=1)
-    qs_subject_parser.add_argument("--request-delay", type=float, default=10.0)
-    qs_subject_parser.add_argument("--local-parse-workers", type=int, default=4)
-    qs_subject_parser.add_argument("--use-async", action="store_true")
-    qs_subject_parser.add_argument("--resume", action="store_true", help="Resume from the last saved raw snapshot for this universe")
-    qs_subject_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
-    qs_subject_parser.add_argument("--pg-host", default="localhost")
-    qs_subject_parser.add_argument("--pg-port", type=int, default=5432)
-    qs_subject_parser.add_argument("--pg-database", default="clawer")
-    qs_subject_parser.add_argument("--pg-user", default="test")
-    qs_subject_parser.add_argument("--pg-password", default="")
-
-    qs_special_parser = subparsers.add_parser(
-        "run-qs-special",
-        help="Run one QS special ranking universe ingestion",
-    )
-    qs_special_parser.add_argument(
-        "--special",
-        required=True,
-        choices=["sustainability", "mba", "business-masters"],
-    )
-    qs_special_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_special_parser.add_argument("--limit", type=int, default=0)
-    qs_special_parser.add_argument("--workers", type=int, default=1)
-    qs_special_parser.add_argument("--request-delay", type=float, default=10.0)
-    qs_special_parser.add_argument("--local-parse-workers", type=int, default=4)
-    qs_special_parser.add_argument("--use-async", action="store_true")
-    qs_special_parser.add_argument("--resume", action="store_true", help="Resume from the last saved raw snapshot for this universe")
-    qs_special_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
-    qs_special_parser.add_argument("--pg-host", default="localhost")
-    qs_special_parser.add_argument("--pg-port", type=int, default=5432)
-    qs_special_parser.add_argument("--pg-database", default="clawer")
-    qs_special_parser.add_argument("--pg-user", default="test")
-    qs_special_parser.add_argument("--pg-password", default="")
-
-    qs_all_parser = subparsers.add_parser(
-        "run-all-qs-universes",
-        help="Run every configured QS ranking universe independently with failure isolation",
-    )
-    qs_all_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_all_parser.add_argument("--limit", type=int, default=0)
-    qs_all_parser.add_argument("--workers", type=int, default=1)
-    qs_all_parser.add_argument("--request-delay", type=float, default=10.0)
-    qs_all_parser.add_argument("--local-parse-workers", type=int, default=4)
-    qs_all_parser.add_argument("--use-async", action="store_true")
-    qs_all_parser.add_argument("--resume", action="store_true", help="Resume each universe from its last saved raw snapshot")
-    qs_all_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
-    qs_all_parser.add_argument("--pg-host", default="localhost")
-    qs_all_parser.add_argument("--pg-port", type=int, default=5432)
-    qs_all_parser.add_argument("--pg-database", default="clawer")
-    qs_all_parser.add_argument("--pg-user", default="test")
-    qs_all_parser.add_argument("--pg-password", default="")
-
-    qs_major_parser = subparsers.add_parser(
-        "run-qs-major",
-        help="Run only the major QS ranking universes (Global + 5 Regions) independently",
-    )
-    qs_major_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_major_parser.add_argument("--limit", type=int, default=0)
-    qs_major_parser.add_argument("--workers", type=int, default=1)
-    qs_major_parser.add_argument("--request-delay", type=float, default=10.0)
-    qs_major_parser.add_argument("--local-parse-workers", type=int, default=4)
-    qs_major_parser.add_argument("--use-async", action="store_true")
-    qs_major_parser.add_argument("--resume", action="store_true", help="Resume each universe from its last saved raw snapshot")
-    qs_major_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
-    qs_major_parser.add_argument("--pg-host", default="localhost")
-    qs_major_parser.add_argument("--pg-port", type=int, default=5432)
-    qs_major_parser.add_argument("--pg-database", default="clawer")
-    qs_major_parser.add_argument("--pg-user", default="test")
-    qs_major_parser.add_argument("--pg-password", default="")
-
-    qs_universes_parser = subparsers.add_parser(
-        "run-qs-universes",
-        help="Unified QS multi-universe runner; defaults to all universes, optionally narrow by type/key",
-    )
-    qs_universes_parser.add_argument(
-        "--universe-type",
-        default="all",
-        choices=["all", "global", "region", "subject", "special"],
-    )
-    qs_universes_parser.add_argument("--universe-key", default=None)
-    qs_universes_parser.add_argument("--ranking-year", type=int, default=DEFAULT_RANKING_YEAR)
-    qs_universes_parser.add_argument("--limit", type=int, default=0)
-    qs_universes_parser.add_argument("--workers", type=int, default=1)
-    qs_universes_parser.add_argument("--request-delay", type=float, default=10.0)
-    qs_universes_parser.add_argument("--local-parse-workers", type=int, default=4)
-    qs_universes_parser.add_argument("--use-async", action="store_true")
-    qs_universes_parser.add_argument("--resume", action="store_true", help="Resume each selected universe from its last saved raw snapshot")
-    qs_universes_parser.add_argument("--output-dir", default=str(MODULE_ROOT / "crawlernest-kb" / "qs_universes"))
-    qs_universes_parser.add_argument("--pg-host", default="localhost")
-    qs_universes_parser.add_argument("--pg-port", type=int, default=5432)
-    qs_universes_parser.add_argument("--pg-database", default="clawer")
-    qs_universes_parser.add_argument("--pg-user", default="test")
-    qs_universes_parser.add_argument("--pg-password", default="")
-
-    recommend_parser = subparsers.add_parser(
-        "recommend",
-        help="Run the rule-based university recommendation engine against PostgreSQL candidate data",
-    )
-    recommend_parser.add_argument("--country", default=None)
-    recommend_parser.add_argument("--ielts-score", type=float, default=None)
-    recommend_parser.add_argument("--target-rank", type=int, default=None)
-    recommend_parser.add_argument("--preferred-ranking-source", default=None)
-    recommend_parser.add_argument("--limit", type=int, default=10)
-    recommend_parser.add_argument("--ranking-year", type=int, default=None)
-    recommend_parser.add_argument("--pg-host", default="localhost")
-    recommend_parser.add_argument("--pg-port", type=int, default=5432)
-    recommend_parser.add_argument("--pg-database", default="clawer")
-    recommend_parser.add_argument("--pg-user", default="test")
-    recommend_parser.add_argument("--pg-password", default="")
-
-    recommend_v2_parser = subparsers.add_parser(
-        "recommend-v2",
-        help="Run grouped reach/target/safety recommendations against PostgreSQL candidate data",
-    )
-    recommend_v2_parser.add_argument("--country", default=None)
-    recommend_v2_parser.add_argument("--ielts", type=float, default=None)
-    recommend_v2_parser.add_argument("--target-rank", type=int, required=True)
-    recommend_v2_parser.add_argument("--risk-profile", default="balanced", choices=["conservative", "balanced", "aggressive"])
-    recommend_v2_parser.add_argument("--preferred-ranking-source", default=None)
-    recommend_v2_parser.add_argument("--limit", type=int, default=5)
-    recommend_v2_parser.add_argument("--ranking-year", type=int, default=None)
-    recommend_v2_parser.add_argument("--pg-host", default="localhost")
-    recommend_v2_parser.add_argument("--pg-port", type=int, default=5432)
-    recommend_v2_parser.add_argument("--pg-database", default="clawer")
-    recommend_v2_parser.add_argument("--pg-user", default="test")
-    recommend_v2_parser.add_argument("--pg-password", default="")
-
-    recommend_v3_parser = subparsers.add_parser(
-        "recommend-v3",
-        help="Run hybrid grouped recommendations with configurable preference weights against PostgreSQL candidate data",
-    )
-    recommend_v3_parser.add_argument("--country", default=None)
-    recommend_v3_parser.add_argument("--country-policy", default=None, choices=["hard_filter", "soft_preference"])
-    recommend_v3_parser.add_argument("--ielts", type=float, default=None)
-    recommend_v3_parser.add_argument("--target-rank", type=int, required=True)
-    recommend_v3_parser.add_argument("--risk-profile", default="balanced", choices=["conservative", "balanced", "aggressive"])
-    recommend_v3_parser.add_argument(
-        "--preference-weights",
-        default=None,
-        help='Optional JSON object, for example {"ranking":0.5,"ielts":0.2,"confidence":0.2,"country_match":0.1}',
-    )
-    recommend_v3_parser.add_argument("--preferred-ranking-source", default=None)
-    recommend_v3_parser.add_argument("--limit", type=int, default=5)
-    recommend_v3_parser.add_argument("--ranking-year", type=int, default=None)
-    recommend_v3_parser.add_argument("--pg-host", default="localhost")
-    recommend_v3_parser.add_argument("--pg-port", type=int, default=5432)
-    recommend_v3_parser.add_argument("--pg-database", default="clawer")
-    recommend_v3_parser.add_argument("--pg-user", default="test")
-    recommend_v3_parser.add_argument("--pg-password", default="")
-
-    compare_parser = subparsers.add_parser(
-        "compare",
-        help="Compare two or more universities using aggregated ranking, source ranks, IELTS, and completeness",
-    )
-    compare_parser.add_argument("--a", required=True, help="First university name or canonical university id")
-    compare_parser.add_argument(
-        "--b",
-        required=True,
-        action="append",
-        help="Second university and any additional universities to compare",
-    )
-    compare_parser.add_argument("--ranking-year", type=int, default=None)
-    compare_parser.add_argument("--pg-host", default="localhost")
-    compare_parser.add_argument("--pg-port", type=int, default=5432)
-    compare_parser.add_argument("--pg-database", default="clawer")
-    compare_parser.add_argument("--pg-user", default="test")
-    compare_parser.add_argument("--pg-password", default="")
-    return parser
-
-
-def main() -> int:
-    args = build_parser().parse_args()
-
-    if args.command == "run":
-        if args.limit <= 0:
-            raise SystemExit("--limit must be a positive integer")
-        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
-
-        snapshot_file = Path(args.snapshot_file)
-        checkpoint_file = Path(args.checkpoint_file)
-
-        if args.resume and snapshot_file.exists():
-            print("[1/4] Loading snapshot (resume mode)...")
-            universities = load_snapshot(snapshot_file)
-        else:
-            print("[1/4] Crawling QS data...")
-            universities, crawl_meta = run_qs_crawl(
-                args.limit,
-                args.ranking_year,
-                args.ranking_id,
-                args.use_async,
-                args.workers,
-                args.request_delay,
-                args.local_parse_workers,
-                not args.rankings_only,
-                args.detail_403_streak_threshold,
-                args.detail_chunk_size,
-            )
-            _print_qs_entry_strategy(crawl_meta)
-            if not universities:
-                failure_classification = str(crawl_meta.get("failure_classification", "") or "").strip()
-                failure_message = str(crawl_meta.get("failure_message", "") or "").strip()
-                if failure_classification:
-                    print(
-                        f"[error] QS acquisition failed with classification={failure_classification}: "
-                        f"{failure_message or 'no additional detail'}"
-                    )
-                    resolved_page = str(crawl_meta.get("resolved_ranking_page_url", "") or "").strip()
-                    resolved_id = str(crawl_meta.get("resolved_ranking_id", "") or "").strip()
-                    if resolved_page:
-                        print(f"[error] ranking_page_url={resolved_page}")
-                    if resolved_id:
-                        print(f"[error] resolved_ranking_id={resolved_id}")
-                print("No universities crawled. Exiting.")
-                return 1
-            save_snapshot(snapshot_file, universities)
-            deferred_count = save_deferred_detail_list(
-                Path(args.deferred_details_file),
-                universities,
-                crawl_meta.get("detail_deferred_paths", []),
-            )
-            if deferred_count > 0:
-                print(
-                    f"[note] Deferred detail enrichment items: {deferred_count} "
-                    f"(saved to {Path(args.deferred_details_file)})"
-                )
-            if crawl_meta.get("detail_fallback_triggered"):
-                print(
-                    "[note] Detail auto-degrade was triggered by repeated 403 responses; "
-                    "run deferred detail enrichment in smaller batches."
-                )
-                print(
-                    f"[note] Observed detail 403 count in this run: "
-                    f"{crawl_meta.get('detail_forbidden_count', 0)}"
-                )
-
-        print("[2/4] Normalizing fields (Python baseline)...")
-        normalized = normalize_universities(universities)
-
-        print(f"[3/4] Writing {len(normalized)} rows to {args.db_type}...")
-        inserted, skipped, failed = write_universities(
-            universities=normalized,
-            db_type=args.db_type,
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-            checkpoint_file=checkpoint_file,
-            resource_guard=args.resource_guard,
-            workers=max(1, args.workers),
-            ranking_year=args.ranking_year,
-            write_batch_size=max(1, args.write_batch_size),
+    if crawl_result.deferred_count > 0:
+        print(
+            f"[note] Deferred detail enrichment items: {crawl_result.deferred_count} "
+            f"(saved to {Path(args.deferred_details_file)})"
         )
 
-        print("[4/4] Done.")
-        print(f"Inserted: {inserted}, Skipped(resume): {skipped}, Failed: {failed}")
-        print(f"Checkpoint: {checkpoint_file}")
+    if crawl_result.crawl_meta.get("detail_fallback_triggered"):
+        print(
+            "[note] Detail auto-degrade was triggered by repeated 403 responses; "
+            "run deferred detail enrichment in smaller batches."
+        )
+        print(
+            f"[note] Observed detail 403 count in this run: "
+            f"{crawl_result.crawl_meta.get('detail_forbidden_count', 0)}"
+        )
+
+    execute_run_write_stage(
+        args,
+        universities=crawl_result.universities,
+        normalize_universities=normalize_universities,
+        write_universities=write_universities,
+        sync_qs_multi_source_rankings=sync_qs_multi_source_rankings,
+    )
+
+    if getattr(args, "with_the_rankings", False):
         try:
-            summary = sync_qs_multi_source_rankings(
-                normalized,
-                ranking_year=args.ranking_year,
+            the_ranking_year = int(getattr(args, "the_ranking_year", 2026))
+            print(
+                f"[THE] Ingesting THE world rankings (structured JSON / __NEXT_DATA__ path; "
+                f"batch_id=the-{the_ranking_year})..."
+            )
+            the_summary = run_the_rankings_ingestion(
+                ranking_year=the_ranking_year,
+                output_dir=Path(getattr(args, "the_output_dir", str(MODULE_ROOT / "crawlernest-kb" / "databases"))),
                 pg_host=args.pg_host,
                 pg_port=args.pg_port,
                 pg_database=args.pg_database,
                 pg_user=args.pg_user,
                 pg_password=args.pg_password,
-                batch_id=f"qs-run-{args.ranking_year}",
+                skip_seed=bool(getattr(args, "the_skip_seed", False)),
             )
             print(
-                "[multi-source] "
-                f"rows={summary.standardized_count} matched={summary.matched_count} "
-                f"unresolved={summary.unresolved_count} duplicates={summary.duplicate_input_count} "
-                f"aggregated_years={summary.years_aggregated}"
+                f"[THE_CRAWL] pipeline_done rows={the_summary['rows_crawled']} "
+                f"matched={the_summary['matched_count']} unresolved={the_summary['unresolved_count']} "
+                f"source=THE year={the_ranking_year}"
             )
         except Exception as exc:
-            print(f"[warn] QS multi-source sync skipped: {exc}")
+            print(f"[warn] THE rankings ingestion skipped: {exc}")
 
-        if getattr(args, "with_the_rankings", False):
-            try:
-                _ty = int(getattr(args, "the_ranking_year", 2026))
-                print(
-                    f"[THE] Ingesting THE world rankings (structured JSON / __NEXT_DATA__ path; "
-                    f"batch_id=the-{_ty})..."
-                )
-                the_summary = run_the_rankings_ingestion(
-                    ranking_year=_ty,
-                    output_dir=Path(getattr(args, "the_output_dir", str(MODULE_ROOT / "crawlernest-kb" / "databases"))),
-                    pg_host=args.pg_host,
-                    pg_port=args.pg_port,
-                    pg_database=args.pg_database,
-                    pg_user=args.pg_user,
-                    pg_password=args.pg_password,
-                    skip_seed=bool(getattr(args, "the_skip_seed", False)),
-                )
-                print(
-                    f"[THE_CRAWL] pipeline_done rows={the_summary['rows_crawled']} "
-                    f"matched={the_summary['matched_count']} unresolved={the_summary['unresolved_count']} "
-                    f"source=THE year={_ty}"
-                )
-            except Exception as exc:
-                print(f"[warn] THE rankings ingestion skipped: {exc}")
+    return 0
+
+
+def _handle_query_command(args: argparse.Namespace) -> int:
+    rows = query_rankings(
+        args.db_type,
+        args.keyword,
+        args.limit,
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+    )
+    if not rows:
+        print("No matching universities found.")
         return 0
-
-    if args.command == "query":
-        rows = query_rankings(
-            args.db_type,
-            args.keyword,
-            args.limit,
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
-        )
-        if not rows:
-            print("No matching universities found.")
-            return 0
-        print("rank | university | country | score | ranking_type")
-        for rank_start, display_name, country_name, score, ranking_type in rows:
-            print(f"{rank_start} | {display_name} | {country_name} | {'' if score is None else score} | {ranking_type}")
-        return 0
-
-    if args.command == "enrich-details":
-        if args.limit <= 0:
-            raise SystemExit("--limit must be a positive integer")
-        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
-
-        print("[1/2] Enriching deferred detail pages...")
-        success, skipped_cooldown, failed, skipped_no_uid, remaining = enrich_deferred_details(
-            deferred_file=Path(args.deferred_details_file),
-            db_type=args.db_type,
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-            limit=args.limit,
-            request_delay=args.request_delay,
-            timeout=args.timeout,
-        )
-        print("[2/2] Done.")
-        print(
-            f"Attempted: {success + failed}  |  Enriched: {success}  |  Failed: {failed}  "
-            f"|  Cooldown-skipped: {skipped_cooldown}  |  No-DB-match: {skipped_no_uid}"
-        )
-        print(f"Deferred remaining: {remaining}")
-        print(f"Deferred file: {Path(args.deferred_details_file)}")
-        return 0
-
-    if args.command == "ingest-rankings":
-        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
-        payload_path = Path(args.input_file)
-        payload = load_json_payload(payload_path)
-        summary = ingest_rankings_payload(
-            source=args.source,
-            payload=payload,
-            ranking_year=args.ranking_year,
-            ranking_type=args.ranking_type,
-            source_version=args.source_version,
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-            batch_id=args.batch_id or f"{args.source.lower()}-{args.ranking_year}",
-        )
-        print(
-            f"source={args.source} rows={summary.standardized_count} matched={summary.matched_count} "
-            f"unresolved={summary.unresolved_count} duplicates={summary.duplicate_input_count}"
-        )
-        print(
-            f"by_source={summary.by_source_count} aggregated_years={summary.years_aggregated} "
-            f"aggregated_rows={summary.aggregated_row_count}"
-        )
-        return 0
-
-    if args.command in {"run-qs-global", "run-qs-region", "run-qs-subject", "run-qs-special"}:
-        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
-        universe_type = "global"
-        universe_key = "global"
-        if args.command == "run-qs-region":
-            universe_type = "region"
-            universe_key = args.region
-        elif args.command == "run-qs-subject":
-            universe_type = "subject"
-            universe_key = args.subject
-        elif args.command == "run-qs-special":
-            universe_type = "special"
-            universe_key = args.special
-
-        while True:
-            summary, normalized, standardized, interrupted, crawl_meta = run_qs_universe_ingestion(
-                universe_type=universe_type,
-                universe_key=universe_key,
-                limit=args.limit,
-                ranking_year=args.ranking_year,
-                use_async=args.use_async,
-                workers=args.workers,
-                request_delay=args.request_delay,
-                local_parse_workers=args.local_parse_workers,
-                pg_host=args.pg_host,
-                pg_port=args.pg_port,
-                pg_database=args.pg_database,
-                pg_user=args.pg_user,
-                pg_password=args.pg_password,
-                output_dir=Path(args.output_dir),
-            )
-            print(
-                f"[qs-universe] {universe_type}/{universe_key} "
-                f"normalized={len(normalized)} standardized={len(standardized)} "
-                f"matched={summary.matched_count} unresolved={summary.unresolved_count} "
-                f"aggregated_years={summary.years_aggregated}"
-            )
-            if interrupted:
-                print(f"\n[pipeline] Graceful shutdown completed for {universe_type}/{universe_key}. Exiting.")
-                break
-            if _qs_terminal_fetch_for_continuous_loop(crawl_meta):
-                fc = str(crawl_meta.get("failure_classification", "") or "").strip()
-                print(
-                    f"\n[pipeline] Stopping continuous pass loop for {universe_type}/{universe_key} "
-                    f"(failure_classification={fc!r} run_backing={crawl_meta.get('run_backing', '')!r})."
-                )
-                break
-            print(f"\n--- [continuous] Completed pass for {universe_type}/{universe_key}. Starting next pass in 5s... ---")
-            time.sleep(5)
-        return 0
-
-    if args.command in {"run-all-qs-universes", "run-qs-universes", "run-qs-major"}:
-        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
-        results: list[dict[str, Any]] = []
-        failures = 0
-        if args.command == "run-qs-universes":
-            if args.universe_type == "all":
-                selected_specs = list(iter_all_qs_universes())
-            else:
-                if args.universe_key:
-                    selected_specs = [get_qs_universe_spec(args.universe_type, args.universe_key)]
-                elif args.universe_type == "global":
-                    selected_specs = [get_qs_universe_spec("global", "global")]
-                else:
-                    raise SystemExit("--universe-key is required when --universe-type is not 'all' or 'global'")
-        elif args.command == "run-qs-major":
-            selected_specs = list(iter_major_qs_universes())
-        else:
-            selected_specs = list(iter_all_qs_universes())
-
-        while True:
-            total_specs = len(selected_specs)
-            had_terminal_fetch = False
-            for spec in selected_specs:
-                current_index = len(results) + 1
-                label = f"{spec.universe_type}/{spec.universe_key}"
-                print(f"\n=== [{current_index}/{total_specs}] Starting QS universe: {label} ===")
-                try:
-                    summary, normalized, standardized, interrupted, crawl_meta = run_qs_universe_ingestion(
-                        universe_type=spec.universe_type,
-                        universe_key=spec.universe_key,
-                        limit=args.limit,
-                        ranking_year=args.ranking_year,
-                        use_async=args.use_async,
-                        workers=args.workers,
-                        request_delay=args.request_delay,
-                        local_parse_workers=args.local_parse_workers,
-                        pg_host=args.pg_host,
-                        pg_port=args.pg_port,
-                        pg_database=args.pg_database,
-                        pg_user=args.pg_user,
-                        pg_password=args.pg_password,
-                        output_dir=Path(args.output_dir),
-                    )
-                    if _qs_terminal_fetch_for_continuous_loop(crawl_meta):
-                        had_terminal_fetch = True
-                    results.append(
-                        {
-                            "universe_type": spec.universe_type,
-                            "universe_key": spec.universe_key,
-                            "normalized_count": len(normalized),
-                            "standardized_count": len(standardized),
-                            "matched_count": summary.matched_count,
-                            "unresolved_count": summary.unresolved_count,
-                            "aggregated_years": summary.years_aggregated,
-                        }
-                    )
-                    print(
-                        f"=== [{current_index}/{total_specs}] Completed QS universe: {label} | "
-                        f"normalized={len(normalized)} standardized={len(standardized)} "
-                        f"matched={summary.matched_count} unresolved={summary.unresolved_count} ==="
-                    )
-                    if interrupted:
-                        print(f"\n[pipeline] Graceful shutdown completed for {label}. Stopping crawler loop.")
-                        print(json.dumps({"failures": failures, "results": results}, ensure_ascii=False, indent=2))
-                        return 0
-                except Exception as exc:
-                    failures += 1
-                    results.append(
-                        {
-                            "universe_type": spec.universe_type,
-                            "universe_key": spec.universe_key,
-                            "error": str(exc),
-                        }
-                    )
-                    print(f"[warn] QS universe failed but pipeline continues: {spec.universe_type}/{spec.universe_key} -> {exc}")
-
-            if had_terminal_fetch:
-                print(
-                    "\n[pipeline] Terminal upstream/fetch state detected; stopping continuous universe loop "
-                    "(no point retrying until block clears or cache is refreshed)."
-                )
-                print(json.dumps({"failures": failures, "results": results}, ensure_ascii=False, indent=2))
-                return 0
-
-            print("\n--- [continuous] Completed full pass of all universes. Starting next pass in 30s... ---")
-            results = []  # Clear results for next pass summary
-            time.sleep(30)
-        return 0
-
-    if args.command == "recommend":
-        if args.limit <= 0:
-            raise SystemExit("--limit must be a positive integer")
-        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
-        rows = recommend_universities_from_db(
-            country=args.country,
-            ielts_score=args.ielts_score,
-            target_rank=args.target_rank,
-            preferred_ranking_source=args.preferred_ranking_source,
-            limit=args.limit,
-            ranking_year=args.ranking_year,
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-        )
-        if not rows:
-            print("No recommendations matched the provided constraints.")
-            return 0
-
-        print("canonical_id | university | country | aggregated_rank | ielts_min | score")
-        for row in rows:
-            print(
-                f"{row.canonical_university_id} | {row.university_name} | {row.country or ''} | "
-                f"{'' if row.aggregated_rank is None else row.aggregated_rank} | "
-                f"{'' if row.ielts_min is None else row.ielts_min} | {row.matching_score:.2f}"
-            )
-            print(f"  explanation: {row.explanation}")
-        return 0
-
-    if args.command == "recommend-v2":
-        if args.target_rank <= 0:
-            raise SystemExit("--target-rank must be a positive integer")
-        if args.limit <= 0:
-            raise SystemExit("--limit must be a positive integer")
-        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
-        grouped = recommend_universities_v2_from_db(
-            country=args.country,
-            ielts_score=args.ielts,
-            target_rank=args.target_rank,
-            risk_profile=args.risk_profile,
-            preferred_ranking_source=args.preferred_ranking_source,
-            limit=args.limit,
-            ranking_year=args.ranking_year,
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-        )
-        print(json.dumps(grouped, ensure_ascii=False, indent=2, sort_keys=False))
-        return 0
-
-    if args.command == "recommend-v3":
-        if args.target_rank <= 0:
-            raise SystemExit("--target-rank must be a positive integer")
-        if args.limit <= 0:
-            raise SystemExit("--limit must be a positive integer")
-        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
-        if not logging.getLogger().handlers:
-            logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
-        try:
-            preference_weights = _parse_preference_weights(args.preference_weights)
-        except ValueError as exc:
-            raise SystemExit(str(exc)) from exc
-        grouped = recommend_universities_v3_from_db(
-            country=args.country,
-            country_policy=args.country_policy,
-            ielts_score=args.ielts,
-            target_rank=args.target_rank,
-            risk_profile=args.risk_profile,
-            preference_weights=preference_weights,
-            preferred_ranking_source=args.preferred_ranking_source,
-            limit=args.limit,
-            ranking_year=args.ranking_year,
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-        )
-        print(json.dumps(grouped, ensure_ascii=False, indent=2, sort_keys=False))
-        return 0
-
-    if args.command == "compare":
-        identifiers = [args.a, *(args.b or [])]
-        ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
-        result = compare_universities_from_db(
-            identifiers=identifiers,
-            ranking_year=args.ranking_year,
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-        )
-        print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=False))
-        return 0
-
-    return 1
+    print("rank | university | country | score | ranking_type")
+    for rank_start, display_name, country_name, score, ranking_type in rows:
+        print(f"{rank_start} | {display_name} | {country_name} | {'' if score is None else score} | {ranking_type}")
+    return 0
 
 
-def main() -> int:
-    args = build_parser().parse_args()
+def _handle_enrich_details_command(args: argparse.Namespace) -> int:
+    if args.limit <= 0:
+        raise SystemExit("--limit must be a positive integer")
+    ensure_postgres_schema(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
+
+    print("[1/2] Enriching deferred detail pages...")
+    success, skipped_cooldown, failed, skipped_no_uid, remaining = enrich_deferred_details(
+        deferred_file=Path(args.deferred_details_file),
+        db_type=args.db_type,
+        pg_host=args.pg_host,
+        pg_port=args.pg_port,
+        pg_database=args.pg_database,
+        pg_user=args.pg_user,
+        pg_password=args.pg_password,
+        limit=args.limit,
+        request_delay=args.request_delay,
+        timeout=args.timeout,
+    )
+    print("[2/2] Done.")
+    print(
+        f"Attempted: {success + failed}  |  Enriched: {success}  |  Failed: {failed}  "
+        f"|  Cooldown-skipped: {skipped_cooldown}  |  No-DB-match: {skipped_no_uid}"
+    )
+    print(f"Deferred remaining: {remaining}")
+    print(f"Deferred file: {Path(args.deferred_details_file)}")
+    return 0
+
+
+def _build_dispatch_dependencies() -> PipelineCommandDependencies:
+    return PipelineCommandDependencies(
+        ensure_postgres_schema=ensure_postgres_schema,
+        load_snapshot=load_snapshot,
+        run_qs_crawl=run_qs_crawl,
+        save_snapshot=save_snapshot,
+        save_deferred_detail_list=save_deferred_detail_list,
+        normalize_universities=normalize_universities,
+        write_universities=write_universities,
+        sync_qs_multi_source_rankings=sync_qs_multi_source_rankings,
+        run_the_rankings_ingestion=run_the_rankings_ingestion,
+        query_rankings=query_rankings,
+        enrich_deferred_details=enrich_deferred_details,
+        load_json_payload=load_json_payload,
+        ingest_rankings_payload=ingest_rankings_payload,
+        run_qs_universe_ingestion=run_qs_universe_ingestion,
+        qs_terminal_fetch_for_continuous_loop=_qs_terminal_fetch_for_continuous_loop,
+        iter_all_qs_universes=iter_all_qs_universes,
+        iter_major_qs_universes=iter_major_qs_universes,
+        get_qs_universe_spec=get_qs_universe_spec,
+        recommend_universities_from_db=recommend_universities_from_db,
+        recommend_universities_v2_from_db=recommend_universities_v2_from_db,
+        recommend_universities_v3_from_db=recommend_universities_v3_from_db,
+        compare_universities_from_db=compare_universities_from_db,
+        parse_preference_weights=_parse_preference_weights,
+    )
+
+
+
+
+def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
     if args.command == "seed-canonical":
         ensure_postgres_schema(
             args.pg_host,
@@ -3541,32 +2756,18 @@ def main() -> int:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 0
 
-    deps = PipelineCommandDependencies(
-        ensure_postgres_schema=ensure_postgres_schema,
-        load_snapshot=load_snapshot,
-        run_qs_crawl=run_qs_crawl,
-        save_snapshot=save_snapshot,
-        save_deferred_detail_list=save_deferred_detail_list,
-        normalize_universities=normalize_universities,
-        write_universities=write_universities,
-        sync_qs_multi_source_rankings=sync_qs_multi_source_rankings,
-        run_the_rankings_ingestion=run_the_rankings_ingestion,
-        query_rankings=query_rankings,
-        enrich_deferred_details=enrich_deferred_details,
-        load_json_payload=load_json_payload,
-        ingest_rankings_payload=ingest_rankings_payload,
-        run_qs_universe_ingestion=run_qs_universe_ingestion,
-        qs_terminal_fetch_for_continuous_loop=_qs_terminal_fetch_for_continuous_loop,
-        iter_all_qs_universes=iter_all_qs_universes,
-        iter_major_qs_universes=iter_major_qs_universes,
-        get_qs_universe_spec=get_qs_universe_spec,
-        recommend_universities_from_db=recommend_universities_from_db,
-        recommend_universities_v2_from_db=recommend_universities_v2_from_db,
-        recommend_universities_v3_from_db=recommend_universities_v3_from_db,
-        compare_universities_from_db=compare_universities_from_db,
-        parse_preference_weights=_parse_preference_weights,
+    return dispatch_command(args, _build_dispatch_dependencies())
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+    return dispatch_basic_commands(
+        args,
+        run_handler=_handle_run_command,
+        query_handler=_handle_query_command,
+        enrich_handler=_handle_enrich_details_command,
+        fallback_handler=_dispatch_remaining_commands,
     )
-    return dispatch_command(args, deps)
 
 
 if __name__ == "__main__":

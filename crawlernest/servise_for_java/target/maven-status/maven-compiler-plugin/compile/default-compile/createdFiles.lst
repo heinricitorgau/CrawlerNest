@@ -13,8 +13,8 @@ clawer/repository/JdbcScopedRankingReadAdapter$ScopedSql.class
 clawer/dto/AggregationExplainDTO.class
 clawer/service/AnalyticsService.class
 clawer/dto/TrustExplainDTO.class
-clawer/repository/JdbcScopedRankingReadAdapter$1.class
 clawer/model/Program.class
+clawer/repository/RankingRowMapper.class
 clawer/repository/JdbcAggregatedRankingReadRepository.class
 clawer/dto/UniversityDTO.class
 clawer/model/Country.class
@@ -24,6 +24,7 @@ clawer/service/ComparisonService.class
 clawer/domain/ranking/RankingScope.class
 clawer/dto/RankingCountryOptionDTO.class
 clawer/dto/DataQualityDTO.class
+clawer/repository/SourceRankParser.class
 clawer/model/University.class
 clawer/model/AdmissionRequirement.class
 clawer/api/ComparisonController.class
@@ -52,6 +53,7 @@ clawer/dto/SourceRankingDTO.class
 clawer/api/RecommendationController.class
 clawer/service/RankingTrustLayer.class
 clawer/service/ComparisonService$2.class
+clawer/repository/SourceRankParser$1.class
 clawer/service/RecommendationService$Candidate.class
 clawer/repository/CountryRepository.class
 clawer/dto/AdmissionDTO.class

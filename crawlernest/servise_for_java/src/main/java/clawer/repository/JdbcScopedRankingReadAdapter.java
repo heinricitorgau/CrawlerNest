@@ -4,7 +4,6 @@ import clawer.domain.ranking.RankingContext;
 import clawer.domain.ranking.ScopedRankedUniversity;
 import clawer.domain.ranking.ScopedRankingReadAdapter;
 import clawer.service.CountryNormalization;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,11 +11,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 @Repository
@@ -53,11 +50,11 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             """;
 
     private final JdbcTemplate jdbcTemplate;
-    private final ObjectMapper objectMapper;
+    private final RankingRowMapper rankingRowMapper;
 
     public JdbcScopedRankingReadAdapter(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
-        this.objectMapper = objectMapper;
+        this.rankingRowMapper = new RankingRowMapper(new SourceRankParser(objectMapper), LOGGER);
     }
 
     @Override
@@ -72,7 +69,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
     ) {
         logSearchDebug(context, year, search);
         ScopedSql scopedSql = buildScopedSql(context, year, search, countryCode, countryName, page, pageSize, false, false, null);
-        return jdbcTemplate.query(scopedSql.sql(), this::mapScopedRankedUniversity, scopedSql.args());
+        return jdbcTemplate.query(scopedSql.sql(), (rs, rowNum) -> rankingRowMapper.map(rs), scopedSql.args());
     }
 
     @Override
@@ -122,7 +119,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             String country
     ) {
         ScopedSql scopedSql = buildScopedSql(context, year, null, null, null, 0, 0, false, true, country);
-        return jdbcTemplate.query(scopedSql.sql(), this::mapScopedRankedUniversity, scopedSql.args());
+        return jdbcTemplate.query(scopedSql.sql(), (rs, rowNum) -> rankingRowMapper.map(rs), scopedSql.args());
     }
 
     private ScopedSql buildScopedSql(
@@ -341,81 +338,6 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         argsList.add(countryNameFilter);
         argsList.add(countryNameFilter);
         return sql;
-    }
-
-    private ScopedRankedUniversity mapScopedRankedUniversity(ResultSet rs, int rowNum) throws SQLException {
-        ScopedRankedUniversity row = new ScopedRankedUniversity();
-        row.setCanonicalUniversityId(rs.getLong("canonical_university_id"));
-        row.setUniversityName(rs.getString("university_name"));
-        row.setSlug(rs.getString("slug"));
-        row.setCountry(rs.getString("country_name"));
-
-        int rankingYear = rs.getInt("ranking_year");
-        row.setRankingYear(rs.wasNull() ? null : rankingYear);
-
-        int globalRank = rs.getInt("global_rank");
-        row.setGlobalRank(rs.wasNull() ? null : globalRank);
-
-        int scopeRank = rs.getInt("scope_rank");
-        row.setScopeRank(rs.wasNull() ? null : scopeRank);
-
-        double compositeScore = rs.getDouble("composite_score");
-        row.setCompositeScore(rs.wasNull() ? null : compositeScore);
-
-        double coverageRatio = rs.getDouble("coverage_ratio");
-        row.setCoverageRatio(rs.wasNull() ? null : coverageRatio);
-
-        double ieltsMin = rs.getDouble("ielts_min");
-        row.setIeltsMin(rs.wasNull() ? null : ieltsMin);
-
-        row.setAggregationMethodVersion(rs.getString("aggregation_method_version"));
-        Object rawSourceRanksJson = rs.getObject("source_ranks_json");
-        Map<String, Integer> parsedSourceRanks = parseJsonMap(rawSourceRanksJson);
-        row.setSourceRanks(parsedSourceRanks);
-        row.setSourceCount(parsedSourceRanks.size());
-        LOGGER.info(
-                "scoped ranking row evidence debug: canonicalUniversityId={}, rawSourceRanksJson={}, parsedSourceRanks={}, sourceCount={}",
-                row.getCanonicalUniversityId(),
-                rawSourceRanksJson,
-                parsedSourceRanks,
-                row.getSourceCount()
-        );
-        return row;
-    }
-
-    private Map<String, Integer> parseJsonMap(Object value) {
-        if (value == null) {
-            return new LinkedHashMap<>();
-        }
-        try {
-            Map<String, Object> raw = objectMapper.readValue(value.toString(), new TypeReference<>() {});
-            Map<String, Integer> parsed = new LinkedHashMap<>();
-            for (Map.Entry<String, Object> entry : raw.entrySet()) {
-                if (entry.getValue() != null) {
-                    Integer normalizedRank = toIntegerRank(entry.getValue());
-                    if (normalizedRank != null) {
-                        parsed.put(entry.getKey().toUpperCase(Locale.ROOT), normalizedRank);
-                    }
-                }
-            }
-            return parsed;
-        } catch (Exception e) {
-            return new LinkedHashMap<>();
-        }
-    }
-
-    private Integer toIntegerRank(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Number number) {
-            return (int) Math.round(number.doubleValue());
-        }
-        try {
-            return (int) Math.round(Double.parseDouble(value.toString()));
-        } catch (NumberFormatException ex) {
-            return null;
-        }
     }
 
     private void addRepeatedArgs(List<Object> args, String value, int count) {

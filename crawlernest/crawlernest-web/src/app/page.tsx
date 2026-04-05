@@ -1,21 +1,16 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import RankingFiltersPanel from "@/components/rankings/RankingFiltersPanel";
 import RankingRow from "@/components/rankings/RankingRow";
+import { useRankingFilters } from "@/hooks/useRankingFilters";
+import { useRankings } from "@/hooks/useRankings";
 import { rankingUniverseConfig } from "@/lib/rankingUniverseConfig";
 import { buildRankingViewModel } from "@/lib/rankingViewModel";
 import { formatRank } from "@/lib/format";
-import { countryBelongsToRegion, normalizeCountryName } from "@/lib/regionMap";
-import type {
-  RankingApiRow,
-  RankingCountryOption,
-  RankingsApiMetadata,
-  RankingPresentationRow,
-  RankingScope,
-} from "@/types/ranking";
+import type { RankingPresentationRow } from "@/types/ranking";
 
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
 
@@ -111,143 +106,50 @@ function RankingsPageShell() {
 
 function RankingsPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [isClientReady, setIsClientReady] = useState(false);
-  const [searchInput, setSearchInput] = useState("");
-  const [items, setItems] = useState<RankingApiRow[]>([]);
-  const [metadata, setMetadata] = useState<RankingsApiMetadata>({});
-  const [totalCount, setTotalCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
-
-  useEffect(() => {
-    setIsClientReady(true);
-  }, []);
-
-  const scope = isClientReady
-    ? ((searchParams.get("scope") as RankingScope) ?? "global")
-    : "global";
-  const region = isClientReady ? (searchParams.get("region") ?? "Europe") : "Europe";
-  const year = isClientReady ? Number(searchParams.get("year") ?? "2026") : 2026;
-  const page = isClientReady ? Number(searchParams.get("page") ?? "1") : 1;
-  const pageSize = isClientReady ? Number(searchParams.get("pageSize") ?? "20") : 20;
-  const searchQuery = isClientReady ? (searchParams.get("search") ?? "") : "";
-  const country = isClientReady ? (searchParams.get("country") ?? "") : "";
-  const normalizedSelectedCountry = normalizeCountryName(country);
-  const universe = scope === "region" ? "region" : "global";
+  const {
+    isClientReady,
+    searchInput,
+    setSearchInput,
+    scope,
+    region,
+    year,
+    page,
+    pageSize,
+    searchQuery,
+    country,
+    normalizedSelectedCountry,
+    countryOptions,
+    navigate,
+  } = useRankingFilters([], {});
+  const { items, metadata, totalCount, loading, error, totalPages } = useRankings({
+    isClientReady,
+    page,
+    pageSize,
+    year,
+    scope,
+    region,
+    searchQuery,
+    country,
+  });
+  const filters = useRankingFilters(items, metadata);
+  const activeFilters = filters.isClientReady ? filters : {
+    isClientReady,
+    searchInput,
+    setSearchInput,
+    scope,
+    region,
+    year,
+    page,
+    pageSize,
+    searchQuery,
+    country,
+    normalizedSelectedCountry,
+    countryOptions,
+    navigate,
+  };
+  const universe = activeFilters.scope === "region" ? "region" : "global";
   const universeConfig = rankingUniverseConfig[universe];
-  const countryOptions = useMemo<RankingCountryOption[]>(() => {
-    const metadataOptions = Array.isArray(metadata.countryOptions)
-      ? metadata.countryOptions
-      : [];
-
-    if (metadataOptions.length > 0) {
-      return metadataOptions
-        .filter((option) => {
-          const normalizedCountry = normalizeCountryName(option.name);
-          if (!normalizedCountry) {
-            return false;
-          }
-          if (scope === "region") {
-            return countryBelongsToRegion(normalizedCountry, region);
-          }
-          return true;
-        })
-        .map((option) => ({
-          code: option.code ?? null,
-          name: normalizeCountryName(option.name),
-          count: option.count,
-        }))
-        .filter((option) => Boolean(option.name))
-        .sort((left, right) => left.name.localeCompare(right.name));
-    }
-
-    if (!Array.isArray(items) || items.length === 0) {
-      return [];
-    }
-
-    const counts = new Map<string, number>();
-
-    for (const item of items) {
-      const rawCountry = typeof item.country === "string" ? item.country : "";
-      const normalizedCountry = normalizeCountryName(rawCountry);
-
-      if (!normalizedCountry) {
-        continue;
-      }
-
-      if (scope === "region" && !countryBelongsToRegion(normalizedCountry, region)) {
-        continue;
-      }
-
-      counts.set(normalizedCountry, (counts.get(normalizedCountry) ?? 0) + 1);
-    }
-
-    return Array.from(counts.entries())
-      .map(([name, count]) => ({
-        code: null,
-        name,
-        count,
-      }))
-      .sort((left, right) => left.name.localeCompare(right.name));
-  }, [items, metadata.countryOptions, region, scope]);
-
-  useEffect(() => {
-    setSearchInput(searchQuery);
-  }, [searchQuery]);
-
-  const navigate = useCallback(
-    (updates: Record<string, string | number | null>) => {
-      const params = new URLSearchParams(searchParams.toString());
-      for (const [key, value] of Object.entries(updates)) {
-        if (value === null || value === "") {
-          params.delete(key);
-        } else {
-          params.set(key, String(value));
-        }
-      }
-      router.replace(`/?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
-
-  useEffect(() => {
-    if (!isClientReady) {
-      return;
-    }
-
-    const hasStaleRegion = scope === "global" && searchParams.has("region");
-    const hasDependentCountry = hasStaleRegion && searchParams.has("country");
-
-    if (hasStaleRegion || hasDependentCountry) {
-      navigate({ region: null, country: null, page: 1 });
-    }
-  }, [isClientReady, navigate, scope, searchParams]);
-
-  useEffect(() => {
-    if (!isClientReady || !country) {
-      return;
-    }
-
-    if (countryOptions.length === 0) {
-      return;
-    }
-
-    const matchingCountry = countryOptions.find(
-      (option) =>
-        option.code === country ||
-        normalizeCountryName(option.name) === normalizedSelectedCountry
-    );
-    if (!matchingCountry) {
-      navigate({ country: null, page: 1 });
-      return;
-    }
-
-    if (matchingCountry.name !== normalizedSelectedCountry) {
-      navigate({ country: matchingCountry.name, page: 1 });
-    }
-  }, [country, countryOptions, isClientReady, navigate, normalizedSelectedCountry]);
 
   useEffect(() => {
     if (!isClientReady) {
@@ -279,89 +181,11 @@ function RankingsPageContent() {
     }
   }, [isClientReady, shortlist]);
 
-  useEffect(() => {
-    if (!isClientReady) {
-      return;
-    }
-
-    let isMounted = true;
-    const controller = new AbortController();
-
-    async function fetchRankings() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const params = new URLSearchParams({
-          page: String(page),
-          pageSize: String(pageSize),
-          year: String(year),
-          scope,
-          ...(scope === "region" ? { region } : {}),
-          ...(searchQuery ? { search: searchQuery } : {}),
-          ...(country ? { country } : {}),
-          _ts: Date.now().toString(),
-        });
-
-        const res = await fetch(`/api/rankings?${params.toString()}`, {
-          cache: "no-store",
-          signal: controller.signal,
-        });
-
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-
-        const payload = await res.json();
-
-        if (!res.ok || payload?.success === false) {
-          throw new Error(
-            payload?.data?.error || `HTTP ${res.status}`
-          );
-        }
-
-        if (isMounted) {
-          setItems(Array.isArray(payload?.data?.items) ? payload.data.items : []);
-          setTotalCount(payload?.metadata?.totalCount ?? 0);
-          setMetadata(payload?.metadata ?? {});
-        }
-      } catch (err) {
-        if (err instanceof Error && err.name === "AbortError") {
-          return;
-        }
-
-        if (isMounted) {
-          const message =
-            err instanceof Error && err.message
-              ? err.message
-              : "Failed to load rankings. Please try again.";
-          setError(message === "HTTP 500" || message.startsWith("HTTP ")
-            ? "Failed to load rankings. Please try again."
-            : message);
-          setItems([]);
-          setTotalCount(0);
-          setMetadata({});
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchRankings();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, [isClientReady, page, pageSize, year, scope, region, searchQuery, country]);
-
   const isInShortlist = (id: number) =>
     shortlist.some((item) => item.canonicalUniversityId === id);
 
   const presentationItems: RankingPresentationRow[] = items.map((item) =>
-    buildRankingViewModel(item, { scope, region })
+    buildRankingViewModel(item, { scope: activeFilters.scope, region: activeFilters.region })
   );
 
   const toggleShortlist = (item: RankingPresentationRow) => {
@@ -388,23 +212,22 @@ function RankingsPageContent() {
     router.push("/recommendations");
   };
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const canGoPrevious = page > 1 && !loading;
-  const canGoNext = !loading && items.length === pageSize;
+  const canGoPrevious = activeFilters.page > 1 && !loading;
+  const canGoNext = !loading && items.length === activeFilters.pageSize;
   const emptyStateMessage = useMemo(() => {
-    if (country) {
-      if (scope === "region") {
-        return `No universities found for ${normalizedSelectedCountry} in ${region}.`;
+    if (activeFilters.country) {
+      if (activeFilters.scope === "region") {
+        return `No universities found for ${activeFilters.normalizedSelectedCountry} in ${activeFilters.region}.`;
       }
-      return `No universities found for ${normalizedSelectedCountry}.`;
+      return `No universities found for ${activeFilters.normalizedSelectedCountry}.`;
     }
 
-    if (scope === "region") {
-      return `No universities found in ${region}.`;
+    if (activeFilters.scope === "region") {
+      return `No universities found in ${activeFilters.region}.`;
     }
 
     return "No universities found for the current filters.";
-  }, [country, normalizedSelectedCountry, region, scope]);
+  }, [activeFilters.country, activeFilters.normalizedSelectedCountry, activeFilters.region, activeFilters.scope]);
 
   if (!isClientReady) {
     return <RankingsPageShell />;
@@ -444,20 +267,20 @@ function RankingsPageContent() {
             <input
               type="text"
               placeholder="Search universities… (press Enter)"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              value={activeFilters.searchInput}
+              onChange={(e) => activeFilters.setSearchInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  navigate({ search: searchInput || null, page: 1 });
+                  activeFilters.navigate({ search: activeFilters.searchInput || null, page: 1 });
                 }
               }}
               className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-4 py-2 pr-8 text-sm outline-none transition focus:border-[#1a3d2e] focus:bg-white"
             />
-            {searchInput && (
+            {activeFilters.searchInput && (
               <button
                 onClick={() => {
-                  setSearchInput("");
-                  navigate({ search: null, page: 1 });
+                  activeFilters.setSearchInput("");
+                  activeFilters.navigate({ search: null, page: 1 });
                 }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-[#6b7068] transition hover:text-[#1a1a1a]"
                 aria-label="Clear search"
@@ -485,14 +308,14 @@ function RankingsPageContent() {
         <div className="flex gap-6">
           <aside className="w-52 flex-shrink-0">
             <RankingFiltersPanel
-              year={year}
-              scope={scope}
-              region={region}
-              country={country}
-              pageSize={pageSize}
-              countryOptions={countryOptions}
+              year={activeFilters.year}
+              scope={activeFilters.scope}
+              region={activeFilters.region}
+              country={activeFilters.country}
+              pageSize={activeFilters.pageSize}
+              countryOptions={activeFilters.countryOptions}
               regionOptions={REGION_OPTIONS}
-              onUpdate={navigate}
+              onUpdate={activeFilters.navigate}
             />
           </aside>
 
@@ -500,7 +323,7 @@ function RankingsPageContent() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-[#1a3d2e]">
-                  {year} Rankings · {scope === "region" ? region : "Global"}
+                  {activeFilters.year} Rankings · {activeFilters.scope === "region" ? activeFilters.region : "Global"}
                 </h2>
                 <p className="mt-1 text-xs text-[#6b7068]">
                   This ranking is computed by combining multiple sources (QS, THE, ARWU) using a weighted rank model.
@@ -612,22 +435,22 @@ function RankingsPageContent() {
 
             <div className="mt-6 flex items-center justify-between">
               <span className="text-sm text-[#6b7068]">
-                Page {page} of {totalPages}
+                Page {activeFilters.page} of {totalPages}
               </span>
               <div className="flex items-center gap-2">
                 <button
                   disabled={!canGoPrevious}
-                  onClick={() => navigate({ page: page - 1 })}
+                  onClick={() => activeFilters.navigate({ page: activeFilters.page - 1 })}
                   className="rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-sm font-medium text-[#1a1a1a] transition hover:border-[#1a3d2e] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Previous
                 </button>
                 <span className="rounded-lg bg-[#1a3d2e] px-4 py-2 text-sm font-semibold text-white">
-                  {page}
+                  {activeFilters.page}
                 </span>
                 <button
                   disabled={!canGoNext}
-                  onClick={() => navigate({ page: page + 1 })}
+                  onClick={() => activeFilters.navigate({ page: activeFilters.page + 1 })}
                   className="rounded-lg border border-[#e0ddd8] bg-white px-4 py-2 text-sm font-medium text-[#1a1a1a] transition hover:border-[#1a3d2e] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next
