@@ -35,19 +35,51 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             RankingContext context,
             Integer year,
             String search,
+            String countryCode,
+            String countryName,
             int page,
             int pageSize
     ) {
         logSearchDebug(context, year, search);
-        ScopedSql scopedSql = buildScopedSql(context, year, search, page, pageSize, false, false, null);
+        ScopedSql scopedSql = buildScopedSql(context, year, search, countryCode, countryName, page, pageSize, false, false, null);
         return jdbcTemplate.query(scopedSql.sql(), this::mapScopedRankedUniversity, scopedSql.args());
     }
 
     @Override
-    public long countRankings(RankingContext context, Integer year, String search) {
-        ScopedSql scopedSql = buildScopedSql(context, year, search, 0, 0, true, false, null);
+    public long countRankings(RankingContext context, Integer year, String search, String countryCode, String countryName) {
+        ScopedSql scopedSql = buildScopedSql(context, year, search, countryCode, countryName, 0, 0, true, false, null);
         Long count = jdbcTemplate.queryForObject(scopedSql.sql(), Long.class, scopedSql.args());
         return count == null ? 0L : count;
+    }
+
+    @Override
+    public List<Map<String, Object>> findCountryOptions(RankingContext context, Integer year, String search) {
+        String normalizedSearch = search == null ? "" : search.trim();
+        List<Object> argsList = new ArrayList<>();
+        StringBuilder sql = baseScopedSql(context, year, normalizedSearch, argsList);
+        sql.append("""
+                SELECT
+                    country_code,
+                    country AS country_name,
+                    COUNT(*) AS country_count
+                FROM ranked
+                WHERE (? = '' OR search_score > 0)
+                  AND country_code IS NOT NULL
+                GROUP BY country_code, country
+                ORDER BY country_count DESC, country ASC
+                """);
+        argsList.add(normalizedSearch);
+        return jdbcTemplate.query(
+                sql.toString(),
+                (rs, rowNum) -> {
+                    Map<String, Object> row = new LinkedHashMap<>();
+                    row.put("country_code", rs.getString("country_code"));
+                    row.put("country_name", rs.getString("country_name"));
+                    row.put("country_count", rs.getLong("country_count"));
+                    return row;
+                },
+                argsList.toArray()
+        );
     }
 
     @Override
@@ -56,7 +88,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             Integer year,
             String country
     ) {
-        ScopedSql scopedSql = buildScopedSql(context, year, null, 0, 0, false, true, country);
+        ScopedSql scopedSql = buildScopedSql(context, year, null, null, null, 0, 0, false, true, country);
         return jdbcTemplate.query(scopedSql.sql(), this::mapScopedRankedUniversity, scopedSql.args());
     }
 
@@ -64,6 +96,8 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             RankingContext context,
             Integer year,
             String search,
+            String countryCode,
+            String countryName,
             int page,
             int pageSize,
             boolean countOnly,
@@ -71,7 +105,94 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             String country
     ) {
         String normalizedSearch = search == null ? "" : search.trim();
+        String normalizedCountryCode = countryCode == null ? null : countryCode.trim().toUpperCase(Locale.ROOT);
+        String normalizedCountryName = countryName == null ? null : countryName.trim();
         List<Object> argsList = new ArrayList<>();
+        StringBuilder sql = baseScopedSql(context, year, normalizedSearch, argsList);
+
+        if (countOnly) {
+            sql.append("""
+                    SELECT COUNT(*)
+                    FROM ranked
+                    WHERE (? = '' OR search_score > 0)
+                      AND (
+                        (?::text IS NULL AND ?::text IS NULL)
+                        OR country_code = ?::text
+                        OR lower(country) = lower(?::text)
+                      )
+                    """);
+            argsList.add(normalizedSearch);
+            argsList.add(normalizedCountryCode);
+            argsList.add(normalizedCountryName);
+            argsList.add(normalizedCountryCode);
+            argsList.add(normalizedCountryName);
+            return new ScopedSql(sql.toString(), argsList.toArray());
+        }
+
+        sql.append("""
+                SELECT
+                    canonical_university_id,
+                    university_name,
+                    slug,
+                    country,
+                    ranking_year,
+                    global_rank,
+                    scope_rank,
+                    composite_score,
+                    coverage_ratio,
+                    ielts_min,
+                    source_ranks_json,
+                    aggregation_method_version,
+                    source_count
+                FROM ranked
+                WHERE 1=1
+                """);
+
+        if (!recommendationMode) {
+            sql.append(" AND (? = '' OR search_score > 0)");
+            argsList.add(normalizedSearch);
+            sql.append("""
+                     AND (
+                       (?::text IS NULL AND ?::text IS NULL)
+                       OR country_code = ?::text
+                       OR lower(country) = lower(?::text)
+                     )
+                    """);
+            argsList.add(normalizedCountryCode);
+            argsList.add(normalizedCountryName);
+            argsList.add(normalizedCountryCode);
+            argsList.add(normalizedCountryName);
+        }
+        if (recommendationMode && country != null && !country.isBlank()) {
+            sql.append(" AND country = ?\n");
+            argsList.add(country);
+        }
+
+        sql.append("""
+                ORDER BY
+                    CASE WHEN ? THEN 0 ELSE search_score END DESC,
+                    CASE WHEN scope_rank IS NULL THEN 1 ELSE 0 END,
+                    scope_rank ASC,
+                    university_name ASC,
+                    canonical_university_id ASC
+                """);
+        argsList.add(recommendationMode);
+
+        if (!recommendationMode) {
+            sql.append(" LIMIT ? OFFSET ?");
+            argsList.add(pageSize);
+            argsList.add(page * pageSize);
+        }
+
+        return new ScopedSql(sql.toString(), argsList.toArray());
+    }
+
+    private StringBuilder baseScopedSql(
+            RankingContext context,
+            Integer year,
+            String normalizedSearch,
+            List<Object> argsList
+    ) {
         StringBuilder sql = new StringBuilder("""
                 WITH admission_summary AS (
                     SELECT
@@ -98,6 +219,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                         cu.display_name AS university_name,
                         cu.canonical_slug AS slug,
                         c.country_name AS country,
+                        c.country_code AS country_code,
                         ar.ranking_year,
                         COALESCE(global_ref.global_rank, ar.display_rank) AS global_rank,
                         ar.display_rank AS scope_rank,
@@ -182,6 +304,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                         university_name,
                         slug,
                         country,
+                        country_code,
                         ranking_year,
                         global_rank,
                         scope_rank,
@@ -203,62 +326,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         argsList.add(year);
         argsList.add(context.universeType());
         argsList.add(context.universeKey());
-
-        if (countOnly) {
-            sql.append("""
-                    SELECT COUNT(*)
-                    FROM ranked
-                    WHERE (? = '' OR search_score > 0)
-                    """);
-            argsList.add(normalizedSearch);
-            return new ScopedSql(sql.toString(), argsList.toArray());
-        }
-
-        sql.append("""
-                SELECT
-                    canonical_university_id,
-                    university_name,
-                    slug,
-                    country,
-                    ranking_year,
-                    global_rank,
-                    scope_rank,
-                    composite_score,
-                    coverage_ratio,
-                    ielts_min,
-                    source_ranks_json,
-                    aggregation_method_version,
-                    source_count
-                FROM ranked
-                WHERE 1=1
-                """);
-
-        if (!recommendationMode) {
-            sql.append(" AND (? = '' OR search_score > 0)");
-            argsList.add(normalizedSearch);
-        }
-        if (recommendationMode && country != null && !country.isBlank()) {
-            sql.append(" AND country = ?\n");
-            argsList.add(country);
-        }
-
-        sql.append("""
-                ORDER BY
-                    CASE WHEN ? THEN 0 ELSE search_score END DESC,
-                    CASE WHEN scope_rank IS NULL THEN 1 ELSE 0 END,
-                    scope_rank ASC,
-                    university_name ASC,
-                    canonical_university_id ASC
-                """);
-        argsList.add(recommendationMode);
-
-        if (!recommendationMode) {
-            sql.append(" LIMIT ? OFFSET ?");
-            argsList.add(pageSize);
-            argsList.add(page * pageSize);
-        }
-
-        return new ScopedSql(sql.toString(), argsList.toArray());
+        return sql;
     }
 
     private ScopedRankedUniversity mapScopedRankedUniversity(ResultSet rs, int rowNum) throws SQLException {
@@ -322,11 +390,11 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             return;
         }
 
-        long rowsBeforeSearch = countRankings(context, year, null);
-        long rowsAfterSearch = countRankings(context, year, normalizedSearch);
+        long rowsBeforeSearch = countRankings(context, year, null, null, null);
+        long rowsAfterSearch = countRankings(context, year, normalizedSearch, null, null);
 
         LOGGER.info(
-                "Scoped ranking search debug: search='{}', scope='{}', region='{}', whereClause='LOWER(university_name) LIKE %search% OR LOWER(country_name) LIKE %search% OR alias match', rowsBeforeSearch={}, rowsAfterSearch={}",
+                "Scoped ranking search debug: search='{}', scope='{}', region='{}', whereClause='LOWER(university_name) LIKE %search% OR LOWER(country) LIKE %search% OR alias match', rowsBeforeSearch={}, rowsAfterSearch={}",
                 normalizedSearch,
                 context.apiScope(),
                 context.region(),
