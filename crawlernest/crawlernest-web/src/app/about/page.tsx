@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "About | CrawlerNest",
@@ -12,7 +13,7 @@ function Section({
   cream = false,
   className = "",
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   cream?: boolean;
   className?: string;
 }) {
@@ -25,7 +26,7 @@ function Section({
   );
 }
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
+function SectionHeading({ children }: { children: ReactNode }) {
   return (
     <h2 className="text-3xl font-bold tracking-tight text-[#1a3d2e]">
       {children}

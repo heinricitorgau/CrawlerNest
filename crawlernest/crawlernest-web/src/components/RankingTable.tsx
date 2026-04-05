@@ -17,7 +17,9 @@ interface RankingTableProps {
   items: RankingItem[];
 }
 
-export default function RankingTable({ items }: RankingTableProps) {
+export default function RankingTable({ items = [] }: RankingTableProps) {
+  const safeItems = Array.isArray(items) ? items : [];
+
   return (
     <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm bg-white">
       <table className="ranking-table min-w-full">
@@ -31,30 +33,30 @@ export default function RankingTable({ items }: RankingTableProps) {
           </tr>
         </thead>
         <tbody>
-          {items.length === 0 ? (
+          {safeItems.length === 0 ? (
             <tr>
               <td colSpan={5} className="py-20 text-center text-slate-500 italic">
                 No universities found matching your criteria.
               </td>
             </tr>
           ) : (
-            items.map((item) => (
+            safeItems.map((item) => (
               <tr key={item.canonicalUniversityId} className="group">
                 <td className="text-center font-bold text-slate-900 border-r border-gray-50">
                   {formatRank(item.aggregatedRank)}
                 </td>
                 <td className="font-medium">
                   <Link 
-                    href={`/universities/${item.slug}`}
+                    href={item.slug ? `/universities/${item.slug}` : "#"}
                     className="text-blue-600 hover:text-blue-800 hover:underline underline-offset-4 decoration-2 decoration-blue-100 transition-colors"
                   >
-                    {item.universityName}
+                    {item.universityName || "Unknown university"}
                   </Link>
                 </td>
                 <td className="text-slate-600">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-400">📍</span>
-                    {item.country}
+                    {item.country || "—"}
                   </div>
                 </td>
                 <td className="text-right font-mono font-semibold text-slate-700">

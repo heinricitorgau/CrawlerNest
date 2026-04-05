@@ -5,6 +5,7 @@ import java.util.List;
 public class CompareRequest {
     private Integer leftUniversityId;
     private Integer rightUniversityId;
+    private List<Integer> universityIds;
     private Integer rankingYear;
 
     public Integer getLeftUniversityId() {
@@ -21,6 +22,14 @@ public class CompareRequest {
 
     public void setRightUniversityId(Integer rightUniversityId) {
         this.rightUniversityId = rightUniversityId;
+    }
+
+    public List<Integer> getUniversityIds() {
+        return universityIds;
+    }
+
+    public void setUniversityIds(List<Integer> universityIds) {
+        this.universityIds = universityIds;
     }
 
     public Integer getRankingYear() {

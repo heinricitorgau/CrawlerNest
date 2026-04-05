@@ -2,6 +2,7 @@ package clawer.api;
 
 import clawer.dto.RankingDTO;
 import clawer.dto.ApiResponse;
+import clawer.dto.RankingCountryOptionDTO;
 import clawer.service.RankingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,17 +44,19 @@ public class RankingController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String scope,
-            @RequestParam(required = false) String region
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String country
     ) {
         LOGGER.info(
-                "GET /api/v1/rankings called with page={}, pageSize={}, source={}, year={}, search={}, scope={}, region={}",
+                "GET /api/v1/rankings called with page={}, pageSize={}, source={}, year={}, search={}, scope={}, region={}, country={}",
                 page,
                 pageSize,
                 source,
                 year,
                 search,
                 scope,
-                region
+                region,
+                country
         );
         int safePage = Math.max(page, 1) - 1;
         int safeSize = Math.min(Math.max(pageSize == null ? 20 : pageSize, 1), 100);
@@ -67,13 +70,21 @@ public class RankingController {
         if (validationError != null) {
             return validationError;
         }
-        List<RankingDTO> items = rankingService.getRankings(safePage, safeSize, year, search, safeScope, safeRegion);
-        long totalCount = rankingService.countRankings(year, search, safeScope, safeRegion);
+        String resolvedCountryCode = rankingService.resolveCountryCode(year, search, safeScope, safeRegion, country);
+        if (country != null && !country.isBlank() && resolvedCountryCode == null) {
+            return ResponseEntity.badRequest().body(validationErrorResponse(
+                    "Unsupported country for the current scope/region."
+            ));
+        }
+        List<RankingDTO> items = rankingService.getRankings(safePage, safeSize, year, search, safeScope, safeRegion, resolvedCountryCode);
+        long totalCount = rankingService.countRankings(year, search, safeScope, safeRegion, resolvedCountryCode);
+        List<RankingCountryOptionDTO> countryOptions = rankingService.getCountryOptions(year, search, safeScope, safeRegion);
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("timestamp", Instant.now().toString());
         metadata.put("totalCount", totalCount);
         metadata.put("page", safePage + 1);
         metadata.put("pageSize", safeSize);
+        metadata.put("countryOptions", countryOptions);
         return ResponseEntity.ok(ApiResponse.success(
                 Map.of("items", items),
                 metadata
@@ -93,17 +104,19 @@ public class RankingController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String scope,
-            @RequestParam(required = false) String region
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String country
     ) {
         LOGGER.info(
-                "GET /api/v1/rankings/{} called with page={}, pageSize={}, year={}, search={}, scope={}, region={}",
+                "GET /api/v1/rankings/{} called with page={}, pageSize={}, year={}, search={}, scope={}, region={}, country={}",
                 source,
                 page,
                 pageSize,
                 year,
                 search,
                 scope,
-                region
+                region,
+                country
         );
         int safePage = Math.max(page, 1) - 1;
         int safeSize = Math.min(Math.max(pageSize == null ? 20 : pageSize, 1), 100);
@@ -116,13 +129,21 @@ public class RankingController {
         if (validationError != null) {
             return validationError;
         }
-        List<RankingDTO> items = rankingService.getRankings(safePage, safeSize, year, search, safeScope, safeRegion);
-        long totalCount = rankingService.countRankings(year, search, safeScope, safeRegion);
+        String resolvedCountryCode = rankingService.resolveCountryCode(year, search, safeScope, safeRegion, country);
+        if (country != null && !country.isBlank() && resolvedCountryCode == null) {
+            return ResponseEntity.badRequest().body(validationErrorResponse(
+                    "Unsupported country for the current scope/region."
+            ));
+        }
+        List<RankingDTO> items = rankingService.getRankings(safePage, safeSize, year, search, safeScope, safeRegion, resolvedCountryCode);
+        long totalCount = rankingService.countRankings(year, search, safeScope, safeRegion, resolvedCountryCode);
+        List<RankingCountryOptionDTO> countryOptions = rankingService.getCountryOptions(year, search, safeScope, safeRegion);
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("timestamp", Instant.now().toString());
         metadata.put("totalCount", totalCount);
         metadata.put("page", safePage + 1);
         metadata.put("pageSize", safeSize);
+        metadata.put("countryOptions", countryOptions);
         return ResponseEntity.ok(ApiResponse.success(
                 Map.of("items", items),
                 metadata

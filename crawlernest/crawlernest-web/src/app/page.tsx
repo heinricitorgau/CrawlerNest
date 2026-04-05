@@ -1,18 +1,21 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import RankingFiltersPanel from "@/components/rankings/RankingFiltersPanel";
+import RankingRow from "@/components/rankings/RankingRow";
 import { rankingUniverseConfig } from "@/lib/rankingUniverseConfig";
 import { buildRankingViewModel } from "@/lib/rankingViewModel";
 import { formatRank } from "@/lib/format";
+import { countryBelongsToRegion, normalizeCountryName } from "@/lib/regionMap";
 import type {
   RankingApiRow,
+  RankingCountryOption,
   RankingPresentationRow,
   RankingScope,
 } from "@/types/ranking";
 
-const REFRESH_INTERVAL_MS = 5000;
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
 
 const REGION_OPTIONS = [
@@ -114,7 +117,6 @@ function RankingsPageContent() {
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
 
   useEffect(() => {
@@ -129,8 +131,39 @@ function RankingsPageContent() {
   const page = isClientReady ? Number(searchParams.get("page") ?? "1") : 1;
   const pageSize = isClientReady ? Number(searchParams.get("pageSize") ?? "20") : 20;
   const searchQuery = isClientReady ? (searchParams.get("search") ?? "") : "";
+  const country = isClientReady ? (searchParams.get("country") ?? "") : "";
   const universe = scope === "region" ? "region" : "global";
   const universeConfig = rankingUniverseConfig[universe];
+  const countryOptions = useMemo<RankingCountryOption[]>(() => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return [];
+    }
+
+    const counts = new Map<string, number>();
+
+    for (const item of items) {
+      const rawCountry = typeof item.country === "string" ? item.country : "";
+      const normalizedCountry = normalizeCountryName(rawCountry);
+
+      if (!normalizedCountry) {
+        continue;
+      }
+
+      if (scope === "region" && !countryBelongsToRegion(normalizedCountry, region)) {
+        continue;
+      }
+
+      counts.set(normalizedCountry, (counts.get(normalizedCountry) ?? 0) + 1);
+    }
+
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({
+        code: name,
+        name,
+        count,
+      }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }, [items, region, scope]);
 
   useEffect(() => {
     setSearchInput(searchQuery);
@@ -150,6 +183,42 @@ function RankingsPageContent() {
     },
     [router, searchParams]
   );
+
+  useEffect(() => {
+    if (!isClientReady) {
+      return;
+    }
+
+    const hasStaleRegion = scope === "global" && searchParams.has("region");
+    const hasDependentCountry = hasStaleRegion && searchParams.has("country");
+
+    if (hasStaleRegion || hasDependentCountry) {
+      navigate({ region: null, country: null, page: 1 });
+    }
+  }, [isClientReady, navigate, scope, searchParams]);
+
+  useEffect(() => {
+    if (!isClientReady || !country) {
+      return;
+    }
+
+    if (countryOptions.length === 0) {
+      return;
+    }
+
+    const matchingCountry = countryOptions.find(
+      (option) =>
+        option.code === country || option.name.toLowerCase() === country.toLowerCase()
+    );
+    if (!matchingCountry) {
+      navigate({ country: null, page: 1 });
+      return;
+    }
+
+    if (matchingCountry.name !== country) {
+      navigate({ country: matchingCountry.name, page: 1 });
+    }
+  }, [country, countryOptions, isClientReady, navigate]);
 
   useEffect(() => {
     if (!isClientReady) {
@@ -186,33 +255,6 @@ function RankingsPageContent() {
       return;
     }
 
-    const id = setInterval(() => {
-      setRefreshTrigger((value) => value + 1);
-    }, REFRESH_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [isClientReady]);
-
-  useEffect(() => {
-    if (!isClientReady) {
-      return;
-    }
-
-    const bump = () => setRefreshTrigger((value) => value + 1);
-    window.addEventListener("focus", bump);
-    document.addEventListener("visibilitychange", bump);
-    window.addEventListener("online", bump);
-    return () => {
-      window.removeEventListener("focus", bump);
-      document.removeEventListener("visibilitychange", bump);
-      window.removeEventListener("online", bump);
-    };
-  }, [isClientReady]);
-
-  useEffect(() => {
-    if (!isClientReady) {
-      return;
-    }
-
     let isMounted = true;
     const controller = new AbortController();
 
@@ -228,6 +270,7 @@ function RankingsPageContent() {
           scope,
           ...(scope === "region" ? { region } : {}),
           ...(searchQuery ? { search: searchQuery } : {}),
+          ...(country ? { country } : {}),
           _ts: Date.now().toString(),
         });
 
@@ -269,7 +312,7 @@ function RankingsPageContent() {
       isMounted = false;
       controller.abort();
     };
-  }, [isClientReady, page, pageSize, year, scope, region, searchQuery, refreshTrigger]);
+  }, [isClientReady, page, pageSize, year, scope, region, searchQuery, country]);
 
   const isInShortlist = (id: number) =>
     shortlist.some((item) => item.canonicalUniversityId === id);
@@ -305,42 +348,6 @@ function RankingsPageContent() {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const canGoPrevious = page > 1 && !loading;
   const canGoNext = !loading && items.length === pageSize;
-  const trustSources = (item: RankingPresentationRow) =>
-    (["QS", "THE", "ARWU"] as const)
-      .filter((source) => item.trustExplain?.sources[source] != null)
-      .join(", ");
-  const evidenceRows = (item: RankingPresentationRow) => {
-    const sources = item.aggregationExplain?.sources;
-    const availableRanks = (["QS", "THE", "ARWU"] as const)
-      .map((source) => sources?.[source] ?? null)
-      .filter((value): value is number => value != null);
-    const bestRank = availableRanks.length > 0 ? Math.min(...availableRanks) : null;
-
-    return (["QS", "THE", "ARWU"] as const).map((source) => {
-      const rank = sources?.[source] ?? null;
-      return {
-        source,
-        rank,
-        hasLargeDifference:
-          rank != null && bestRank != null && Math.abs(rank - bestRank) > 20,
-      };
-    });
-  };
-  const evidenceHint = (item: RankingPresentationRow) => {
-    const available = evidenceRows(item).filter((row) => row.rank != null);
-    if (available.length <= 1) {
-      return "Only one source available";
-    }
-    const ranks = available.map((row) => row.rank as number);
-    const spread = Math.max(...ranks) - Math.min(...ranks);
-    if (spread <= 5) {
-      return "Strong agreement across ranking sources";
-    }
-    if (spread <= 20) {
-      return "Moderate variation across sources";
-    }
-    return "High disagreement — interpret carefully";
-  };
 
   if (!isClientReady) {
     return <RankingsPageShell />;
@@ -420,96 +427,16 @@ function RankingsPageContent() {
       <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
         <div className="flex gap-6">
           <aside className="w-52 flex-shrink-0">
-            <div className="rounded-2xl border border-[#e0ddd8] bg-white p-5 shadow-sm">
-              <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.15em] text-[#6b7068]">
-                Filters
-              </h3>
-
-              <div className="mb-5">
-                <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
-                  Year
-                </label>
-                <select
-                  value={year}
-                  onChange={(e) => navigate({ year: e.target.value, page: 1 })}
-                  className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e]"
-                >
-                  <option value="2026">2026</option>
-                  <option value="2025">2025</option>
-                  <option value="2024">2024</option>
-                </select>
-              </div>
-
-              <div className="mb-5">
-                <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
-                  Scope
-                </label>
-                <div className="flex overflow-hidden rounded-lg border border-[#e0ddd8]">
-                  {(["global", "region"] as const).map((nextScope) => (
-                    <button
-                      key={nextScope}
-                      onClick={() => navigate({ scope: nextScope, page: 1 })}
-                      className={`flex-1 py-2 text-xs font-semibold capitalize transition ${
-                        scope === nextScope
-                          ? "bg-[#1a3d2e] text-white"
-                          : "bg-white text-[#6b7068] hover:bg-[#f5f3ee]"
-                      }`}
-                    >
-                      {nextScope}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {scope === "region" && (
-                <div className="mb-5">
-                  <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
-                    Region
-                  </label>
-                  <select
-                    value={region}
-                    onChange={(e) => navigate({ region: e.target.value, page: 1 })}
-                    className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e]"
-                  >
-                    {REGION_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="mb-5">
-                <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
-                  Per Page
-                </label>
-                <select
-                  value={pageSize}
-                  onChange={(e) => navigate({ pageSize: e.target.value, page: 1 })}
-                  className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e]"
-                >
-                  <option value="20">20</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </div>
-
-              <button
-                onClick={() =>
-                  navigate({
-                    scope: "global",
-                    region: null,
-                    year: 2026,
-                    search: null,
-                    page: 1,
-                  })
-                }
-                className="w-full rounded-lg border border-[#e0ddd8] py-2 text-xs font-semibold text-[#6b7068] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
-              >
-                Reset Filters
-              </button>
-            </div>
+            <RankingFiltersPanel
+              year={year}
+              scope={scope}
+              region={region}
+              country={country}
+              pageSize={pageSize}
+              countryOptions={countryOptions}
+              regionOptions={REGION_OPTIONS}
+              onUpdate={navigate}
+            />
           </aside>
 
           <div className="min-w-0 flex-1">
@@ -542,7 +469,7 @@ function RankingsPageContent() {
               <div className="mb-4 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 <span>{error}</span>
                 <button
-                  onClick={() => setRefreshTrigger((value) => value + 1)}
+                  onClick={() => router.refresh()}
                   className="ml-4 font-semibold underline"
                 >
                   Retry
@@ -597,183 +524,14 @@ function RankingsPageContent() {
                         </td>
                       </tr>
                     ) : (
-                      presentationItems.map((item) => {
-                        const inList = isInShortlist(item.canonicalUniversityId);
-                        return (
-                          <tr
-                            key={`${item.canonicalUniversityId}-${item.slug}-${item.shortlistRank}`}
-                            className="border-t border-[#e0ddd8] transition hover:bg-[#f5f3ee]"
-                          >
-                            <td className="px-4 py-3.5 text-center font-bold text-[#1a3d2e]">
-                              <div>{item.primaryRankLabel}</div>
-                              {item.secondaryRankLabel && (
-                                <div className="mt-0.5 text-[11px] font-medium text-[#6b7068]">
-                                  {item.secondaryRankLabel}
-                                </div>
-                              )}
-                            </td>
-                            <td className="px-4 py-3.5">
-                              <Link
-                                href={`/universities/${item.slug}`}
-                                className="font-medium text-[#1a1a1a] underline decoration-[#c0bdb8] underline-offset-2 transition hover:text-[#1a3d2e] hover:decoration-[#1a3d2e]"
-                              >
-                                {item.title}
-                              </Link>
-                              <div className="mt-1 flex items-center gap-2 text-xs text-[#6b7068]">
-                                <span>{item.subtitle}</span>
-                                <span
-                                  className={`inline-flex items-center rounded-full px-2 py-0.5 font-medium ${
-                                    item.badgeTone === "accent"
-                                      ? "bg-[#e8f2ec] text-[#1a3d2e]"
-                                      : "bg-[#f0ede7] text-[#6b7068]"
-                                  }`}
-                                >
-                                  {item.badgeLabel}
-                                </span>
-                                {item.trustLevel && (
-                                  <span
-                                    className={`inline-flex items-center rounded-full px-2 py-0.5 font-semibold uppercase tracking-[0.08em] ${
-                                      item.trustLevel === "high"
-                                        ? "bg-[#e8f2ec] text-[#1a3d2e]"
-                                        : item.trustLevel === "medium"
-                                          ? "bg-[#f3ecd6] text-[#8a6116]"
-                                          : "bg-[#f3e7e4] text-[#8b3a2b]"
-                                    }`}
-                                  >
-                                    {item.trustLevel} {item.trustScore != null ? Math.round(item.trustScore) : ""}
-                                  </span>
-                                )}
-                                {item.trustLevel === "low" && (
-                                  <span className="text-[11px] font-medium text-[#8b3a2b]">
-                                    Limited data — interpret with caution.
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3.5 text-[#6b7068]">
-                              {item.country}
-                            </td>
-                            <td className="px-4 py-3.5 text-right font-mono font-semibold text-[#1a1a1a]">
-                              <div>{item.scoreLabel}</div>
-                              <div className="mt-0.5 text-[11px] font-sans font-medium text-[#6b7068]">
-                                {item.scoreCaption}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3.5 text-center">
-                              <span className="inline-flex items-center rounded-full bg-[#e8f2ec] px-2.5 py-0.5 text-xs font-medium text-[#1a3d2e]">
-                                {item.sourceCoverageLabel}
-                              </span>
-                              <div className="mt-1 text-[11px] text-[#6b7068]">
-                                {item.rankingUniverseLabel}
-                              </div>
-                              {item.aggregationExplain && item.aggregationExplain.availableSourceCount > 0 && (
-                                <details className="mt-2 text-left">
-                                  <summary className="cursor-pointer text-[11px] font-medium text-[#1a3d2e]">
-                                    Ranking Evidence
-                                  </summary>
-                                  <div className="mt-2 rounded-xl border border-[#e0ddd8] bg-[#f5f3ee] p-3 text-[11px] text-[#4f544d] shadow-sm">
-                                    <div className="font-semibold text-[#1a1a1a]">
-                                      Ranking Evidence
-                                    </div>
-                                    <div className="mt-2 space-y-1.5">
-                                      {evidenceRows(item).map((row) => (
-                                        <div key={row.source} className="flex items-center justify-between">
-                                          <span className="font-medium text-[#4f544d]">
-                                            {row.source}
-                                          </span>
-                                          <span
-                                            className={`font-semibold ${
-                                              row.hasLargeDifference
-                                                ? "text-[#8b3a2b]"
-                                                : "text-[#1a1a1a]"
-                                            }`}
-                                          >
-                                            {row.rank != null ? `#${formatRank(row.rank)}` : "—"}
-                                            {row.hasLargeDifference ? "  Large difference" : ""}
-                                          </span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                    <div className="mt-2 border-t border-[#ddd7cf] pt-2">
-                                      <div className="flex items-center justify-between">
-                                        <span>Aggregated Rank (weighted)</span>
-                                        <span className="font-semibold text-[#1a1a1a]">
-                                          {item.aggregationExplain.aggregatedRankValue.toFixed(2)}
-                                        </span>
-                                      </div>
-                                      <div className="mt-2 font-semibold text-[#1a1a1a]">
-                                        Weights
-                                      </div>
-                                      <div className="mt-1 space-y-1">
-                                        {(["QS", "THE", "ARWU"] as const).map((source) => (
-                                          <div key={source} className="flex items-center justify-between">
-                                            <span>{source}</span>
-                                            <span>{Math.round((item.aggregationExplain?.weights[source] ?? 0) * 100)}%</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                      <div className="mt-2 rounded-lg bg-white/70 px-2.5 py-2 text-[#6b7068]">
-                                        {evidenceHint(item)}
-                                      </div>
-                                      {item.trustLevel && item.trustExplain && item.trustScore != null && (
-                                        <div className="mt-2 border-t border-[#ddd7cf] pt-2">
-                                          <div className="flex items-center justify-between">
-                                            <span>Trust</span>
-                                            <span className="font-semibold uppercase text-[#1a1a1a]">
-                                              {item.trustLevel} ({Math.round(item.trustScore)})
-                                            </span>
-                                          </div>
-                                          <div className="mt-1">
-                                            Sources: {trustSources(item).split(", ").filter(Boolean).length}
-                                            {" "}
-                                            ({trustSources(item)})
-                                          </div>
-                                          <div className="mt-1">
-                                            Consistency: {item.trustExplain.consistencyScore >= 100 ? "strong" : item.trustExplain.consistencyScore >= 70 ? "moderate" : "weak"}
-                                            {" "}(std = {item.trustExplain.stdDeviation.toFixed(1)})
-                                          </div>
-                                          <div className="mt-1">
-                                            Coverage: {item.trustExplain.coverageScore >= 100 ? "full" : item.trustExplain.coverageScore >= 65 ? "partial" : "limited"}
-                                          </div>
-                                          <div className="mt-2">
-                                            <div className="font-semibold text-[#1a1a1a]">
-                                              Trust Analysis
-                                            </div>
-                                            <div className="mt-1 space-y-1">
-                                              {item.trustExplain.notes.map((note) => (
-                                                <div key={note}>
-                                                  {note.toLowerCase().includes("strong agreement") ? "✓" : "⚠"} {note}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </details>
-                              )}
-                            </td>
-                            <td className="px-4 py-3.5 text-center">
-                              <button
-                                onClick={() => toggleShortlist(item)}
-                                title={
-                                  inList
-                                    ? "Remove from shortlist"
-                                    : "Add to shortlist"
-                                }
-                                className={`h-7 w-7 rounded-full text-sm font-bold transition ${
-                                  inList
-                                    ? "bg-[#1a3d2e] text-white"
-                                    : "bg-[#f5f3ee] text-[#6b7068] hover:bg-[#e8f2ec] hover:text-[#1a3d2e]"
-                                }`}
-                              >
-                                {inList ? "✓" : "+"}
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })
+                      presentationItems.map((item) => (
+                        <RankingRow
+                          key={`${item.canonicalUniversityId}-${item.slug}-${item.shortlistRank}`}
+                          item={item}
+                          inShortlist={isInShortlist(item.canonicalUniversityId)}
+                          onToggleShortlist={toggleShortlist}
+                        />
+                      ))
                     )}
                   </tbody>
                 </table>
@@ -855,7 +613,7 @@ function RankingsPageContent() {
 
                 {shortlist.length >= 2 && (
                   <Link
-                    href="/recommendations#comparison"
+                    href="/compare"
                     className="mt-3 block w-full rounded-full border border-[#1a3d2e] py-2 text-center text-sm font-semibold text-[#1a3d2e] transition hover:bg-[#e8f2ec]"
                   >
                     Compare Selected

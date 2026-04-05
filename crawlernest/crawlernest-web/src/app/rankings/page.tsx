@@ -286,7 +286,7 @@ function ShortlistPanel({
 
             {shortlist.length >= 2 ? (
               <Link
-                href="/recommendations#comparison"
+                href="/compare"
                 className="inline-flex w-full items-center justify-center rounded-full border border-[#3d7a5a] bg-white px-4 py-3 text-sm font-semibold text-[#1a3d2e] transition hover:bg-[#e8f2ec]"
               >
                 Compare Selected
@@ -380,6 +380,7 @@ function RankingsHomeContent() {
   const search = searchParams.get("search") ?? "";
   const scope = parseScope(searchParams.get("scope"));
   const region = parseRegion(searchParams.get("region"));
+  const country = searchParams.get("country") ?? "";
 
   const [items, setItems] = useState<RankingItem[]>([]);
   const [timestamp, setTimestamp] = useState<string | undefined>();
@@ -582,6 +583,10 @@ function RankingsHomeContent() {
           params.set("search", search.trim());
         }
 
+        if (country.trim()) {
+          params.set("country", country.trim());
+        }
+
         const result = await fetchRankingsFromApi(
           params.toString(),
           controller.signal
@@ -626,7 +631,7 @@ function RankingsHomeContent() {
       cancelled = true;
       controller.abort();
     };
-  }, [isMounted, page, pageSize, source, year, scope, region, search, refreshTrigger]);
+  }, [isMounted, page, pageSize, source, year, scope, region, search, country, refreshTrigger]);
 
   const shortlistIds = useMemo(
     () => new Set(shortlist.map((item) => item.canonicalUniversityId)),

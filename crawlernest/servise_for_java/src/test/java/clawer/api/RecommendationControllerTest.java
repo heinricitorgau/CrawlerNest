@@ -207,13 +207,26 @@ class RecommendationControllerTest {
 
     private static final class NoopScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         @Override
-        public List<ScopedRankedUniversity> findRankings(RankingContext context, Integer year, String search, int page, int pageSize) {
+        public List<ScopedRankedUniversity> findRankings(
+                RankingContext context,
+                Integer year,
+                String search,
+                String countryCode,
+                String countryName,
+                int page,
+                int pageSize
+        ) {
             return List.of();
         }
 
         @Override
-        public long countRankings(RankingContext context, Integer year, String search) {
-            return 0;
+        public List<Map<String, Object>> findCountryOptions(RankingContext context, Integer year, String search) {
+            return List.of();
+        }
+
+        @Override
+        public long countRankings(RankingContext context, Integer year, String search, String countryCode, String countryName) {
+            return 0L;
         }
 
         @Override

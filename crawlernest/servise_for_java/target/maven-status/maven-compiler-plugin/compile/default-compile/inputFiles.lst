@@ -26,6 +26,7 @@
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/model/Program.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/domain/ranking/RankingScope.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/domain/ranking/ScopedRankedUniversity.java
+/Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/RankingCountryOptionDTO.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/repository/JdbcAggregatedRankingReadRepository.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/model/Country.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/model/AdmissionRequirement.java

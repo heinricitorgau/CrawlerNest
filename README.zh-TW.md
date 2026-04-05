@@ -7,20 +7,24 @@
 
 ## CrawlerNest 是什麼？
 
-**CrawlerNest** 是一套從資料抓取、標準化、資料庫寫入、聚合、API，到前端網站的完整大學資料平台。  
-它的目標是把分散在全球網站上的大學排名、申請要求與學校資訊，轉成結構化、可查詢、可比較、可推薦的產品級資料系統。
+**CrawlerNest** 是一套從資料抓取、標準化、資料庫寫入、聚合、API，到前端網站的完整大學資料與排名 intelligence 平台。  
+它的目標不是重做單一官方榜單，而是把分散在全球網站上的大學排名、申請要求與學校資訊，轉成結構化、可查詢、可比較、可解釋、可推薦的產品級資料系統。
 
 ---
 
 ## 目前能做什麼？
 
-- **資料管線**：可穩定抓取 QS 與 THE 等排名資料，並寫入 PostgreSQL；同時支援透過 ARWU pipeline 進行 multi-source aggregation。THE 世界排名優先使用**結構化 JSON**（官網 CDN 上的資料檔，若無則從 Next.js 頁內嵌的 `__NEXT_DATA__` 取得），不以脆弱的主流程 HTML 表格解析為主。
-- **多宇宙排名 ingestion**：已支援 QS 的 `global / region / subject / special` universes。
+- **多來源排名 ingestion**：QS、THE、ARWU 已能進入同一條 ranking storage / aggregation path。THE 世界排名優先使用**結構化 JSON**，不以脆弱 HTML-first 為主。
+- **多 universe 排名真相**：已支援 `global / region / subject / special` universe-aware aggregation，不再把不同 universe 混在一起。
+- **以 rank 為主的聚合排序**：aggregated rank 以來源 rank 聚合為主，`compositeScore` 保留為展示欄位，而不是排序真相。
+- **Ranking Evidence**：產品頁面與大學 detail page 可顯示 QS / THE / ARWU 原始來源排名與差異。
+- **Trust Layer**：每個聚合排名可附帶保守型 trust score 與 trust explain。
+- **Explainable Recommendation**：推薦結果不只給分數，也會提供 reasons / warnings / fit dimensions。
+- **Compare Page**：shortlist 中的學校可做 side-by-side 比較，查看 aggregated rank、evidence、trust 與 admissions context。
+- **Country-aware Rankings Filter**：Rankings Browser 現已可依國家過濾，而且是在最終 aggregated read path 依 canonical university metadata 套用，不會改動 aggregation truth。
 - **寫入可追蹤性**：每次 ingest 都會帶 `run_id` 與 `updated_at`。
 - **可見性修復路徑**：若學校已抓到 `warehouse.universities` 但尚未出現在 API / 前端，可透過 canonical seeding 與 ranking backfill 補齊。
-- **聚合真相層**：aggregation 已支援 multi-universe truth，不再只有 global。
-- **推薦系統**：已有 deterministic recommendation engine，可做 `reach / target / safety` 類型建議。
-- **API 與網站**：Spring Boot API + Next.js frontend 已能顯示與搜尋聚合排名資料。
+- **API 與網站**：Spring Boot API + Next.js frontend 已支援 rankings、university detail、recommendation、compare 等主要產品流程。
 
 ---
 
@@ -28,10 +32,10 @@
 
 CrawlerNest 採用 5 層結構：
 
-1. **Data Layer**：crawler 從外部網站抓資料  
-2. **Canonical / Processing Layer**：entity resolution 與 normalization  
-3. **Aggregation / Storage Layer**：PostgreSQL warehouse 與 aggregated truth  
-4. **Decision Layer**：recommendation / comparison logic  
+1. **Data Layer**：crawler 從外部來源抓資料  
+2. **Canonical / Processing Layer**：entity resolution、alias matching 與 normalization  
+3. **Aggregation / Storage Layer**：PostgreSQL warehouse 與 universe-aware aggregated truth  
+4. **Decision Layer**：recommendation、trust、comparison、evidence summary  
 5. **API / Product Layer**：Spring Boot API 與前端網站  
 
 更完整的工程設計請參考 [Whitepaper](docs/foundation/Whitepaper.md)。
@@ -64,7 +68,7 @@ pip install -r requirements.txt
 2. canonical identity layer 將 raw university 對應到 `canonical_university`  
 3. `warehouse.ranking_record` 儲存 universe-aware ranking truth  
 4. aggregation 刷新 `analytics.v_aggregated_rankings_latest`  
-5. Spring Boot API 從 aggregated truth 讀資料  
+5. Spring Boot API 在 aggregated truth 之上 join canonical university metadata，補出 `universityName`、`slug`、`country` 等產品欄位  
 6. Next.js 前端透過 `/api/rankings` 顯示資料  
 
 這很重要，因為 **只存在於 `warehouse.universities` 的資料不會自動出現在 API / 前端**。  
@@ -96,12 +100,25 @@ npm run dev
 http://localhost:3000
 ```
 
-目前前端已補強資料新鮮度機制：
+目前前端產品層已包含：
 
-- same-origin `/api/rankings` proxy
-- `no-store` fetch
-- 定時 polling
-- focus / visibility / reconnect 後立即 refresh
+- Rankings Browser
+- University Detail Page
+- Recommendation Flow
+- Compare Page
+
+目前 rankings page 透過 same-origin `/api/rankings` proxy 與 `no-store` fetch 取得資料；更新時機為：
+
+- 首次載入
+- 使用者變更 filter / page / scope / region / country / search
+- 使用者手動重新整理瀏覽器
+
+其中 `country` filter 是套用在最終 rankings read query：
+
+- 不改 aggregation 排序真相
+- 依 canonical university country metadata 過濾產品結果
+- global 可選任一支援國家
+- region 仍保持 region-consistent
 
 ---
 

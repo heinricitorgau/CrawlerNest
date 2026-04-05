@@ -2,7 +2,13 @@
 
 本文件為 CrawlerNest 專案的最高層級技術架構文件（Master Technical Architecture Document）。
 
-CrawlerNest 的目標，不只是建立一套可以抓取大學資料的爬蟲，而是逐步演進成一個可持續擴展、可追溯、可分析、可推薦、可產品化的教育資料平台。
+CrawlerNest 的目標，不只是建立一套可以抓取大學資料的爬蟲，而是逐步演進成一個可持續擴展、可追溯、可分析、可推薦、可比較、可產品化的教育資料平台。
+
+CrawlerNest 的產品定位也不是「官方排名發布者」，而是：
+
+- 多來源排名整合平台
+- 透明化的 ranking evidence 與 trust signal 平台
+- 可解釋的教育決策支援系統
 
 其核心演進路線如下：
 
@@ -39,17 +45,17 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 
 先建立可信任、可追溯、可擴充的資料平台，再在其上疊加分析、推薦與產品層能力。
 
-### 2.1 當前策略重點（V1.5+ / Website MVP）
+### 2.1 當前策略重點（V1.5+ / Website Product Layer）
 
 目前 CrawlerNest 的核心策略如下：
 
-1. **資料聚合優先**：以 QS 為主來源，THE 已完成接入與可見性修復，ARWU 為下一階段整合目標
+1. **資料聚合優先**：QS、THE、ARWU 已可進入同一條 multi-source ranking path，並在統一 universe-aware truth 下被讀取
 2. **知識庫優先**：建立可查詢、可維護、可追溯的大學資料基底
-3. **決策系統先 explainable 再 intelligent**：先以 deterministic recommendation / comparison 打穩決策層，再逐步推進 AI 能力
+3. **決策系統先 explainable 再 intelligent**：先以 deterministic recommendation / comparison / trust layer 打穩決策層，再逐步推進 AI 能力
 4. **模組解耦**：crawler、extractor、normalization、db、analytics、API 彼此保持相對獨立
 5. **低規節點可運行**：系統設計必須能支援老舊 x86 節點作為第一代 OpenClaw / Lobster Node
 6. **合規優先加速**：在 robots.txt 與來源限制下，以本地解析並行、批次寫入、增量 checkpoint、局部更新等手段提升吞吐
-7. **產品層逐步落地**：在不破壞資料平台與 API 穩定性的前提下，逐步交付 Rankings Browser、University Detail 與 Recommendation Engine 等 Website MVP 能力
+7. **產品層逐步落地**：在不破壞資料平台與 API 穩定性的前提下，逐步交付 Rankings Browser、University Detail、Compare、Recommendation Engine 等網站能力
 8. **可見性閉環優先**：爬到的資料若尚未 canonical 化或尚未回填至 `warehouse.ranking_record`，必須提供補種與回填路徑，避免資料永久停留在不可見層
 
 ### 2.2 模組完成度地圖（截至 2026 年 3 月）
@@ -65,8 +71,8 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 | C 正規化引擎 | 名稱 / 國家 / 排名 / 分數高效處理 | 開發中 | ~25% |
 | 實體識別 | 別名映射、人工校正、模糊比對基礎 | 進行中 | ~40% |
 | 儲存 / 資料倉層 | PostgreSQL-only schema、DB writer、analytics views、Spring Data JPA、run traceability | 已完成 | ~95% |
-| API 讀取層（唯讀 + 決策） | Spring Boot `/universities`、`/rankings`、`/recommendations`、`/compare`、scope-aware search | 已完成 | ~92% |
-| Website MVP | Next.js Rankings Homepage、University Detail、Recommendation UI、API Proxy、background freshness refresh | 已運行 | ~90% |
+| API 讀取層（唯讀 + 決策） | Spring Boot `/universities`、`/rankings`、`/recommendations`、`/compare`、scope-aware / country-aware filtering，且 country filter 已在最終 read query 依 canonical metadata 落地 | 已完成 | ~95% |
+| Website Product Layer | Next.js Rankings Browser、University Detail、Ranking Evidence、Trust Layer、Recommendation UI、Compare Page、API Proxy、country-aware filter UI | 已運行 | ~95% |
 | 品質與驗證 | transaction rollback、early commit、AutoEval baseline | 已運行 | ~90% |
 | 低規節點運行策略 | `lobster-01` runtime workspace、optimized scripts | 已完成 | 100% |
 | 分析與推薦 | multi-universe aggregation、explainable comparison、scope-aware recommendation v3 | 已運作 | ~92% |
@@ -160,7 +166,7 @@ B2C / B2B 產品化
 
 對應分期：
 
-- **當前（V1.5+）**：採集、正規化基線、PostgreSQL-only 資料平台、決策 API、Website MVP、AutoEval baseline
+- **當前（V1.5+）**：採集、正規化基線、PostgreSQL-only 資料平台、決策 API、Website Product Layer、AutoEval baseline
 - **下一階段（V2）**：多來源整合深化、實體識別升級、program-level analytics、產品層穩定化
 - **未來（V3+）**：LLM 輔助研究、公開 API、完整 Web 平台、產品化擴張
 
@@ -196,7 +202,7 @@ CrawlerNest 採用五層解耦架構，確保各模組獨立演進：
 
 ### Layer 5：API 與產品層 (API Layer - Product)
 
-將決策層的能力透過嚴格型別化 (Typed JSON Envelope) 的 API 暴露給前端產品 (如 Next.js Website MVP)，將複雜的工程數據轉化為使用者決策。
+將決策層的能力透過嚴格型別化 (Typed JSON Envelope) 的 API 暴露給前端產品 (如 Next.js Website Product Layer)，將複雜的工程數據轉化為使用者決策。
 
 分層目的在於：
 
@@ -224,8 +230,15 @@ CrawlerNest 採用五層解耦架構，確保各模組獨立演進：
 
 CrawlerNest 的競爭優勢與市場定位如下：
 
-- **對比靜態網站 (如 QS, THE, ARWU)**：我們不只是顯示單一來源的排名，而是聚合多來源數據，並提供基於使用者資料的**個性化推薦**。
-- **對比傳統留學代辦 (Agencies)**：我們提供透明、基於演算法且可解釋的推薦，消除了傳統代辦可能存在的資訊不對稱與主觀偏見 (Black-box bias)。
+- **對比靜態網站 (如 QS, THE, ARWU)**：我們不只顯示單一來源的排名，而是聚合多來源數據，並把來源差異、evidence、trust 與比較邏輯一起暴露給使用者。
+- **對比傳統留學代辦 (Agencies)**：我們提供透明、基於演算法且可解釋的推薦與比較，降低傳統代辦可能存在的資訊不對稱與主觀偏見 (black-box bias)。
+
+這代表 CrawlerNest 的關鍵競爭點不是「宣稱更權威」，而是：
+
+- 更透明
+- 更可解釋
+- 更容易做 side-by-side decision support
+- 更容易讓使用者理解資料的不確定性
 
 ---
 
@@ -234,8 +247,11 @@ CrawlerNest 的競爭優勢與市場定位如下：
 ### 7.1 關鍵工程概念 (Key Engineering Concepts)
 
 - **實體識別與多來源未來 (Entity Resolution)**：CrawlerNest 透過將不同來源 (QS, THE, ARWU) 的大學名稱解析為單一 `canonical_university` 實體來處理數據異質性。重疊的排名不會被覆蓋，而是作為獨立的 `ranking_record` 關聯到同一實體。
-- **排名聚合 (Ranking Aggregation)**：多來源數據經由數學模型結合為 `aggregated_rank`。目前聚合已支援 multi-universe truth：`global`、`region:*`、`subject:*` 可分 universe 獨立計算，不再以 global filter 假裝 region truth。
+- **排名聚合 (Ranking Aggregation)**：多來源數據經由 rank-based aggregation 結合為 `aggregated_rank`。目前聚合已支援 multi-universe truth：`global`、`region:*`、`subject:*` 可分 universe 獨立計算，不再以 global filter 假裝 region truth。
+- **Ranking Evidence 與 Trust Layer**：產品層可顯示 QS / THE / ARWU 原始來源 rank、source agreement/disagreement、trust score 與 trust explain，避免把聚合結果包裝成不可解釋的單一數字。
+- **Country-aware 讀取路徑**：`/rankings` 的 `country` filter 不改 aggregation layer；它在最終 read query 上 join `canonical_university` / `countries` metadata 後套用，確保篩選是 product read concern 而非 aggregation truth concern。
 - **推薦決策系統 (v3) 與信心模型 (Confidence Model)**：最新推薦器將學校嚴格分類為 Reach、Target 與 Safety。動態信心模型會根據底層數據品質 (如是否缺失錄取分數要求) 調整預測準確度。
+- **Compare 作為產品決策層**：Compare Page 讓 shortlist 中的 2–4 所學校能 side-by-side 比較 aggregated rank、source evidence、trust、IELTS 與 warnings，讓產品從瀏覽工具進一步變成 decision-support surface。
 - **Lobster-01 基礎設施節點**：專用的低規控制節點，利用 systemd timers 與批次 I/O 執行長時間背景 pipeline，確保在受限硬體上的高韌性運作。
 - **可見性修復路徑 (Visibility Recovery Path)**：若 crawler 已將學校寫入 `warehouse.universities`，但尚未 canonical 化或尚未回填為 `warehouse.ranking_record`，系統可透過 `seed-canonical` 與 `backfill-ranking-records` 讓資料重新進入可見聚合真相。對於 THE 這類不經過 `warehouse.universities` 的來源，則可透過 `seed-canonical-from-missing` 直接從 `analytics.missing_entity_log` 補種 canonical entities 後再重跑 ingestion。
 
@@ -625,7 +641,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 - **Milestone 2：知識基礎能力**（Canonical schema + school-level identity）
 - **Milestone 3：資料增強能力**（多榜單整合 + admission crawling + AutoEval）
 - **Milestone 4：智慧決策能力**（Hybrid recommendation + multi-level model）
-- **Milestone 5：Website MVP**（Rankings Browser + University Detail + Recommendation UI）
+- **Milestone 5：Website Product Layer**（Rankings Browser + University Detail + Ranking Evidence + Trust Layer + Recommendation UI + Compare）
 
 ### 13.2 四年路線原則
 
@@ -638,19 +654,24 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | **Foundation** | **Crawler Development** | 已完成 | 初期非同步 Pipeline、解析並行化、合規節流機制。 |
 | **Data Platform**| **Entity Resolution** | 已完成 | Python 基線與 C 原型正規化；將分散視圖映射至 Canonical 實體。 |
 | **Data Platform**| **PostgreSQL Switch** | 已完成 | 從 legacy SQLite 遷移至穩健的 PostgreSQL 數據倉儲。 |
-| **Aggregation** | **Multi-Source Rankings**| 已完成 | 引入 Canonical-university 聚合輸出與 `aggregated_rank` 綜合評分。 |
+| **Aggregation** | **Multi-Source Rankings**| 已完成 | 引入 Canonical-university 聚合輸出，並建立 global / region / subject universe-aware aggregated truth。 |
 | **Infrastructure**| **Production-Safe Flow** | 已完成 | 建立 Lobster-01 節點部署策略，優化 WAF/403 繞過能力。 |
 | **Decision Engine**| **Recommendation v3** | 已完成 | 從 CLI 規則匹配進化至校準後的混合確定性評分模型。 |
 | **Web Product** | **API Services** | 已完成 | 標準化 Java 後端 API，提供具備 Success Envelope 的 UI 合約。 |
-| **Web Product** | **Website MVP** | 已完成 | 交付包含排名首頁、大學詳情與推薦流程的 Next.js 前端。 |
-| **Web Product** | **Rankings Browser Upgrade**| 已完成 | 擴充為具備分頁、過濾與同源 API 代理的正式排名產品。 |
-| **Web Product** | **Decision-Support UX** | 已完成 | 加入分析標籤、推薦桶位與來源信任提示，支持決策引導。 |
+| **Web Product** | **Website Product Layer** | 已完成 | 交付包含 Rankings Browser、University Detail、Recommendation flow、Compare 與 country-aware filters 的 Next.js 前端。 |
+| **Web Product** | **Rankings Browser Upgrade**| 已完成 | 擴充為具備分頁、搜尋、scope / region / country 過濾與同源 API 代理的正式排名產品。 |
+| **Web Product** | **Decision-Support UX** | 已完成 | 加入 Ranking Evidence、Trust Layer、Explainable Recommendation 與 Compare workflow，支持透明決策。 |
 | **Data Platform**| **Regional Coverage Expansion**| 已完成 | 擴充 Oceania, Africa, North America 區域排名抓取。 |
 | **Pipeline** | **Continuous Resilience** | 已完成 | 實作無限循環與 KeyboardInterrupt (Ctrl+C) 優雅關機與儲存。 |
-| **Web Product** | **Live Data Polling** | 已完成 | 實現前端 Rankings Browser 即時輪詢後端資料更新。 |
+| **Web Product** | **Controlled Freshness Model** | 已完成 | 移除自動 polling，改為首次載入、filter 變更與手動 browser refresh 觸發更新，降低 hydration 與不必要 rerender 風險。 |
 | **Data Platform** | **Canonical Visibility Recovery** | 已完成 | 新增 canonical seeding 與 ranking-record backfill，使不可見 crawled universities 可重新進入 aggregated truth。 |
 | **Aggregation** | **Visible Global Expansion** | 已完成 | 完成 canonical/backfill 後，global visible aggregated rows 從 221 擴張到 1323。 |
-| **Web Product** | **Live Freshness Hardening** | 已完成 | 前端同源 proxy、`no-store`、polling 與 focus/visibility refresh 組合，確保網站能持續載入資料庫最新資料。 |
+| **Web Product** | **Hydration-Safe Rankings UI** | 已完成 | Rankings 頁改為 client-ready gate 與穩定 shell，避免 `useSearchParams()` 與 client fetch 造成 hydration mismatch。 |
+| **Data Platform** | **QS Production Hardening** | 已完成 | QS global crawl 由 page-first 改為 cache/direct-entry-first，加入 resolution cache、snapshot fallback 與 failure classification。 |
+| **Aggregation** | **Rank Truth Repair** | 已完成 | 排名聚合由 score-based 改為 rank-based，`compositeScore` 降為 display-only，恢復真實排名語意。 |
+| **Data Platform** | **Entity Resolution Hardening** | 已完成 | 加入高信度 alias merge（如 LMU / UCB / HKU / NUS / EPFL），提升 multi-source canonical 合併品質。 |
+| **Web Product** | **Evidence & Trust Surfaces** | 已完成 | Rankings list 與 University Detail 可完整顯示 QS / THE / ARWU evidence、agreement summary、trust score 與 trust explain。 |
+| **Web Product** | **Compare Page** | 已完成 | Shortlist 可進入 side-by-side compare，對照 aggregated rank、source evidence、trust、admissions 與 warnings。 |
 | **Data Platform** | **THE Visible Recovery** | 已完成 | 新增 `seed-canonical-from-missing`，將 THE unresolved entities 直接補入 canonical layer，重跑後 THE `matched=2191`、`unresolved=0`。 |
 | **Aggregation** | **Cross-Source Visible Expansion** | 已完成 | 在 THE 補種與重 ingest 後，aggregated visible rows 由 1323 進一步擴張到 2736。 |
 
@@ -704,13 +725,11 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-27 | 完成 Europe universe hardening，加入 stable-entry-first、resolution cache 與 failure classification，降低 HTML-first 解析脆弱性 | 已完成 |
 | 2026-03-27 | 修復 region aggregated read correctness，堵住 latest view / read join row explosion，恢復 Europe rankings 一校一列 | 已完成 |
 | 2026-03-27 | 實做爬蟲無限循環與 KeyboardInterrupt (Ctrl+C) 優雅關機機制，確保資料即時入庫不遺失 | 已完成 |
-| 2026-03-28 | 擴充 QS 區域排名覆蓋（Oceania, Africa, North America），更新各區 NID 與 URL 映射 | 已完成 |
-| 2026-03-28 | 新增一鍵全自動抓取命令 `run-qs-major`，整合 Global 與五大區域排名任務 | 已完成 |
-| 2026-03-28 | 完成前端 Rankings Browser 即時輪詢 (Polling) 機制，確保爬蟲數據即時顯示 | 已完成 |
+| 2026-03-28 | 完成 QS 區域 universe 擴充（Oceania、Africa、North America）與 `run-qs-major` 一鍵入口 | 已完成 |
 | 2026-03-29 | 新增 `seed-canonical` 命令，將未 linked 的 `warehouse.universities` 補種為 `canonical_university` 與 `canonical_university_link` | 已完成 |
 | 2026-03-29 | 新增 `backfill-ranking-records` 命令，將 legacy `warehouse.rankings` 回填至 multi-source `warehouse.ranking_record` 並刷新 aggregation | 已完成 |
 | 2026-03-29 | 完成可見性修復鏈路打通，global aggregated visible rows 由 221 增長至 1323，`/api/v1/rankings` 同步反映新總數 | 已完成 |
-| 2026-03-29 | 補強 Website MVP 資料新鮮度策略，前端以 same-origin proxy、`no-store`、5 秒 polling 與 focus/visibility refresh 持續載入 DB 最新資料 | 已完成 |
+| 2026-03-29 | 完成網站 same-origin rankings proxy 與 `no-store` freshness 基線，確保 UI 直接讀取最新 aggregated read model | 已完成 |
 | 2026-03-30 | 完成 THE crawler 與 `run-the-rankings` 一鍵流程，成功抓取 2026 THE world rankings 3118 rows / 2191 valid ranked rows | 已完成 |
 | 2026-03-30 | 新增 `seed-canonical-from-missing` 命令，直接從 `analytics.missing_entity_log` 補種 THE unresolved canonical entities | 已完成 |
 | 2026-03-30 | 完成 THE 可見性修復：THE 重 ingest 後 `matched=2191`、`unresolved=0`，aggregated visible rows 由 1323 增長至 2736 | 已完成 |
@@ -736,6 +755,17 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-04-01 | 補強 `test_fetcher.py` resolution cache TTL 測試（+3 tests）：fresh cache 使用、expired cache 繞過、zero-TTL 永不過期 | 已完成 |
 | 2026-04-01 | 新增 THE crawler utility 函數測試 `test_the_crawler.py`（43 tests）：覆蓋 `_to_int`、`_to_float`、`_pick_first`、`_extract_rows`、`_normalize_row`、`_discover_data_urls`、`_extract_rows_from_next_data`、`_extract_rows_from_html_tables` | 已完成 |
 | 2026-04-01 | Python 測試總數由 78 → **161 passed**（+83 tests，+106%），TypeScript 測試維持 51 passed，tsc 無錯誤 | 已完成 |
+| 2026-04-02 | 完成 QS global production crawl stable-entry hardening：global universe 改為 resolution cache / direct entry 優先，不再依賴 HTML page-first 解析 | 已完成 |
+| 2026-04-02 | 新增 QS upstream blocked snapshot fallback：live list fetch 被 Cloudflare / 403 阻擋時，可透明回退至 latest known-good raw snapshot 並明確標記 fallback-backed | 已完成 |
+| 2026-04-02 | 修復 `run_qs_crawl()` 參數流與 `ranking_year` / `detail_chunk_size` regression，恢復 production-safe run command 正常執行 | 已完成 |
+| 2026-04-03 | 完成多來源聚合 rank truth 修復：排序改為 weighted average of ranks，`ORDER BY aggregated_rank ASC`，不再以 `compositeScore` 控制排名 | 已完成 |
+| 2026-04-03 | 補強 canonical entity resolution：加入高信度 alias merge（LMU、UCB、HKU、NUS、EPFL），提升跨來源同校合併率 | 已完成 |
+| 2026-04-04 | 完成 Aggregation Explainability、Strict Trust Layer 與 Explainable Recommendation，讓使用者可看到來源 rank、權重、trust 與 recommendation reasons/warnings | 已完成 |
+| 2026-04-04 | University Detail Page 升級為完整多來源 Ranking Evidence，含 evidence summary、agreement level 與 confidence note | 已完成 |
+| 2026-04-05 | 完成 Rankings Browser hydration-safe refactor，移除 polling / auto refresh，改為 deterministic client-ready render 與手動 refresh 模式 | 已完成 |
+| 2026-04-05 | 完成 country filter UI / proxy / URL state sync：rankings API 支援 `country`、global / region dependent country list、searchable country panel 與 deterministic filter state | 已完成 |
+| 2026-04-05 | 修復 Java rankings read path 的 country filter 真正落地：在最終 read query join `canonical_university` / `countries` metadata，並於 SQL `WHERE` 套用 country predicate，使 `country=Argentina` 不再回 MIT / Oxford / Harvard 類全域結果 | 已完成 |
+| 2026-04-05 | 完成 Compare Page MVP：以 shortlist 為來源，比較 2–4 所大學的 aggregated rank、QS/THE/ARWU evidence、trust、admissions 與 warnings | 已完成 |
 
 ### 13.4 未來階段規劃
 
