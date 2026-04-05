@@ -12,6 +12,7 @@ import { countryBelongsToRegion, normalizeCountryName } from "@/lib/regionMap";
 import type {
   RankingApiRow,
   RankingCountryOption,
+  RankingsApiMetadata,
   RankingPresentationRow,
   RankingScope,
 } from "@/types/ranking";
@@ -114,6 +115,7 @@ function RankingsPageContent() {
   const [isClientReady, setIsClientReady] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [items, setItems] = useState<RankingApiRow[]>([]);
+  const [metadata, setMetadata] = useState<RankingsApiMetadata>({});
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -132,9 +134,35 @@ function RankingsPageContent() {
   const pageSize = isClientReady ? Number(searchParams.get("pageSize") ?? "20") : 20;
   const searchQuery = isClientReady ? (searchParams.get("search") ?? "") : "";
   const country = isClientReady ? (searchParams.get("country") ?? "") : "";
+  const normalizedSelectedCountry = normalizeCountryName(country);
   const universe = scope === "region" ? "region" : "global";
   const universeConfig = rankingUniverseConfig[universe];
   const countryOptions = useMemo<RankingCountryOption[]>(() => {
+    const metadataOptions = Array.isArray(metadata.countryOptions)
+      ? metadata.countryOptions
+      : [];
+
+    if (metadataOptions.length > 0) {
+      return metadataOptions
+        .filter((option) => {
+          const normalizedCountry = normalizeCountryName(option.name);
+          if (!normalizedCountry) {
+            return false;
+          }
+          if (scope === "region") {
+            return countryBelongsToRegion(normalizedCountry, region);
+          }
+          return true;
+        })
+        .map((option) => ({
+          code: option.code ?? null,
+          name: normalizeCountryName(option.name),
+          count: option.count,
+        }))
+        .filter((option) => Boolean(option.name))
+        .sort((left, right) => left.name.localeCompare(right.name));
+    }
+
     if (!Array.isArray(items) || items.length === 0) {
       return [];
     }
@@ -158,12 +186,12 @@ function RankingsPageContent() {
 
     return Array.from(counts.entries())
       .map(([name, count]) => ({
-        code: name,
+        code: null,
         name,
         count,
       }))
       .sort((left, right) => left.name.localeCompare(right.name));
-  }, [items, region, scope]);
+  }, [items, metadata.countryOptions, region, scope]);
 
   useEffect(() => {
     setSearchInput(searchQuery);
@@ -208,17 +236,18 @@ function RankingsPageContent() {
 
     const matchingCountry = countryOptions.find(
       (option) =>
-        option.code === country || option.name.toLowerCase() === country.toLowerCase()
+        option.code === country ||
+        normalizeCountryName(option.name) === normalizedSelectedCountry
     );
     if (!matchingCountry) {
       navigate({ country: null, page: 1 });
       return;
     }
 
-    if (matchingCountry.name !== country) {
+    if (matchingCountry.name !== normalizedSelectedCountry) {
       navigate({ country: matchingCountry.name, page: 1 });
     }
-  }, [country, countryOptions, isClientReady, navigate]);
+  }, [country, countryOptions, isClientReady, navigate, normalizedSelectedCountry]);
 
   useEffect(() => {
     if (!isClientReady) {
@@ -285,9 +314,16 @@ function RankingsPageContent() {
 
         const payload = await res.json();
 
+        if (!res.ok || payload?.success === false) {
+          throw new Error(
+            payload?.data?.error || `HTTP ${res.status}`
+          );
+        }
+
         if (isMounted) {
           setItems(Array.isArray(payload?.data?.items) ? payload.data.items : []);
           setTotalCount(payload?.metadata?.totalCount ?? 0);
+          setMetadata(payload?.metadata ?? {});
         }
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
@@ -295,9 +331,16 @@ function RankingsPageContent() {
         }
 
         if (isMounted) {
-          setError("Failed to load rankings. Please retry.");
+          const message =
+            err instanceof Error && err.message
+              ? err.message
+              : "Failed to load rankings. Please try again.";
+          setError(message === "HTTP 500" || message.startsWith("HTTP ")
+            ? "Failed to load rankings. Please try again."
+            : message);
           setItems([]);
           setTotalCount(0);
+          setMetadata({});
         }
       } finally {
         if (isMounted) {
@@ -348,6 +391,20 @@ function RankingsPageContent() {
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const canGoPrevious = page > 1 && !loading;
   const canGoNext = !loading && items.length === pageSize;
+  const emptyStateMessage = useMemo(() => {
+    if (country) {
+      if (scope === "region") {
+        return `No universities found for ${normalizedSelectedCountry} in ${region}.`;
+      }
+      return `No universities found for ${normalizedSelectedCountry}.`;
+    }
+
+    if (scope === "region") {
+      return `No universities found in ${region}.`;
+    }
+
+    return "No universities found for the current filters.";
+  }, [country, normalizedSelectedCountry, region, scope]);
 
   if (!isClientReady) {
     return <RankingsPageShell />;
@@ -514,16 +571,19 @@ function RankingsPageContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {presentationItems.length === 0 ? (
+                    {!error && presentationItems.length === 0 ? (
                       <tr>
                         <td
                           colSpan={6}
                           className="py-20 text-center italic text-[#6b7068]"
                         >
-                          No universities found.
+                          {emptyStateMessage}
+                          <span className="mt-2 block text-xs not-italic text-[#8a8f87]">
+                            Try another country or broaden your filters.
+                          </span>
                         </td>
                       </tr>
-                    ) : (
+                    ) : !error ? (
                       presentationItems.map((item) => (
                         <RankingRow
                           key={`${item.canonicalUniversityId}-${item.slug}-${item.shortlistRank}`}
@@ -532,6 +592,18 @@ function RankingsPageContent() {
                           onToggleShortlist={toggleShortlist}
                         />
                       ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="py-20 text-center italic text-[#6b7068]"
+                        >
+                          Rankings could not be loaded for the current filters.
+                          <span className="mt-2 block text-xs not-italic text-[#8a8f87]">
+                            Please retry or adjust your filters.
+                          </span>
+                        </td>
+                      </tr>
                     )}
                   </tbody>
                 </table>

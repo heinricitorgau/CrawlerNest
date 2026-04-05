@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { normalizeCountryName } from "@/lib/regionMap";
 import type { RankingCountryOption, RankingScope } from "@/types/ranking";
 
 type Props = {
@@ -60,10 +61,12 @@ export default function RankingFiltersPanel({
   const selectedCountryOption = country
     ? countryOptions.find(
         (option) =>
-          option.code === country || option.name.toLowerCase() === country.toLowerCase()
+          normalizeCountryName(option.name) === normalizeCountryName(country) ||
+          (option.code !== null && option.code === country)
       ) ?? null
     : null;
-  const selectedCountryValue = selectedCountryOption?.name ?? "";
+  const selectedCountryValue =
+    selectedCountryOption?.name ?? normalizeCountryName(country);
   const normalizedCountrySearch = countryFilterSearch.trim().toLowerCase();
   const visibleCountryOptions = normalizedCountrySearch
     ? countryOptions.filter((option) =>
@@ -195,7 +198,7 @@ export default function RankingFiltersPanel({
                     const isSelected = selectedCountryValue === option.name;
                     return (
                       <button
-                        key={option.code}
+                        key={option.code ?? option.name}
                         type="button"
                         onClick={() => {
                           onUpdate({ country: option.name, page: 1 });

@@ -122,17 +122,19 @@ public final class RankingTrustLayer {
             return notes;
         }
         if (sourceCount == 2) {
-            notes.add("Only two ranking sources available");
+            notes.add("Two ranking sources available.");
+        } else if (sourceCount == 3) {
+            notes.add("Three ranking sources available.");
         }
         if (consistencyScore >= 100.0) {
-            notes.add("Strong agreement across sources");
+            notes.add("Ranking sources show strong agreement.");
         } else if (stdDeviation > 15.0) {
-            notes.add("High variance across sources");
+            notes.add("Large disagreement across sources.");
         } else {
-            notes.add("Moderate agreement across sources");
+            notes.add("Ranking sources show moderate agreement.");
         }
         if (consistencyScore <= 40.0) {
-            notes.add("Ranking may be unreliable");
+            notes.add("Ranking may be unreliable.");
         }
         return notes;
     }
