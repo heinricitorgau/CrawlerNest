@@ -70,12 +70,21 @@ public class RankingController {
         if (validationError != null) {
             return validationError;
         }
-        String resolvedCountryCode = rankingService.resolveCountryCode(year, search, safeScope, safeRegion, country);
-        if (country != null && !country.isBlank() && resolvedCountryCode == null) {
+        if (country != null && !country.isBlank() && !rankingService.isSupportedCountry(year, search, country)) {
+            return ResponseEntity.badRequest().body(validationErrorResponse(
+                    "Unsupported country."
+            ));
+        }
+        if ("region".equalsIgnoreCase(safeScope)
+                && country != null
+                && !country.isBlank()
+                && !rankingService.isCountryAllowedForScopeRegion(year, search, safeScope, safeRegion, country)) {
             return ResponseEntity.badRequest().body(validationErrorResponse(
                     "Unsupported country for the current scope/region."
             ));
         }
+        String resolvedCountryCode = rankingService.resolveCountryCode(year, search, safeScope, safeRegion, country);
+        LOGGER.info("country={}, resolvedCountryCode={}, scope={}, region={}", country, resolvedCountryCode, safeScope, safeRegion);
         List<RankingDTO> items = rankingService.getRankings(safePage, safeSize, year, search, safeScope, safeRegion, resolvedCountryCode);
         long totalCount = rankingService.countRankings(year, search, safeScope, safeRegion, resolvedCountryCode);
         List<RankingCountryOptionDTO> countryOptions = rankingService.getCountryOptions(year, search, safeScope, safeRegion);
@@ -129,12 +138,21 @@ public class RankingController {
         if (validationError != null) {
             return validationError;
         }
-        String resolvedCountryCode = rankingService.resolveCountryCode(year, search, safeScope, safeRegion, country);
-        if (country != null && !country.isBlank() && resolvedCountryCode == null) {
+        if (country != null && !country.isBlank() && !rankingService.isSupportedCountry(year, search, country)) {
+            return ResponseEntity.badRequest().body(validationErrorResponse(
+                    "Unsupported country."
+            ));
+        }
+        if ("region".equalsIgnoreCase(safeScope)
+                && country != null
+                && !country.isBlank()
+                && !rankingService.isCountryAllowedForScopeRegion(year, search, safeScope, safeRegion, country)) {
             return ResponseEntity.badRequest().body(validationErrorResponse(
                     "Unsupported country for the current scope/region."
             ));
         }
+        String resolvedCountryCode = rankingService.resolveCountryCode(year, search, safeScope, safeRegion, country);
+        LOGGER.info("country={}, resolvedCountryCode={}, scope={}, region={}", country, resolvedCountryCode, safeScope, safeRegion);
         List<RankingDTO> items = rankingService.getRankings(safePage, safeSize, year, search, safeScope, safeRegion, resolvedCountryCode);
         long totalCount = rankingService.countRankings(year, search, safeScope, safeRegion, resolvedCountryCode);
         List<RankingCountryOptionDTO> countryOptions = rankingService.getCountryOptions(year, search, safeScope, safeRegion);

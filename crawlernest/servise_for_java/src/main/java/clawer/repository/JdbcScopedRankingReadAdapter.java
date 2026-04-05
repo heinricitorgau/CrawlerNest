@@ -3,6 +3,7 @@ package clawer.repository;
 import clawer.domain.ranking.RankingContext;
 import clawer.domain.ranking.ScopedRankedUniversity;
 import clawer.domain.ranking.ScopedRankingReadAdapter;
+import clawer.service.CountryNormalization;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -84,17 +85,20 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
     @Override
     public List<Map<String, Object>> findCountryOptions(RankingContext context, Integer year, String search) {
         String normalizedSearch = search == null ? "" : search.trim();
+        String canonicalCountryNameExpression = CountryNormalization.canonicalCountrySqlExpression("country_name");
         List<Object> argsList = new ArrayList<>();
         StringBuilder sql = appendRankedCtePipeline(context, year, normalizedSearch, null, argsList);
         sql.append("""
                 SELECT
-                    country_code,
-                    country_name,
+                    NULL AS country_code,
+                    """).append(canonicalCountryNameExpression).append("""
+                    AS country_name,
                     COUNT(*) AS country_count
                 FROM ranked
                 WHERE (? = '' OR search_score > 0)
-                  AND country_code IS NOT NULL
-                GROUP BY country_code, country_name
+                  AND country_name IS NOT NULL
+                  AND btrim(country_name) <> ''
+                GROUP BY 2
                 ORDER BY country_count DESC, country_name ASC
                 """);
         argsList.add(normalizedSearch);
@@ -136,6 +140,14 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         String normalizedSearch = search == null ? "" : search.trim();
         List<Object> argsList = new ArrayList<>();
         String countryNameFilter = (countryName == null || countryName.isBlank()) ? null : countryName.trim();
+        LOGGER.info(
+                "scoped rankings sql filter debug: scope={}, region={}, requestedCountry={}, normalizedCountry={}, recommendationMode={}",
+                context.apiScope(),
+                context.region(),
+                countryName,
+                countryNameFilter,
+                recommendationMode
+        );
         StringBuilder sql = appendRankedCtePipeline(context, year, normalizedSearch, countryNameFilter, argsList);
 
         if (countOnly) {
@@ -153,8 +165,8 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             argsList.add(normalizedSearch);
         }
         if (recommendationMode && country != null && !country.isBlank()) {
-            sql.append("  AND country_name = ?\n");
-            argsList.add(country);
+            sql.append("  AND ").append(CountryNormalization.canonicalCountrySqlExpression("country_name")).append(" = ?\n");
+            argsList.add(CountryNormalization.normalizeCountry(country));
         }
 
         sql.append("""
@@ -188,6 +200,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             String countryNameFilter,
             List<Object> argsList
     ) {
+        String canonicalCountrySql = CountryNormalization.canonicalCountrySqlExpression("c.country_name");
         StringBuilder sql = new StringBuilder("""
                 WITH admission_summary AS (
                     SELECT
@@ -292,7 +305,10 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                     WHERE (?::integer IS NULL OR ar.ranking_year = ?::integer)
                       AND ar.universe_type = ?
                       AND ar.universe_key = ?
-                      AND (?::text IS NULL OR LOWER(c.country_name) = LOWER(?::text))
+                      AND ( ?::text IS NULL OR 
+                """);
+        sql.append(canonicalCountrySql).append("""
+                           = ?::text )
                 ),
                 ranked AS (
                     SELECT
@@ -353,8 +369,17 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         row.setIeltsMin(rs.wasNull() ? null : ieltsMin);
 
         row.setAggregationMethodVersion(rs.getString("aggregation_method_version"));
-        row.setSourceCount(rs.getInt("source_count"));
-        row.setSourceRanks(parseJsonMap(rs.getObject("source_ranks_json")));
+        Object rawSourceRanksJson = rs.getObject("source_ranks_json");
+        Map<String, Integer> parsedSourceRanks = parseJsonMap(rawSourceRanksJson);
+        row.setSourceRanks(parsedSourceRanks);
+        row.setSourceCount(parsedSourceRanks.size());
+        LOGGER.info(
+                "scoped ranking row evidence debug: canonicalUniversityId={}, rawSourceRanksJson={}, parsedSourceRanks={}, sourceCount={}",
+                row.getCanonicalUniversityId(),
+                rawSourceRanksJson,
+                parsedSourceRanks,
+                row.getSourceCount()
+        );
         return row;
     }
 
@@ -367,12 +392,29 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             Map<String, Integer> parsed = new LinkedHashMap<>();
             for (Map.Entry<String, Object> entry : raw.entrySet()) {
                 if (entry.getValue() != null) {
-                    parsed.put(entry.getKey().toUpperCase(Locale.ROOT), Integer.parseInt(entry.getValue().toString()));
+                    Integer normalizedRank = toIntegerRank(entry.getValue());
+                    if (normalizedRank != null) {
+                        parsed.put(entry.getKey().toUpperCase(Locale.ROOT), normalizedRank);
+                    }
                 }
             }
             return parsed;
         } catch (Exception e) {
             return new LinkedHashMap<>();
+        }
+    }
+
+    private Integer toIntegerRank(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return (int) Math.round(number.doubleValue());
+        }
+        try {
+            return (int) Math.round(Double.parseDouble(value.toString()));
+        } catch (NumberFormatException ex) {
+            return null;
         }
     }
 

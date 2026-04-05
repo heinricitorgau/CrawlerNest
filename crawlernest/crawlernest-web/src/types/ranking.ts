@@ -3,7 +3,7 @@ export type RankingUniverse = "global" | "region" | "subject" | "special";
 export type RankingScope = "global" | "region";
 
 export type RankingCountryOption = {
-  code: string;
+  code: string | null;
   name: string;
   count: number;
 };

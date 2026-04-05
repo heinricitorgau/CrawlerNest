@@ -49,7 +49,20 @@ public final class AggregationExplainability {
         explain.setWeights(weights);
         explain.setAggregatedRankValue(round(weightedRankSum / availableWeightSum));
         explain.setAvailableSourceCount(availableSourceCount);
+        explain.setAggregationMethodVersion(row.getAggregationMethodVersion());
+        explain.setCoverageRatio(row.getCoverageRatio());
+        explain.setCompositeScore(row.getCompositeScore());
+        explain.setNote(buildNote(availableSourceCount));
         return explain;
+    }
+
+    private static String buildNote(int availableSourceCount) {
+        return switch (availableSourceCount) {
+            case 3 -> "Three ranking sources available.";
+            case 2 -> "Two ranking sources available.";
+            case 1 -> "Only one ranking source available.";
+            default -> "No ranking source evidence available.";
+        };
     }
 
     private static double round(double value) {

@@ -5,13 +5,16 @@ import clawer.domain.ranking.RankingScope;
 import clawer.dto.RankingCountryOptionDTO;
 import clawer.dto.RankingDTO;
 import clawer.repository.AggregatedRankingReadRepository;
+import clawer.repository.CountryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Locale;
+import java.util.LinkedHashMap;
 import java.util.Optional;
+import java.util.Comparator;
+import java.util.Map;
 
 /**
  * Service for handling university rankings business logic.
@@ -21,15 +24,20 @@ public class RankingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RankingService.class);
 
     private final AggregatedRankingReadRepository aggregatedRankingReadRepository;
+    private final CountryRepository countryRepository;
 
-    public RankingService(AggregatedRankingReadRepository aggregatedRankingReadRepository) {
+    public RankingService(
+            AggregatedRankingReadRepository aggregatedRankingReadRepository,
+            CountryRepository countryRepository
+    ) {
         this.aggregatedRankingReadRepository = aggregatedRankingReadRepository;
+        this.countryRepository = countryRepository;
     }
 
     public List<RankingDTO> getRankings(int page, int pageSize, Integer year, String search, String scope, String region, String countryCode) {
         String normalizedSearch = normalizeSearch(search);
         String countryToken = trimCountryToken(countryCode);
-        String countryNameForSql = resolveCountryNameForSqlFilter(year, normalizedSearch, scope, region, countryToken);
+        String countryNameForSql = resolveCountryNameForSqlFilter(countryToken);
         RankingContext rankingContext = RankingContext.fromQuery(scope, region);
         LOGGER.info(
                 "Aggregated rankings request received: page={}, pageSize={}, year={}, search={}, scope={}, region={}, country={}, rankingLabel={}",
@@ -76,7 +84,7 @@ public class RankingService {
     public long countRankings(Integer year, String search, String scope, String region, String countryCode) {
         String normalizedSearch = normalizeSearch(search);
         String countryToken = trimCountryToken(countryCode);
-        String countryNameForSql = resolveCountryNameForSqlFilter(year, normalizedSearch, scope, region, countryToken);
+        String countryNameForSql = resolveCountryNameForSqlFilter(countryToken);
         RankingContext rankingContext = RankingContext.fromQuery(scope, region);
         return aggregatedRankingReadRepository.countRankings(
                 year,
@@ -91,62 +99,81 @@ public class RankingService {
     public List<RankingCountryOptionDTO> getCountryOptions(Integer year, String search, String scope, String region) {
         String normalizedSearch = normalizeSearch(search);
         RankingContext rankingContext = RankingContext.fromQuery(scope, region);
-        return aggregatedRankingReadRepository.findCountryOptions(
+        List<RankingCountryOptionDTO> rawOptions = aggregatedRankingReadRepository.findCountryOptions(
                 year,
                 normalizedSearch,
                 rankingContext.apiScope(),
                 rankingContext.region()
         );
+        Map<String, Long> canonicalCounts = new LinkedHashMap<>();
+        for (RankingCountryOptionDTO option : rawOptions) {
+            String canonicalName = CountryNormalization.normalizeCountry(option.getName());
+            if (canonicalName == null) {
+                continue;
+            }
+            canonicalCounts.merge(canonicalName, option.getCount(), Long::sum);
+        }
+        return canonicalCounts.entrySet().stream()
+                .map(entry -> new RankingCountryOptionDTO(null, entry.getKey(), entry.getValue()))
+                .sorted(Comparator
+                        .comparingLong(RankingCountryOptionDTO::getCount).reversed()
+                        .thenComparing(RankingCountryOptionDTO::getName))
+                .toList();
     }
 
     public String resolveCountryCode(Integer year, String search, String scope, String region, String countryFilter) {
-        return findResolvedCountryOption(year, search, scope, region, countryFilter)
-                .map(option -> option.getCode() == null || option.getCode().isBlank()
-                        ? option.getName()
-                        : option.getCode())
+        String countryToken = CountryNormalization.normalizeCountry(countryFilter);
+        if (countryToken == null) {
+            return null;
+        }
+        return findCountryByToken(countryToken)
+                .map(country -> country.getCountryCode() == null || country.getCountryCode().isBlank()
+                        ? country.getCountryName()
+                        : country.getCountryCode())
                 .orElse(null);
+    }
+
+    public boolean isSupportedCountry(Integer year, String search, String countryFilter) {
+        String countryToken = CountryNormalization.normalizeCountry(countryFilter);
+        if (countryToken == null) {
+            return false;
+        }
+        return countryRepository.existsByCountryNameIgnoreCase(countryToken)
+                || countryRepository.existsByCountryCodeIgnoreCase(countryToken);
+    }
+
+    public boolean isCountryAllowedForScopeRegion(Integer year, String search, String scope, String region, String countryFilter) {
+        String countryToken = CountryNormalization.normalizeCountry(countryFilter);
+        String normalizedRegion = normalizeRegion(region);
+        if (countryToken == null || normalizedRegion == null) {
+            return false;
+        }
+        return countryRepository.existsByCountryNameIgnoreCaseAndRegionNameIgnoreCase(countryToken, normalizedRegion)
+                || countryRepository.existsByCountryCodeIgnoreCaseAndRegionNameIgnoreCase(countryToken, normalizedRegion);
     }
 
     /**
      * Canonical country name from {@code warehouse.countries.country_name} for the matched option, used in SQL
      * {@code LOWER(c.country_name) = LOWER(?)}. Falls back to the resolved token if the option has no name.
      */
-    private String resolveCountryNameForSqlFilter(
-            Integer year,
-            String search,
-            String scope,
-            String region,
-            String countryToken
-    ) {
+    private String resolveCountryNameForSqlFilter(String countryToken) {
         if (countryToken == null) {
             return null;
         }
-        return findResolvedCountryOption(year, search, scope, region, countryToken)
-                .map(RankingCountryOptionDTO::getName)
-                .filter(name -> name != null && !name.isBlank())
-                .orElse(countryToken);
+        String normalizedCountry = CountryNormalization.normalizeCountry(countryToken);
+        return findCountryByToken(normalizedCountry)
+                .map(country -> country.getCountryName() == null || country.getCountryName().isBlank()
+                        ? normalizedCountry
+                        : country.getCountryName())
+                .orElse(normalizedCountry);
     }
 
-    private Optional<RankingCountryOptionDTO> findResolvedCountryOption(
-            Integer year,
-            String search,
-            String scope,
-            String region,
-            String countryFilter
-    ) {
-        if (countryFilter == null || countryFilter.isBlank()) {
+    private Optional<clawer.model.Country> findCountryByToken(String countryToken) {
+        if (countryToken == null || countryToken.isBlank()) {
             return Optional.empty();
         }
-        String normalizedFilter = countryFilter.trim();
-        String uppercaseFilter = normalizedFilter.toUpperCase(Locale.ROOT);
-        return getCountryOptions(year, search, scope, region).stream()
-                .filter(option -> {
-                    String code = option.getCode();
-                    boolean codeMatch = code != null && uppercaseFilter.equals(code.toUpperCase(Locale.ROOT));
-                    boolean nameMatch = option.getName() != null && normalizedFilter.equalsIgnoreCase(option.getName());
-                    return codeMatch || nameMatch;
-                })
-                .findFirst();
+        return countryRepository.findByCountryNameIgnoreCase(countryToken)
+                .or(() -> countryRepository.findByCountryCodeIgnoreCase(countryToken));
     }
 
     public boolean isSupportedSource(String source) {
@@ -197,5 +224,9 @@ public class RankingService {
         }
         String trimmed = countryCode.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    String normalizeCountry(String input) {
+        return CountryNormalization.normalizeCountry(input);
     }
 }

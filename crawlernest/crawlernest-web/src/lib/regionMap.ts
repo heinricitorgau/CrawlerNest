@@ -96,7 +96,71 @@ export const REGION_MAP: Record<string, string[]> = {
 };
 
 export function normalizeCountryName(country: string): string {
-  return country.trim().replace(/\s+/g, " ");
+  const normalized = country
+    .trim()
+    .replace(/\./g, "")
+    .replace(/[()]/g, " ")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (
+    normalized === "china" ||
+    normalized === "china mainland" ||
+    normalized === "china (mainland)"
+  ) {
+    return "China";
+  }
+
+  if (
+    normalized === "united states" ||
+    normalized === "united states of america" ||
+    normalized === "usa" ||
+    normalized === "us" ||
+    normalized === "u s a" ||
+    normalized === "u s"
+  ) {
+    return "United States";
+  }
+
+  if (
+    normalized === "united kingdom" ||
+    normalized === "uk" ||
+    normalized === "u k" ||
+    normalized === "great britain" ||
+    normalized === "britain"
+  ) {
+    return "United Kingdom";
+  }
+
+  if (
+    normalized === "hong kong sar" ||
+    normalized === "hong kong sar china" ||
+    normalized === "hong kong sar, china"
+  ) {
+    return "Hong Kong";
+  }
+
+  if (
+    normalized === "macao" ||
+    normalized === "macau sar" ||
+    normalized === "macao sar"
+  ) {
+    return "Macau";
+  }
+
+  if (normalized === "russian federation") {
+    return "Russia";
+  }
+
+  return normalized
+    .split(" ")
+    .filter(Boolean)
+    .map((token) => token.charAt(0).toUpperCase() + token.slice(1))
+    .join(" ");
 }
 
 export function countryBelongsToRegion(country: string, region: string): boolean {

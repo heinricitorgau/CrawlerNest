@@ -20,6 +20,9 @@ class AggregationExplainabilityTest {
         sourceRanks.put("QS", 4);
         sourceRanks.put("THE", 5);
         row.setSourceRanks(sourceRanks);
+        row.setAggregationMethodVersion("rank_agg_v2");
+        row.setCoverageRatio(0.67);
+        row.setCompositeScore(93.4);
 
         AggregationExplainDTO explain = AggregationExplainability.buildAggregationExplain(row);
 
@@ -32,5 +35,9 @@ class AggregationExplainabilityTest {
         assertEquals(0.25, explain.getWeights().get("ARWU"));
         assertEquals(2, explain.getAvailableSourceCount());
         assertEquals(4.466667, explain.getAggregatedRankValue());
+        assertEquals("Two ranking sources available.", explain.getNote());
+        assertEquals(row.getAggregationMethodVersion(), explain.getAggregationMethodVersion());
+        assertEquals(row.getCoverageRatio(), explain.getCoverageRatio());
+        assertEquals(row.getCompositeScore(), explain.getCompositeScore());
     }
 }
