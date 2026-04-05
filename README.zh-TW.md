@@ -21,7 +21,7 @@
 - **Trust Layer**：每個聚合排名可附帶保守型 trust score 與 trust explain。
 - **Explainable Recommendation**：推薦結果不只給分數，也會提供 reasons / warnings / fit dimensions。
 - **Compare Page**：shortlist 中的學校可做 side-by-side 比較，查看 aggregated rank、evidence、trust 與 admissions context。
-- **Country-aware Rankings Filter**：Rankings Browser 現已可依國家過濾，而且是在最終 aggregated read path 依 canonical university metadata 套用，不會改動 aggregation truth。
+- **Canonical Country Filter**：Rankings Browser 的國家過濾已升級為 canonical country normalization 流程。像 `China`、`China (mainland)`、`USA`、`UK` 這類 alias 會先被收斂成統一 canonical country，再進入 validation、SQL filter 與 metadata country options。
 - **寫入可追蹤性**：每次 ingest 都會帶 `run_id` 與 `updated_at`。
 - **可見性修復路徑**：若學校已抓到 `warehouse.universities` 但尚未出現在 API / 前端，可透過 canonical seeding 與 ranking backfill 補齊。
 - **API 與網站**：Spring Boot API + Next.js frontend 已支援 rankings、university detail、recommendation、compare 等主要產品流程。
@@ -82,6 +82,23 @@ pip install -r requirements.txt
 
 ### 1. 啟動 Java Backend API
 
+下次要重新驗證 Java backend 前，建議先做這些事：
+
+1. 先停掉舊的 Spring Boot process，避免實際打到舊版程式
+2. 如果剛改過 rankings / trust / country filter，先重新 compile backend
+3. 如果改到 country normalization 或 rankings read path，先跑 focused test 再啟動
+
+建議 preflight：
+
+```bash
+pkill -f "spring-boot:run"
+cd crawlernest/servise_for_java
+./mvnw -q -DskipTests compile
+./mvnw -q -Dtest=CountryNormalizationTest test
+```
+
+接著再啟動 API：
+
 ```bash
 cd crawlernest/servise_for_java
 ./mvnw spring-boot:run
@@ -119,6 +136,8 @@ http://localhost:3000
 - 依 canonical university country metadata 過濾產品結果
 - global 可選任一支援國家
 - region 仍保持 region-consistent
+- country alias 會先正規化成 canonical country name
+- `metadata.countryOptions` 只回 canonical country，不再回重複變體
 
 ---
 

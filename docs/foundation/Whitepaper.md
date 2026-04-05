@@ -249,7 +249,7 @@ CrawlerNest 的競爭優勢與市場定位如下：
 - **實體識別與多來源未來 (Entity Resolution)**：CrawlerNest 透過將不同來源 (QS, THE, ARWU) 的大學名稱解析為單一 `canonical_university` 實體來處理數據異質性。重疊的排名不會被覆蓋，而是作為獨立的 `ranking_record` 關聯到同一實體。
 - **排名聚合 (Ranking Aggregation)**：多來源數據經由 rank-based aggregation 結合為 `aggregated_rank`。目前聚合已支援 multi-universe truth：`global`、`region:*`、`subject:*` 可分 universe 獨立計算，不再以 global filter 假裝 region truth。
 - **Ranking Evidence 與 Trust Layer**：產品層可顯示 QS / THE / ARWU 原始來源 rank、source agreement/disagreement、trust score 與 trust explain，避免把聚合結果包裝成不可解釋的單一數字。
-- **Country-aware 讀取路徑**：`/rankings` 的 `country` filter 不改 aggregation layer；它在最終 read query 上 join `canonical_university` / `countries` metadata 後套用，確保篩選是 product read concern 而非 aggregation truth concern。
+- **Canonical Country Filtering**：`/rankings` 的 `country` filter 不改 aggregation layer；它在最終 read query 上 join `canonical_university` / `countries` metadata 後套用，並在 validation、SQL filter、`metadata.countryOptions` 三處共用同一套 canonical country normalization，避免 `China` / `China (mainland)` / `USA` 這類 alias 造成空結果或重複選項。
 - **推薦決策系統 (v3) 與信心模型 (Confidence Model)**：最新推薦器將學校嚴格分類為 Reach、Target 與 Safety。動態信心模型會根據底層數據品質 (如是否缺失錄取分數要求) 調整預測準確度。
 - **Compare 作為產品決策層**：Compare Page 讓 shortlist 中的 2–4 所學校能 side-by-side 比較 aggregated rank、source evidence、trust、IELTS 與 warnings，讓產品從瀏覽工具進一步變成 decision-support surface。
 - **Lobster-01 基礎設施節點**：專用的低規控制節點，利用 systemd timers 與批次 I/O 執行長時間背景 pipeline，確保在受限硬體上的高韌性運作。
@@ -765,6 +765,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-04-05 | 完成 Rankings Browser hydration-safe refactor，移除 polling / auto refresh，改為 deterministic client-ready render 與手動 refresh 模式 | 已完成 |
 | 2026-04-05 | 完成 country filter UI / proxy / URL state sync：rankings API 支援 `country`、global / region dependent country list、searchable country panel 與 deterministic filter state | 已完成 |
 | 2026-04-05 | 修復 Java rankings read path 的 country filter 真正落地：在最終 read query join `canonical_university` / `countries` metadata，並於 SQL `WHERE` 套用 country predicate，使 `country=Argentina` 不再回 MIT / Oxford / Harvard 類全域結果 | 已完成 |
+| 2026-04-05 | 新增 canonical country normalization layer：將 `China` / `China (mainland)` / `USA` / `UK` 等 alias 收斂為統一 canonical country，並同步修復 country validation、SQL filtering 與 `metadata.countryOptions` duplicate variants 問題 | 已完成 |
 | 2026-04-05 | 完成 Compare Page MVP：以 shortlist 為來源，比較 2–4 所大學的 aggregated rank、QS/THE/ARWU evidence、trust、admissions 與 warnings | 已完成 |
 
 ### 13.4 未來階段規劃
@@ -848,6 +849,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 - **每月**：抽查 CPU / RAM / iowait / restart 次數，確認長時間運行安全
 - **持續**：重大架構變更後同步更新本白皮書
 - **資料庫變更後**：重跑 PostgreSQL schema 初始化與 Spring Boot 連線驗證
+- **每次重新啟動 Java backend 前**：先停掉舊的 `spring-boot:run` process，重新 `./mvnw -q -DskipTests compile`；若剛改過 country normalization / rankings read path，先跑 focused test（例如 `./mvnw -q -Dtest=CountryNormalizationTest test`）再啟動，避免實際驗證時仍打到舊版程式
 - **研究層變更後**：重跑 AutoEval baseline，避免 silent regression
 - **硬體維護**：老舊節點定期清灰、檢查散熱與電源健康度
 
