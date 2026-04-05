@@ -18,7 +18,7 @@ Students and advisors do not just need more ranking rows. They need transparent 
 *   **Trust Layer:** Each aggregated ranking can include a conservative trust score and trust explanation based on source coverage and source agreement.
 *   **Explainable Recommendation:** Recommendations include fit dimensions, reasons, and warnings instead of opaque match scores only.
 *   **Compare Workflow:** Shortlisted universities can be compared side by side using aggregated rank, source evidence, trust, and admissions context.
-*   **Country-Aware Rankings Filtering:** Rankings can be filtered by country at the final aggregated read layer using canonical university metadata, without changing aggregation order.
+*   **Canonical Country Filtering:** Rankings country filters now flow through a centralized canonical country normalization layer. Variants such as `China`, `China (mainland)`, `USA`, and `UK` are normalized before validation, SQL filtering, and metadata generation.
 *   **Canonical Recovery Path:** Unlinked crawled universities can be promoted into `canonical_university` and backfilled into `warehouse.ranking_record` without changing crawler behavior.
 *   **Ingestion Traceability:** Every ingest run writes `run_id` / `updated_at` trace fields into PostgreSQL ranking records.
 *   **API Platform:** Java Spring Boot APIs expose rankings, university detail, recommendations, and comparison data for the product UI.
@@ -81,6 +81,24 @@ To start the full stack (Backend API + Frontend UI), follow these steps in two s
 
 ### 1. Start the Java Backend API
 The backend serves normalized university and ranking data.
+
+Before you start the Java backend for a fresh verification run, do this first:
+
+1. stop any old Spring Boot process so you do not keep querying stale code
+2. recompile the backend after changing ranking / trust / country-filter logic
+3. if you changed normalization or rankings read-path logic, run the focused test before boot
+
+Recommended preflight:
+
+```bash
+pkill -f "spring-boot:run"
+cd crawlernest/servise_for_java
+./mvnw -q -DskipTests compile
+./mvnw -q -Dtest=CountryNormalizationTest test
+```
+
+Then start the API:
+
 ```bash
 cd crawlernest/servise_for_java
 ./mvnw spring-boot:run
@@ -109,6 +127,8 @@ Country filtering is applied in the final rankings read query rather than the ag
 - product rows are filtered by canonical university country metadata
 - global scope allows any supported country
 - region scope remains region-consistent
+- country aliases are normalized to canonical names before validation and SQL filtering
+- `metadata.countryOptions` is deduplicated to canonical country names
 
 ---
 
@@ -360,6 +380,7 @@ CrawlerNest's engineering depth is built on a history of rigorous milestones:
 *   **2026-04-03:** Switched aggregation ordering from score-led ranking to weighted rank-based aggregation truth.
 *   **2026-04-04:** Added aggregation explainability, strict trust layer, explainable recommendation, and richer university detail evidence.
 *   **2026-04-05:** Completed hydration-safe rankings refactor, compare page MVP, and end-to-end country filtering wired through the final Java rankings read query.
+*   **2026-04-05:** Added a centralized canonical country normalization layer so alias inputs and metadata variants resolve to stable product-facing country filters.
 
 ## Repository Map
 
