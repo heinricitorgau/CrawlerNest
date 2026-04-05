@@ -24,7 +24,7 @@ class ScopedRankingReadAdapterUsageTest {
         FakeScopedRankingReadAdapter adapter = new FakeScopedRankingReadAdapter(List.of(row));
         JdbcAggregatedRankingReadRepository repository = new JdbcAggregatedRankingReadRepository(adapter);
 
-        List<RankingDTO> results = repository.findRankings(2026, null, "region", "Europe", 0, 20);
+        List<RankingDTO> results = repository.findRankings(2026, null, "region", "Europe", null, null, 0, 20);
 
         assertEquals(1, results.size());
         assertEquals("region", adapter.lastContext.apiScope());
@@ -138,15 +138,29 @@ class ScopedRankingReadAdapterUsageTest {
         }
 
         @Override
-        public List<ScopedRankedUniversity> findRankings(RankingContext context, Integer year, String search, int page, int pageSize) {
+        public List<ScopedRankedUniversity> findRankings(
+                RankingContext context,
+                Integer year,
+                String search,
+                String countryCode,
+                String countryName,
+                int page,
+                int pageSize
+        ) {
             this.lastContext = context;
             return rows;
         }
 
         @Override
-        public long countRankings(RankingContext context, Integer year, String search) {
+        public long countRankings(RankingContext context, Integer year, String search, String countryCode, String countryName) {
             this.lastContext = context;
             return rows.size();
+        }
+
+        @Override
+        public List<Map<String, Object>> findCountryOptions(RankingContext context, Integer year, String search) {
+            this.lastContext = context;
+            return List.of();
         }
 
         @Override

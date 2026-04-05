@@ -16,27 +16,41 @@ type Props = {
   item: ShortlistItem;
 };
 
+function isShortlistItemArray(value: unknown): value is ShortlistItem[] {
+  return Array.isArray(value);
+}
+
+function readStoredShortlist(): ShortlistItem[] {
+  try {
+    const stored = window.localStorage.getItem(SHORTLIST_STORAGE_KEY);
+    if (!stored) {
+      return [];
+    }
+
+    const parsed = JSON.parse(stored) as unknown;
+    return isShortlistItemArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function ShortlistButton({ item }: Props) {
   const [inList, setInList] = useState(false);
 
+  if (!item || typeof item.canonicalUniversityId !== "number") {
+    return null;
+  }
+
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(SHORTLIST_STORAGE_KEY);
-      if (stored) {
-        const parsed: ShortlistItem[] = JSON.parse(stored);
-        setInList(
-          parsed.some((s) => s.canonicalUniversityId === item.canonicalUniversityId)
-        );
-      }
-    } catch {
-      // ignore
-    }
+    const parsed = readStoredShortlist();
+    setInList(
+      parsed.some((s) => s.canonicalUniversityId === item.canonicalUniversityId)
+    );
   }, [item.canonicalUniversityId]);
 
   function toggle() {
     try {
-      const stored = localStorage.getItem(SHORTLIST_STORAGE_KEY);
-      const current: ShortlistItem[] = stored ? JSON.parse(stored) : [];
+      const current = readStoredShortlist();
 
       let next: ShortlistItem[];
       if (inList) {
@@ -47,7 +61,7 @@ export default function ShortlistButton({ item }: Props) {
         next = [...current, item];
       }
 
-      localStorage.setItem(SHORTLIST_STORAGE_KEY, JSON.stringify(next));
+      window.localStorage.setItem(SHORTLIST_STORAGE_KEY, JSON.stringify(next));
       setInList(!inList);
     } catch {
       // ignore

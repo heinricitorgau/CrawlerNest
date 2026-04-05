@@ -2,32 +2,35 @@
 
 Traditional Chinese version: [README.zh-TW.md](README.zh-TW.md)
 
-**CrawlerNest** has evolved from an infrastructure-focused data pipeline into a comprehensive **University Data Infrastructure and Web Platform**. It bridges the gap between raw, scattered global education data and actionable, consumer-facing insights.
+**CrawlerNest** has evolved from an infrastructure-focused data pipeline into a transparent **University Data Infrastructure and Ranking Intelligence Platform**. It bridges the gap between fragmented global education data and explainable, consumer-facing decision support.
 
 ## What is this system?
-CrawlerNest is an end-to-end data platform that transforms fragmented web data (university rankings, admission requirements, tuition) into structured knowledge. It powers a deterministic decision engine that algorithmically guides students, replacing black-box manual consulting with transparent, data-driven "reach/target/safety" recommendations.
+CrawlerNest is an end-to-end data platform that transforms fragmented web data into structured, queryable university intelligence. It aggregates ranking sources such as QS, THE, and ARWU, exposes ranking evidence and trust signals, and powers explainable recommendation and comparison workflows for students, counselors, and product teams.
 
 ## Why it exists
-While APIs and CLIs validate the data, students and advisors need a visual, comparative interface to make life-altering decisions. Raw data is overwhelming; by layering a deterministic decision engine and a clean UX over our data infrastructure, we provide clarity instead of just volume.
+Students and advisors do not just need more ranking rows. They need transparent evidence, comparable signals, and decision support they can trust. CrawlerNest exists to make ranking aggregation understandable rather than opaque, and useful rather than merely searchable.
 
 ## Current Capabilities
-*   **Data Pipeline:** Asynchronous, compliance-aware crawlers fetching global rankings (QS + THE dual source; ARWU ingestion supported for multi-source aggregation). THE world rankings prefer **structured JSON** (CDN blobs when published, else Next.js `__NEXT_DATA__` on official pages)—not brittle HTML-table scraping as the primary path.
-*   **Multi-Universe Ingestion:** QS global / region / subject / special universes can be ingested through one unified runner.
-*   **Ingestion Traceability:** Every ingest run now writes `run_id` / `updated_at` trace fields into PostgreSQL ranking records.
-*   **Canonical Recovery Path:** Unlinked crawled universities can now be promoted into `canonical_university` and backfilled into `warehouse.ranking_record` without changing crawler behavior.
-*   **Aggregation Truth:** Aggregation now supports multi-universe truth, with the QS + THE dual source reaching 2,736 visible universities after canonical seeding, ranking backfill, and THE missing-entity recovery (ARWU is also supported for multi-source aggregation).
-*   **Decision Engine:** An explainable recommendation engine providing deterministic groupings (reach/target/safety).
-*   **API Platform:** Repaired Java Spring Boot APIs (API v1) serving normalized analytical data with support for scoped/regional filtering.
-*   **Database Reliability:** Robust PostgreSQL transaction handling with automatic rollbacks on batch failures.
-*   **Frontend Freshness:** The Next.js rankings browser uses same-origin proxying, `no-store` fetches, periodic polling, and focus/visibility refresh to keep the UI close to live database state.
+*   **Multi-Source Ranking Ingestion:** QS, THE, and ARWU can now feed the same ranking storage and aggregation path. THE world rankings prefer **structured JSON** (CDN blobs when published, else Next.js `__NEXT_DATA__`) rather than brittle HTML-first scraping.
+*   **Universe-Aware Aggregation:** Rankings are handled as distinct universes such as `global`, `region`, `subject`, and `special`, with aggregation isolated per universe.
+*   **Rank-Based Aggregation Truth:** Aggregated rank order is now driven by source ranks, not composite score sorting. Composite score remains a display signal only.
+*   **Ranking Evidence:** Product rows and university detail pages expose QS / THE / ARWU source ranks directly, including disagreement across sources.
+*   **Trust Layer:** Each aggregated ranking can include a conservative trust score and trust explanation based on source coverage and source agreement.
+*   **Explainable Recommendation:** Recommendations include fit dimensions, reasons, and warnings instead of opaque match scores only.
+*   **Compare Workflow:** Shortlisted universities can be compared side by side using aggregated rank, source evidence, trust, and admissions context.
+*   **Country-Aware Rankings Filtering:** Rankings can be filtered by country at the final aggregated read layer using canonical university metadata, without changing aggregation order.
+*   **Canonical Recovery Path:** Unlinked crawled universities can be promoted into `canonical_university` and backfilled into `warehouse.ranking_record` without changing crawler behavior.
+*   **Ingestion Traceability:** Every ingest run writes `run_id` / `updated_at` trace fields into PostgreSQL ranking records.
+*   **API Platform:** Java Spring Boot APIs expose rankings, university detail, recommendations, and comparison data for the product UI.
+*   **Database Reliability:** PostgreSQL transaction handling, canonical repair paths, and operational snapshot fallback keep the product usable even when upstream sources are unstable.
 
 ## High-Level Architecture
 CrawlerNest is built on a strict, decoupled 5-layer architecture:
-1.  **Data Layer:** Web crawlers fetching from global sources.
-2.  **Canonical (Processing) Layer:** Entity resolution and normalization.
-3.  **Aggregation (Storage) Layer:** PostgreSQL data warehouse.
-4.  **Decision Layer:** Recommendation engine and comparison logic.
-5.  **API (Product) Layer:** Java Spring Boot APIs and the Consumer Website.
+1.  **Data Layer:** Source acquisition from public ranking and university data providers.
+2.  **Canonical Layer:** Entity resolution, alias handling, normalization, and source-to-canonical mapping.
+3.  **Aggregation Layer:** PostgreSQL warehouse and universe-aware ranking truth.
+4.  **Decision Layer:** Recommendation, trust scoring, evidence summaries, and comparison logic.
+5.  **Product Layer:** Spring Boot APIs and the Next.js website.
 
 For a deep dive into the engineering principles, see the [Whitepaper](docs/foundation/Whitepaper.md).
 
@@ -66,13 +69,13 @@ CrawlerNest now has a clear database visibility chain:
 2. canonical identity layer links raw universities to `canonical_university`
 3. `warehouse.ranking_record` stores universe-aware ranking truth
 4. aggregation refreshes `analytics.v_aggregated_rankings_latest`
-5. Spring Boot API reads aggregated truth
+5. Spring Boot API joins canonical university metadata on top of aggregated truth for product fields such as `universityName`, `slug`, and `country`
 6. Next.js frontend reads through `/api/rankings`
 
 This matters because universities stored only in `warehouse.universities` are not automatically visible in the API.  
 They become visible only after canonical linking and ranking-record backfill are complete.
 
-## How to Run the Web Platform (Website MVP)
+## How to Run the Web Platform (Website Product Layer)
 
 To start the full stack (Backend API + Frontend UI), follow these steps in two separate terminals:
 
@@ -92,11 +95,20 @@ npm run dev
 
 The application will be available at `http://localhost:3000`.
 
-The frontend rankings browser is designed to stay close to the database state:
-- same-origin API proxy at `/api/rankings`
-- `no-store` fetches through the proxy
-- periodic polling
-- immediate refresh on focus / visibility / reconnect
+The frontend currently includes:
+- rankings browser
+- university detail pages
+- recommendation flow
+- compare page
+
+The rankings browser uses same-origin API proxying at `/api/rankings` and `no-store` fetches, but it now refreshes only on initial load, filter changes, or manual browser refresh.
+
+Country filtering is applied in the final rankings read query rather than the aggregation layer:
+
+- aggregated rank order is preserved
+- product rows are filtered by canonical university country metadata
+- global scope allows any supported country
+- region scope remains region-consistent
 
 ---
 
@@ -320,10 +332,10 @@ This reflects our actual engineering maturity:
 *   ✅ **production-safe pipeline:** DONE (2,736 universities — QS + THE dual source)
 *   ✅ **PostgreSQL integration:** DONE (transaction-safe with rollback)
 *   ✅ **recommendation engine (v3 decision system):** DONE
-*   ✅ **API v1 readiness:** DONE (repaired & pagination-aligned)
+*   ✅ **API v1 readiness:** DONE (repaired, pagination-aligned, scope-aware, country-aware)
 *   ✅ **node deployment (Lobster-01):** DONE (dedicated `lobster-01/` runtime)
 *   ✅ **multi-source (QS + THE):** OPERATIONAL (2,191 THE universities matched)
-*   🔄 **website layer:** IN PROGRESS (~92%)
+*   ✅ **website product layer:** OPERATIONAL (rankings, detail, recommendation, compare, evidence, trust, country-aware filters)
 
 ## Milestones & Development History
 CrawlerNest's engineering depth is built on a history of rigorous milestones:
@@ -336,12 +348,18 @@ CrawlerNest's engineering depth is built on a history of rigorous milestones:
 *   **Recommendation Engine:** Evolved from rule-based filters (v1) to grouped categories (v2), up to calibrated hybrid deterministic scoring (v3).
 
 ### In Progress (Platform Expansion)
-*   Web product user interface development.
 *   Deepening the canonical university entity resolution.
+*   Subject / special universe expansion.
 
 ### Future
 *   Public API platform commercialization.
 *   AI-driven insights overlaying the deterministic engine.
+
+### Recent Product & Data Milestones
+*   **2026-04-02:** Hardened QS production crawl with stable global entry resolution and snapshot fallback under upstream blocking.
+*   **2026-04-03:** Switched aggregation ordering from score-led ranking to weighted rank-based aggregation truth.
+*   **2026-04-04:** Added aggregation explainability, strict trust layer, explainable recommendation, and richer university detail evidence.
+*   **2026-04-05:** Completed hydration-safe rankings refactor, compare page MVP, and end-to-end country filtering wired through the final Java rankings read query.
 
 ## Repository Map
 

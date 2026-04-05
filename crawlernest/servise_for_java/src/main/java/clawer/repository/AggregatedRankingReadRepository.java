@@ -1,6 +1,7 @@
 package clawer.repository;
 
 import clawer.dto.RankingDTO;
+import clawer.dto.RankingCountryOptionDTO;
 
 import java.util.List;
 
@@ -14,9 +15,13 @@ public interface AggregatedRankingReadRepository {
             String search,
             String scope,
             String region,
+            String countryCode,
+            String countryName,
             int page,
             int pageSize
     );
 
-    long countRankings(Integer year, String search, String scope, String region);
+    long countRankings(Integer year, String search, String scope, String region, String countryCode, String countryName);
+
+    List<RankingCountryOptionDTO> findCountryOptions(Integer year, String search, String scope, String region);
 }

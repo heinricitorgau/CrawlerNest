@@ -6,19 +6,45 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 
+const DEFAULT_BACKEND_API_BASE_URL = "http://localhost:8080";
+
 const NO_STORE_HEADERS = {
   "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
   Pragma: "no-cache",
   Expires: "0",
 };
 
+function resolveBackendApiBaseUrl(request: NextRequest): string {
+  const configuredBaseUrl = getApiBaseUrl();
+
+  try {
+    const candidateUrl = new URL(configuredBaseUrl);
+    const requestOrigin = request.nextUrl.origin;
+    const isLocalNextOrigin =
+      candidateUrl.origin === requestOrigin ||
+      candidateUrl.origin === "http://localhost:3000" ||
+      candidateUrl.origin === "http://127.0.0.1:3000";
+
+    if (isLocalNextOrigin) {
+      return DEFAULT_BACKEND_API_BASE_URL;
+    }
+
+    return candidateUrl.origin;
+  } catch {
+    return DEFAULT_BACKEND_API_BASE_URL;
+  }
+}
+
 export async function GET(request: NextRequest) {
-  const apiBaseUrl = getApiBaseUrl();
+  const apiBaseUrl = resolveBackendApiBaseUrl(request);
   const upstreamUrl = new URL("/api/v1/rankings", apiBaseUrl);
 
   request.nextUrl.searchParams.forEach((value, key) => {
     upstreamUrl.searchParams.set(key, value);
   });
+
+  console.info("[api/rankings] incoming_request_url=%s", request.url);
+  console.info("[api/rankings] resolved_backend_url=%s", upstreamUrl.toString());
 
   try {
     const upstreamResponse = await fetch(upstreamUrl.toString(), {
@@ -28,6 +54,8 @@ export async function GET(request: NextRequest) {
         Accept: "application/json",
       },
     });
+
+    console.info("[api/rankings] upstream_status=%s", upstreamResponse.status);
 
     const rawBody = await upstreamResponse.text();
 

@@ -2,6 +2,12 @@ export type RankingUniverse = "global" | "region" | "subject" | "special";
 
 export type RankingScope = "global" | "region";
 
+export type RankingCountryOption = {
+  code: string;
+  name: string;
+  count: number;
+};
+
 export type RankingApiRow = {
   canonicalUniversityId: number;
   universityName: string;
@@ -63,4 +69,12 @@ export type RankingPresentationRow = {
   trustScore?: number;
   trustLevel?: RankingApiRow["trustLevel"];
   trustExplain?: RankingApiRow["trustExplain"];
+};
+
+export type RankingsApiMetadata = {
+  timestamp?: string;
+  totalCount?: number;
+  page?: number;
+  pageSize?: number;
+  countryOptions?: RankingCountryOption[];
 };

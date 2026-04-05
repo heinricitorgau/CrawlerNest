@@ -23,7 +23,7 @@ const NAV_LINKS = [
 ];
 
 export default function NavBar() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">

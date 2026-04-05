@@ -205,13 +205,26 @@ class RecommendationServiceScopeAwareTest {
 
     private static final class NoopScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         @Override
-        public java.util.List<ScopedRankedUniversity> findRankings(RankingContext context, Integer year, String search, int page, int pageSize) {
+        public java.util.List<ScopedRankedUniversity> findRankings(
+                RankingContext context,
+                Integer year,
+                String search,
+                String countryCode,
+                String countryName,
+                int page,
+                int pageSize
+        ) {
             return java.util.List.of();
         }
 
         @Override
-        public long countRankings(RankingContext context, Integer year, String search) {
-            return 0;
+        public long countRankings(RankingContext context, Integer year, String search, String countryCode, String countryName) {
+            return 0L;
+        }
+
+        @Override
+        public java.util.List<Map<String, Object>> findCountryOptions(RankingContext context, Integer year, String search) {
+            return java.util.List.of();
         }
 
         @Override
@@ -222,13 +235,26 @@ class RecommendationServiceScopeAwareTest {
 
     private static final class DuplicateScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         @Override
-        public java.util.List<ScopedRankedUniversity> findRankings(RankingContext context, Integer year, String search, int page, int pageSize) {
+        public java.util.List<ScopedRankedUniversity> findRankings(
+                RankingContext context,
+                Integer year,
+                String search,
+                String countryCode,
+                String countryName,
+                int page,
+                int pageSize
+        ) {
             return java.util.List.of();
         }
 
         @Override
-        public long countRankings(RankingContext context, Integer year, String search) {
-            return 0;
+        public long countRankings(RankingContext context, Integer year, String search, String countryCode, String countryName) {
+            return 0L;
+        }
+
+        @Override
+        public java.util.List<Map<String, Object>> findCountryOptions(RankingContext context, Integer year, String search) {
+            return java.util.List.of();
         }
 
         @Override

@@ -1,5 +1,6 @@
 package clawer.service;
 
+import clawer.dto.RankingTrustDTO;
 import clawer.model.UniversityComparisonResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -373,6 +374,7 @@ public class ComparisonService {
     private Map<String, Object> serializeUniversity(Candidate candidate) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("canonicalUniversityId", candidate.canonicalUniversityId);
+        payload.put("universityName", candidate.universityName);
         payload.put("country", candidate.country);
         payload.put("aggregatedRank", candidate.aggregatedRank);
         payload.put("aggregatedScore", candidate.aggregatedScore);
@@ -386,7 +388,72 @@ public class ComparisonService {
         payload.put("sourceRanks", sourceRanks);
         payload.put("dataCompleteness", completenessSnapshot(candidate));
         payload.put("aggregationMethodVersion", candidate.aggregationMethodVersion);
+        payload.put("evidenceSummary", buildEvidenceSummary(candidate));
+        RankingTrustDTO trust = RankingTrustLayer.buildTrustScore(candidate.sourceRanks);
+        payload.put("trustScore", trust.getTrustScore());
+        payload.put("trustLevel", trust.getTrustLevel());
+        payload.put("trustExplain", trust.getTrustExplain());
+        payload.put("warnings", buildWarnings(candidate, trust));
         return payload;
+    }
+
+    private Map<String, Object> buildEvidenceSummary(Candidate candidate) {
+        List<Integer> available = SOURCE_ORDER.stream()
+                .map(candidate.sourceRanks::get)
+                .filter(Objects::nonNull)
+                .toList();
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("availableSourceCount", available.size());
+
+        if (available.isEmpty()) {
+            payload.put("bestRank", null);
+            payload.put("worstRank", null);
+            payload.put("spread", null);
+            payload.put("agreementLevel", "limited");
+            payload.put("note", "No ranking evidence is available for this comparison record.");
+            return payload;
+        }
+
+        int bestRank = available.stream().min(Integer::compareTo).orElse(MISSING_RANK);
+        int worstRank = available.stream().max(Integer::compareTo).orElse(MISSING_RANK);
+        int spread = worstRank - bestRank;
+        String agreementLevel;
+        String note;
+
+        if (available.size() == 1) {
+            agreementLevel = "limited";
+            note = "Only one ranking source is available for this university.";
+        } else if (spread <= 5) {
+            agreementLevel = "strong";
+            note = "Multiple ranking sources broadly agree.";
+        } else if (spread <= 20) {
+            agreementLevel = "moderate";
+            note = "Ranking sources show moderate variation.";
+        } else {
+            agreementLevel = "weak";
+            note = "Large disagreement across sources — interpret carefully.";
+        }
+
+        payload.put("bestRank", bestRank);
+        payload.put("worstRank", worstRank);
+        payload.put("spread", spread);
+        payload.put("agreementLevel", agreementLevel);
+        payload.put("note", note);
+        return payload;
+    }
+
+    private List<String> buildWarnings(Candidate candidate, RankingTrustDTO trust) {
+        List<String> warnings = new ArrayList<>();
+        if (candidate.ieltsMin == null) {
+            warnings.add("No structured admissions data available");
+        }
+        if (candidate.sourceRanks.size() <= 1) {
+            warnings.add("Limited evidence");
+        }
+        if ("low".equalsIgnoreCase(trust.getTrustLevel())) {
+            warnings.add("Low trust ranking evidence");
+        }
+        return warnings;
     }
 
     private Map<String, Object> completenessSnapshot(Candidate candidate) {
