@@ -170,6 +170,308 @@ B2C / B2B 產品化
 - **下一階段（V2）**：多來源整合深化、實體識別升級、program-level analytics、產品層穩定化
 - **未來（V3+）**：LLM 輔助研究、公開 API、完整 Web 平台、產品化擴張
 
+### 4.2 From Local System to Distributed Platform
+
+CrawlerNest 最初是以 local-first 的研究與工程系統型態建立。這個起點是合理的：單機環境能讓 crawler、normalization、資料庫、API 與前端原型在同一台機器上快速迭代，降低早期部署與基礎設施負擔。然而，當系統逐步演進為多層資料平台後，`localhost`-only 的運行方式已不再只是簡單，而是開始成為結構性瓶頸。
+
+#### 4.2.1 為何 local-only 架構會成為瓶頸
+
+**資源限制（CPU / Memory / I/O）**  
+單一開發機器若同時承載 Python crawler、ingestion pipeline、C-based normalization、PostgreSQL、Java API 與 Next.js frontend，實際上是在讓高負載 batch 工作與 user-facing read workload 競爭同一組 CPU、記憶體與磁碟 I/O。當資料量與功能數量增加後，這種共置模式會讓：
+
+- 爬蟲與 ingestion 降低 API 響應穩定性
+- DB query 與前端 build 互相爭搶資源
+- 長時間背景作業放大本機開發的不確定性
+
+**開發與運行環境耦合**  
+在 localhost-only 模式下，開發環境與實際服務執行環境高度耦合：
+
+- 本機 debug 狀態可能直接影響服務行為
+- 舊 process、舊 build、舊 port 狀態容易造成誤判
+- 測試資料、局部修補與正式展示資料共存在同一執行面
+
+這種耦合在早期探索階段可接受，但不適合作為持續對外服務的架構基礎。
+
+**環境依賴與不穩定性**  
+本機執行天然受限於單一開發機器的環境條件，包括：
+
+- JDK / Node.js / Python 版本差異
+- 本機路徑、port、process 殘留
+- 長時間運行後的記憶體壓力與暫存狀態
+
+這些問題會使「在我電腦上可以跑」與「系統可穩定對外提供服務」之間出現落差。
+
+**缺乏外部可達性**  
+只存在於 localhost 的系統無法成為真正的產品介面。它不具備穩定的公共入口，因此無法支持：
+
+- rankings browser 的外部使用
+- university detail、compare、recommendation 的真實產品驗證
+- 非開發者對 API 與 UI 的直接存取
+
+因此，當 CrawlerNest 的目標從研究系統轉向資料平台與產品介面時，系統必須從 local-only 演進為可分離部署的架構。
+
+#### 4.2.2 架構轉型策略
+
+CrawlerNest 的轉型不是一次性重寫，而是以分層責任拆分為核心的漸進式演進。
+
+**a. Data Production Layer**  
+資料生產層負責產出與更新平台資料，包含：
+
+- Python-based crawling
+- ingestion / backfill / repair workflows
+- normalization 與 validation
+- C-based normalization engine
+
+這一層具有 batch-oriented、可重試、資源密集、對外不可直接暴露等特性，因此應維持在受控環境中執行。
+
+**b. Data Serving Layer**  
+資料服務層負責對外提供已產生資料的穩定讀取能力，包含：
+
+- PostgreSQL persistent data layer
+- Java-based read API
+- Next.js frontend interface
+
+這一層應追求可預測、可觀察、可對外存取，而不應直接與高波動的 pipeline execution 綁在一起。
+
+**解耦 pipeline 與 user-facing services**  
+核心原則是：資料生成與資料提供不應共享同一個運行責任邊界，除非有明確的工程必要。Crawler、normalization、backfill 與 ingest job 可以失敗、重試、重跑；而面向使用者的 API 與 frontend 則需要更穩定的讀取環境。將兩者解耦，有助於避免 batch workload 直接拖垮產品層穩定性。
+
+**從單機整合執行走向分散式部署**  
+因此，CrawlerNest 的演進方向是：
+
+- 不再由單一 localhost 同時承載所有層
+- 將 heavy data production 與 public read serving 分離
+- 讓資料層、API 層與 frontend 能夠獨立部署與演進
+
+這不是為了追求抽象化，而是基於實際工作負載與穩定性要求的必要拆分。
+
+#### 4.2.3 部署模型（高層設計）
+
+CrawlerNest 的部署模型採取高層、供應商中立的設計原則。
+
+**Frontend**  
+Next.js frontend 作為對外的公共 Web 介面，負責：
+
+- rankings browsing
+- filtering / search
+- ranking evidence / trust display
+- compare 與 recommendation workflow 入口
+
+**Java API**  
+Java read API 作為可擴展的 read service，負責：
+
+- 封裝 rankings / detail / compare / recommendation 的產品級回應
+- 執行 read-time filtering 與 product semantics
+- 暴露 evidence、trust、aggregation explain 等欄位
+
+**PostgreSQL**  
+PostgreSQL 作為持久化資料層，保存：
+
+- canonical entities
+- ranking facts
+- aggregated views
+- lineage / traceability fields
+- admissions 與輔助 metadata
+
+**Crawler 與 heavy processing**  
+Crawler、normalization、ingestion 與大批次修復流程仍應保留在受控環境，例如：
+
+- local engineering machines
+- dedicated internal nodes
+- 專用 batch execution hosts
+
+這些工作負載不必直接對外暴露，但必須與 public read surface 明確分離。
+
+#### 4.2.4 設計哲學
+
+CrawlerNest 的部署哲學可概括為：
+
+**Local-first development, cloud-enabled delivery**
+
+其含義不是把所有東西都立刻雲端化，而是：
+
+- 開發與調試仍可從本地開始
+- 資料生成維持在可控制、可審計的環境
+- 只將必要的 read interface 對外公開
+- 維持資料再現性與 traceability
+
+這個策略同時強調兩件事：
+
+**資料生成必須受控**  
+爬蟲、normalization 與 backfill 是高權限、高變異、高成本的流程，不應直接與公共服務面混合。
+
+**對外暴露應最小且明確**  
+公開的是必要的 read interfaces，而不是整個資料生產系統。這有助於降低運維風險，也讓產品邊界更清晰。
+
+#### 4.2.5 轉型帶來的收益
+
+這種架構演進帶來的收益是具體而可驗證的：
+
+- **系統穩定性提升**：crawler 與 batch job 不再直接干擾 user-facing read path
+- **降低開發機負載**：開發機不必長期同時扮演 crawler node、DB host、API host 與 frontend host
+- **更接近真實使用情境**：可在更接近產品環境的條件下驗證 API contract、filtering、compare、recommendation 等流程
+- **支援真正的對外產品功能**：search、filtering、comparison、evidence display 只有在穩定對外介面存在時才有產品意義
+- **為未來擴展預留空間**：analytics、recommendation、AI-assisted research 等能力可建立在更乾淨的 serving boundary 之上
+
+#### 4.2.6 範圍澄清
+
+這個轉型需要明確界定其範圍與意圖。
+
+**這不是完整的 production-scale infrastructure**  
+CrawlerNest 目前仍不是全域高可用、多區部署、完全自動化基礎設施的成熟平台。
+
+**這是 staged evolution，不是一次性重構**  
+系統正在從 local research system 漸進式演化為可對外提供服務的資料平台。這是一條分階段路線，而不是全面重建。
+
+**重點是務實部署，而不是過度工程化**  
+目標不是引入超出當前需求的複雜基礎設施，而是僅在必要處建立清晰的執行邊界，以提升：
+
+- 穩定性
+- 可維護性
+- 外部可達性
+- 產品層可驗證性
+
+CrawlerNest 的演進方向，是在保留 local-first 工程效率的前提下，逐步建立 cloud-enabled、可分離部署、可持續擴展的資料平台能力。
+
+### 4.3 Role of Node Machines in the CrawlerNest Architecture
+
+在 CrawlerNest 從 local monolith 演進為分散式資料平台之後，node machines 的角色變得更加明確：它們不再只是「跑爬蟲的電腦」，而是整個資料生產層的專用執行節點。
+
+#### 4.3.1 定義
+
+Node machine 指的是一台專門負責**資料生產（data production）**的機器。它的主要職責是產出、更新與修復平台資料，而不是直接對外提供產品介面。
+
+其基本特徵如下：
+
+- 不是 user-facing machine
+- 不作為公開 Web 入口
+- 不直接暴露給終端使用者
+- 專注於受控、可重跑、可追溯的 pipeline execution
+
+換言之，node machines 屬於內部資料生產基礎設施，而不是 public platform 的一部分。
+
+#### 4.3.2 核心責任
+
+在目前架構中，node machines 主要承擔以下工作：
+
+**資料採集**  
+負責從外部來源抓取資料，例如：
+
+- QS
+- THE
+- ARWU
+- 校方或未來第三方資料來源
+
+**資料正規化**  
+負責欄位層與語意層的正規化，包括但不限於：
+
+- 名稱正規化
+- 國家正規化
+- 分數與欄位格式清洗
+- C-based normalization engine 的執行或整合
+
+**實體識別（Entity Resolution）**  
+將不同來源的同一所大學對齊為同一個 `canonical_university`，避免多來源資料碎片化。
+
+**排名聚合與資料修復**  
+負責將 multi-source ranking facts 匯入、回填、聚合，並刷新產品層所依賴的 aggregated truth。
+
+**寫入 PostgreSQL**  
+Node machines 的輸出最終會落到 PostgreSQL，作為系統的 persistent data layer，包括：
+
+- canonical entities
+- ranking records
+- admissions / metadata
+- aggregated ranking views
+- traceability fields
+
+**排程化 pipeline 執行**  
+Node machines 適合承載長時間、可中斷、可恢復的排程工作，例如：
+
+- 定期 crawl / ingest
+- backfill
+- retry / recovery
+- snapshot / checkpoint-based execution
+
+#### 4.3.3 與 Public Platform 的責任分離
+
+CrawlerNest 在部署後明確分為兩個主要責任區塊：
+
+**Node machines = data production**  
+負責資料生成、資料修復、正規化、聚合與寫入。
+
+**Public platform = data serving**  
+負責提供已產生資料的讀取介面，包括：
+
+- Java read API
+- Next.js frontend
+- user-facing search / filtering / comparison / recommendation surface
+
+因此，public API 的責任不是執行重型計算，而是**讀取已預先計算完成的資料**。  
+換句話說，CrawlerNest 的產品層遵循一個明確原則：
+
+> heavy computation does not happen on the public request path
+
+對使用者而言，看到的是預先產生、可重現、可追溯的結果，而不是即時在請求期間動態跑出來的高成本計算。
+
+#### 4.3.4 為什麼這種分離是必要的
+
+這種架構分離的必要性來自幾個工程事實。
+
+**避免 user-facing services 被重負載拖垮**  
+Crawler、normalization、aggregation 與 backfill 都屬於高 CPU / 高 I/O / 長時間任務。若這些工作與 API / frontend 共置，使用者體驗會直接受到背景工作干擾。
+
+**提升系統穩定性**  
+資料生成流程允許失敗、重試、暫停與恢復；但 public read service 需要可預測與穩定。將兩者拆開，能降低 batch volatility 對服務層的衝擊。
+
+**支持獨立擴展**  
+資料生產層與資料服務層的 scaling pattern 不同。crawler node 需要的是排程、節流、checkpoint 與 I/O 韌性；read API / frontend 則更關心查詢穩定性、響應時間與外部可達性。
+
+**避免 development environment 與 deployed system 混在一起**  
+如果所有責任仍集中在單一機器上，開發、測試、資料生成與產品服務會互相污染。節點化後，可以更清楚地區分工程環境與對外服務環境。
+
+#### 4.3.5 設計哲學
+
+Node machines 在 CrawlerNest 中所承載的，不只是「跑任務」，而是一套明確的設計哲學：
+
+**Compute offline, serve online**  
+高成本計算應盡量在離線、可控制、可重跑的環境中完成；對外介面則應只提供穩定的讀取能力。
+
+**Heavy processing is isolated from user interaction**  
+使用者行為不應直接觸發 crawler、normalization 或 aggregation 等高成本工作。產品層看到的是已處理完成的資料，而不是正在執行中的 pipeline。
+
+**Data must be reproducible and traceable**  
+Node machines 執行的每一次 crawl、ingest、normalization 與 aggregation，都應能被回溯與重現。這是資料平台可信度的基礎。
+
+#### 4.3.6 未來可擴展性
+
+目前的 node machines 還不是完整 distributed cluster，但它們已經構成未來分散式資料基礎設施的雛形。
+
+未來可自然演進為：
+
+- **crawler nodes**：專門負責不同來源或 universe 的抓取
+- **aggregation nodes**：專門負責聚合、回填與視圖刷新
+- **analytics nodes**：專門負責更高成本的分析、評估與推薦前處理
+
+這種 specialization 讓不同節點能根據任務特性獨立調整資源與運行策略，而不需要把所有責任集中在單一 host。
+
+#### 4.3.7 範圍澄清
+
+需要明確指出，CrawlerNest 當前的 node machine 架構：
+
+- 不是完整的分散式叢集
+- 不是為了極限規模而設計的即時運算系統
+- 不是一開始就追求最大化吞吐的 infrastructure build-out
+
+目前階段的重點是：
+
+- correctness
+- reliability
+- reproducibility
+- clear execution boundaries
+
+也就是說，CrawlerNest 正在進行的是一個**受控且可擴展的架構轉型**。Node machines 的價值不在於「已經大規模分散式」，而在於它們為資料生產與資料服務之間建立了清晰、可維護、可持續擴展的責任邊界。
+
 ---
 
 ## 5. 系統分層模型
