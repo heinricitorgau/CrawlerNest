@@ -23,17 +23,11 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcScopedRankingReadAdapter.class);
 
     /**
-     * Shared predicates on the {@code ranked} CTE: search visibility and optional country filters.
-     * Binds, in order: normalizedSearch, countryCode, countryName, countryCode, countryName.
+     * Search visibility on {@code ranked}. Country is filtered in {@code scoped_base} via
+     * {@code warehouse.countries} (FK from {@code canonical_university.country_id}).
+     * Binds: normalizedSearch.
      */
-    private static final String RANKED_SEARCH_AND_COUNTRY_PREDICATES = """
-            (? = '' OR search_score > 0)
-              AND (
-                (?::text IS NULL AND ?::text IS NULL)
-                OR country_code = ?::text
-                OR lower(country_name) = lower(?::text)
-              )
-            """;
+    private static final String RANKED_SEARCH_PREDICATE = "(? = '' OR search_score > 0)";
 
     /**
      * Column list for rows read from {@code ranked} (canonical ranking row + evidence columns for mapping).
@@ -91,7 +85,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
     public List<Map<String, Object>> findCountryOptions(RankingContext context, Integer year, String search) {
         String normalizedSearch = search == null ? "" : search.trim();
         List<Object> argsList = new ArrayList<>();
-        StringBuilder sql = appendRankedCtePipeline(context, year, normalizedSearch, argsList);
+        StringBuilder sql = appendRankedCtePipeline(context, year, normalizedSearch, null, argsList);
         sql.append("""
                 SELECT
                     country_code,
@@ -140,15 +134,14 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             String country
     ) {
         String normalizedSearch = search == null ? "" : search.trim();
-        String normalizedCountryCode = countryCode == null ? null : countryCode.trim().toUpperCase(Locale.ROOT);
-        String normalizedCountryName = countryName == null ? null : countryName.trim();
         List<Object> argsList = new ArrayList<>();
-        StringBuilder sql = appendRankedCtePipeline(context, year, normalizedSearch, argsList);
+        String countryNameFilter = (countryName == null || countryName.isBlank()) ? null : countryName.trim();
+        StringBuilder sql = appendRankedCtePipeline(context, year, normalizedSearch, countryNameFilter, argsList);
 
         if (countOnly) {
             sql.append("SELECT COUNT(*) FROM ranked WHERE ");
-            sql.append(RANKED_SEARCH_AND_COUNTRY_PREDICATES);
-            bindRankedSearchAndCountryArgs(argsList, normalizedSearch, normalizedCountryCode, normalizedCountryName);
+            sql.append(RANKED_SEARCH_PREDICATE);
+            argsList.add(normalizedSearch);
             return new ScopedSql(sql.toString(), argsList.toArray());
         }
 
@@ -156,8 +149,8 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
 
         if (!recommendationMode) {
             sql.append("  AND ");
-            sql.append(RANKED_SEARCH_AND_COUNTRY_PREDICATES);
-            bindRankedSearchAndCountryArgs(argsList, normalizedSearch, normalizedCountryCode, normalizedCountryName);
+            sql.append(RANKED_SEARCH_PREDICATE);
+            argsList.add(normalizedSearch);
         }
         if (recommendationMode && country != null && !country.isBlank()) {
             sql.append("  AND country_name = ?\n");
@@ -183,26 +176,16 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         return new ScopedSql(sql.toString(), argsList.toArray());
     }
 
-    private static void bindRankedSearchAndCountryArgs(
-            List<Object> argsList,
-            String normalizedSearch,
-            String normalizedCountryCode,
-            String normalizedCountryName
-    ) {
-        argsList.add(normalizedSearch);
-        argsList.add(normalizedCountryCode);
-        argsList.add(normalizedCountryName);
-        argsList.add(normalizedCountryCode);
-        argsList.add(normalizedCountryName);
-    }
-
     /**
      * Builds the shared {@code WITH ... ranked AS (...)} pipeline used by count, list, country-options, and recommendations.
+     *
+     * @param countryNameFilter canonical {@code countries.country_name} to match (case-insensitive), or {@code null} for no country filter
      */
     private StringBuilder appendRankedCtePipeline(
             RankingContext context,
             Integer year,
             String normalizedSearch,
+            String countryNameFilter,
             List<Object> argsList
     ) {
         StringBuilder sql = new StringBuilder("""
@@ -309,6 +292,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                     WHERE (?::integer IS NULL OR ar.ranking_year = ?::integer)
                       AND ar.universe_type = ?
                       AND ar.universe_key = ?
+                      AND (?::text IS NULL OR LOWER(c.country_name) = LOWER(?::text))
                 ),
                 ranked AS (
                     SELECT
@@ -338,6 +322,8 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         argsList.add(year);
         argsList.add(context.universeType());
         argsList.add(context.universeKey());
+        argsList.add(countryNameFilter);
+        argsList.add(countryNameFilter);
         return sql;
     }
 
