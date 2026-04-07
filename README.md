@@ -1,11 +1,13 @@
-# University Data Infrastructure + Web Platform
+# CrawlerNest
 
 Traditional Chinese version: [README.zh-TW.md](README.zh-TW.md)
 
-**CrawlerNest** has evolved from an infrastructure-focused data pipeline into a transparent **University Data Infrastructure and Ranking Intelligence Platform**. It bridges the gap between fragmented global education data and explainable, consumer-facing decision support.
+**CrawlerNest** is a **University Data Intelligence Infrastructure** enhanced by a **controlled, evaluation-driven AI-assisted development layer**. It bridges fragmented global education data with structured analytics, explainable recommendation, and production-minded system design.
 
 ## What is this system?
 CrawlerNest is an end-to-end data platform that transforms fragmented web data into structured, queryable university intelligence. It aggregates ranking sources such as QS, THE, and ARWU, exposes ranking evidence and trust signals, and powers explainable recommendation and comparison workflows for students, counselors, and product teams.
+
+It is now also evolving with a **Mini-Agent Development Layer**: a lightweight, controlled workflow for development acceleration and system refinement. This layer is deeply tied to evaluation and requires human oversight. It is not a standalone autonomous agent system.
 
 ## Why it exists
 Students and advisors do not just need more ranking rows. They need transparent evidence, comparable signals, and decision support they can trust. CrawlerNest exists to make ranking aggregation understandable rather than opaque, and useful rather than merely searchable.
@@ -25,14 +27,36 @@ Students and advisors do not just need more ranking rows. They need transparent 
 *   **Database Reliability:** PostgreSQL transaction handling, canonical repair paths, and operational snapshot fallback keep the product usable even when upstream sources are unstable.
 
 ## High-Level Architecture
-CrawlerNest is built on a strict, decoupled 5-layer architecture:
+CrawlerNest is built on a strict, decoupled 6-layer architecture:
 1.  **Data Layer:** Source acquisition from public ranking and university data providers.
 2.  **Canonical Layer:** Entity resolution, alias handling, normalization, and source-to-canonical mapping.
 3.  **Aggregation Layer:** PostgreSQL warehouse and universe-aware ranking truth.
 4.  **Decision Layer:** Recommendation, trust scoring, evidence summaries, and comparison logic.
-5.  **Product Layer:** Spring Boot APIs and the Next.js website.
+5.  **Mini-Agent Layer:** A lightweight, controlled AI-assisted development loop for scoped task generation, evaluation, and refinement.
+6.  **Product Layer:** Spring Boot APIs and the Next.js website.
+
+The Mini-Agent Layer follows a constrained loop:
+
+`Task -> Generate -> Evaluate -> Refine`
+
+It is integrated with AutoEval and designed to improve development speed without weakening system reliability.
 
 For a deep dive into the engineering principles, see the [Whitepaper](docs/foundation/Whitepaper.md).
+
+## AI-Assisted Development (Mini-Agent)
+
+- **Controlled by design:** the Mini-Agent layer is a bounded workflow, not a fully autonomous system
+- **Evaluation-driven:** generated outputs are expected to pass evaluation before broader adoption
+- **Human-in-the-loop:** oversight is required for important changes, refinements, and integration decisions
+- **Integrated with AutoEval:** evaluation is used to reinforce reliability rather than automate blindly
+- **Focused on system refinement:** useful for extractor iteration, workflow improvement, and development acceleration
+
+## Design Philosophy
+
+- reliability over autonomy
+- evaluation-first development
+- controlled automation over unrestricted generation
+- system clarity over opaque intelligence
 
 ## Python Environment Setup
 

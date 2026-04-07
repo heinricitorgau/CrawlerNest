@@ -4,6 +4,8 @@
 
 CrawlerNest 的目標，不只是建立一套可以抓取大學資料的爬蟲，而是逐步演進成一個可持續擴展、可追溯、可分析、可推薦、可比較、可產品化的教育資料平台。
 
+在此基礎上，CrawlerNest 也正在引入一層 **Mini-Agent Development Layer**，作為受控、可評估、且必須有人類監督的 AI-assisted development workflow。這一層並不是自治型 AI 系統，而是用來加速開發、強化評估閉環、並提升系統韌性的輕量化架構層。
+
 CrawlerNest 的產品定位也不是「官方排名發布者」，而是：
 
 - 多來源排名整合平台
@@ -13,6 +15,10 @@ CrawlerNest 的產品定位也不是「官方排名發布者」，而是：
 其核心演進路線如下：
 
 **資料採集 → 資料平台 → 分析能力 → AI 推薦 → 產品化**
+
+在新的架構敘事下，CrawlerNest 的定位可進一步描述為：
+
+**Data Infrastructure + Evaluation-Driven AI-Assisted System**
 
 ---
 
@@ -32,6 +38,7 @@ CrawlerNest 的產品定位也不是「官方排名發布者」，而是：
 - 系統架構
 - 分層模型
 - 資料流程
+- Mini-Agent development architecture
 - 資料平台與知識庫設計
 - 推薦系統設計
 - 里程碑與路線圖
@@ -57,6 +64,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 6. **合規優先加速**：在 robots.txt 與來源限制下，以本地解析並行、批次寫入、增量 checkpoint、局部更新等手段提升吞吐
 7. **產品層逐步落地**：在不破壞資料平台與 API 穩定性的前提下，逐步交付 Rankings Browser、University Detail、Compare、Recommendation Engine 等網站能力
 8. **可見性閉環優先**：爬到的資料若尚未 canonical 化或尚未回填至 `warehouse.ranking_record`，必須提供補種與回填路徑，避免資料永久停留在不可見層
+9. **評估驅動的 AI 輔助開發**：Mini-Agent Layer 僅作為受控開發加速層，必須經過 AutoEval 與人工判斷後才可影響主系統路徑
 
 ### 2.2 模組完成度地圖（截至 2026 年 3 月）
 
@@ -147,6 +155,90 @@ graph TD
 核心演進原則：
 
 **爬蟲採集 → 資料平台 → 分析能力 → AI 智能 → 產品化**
+
+在新的系統敘事中，這條主路徑之外還補上一條受控的開發輔助側路：
+
+**Task → Generate → Evaluate → Refine**
+
+它不替代主資料管線，而是作為與 AutoEval 緊密耦合的 Mini-Agent Development Layer，服務於 extractor、workflow 與系統 refinement。
+
+## 4.3 Mini-Agent Development Architecture
+
+Mini-Agent Development Layer 的存在，不是為了追求「完全自動化」，而是為了處理工程系統中一個很實際的張力：
+
+- 開發速度需要提升
+- 但可靠性不能因此被犧牲
+
+CrawlerNest 的解法不是把開發流程交給自治型 agent，而是建立一個受控、輕量、可評估的 mini-agent workflow，作為系統中的輔助層。
+
+### 4.3.1 為何需要這一層
+
+當 crawler、extractor、normalization、ranking aggregation 與 recommendation 層逐步擴大後，單靠人工逐段調整雖然穩定，但會面臨兩個問題：
+
+- refinement 速度不足，難以快速驗證多種改善方向
+- 局部修改若缺乏評估閉環，容易把不穩定性引入主系統
+
+Mini-Agent Layer 的價值，正是在這兩者之間建立平衡。它提供受控的 AI-assisted iteration，但不直接跳過驗證與人工審查。
+
+### 4.3.2 它解決的問題
+
+Mini-Agent Layer 主要解決的是「development speed vs reliability」之間的矛盾：
+
+- 對 extractor 規則、資料處理流程與局部系統邏輯進行更快的候選生成
+- 透過 AutoEval 驗證生成結果是否真的改善品質
+- 把 refinement 從一次性修改，轉成可比較、可回顧、可收斂的迭代過程
+
+因此，這一層的目標不是取代工程師，而是讓工程決策有更高效率的候選產生與更明確的驗證基準。
+
+### 4.3.3 概念運作方式
+
+Mini-Agent Layer 採用的是概念上清楚、責任邊界明確的循環：
+
+**Task → Generate → Evaluate → Refine**
+
+其含義如下：
+
+- **Task**：由人類定義範圍、目標與約束
+- **Generate**：產生候選修正、候選策略或候選流程調整
+- **Evaluate**：透過 AutoEval 或其他驗證機制評估候選結果
+- **Refine**：根據評估結果進一步收斂，而非直接視為最終答案
+
+這是一個受控 loop，而不是無邊界的 agent autonomy。它的本質是 evaluation-driven iteration。
+
+### 4.3.4 與既有系統的整合方式
+
+Mini-Agent Layer 並非獨立產品，而是作為 CrawlerNest 的 system-integrated intelligence layer。
+
+它與下列模組的關係特別重要：
+
+**a. Extractor**  
+Extractor 是最適合 mini-agent 輔助 refinement 的區域之一。因為 extractor 經常面對來源差異、格式漂移與欄位不一致問題，Mini-Agent Layer 可用於提出候選解析策略，但仍需以評估結果決定是否採納。
+
+**b. AutoEval**  
+AutoEval 是 Mini-Agent Layer 的核心約束機制。沒有 evaluation 的生成只是一種提議；只有經過 AutoEval 驗證且通過人工判斷的 refinement，才有資格進入主系統考量範圍。
+
+**c. Pipeline**  
+Mini-Agent Layer 不直接取代主 pipeline。Crawler、normalizer、database、analytics 與 recommendation 仍是主系統的正式責任鏈。Mini-Agent Layer 的角色是加速 refinement、降低人工試錯成本，並強化可靠性，而不是成為新的 production truth source。
+
+## 4.4 Design Principles
+
+CrawlerNest 在引入 Mini-Agent Development Layer 後，設計原則變得更加明確：
+
+### 4.4.1 Evaluation-First Development
+
+生成不是終點，評估才是決策依據。所有 AI-assisted refinement 都應盡量被拉回到可驗證、可比較、可重跑的評估流程中。
+
+### 4.4.2 Controlled Automation Over Full Autonomy
+
+CrawlerNest 選擇的是受控自動化，而不是追求完整自治。原因很直接：資料平台的價值建立在穩定性、可追溯性與責任邊界，而不是最大化自動生成的表面速度。
+
+### 4.4.3 System Reliability Over Raw Speed
+
+更快的 iteration 很重要，但如果它破壞資料品質、讀取穩定性或推薦可信度，整體系統價值反而會下降。因此，可靠性始終優先於未經驗證的加速。
+
+### 4.4.4 Human Oversight as a Core Constraint
+
+Human-in-the-loop 並不是過渡方案，而是架構本身的一部分。人類負責定義任務邊界、判斷風險、審視評估結果，並決定哪些 refinement 可以真正進入系統。
 
 ### 4.1 統一演進視圖（Unified View）
 
