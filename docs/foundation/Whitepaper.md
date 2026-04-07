@@ -1031,15 +1031,16 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 
 ### 13.1 平台能力里程碑
 
-- **Milestone 1：穩定採集能力**（QS + 基礎正規化）
-- **Milestone 2：知識基礎能力**（Canonical schema + school-level identity）
-- **Milestone 3：資料增強能力**（多榜單整合 + admission crawling + AutoEval）
-- **Milestone 4：智慧決策能力**（Hybrid recommendation + multi-level model）
-- **Milestone 5：Website Product Layer**（Rankings Browser + University Detail + Ranking Evidence + Trust Layer + Recommendation UI + Compare）
+- **Milestone 1：穩定採集能力**（crawler + extractor + normalization baseline）
+- **Milestone 2：知識基礎能力**（canonical schema + PostgreSQL data platform）
+- **Milestone 3：資料增強能力**（multi-source aggregation + admissions + AutoEval baseline）
+- **Milestone 4：產品化決策能力**（API layer + recommendation + compare + trust surfaces）
+- **Milestone 5：Mini-Agent Development Layer**（evaluation-driven AI-assisted refinement with human-in-the-loop）
+- **Milestone 6：平台化擴展能力**（public interfaces + stronger analytics + broader deployment boundaries）
 
 ### 13.2 四年路線原則
 
-**資料平台 → 分析能力 → AI 智能 → 產品化**
+**資料平台 → 分析能力 → 評估驅動的 AI 輔助開發 → 產品化**
 
 ### 13.3 已完成里程進展 (Historical Timeline)
 
@@ -1068,6 +1069,8 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | **Web Product** | **Compare Page** | 已完成 | Shortlist 可進入 side-by-side compare，對照 aggregated rank、source evidence、trust、admissions 與 warnings。 |
 | **Data Platform** | **THE Visible Recovery** | 已完成 | 新增 `seed-canonical-from-missing`，將 THE unresolved entities 直接補入 canonical layer，重跑後 THE `matched=2191`、`unresolved=0`。 |
 | **Aggregation** | **Cross-Source Visible Expansion** | 已完成 | 在 THE 補種與重 ingest 後，aggregated visible rows 由 1323 進一步擴張到 2736。 |
+| **Architecture** | **Mini-Agent Positioning Update** | 已完成 | 將 Mini-Agent 明確收斂為受控、evaluation-driven、human-in-the-loop 的 development layer，而非獨立自治系統。 |
+| **Architecture** | **Whitepaper / README Reframing** | 已完成 | 將專案主敘事更新為 Data Infrastructure + Evaluation-Driven AI-Assisted System。 |
 
 *詳細執行日誌：*
 
@@ -1103,6 +1106,37 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-25 | 完成 Rankings Homepage、University Detail Page 與 Recommendation Engine 基本產品流程打通 | 已完成 |
 | 2026-03-26 | 完成 Recommendation Engine 同源 proxy 化（`/api/recommendations`），避免 browser-direct backend fetch 問題 | 已完成 |
 | 2026-03-26 | 完成 Rankings Browser 升級（pagination、page size、search、year/source controls、same-origin rankings proxy） | 已完成 |
+| 2026-03-27 | 完成 Rankings Browser country-aware filtering，將 canonical country normalization 接入最終 read path | 已完成 |
+| 2026-03-28 | 完成 Ranking Evidence、Trust Layer 與 Compare Page 的產品層整合 | 已完成 |
+| 2026-03-29 | 完成 global / region / subject / special universe-aware aggregation read path 對齊 | 已完成 |
+| 2026-03-30 | 完成 aggregated rank truth repair，將排名排序由 score-based 改為 rank-based | 已完成 |
+| 2026-03-31 | 完成 high-confidence alias merge 與多來源 canonical entity resolution hardening | 已完成 |
+| 2026-04-01 | 完成 THE unresolved entities canonical seeding 與 cross-source visible recovery | 已完成 |
+| 2026-04-02 | 完成 rankings UI hydration-safe shell 與 controlled freshness model 收斂 | 已完成 |
+| 2026-04-04 | 完成白皮書架構更新，正式加入 Mini-Agent Development Layer 與 Design Principles | 已完成 |
+| 2026-04-08 | 完成專案定位更新：CrawlerNest 定義為 University Data Intelligence Infrastructure + controlled Mini-Agent Development Layer | 已完成 |
+
+### 13.4 當前階段判讀（截至 2026-04-08）
+
+CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
+
+這個階段的特徵如下：
+
+- 主資料管線已可穩定運作，且具備 multi-source aggregation 與 product-facing read path
+- Website Product Layer 已具備 Rankings、Detail、Recommendation、Compare 與 trust/evidence surfaces
+- AutoEval 已建立 baseline，但仍需擴大 coverage 與 regression discipline
+- Mini-Agent Layer 已完成概念定位與文件化，正在作為受控的 development/refinement layer 納入系統敘事
+
+換言之，CrawlerNest 已不是單純 crawler 專案，但也尚未進入 fully scaled platform 階段。它目前最核心的工作，是把「資料平台 + 評估系統 + AI-assisted development layer」這三者之間的責任邊界持續打磨清楚。
+
+### 13.5 四年展望（Forward Timeline）
+
+| 階段 | 目標 | 重點 |
+| :--- | :--- | :--- |
+| **2026** | 穩定資料平台與產品層 | 強化 multi-source ingestion、canonical visibility、API/read stability、AutoEval baseline 與 Mini-Agent controlled loop |
+| **2027** | 擴大評估與實體識別能力 | 強化 entity resolution、coverage validation、extractor benchmarking、recommendation calibration |
+| **2028** | 平台化資料服務與 intelligence tooling | 更清楚的 public interfaces、analytics expansion、system-integrated intelligence tooling |
+| **2029** | 形成可持續擴展的教育資料基礎設施 | 在可靠性、評估能力、產品服務面與 AI-assisted development workflow 之間建立長期穩定平衡 |
 | 2026-03-26 | 完成 rankings API 排序與 aggregated source 修正，確保 aggregated rankings 以全域排序後再分頁 | 已完成 |
 | 2026-03-26 | 實作資料庫事務可靠性修復（Early Commit `crawl_run` + Batch 失敗時自動 Rollback） | 已完成 |
 | 2026-03-26 | 完成 `lobster-01` 專屬運行目錄與優化腳本，支援低規節點穩定抓取 | 已完成 |
