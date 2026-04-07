@@ -1,0 +1,293 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import json
+import re
+import sys
+import time
+from html.parser import HTMLParser
+from pathlib import Path
+from typing import Any
+from urllib.parse import urljoin
+
+import requests
+
+
+BASE_URL = "https://www.shanghairanking.com"
+DEFAULT_TIMEOUT = 30
+REQUEST_DELAY_SECONDS = 2.0
+DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parents[1] / "crawlernest-kb" / "databases"
+DEFAULT_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/json;q=0.9,*/*;q=0.8",
+}
+
+
+def _sleep() -> None:
+    time.sleep(REQUEST_DELAY_SECONDS)
+
+
+def _request_text(url: str, session: requests.Session) -> str | None:
+    try:
+        response = session.get(url, headers=DEFAULT_HEADERS, timeout=DEFAULT_TIMEOUT)
+        response.raise_for_status()
+        _sleep()
+        return response.text
+    except requests.RequestException as exc:
+        print(f"[warn] failed to fetch {url}: {exc}")
+        return None
+
+
+def _to_int(value: Any) -> int | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    match = re.search(r"\d+", text)
+    if not match:
+        return None
+    try:
+        return int(match.group(0))
+    except ValueError:
+        return None
+
+
+def _to_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    text = str(value).strip().replace("%", "")
+    if not text:
+        return None
+    match = re.search(r"\d+(?:\.\d+)?", text)
+    if not match:
+        return None
+    try:
+        return float(match.group(0))
+    except ValueError:
+        return None
+
+
+def _slugify(value: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower())
+    slug = re.sub(r"-{2,}", "-", slug)
+    return slug.strip("-")
+
+
+class _CellAwareTableExtractor(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self._in_table = False
+        self._in_row = False
+        self._cell_tag: str | None = None
+        self._cell_chunks: list[str] = []
+        self._cell_links: list[str] = []
+        self._current_row: list[dict[str, Any]] = []
+        self._current_table: list[list[dict[str, Any]]] = []
+        self.tables: list[list[list[dict[str, Any]]]] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag == "table":
+            self._in_table = True
+            self._current_table = []
+            return
+        if not self._in_table:
+            return
+        if tag == "tr":
+            self._in_row = True
+            self._current_row = []
+            return
+        if self._in_row and tag in {"th", "td"}:
+            self._cell_tag = tag
+            self._cell_chunks = []
+            self._cell_links = []
+            return
+        if self._cell_tag == "td" and tag == "a":
+            href = dict(attrs).get("href")
+            if href:
+                self._cell_links.append(href)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "table" and self._in_table:
+            if self._current_table:
+                self.tables.append(self._current_table)
+            self._in_table = False
+            self._in_row = False
+            self._cell_tag = None
+            self._current_row = []
+            self._current_table = []
+            self._cell_chunks = []
+            self._cell_links = []
+            return
+        if not self._in_table:
+            return
+        if tag in {"th", "td"} and self._cell_tag == tag:
+            texts = []
+            for chunk in self._cell_chunks:
+                cleaned = re.sub(r"\s+", " ", chunk).strip()
+                if cleaned:
+                    texts.append(cleaned)
+            self._current_row.append(
+                {
+                    "tag": tag,
+                    "text": " ".join(texts),
+                    "texts": texts,
+                    "links": list(self._cell_links),
+                }
+            )
+            self._cell_tag = None
+            self._cell_chunks = []
+            self._cell_links = []
+            return
+        if tag == "tr" and self._in_row:
+            if self._current_row:
+                self._current_table.append(self._current_row)
+            self._current_row = []
+            self._in_row = False
+
+    def handle_data(self, data: str) -> None:
+        if self._cell_tag:
+            self._cell_chunks.append(data)
+
+
+def _pick_country_from_texts(texts: list[str], institution_name: str) -> str | None:
+    name_norm = institution_name.strip().lower()
+    for text in texts:
+        candidate = text.strip()
+        if not candidate:
+            continue
+        if candidate.strip().lower() == name_norm:
+            continue
+        if _to_int(candidate) is not None and re.fullmatch(r"\d+(?:\.\d+)?", candidate):
+            continue
+        return candidate
+    return None
+
+
+def _extract_rows_from_html_tables(html: str, year: int, page_url: str) -> list[dict[str, Any]]:
+    parser = _CellAwareTableExtractor()
+    parser.feed(html)
+    normalized_rows: list[dict[str, Any]] = []
+
+    for table in parser.tables:
+        if len(table) < 2:
+            continue
+        header_cells = [cell.get("text", "").strip().lower() for cell in table[0]]
+        rank_idx = next((i for i, cell in enumerate(header_cells) if "world rank" in cell or cell == "rank"), None)
+        institution_idx = next((i for i, cell in enumerate(header_cells) if "institution" in cell or "university" in cell), None)
+        score_idx = next((i for i, cell in enumerate(header_cells) if "total score" in cell or cell == "score"), None)
+        if rank_idx is None or institution_idx is None:
+            continue
+
+        for row in table[1:]:
+            if max(rank_idx, institution_idx) >= len(row):
+                continue
+            rank = _to_int(row[rank_idx].get("text"))
+            if rank is None:
+                continue
+
+            institution_cell = row[institution_idx]
+            texts = [str(t).strip() for t in institution_cell.get("texts", []) if str(t).strip()]
+            institution_name = texts[0] if texts else institution_cell.get("text", "").strip()
+            if not institution_name:
+                continue
+            profile_link = None
+            links = [str(link).strip() for link in institution_cell.get("links", []) if str(link).strip()]
+            if links:
+                profile_link = urljoin(BASE_URL, links[0])
+
+            score = None
+            if score_idx is not None and score_idx < len(row):
+                score = _to_float(row[score_idx].get("text"))
+            country = _pick_country_from_texts(texts[1:] if len(texts) > 1 else texts, institution_name)
+            source_id = profile_link or f"arwu:{year}:{_slugify(institution_name)}"
+
+            normalized_rows.append(
+                {
+                    "id": source_id,
+                    "name": institution_name,
+                    "country": country,
+                    "year": year,
+                    "ranking_type": "world",
+                    "rank": rank,
+                    "score": score,
+                    "url": profile_link or page_url,
+                    "metadata": {
+                        "raw_source": "ARWU",
+                        "extraction_method": "html_table",
+                        "source_page": page_url,
+                        "raw_row": [cell.get("text", "") for cell in row],
+                    },
+                }
+            )
+        if normalized_rows:
+            break
+
+    return normalized_rows
+
+
+def _candidate_pages(year: int) -> list[str]:
+    return [
+        f"{BASE_URL}/rankings/arwu/{year}",
+        f"{BASE_URL}/rankings/arwu/{year - 1}",
+        f"{BASE_URL}/rankings/arwu/{year - 2}",
+    ]
+
+
+def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Path:
+    output_base = output_dir or DEFAULT_OUTPUT_DIR
+    output_base.mkdir(parents=True, exist_ok=True)
+    output_path = output_base / f"arwu_rankings_{year}.json"
+
+    print(f"[arwu] starting crawl for year={year}")
+    session = requests.Session()
+    resolved_url = None
+    normalized_rows: list[dict[str, Any]] = []
+    try:
+        for page_url in _candidate_pages(year):
+            print(f"[arwu] page={page_url}")
+            html = _request_text(page_url, session)
+            if not html:
+                continue
+            normalized_rows = _extract_rows_from_html_tables(html, year, page_url)
+            if normalized_rows:
+                resolved_url = page_url
+                break
+    finally:
+        session.close()
+
+    if not normalized_rows:
+        raise RuntimeError("Unable to locate or parse ARWU rankings table.")
+
+    output_payload = {
+        "rows": normalized_rows,
+        "metadata": {
+            "source": "ARWU",
+            "ranking_type": "world",
+            "ranking_year": year,
+            "resolved_page_url": resolved_url,
+            "valid_rank_count": len(normalized_rows),
+        },
+    }
+    output_path.write_text(json.dumps(output_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    print(f"[arwu] rows with valid rank: {len(normalized_rows)}")
+    print(f"[arwu] output: {output_path}")
+    return output_path
+
+
+def main() -> int:
+    try:
+        crawl_arwu_rankings()
+        return 0
+    except Exception as exc:
+        print(f"[error] ARWU crawl failed: {exc}")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
