@@ -1,92 +1,122 @@
-# 大學資料基礎設施與網站平台
+# CrawlerNest
 
-這是 **CrawlerNest** 的獨立繁體中文版 README。  
 英文版請參考 [README.md](README.md)。
 
----
+**CrawlerNest** 是一套 **University Data Intelligence Infrastructure**，並以一個**受控、評估驅動的 AI 輔助開發層**作為增強。它的目標是把分散的全球教育資料，轉成結構化分析、可解釋推薦，以及具備 production-minded system design 的資料基礎設施。
 
-## CrawlerNest 是什麼？
+## 這個系統是什麼？
 
-**CrawlerNest** 是一套從資料抓取、標準化、資料庫寫入、聚合、API，到前端網站的完整大學資料與排名 intelligence 平台。  
-它的目標不是重做單一官方榜單，而是把分散在全球網站上的大學排名、申請要求與學校資訊，轉成結構化、可查詢、可比較、可解釋、可推薦的產品級資料系統。
+CrawlerNest 是一套端到端的大學資料平台，能把分散的網頁資料轉成結構化、可查詢的大學 intelligence。它聚合 QS、THE、ARWU 等排名來源，提供 ranking evidence 與 trust signals，並支援學生、顧問與產品團隊所需的 explainable recommendation 與 comparison workflows。
 
----
+目前系統也正逐步納入 **Mini-Agent Development Layer**：這是一個輕量、受控的 workflow，用來加速開發與系統 refinement。這一層與 evaluation 深度耦合，並且必須有人類監督。它不是獨立的自治 agent system。
 
-## 目前能做什麼？
+## 為什麼要做這個系統？
 
-- **多來源排名 ingestion**：QS、THE、ARWU 已能進入同一條 ranking storage / aggregation path。THE 世界排名優先使用**結構化 JSON**，不以脆弱 HTML-first 為主。
-- **多 universe 排名真相**：已支援 `global / region / subject / special` universe-aware aggregation，不再把不同 universe 混在一起。
-- **以 rank 為主的聚合排序**：aggregated rank 以來源 rank 聚合為主，`compositeScore` 保留為展示欄位，而不是排序真相。
-- **Ranking Evidence**：產品頁面與大學 detail page 可顯示 QS / THE / ARWU 原始來源排名與差異。
-- **Trust Layer**：每個聚合排名可附帶保守型 trust score 與 trust explain。
-- **Explainable Recommendation**：推薦結果不只給分數，也會提供 reasons / warnings / fit dimensions。
-- **Compare Page**：shortlist 中的學校可做 side-by-side 比較，查看 aggregated rank、evidence、trust 與 admissions context。
-- **Canonical Country Filter**：Rankings Browser 的國家過濾已升級為 canonical country normalization 流程。像 `China`、`China (mainland)`、`USA`、`UK` 這類 alias 會先被收斂成統一 canonical country，再進入 validation、SQL filter 與 metadata country options。
-- **寫入可追蹤性**：每次 ingest 都會帶 `run_id` 與 `updated_at`。
-- **可見性修復路徑**：若學校已抓到 `warehouse.universities` 但尚未出現在 API / 前端，可透過 canonical seeding 與 ranking backfill 補齊。
-- **API 與網站**：Spring Boot API + Next.js frontend 已支援 rankings、university detail、recommendation、compare 等主要產品流程。
+學生與顧問需要的不只是更多 ranking rows，而是透明的 evidence、可比較的 signals，以及值得信任的 decision support。CrawlerNest 的存在，是為了讓 ranking aggregation 不再只是 opaque 的列表，而是真正可理解、可使用的資料系統。
 
----
+## 目前能力
+
+*   **多來源排名 Ingestion：** QS、THE、ARWU 已可進入同一條 ranking storage / aggregation path。THE world rankings 優先使用**結構化 JSON**（已發布時使用 CDN blobs，否則退回 Next.js `__NEXT_DATA__`），而非脆弱的 HTML-first 抓法。
+*   **Universe-Aware Aggregation：** 排名已區分為 `global`、`region`、`subject`、`special` 等 universe，aggregation 會依 universe 隔離處理。
+*   **以 Rank 為主的 Aggregation Truth：** aggregated rank 由來源 rank 決定，而不是用 composite score 排序；`compositeScore` 僅保留為展示訊號。
+*   **Ranking Evidence：** 產品列與大學 detail page 可直接顯示 QS / THE / ARWU 的來源排名，以及來源間的差異。
+*   **Trust Layer：** 每個 aggregated ranking 都可附帶保守型 trust score 與 trust explanation，依據來源覆蓋率與來源一致性計算。
+*   **Explainable Recommendation：** 推薦結果不只給 match score，也會提供 fit dimensions、reasons 與 warnings。
+*   **Compare Workflow：** shortlist 中的學校可 side by side 比較 aggregated rank、source evidence、trust 與 admissions context。
+*   **Canonical Country Filtering：** rankings country filter 已統一走 canonical country normalization。像 `China`、`China (mainland)`、`USA`、`UK` 這些變體都會先正規化，再進入 validation、SQL filtering 與 metadata generation。
+*   **Canonical Recovery Path：** 尚未 linked 的 crawled universities 可提升為 `canonical_university`，並回填到 `warehouse.ranking_record`，不需改動 crawler 行為。
+*   **Ingestion Traceability：** 每次 ingest 都會將 `run_id` / `updated_at` trace fields 寫入 PostgreSQL ranking records。
+*   **API Platform：** Java Spring Boot API 已提供 rankings、university detail、recommendations 與 comparison data 給產品 UI。
+*   **Database Reliability：** PostgreSQL transaction handling、canonical repair paths 與 operational snapshot fallback，可在上游不穩定時維持產品可用性。
 
 ## 高層架構
 
-CrawlerNest 採用 5 層結構：
+CrawlerNest 採用嚴格解耦的 6 層架構：
 
-1. **Data Layer**：crawler 從外部來源抓資料  
-2. **Canonical / Processing Layer**：entity resolution、alias matching 與 normalization  
-3. **Aggregation / Storage Layer**：PostgreSQL warehouse 與 universe-aware aggregated truth  
-4. **Decision Layer**：recommendation、trust、comparison、evidence summary  
-5. **API / Product Layer**：Spring Boot API 與前端網站  
+1.  **Data Layer：** 從公開 ranking 與 university data providers 取得原始資料。
+2.  **Canonical Layer：** 負責 entity resolution、alias handling、normalization，以及 source-to-canonical mapping。
+3.  **Aggregation Layer：** 負責 PostgreSQL warehouse 與 universe-aware ranking truth。
+4.  **Decision Layer：** 負責 recommendation、trust scoring、evidence summaries 與 comparison logic。
+5.  **Mini-Agent Layer：** 一個輕量、受控的 AI-assisted development loop，用於有範圍的 task generation、evaluation 與 refinement。
+6.  **Product Layer：** Spring Boot API 與 Next.js website。
+
+Mini-Agent Layer 遵循一個受限的循環：
+
+`Task -> Generate -> Evaluate -> Refine`
+
+它與 AutoEval 深度整合，目標是在不削弱 system reliability 的前提下提升開發速度。
 
 更完整的工程設計請參考 [Whitepaper](docs/foundation/Whitepaper.md)。
 
----
+## AI 輔助開發（Mini-Agent）
 
-## Python 環境
+- **從設計上即受控：** Mini-Agent layer 是一個有邊界的 workflow，不是 fully autonomous system
+- **評估驅動：** 生成出的結果應先經過 evaluation，再考慮更廣泛採用
+- **Human-in-the-loop：** 重要修改、refinements 與 integration decisions 都需要人工監督
+- **與 AutoEval 整合：** evaluation 的角色是強化 reliability，而不是盲目自動化
+- **聚焦系統 refinement：** 適合用在 extractor iteration、workflow improvement 與 development acceleration
 
-CrawlerNest 的 Python pipeline 應優先使用專案虛擬環境：
+## 設計哲學
 
+- reliability 優先於 autonomy
+- evaluation-first development
+- controlled automation 優先於 unrestricted generation
+- system clarity 優先於 opaque intelligence
+
+## Python 環境設定
+
+CrawlerNest 的 Python pipeline 應在專案虛擬環境中執行。
+
+### 1. 建立虛擬環境
 ```bash
 python3 -m venv .venv
+```
+
+### 2. 啟用虛擬環境
+```bash
 source .venv/bin/activate
+```
+
+### 3. 安裝 Python 依賴
+```bash
 pip install -r requirements.txt
 ```
 
-正式執行時建議使用：
+production-safe runner 已優先使用：
 
 ```bash
 /Users/test/Desktop/crawlernest/.venv/bin/python
 ```
 
----
+因此，保持 `.venv` 正常可用，是執行 crawler、validation scripts 與 PostgreSQL ingestion pipeline 最安全的方式。
 
 ## 資料可見性模型
 
-目前資料從 crawler 到前端的可見路徑是：
+目前 CrawlerNest 的 database visibility chain 如下：
 
-1. crawler 將原始大學 / 排名資料寫入 PostgreSQL  
-2. canonical identity layer 將 raw university 對應到 `canonical_university`  
-3. `warehouse.ranking_record` 儲存 universe-aware ranking truth  
-4. aggregation 刷新 `analytics.v_aggregated_rankings_latest`  
-5. Spring Boot API 在 aggregated truth 之上 join canonical university metadata，補出 `universityName`、`slug`、`country` 等產品欄位  
-6. Next.js 前端透過 `/api/rankings` 顯示資料  
+1. crawler 將原始 university / ranking facts 寫入 PostgreSQL
+2. canonical identity layer 將 raw universities 對應到 `canonical_university`
+3. `warehouse.ranking_record` 儲存 universe-aware ranking truth
+4. aggregation 刷新 `analytics.v_aggregated_rankings_latest`
+5. Spring Boot API 在 aggregated truth 上 join canonical university metadata，補出 `universityName`、`slug`、`country` 等產品欄位
+6. Next.js frontend 透過 `/api/rankings` 讀取資料
 
-這很重要，因為 **只存在於 `warehouse.universities` 的資料不會自動出現在 API / 前端**。  
-必須完成 canonical linking 與 ranking-record backfill，資料才會真正可見。
+這很重要，因為只存在於 `warehouse.universities` 的 universities 並不會自動出現在 API 中。  
+只有 canonical linking 與 ranking-record backfill 完成後，它們才會真正可見。
 
----
+## 如何啟動網站平台（Website Product Layer）
 
-## 如何啟動網站
-
-請使用兩個 terminal：
+若要啟動完整堆疊（Backend API + Frontend UI），請使用兩個 terminal：
 
 ### 1. 啟動 Java Backend API
 
-下次要重新驗證 Java backend 前，建議先做這些事：
+backend 負責提供已正規化的大學與 ranking data。
 
-1. 先停掉舊的 Spring Boot process，避免實際打到舊版程式
-2. 如果剛改過 rankings / trust / country filter，先重新 compile backend
-3. 如果改到 country normalization 或 rankings read path，先跑 focused test 再啟動
+在 fresh verification run 前，建議先做：
+
+1. 停掉舊的 Spring Boot process，避免查到舊版程式
+2. 若改過 ranking / trust / country-filter logic，先重新 compile backend
+3. 若改到 normalization 或 rankings read-path logic，先跑 focused test 再啟動
 
 建議 preflight：
 
@@ -97,7 +127,7 @@ cd crawlernest/servise_for_java
 ./mvnw -q -Dtest=CountryNormalizationTest test
 ```
 
-接著再啟動 API：
+接著啟動 API：
 
 ```bash
 cd crawlernest/servise_for_java
@@ -106,71 +136,71 @@ cd crawlernest/servise_for_java
 
 ### 2. 啟動 Next.js Frontend
 
+frontend 提供 Rankings Browser 與 Recommendation UI。
+
 ```bash
 cd crawlernest/crawlernest-web
 npm run dev
 ```
 
-網站入口：
+應用程式入口：
 
-```text
-http://localhost:3000
-```
+`http://localhost:3000`
 
-目前前端產品層已包含：
+目前 frontend 包含：
 
-- Rankings Browser
-- University Detail Page
-- Recommendation Flow
-- Compare Page
+- rankings browser
+- university detail pages
+- recommendation flow
+- compare page
 
-目前 rankings page 透過 same-origin `/api/rankings` proxy 與 `no-store` fetch 取得資料；更新時機為：
+rankings browser 透過同源 `/api/rankings` proxy 與 `no-store` fetch 讀取資料，但目前只會在以下情況刷新：
 
 - 首次載入
-- 使用者變更 filter / page / scope / region / country / search
+- filter 變更
 - 使用者手動重新整理瀏覽器
 
-其中 `country` filter 是套用在最終 rankings read query：
+country filtering 是套用在最終 rankings read query，而不是 aggregation layer：
 
-- 不改 aggregation 排序真相
-- 依 canonical university country metadata 過濾產品結果
-- global 可選任一支援國家
-- region 仍保持 region-consistent
-- country alias 會先正規化成 canonical country name
-- `metadata.countryOptions` 只回 canonical country，不再回重複變體
+- 保留 aggregated rank order
+- 依 canonical university country metadata 過濾產品列
+- global scope 可選任一支援國家
+- region scope 仍保持 region-consistent
+- country aliases 會先正規化為 canonical names，再進入 validation 與 SQL filtering
+- `metadata.countryOptions` 會去重後僅保留 canonical country names
 
 ---
 
-## 如何執行資料管線
+## 如何執行資料管線（Crawler）
 
-目前建議依用途分成四類：
+請依你要做的工作選擇對應指令：
 
-- **日常安全執行**：用 production-safe script
-- **手動抓取 / 測試 / 指定 scope 重跑**：直接用 QS / THE commands
-- **驗證與診斷**：確認 aggregation 是否正確、哪些 universe 缺資料
-- **可見性修復**：資料已在 PostgreSQL，但 API / 前端還看不到時使用
+- **日常安全執行：** 使用 production-safe runner
+- **手動 crawl / 定向重跑：** 直接使用 QS / THE commands
+- **驗證：** 使用 validation 與 diagnostic commands
+- **可見性修復：** 使用 canonical / backfill recovery commands
 
-### 1. Production-safe 方式（建議日常使用）
+### 1. Production-Safe Run（建議日常入口）
 
-如果你想用一條最安全的命令定期刷新資料庫，請用這條：
+若你要用最安全的預設指令進行日常操作，請使用：
 
 ```bash
 bash crawlernest/scripts/run_production_safe.sh
 ```
 
-中斷後續跑：
+若中斷後要續跑：
 
 ```bash
 bash crawlernest/scripts/run_production_safe.sh 2500 --resume
 ```
 
-這支 script 目前會依序執行：
+這支 production-safe script 目前會執行：
 
-- **Step 1**：QS global rankings crawl
-- **Step 2**：如果有 deferred items，就跑 detail enrichment
-- **Step 3**：THE world rankings ingestion
-- **Step 3.5**：ARWU world rankings ingestion
-- **Step 4**：QS major regions 各跑一輪
+- **Step 1：** QS global rankings crawl
+- **Step 2：** 若有 pending items，執行 deferred detail enrichment
+- **Step 3：** THE world rankings ingestion
+- **Step 3.5：** ARWU world rankings ingestion
+- **Step 4：** QS major region universes，各跑一輪
   - europe
   - asia
   - latin-america
@@ -178,19 +208,19 @@ bash crawlernest/scripts/run_production_safe.sh 2500 --resume
   - oceania
   - africa
   - north-america
-- **Step 5**：seed canonical entities from missing THE entities
+- **Step 5：** 從 missing THE entities seed canonical entities
 
 執行特性：
 
 - 自動優先使用專案 `.venv`
-- 單一進度列輸出
-- 支援 `--resume`
-- 每輪完成就先寫入 PostgreSQL
-- 非關鍵步驟失敗時會警告但繼續往下跑
+- crawler progress 會維持為單一 live progress line
+- 支援 resume mode
+- 每輪完成後都會立即寫入 PostgreSQL
+- 若非關鍵階段失敗，會 warning 並繼續往下跑
 
-### 2. 手動執行資料抓取 / ingestion
+### 2. 手動 Crawl / Ingest Commands
 
-當你需要更細的控制，例如只跑 QS、只跑某個 region、或只跑 THE，可以直接用下面這些命令。
+當你需要更細的 scope、resume 行為或測試控制時，可直接使用以下命令。
 
 #### 2.1 跑全部 QS universes
 
@@ -198,39 +228,39 @@ bash crawlernest/scripts/run_production_safe.sh 2500 --resume
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-universes --ranking-year 2026 --limit 2500 --pg-user test --pg-database clawer
 ```
 
-中斷後續跑：
+若中斷後續跑：
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-universes --ranking-year 2026 --limit 2500 --resume --pg-user test --pg-database clawer
 ```
 
-#### 2.2 單跑一個 QS region
+#### 2.2 跑單一 QS region universe
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-region --region europe --ranking-year 2026 --limit 2500 --pg-user test --pg-database clawer
 ```
 
-中斷後續跑：
+若要續跑同一 region：
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-region --region europe --ranking-year 2026 --limit 2500 --resume --pg-user test --pg-database clawer
 ```
 
-#### 2.3 跑 THE 世界排名
+#### 2.3 跑 THE world rankings
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --pg-user test --pg-database clawer
 ```
 
-如果只想先 ingest，不做額外 seed / backfill：
+若你只想 ingest THE，而不做額外 seed/backfill recovery：
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --skip-seed --pg-user test --pg-database clawer
 ```
 
-#### 2.4 在主流程 `run` 一併跑 THE（選用）
+#### 2.4 在主流程 `run` 中串接 THE（選用）
 
-在完成「QS 抓取 → 正規化 → 寫入 DB → QS multi-source 同步」之後，可在同一個指令中接著跑 THE ingestion（**預設不會**執行，需加上旗標）：
+完成 QS crawl -> normalize -> DB write -> QS multi-source sync 後，你也可以在同一個 invocation 中接著 ingest THE（除非你加旗標，否則不會改變預設行為）：
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run --limit 2500 --ranking-year 2026 \
@@ -238,40 +268,39 @@ bash crawlernest/scripts/run_production_safe.sh 2500 --resume
   --pg-user test --pg-database clawer
 ```
 
-相關參數：
+常用旗標：
 
-- `--the-ranking-year`：THE 版本年度（預設 `2026`）
-- `--the-output-dir`：寫出 `the_rankings_<year>.json` 的目錄（預設為 `crawlernest/crawlernest-kb/databases`）
-- `--the-skip-seed`：THE ingest 後略過 canonical seed／legacy backfill（較快，修復較少）
+- `--the-ranking-year` — THE edition（預設：`2026`）
+- `--the-output-dir` — `the_rankings_<year>.json` 的輸出路徑（預設為 `crawlernest/crawlernest-kb/databases`）
+- `--the-skip-seed` — THE ingest 後略過 canonical seed / legacy backfill（較快，但 recovery 較少）
 
-THE 抓取階段日誌會出現 `[THE_CRAWL]`；multi-source 寫入時批次識別為 `the-<year>` 風格。
+pipeline logs 在 THE crawl 階段會出現 `[THE_CRAWL]`；THE rows 在 multi-source ingest path 中會使用 `the-<year>` 風格的 `run_id`。
 
-#### 2.5 一次跑 QS 主要區域（連續迴圈）
+#### 2.5 一次跑 QS major regions（continuous loop）
 
-下列指令會依序連續執行 World 與五大區域排名（歐、亞、拉丁美洲、大洋洲、非洲），直到手動停止：
+這個單一指令會依序連續執行 World ranking 與五大 regional rankings（Europe、Asia、Latin America、Oceania、Africa）：
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py run-qs-major --ranking-year 2026
 ```
 
-QS universe commands 的執行語意：
+QS universe commands 的重要執行語意：
 
-- `run-qs-*` 與 `run-qs-universes` 都是 continuous commands
-- 會一直跑到你按 `Ctrl+C`
-- 每一輪完成都會先寫 DB
-- 下次帶 `--resume` 會從上次 snapshot 接著跑
+- `run-qs-*` 與 `run-qs-universes` 都是 continuous commands，會一直跑到你按 `Ctrl+C`
+- 每個 completed pass 都會先寫入 PostgreSQL，再開始下一輪
+- 若中斷，下次可帶 `--resume`，從上次儲存的 universe snapshot 繼續，而不是全部重跑
 
----
+### 3. 驗證與診斷
 
-## 驗證與診斷
+當你在 crawl/ingest 後想確認資料正確性，或找出缺失的 universes，可使用以下命令。
 
-### 1. 驗證 aggregation 結果
+#### 3.1 驗證 aggregation output
 
 ```bash
 ./.venv/bin/python crawlernest/scripts/validate_aggregation.py --year 2026 --universe-type region --universe-key europe
 ```
 
-會輸出：
+validator 會回報：
 
 - row count
 - distinct university count
@@ -281,23 +310,21 @@ QS universe commands 的執行語意：
 - top countries
 - top 20 preview
 
-### 2. 診斷哪些 QS universe 缺資料
+#### 3.2 診斷缺失的 QS universes
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py rebuild-universe-records --ranking-year 2026 --pg-user test --pg-database clawer
 ```
 
-它會：
+此命令會：
 
-- 檢查所有 QS universes
-- 找出哪些 universe 在指定年份的 `warehouse.ranking_record` 是 0 rows
-- 印出應重新 re-crawl 的 universe
+- 檢查所有已設定的 QS universes
+- 回報哪些 universe/year pairs 在 `warehouse.ranking_record` 中目前為 `0` rows
+- **不會** 自動重新 crawl
 
-它 **不會** 自動重抓，只做診斷。
+#### 3.3 統計 `warehouse.ranking_record` 中的 THE rows
 
-### 3. 統計 `warehouse.ranking_record` 中的 THE 筆數
-
-`ranking_record` 以 `ranking_source_id` 關聯來源，沒有單獨的 `source` 文字欄位。請 join `warehouse.ranking_source`：
+`ranking_record` 儲存的是 `ranking_source_id`，不是單純的 `source` 文字欄位。請 join registry：
 
 ```sql
 SELECT COUNT(*)
@@ -306,72 +333,104 @@ JOIN warehouse.ranking_source rs ON rs.ranking_source_id = rr.ranking_source_id
 WHERE rs.source_code = 'THE';
 ```
 
----
+### 4. 可見性修復命令
 
-## 可見性修復
+只有在資料已存在 PostgreSQL，但 API 或 frontend 仍看不到時，才使用這些命令。
 
-### 1. 補回「已抓到但前端看不到」的 QS 學校
+#### 4.1 補回已存在 `warehouse.universities` 的 universities
 
-如果資料已經進了 `warehouse.universities`，但 API / frontend 看不到，通常是 canonical / link / ranking_record 還沒補齊。
+若 universities 已被 crawler 寫入 `warehouse.universities`，但沒有出現在 API 或 frontend，通常原因是 canonical/link/backfill 步驟缺失。
 
-請依序執行：
+請依序執行這兩條：
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py seed-canonical --pg-user test --pg-database clawer
 ./.venv/bin/python crawlernest/run_pipeline.py backfill-ranking-records --pg-user test --pg-database clawer
 ```
 
-這兩步會：
+這兩條命令會：
 
-- 建立 `canonical_university`
-- 建立 `canonical_university_link`
+- 建立缺失的 `canonical_university` rows
+- 建立缺失的 `canonical_university_link` rows
 - 將 legacy `warehouse.rankings` 回填到 `warehouse.ranking_record`
-- 重新 refresh aggregation
+- 刷新 aggregation，讓 API/frontend 能立刻看到新 rows
 
-目前實際觀察結果：
+目前環境中的觀察結果：
 
-- visible global aggregated rows 已從 `221` 擴大到 `1323`（seed-canonical + backfill 階段）
+- visible global aggregated rows 從 `221` 增加到 `1323`
+- `/api/v1/rankings` 回報 `metadata.totalCount = 1323`
 
-### 2. 補回卡在 missing log 裡的 THE 學校
+#### 4.2 從 `analytics.missing_entity_log` 補回僅存在於 THE 的 universities
 
-THE universities 不會先進 `warehouse.universities`，所以不能只靠 `seed-canonical` 修復。
+THE universities 不會來自 `warehouse.universities`，因此光靠 `seed-canonical` 無法修復。
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py seed-canonical-from-missing --pg-user test --pg-database clawer
 ```
 
-這條 command 會：
+此命令會：
 
-- 從 `analytics.missing_entity_log` 讀 THE unresolved rows
-- 用 `(raw_name, country_hint)` 補種 `canonical_university`
-- 自動重跑一次 THE ingestion
+- 從 `analytics.missing_entity_log` 讀取 unresolved rows（預設 source：`THE`）
+- 使用 `(raw_name, country_hint)` seed 新的 `canonical_university` entities
+- 重新執行 THE ingestion，讓新 seed 的 entities 可立即被 matched
 
-目前實際觀察結果：
+目前環境中的觀察結果：
 
 - `seeded=1283`
-- THE re-ingest 後 `matched=2191`
-- `unresolved=0`
-- aggregated visible rows 擴大到 `2736`
+- THE re-ingest 達到 `matched=2191`
+- THE `unresolved=0`
+- aggregated visible rows 擴張到 `2736`
 
 ---
+
+工程維運、API invariants 與 testing logic 請參考 [Engineering Validation & Maintenance Guide](docs/foundation/TESTING_GUIDE.md)。  
+目前 repository map 與工作路徑請參考 [Repository Structure](docs/REPO_STRUCTURE.md)。
 
 ## 目前系統狀態
 
-- ✅ production-safe pipeline：已完成（2,736 所大學，QS + THE 雙來源）
-- ✅ PostgreSQL integration：已完成
-- ✅ recommendation engine：已完成
-- ✅ API v1：已完成
-- ✅ visible global recovery path：已完成
-- ✅ multi-source（QS + THE）：已上線，THE 2,191 所大學完整匹配
-- 🔄 website layer：持續擴充中（~92%）
+這反映了目前實際的工程成熟度：
 
-更多工程維運與驗證細節：
+*   ✅ **production-safe pipeline：** 已完成（2,736 所大學，QS + THE 雙來源）
+*   ✅ **PostgreSQL integration：** 已完成（具 transaction-safe rollback）
+*   ✅ **recommendation engine（v3 decision system）：** 已完成
+*   ✅ **API v1 readiness：** 已完成（已修復、pagination-aligned、scope-aware、country-aware）
+*   ✅ **node deployment（Lobster-01）：** 已完成（獨立 `lobster-01/` runtime）
+*   ✅ **multi-source（QS + THE）：** 已運行（2,191 所 THE universities 完成 matched）
+*   ✅ **website product layer：** 已運行（rankings、detail、recommendation、compare、evidence、trust、country-aware filters）
 
-- [Engineering Validation & Maintenance Guide](docs/foundation/TESTING_GUIDE.md)
-- [Repository Structure](docs/REPO_STRUCTURE.md)
+## 里程碑與開發歷史
 
----
+CrawlerNest 的工程深度，建立在一系列明確的 milestones 之上：
 
-## 版本對照
+### 已完成（Foundation & Infrastructure）
 
-- 英文版完整說明（含 Milestones、Repository Map）：[README.md](README.md)
+*   **Crawler Development：** 非同步 pipeline、local parse parallelism、compliance-safe request pacing。
+*   **Normalization：** Python baseline 與 C prototype，處理高效字串解析。
+*   **PostgreSQL Switch：** 已切換至穩健的 PostgreSQL warehouse，並成為唯一 datastore。
+*   **Production-Safe Pipeline：** 建立 Lobster-01（node-ready deployment），搭配 systemd scheduling 與 decoupled cooldowns 避免 403 blocks。
+*   **Recommendation Engine：** 從 rule-based filters（v1）演進到 grouped categories（v2），再到經校準的 hybrid deterministic scoring（v3）。
+
+### 進行中（Platform Expansion）
+
+*   持續深化 canonical university entity resolution。
+*   擴張 subject / special universe coverage。
+
+### 未來方向
+
+*   Public API platform commercialization。
+*   在 deterministic engine 之上加入 AI-driven insights。
+
+### 近期產品與資料里程碑
+
+*   **2026-04-02：** 強化 QS production crawl，穩定 global entry resolution 與 snapshot fallback，以應對上游 blocking。
+*   **2026-04-03：** 將 aggregation ordering 從 score-led ranking 改為 weighted rank-based aggregation truth。
+*   **2026-04-04：** 加入 aggregation explainability、strict trust layer、explainable recommendation 與更完整的 university detail evidence。
+*   **2026-04-05：** 完成 hydration-safe rankings refactor、compare page MVP，以及透過最終 Java rankings read query 打通端到端 country filtering。
+*   **2026-04-05：** 加入集中式 canonical country normalization layer，讓 alias inputs 與 metadata variants 收斂為穩定的 product-facing country filters。
+
+## Repository Map
+
+目前 repo 有兩層：
+
+- outer workspace：docs、deployment assets、editor config、top-level project material
+- inner platform workspace：[crawlernest/](crawlernest)，包含 runnable pipeline、backend、schema 與 frontend
