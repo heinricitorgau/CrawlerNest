@@ -1082,30 +1082,13 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-03-15 | 分離 Python 主流程與 C 正規化引擎 | 已完成 |
 | 2026-03-18 | Java 服務升級 Spring Data JPA 與 Maven/JUnit 框架 | 已完成 |
 | 2026-03-19 | PostgreSQL schema 初始化驗證，Spring Boot 啟動驗證 | 已完成 |
-| 2026-03-20 | 新增最小端到端入口 `crawlernest/run_pipeline.py` | 已完成 |
-| 2026-03-20 | 新增 Java read-only admissions endpoint：`GET /admissions` | 已完成 |
-| 2026-03-21 | 完成老舊 x86 節點可行性評估，確認可作為第一代 OpenClaw / Lobster-01 節點 | 已完成 |
-| 2026-03-21 | 定義 Low-spec mode 安全預設（低並發、節流、checkpoint/resume、資源保護） | 已完成 |
-| 2026-03-22 | 完成 extractor AutoEval hard dataset baseline 與 manual autoloop milestone | 已完成 |
-| 2026-03-22 | crawler 新增兩段模式（`rankings-only` / detail enrichment），支援先快取主排名再補細節 | 已完成 |
-| 2026-03-22 | DB writer 完成批次寫入路徑（raw / alias / rankings / admissions），降低逐筆寫入成本 | 已完成 |
-| 2026-03-22 | checkpoint 改為增量 journal + 完成後 compact，提升長任務續跑效率與一致性 | 已完成 |
-| 2026-03-22 | 實作局部更新策略：比對 `school_slug + ranking_type + year`，未變動資料跳過寫入 | 已完成 |
-| 2026-03-23 | 完成 QS detail 403 維運處置文件化（README / 白皮書 / 維護手冊 Runbook） | 已完成 |
-| 2026-03-23 | 完成 detail 403 連續偵測自動降級與 deferred 清單輸出（`pending_detail_enrichment.json`） | 已完成 |
-| 2026-03-23 | 新增 `enrich-details` 小批次補抓命令，支援補寫 admission 並保留失敗項續跑 | 已完成 |
-| 2026-03-23 | 新增正式固定入口腳本 `crawlernest/scripts/run_production_safe.sh`，統一 production-safe 參數 | 已完成 |
-| 2026-03-23 | 完成 PostgreSQL canonical seed、legacy ranking backfill、aggregated ranking candidate view 打通 | 已完成 |
-| 2026-03-23 | 完成 rule-based recommendation engine（CLI `recommend` + Spring Boot `/recommendations`） | 已完成 |
-| 2026-03-23 | 完成 explainable university comparison（CLI `compare` + Spring Boot `/compare`） | 已完成 |
-| 2026-03-23 | 完成 recommendation v2（reach / target / safety 分組決策） | 已完成 |
-| 2026-03-23 | 完成 PostgreSQL-only cutover，移除 runtime SQLite 依賴 | 已完成 |
-| 2026-03-23 | 完成 recommendation v3（hybrid deterministic scoring + preference weights + risk adjustment） | 已完成 |
-| 2026-03-24 | 完成 recommendation v3 production calibration（elite-pool category rebalance、較弱風險調整、confidence 與 category 解耦、API/CLI 對齊） | 已完成 |
-| 2026-03-25 | 完成官方 Next.js frontend 整併，確立單一 Website MVP app root（`crawlernest-web`） | 已完成 |
-| 2026-03-25 | 完成 Rankings Homepage、University Detail Page 與 Recommendation Engine 基本產品流程打通 | 已完成 |
-| 2026-03-26 | 完成 Recommendation Engine 同源 proxy 化（`/api/recommendations`），避免 browser-direct backend fetch 問題 | 已完成 |
-| 2026-03-26 | 完成 Rankings Browser 升級（pagination、page size、search、year/source controls、same-origin rankings proxy） | 已完成 |
+| 2026-03-20 | 打通最小端到端主流程，建立 `crawlernest/run_pipeline.py` 與 Java admissions read path | 已完成 |
+| 2026-03-21 | 完成低規節點策略驗證，確認 Lobster-01 / low-spec mode 可作為受控執行環境 | 已完成 |
+| 2026-03-22 | 建立 AutoEval baseline，並同步強化 crawler 分段模式、批次寫入與 checkpoint/局部更新機制 | 已完成 |
+| 2026-03-23 | 完成 production-safe pipeline、canonical visibility recovery、recommendation/compare API 與 PostgreSQL-only cutover | 已完成 |
+| 2026-03-24 | 完成 recommendation v3 production calibration，收斂 category、confidence 與 risk adjustment 邏輯 | 已完成 |
+| 2026-03-25 | 完成官方 Next.js frontend 整併，確立 Website MVP 單一產品入口並打通核心頁面流程 | 已完成 |
+| 2026-03-26 | 完成 recommendation 同源 proxy 與 Rankings Browser 升級，建立更完整的 product-facing read experience | 已完成 |
 | 2026-03-27 | 完成 Rankings Browser country-aware filtering，將 canonical country normalization 接入最終 read path | 已完成 |
 | 2026-03-28 | 完成 Ranking Evidence、Trust Layer 與 Compare Page 的產品層整合 | 已完成 |
 | 2026-03-29 | 完成 global / region / subject / special universe-aware aggregation read path 對齊 | 已完成 |
