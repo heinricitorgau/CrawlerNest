@@ -377,7 +377,7 @@ This reflects our actual engineering maturity:
 *   ✅ **PostgreSQL integration:** DONE (transaction-safe with rollback)
 *   ✅ **recommendation engine (v3 decision system):** DONE
 *   ✅ **API v1 readiness:** DONE (repaired, pagination-aligned, scope-aware, country-aware)
-*   ✅ **node deployment (Lobster-01):** DONE (dedicated `lobster-01/` runtime)
+*   ✅ **node deployment (Lobster-01):** DONE (single canonical `lobster-01/` runtime directory)
 *   ✅ **multi-source (QS + THE):** OPERATIONAL (2,191 THE universities matched)
 *   ✅ **website product layer:** OPERATIONAL (rankings, detail, recommendation, compare, evidence, trust, country-aware filters)
 

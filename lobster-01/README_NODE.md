@@ -1,6 +1,6 @@
 # Lobster-01 Node Operations Guide
 
-This directory is the dedicated runtime environment for **Lobster-01** (Low-spec crawler node).
+This directory is the canonical runtime environment for **Lobster-01** (Low-spec crawler node).
 
 ## Design Philosophy
 - **Stability > Speed**: Single worker, high delay (10s+) to avoid WAF blocks.
@@ -12,7 +12,7 @@ This directory is the dedicated runtime environment for **Lobster-01** (Low-spec
 ### 1. Execute the Pipeline
 Run the optimized production-safe script:
 ```bash
-bash lobster-01/run_lobster.sh
+./run_lobster.sh
 ```
 
 ### 2. Configuration
@@ -22,7 +22,7 @@ The parameters are pre-tuned for Lobster-01 in `node_config.json`.
 - `write_batch_size: 100`
 
 ### 3. Logs
-Logs are stored in `logs/lobster/` at the repository root.
+Logs are stored in `logs/` inside this directory.
 
 ## Maintenance
 - Ensure the PostgreSQL service is reachable from this node.

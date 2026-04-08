@@ -1,18 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-TARGET=lobster-runtime
+set -euo pipefail
 
-rm -rf $TARGET
-mkdir -p $TARGET
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-cp crawlernest/run_pipeline.py $TARGET/
-cp -r crawlernest/pipeline $TARGET/
-cp -r crawlernest/crawlernest-core $TARGET/
-cp -r crawlernest/crawlernest-db-writer $TARGET/
-cp -r crawlernest/crawlernest-extractors $TARGET/
-cp -r crawlernest/crawlernest-jobs $TARGET/
-cp -r crawlernest/crawlernest-schema $TARGET/
-cp -r crawlernest/scripts $TARGET/
-cp requirements.txt $TARGET/
-
-echo "Lobster runtime build complete."
+echo "[build] Delegating to canonical root build script..."
+exec "${REPO_ROOT}/scripts/build_lobster_runtime.sh" "$@"

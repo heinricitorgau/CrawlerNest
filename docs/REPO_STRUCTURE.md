@@ -20,7 +20,7 @@ This document is the low-risk structure map for the current repo. It does not re
 - `logs/`
   Local run logs.
 - `lobster-01/`
-  Node/runtime deployment assets.
+  Canonical Lobster-01 runtime directory. Deployment assets live here, and the build script populates `lobster-01/crawlernest/` in place.
 - `.vscode/`
   Workspace editor settings.
 - `crawlernest/`
