@@ -5,8 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SOURCE_ROOT="${REPO_ROOT}/crawlernest"
-TEMPLATE_ROOT="${REPO_ROOT}/lobster-01"
-RUNTIME_ROOT="${REPO_ROOT}/crawlernest-lobster-runtime"
+RUNTIME_ROOT="${REPO_ROOT}/lobster-01"
 
 WITH_DATA=false
 MINIMAL=false
@@ -64,15 +63,16 @@ copy_dir() {
 
 clean_runtime() {
   echo "[build] Cleaning previous runtime: ${RUNTIME_ROOT}"
-  rm -rf "${RUNTIME_ROOT}"
+  rm -rf \
+    "${RUNTIME_ROOT}/crawlernest" \
+    "${RUNTIME_ROOT}/logs" \
+    "${RUNTIME_ROOT}/requirements.txt"
 }
 
 prepare_layout() {
   echo "[build] Preparing runtime layout..."
   mkdir -p "${RUNTIME_ROOT}"
   mkdir -p "${RUNTIME_ROOT}/crawlernest"
-  mkdir -p "${RUNTIME_ROOT}/systemd"
-  mkdir -p "${RUNTIME_ROOT}/logrotate"
 
   if [[ "${MINIMAL}" != true ]]; then
     mkdir -p "${RUNTIME_ROOT}/logs"
@@ -81,12 +81,7 @@ prepare_layout() {
 }
 
 copy_runtime_templates() {
-  echo "[build] Copying runtime templates..."
-  cp "${TEMPLATE_ROOT}/run_lobster.sh" "${RUNTIME_ROOT}/run_lobster.sh"
-  cp "${TEMPLATE_ROOT}/node_config.json" "${RUNTIME_ROOT}/node_config.json"
-  cp "${TEMPLATE_ROOT}/README_NODE.md" "${RUNTIME_ROOT}/README_NODE.md"
-  cp "${TEMPLATE_ROOT}/systemd/crawlernest-lobster.service" "${RUNTIME_ROOT}/systemd/crawlernest-lobster.service"
-  cp "${TEMPLATE_ROOT}/logrotate/crawlernest-lobster" "${RUNTIME_ROOT}/logrotate/crawlernest-lobster"
+  echo "[build] Using runtime assets already stored in ${RUNTIME_ROOT}..."
   cp "${REPO_ROOT}/requirements.txt" "${RUNTIME_ROOT}/requirements.txt"
   chmod +x "${RUNTIME_ROOT}/run_lobster.sh"
 }

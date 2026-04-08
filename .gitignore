@@ -43,3 +43,8 @@ dist/
 build/
 *.pyc
 *.pyo
+
+# Lobster runtime build outputs
+lobster-01/crawlernest/
+lobster-01/logs/
+lobster-01/requirements.txt

@@ -394,7 +394,7 @@ THE universities 不會來自 `warehouse.universities`，因此光靠 `seed-cano
 *   ✅ **PostgreSQL integration：** 已完成（具 transaction-safe rollback）
 *   ✅ **recommendation engine（v3 decision system）：** 已完成
 *   ✅ **API v1 readiness：** 已完成（已修復、pagination-aligned、scope-aware、country-aware）
-*   ✅ **node deployment（Lobster-01）：** 已完成（獨立 `lobster-01/` runtime）
+*   ✅ **node deployment（Lobster-01）：** 已完成（單一 canonical `lobster-01/` runtime 目錄）
 *   ✅ **multi-source（QS + THE）：** 已運行（2,191 所 THE universities 完成 matched）
 *   ✅ **website product layer：** 已運行（rankings、detail、recommendation、compare、evidence、trust、country-aware filters）
 
