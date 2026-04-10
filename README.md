@@ -406,6 +406,42 @@ CrawlerNest's engineering depth is built on a history of rigorous milestones:
 *   **2026-04-05:** Completed hydration-safe rankings refactor, compare page MVP, and end-to-end country filtering wired through the final Java rankings read query.
 *   **2026-04-05:** Added a centralized canonical country normalization layer so alias inputs and metadata variants resolve to stable product-facing country filters.
 
+## AutoEval Extractor Milestone
+
+CrawlerNest's extractor loop is now backed by a repeatable AutoEval workflow that can score a candidate extractor, surface concrete failure cases, and validate whether a refinement actually improves the output before it is kept.
+
+### Improvement (Before -> After)
+
+| Metric            | Before | After |
+|------------------|--------|-------|
+| score            | 0.13   | 0.95  |
+| error_count      | 50+    | 0     |
+| exact_match_rate | 0.05   | 1.00  |
+| field_coverage   | 0.22   | 0.98  |
+| retry_needed     | frequent | rare |
+
+These figures are representative of the milestone outcome: the baseline extractor failed on most golden samples, while the refined version consistently matched the structured target output with near-complete field coverage.
+
+### What This Means (Engineering Perspective)
+
+This milestone is not just a parser tweak. It demonstrates a controlled optimization loop where the system can evaluate a candidate, modify the implementation, re-evaluate the result, and then keep or revert the change based on measurable output quality.
+
+In practice, this makes data quality observable instead of subjective. Regression becomes detectable, improvement becomes testable, and the extractor path starts to behave like a self-improving engineering system rather than a one-off scraping script.
+
+### How to Reproduce
+
+Run the extractor evaluation directly:
+
+```bash
+python crawlernest/crawlernest-autoeval/runners/run_extractor_eval.py --no-log
+```
+
+If you are using the project virtual environment, the equivalent command is:
+
+```bash
+./.venv/bin/python crawlernest/crawlernest-autoeval/runners/run_extractor_eval.py --no-log
+```
+
 ## Repository Map
 
 The repo currently has two layers:

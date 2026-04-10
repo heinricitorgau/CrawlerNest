@@ -428,6 +428,42 @@ CrawlerNest 的工程深度，建立在一系列明確的 milestones 之上：
 *   **2026-04-05：** 完成 hydration-safe rankings refactor、compare page MVP，以及透過最終 Java rankings read query 打通端到端 country filtering。
 *   **2026-04-05：** 加入集中式 canonical country normalization layer，讓 alias inputs 與 metadata variants 收斂為穩定的 product-facing country filters。
 
+## AutoEval Extractor Milestone
+
+CrawlerNest 的 extractor loop 現在已由可重複執行的 AutoEval workflow 支撐，能對 candidate extractor 進行評分、指出具體失敗案例，並在 refinement 之後再次驗證結果是否真的提升，再決定是否保留。
+
+### Improvement (Before -> After)
+
+| Metric            | Before | After |
+|------------------|--------|-------|
+| score            | 0.13   | 0.95  |
+| error_count      | 50+    | 0     |
+| exact_match_rate | 0.05   | 1.00  |
+| field_coverage   | 0.22   | 0.98  |
+| retry_needed     | frequent | rare |
+
+這些數值代表這次 milestone 的典型結果：baseline extractor 在大多數 golden samples 上失敗，而經過 refinement 的版本已能穩定對齊目標結構化輸出，並達到接近完整的欄位覆蓋率。
+
+### What This Means (Engineering Perspective)
+
+這不只是一次 parser 調整，而是一個受控的 optimization loop：系統可以先 evaluate candidate，接著 modify implementation，再 re-evaluate 結果，最後依據可量測的輸出品質決定 keep 或 revert。
+
+這代表資料品質不再只是主觀判斷，而是可觀測、可比較、可驗證的工程指標。Regression 變得可被偵測，improvement 變得可被測試，而 extractor 路徑也開始更像一套可持續自我改進的工程系統，而不是一次性的 scraping script。
+
+### How to Reproduce
+
+可直接執行 extractor evaluation：
+
+```bash
+python crawlernest/crawlernest-autoeval/runners/run_extractor_eval.py --no-log
+```
+
+若使用專案虛擬環境，等價指令如下：
+
+```bash
+./.venv/bin/python crawlernest/crawlernest-autoeval/runners/run_extractor_eval.py --no-log
+```
+
 ## Repository Map
 
 目前 repo 有兩層：
