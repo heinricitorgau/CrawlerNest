@@ -58,6 +58,26 @@ For a deep dive into the engineering principles, see the [Whitepaper](docs/found
 - controlled automation over unrestricted generation
 - system clarity over opaque intelligence
 
+## Dual-System Architecture
+
+CrawlerNest is designed as a dual-layer system combining a data intelligence core with an evaluation-driven agent capability layer.
+
+### Core Intelligence Layer
+
+The Core Intelligence Layer is responsible for the platform's primary data and decision workflow. It handles crawling across multiple upstream sources, structured extraction of university and ranking records, normalization and canonical identity resolution, PostgreSQL-backed storage, aggregation and analytics pipelines, and the recommendation logic that exposes explainable outcomes to product surfaces. This layer is the operational backbone of the system and remains deterministic, queryable, and production-oriented.
+
+### Agent Capability Layer
+
+The Agent Capability Layer sits above the operational core as a controlled improvement and assistance system. It includes the agent engine, evaluator, and refiner components that together support iterative task execution, refinement loops, and development assistance. Rather than replacing the core system, this layer provides bounded reasoning, evaluation-driven improvement, and scoped support for engineering workflows such as extractor hardening, parser refinement, and system validation.
+
+CrawlerNest Platform
+│
+├── Core Intelligence Layer
+├── Agent Capability Layer
+└── Interface Layer
+
+This separation exists to preserve clarity of responsibility inside the architecture. The core platform can scale as a stable intelligence and analytics system, while the agent layer can evolve independently as a controlled, self-improving capability. The result is a cleaner separation of concerns, a more scalable system boundary, and a foundation for iterative improvement without weakening trust in the production data path.
+
 ## Python Environment Setup
 
 CrawlerNest's Python pipeline should run inside the project virtual environment.
