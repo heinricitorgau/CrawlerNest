@@ -198,24 +198,34 @@ def _extract_quota(text: str) -> int | None:
     return None
 
 
-def extract(raw_input: Any) -> dict[str, Any]:
-    """Extract university, program, and quota from raw input.
+def extract(raw_input):
+    """Extract university, program, and quota from raw input safely."""
 
-    This function is deterministic and never raises exceptions outward.
-    """
+    empty_result = {
+        'university': None,
+        'program': None,
+        'quota': None,
+    }
+
     try:
+        if raw_input is None:
+            return empty_result
+
         if isinstance(raw_input, dict):
             result = _extract_from_dict(raw_input)
             return {
-                "university": result.get("university"),
-                "program": result.get("program"),
-                "quota": result.get("quota"),
+                'university': result.get('university'),
+                'program': result.get('program'),
+                'quota': result.get('quota'),
             }
 
         parsed_json = None
         if isinstance(raw_input, str):
+            stripped = raw_input.strip()
+            if not stripped:
+                return empty_result
             try:
-                parsed_json = json.loads(raw_input)
+                parsed_json = json.loads(stripped)
             except Exception:
                 parsed_json = None
 
@@ -223,29 +233,23 @@ def extract(raw_input: Any) -> dict[str, Any]:
             result = _extract_from_dict(parsed_json)
             if any(value is not None for value in result.values()):
                 return {
-                    "university": result.get("university"),
-                    "program": result.get("program"),
-                    "quota": result.get("quota"),
+                    'university': result.get('university'),
+                    'program': result.get('program'),
+                    'quota': result.get('quota'),
                 }
 
         text = raw_input if isinstance(raw_input, str) else str(raw_input)
         text = _normalize_text(text)
-
-        university = _extract_university(text)
-        program = _extract_program(text)
-        quota = _extract_quota(text)
+        if not text:
+            return empty_result
 
         return {
-            "university": university,
-            "program": program,
-            "quota": quota,
+            'university': _extract_university(text),
+            'program': _extract_program(text),
+            'quota': _extract_quota(text),
         }
     except Exception:
-        return {
-            "university": None,
-            "program": None,
-            "quota": None,
-        }
+        return empty_result
 
 
 def extract_fields(raw_input: Any) -> dict[str, Any]:

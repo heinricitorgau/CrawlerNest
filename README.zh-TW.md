@@ -63,6 +63,26 @@ Mini-Agent Layer 遵循一個受限的循環：
 - controlled automation 優先於 unrestricted generation
 - system clarity 優先於 opaque intelligence
 
+## 雙系統架構
+
+CrawlerNest 被設計為一個雙層系統，結合資料 intelligence core 與 evaluation-driven agent capability layer。
+
+### Core Intelligence Layer
+
+Core Intelligence Layer 負責平台的主要資料與決策流程。它涵蓋多來源 crawling、university 與 ranking records 的結構化 extraction、normalization 與 canonical identity resolution、以 PostgreSQL 為核心的資料儲存、aggregation 與 analytics pipelines，以及將 explainable outcomes 提供到產品層的 recommendation logic。這一層是整個系統的 operational backbone，並保持 deterministic、queryable 與 production-oriented 的特性。
+
+### Agent Capability Layer
+
+Agent Capability Layer 位於 operational core 之上，作為一個受控的 improvement 與 assistance system。它包含 agent engine、evaluator 與 refiner 等元件，共同支援 iterative task execution、refinement loops，以及 development assistance。這一層不是要取代 core system，而是提供有邊界的 reasoning、evaluation-driven improvement，以及對 extractor hardening、parser refinement 與 system validation 等工程 workflow 的範圍化支援。
+
+CrawlerNest Platform
+│
+├── Core Intelligence Layer
+├── Agent Capability Layer
+└── Interface Layer
+
+這種分層存在的目的，是讓架構內部的責任邊界更清晰。核心平台可以作為穩定的 intelligence 與 analytics system 持續擴張，而 agent layer 則可作為受控、可自我改善的 capability 獨立演進。其結果是更乾淨的 separation of concerns、更可擴展的 system boundary，以及一個能持續迭代改進、同時不削弱 production data path trustworthiness 的基礎。
+
 ## Python 環境設定
 
 CrawlerNest 的 Python pipeline 應在專案虛擬環境中執行。
