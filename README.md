@@ -124,6 +124,7 @@ cd crawlernest/servise_for_java
 Then start the API:
 
 ```bash
+./mvnw clean
 ./mvnw spring-boot:run
 ```
 
