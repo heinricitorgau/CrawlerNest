@@ -46,9 +46,6 @@ If someone is new to the repo, this is the fastest path:
 | `docs/foundation/DEV_WORKFLOW.md` | Expected engineering workflow for implementation and delivery. |
 | `docs/foundation/MODULE_OWNERSHIP.md` | Ownership boundaries across the system. |
 | `docs/foundation/TESTING_GUIDE.md` | Testing, validation, and maintenance guidance. |
-| `docs/foundation/progress_report_20260401.md` | Point-in-time maintenance progress report. |
-| `docs/foundation/SESSION_REPORT_2026_04_02.md` | Session log and recent delivery summary. |
-| `docs/archive/POSTGRES_MIGRATION_HISTORY.md` | Archived migration history from SQLite to PostgreSQL. |
 
 ## 3. Architecture And Platform Design
 
@@ -125,7 +122,6 @@ There are two mini-agent areas in this repo:
 | `crawlernest/crawlernest-mini-agent/PHILOSOPHY.md` | Design philosophy and intended abstraction layer. |
 | `crawlernest/crawlernest-mini-agent/USAGE.md` | Canonical usage guide for the mini-agent workflow. |
 | `crawlernest/crawlernest-mini-agent/ROADMAP.md` | Planned milestones and future direction. |
-| `crawlernest/crawlernest-mini-agent/PARITY.md` | Status of parity work across implementations. |
 | `crawlernest/crawlernest-mini-agent/CLAUDE.md` | Contributor guidance for Claude Code usage in this subproject. |
 | `crawlernest/crawlernest-mini-agent/docs/container.md` | Container-first workflow guidance. |
 | `crawlernest/crawlernest-mini-agent/rust/README.md` | Rust implementation overview. |
@@ -139,11 +135,6 @@ These files are useful, but they are not top-level reference docs:
 
 | File | Note |
 | --- | --- |
-| `crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_001.prompt.md` | Generated or sandbox prompt artifact. |
-| `crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_002.prompt.md` | Generated or sandbox prompt artifact. |
-| `crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_003.prompt.md` | Generated or sandbox prompt artifact. |
-| `crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_004.prompt.md` | Generated or sandbox prompt artifact. |
-| `crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_005.prompt.md` | Generated or sandbox prompt artifact. |
 | `crawlernest/crawlernest-web/CLAUDE.md` | Redirect-style file kept as a tool-facing entrypoint to `AGENTS.md`. |
 
 ## Suggested Cleanup
@@ -151,5 +142,4 @@ These files are useful, but they are not top-level reference docs:
 If you want to reduce doc sprawl further, these are the easiest wins:
 
 1. Decide one canonical architecture doc between `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` and `crawlernest/crawlernest-docs/architecture.md`, then cross-link them clearly.
-2. Treat `crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/*.md` as generated artifacts and keep them out of human-facing doc indexes.
-3. Keep `docs/MARKDOWN_INDEX.md` updated whenever a new top-level module doc is added.
+2. Keep `docs/MARKDOWN_INDEX.md` updated whenever a new top-level module doc is added.
