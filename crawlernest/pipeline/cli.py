@@ -20,6 +20,7 @@ def build_parser(
     default_ranking_records_normalized = workspace_root / "crawlernest-samples" / "ranking_records_normalized.json"
     default_ranking_records_staging = workspace_root / "crawlernest-samples" / "ranking_records_staging.jsonl"
     default_ranking_ingest_db = workspace_root / "crawlernest-samples" / "ranking_staging_ingest.sqlite3"
+    default_postgres_write_log = workspace_root / "crawlernest-samples" / "postgres_ranking_write_requests.jsonl"
     default_admission_records = workspace_root / "crawlernest-samples" / "admission_records.json"
 
     parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
@@ -186,6 +187,17 @@ def build_parser(
         "--sqlite-db-file",
         default=str(default_ranking_ingest_db),
         help="SQLite file used for safe ranking staging ingestion",
+    )
+    ingest_ranking_staging_parser.add_argument(
+        "--write-target",
+        choices=["sqlite", "postgres"],
+        default="sqlite",
+        help="Write target adapter used by ranking staging ingestion",
+    )
+    ingest_ranking_staging_parser.add_argument(
+        "--postgres-log-file",
+        default=str(default_postgres_write_log),
+        help="Stub output file used by the postgres write adapter",
     )
     ingest_ranking_staging_parser.add_argument(
         "--allow-partial-ingest",

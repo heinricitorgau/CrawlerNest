@@ -1,17 +1,24 @@
 from __future__ import annotations
 
-import sqlite3
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from crawlernest_ranking_crawler.normalize import NormalizedRankingRow
 from crawlernest_ranking_crawler.validator import validate_ranking_staging_rows
+from crawlernest_ranking_crawler.write_adapter import (
+    PostgresRankingWriteAdapter,
+    RankingWriteAdapter,
+    SQLiteRankingWriteAdapter,
+)
 
 
 @dataclass(slots=True)
 class RankingStagingIngestSummary:
     staging_file: str
-    sqlite_db: str
+    write_target: str
+    target_location: str
     table_name: str
     total_rows: int
     valid_row_count: int
@@ -29,6 +36,8 @@ def ingest_ranking_staging_file(
     sqlite_db_path: Path,
     *,
     allow_partial: bool = False,
+    write_target: str = "sqlite",
+    postgres_log_path: Path | None = None,
 ) -> RankingStagingIngestSummary:
     validation = validate_ranking_staging_rows(staging_file)
     summary = validation.summary
@@ -38,24 +47,24 @@ def ingest_ranking_staging_file(
             "staging validation failed; rerun after fixing invalid/duplicate rows or pass allow_partial=True"
         )
 
-    sqlite_db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(sqlite_db_path)
-    try:
-        _ensure_table(conn)
-        inserted_row_count, skipped_existing_row_count = _insert_rows(conn, validation.valid_rows)
-    finally:
-        conn.close()
+    adapter = build_write_adapter(
+        write_target=write_target,
+        sqlite_db_path=sqlite_db_path,
+        postgres_log_path=postgres_log_path,
+    )
+    write_result = adapter.write_rows(_coerce_valid_rows(validation.valid_rows))
 
     return RankingStagingIngestSummary(
         staging_file=str(staging_file),
-        sqlite_db=str(sqlite_db_path),
-        table_name="ranking_staging_records",
+        write_target=write_result.write_target,
+        target_location=write_result.target_location,
+        table_name=write_result.table_name,
         total_rows=summary.total_rows,
         valid_row_count=summary.valid_row_count,
         invalid_row_count=summary.invalid_row_count,
         duplicate_row_count=summary.duplicate_row_count,
-        inserted_row_count=inserted_row_count,
-        skipped_existing_row_count=skipped_existing_row_count,
+        inserted_row_count=write_result.inserted_row_count,
+        skipped_existing_row_count=write_result.skipped_existing_row_count,
         mode="partial" if allow_partial else "strict",
         error_samples=summary.error_samples,
         duplicate_samples=summary.duplicate_samples,
@@ -65,59 +74,32 @@ def ingest_ranking_staging_file(
 def ingest_summary_to_dict(summary: RankingStagingIngestSummary) -> dict[str, Any]:
     return asdict(summary)
 
-
-def _ensure_table(conn: sqlite3.Connection) -> None:
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS ranking_staging_records (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            university_name TEXT NOT NULL,
-            normalized_university_name TEXT NOT NULL,
-            source TEXT NOT NULL,
-            rank INTEGER NOT NULL,
-            year INTEGER NOT NULL,
-            source_url TEXT,
-            extracted_at TEXT NOT NULL,
-            UNIQUE(normalized_university_name, source, year, rank)
-        )
-        """
-    )
-    conn.commit()
+def build_write_adapter(
+    *,
+    write_target: str,
+    sqlite_db_path: Path,
+    postgres_log_path: Path | None,
+) -> RankingWriteAdapter:
+    if write_target == "sqlite":
+        return SQLiteRankingWriteAdapter(sqlite_db_path=sqlite_db_path)
+    if write_target == "postgres":
+        target_path = postgres_log_path or sqlite_db_path.with_name("postgres_ranking_write_requests.jsonl")
+        return PostgresRankingWriteAdapter(request_log_path=target_path)
+    raise ValueError(f"Unsupported write target: {write_target}")
 
 
-def _insert_rows(conn: sqlite3.Connection, rows: list[dict[str, Any]]) -> tuple[int, int]:
-    inserted = 0
-    skipped_existing = 0
-    cursor = conn.cursor()
-    try:
-        for row in rows:
-            cursor.execute(
-                """
-                INSERT OR IGNORE INTO ranking_staging_records (
-                    university_name,
-                    normalized_university_name,
-                    source,
-                    rank,
-                    year,
-                    source_url,
-                    extracted_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    row["university_name"],
-                    row["normalized_university_name"],
-                    row["source"],
-                    row["rank"],
-                    row["year"],
-                    row.get("source_url"),
-                    row["extracted_at"],
-                ),
+def _coerce_valid_rows(rows: list[dict[str, Any]]) -> list[NormalizedRankingRow]:
+    coerced_rows: list[NormalizedRankingRow] = []
+    for row in rows:
+        coerced_rows.append(
+            NormalizedRankingRow(
+                university_name=str(row["university_name"]),
+                normalized_university_name=str(row["normalized_university_name"]),
+                source=str(row["source"]),
+                rank=int(row["rank"]),
+                year=int(row["year"]),
+                source_url=row.get("source_url"),
+                extracted_at=datetime.fromisoformat(str(row["extracted_at"])),
             )
-            if cursor.rowcount == 1:
-                inserted += 1
-            else:
-                skipped_existing += 1
-        conn.commit()
-    finally:
-        cursor.close()
-    return inserted, skipped_existing
+        )
+    return coerced_rows

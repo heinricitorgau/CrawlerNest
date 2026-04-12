@@ -2623,6 +2623,8 @@ def _ingest_ranking_staging(
     sqlite_db_file: str,
     *,
     allow_partial: bool,
+    write_target: str,
+    postgres_log_file: str,
 ) -> dict[str, Any]:
     workspace_root = Path(__file__).resolve().parent.parent
     if str(workspace_root) not in sys.path:
@@ -2637,6 +2639,8 @@ def _ingest_ranking_staging(
         Path(staging_file),
         Path(sqlite_db_file),
         allow_partial=allow_partial,
+        write_target=write_target,
+        postgres_log_path=Path(postgres_log_file),
     )
     return ingest_summary_to_dict(summary)
 
@@ -2691,6 +2695,8 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
                 args.staging_input_file,
                 args.sqlite_db_file,
                 allow_partial=bool(getattr(args, "allow_partial_ingest", False)),
+                write_target=str(getattr(args, "write_target", "sqlite")),
+                postgres_log_file=str(getattr(args, "postgres_log_file", "")),
             )
         except ValueError as exc:
             print(f"[ingest-ranking-staging] aborted: {exc}")
@@ -2706,6 +2712,7 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
 
         print(
             "[ingest-ranking-staging] "
+            f"write_target={summary['write_target']} "
             f"mode={summary['mode']} "
             f"inserted={summary['inserted_row_count']} "
             f"skipped_existing={summary['skipped_existing_row_count']} "
@@ -2713,7 +2720,7 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
             f"invalid={summary['invalid_row_count']} "
             f"duplicates={summary['duplicate_row_count']}"
         )
-        print(f"[ingest-ranking-staging] sqlite_db={summary['sqlite_db']}")
+        print(f"[ingest-ranking-staging] target_location={summary['target_location']}")
         print(f"[ingest-ranking-staging] table={summary['table_name']}")
         return 0
 
