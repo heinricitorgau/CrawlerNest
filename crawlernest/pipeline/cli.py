@@ -12,9 +12,14 @@ def build_parser(
     write_batch_size: int = 100,
 ) -> argparse.ArgumentParser:
     default_ranking_year = default_ranking_year or dt.datetime.now().year
+    workspace_root = module_root.parent
     default_snapshot = module_root / "crawlernest-kb" / "databases" / "last_crawl_snapshot.json"
     default_checkpoint = module_root / "crawlernest-kb" / "databases" / "pipeline_checkpoint.json"
     default_deferred = module_root / "crawlernest-kb" / "databases" / "pending_detail_enrichment.json"
+    default_ranking_records = workspace_root / "crawlernest-samples" / "ranking_records.json"
+    default_ranking_records_normalized = workspace_root / "crawlernest-samples" / "ranking_records_normalized.json"
+    default_ranking_records_staging = workspace_root / "crawlernest-samples" / "ranking_records_staging.jsonl"
+    default_admission_records = workspace_root / "crawlernest-samples" / "admission_records.json"
 
     parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -116,6 +121,56 @@ def build_parser(
     enrich_parser.add_argument("--pg-database", default="clawer")
     enrich_parser.add_argument("--pg-user", default="test")
     enrich_parser.add_argument("--pg-password", default="")
+
+    crawl_ranking_parser = subparsers.add_parser(
+        "crawl-ranking",
+        help="Run the ranking crawler engine and export mock records to JSON",
+    )
+    crawl_ranking_parser.add_argument(
+        "--output-file",
+        default=str(default_ranking_records),
+        help="JSON output path for serialized ranking records",
+    )
+    crawl_ranking_parser.add_argument(
+        "--with-normalized-output",
+        action="store_true",
+        help="Also export a normalized ranking artifact",
+    )
+    crawl_ranking_parser.add_argument(
+        "--normalized-output-file",
+        default=str(default_ranking_records_normalized),
+        help="JSON output path for normalized ranking rows",
+    )
+    crawl_ranking_parser.add_argument(
+        "--write-staging",
+        action="store_true",
+        help="Write normalized ranking rows to a staging JSONL artifact",
+    )
+    crawl_ranking_parser.add_argument(
+        "--staging-output-file",
+        default=str(default_ranking_records_staging),
+        help="JSONL output path for normalized ranking staging rows",
+    )
+
+    crawl_admission_parser = subparsers.add_parser(
+        "crawl-admission",
+        help="Run the admission crawler engine and export mock records to JSON",
+    )
+    crawl_admission_parser.add_argument(
+        "--output-file",
+        default=str(default_admission_records),
+        help="JSON output path for serialized admission records",
+    )
+
+    validate_ranking_staging_parser = subparsers.add_parser(
+        "validate-ranking-staging",
+        help="Validate ranking staging JSONL before any formal DB write step",
+    )
+    validate_ranking_staging_parser.add_argument(
+        "--staging-file",
+        default=str(default_ranking_records_staging),
+        help="JSONL staging file to validate",
+    )
 
     ingest_parser = subparsers.add_parser(
         "ingest-rankings",
