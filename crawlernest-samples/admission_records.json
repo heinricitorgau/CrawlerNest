@@ -1,0 +1,16 @@
+[
+  {
+    "university_name": "MIT",
+    "ielts_requirement": 7.0,
+    "toefl_requirement": 100,
+    "source_url": "https://example.edu/admissions",
+    "extracted_at": "2026-04-12T08:53:18.341317+00:00",
+    "confidence": 0.95,
+    "raw_payload": {
+      "university": "MIT",
+      "ielts_requirement": 7.0,
+      "toefl_requirement": 100,
+      "source_url": "https://example.edu/admissions"
+    }
+  }
+]

@@ -2573,9 +2573,82 @@ def _build_dispatch_dependencies() -> PipelineCommandDependencies:
     )
 
 
+def _run_sample_crawl_export(
+    command: str,
+    output_file: str,
+    *,
+    normalized_output_file: str | None = None,
+    staging_output_file: str | None = None,
+) -> tuple[Path, int, Path | None, Path | None]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from pipeline.sample_crawl_exports import (  # noqa: E402
+        run_admission_sample_export,
+        run_ranking_sample_export,
+    )
+
+    output_path = Path(output_file)
+    if command == "crawl-ranking":
+        normalized_path = Path(normalized_output_file) if normalized_output_file else None
+        staging_path = Path(staging_output_file) if staging_output_file else None
+        return run_ranking_sample_export(
+            output_path,
+            normalized_output_path=normalized_path,
+            staging_output_path=staging_path,
+        )
+    if command == "crawl-admission":
+        admission_output_path, count = run_admission_sample_export(output_path)
+        return admission_output_path, count, None, None
+    raise ValueError(f"Unsupported sample crawl command: {command}")
+
+
+def _validate_ranking_staging(staging_file: str) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_ranking_crawler.validator import (  # noqa: E402
+        summary_to_dict,
+        validate_ranking_staging_file,
+    )
+
+    summary = validate_ranking_staging_file(Path(staging_file))
+    return summary_to_dict(summary)
+
+
 
 
 def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
+    if args.command == "crawl-ranking":
+        output_path, count, normalized_path, staging_path = _run_sample_crawl_export(
+            args.command,
+            args.output_file,
+            normalized_output_file=(
+                args.normalized_output_file if getattr(args, "with_normalized_output", False) else None
+            ),
+            staging_output_file=(
+                args.staging_output_file if getattr(args, "write_staging", False) else None
+            ),
+        )
+        print(f"[crawl-ranking] exported={count} output={output_path}")
+        if normalized_path is not None:
+            print(f"[crawl-ranking] normalized_output={normalized_path}")
+        if staging_path is not None:
+            print(f"[crawl-ranking] staging_output={staging_path}")
+        return 0
+
+    if args.command == "crawl-admission":
+        output_path, count, _, _ = _run_sample_crawl_export(args.command, args.output_file)
+        print(f"[crawl-admission] exported={count} output={output_path}")
+        return 0
+
+    if args.command == "validate-ranking-staging":
+        summary = _validate_ranking_staging(args.staging_file)
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0
+
     if args.command == "seed-canonical":
         ensure_postgres_schema(
             args.pg_host,
