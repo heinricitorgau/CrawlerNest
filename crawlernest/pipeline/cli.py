@@ -19,6 +19,7 @@ def build_parser(
     default_ranking_records = workspace_root / "crawlernest-samples" / "ranking_records.json"
     default_ranking_records_normalized = workspace_root / "crawlernest-samples" / "ranking_records_normalized.json"
     default_ranking_records_staging = workspace_root / "crawlernest-samples" / "ranking_records_staging.jsonl"
+    default_ranking_ingest_db = workspace_root / "crawlernest-samples" / "ranking_staging_ingest.sqlite3"
     default_admission_records = workspace_root / "crawlernest-samples" / "admission_records.json"
 
     parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
@@ -167,9 +168,29 @@ def build_parser(
         help="Validate ranking staging JSONL before any formal DB write step",
     )
     validate_ranking_staging_parser.add_argument(
-        "--staging-file",
+        "--staging-input-file",
         default=str(default_ranking_records_staging),
         help="JSONL staging file to validate",
+    )
+
+    ingest_ranking_staging_parser = subparsers.add_parser(
+        "ingest-ranking-staging",
+        help="Ingest validated ranking staging JSONL into a safe SQLite store",
+    )
+    ingest_ranking_staging_parser.add_argument(
+        "--staging-input-file",
+        default=str(default_ranking_records_staging),
+        help="JSONL staging file to ingest",
+    )
+    ingest_ranking_staging_parser.add_argument(
+        "--sqlite-db-file",
+        default=str(default_ranking_ingest_db),
+        help="SQLite file used for safe ranking staging ingestion",
+    )
+    ingest_ranking_staging_parser.add_argument(
+        "--allow-partial-ingest",
+        action="store_true",
+        help="Ingest only validated rows even if invalid or duplicate rows are present",
     )
 
     ingest_parser = subparsers.add_parser(

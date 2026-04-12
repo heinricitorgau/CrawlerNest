@@ -17,8 +17,8 @@ REQUIRED_FIELDS = (
 )
 
 MIN_REASONABLE_YEAR = 1900
-MAX_YEAR_OFFSET = 2
-MAX_ERROR_SAMPLES = 10
+MAX_REASONABLE_YEAR = 2100
+MAX_SAMPLE_COUNT = 5
 
 
 @dataclass(slots=True)
@@ -29,18 +29,28 @@ class RankingStagingValidationSummary:
     invalid_row_count: int
     duplicate_row_count: int
     error_samples: list[dict[str, Any]]
+    duplicate_samples: list[dict[str, Any]]
+
+
+@dataclass(slots=True)
+class RankingStagingValidationResult:
+    summary: RankingStagingValidationSummary
+    valid_rows: list[dict[str, Any]]
 
 
 def validate_ranking_staging_file(staging_file: Path) -> RankingStagingValidationSummary:
+    return validate_ranking_staging_rows(staging_file).summary
+
+
+def validate_ranking_staging_rows(staging_file: Path) -> RankingStagingValidationResult:
     total_rows = 0
     valid_row_count = 0
     invalid_row_count = 0
     duplicate_row_count = 0
     error_samples: list[dict[str, Any]] = []
+    duplicate_samples: list[dict[str, Any]] = []
+    valid_rows: list[dict[str, Any]] = []
     seen_keys: set[tuple[str, str, int, int]] = set()
-
-    current_year = datetime.now().year
-    max_reasonable_year = current_year + MAX_YEAR_OFFSET
 
     with staging_file.open("r", encoding="utf-8") as handle:
         for line_number, raw_line in enumerate(handle, start=1):
@@ -55,7 +65,7 @@ def validate_ranking_staging_file(staging_file: Path) -> RankingStagingValidatio
                 payload = json.loads(line)
             except json.JSONDecodeError as exc:
                 invalid_row_count += 1
-                _maybe_add_error_sample(
+                _maybe_add_sample(
                     error_samples,
                     line_number,
                     [f"invalid_json: {exc.msg}"],
@@ -65,7 +75,7 @@ def validate_ranking_staging_file(staging_file: Path) -> RankingStagingValidatio
 
             if not isinstance(payload, dict):
                 invalid_row_count += 1
-                _maybe_add_error_sample(
+                _maybe_add_sample(
                     error_samples,
                     line_number,
                     ["row_must_be_json_object"],
@@ -93,7 +103,7 @@ def validate_ranking_staging_file(staging_file: Path) -> RankingStagingValidatio
                 row_errors.append("invalid_rank")
 
             year = payload.get("year")
-            if not isinstance(year, int) or year < MIN_REASONABLE_YEAR or year > max_reasonable_year:
+            if not isinstance(year, int) or year < MIN_REASONABLE_YEAR or year > MAX_REASONABLE_YEAR:
                 row_errors.append("invalid_year")
 
             extracted_at = payload.get("extracted_at")
@@ -107,46 +117,49 @@ def validate_ranking_staging_file(staging_file: Path) -> RankingStagingValidatio
 
             if row_errors:
                 invalid_row_count += 1
-                _maybe_add_error_sample(error_samples, line_number, row_errors, payload)
+                _maybe_add_sample(error_samples, line_number, row_errors, payload)
                 continue
 
             dedupe_key = (
-                university_name,
+                normalized_university_name,
                 source,
                 year,
                 rank,
             )
             if dedupe_key in seen_keys:
                 duplicate_row_count += 1
-                _maybe_add_error_sample(error_samples, line_number, ["duplicate_row"], payload)
+                _maybe_add_sample(duplicate_samples, line_number, ["duplicate_row"], payload)
                 continue
 
             seen_keys.add(dedupe_key)
             valid_row_count += 1
+            valid_rows.append(payload)
 
-    return RankingStagingValidationSummary(
+    summary = RankingStagingValidationSummary(
         staging_file=str(staging_file),
         total_rows=total_rows,
         valid_row_count=valid_row_count,
         invalid_row_count=invalid_row_count,
         duplicate_row_count=duplicate_row_count,
         error_samples=error_samples,
+        duplicate_samples=duplicate_samples,
     )
+    return RankingStagingValidationResult(summary=summary, valid_rows=valid_rows)
 
 
 def summary_to_dict(summary: RankingStagingValidationSummary) -> dict[str, Any]:
     return asdict(summary)
 
 
-def _maybe_add_error_sample(
-    error_samples: list[dict[str, Any]],
+def _maybe_add_sample(
+    samples: list[dict[str, Any]],
     line_number: int,
     errors: list[str],
     payload: Any,
 ) -> None:
-    if len(error_samples) >= MAX_ERROR_SAMPLES:
+    if len(samples) >= MAX_SAMPLE_COUNT:
         return
-    error_samples.append(
+    samples.append(
         {
             "line_number": line_number,
             "errors": errors,
