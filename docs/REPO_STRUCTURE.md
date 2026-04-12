@@ -116,6 +116,7 @@ flowchart TB
   外部來源，包含 QS / THE / ARWU 與部分學校站點資料。
 - `Ingestion Layer`
   負責抓取、解析、節流、job orchestration、resume 與 ingest 入口。
+  現在進一步拆成 shared crawler core、ranking crawler engine、admission crawler engine，以及仍保留的 pipeline/job orchestration。
 - `Canonical Layer`
   把來源世界轉成平台自己的 identity truth，解決名稱差異、國家別名、source entity linking。
 - `Aggregation Layer`
@@ -349,10 +350,18 @@ flowchart TD
 
 只保留最小必要的實作對應，方便把系統圖對回程式：
 
+- `crawlernest/crawlernest-crawler-core/`
+  shared crawler runtime primitives，包含 HTTP、retry、rate limiting、logging 與 snapshot hooks
+- `crawlernest/crawlernest-ranking-crawler/`
+  ranking-specific crawling engine，負責 ranking sources、universes 與 structured ranking rows
+- `crawlernest/crawlernest-admission-crawler/`
+  admission-specific crawling engine，負責 university sites、admission discovery 與 requirement extraction
 - `crawlernest/run_pipeline.py`
-  Ingestion pipeline 主入口
+  Ingestion pipeline 主入口與高層 orchestration，後續應逐步委派給 ranking / admission engines
 - `crawlernest/crawlernest-extractors/`
-  source acquisition / extraction
+  既有 extractor/fetcher 能力；後續應逐步下沉為 crawler engines 可重用的 source-specific extraction logic
+- `crawlernest/crawlernest-jobs/`
+  job orchestration、batch command routing、legacy crawl coordination
 - `crawlernest/crawlernest-core/entity_resolution/`
   canonical identity linking
 - `crawlernest/crawlernest-core/multi_source/`

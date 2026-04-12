@@ -12,6 +12,9 @@ graph TD
     end
 
     subgraph "Pipeline Layer"
+        CORECRAWL[crawlernest-crawler-core]
+        RANKCRAWL[crawlernest-ranking-crawler]
+        ADMCRAWL[crawlernest-admission-crawler]
         JOBS[crawlernest-jobs]
         EXT[crawlernest-extractors]
     end
@@ -31,7 +34,12 @@ graph TD
     CORE[crawlernest-core]
 
     CLI --> JOBS
-    JOBS --> EXT
+    JOBS --> RANKCRAWL
+    JOBS --> ADMCRAWL
+    RANKCRAWL --> EXT
+    ADMCRAWL --> EXT
+    RANKCRAWL -.-> CORECRAWL
+    ADMCRAWL -.-> CORECRAWL
     EXT --> DBW
     DBW --> SCHEMA
     DBW --> KB
@@ -50,39 +58,57 @@ graph TD
 ### 1. [crawlernest-core](file:///Users/test/Desktop/crawlernest/crawlernest-core)
 Contains shared models (e.g., `University`, `AdmissionRequirements`), logging utilities, and the central `Config` system. This is the foundation upon which all other modules are built.
 
-### 2. [crawlernest-extractors](file:///Users/test/Desktop/crawlernest/crawlernest-extractors)
-Low-level networking and parsing logic.
-- `fetcher.py`: Handles HTTP requests (sync and async) with retry logic and SSL management.
-- `extractor.py`: Uses regex and heuristics to parse admission requirements and scores from HTML.
+### 2. `crawlernest-crawler-core`
+Shared crawler runtime building blocks.
+- `http_client.py`: Minimal HTTP wrapper.
+- `retry.py`: Retry helper.
+- `rate_limit.py`: Per-request delay control.
+- `logger.py`: Shared logger factory.
+- `base.py`: Thin base crawler with snapshot hooks.
 
-### 3. [crawlernest-jobs](file:///Users/test/Desktop/crawlernest/crawlernest-jobs)
-The orchestration layer. Manages the lifecycle of a crawl task, including pagination and session management.
-- `crawler.py`: Coordination between fetchers, extractors, and writers.
-- `crawlernest_main.py`: Main entry point logic.
+### 3. `crawlernest-ranking-crawler`
+Ranking-specific crawler engine.
+- `engine.py`: Ranking engine entrypoint and source dispatch.
+- `sources/qs.py`: Example QS crawler stub.
+- `sources/the.py`, `sources/arwu.py`: placeholder source crawlers.
+- `models.py`: `RankingRecord`.
 
-### 4. [crawlernest-db-writer](file:///Users/test/Desktop/crawlernest/crawlernest-db-writer)
+### 4. `crawlernest-admission-crawler`
+Admission-specific crawler engine.
+- `engine.py`: Admission engine entrypoint.
+- `crawlers/university_site.py`: example university-site crawler stub.
+- `extractors/admission_requirements.py`: lightweight admission record builder.
+- `models.py`: `AdmissionRecord`.
+
+### 5. [crawlernest-extractors](file:///Users/test/Desktop/crawlernest/crawlernest-extractors)
+Reusable fetch / parse helpers used by crawler engines and legacy ingestion code.
+
+### 6. [crawlernest-jobs](file:///Users/test/Desktop/crawlernest/crawlernest-jobs)
+The orchestration layer. It should own batch execution and pipeline routing, not low-level crawler transport concerns.
+
+### 7. [crawlernest-db-writer](file:///Users/test/Desktop/crawlernest/crawlernest-db-writer)
 The persistence layer.
 - `db_writer.py`: Implements the warehouse-style ingestion pipeline (dimensions vs. facts).
 - `db.py`: Legacy support for flat SQLite tables.
 
-### 5. [crawlernest-normalization](file:///Users/test/Desktop/crawlernest/crawlernest-normalization)
+### 8. [crawlernest-normalization](file:///Users/test/Desktop/crawlernest/crawlernest-normalization)
 Data cleaning and standardization.
 - **C Engine**: Located in `c_engine/`. High-performance score and country name normalizer written in C.
 
-### 6. [crawlernest-cli](file:///Users/test/Desktop/crawlernest/crawlernest-cli)
+### 9. [crawlernest-cli](file:///Users/test/Desktop/crawlernest/crawlernest-cli)
 Command-line interface for the platform.
 - `interactive.py`: Menu-driven interface for selecting regions and ranking years.
 
-### 7. [crawlernest-schema](file:///Users/test/Desktop/crawlernest/crawlernest-schema)
+### 10. [crawlernest-schema](file:///Users/test/Desktop/crawlernest/crawlernest-schema)
 Source of truth for the database structure (`schema.sql`) and metadata mappings.
 
-### 8. [crawlernest-kb](file:///Users/test/Desktop/crawlernest/crawlernest-kb)
+### 11. [crawlernest-kb](file:///Users/test/Desktop/crawlernest/crawlernest-kb)
 The Knowledge Base. Contains snapshots of validated data and reference databases.
 
 ---
 
 ## ⚡ Technical Highlights
 
-- **Async Concurrency**: Uses `aiohttp` and `asyncio.Semaphore` to crawl thousands of nodes while staying within server rate limits.
+- **Separated crawler runtime**: transport concerns now live in `crawlernest-crawler-core`, while ranking and admission engines evolve independently.
 - **Robustness**: Extracted data is validated against known score boundaries (e.g., IELTS 0–9).
 - **Network Resilience**: External API calls are guarded by mocks in tests, and live calls use auto-skipping logic if endpoints are unreachable.

@@ -17,6 +17,7 @@ CrawlerNest 是一套端到端的大學資料平台，能把分散的網頁資�
 ## 目前能力
 
 *   **多來源排名 Ingestion：** QS、THE、ARWU 已可進入同一條 ranking storage / aggregation path。THE world rankings 優先使用**結構化 JSON**（已發布時使用 CDN blobs，否則退回 Next.js `__NEXT_DATA__`），而非脆弱的 HTML-first 抓法。
+*   **拆分式 Crawler Foundation：** 爬蟲層現在已明確拆成共享 crawler core，以及兩套彼此獨立的 engine：負責排名來源的 **Ranking Crawler Engine**，以及負責學校官網 admissions 資料的 **Admission Crawler Engine**。
 *   **Universe-Aware Aggregation：** 排名已區分為 `global`、`region`、`subject`、`special` 等 universe，aggregation 會依 universe 隔離處理。
 *   **以 Rank 為主的 Aggregation Truth：** aggregated rank 由來源 rank 決定，而不是用 composite score 排序；`compositeScore` 僅保留為展示訊號。
 *   **Ranking Evidence：** 產品列與大學 detail page 可直接顯示 QS / THE / ARWU 的來源排名，以及來源間的差異。
@@ -39,6 +40,14 @@ CrawlerNest 採用嚴格解耦的 6 層架構：
 4.  **Decision Layer：** 負責 recommendation、trust scoring、evidence summaries 與 comparison logic。
 5.  **Mini-Agent Layer：** 一個輕量、受控的 AI-assisted development loop，用於有範圍的 task generation、evaluation 與 refinement。
 6.  **Product Layer：** Spring Boot API 與 Next.js website。
+
+在資料生產路徑內，crawler 系統現在刻意拆成三個程式邊界：
+
+- **`crawlernest-crawler-core/`**：只放共享 transport/runtime 能力，例如 HTTP、retry、rate limiting、logging 與 snapshot stub
+- **`crawlernest-ranking-crawler/`**：專門處理 QS、THE、ARWU、ranking universe 與結構化 ranking rows
+- **`crawlernest-admission-crawler/`**：專門處理 university site crawling、admission page discovery，以及半結構 admission requirements extraction
+
+`run_pipeline.py` 仍然是高層 orchestration 入口，但長期方向是讓它呼叫這些 crawler engines，而不是繼續把 source-specific crawling logic 不斷堆進主入口裡。
 
 Mini-Agent Layer 遵循一個受限的循環：
 

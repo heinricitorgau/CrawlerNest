@@ -66,6 +66,9 @@ If someone is new to the repo, this is the fastest path:
 
 | File | Purpose |
 | --- | --- |
+| `crawlernest/crawlernest-crawler-core/README.md` | Shared crawler runtime primitives for HTTP, retry, rate limiting, logging, and snapshot hooks. |
+| `crawlernest/crawlernest-ranking-crawler/README.md` | Ranking-specific crawler engine entry doc. |
+| `crawlernest/crawlernest-admission-crawler/README.md` | Admission-specific crawler engine entry doc. |
 | `crawlernest/crawlernest-core/README.md` | Shared config, models, logging, and common utilities. |
 | `crawlernest/crawlernest-core/entity_resolution/README.md` | Entity resolution logic for university identity cleanup and matching. |
 | `crawlernest/crawlernest-core/multi_source/README.md` | Integration strategy for multiple ranking sources like QS, THE, and ARWU. |
