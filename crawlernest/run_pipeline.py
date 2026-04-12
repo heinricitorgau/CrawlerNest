@@ -2798,6 +2798,155 @@ def _resolve_ranking_entities(
     return entity_resolution_summary_to_dict(summary)
 
 
+def _get_unresolved_ranking_entities(
+    *,
+    target_schema: str,
+    target_table: str,
+    limit: int,
+    output_file: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_ranking_crawler.unresolved_report import (  # noqa: E402
+        get_unresolved_universities,
+        unresolved_rows_to_dicts,
+        write_unresolved_report,
+    )
+
+    rows = get_unresolved_universities(
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        target_schema=target_schema,
+        target_table=target_table,
+        limit=limit,
+    )
+    if output_file:
+        write_unresolved_report(rows, Path(output_file))
+
+    return {
+        "target_table": f"{target_schema}.{target_table}",
+        "row_count": len(rows),
+        "rows": unresolved_rows_to_dicts(rows),
+        "output_file": output_file,
+    }
+
+
+def _refresh_ranking_resolution(
+    *,
+    target_schema: str,
+    target_table: str,
+    limit: int,
+    output_file: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    full_summary_limit = 1_000_000
+
+    before_summary = _get_unresolved_ranking_entities(
+        target_schema=target_schema,
+        target_table=target_table,
+        limit=full_summary_limit,
+        output_file="",
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+    )
+
+    resolution_summary = _resolve_ranking_entities(
+        target_schema=target_schema,
+        target_table=target_table,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+    )
+
+    after_full_summary = _get_unresolved_ranking_entities(
+        target_schema=target_schema,
+        target_table=target_table,
+        limit=full_summary_limit,
+        output_file="",
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+    )
+    after_display_summary = _get_unresolved_ranking_entities(
+        target_schema=target_schema,
+        target_table=target_table,
+        limit=limit,
+        output_file=output_file,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+    )
+
+    before_unresolved_count = sum(int(row["occurrence_count"]) for row in before_summary["rows"])
+    after_unresolved_count = sum(int(row["occurrence_count"]) for row in after_full_summary["rows"])
+
+    return {
+        "target_table": before_summary["target_table"],
+        "before_unresolved_count": before_unresolved_count,
+        "before_distinct_university_count": before_summary["row_count"],
+        "after_unresolved_count": after_unresolved_count,
+        "after_distinct_university_count": after_full_summary["row_count"],
+        "resolved_row_count": resolution_summary["resolved_row_count"],
+        "unresolved_row_count": resolution_summary["unresolved_row_count"],
+        "display_rows": after_display_summary["rows"],
+        "output_file": after_display_summary["output_file"],
+    }
+
+
+def _seed_university_alias(
+    *,
+    canonical: str,
+    alias: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_ranking_crawler.alias_seed import (  # noqa: E402
+        add_university_alias,
+        alias_seed_summary_to_dict,
+    )
+
+    summary = add_university_alias(
+        canonical_name=canonical,
+        alias=alias,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+    )
+    return alias_seed_summary_to_dict(summary)
+
+
 
 
 def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
@@ -2955,6 +3104,106 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
             f"unresolved={summary['unresolved_row_count']}"
         )
         print(f"[resolve-ranking-entities] target={summary['target_table']}")
+        return 0
+
+    if args.command == "unresolved-ranking-entities":
+        try:
+            summary = _get_unresolved_ranking_entities(
+                target_schema=str(args.target_schema),
+                target_table=str(args.target_table),
+                limit=int(args.limit),
+                output_file=str(args.output_file),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[unresolved-ranking-entities] aborted: {exc}")
+            return 1
+
+        print(
+            "[unresolved-ranking-entities] "
+            f"target={summary['target_table']} "
+            f"rows={summary['row_count']}"
+        )
+        if summary["rows"]:
+            print("normalized_university_name | occurrence_count")
+            for row in summary["rows"]:
+                print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
+        else:
+            print("No unresolved ranking entities found.")
+        if summary["output_file"]:
+            print(f"[unresolved-ranking-entities] output={summary['output_file']}")
+        return 0
+
+    if args.command == "refresh-ranking-resolution":
+        try:
+            summary = _refresh_ranking_resolution(
+                target_schema=str(args.target_schema),
+                target_table=str(args.target_table),
+                limit=int(args.limit),
+                output_file=str(args.output_file),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[refresh-ranking-resolution] aborted: {exc}")
+            return 1
+
+        print(
+            "[refresh-ranking-resolution] "
+            f"target={summary['target_table']} "
+            f"before_unresolved={summary['before_unresolved_count']} "
+            f"after_unresolved={summary['after_unresolved_count']} "
+            f"before_distinct={summary['before_distinct_university_count']} "
+            f"after_distinct={summary['after_distinct_university_count']} "
+            f"resolved={summary['resolved_row_count']} "
+            f"unresolved={summary['unresolved_row_count']}"
+        )
+        if summary["display_rows"]:
+            print("normalized_university_name | occurrence_count")
+            for row in summary["display_rows"]:
+                print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
+        else:
+            print("No unresolved ranking entities found.")
+        if summary["output_file"]:
+            print(f"[refresh-ranking-resolution] output={summary['output_file']}")
+        return 0
+
+    if args.command == "seed-university-alias":
+        try:
+            summary = _seed_university_alias(
+                canonical=str(args.canonical),
+                alias=str(args.alias),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except (RuntimeError, ValueError) as exc:
+            print(f"[seed-university-alias] aborted: {exc}")
+            return 1
+
+        print(
+            "[seed-university-alias] "
+            f"canonical_id={summary['canonical_university_id']} "
+            f"created_canonical={'yes' if summary['created_canonical'] else 'no'} "
+            f"created_alias={'yes' if summary['created_alias'] else 'no'}"
+        )
+        print(
+            f"[seed-university-alias] canonical={summary['canonical_name']} "
+            f"normalized_canonical={summary['normalized_canonical_name']}"
+        )
+        print(
+            f"[seed-university-alias] alias={summary['alias']} "
+            f"normalized_alias={summary['normalized_alias']}"
+        )
         return 0
 
     if args.command == "seed-canonical":

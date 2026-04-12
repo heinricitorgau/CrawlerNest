@@ -35,9 +35,9 @@ def resolve_university(
 
     cur.execute(
         """
-        SELECT canonical_university_id
+        SELECT university_id
         FROM warehouse.university_aliases
-        WHERE normalized_alias = %s
+        WHERE source_school_name = %s
         """,
         (normalized_name,),
     )
@@ -123,10 +123,14 @@ def _ensure_resolution_tables(cur: "psycopg2.extensions.cursor") -> None:
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS warehouse.university_aliases (
-            university_alias_id BIGSERIAL PRIMARY KEY,
-            canonical_university_id BIGINT NOT NULL
+            alias_id BIGSERIAL PRIMARY KEY,
+            university_id BIGINT NOT NULL
                 REFERENCES warehouse.canonical_universities(canonical_university_id),
-            normalized_alias TEXT NOT NULL UNIQUE
+            source_name TEXT NOT NULL DEFAULT 'manual',
+            source_school_name TEXT NOT NULL UNIQUE,
+            match_type TEXT NOT NULL DEFAULT 'exact',
+            confidence_score REAL NOT NULL DEFAULT 1.0,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
         """
     )

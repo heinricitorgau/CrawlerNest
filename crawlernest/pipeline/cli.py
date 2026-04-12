@@ -21,6 +21,7 @@ def build_parser(
     default_ranking_records_staging = workspace_root / "crawlernest-samples" / "ranking_records_staging.jsonl"
     default_ranking_ingest_db = workspace_root / "crawlernest-samples" / "ranking_staging_ingest.sqlite3"
     default_ranking_warehouse_preview = workspace_root / "crawlernest-samples" / "ranking_warehouse_preview.json"
+    default_unresolved_report = workspace_root / "crawlernest-samples" / "ranking_unresolved_entities.json"
     default_admission_records = workspace_root / "crawlernest-samples" / "admission_records.json"
 
     parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
@@ -296,6 +297,59 @@ def build_parser(
     resolve_ranking_entities_parser.add_argument("--pg-database", default="clawer")
     resolve_ranking_entities_parser.add_argument("--pg-user", default="test")
     resolve_ranking_entities_parser.add_argument("--pg-password", default="")
+
+    unresolved_ranking_entities_parser = subparsers.add_parser(
+        "unresolved-ranking-entities",
+        help="Read-only report of unresolved ranking entities grouped by normalized university name",
+    )
+    unresolved_ranking_entities_parser.add_argument("--target-schema", default="warehouse")
+    unresolved_ranking_entities_parser.add_argument("--target-table", default="ranking_records_preview")
+    unresolved_ranking_entities_parser.add_argument("--limit", type=int, default=20)
+    unresolved_ranking_entities_parser.add_argument(
+        "--output-file",
+        default="",
+        help=f"Optional JSON output file for unresolved entity report (example default: {default_unresolved_report})",
+    )
+    unresolved_ranking_entities_parser.add_argument("--pg-host", default="localhost")
+    unresolved_ranking_entities_parser.add_argument("--pg-port", type=int, default=5432)
+    unresolved_ranking_entities_parser.add_argument("--pg-database", default="clawer")
+    unresolved_ranking_entities_parser.add_argument("--pg-user", default="test")
+    unresolved_ranking_entities_parser.add_argument("--pg-password", default="")
+
+    refresh_ranking_resolution_parser = subparsers.add_parser(
+        "refresh-ranking-resolution",
+        help="Refresh deterministic ranking entity resolution, then regenerate the unresolved entity report",
+    )
+    refresh_ranking_resolution_parser.add_argument("--target-schema", default="warehouse")
+    refresh_ranking_resolution_parser.add_argument("--target-table", default="ranking_records_preview")
+    refresh_ranking_resolution_parser.add_argument(
+        "--limit",
+        type=int,
+        default=20,
+        help="How many unresolved universities to print after the refresh",
+    )
+    refresh_ranking_resolution_parser.add_argument(
+        "--output-file",
+        default="",
+        help=f"Optional JSON output file for the refreshed unresolved report (example default: {default_unresolved_report})",
+    )
+    refresh_ranking_resolution_parser.add_argument("--pg-host", default="localhost")
+    refresh_ranking_resolution_parser.add_argument("--pg-port", type=int, default=5432)
+    refresh_ranking_resolution_parser.add_argument("--pg-database", default="clawer")
+    refresh_ranking_resolution_parser.add_argument("--pg-user", default="test")
+    refresh_ranking_resolution_parser.add_argument("--pg-password", default="")
+
+    seed_university_alias_parser = subparsers.add_parser(
+        "seed-university-alias",
+        help="Create or reuse a canonical university and seed a deterministic alias mapping",
+    )
+    seed_university_alias_parser.add_argument("--canonical", required=True)
+    seed_university_alias_parser.add_argument("--alias", required=True)
+    seed_university_alias_parser.add_argument("--pg-host", default="localhost")
+    seed_university_alias_parser.add_argument("--pg-port", type=int, default=5432)
+    seed_university_alias_parser.add_argument("--pg-database", default="clawer")
+    seed_university_alias_parser.add_argument("--pg-user", default="test")
+    seed_university_alias_parser.add_argument("--pg-password", default="")
 
     ingest_parser = subparsers.add_parser(
         "ingest-rankings",
