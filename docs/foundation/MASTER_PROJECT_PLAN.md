@@ -20,7 +20,8 @@ Our core evolution path:
 | Extraction Layer | Admission requirements, deadlines, scoring rules | Operational | ~80% |
 | Python Normalization | Country standardization, safe value conversion | Operational | ~75% |
 | C Normalization Engine | High-performance parsing for names/rankings | Operational | ~65% |
-| Identity Resolution | Alias mapping, fuzzy matching, alias seeding, country variants | Operational | ~65% |
+| Identity Resolution | Deterministic exact match, alias seeding, unresolved reporting, refresh loop | Operational | ~65% |
+| Ranking Production Workflow | Raw → normalized → staging → validate → ingest → warehouse preview → landing | Operational | ~80% |
 | Multi-Universe Aggregation | Global / region / subject scoped aggregation truth | Operational | ~95% |
 | THE Integration | Times Higher Education crawler + full entity ingestion | Operational | 100% |
 | Storage / Warehouse | PostgreSQL schema, DB writer, Spring Data JPA, ingest traceability | Operational | ~95% |
@@ -45,6 +46,7 @@ CrawlerNest is built on a decoupled 5-layer system to ensure scalability:
 - **Continuous Resilience:** The engine runs in an infinite loop with `KeyboardInterrupt` handling to prevent data loss.
 - **Explainable Recommendation (v3):** Uses a hybrid deterministic scoring model with calibrated categories.
 - **Entity Resolution:** Maps multiple data sources (QS, THE, future ARWU) to a single `canonical_university` entity.
+- **Controlled Ranking Production Path:** Ranking records now move through raw, normalized, staging, validation, warehouse preview, warehouse landing, and deterministic resolution before any stronger downstream truth coupling.
 - **Production-Safe Pipeline:** Conservative throttling (`request_delay ≈ 30s`) and automatic 403 degradation.
 - **Visibility Recovery Path:** If crawled universities are stuck in `warehouse.universities`, `seed-canonical` and `backfill-ranking-records` now provide an explicit recovery path into visible aggregated truth.
 - **Frontend Freshness:** The website reads through a same-origin proxy with `no-store`, periodic polling, and focus/visibility refresh so DB-side updates surface quickly in the UI.
@@ -67,7 +69,7 @@ CrawlerNest is built on a decoupled 5-layer system to ensure scalability:
 - Canonical recovery + ranking-record backfill expanded visible global aggregated rows from `221` to `1323`.
 - THE crawler and full integration (2,191 universities, 100% match rate after seed-canonical-from-missing).
 - `seed-canonical-from-missing` command: THE-only universities now visible in API and frontend.
-- Entity resolver improvements: fuzzy threshold tuning, parenthetical stripping, country variant normalization.
+- Ranking-specific deterministic resolution workflow, unresolved reporting, alias seeding, and refresh loop now support incremental manual curation.
 - `production_safe.sh` 5-step automation (QS global → deferred enrichment → THE → QS regions).
 - About page and premium NavBar with dark mode toggle.
 - Aggregated visible rows expanded to 2,736 (QS + THE dual source).
@@ -75,7 +77,7 @@ CrawlerNest is built on a decoupled 5-layer system to ensure scalability:
 ### Milestone 3: Platform Expansion (Next 6-18 Months)
 - Integration of ARWU and additional data sources (THE already complete).
 - Deepening of Program-level and Degree-level analytics.
-- Enhanced Identity Resolution using fuzzy matching and embeddings.
+- Expanded identity resolution through broader alias coverage and batch curation workflows.
 
 ### Milestone 4: Commercialization & AI (Future)
 - LLM-assisted admission requirement verification.

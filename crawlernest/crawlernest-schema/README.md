@@ -2,6 +2,13 @@
 
 Source of truth for the CrawlerNest database schema.
 
+For the ranking pipeline, schema responsibilities are now more explicitly split across:
+
+- staging-oriented persistence for controlled ingest
+- warehouse landing structures for warehouse-ready ranking rows
+- canonical and alias structures for deterministic entity resolution
+- aggregation and recommendation schemas that remain downstream of the landing/resolution path
+
 ## Files
 - `postgresql_schema.sql`: Base PostgreSQL warehouse/staging schema.
 - `entity_resolution_postgresql.sql`: Canonical university and alias schema.

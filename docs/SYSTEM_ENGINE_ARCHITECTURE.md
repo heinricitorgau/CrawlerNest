@@ -5,6 +5,14 @@
 
 - `docs/REPO_STRUCTURE.md`
 
+目前 ranking path 已形成一條安全的資料生產鏈：
+
+```text
+crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh
+```
+
+這條路徑的重點不是提早進 production read model，而是先把 ranking data 的產生、落地、解析與人工補種閉環做穩。
+
 ## 1. Full System View
 
 ```mermaid
@@ -90,6 +98,17 @@ flowchart LR
 - 再做 aggregated truth
 - 最後提供給 API 與產品層
 
+對 ranking 而言，主 truth path 前面現在多了一條更保守的前置帶：
+
+- raw artifact
+- normalized artifact
+- staging artifact
+- validation gate
+- controlled ingest
+- warehouse preview / landing
+
+也就是說，ranking 資料不會在 crawler 結束後直接進入最終可讀 truth。
+
 ## 3. Data Engine Architecture
 
 ```mermaid
@@ -119,6 +138,8 @@ sequenceDiagram
 - canonical linking 先於平台 truth
 - aggregation 只建立平台層 truth，不抹掉來源差異
 - product 層消費的是 analytics/read model，不是原始 crawler payload
+- staging / warehouse landing 與最終 production read model 明確分離
+- entity resolution 不直接改 raw crawler data
 
 ## 4. Aggregation Engine
 
@@ -218,6 +239,7 @@ flowchart LR
 ### Role
 
 - 幫助 extractor / parser / workflow refinement
+- 不直接產生 ranking truth
 - 用 evaluator 限制 hallucination 與脆弱修改
 - 加速開發，但不直接產生 ranking truth
 

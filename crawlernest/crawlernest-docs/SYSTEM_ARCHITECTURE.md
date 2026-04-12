@@ -15,6 +15,14 @@ Primary data domains include:
 
 CrawlerNest is organized as a **data pipeline architecture**, where each subsystem transforms raw web data into progressively more structured and useful information.
 
+The ranking pipeline now has an explicit safe-production path before any final read-model integration:
+
+```text
+crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh
+```
+
+This path exists to keep ranking ingestion, warehouse landing, and entity resolution observable and rerunnable before data is promoted into broader product truth.
+
 ---
 
 # High-Level Architecture
@@ -45,8 +53,8 @@ Normalization Engine
 (crawlernest-normalization-py)
         │
         ▼
-Database Writer
-(crawlernest-db-writer)
+Validation / Controlled Ingest / Warehouse Landing
+(pipeline + staging/warehouse writers)
         │
         ▼
 PostgreSQL Warehouse / Knowledge Artifacts
@@ -84,6 +92,7 @@ Responsibilities:
 - ranking-specific crawling for QS / THE / ARWU and ranking universes
 - admission-specific crawling for university websites and semi-structured requirements
 - orchestration of crawl scope, pagination, and batch execution from pipeline entrypoints
+- safe handoff from crawler output into downstream normalization and staging boundaries
 
 Example crawling targets:
 
@@ -170,13 +179,14 @@ crawlernest-db-writer
 
 Responsibilities:
 
-- persist normalized data
-- insert ranking records
+- persist validated data into controlled staging and warehouse-oriented targets
+- keep ingest and write targets isolated from final production read models
 - maintain crawl metadata
-- manage crawl sessions
+- manage rerunnable persistence boundaries
 
 Important tables include:
 
+- staging and warehouse landing tables
 - universities
 - rankings
 - admission_requirements
@@ -187,6 +197,14 @@ Database engine:
 ```
 PostgreSQL
 ```
+
+For the ranking path, persistence is intentionally split:
+
+- staging persistence for validated normalized rows
+- warehouse landing persistence for warehouse-ready rows
+- deterministic entity-resolution updates after warehouse landing
+
+This avoids coupling crawler output directly to final product-serving tables.
 
 ---
 
@@ -213,6 +231,8 @@ The schema models relationships between:
 - admission metrics
 
 This forms the **University Knowledge Base**.
+
+For ranking-specific production flow, warehouse-oriented landing rows and canonical resolution metadata now act as a controlled intermediate contract before downstream aggregation and recommendation layers.
 
 ---
 

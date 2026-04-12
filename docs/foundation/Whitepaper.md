@@ -96,13 +96,14 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 4. 核心架構策略與機制  
 5. 資料平台與知識庫設計  
 6. Crawler 框架與 Job 管線  
-7. AutoEval 與資料品質演進層  
-8. 實體識別與推薦架構  
-9. 開發優先順序與執行策略  
-10. 里程碑與四年路線圖  
-11. 產品願景與能力地圖  
-12. 風險與維護策略  
-13. OpenClaw / Lobster-01 節點定位補充
+7. Ranking Data Production & Resolution Workflow  
+8. AutoEval 與資料品質演進層  
+9. 實體識別與推薦架構  
+10. 開發優先順序與執行策略  
+11. 里程碑與四年路線圖  
+12. 產品願景與能力地圖  
+13. 風險與維護策略  
+14. OpenClaw / Lobster-01 節點定位補充
 
 ---
 
@@ -162,7 +163,7 @@ graph TD
 
 它不替代主資料管線，而是作為與 AutoEval 緊密耦合的 Mini-Agent Development Layer，服務於 extractor、workflow 與系統 refinement。
 
-## 4.3 Mini-Agent Development Architecture
+### 4.1 Mini-Agent Development Architecture
 
 Mini-Agent Development Layer 的存在，不是為了追求「完全自動化」，而是為了處理工程系統中一個很實際的張力：
 
@@ -171,7 +172,7 @@ Mini-Agent Development Layer 的存在，不是為了追求「完全自動化」
 
 CrawlerNest 的解法不是把開發流程交給自治型 agent，而是建立一個受控、輕量、可評估的 mini-agent workflow，作為系統中的輔助層。
 
-### 4.3.1 為何需要這一層
+#### 4.1.1 為何需要這一層
 
 當 crawler、extractor、normalization、ranking aggregation 與 recommendation 層逐步擴大後，單靠人工逐段調整雖然穩定，但會面臨兩個問題：
 
@@ -180,7 +181,7 @@ CrawlerNest 的解法不是把開發流程交給自治型 agent，而是建立�
 
 Mini-Agent Layer 的價值，正是在這兩者之間建立平衡。它提供受控的 AI-assisted iteration，但不直接跳過驗證與人工審查。
 
-### 4.3.2 它解決的問題
+#### 4.1.2 它解決的問題
 
 Mini-Agent Layer 主要解決的是「development speed vs reliability」之間的矛盾：
 
@@ -190,7 +191,7 @@ Mini-Agent Layer 主要解決的是「development speed vs reliability」之間�
 
 因此，這一層的目標不是取代工程師，而是讓工程決策有更高效率的候選產生與更明確的驗證基準。
 
-### 4.3.3 概念運作方式
+#### 4.1.3 概念運作方式
 
 Mini-Agent Layer 採用的是概念上清楚、責任邊界明確的循環：
 
@@ -205,7 +206,7 @@ Mini-Agent Layer 採用的是概念上清楚、責任邊界明確的循環：
 
 這是一個受控 loop，而不是無邊界的 agent autonomy。它的本質是 evaluation-driven iteration。
 
-### 4.3.4 與既有系統的整合方式
+#### 4.1.4 與既有系統的整合方式
 
 Mini-Agent Layer 並非獨立產品，而是作為 CrawlerNest 的 system-integrated intelligence layer。
 
@@ -220,27 +221,27 @@ AutoEval 是 Mini-Agent Layer 的核心約束機制。沒有 evaluation 的生�
 **c. Pipeline**  
 Mini-Agent Layer 不直接取代主 pipeline。Crawler、normalizer、database、analytics 與 recommendation 仍是主系統的正式責任鏈。Mini-Agent Layer 的角色是加速 refinement、降低人工試錯成本，並強化可靠性，而不是成為新的 production truth source。
 
-## 4.4 Design Principles
+### 4.2 Design Principles
 
 CrawlerNest 在引入 Mini-Agent Development Layer 後，設計原則變得更加明確：
 
-### 4.4.1 Evaluation-First Development
+#### 4.2.1 Evaluation-First Development
 
 生成不是終點，評估才是決策依據。所有 AI-assisted refinement 都應盡量被拉回到可驗證、可比較、可重跑的評估流程中。
 
-### 4.4.2 Controlled Automation Over Full Autonomy
+#### 4.2.2 Controlled Automation Over Full Autonomy
 
 CrawlerNest 選擇的是受控自動化，而不是追求完整自治。原因很直接：資料平台的價值建立在穩定性、可追溯性與責任邊界，而不是最大化自動生成的表面速度。
 
-### 4.4.3 System Reliability Over Raw Speed
+#### 4.2.3 System Reliability Over Raw Speed
 
 更快的 iteration 很重要，但如果它破壞資料品質、讀取穩定性或推薦可信度，整體系統價值反而會下降。因此，可靠性始終優先於未經驗證的加速。
 
-### 4.4.4 Human Oversight as a Core Constraint
+#### 4.2.4 Human Oversight as a Core Constraint
 
 Human-in-the-loop 並不是過渡方案，而是架構本身的一部分。人類負責定義任務邊界、判斷風險、審視評估結果，並決定哪些 refinement 可以真正進入系統。
 
-### 4.1 統一演進視圖（Unified View）
+### 4.3 統一演進視圖（Unified View）
 
 ```text
 全球來源（QS / THE / ARWU / 校方網站 / 未來第三方來源）
@@ -262,11 +263,11 @@ B2C / B2B 產品化
 - **下一階段（V2）**：多來源整合深化、實體識別升級、program-level analytics、產品層穩定化
 - **未來（V3+）**：LLM 輔助研究、公開 API、完整 Web 平台、產品化擴張
 
-### 4.2 From Local System to Distributed Platform
+### 4.4 From Local System to Distributed Platform
 
 CrawlerNest 最初是以 local-first 的研究與工程系統型態建立。這個起點是合理的：單機環境能讓 crawler、normalization、資料庫、API 與前端原型在同一台機器上快速迭代，降低早期部署與基礎設施負擔。然而，當系統逐步演進為多層資料平台後，`localhost`-only 的運行方式已不再只是簡單，而是開始成為結構性瓶頸。
 
-#### 4.2.1 為何 local-only 架構會成為瓶頸
+#### 4.4.1 為何 local-only 架構會成為瓶頸
 
 **資源限制（CPU / Memory / I/O）**  
 單一開發機器若同時承載 Python crawler、ingestion pipeline、C-based normalization、PostgreSQL、Java API 與 Next.js frontend，實際上是在讓高負載 batch 工作與 user-facing read workload 競爭同一組 CPU、記憶體與磁碟 I/O。當資料量與功能數量增加後，這種共置模式會讓：
@@ -302,7 +303,7 @@ CrawlerNest 最初是以 local-first 的研究與工程系統型態建立。這�
 
 因此，當 CrawlerNest 的目標從研究系統轉向資料平台與產品介面時，系統必須從 local-only 演進為可分離部署的架構。
 
-#### 4.2.2 架構轉型策略
+#### 4.4.2 架構轉型策略
 
 CrawlerNest 的轉型不是一次性重寫，而是以分層責任拆分為核心的漸進式演進。
 
@@ -337,7 +338,7 @@ CrawlerNest 的轉型不是一次性重寫，而是以分層責任拆分為核�
 
 這不是為了追求抽象化，而是基於實際工作負載與穩定性要求的必要拆分。
 
-#### 4.2.3 部署模型（高層設計）
+#### 4.4.3 部署模型（高層設計）
 
 CrawlerNest 的部署模型採取高層、供應商中立的設計原則。
 
@@ -374,7 +375,7 @@ Crawler、normalization、ingestion 與大批次修復流程仍應保留在受�
 
 這些工作負載不必直接對外暴露，但必須與 public read surface 明確分離。
 
-#### 4.2.4 設計哲學
+#### 4.4.4 設計哲學
 
 CrawlerNest 的部署哲學可概括為：
 
@@ -395,7 +396,7 @@ CrawlerNest 的部署哲學可概括為：
 **對外暴露應最小且明確**  
 公開的是必要的 read interfaces，而不是整個資料生產系統。這有助於降低運維風險，也讓產品邊界更清晰。
 
-#### 4.2.5 轉型帶來的收益
+#### 4.4.5 轉型帶來的收益
 
 這種架構演進帶來的收益是具體而可驗證的：
 
@@ -405,7 +406,7 @@ CrawlerNest 的部署哲學可概括為：
 - **支援真正的對外產品功能**：search、filtering、comparison、evidence display 只有在穩定對外介面存在時才有產品意義
 - **為未來擴展預留空間**：analytics、recommendation、AI-assisted research 等能力可建立在更乾淨的 serving boundary 之上
 
-#### 4.2.6 範圍澄清
+#### 4.4.6 範圍澄清
 
 這個轉型需要明確界定其範圍與意圖。
 
@@ -425,11 +426,11 @@ CrawlerNest 目前仍不是全域高可用、多區部署、完全自動化基�
 
 CrawlerNest 的演進方向，是在保留 local-first 工程效率的前提下，逐步建立 cloud-enabled、可分離部署、可持續擴展的資料平台能力。
 
-### 4.3 Role of Node Machines in the CrawlerNest Architecture
+### 4.5 Role of Node Machines in the CrawlerNest Architecture
 
 在 CrawlerNest 從 local monolith 演進為分散式資料平台之後，node machines 的角色變得更加明確：它們不再只是「跑爬蟲的電腦」，而是整個資料生產層的專用執行節點。
 
-#### 4.3.1 定義
+#### 4.5.1 定義
 
 Node machine 指的是一台專門負責**資料生產（data production）**的機器。它的主要職責是產出、更新與修復平台資料，而不是直接對外提供產品介面。
 
@@ -442,7 +443,7 @@ Node machine 指的是一台專門負責**資料生產（data production）**的
 
 換言之，node machines 屬於內部資料生產基礎設施，而不是 public platform 的一部分。
 
-#### 4.3.2 核心責任
+#### 4.5.2 核心責任
 
 在目前架構中，node machines 主要承擔以下工作：
 
@@ -485,7 +486,7 @@ Node machines 適合承載長時間、可中斷、可恢復的排程工作，例
 - retry / recovery
 - snapshot / checkpoint-based execution
 
-#### 4.3.3 與 Public Platform 的責任分離
+#### 4.5.3 與 Public Platform 的責任分離
 
 CrawlerNest 在部署後明確分為兩個主要責任區塊：
 
@@ -506,7 +507,7 @@ CrawlerNest 在部署後明確分為兩個主要責任區塊：
 
 對使用者而言，看到的是預先產生、可重現、可追溯的結果，而不是即時在請求期間動態跑出來的高成本計算。
 
-#### 4.3.4 為什麼這種分離是必要的
+#### 4.5.4 為什麼這種分離是必要的
 
 這種架構分離的必要性來自幾個工程事實。
 
@@ -522,7 +523,7 @@ Crawler、normalization、aggregation 與 backfill 都屬於高 CPU / 高 I/O / 
 **避免 development environment 與 deployed system 混在一起**  
 如果所有責任仍集中在單一機器上，開發、測試、資料生成與產品服務會互相污染。節點化後，可以更清楚地區分工程環境與對外服務環境。
 
-#### 4.3.5 設計哲學
+#### 4.5.5 設計哲學
 
 Node machines 在 CrawlerNest 中所承載的，不只是「跑任務」，而是一套明確的設計哲學：
 
@@ -535,7 +536,7 @@ Node machines 在 CrawlerNest 中所承載的，不只是「跑任務」，而�
 **Data must be reproducible and traceable**  
 Node machines 執行的每一次 crawl、ingest、normalization 與 aggregation，都應能被回溯與重現。這是資料平台可信度的基礎。
 
-#### 4.3.6 未來可擴展性
+#### 4.5.6 未來可擴展性
 
 目前的 node machines 還不是完整 distributed cluster，但它們已經構成未來分散式資料基礎設施的雛形。
 
@@ -547,7 +548,7 @@ Node machines 執行的每一次 crawl、ingest、normalization 與 aggregation�
 
 這種 specialization 讓不同節點能根據任務特性獨立調整資源與運行策略，而不需要把所有責任集中在單一 host。
 
-#### 4.3.7 範圍澄清
+#### 4.5.7 範圍澄清
 
 需要明確指出，CrawlerNest 當前的 node machine 架構：
 
@@ -870,11 +871,175 @@ CrawlerNest 已明確區分：
 
 ---
 
-## 10. AutoEval 與資料品質演進層
+## 10. Ranking Data Production & Resolution Workflow
 
-CrawlerNest 不只追求可運行的 extractor，也逐步建立 **可量化、可比較、可優化** 的研究層。
+本章描述 CrawlerNest 目前已落地的 ranking 專用資料生產與實體解析工作流，以及其與更下游 production read model 之間的安全邊界。
 
-### 10.1 AutoEval 的定位
+### 10.1 Design Goals
+
+The ranking workflow is designed as a controlled data production pipeline rather than a direct write path into production-facing models. Its primary objectives are to create a repeatable and observable process for ranking data ingestion, to isolate data quality and resolution risks before they affect downstream consumers, and to support incremental evolution without destabilizing the broader platform.
+
+Several design goals shape this workflow:
+
+- Establish a rerunnable data production process with clear checkpoints and artifacts.
+- Separate crawling, transformation, validation, persistence, and entity resolution into explicit stages.
+- Prevent unverified or weakly resolved data from directly entering production-oriented schemas.
+- Support both automated processing and human curation within the same operating model.
+- Make each stage independently testable, inspectable, and recoverable.
+- Allow future production integration without requiring a redesign of the upstream pipeline.
+
+This approach favors safety, traceability, and operational clarity over early optimization.
+
+### 10.2 Pipeline Overview
+
+The current ranking workflow can be summarized as follows:
+
+```text
+crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh
+```
+
+Each layer serves a distinct role:
+
+- `crawl`: Collect ranking source data from ranking crawlers.
+- `raw`: Preserve the original structured crawl output for inspection and replay.
+- `normalized`: Standardize core fields into a consistent internal shape.
+- `staging`: Materialize normalized rows into a lightweight intermediate store for downstream processing.
+- `validate`: Apply deterministic data quality checks before persistence.
+- `ingest`: Write validated rows into a controlled persistence target.
+- `warehouse preview`: Transform staging rows into a warehouse-oriented structure without committing to final production models.
+- `warehouse landing`: Persist warehouse-ready rows in a dedicated landing table.
+- `resolve`: Attach canonical university identities using deterministic matching rules.
+- `report`: Summarize unresolved entities for review.
+- `seed`: Allow manual alias additions to improve future resolution coverage.
+- `refresh`: Re-run resolution and reporting after curation changes.
+
+The pipeline is intentionally layered so that each stage introduces one form of responsibility and one form of control.
+
+### 10.3 Staging Layer
+
+The staging layer exists to create a safe boundary between normalized crawl output and persistent storage. Rather than writing normalized ranking rows directly into database tables, the workflow first emits them into a simple staging representation. This intermediate layer serves as an inspection point, a replay point, and a failure-isolation point.
+
+A file-based staging format is useful for several reasons:
+
+- It is easy to inspect manually.
+- It can be regenerated without side effects.
+- It allows validation to occur before any database mutation.
+- It provides a durable handoff point between extraction and persistence.
+
+This design avoids coupling crawler output directly to a database contract too early. If crawler behavior changes, normalization rules evolve, or validation becomes stricter, those changes can be absorbed at staging boundaries without immediately affecting downstream warehouse or read layers.
+
+The validator acts as the staging gate. Its role is to reject clearly invalid or structurally unsafe rows before ingestion. This includes checking required fields, validating numeric and temporal fields, and identifying duplicate records under a defined key strategy. The validator is not intended to be a full data quality platform; it is a conservative gate that prevents obviously unsafe records from progressing.
+
+---
+
+### 10.4 Warehouse Mapping & Landing
+
+A deliberate separation is maintained between staging rows and warehouse-ready rows. The staging representation captures normalized operational data, while the warehouse-oriented representation reflects how that data should be shaped for long-lived analytical storage and future downstream modeling.
+
+This separation is important because staging data and warehouse data serve different purposes:
+
+- Staging is operational and transient.
+- Warehouse-ready data is structured for persistence, traceability, and future integration.
+- Not every staging field maps cleanly into long-term warehouse concepts.
+- Some warehouse fields require explicit defaults, placeholders, or later resolution steps.
+
+A preview artifact is produced before warehouse landing so that mapping assumptions can be inspected without writing into persistent warehouse tables. This makes the mapping layer auditable and easier to evolve. It also creates a safe review point before introducing any stronger coupling to warehouse storage.
+
+The warehouse landing table is intentionally not treated as the final production model. Its purpose is to receive warehouse-ready rows in a stable but non-final form. This allows the platform to persist mapped ranking records, verify structure and volume, and support downstream resolution work without prematurely binding the system to final read patterns, aggregation rules, or product-facing schemas.
+
+### 10.5 Entity Resolution Strategy
+
+The current entity resolution strategy is intentionally conservative. It uses deterministic exact matching rather than probabilistic or heuristic methods. The goal of this first version is not maximum recall, but reliable, explainable, and reversible identity attachment.
+
+The model is based on two core concepts:
+
+- A canonical university entity that represents the stable internal identity of an institution.
+- An alias layer that captures alternative names that should resolve to the same canonical entity.
+
+Resolution proceeds through ordered exact matching:
+
+1. Attempt direct match against canonical normalized university names.
+2. If no direct match exists, attempt match through known aliases.
+3. If neither match succeeds, mark the record as unresolved.
+
+This produces a binary resolution state:
+
+- `resolved`
+- `unresolved`
+
+This approach avoids introducing silent ambiguity into the system. Fuzzy matching and AI-based matching may appear attractive for coverage, but they also introduce higher risk of false positives, opaque decisions, and difficult rollback paths. At this stage, the system prefers missed matches over incorrect matches.
+
+### 10.6 Manual Curation Loop
+
+A key part of the architecture is the manual curation loop:
+
+```text
+seed alias -> refresh -> unresolved report
+```
+
+This loop allows the platform to improve entity resolution coverage incrementally and safely. When unresolved universities appear in reporting, an operator can add a deterministic alias mapping. Once that alias is seeded, the resolution process can be rerun and the unresolved report regenerated immediately.
+
+This creates a practical closed loop:
+
+- unresolved entities are surfaced explicitly;
+- operators can curate missing mappings;
+- the resolver is rerun against existing landed data;
+- the unresolved population is reduced over time.
+
+This is a low-risk way to improve data quality because it does not require rewriting crawler logic, changing raw data, or introducing heuristic matching. Human intervention is preserved because institutional naming is often messy, context-dependent, and difficult to model perfectly through automation alone. Manual curation ensures that ambiguous naming issues are resolved deliberately rather than guessed.
+
+### 10.7 Safety & Isolation Principles
+
+The workflow is built around several safety and isolation principles.
+
+**Staging and production separation**  
+Intermediate representations are kept separate from production-oriented storage. This reduces the chance that malformed or partially resolved ranking data contaminates consumer-facing structures.
+
+**Validation gate**  
+Validation occurs before ingestion so that structurally invalid records are filtered before persistence. This establishes a clear control point between extraction and storage.
+
+**Idempotent writes**  
+Persistence steps are designed to tolerate reruns. Re-executing the same workflow should not create uncontrolled duplication or inconsistent state.
+
+**Conflict protection**  
+Duplicate-protection rules are enforced through deterministic uniqueness policies and conflict-safe insert behavior. This provides resilience during replay, retry, and backfill scenarios.
+
+**Transaction control**  
+Database writes are executed within explicit transaction boundaries so that partial failures do not leave persistent targets in ambiguous states.
+
+**Resolution isolation**  
+Entity resolution updates identity-related fields without mutating the original ranking facts. Raw and normalized values remain intact, while canonical identity is layered on separately.
+
+Taken together, these principles create a workflow that is easier to audit, safer to operate, and more tolerant of incremental change.
+
+### 10.8 Current Status
+
+At present, the ranking workflow has reached a stable intermediate state. Ranking data can be crawled, normalized, validated, staged, ingested, mapped into warehouse-oriented rows, landed into a dedicated warehouse preview table, and processed through a first-pass deterministic entity resolution layer.
+
+The current platform supports both file-based staging and database-backed staging persistence, including PostgreSQL-based landing targets. Warehouse-ready rows can be persisted in a dedicated landing layer, and unresolved entity populations can be measured and reviewed.
+
+Entity resolution is currently a first-version exact-match system based on canonical names and curated aliases. This is sufficient for establishing identity boundaries and manual curation patterns, but it should be understood as an intentionally conservative baseline rather than a complete resolution solution.
+
+The workflow has not yet advanced into final ranking aggregation, production-facing ranking read models, or recommendation-layer consumption. Those downstream layers remain intentionally decoupled from the current staging and landing pipeline.
+
+### 10.9 Future Direction
+
+The next phase of development should extend this architecture without collapsing its safety boundaries.
+
+Likely directions include:
+
+- strengthening entity resolution through broader alias coverage and more structured batch curation workflows;
+- introducing multi-source ranking aggregation over warehouse-landed records;
+- defining a stable production read model once upstream identity and quality contracts are sufficiently mature;
+- building downstream decision and recommendation layers on top of resolved and aggregated ranking data.
+
+These are natural extensions of the current design, but they should remain downstream of the existing staging, validation, landing, and resolution boundaries. The current architecture is intentionally structured so that those future capabilities can be added incrementally rather than through a disruptive rewrite.
+
+---
+
+## 11. AutoEval 與資料品質演進層
+
+### 11.1 AutoEval 的定位
 
 AutoEval 是一個位於 extractor / normalization 與資料平台之上的評估層，用於：
 
@@ -883,7 +1048,7 @@ AutoEval 是一個位於 extractor / normalization 與資料平台之上的評�
 - 支援 manual autoloop 與未來 agent-assisted optimization
 - 避免規則改動造成 silent regression
 
-### 10.2 AutoEval Extractor Milestone
+### 11.2 AutoEval Extractor Milestone
 
 目前已完成第一個完整 extractor AutoEval 閉環：
 
@@ -900,7 +1065,7 @@ AutoEval 是一個位於 extractor / normalization 與資料平台之上的評�
 - `error_count = 0`
 - `score ≈ 0.95`（runtime-adjusted）
 
-### 10.3 AutoEval 的意義
+### 11.3 AutoEval 的意義
 
 這代表 CrawlerNest 已不只是「一套爬蟲」，而是開始具備：
 
@@ -918,24 +1083,28 @@ AutoEval 是一個位於 extractor / normalization 與資料平台之上的評�
 
 ---
 
-## 11. 實體識別與推薦架構
+## 12. 實體識別與推薦架構
 
-### 11.1 實體識別流程（Entity Resolution）
+### 12.1 實體識別流程（Entity Resolution）
 
 ```text
 Raw School Name
-  → Manual Mapping
-  → Alias Table Lookup
-  → Fuzzy Matching
-  → Embedding Matching
+  → Canonical Exact Match
+  → Alias Exact Match
+  → Unresolved Queue
   → Resolved school_id
 ```
 
 優先序：
 
-`manual mapping → alias table → fuzzy matching → embedding matching`
+`deterministic exact match → alias table → unresolved`
 
-### 11.2 推薦決策流程
+說明：
+
+- 在目前 ranking production path 上，預設採用保守的 deterministic exact match
+- fuzzy matching 與 embedding matching 仍屬未來可擴展方向，不在目前預設生產路徑上自動啟用
+
+### 12.2 推薦決策流程
 
 ```text
 使用者檔案
@@ -947,20 +1116,20 @@ Raw School Name
 → 最終排序
 ```
 
-### 11.3 推薦架構核心價值
+### 12.3 推薦架構核心價值
 
 - **可解釋性**：每個推薦結果可回溯到具體特徵與訊號
 - **可擴展性**：可逐層引入 ML，不破壞既有流程
 - **多層級支援**：University / Program / Degree 三層
 
-### 11.4 推薦演進路線
+### 12.4 推薦演進路線
 
 - **V1.5**：校級推薦
 - **V2**：Program-aware 推薦
 - **V3**：Degree-level 推薦
 - **V4**：多層級智慧決策系統
 
-### 11.5 概念評分式
+### 12.5 概念評分式
 
 ```text
 RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPref + OutcomeSignal
@@ -968,9 +1137,9 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 
 ---
 
-## 12. 開發優先順序與執行策略
+## 13. 開發優先順序與執行策略
 
-### 12.1 第一層：當前（V1.5）
+### 13.1 第一層：當前（V1.5）
 
 當前焦點：
 
@@ -995,7 +1164,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
   - normalization / identity resolution 提升
   - rankings API 與 aggregation view 的持續穩定化
 
-### 12.2 第二層：下一階段（V2）
+### 13.2 第二層：下一階段（V2）
 
 焦點：多來源整合與資料深度
 
@@ -1007,7 +1176,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 - program taxonomy 初版
 - AutoEval 擴展到 normalization
 
-### 12.3 第三層：未來（V3）
+### 13.3 第三層：未來（V3）
 
 焦點：智能化與產品化
 
@@ -1017,7 +1186,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 - tuition / outcome / 第三方訊號整合
 - 公開 API 平台與完整 Web 產品
 
-### 12.4 優先原則
+### 13.4 優先原則
 
 ```text
 當前（V1.5） → 下一階段（V2） → 未來（V3）
@@ -1027,9 +1196,9 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 
 ---
 
-## 13. 里程碑與四年路線圖
+## 14. 里程碑與四年路線圖
 
-### 13.1 平台能力里程碑
+### 14.1 平台能力里程碑
 
 - **Milestone 1：穩定採集能力**（crawler + extractor + normalization baseline）
 - **Milestone 2：知識基礎能力**（canonical schema + PostgreSQL data platform）
@@ -1038,11 +1207,11 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 - **Milestone 5：Mini-Agent Development Layer**（evaluation-driven AI-assisted refinement with human-in-the-loop）
 - **Milestone 6：平台化擴展能力**（public interfaces + stronger analytics + broader deployment boundaries）
 
-### 13.2 四年路線原則
+### 14.2 四年路線原則
 
 **資料平台 → 分析能力 → 評估驅動的 AI 輔助開發 → 產品化**
 
-### 13.3 已完成里程進展 (Historical Timeline)
+### 14.3 已完成里程進展 (Historical Timeline)
 
 | 日期 | 里程碑 / 更新 | 狀態 | 描述 (Refined) |
 | :--- | :--- | :--- | :--- |
@@ -1099,7 +1268,7 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-04-04 | 完成白皮書架構更新，正式加入 Mini-Agent Development Layer 與 Design Principles | 已完成 |
 | 2026-04-08 | 完成專案定位更新：CrawlerNest 定義為 University Data Intelligence Infrastructure + controlled Mini-Agent Development Layer | 已完成 |
 
-### 13.4 當前階段判讀（截至 2026-04-08）
+### 14.4 當前階段判讀（截至 2026-04-08）
 
 CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
@@ -1112,7 +1281,7 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
 換言之，CrawlerNest 已不是單純 crawler 專案，但也尚未進入 fully scaled platform 階段。它目前最核心的工作，是把「資料平台 + 評估系統 + AI-assisted development layer」這三者之間的責任邊界持續打磨清楚。
 
-### 13.5 四年展望（Forward Timeline）
+### 14.5 四年展望（Forward Timeline）
 
 | 階段 | 目標 | 重點 |
 | :--- | :--- | :--- |
@@ -1120,6 +1289,11 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 | **2027** | 擴大評估與實體識別能力 | 強化 entity resolution、coverage validation、extractor benchmarking、recommendation calibration |
 | **2028** | 平台化資料服務與 intelligence tooling | 更清楚的 public interfaces、analytics expansion、system-integrated intelligence tooling |
 | **2029** | 形成可持續擴展的教育資料基礎設施 | 在可靠性、評估能力、產品服務面與 AI-assisted development workflow 之間建立長期穩定平衡 |
+
+### 14.6 補充完成紀錄（Detailed Completion Log）
+
+| 日期 | 補充完成紀錄 | 狀態 |
+| :--- | :--- | :--- |
 | 2026-03-26 | 完成 rankings API 排序與 aggregated source 修正，確保 aggregated rankings 以全域排序後再分頁 | 已完成 |
 | 2026-03-26 | 實作資料庫事務可靠性修復（Early Commit `crawl_run` + Batch 失敗時自動 Rollback） | 已完成 |
 | 2026-03-26 | 完成 `lobster-01` 專屬運行目錄與優化腳本，支援低規節點穩定抓取 | 已完成 |
@@ -1179,7 +1353,7 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 | 2026-04-05 | 新增 canonical country normalization layer：將 `China` / `China (mainland)` / `USA` / `UK` 等 alias 收斂為統一 canonical country，並同步修復 country validation、SQL filtering 與 `metadata.countryOptions` duplicate variants 問題 | 已完成 |
 | 2026-04-05 | 完成 Compare Page MVP：以 shortlist 為來源，比較 2–4 所大學的 aggregated rank、QS/THE/ARWU evidence、trust、admissions 與 warnings | 已完成 |
 
-### 13.4 未來階段規劃
+### 14.7 未來階段規劃
 
 - **Phase 1（0-6 個月）**：建立 HTML 樣本庫、完善 extractor 單測、完成 C engine 邊界定義
 - **Phase 2（7-18 個月）**：強化 PostgreSQL analytics schema、實作去重引擎、整合 C engine
@@ -1188,16 +1362,16 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
 ---
 
-## 14. 產品願景與能力地圖
+## 15. 產品願景與能力地圖
 
-### 14.1 產品形態（成熟期）
+### 15.1 產品形態（成熟期）
 
 - **University Data Explorer**：結構化全球院校查詢
 - **AI Selection Assistant**：個人化選校輔助
 - **Cross-Ranking Analytics**：跨榜單比較與研究工具
 - **Integrated Decision Platform**：排名、錄取、費用、成果整合平台
 
-### 14.2 能力地圖
+### 15.2 能力地圖
 
 | 能力層 | 能力項目 | 目前狀態 | 長期方向 |
 | :--- | :--- | :---: | :--- |
@@ -1214,7 +1388,7 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 | 產品化層 | Website MVP（Rankings / Detail / Recommendations） | 已運作 | 演進為完整 decision-support product |
 | 產品化層 | Frontend API proxy 與瀏覽穩定性 | 已運作 | 擴展至更多 product APIs 與 caching 策略 |
 
-### 14.3 決策引擎校準快照（2026-03-24）
+### 15.3 決策引擎校準快照（2026-03-24）
 
 以目前實際驗證過的 UK hard-filter pool、`targetRank=100`、`ielts=6.5` 為例：
 
@@ -1229,7 +1403,7 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 - aggressive 會增加 reach，但不再把頂尖學校大量推到 `100.0`
 - confidence 仍會影響解釋、排序與信心，但不再主導 category 扭曲
 
-### 14.4 補充能力地圖
+### 15.4 補充能力地圖
 
 | 能力層 | 能力項目 | 目前狀態 | 長期方向 |
 | :--- | :--- | :---: | :--- |
@@ -1239,9 +1413,9 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
 ---
 
-## 15. 風險與維護策略
+## 16. 風險與維護策略
 
-### 15.1 主要風險
+### 16.1 主要風險
 
 | 風險類別 | 風險項目 | 影響程度 | 緩解策略 |
 | :--- | :--- | :---: | :--- |
@@ -1253,7 +1427,7 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 | 運維層 | 低規節點長時間運行失敗（OOM / IO wait / restart loop） | 中 | 導入 Low-spec mode、systemd、自動重啟節流、checkpoint/resume、log rotation |
 | 硬體層 | 老舊 x86 節點老化（主機板 / PSU / SATA / 散熱） | 中 | 將其定位為可失敗節點、定期保養、資料備份、避免唯一依賴 |
 
-### 15.2 例行維護清單
+### 16.2 例行維護清單
 
 - **每季**：抽樣 Top 10 大學頁面，檢查 DOM 與解析正確性
 - **每月**：檢查 low-spec 節點磁碟空間、log 增長、checkpoint 更新狀態
@@ -1266,7 +1440,7 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
 ---
 
-## 16. OpenClaw / Lobster-01 節點定位補充
+## 17. OpenClaw / Lobster-01 節點定位補充
 
 現有低規硬體已被明確定位為 **OpenClaw Node-01 / Lobster-01**。
 

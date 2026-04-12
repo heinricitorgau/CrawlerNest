@@ -18,6 +18,7 @@ CrawlerNest 是一套端到端的大學資料平台，能把分散的網頁資�
 
 *   **多來源排名 Ingestion：** QS、THE、ARWU 已可進入同一條 ranking storage / aggregation path。THE world rankings 優先使用**結構化 JSON**（已發布時使用 CDN blobs，否則退回 Next.js `__NEXT_DATA__`），而非脆弱的 HTML-first 抓法。
 *   **拆分式 Crawler Foundation：** 爬蟲層現在已明確拆成共享 crawler core，以及兩套彼此獨立的 engine：負責排名來源的 **Ranking Crawler Engine**，以及負責學校官網 admissions 資料的 **Admission Crawler Engine**。
+*   **Ranking Production Workflow：** ranking path 已建立一條受控資料生產鏈：raw artifact、normalized artifact、staging output、validation gate、controlled ingest、warehouse preview、warehouse landing、deterministic entity resolution、unresolved reporting、alias seeding 與 refresh orchestration。
 *   **Universe-Aware Aggregation：** 排名已區分為 `global`、`region`、`subject`、`special` 等 universe，aggregation 會依 universe 隔離處理。
 *   **以 Rank 為主的 Aggregation Truth：** aggregated rank 由來源 rank 決定，而不是用 composite score 排序；`compositeScore` 僅保留為展示訊號。
 *   **Ranking Evidence：** 產品列與大學 detail page 可直接顯示 QS / THE / ARWU 的來源排名，以及來源間的差異。
@@ -54,6 +55,12 @@ Mini-Agent Layer 遵循一個受限的循環：
 `Task -> Generate -> Evaluate -> Refine`
 
 它與 AutoEval 深度整合，目標是在不削弱 system reliability 的前提下提升開發速度。
+
+目前 ranking 專用資料生產鏈如下：
+
+`crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh`
+
+這條路徑刻意與最終 production read model 保持隔離。ranking facts 會先經過 staging 與 warehouse landing 的穩定化，再透過 deterministic entity resolution 與 manual curation 補強，之後才適合進一步進入更高層的 aggregation 與 decision workflows。
 
 更完整的工程設計請參考 [Whitepaper](docs/foundation/Whitepaper.md)。
 

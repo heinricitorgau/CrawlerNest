@@ -2,6 +2,14 @@
 
 The CrawlerNest platform is a modular data-processing engine designed for research and production-grade web crawling. This document describes the "startup / research-lab" style architecture implemented in the 2026 refactor.
 
+The ranking path now includes a controlled data-production and resolution chain before any final product-facing truth is touched:
+
+```text
+crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh
+```
+
+This makes ranking ingestion rerunnable, auditable, and safer to evolve.
+
 ## 📌 System Topology
 
 ```mermaid
@@ -72,6 +80,7 @@ Ranking-specific crawler engine.
 - `sources/qs.py`: Example QS crawler stub.
 - `sources/the.py`, `sources/arwu.py`: placeholder source crawlers.
 - `models.py`: `RankingRecord`.
+- downstream handoff now feeds a controlled ranking production workflow rather than writing directly into final product-serving truth
 
 ### 4. `crawlernest-admission-crawler`
 Admission-specific crawler engine.
@@ -90,6 +99,15 @@ The orchestration layer. It should own batch execution and pipeline routing, not
 The persistence layer.
 - `db_writer.py`: Implements the warehouse-style ingestion pipeline (dimensions vs. facts).
 - `db.py`: Legacy support for flat SQLite tables.
+
+For the ranking-specific workflow, persistence is now more explicitly staged:
+
+- validated staging persistence
+- warehouse preview mapping
+- warehouse landing writes
+- post-landing deterministic entity resolution
+
+This separation reduces the risk of pushing crawler-side uncertainty directly into final warehouse truth.
 
 ### 8. [crawlernest-normalization](file:///Users/test/Desktop/crawlernest/crawlernest-normalization)
 Data cleaning and standardization.
@@ -110,5 +128,6 @@ The Knowledge Base. Contains snapshots of validated data and reference databases
 ## ⚡ Technical Highlights
 
 - **Separated crawler runtime**: transport concerns now live in `crawlernest-crawler-core`, while ranking and admission engines evolve independently.
+- **Controlled ranking production path**: ranking records move through staging, validation, warehouse landing, and deterministic entity resolution before downstream truth consumption.
 - **Robustness**: Extracted data is validated against known score boundaries (e.g., IELTS 0–9).
 - **Network Resilience**: External API calls are guarded by mocks in tests, and live calls use auto-skipping logic if endpoints are unreachable.
