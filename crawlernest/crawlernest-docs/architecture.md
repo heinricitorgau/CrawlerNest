@@ -20,10 +20,10 @@ graph TD
     end
 
     subgraph "Pipeline Layer"
+        JOBS[crawlernest-jobs]
         CORECRAWL[crawlernest-crawler-core]
         RANKCRAWL[crawlernest-ranking-crawler]
         ADMCRAWL[crawlernest-admission-crawler]
-        JOBS[crawlernest-jobs]
         EXT[crawlernest-extractors]
     end
 
@@ -42,16 +42,15 @@ graph TD
     CORE[crawlernest-core]
 
     CLI --> JOBS
-    JOBS --> RANKCRAWL
-    JOBS --> ADMCRAWL
+    JOBS --> CORECRAWL
+    CORECRAWL --> RANKCRAWL
+    CORECRAWL --> ADMCRAWL
     RANKCRAWL --> EXT
     ADMCRAWL --> EXT
-    RANKCRAWL -.-> CORECRAWL
-    ADMCRAWL -.-> CORECRAWL
-    EXT --> DBW
+    EXT --> NORM
+    NORM --> DBW
     DBW --> SCHEMA
     DBW --> KB
-    NORM --> DBW
     ANA --> KB
     
     %% Shared Core
@@ -91,6 +90,7 @@ Admission-specific crawler engine.
 
 ### 5. [crawlernest-extractors](file:///Users/test/Desktop/crawlernest/crawlernest-extractors)
 Reusable fetch / parse helpers used by crawler engines and legacy ingestion code.
+It is not the top-level crawler runtime and should not own ranking-vs-admission orchestration.
 
 ### 6. [crawlernest-jobs](file:///Users/test/Desktop/crawlernest/crawlernest-jobs)
 The orchestration layer. It should own batch execution and pipeline routing, not low-level crawler transport concerns.
@@ -128,6 +128,7 @@ The Knowledge Base. Contains snapshots of validated data and reference databases
 ## ⚡ Technical Highlights
 
 - **Separated crawler runtime**: transport concerns now live in `crawlernest-crawler-core`, while ranking and admission engines evolve independently.
+- **Jobs stay orchestration-only**: `crawlernest-jobs` routes and batches work, but shared runtime stays in `crawlernest-crawler-core`.
 - **Controlled ranking production path**: ranking records move through staging, validation, warehouse landing, and deterministic entity resolution before downstream truth consumption.
 - **Robustness**: Extracted data is validated against known score boundaries (e.g., IELTS 0–9).
 - **Network Resilience**: External API calls are guarded by mocks in tests, and live calls use auto-skipping logic if endpoints are unreachable.

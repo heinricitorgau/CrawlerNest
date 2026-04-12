@@ -4,7 +4,7 @@ This document defines how automated evaluation experiments are conducted within 
 
 Unlike the original autoresearch setup (focused on LLM training), this system is adapted for:
 
-- Data extraction (extractors)
+- Crawler-engine extraction and parsing refinement
 - Data normalization (cleaning / standardization)
 - Future ranking / recommendation systems
 
@@ -54,6 +54,8 @@ Example:
 python runners/run_extractor_eval.py
 ```
 
+In practice, this usually evaluates changes in ranking/admission extraction logic rather than changes to a single monolithic crawler.
+
 ---
 
 ## Allowed Modifications
@@ -64,7 +66,13 @@ Experiments must follow strict boundaries.
 
 Depending on experiment scope:
 
-- Extractor rules
+- Ranking crawler extraction rules
+  - `crawlernest-ranking-crawler/`
+
+- Admission crawler extraction rules
+  - `crawlernest-admission-crawler/`
+
+- Shared extractor helpers
   - `crawlernest-extractors/`
 
 - Normalization rules
