@@ -5,12 +5,8 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 
+from crawlernest_ranking_crawler.postgres_driver import get_psycopg2
 from crawlernest_ranking_crawler.warehouse_mapper import WarehouseReadyRankingRow
-
-try:
-    import psycopg2
-except ImportError:  # pragma: no cover - optional dependency in local dev
-    psycopg2 = None  # type: ignore[assignment]
 
 
 @dataclass(slots=True)
@@ -65,8 +61,10 @@ def write_warehouse_landing_rows(
     schema_name: str = "warehouse",
     table_name: str = "ranking_records_preview",
 ) -> WarehouseLandingWriteSummary:
-    if psycopg2 is None:
-        raise RuntimeError("psycopg2 is required for warehouse landing writes")
+    try:
+        psycopg2 = get_psycopg2()
+    except ImportError as exc:
+        raise RuntimeError("psycopg2 is required for warehouse landing writes") from exc
 
     conn = psycopg2.connect(
         host=pg_host,
