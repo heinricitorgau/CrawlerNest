@@ -70,7 +70,7 @@ If someone is new to the repo, this is the fastest path:
 | `crawlernest/crawlernest-ranking-crawler/README.md` | Ranking-specific crawler engine entry doc. |
 | `crawlernest/crawlernest-admission-crawler/README.md` | Admission-specific crawler engine entry doc. |
 | `crawlernest/crawlernest-core/README.md` | Shared config, models, logging, and common utilities. |
-| `crawlernest/crawlernest-core/entity_resolution/README.md` | Entity resolution logic for university identity cleanup and matching. |
+| `crawlernest/crawlernest-core/entity_resolution/README.md` | Deterministic ranking-entity resolution, alias curation loop, and future resolution direction. |
 | `crawlernest/crawlernest-core/multi_source/README.md` | Integration strategy for multiple ranking sources like QS, THE, and ARWU. |
 | `crawlernest/crawlernest-core/ranking_aggregation/README.md` | Deterministic ranking aggregation layer. |
 | `crawlernest/crawlernest-core/recommendation_engine/README.md` | Deterministic university recommendation engine design. |
@@ -146,3 +146,13 @@ If you want to reduce doc sprawl further, these are the easiest wins:
 
 1. Decide one canonical architecture doc between `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` and `crawlernest/crawlernest-docs/architecture.md`, then cross-link them clearly.
 2. Keep `docs/MARKDOWN_INDEX.md` updated whenever a new top-level module doc is added.
+
+## Recently Updated Narrative Areas
+
+The following docs were recently synchronized to reflect the current ranking workflow:
+
+- root project overviews
+- ranking crawler module overview
+- system architecture narratives
+- entity resolution overview
+- whitepaper chapter for ranking production and resolution workflow

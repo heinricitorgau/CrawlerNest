@@ -2,84 +2,102 @@
 
 ## Pipeline Position
 
+```text
+ranking crawl
+-> normalization
+-> warehouse preview / landing
+-> deterministic entity resolution
+-> unresolved reporting
+-> manual alias seeding
+-> refresh loop
 ```
-crawler -> extractor -> normalization -> entity_resolution -> db_writer
+
+Entity resolution is the identity-control layer that maps normalized university names onto canonical university entities without mutating the original ranking facts.
+
+## Current Strategy
+
+The current production-minded ranking flow uses a conservative first-pass resolver.
+
+Resolution follows this order:
+
+1. exact match against canonical university normalized names
+2. exact match against curated university aliases
+3. unresolved if no deterministic match exists
+
+Current resolution status values are:
+
+- `resolved`
+- `unresolved`
+
+This is intentionally narrower than a full fuzzy-matching system. At this stage, the priority is correctness, repeatability, and safe manual improvement rather than maximum automatic coverage.
+
+## Why The Resolver Is Conservative
+
+CrawlerNest currently treats incorrect identity merges as more dangerous than missed matches.
+
+Because of that:
+
+- fuzzy matching is not on the default ranking production path
+- AI-based matching is not on the default ranking production path
+- unresolved rows are surfaced explicitly instead of being guessed into a canonical entity
+
+This keeps the system explainable and easier to audit.
+
+## Canonical And Alias Model
+
+The resolution model is built around two concepts:
+
+- **canonical universities**: the stable internal identity of an institution
+- **university aliases**: curated alternative names that should resolve to the same canonical entity
+
+Typical examples of aliases include:
+
+- abbreviations
+- source-specific naming variants
+- punctuation or casing variants
+- manual curation for historically inconsistent source naming
+
+## Manual Curation Loop
+
+The intended operating loop is:
+
+```text
+seed alias -> refresh resolution -> review unresolved report
 ```
 
-Entity resolution takes normalized source records and returns canonical IDs plus matching metadata.
+This loop allows operators to reduce unresolved entities incrementally without changing crawler behavior or rewriting upstream pipeline stages.
 
-## Staged Matching Strategy
+The benefits are:
 
-1. `exact`
-- lookup by exact alias text (O(1) hash lookup)
-- highest precision, lowest latency
+- deterministic behavior
+- clear auditability
+- easy reruns
+- low-risk expansion of resolution coverage
 
-2. `normalized`
-- normalize case/punctuation/abbreviations and compare exact normalized key
-- high precision, robust to formatting differences
+## What This Layer Owns
 
-3. `fuzzy`
-- candidate blocking by token and optional country
-- scoring: `0.75 * SequenceMatcher + 0.25 * token_jaccard`
-- accepts only over configurable threshold
+- canonical identity matching for normalized university names
+- alias-driven deterministic resolution
+- unresolved status assignment
+- support for manual curation and re-resolution
 
-4. `embedding` (optional plugin)
-- pluggable function for semantic similarity
-- suitable for multilingual/noisy aliases, but slower and costlier
+## What This Layer Does Not Own
 
-## Threshold Design
+- crawler-side normalization
+- ranking aggregation truth
+- recommendation scoring
+- final product read models
+- heuristic or AI-driven auto-merging on the production path
 
-Default thresholds (`ResolverThresholds`):
+## Future Direction
 
-- `fuzzy_accept = 0.93`
-- `fuzzy_review = 0.88`
-- `embedding_accept = 0.90`
-- `embedding_review = 0.84`
+This layer is expected to evolve, but in controlled phases.
 
-Guideline:
+Likely future directions include:
 
-- Above `*_accept`: auto-accept
-- Between `*_review` and `*_accept`: mark for manual review
-- Below `*_review`: unresolved
+- broader alias coverage
+- batch curation workflows
+- review-oriented matching queues
+- optional fuzzy or semantic candidate generation behind explicit guardrails
 
-## Performance Notes
-
-- No full pairwise O(N^2) comparisons
-- Blocking by normalized tokens (and country when provided)
-- Candidate cap (`max_fuzzy_candidates`) to bound worst-case latency
-- Recommended DB indexes:
-  - `alias_normalized` btree
-  - trigram GIN on alias text/normalized alias
-  - `(source_name, source_entity_id)` unique mapping index
-
-## Function Interfaces
-
-Core interfaces:
-
-- `EntityResolver.resolve_one(record: EntityRecord) -> ResolutionResult`
-- `EntityResolver.resolve_batch(records: list[EntityRecord]) -> list[ResolutionResult]`
-- `EntityResolutionRepository.load_canonical_profiles() -> list[CanonicalProfile]`
-- `EntityResolutionRepository.upsert_source_mapping(result, threshold_used)`
-- `EntityResolutionRepository.log_resolution_event(...)`
-
-## Integration Example
-
-```python
-from entity_resolution import EntityRecord, EntityResolver
-
-records = [
-    EntityRecord(source_name="QS", source_entity_id="nid:123", university_name="MIT", country_hint="united states"),
-]
-
-results = resolver.resolve_batch(records)
-for r in results:
-    # write mapping and event logs
-    repo.upsert_source_mapping(r, threshold_used=0.93)
-    repo.log_resolution_event(
-        source_name=r.source_name,
-        source_entity_id=r.source_entity_id,
-        raw_name=records[0].university_name,
-        country_hint=records[0].country_hint,
-        result=r,
-    )
-```
+Any future expansion should remain downstream of the deterministic baseline rather than replacing it outright.

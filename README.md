@@ -15,6 +15,7 @@ Students and advisors do not just need more ranking rows. They need transparent 
 ## Current Capabilities
 *   **Multi-Source Ranking Ingestion:** QS, THE, and ARWU can now feed the same ranking storage and aggregation path. THE world rankings prefer **structured JSON** (CDN blobs when published, else Next.js `__NEXT_DATA__`) rather than brittle HTML-first scraping.
 *   **Split Crawler Foundation:** The crawling stack now has an explicit shared crawler core plus two independent engines: a **Ranking Crawler Engine** for ranking sources and an **Admission Crawler Engine** for university-site admissions data.
+*   **Ranking Production Workflow:** The ranking path now runs through a controlled production-oriented chain: raw artifact, normalized artifact, staging output, validation gate, controlled ingest, warehouse preview, warehouse landing, deterministic entity resolution, unresolved reporting, alias seeding, and refresh orchestration.
 *   **Universe-Aware Aggregation:** Rankings are handled as distinct universes such as `global`, `region`, `subject`, and `special`, with aggregation isolated per universe.
 *   **Rank-Based Aggregation Truth:** Aggregated rank order is now driven by source ranks, not composite score sorting. Composite score remains a display signal only.
 *   **Ranking Evidence:** Product rows and university detail pages expose QS / THE / ARWU source ranks directly, including disagreement across sources.
@@ -49,6 +50,12 @@ The Mini-Agent Layer follows a constrained loop:
 `Task -> Generate -> Evaluate -> Refine`
 
 It is integrated with AutoEval and designed to improve development speed without weakening system reliability.
+
+The ranking-specific data-production loop now follows this controlled path:
+
+`crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh`
+
+This path is intentionally isolated from the final production read model. Ranking facts are first stabilized in staging and warehouse landing layers, then enriched through deterministic entity resolution and manual curation before they are allowed to influence broader downstream truth.
 
 For a deep dive into the engineering principles, see the [Whitepaper](docs/foundation/Whitepaper.md).
 

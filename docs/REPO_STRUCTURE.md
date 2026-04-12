@@ -7,6 +7,10 @@ CrawlerNest 目前採用「外層 workspace + 內層產品 workspace」的雙層
 
 - `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
 
+若你要理解目前 ranking 專用資料生產鏈，請先建立這個心智模型：
+
+`crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh`
+
 ## 1. Top-Level Repository Layout
 
 ```text
@@ -59,6 +63,14 @@ crawlernest/
 ├── crawlernest-samples/               # 範例資料
 └── crawlernest-infra/                 # 基礎設施資產與備忘
 ```
+
+其中與 ranking workflow 最直接相關的幾個區塊是：
+
+- `run_pipeline.py`：高層 orchestration 與 command routing
+- `pipeline/`：staging、validation、preview、landing 等協調層
+- `crawlernest-ranking-crawler/`：ranking 專用 crawl 與前段資料生產
+- `crawlernest-schema/`：warehouse / entity resolution / aggregation schema
+- `crawlernest-samples/`：raw、normalized、staging、preview 等 artifact 輸出
 
 ## 3. Core Development Areas
 
@@ -133,11 +145,14 @@ crawlernest/crawlernest-web/src/
 目前最常碰的主路徑如下：
 
 - Pipeline: `crawlernest/run_pipeline.py`
+- Ranking workflow helpers: `crawlernest/pipeline/`
 - Python core: `crawlernest/crawlernest-core/`
+- Ranking crawler engine: `crawlernest/crawlernest-ranking-crawler/`
 - Schema: `crawlernest/crawlernest-schema/`
 - API: `crawlernest/servise_for_java/`
 - Frontend: `crawlernest/crawlernest-web/`
 - Knowledge artifacts: `crawlernest/crawlernest-kb/`
+- Sample artifacts: `crawlernest/crawlernest-samples/`
 - Operations scripts: `crawlernest/scripts/`
 
 ## 6. Structural Notes
