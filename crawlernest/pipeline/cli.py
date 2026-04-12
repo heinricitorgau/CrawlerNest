@@ -277,6 +277,26 @@ def build_parser(
     write_ranking_warehouse_parser.add_argument("--pg-user", default="test")
     write_ranking_warehouse_parser.add_argument("--pg-password", default="")
 
+    resolve_ranking_entities_parser = subparsers.add_parser(
+        "resolve-ranking-entities",
+        help="Resolve warehouse preview rows to canonical_university_id using deterministic exact matches",
+    )
+    resolve_ranking_entities_parser.add_argument(
+        "--target-schema",
+        default="warehouse",
+        help="Schema containing the ranking preview table",
+    )
+    resolve_ranking_entities_parser.add_argument(
+        "--target-table",
+        default="ranking_records_preview",
+        help="Preview table to update with canonical entity resolution",
+    )
+    resolve_ranking_entities_parser.add_argument("--pg-host", default="localhost")
+    resolve_ranking_entities_parser.add_argument("--pg-port", type=int, default=5432)
+    resolve_ranking_entities_parser.add_argument("--pg-database", default="clawer")
+    resolve_ranking_entities_parser.add_argument("--pg-user", default="test")
+    resolve_ranking_entities_parser.add_argument("--pg-password", default="")
+
     ingest_parser = subparsers.add_parser(
         "ingest-rankings",
         help="Ingest standardized ranking payloads for QS/THE/ARWU into multi-source tables and refresh aggregation",
