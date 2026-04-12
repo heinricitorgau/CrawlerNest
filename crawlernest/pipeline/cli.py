@@ -20,6 +20,7 @@ def build_parser(
     default_ranking_records_normalized = workspace_root / "crawlernest-samples" / "ranking_records_normalized.json"
     default_ranking_records_staging = workspace_root / "crawlernest-samples" / "ranking_records_staging.jsonl"
     default_ranking_ingest_db = workspace_root / "crawlernest-samples" / "ranking_staging_ingest.sqlite3"
+    default_ranking_warehouse_preview = workspace_root / "crawlernest-samples" / "ranking_warehouse_preview.json"
     default_admission_records = workspace_root / "crawlernest-samples" / "admission_records.json"
 
     parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
@@ -203,6 +204,37 @@ def build_parser(
         action="store_true",
         help="Ingest only validated rows even if invalid or duplicate rows are present",
     )
+
+    preview_ranking_warehouse_parser = subparsers.add_parser(
+        "preview-ranking-warehouse-map",
+        help="Preview how ranking staging rows would map into warehouse-ready ranking rows",
+    )
+    preview_ranking_warehouse_parser.add_argument(
+        "--input-source",
+        choices=["jsonl", "postgres"],
+        default="jsonl",
+        help="Where to load staging rows from for warehouse mapping preview",
+    )
+    preview_ranking_warehouse_parser.add_argument(
+        "--staging-input-file",
+        default=str(default_ranking_records_staging),
+        help="JSONL staging file used when --input-source=jsonl",
+    )
+    preview_ranking_warehouse_parser.add_argument(
+        "--staging-table",
+        default="ranking_staging_records",
+        help="PostgreSQL staging table used when --input-source=postgres",
+    )
+    preview_ranking_warehouse_parser.add_argument(
+        "--output-file",
+        default=str(default_ranking_warehouse_preview),
+        help="Artifact path for warehouse-ready preview rows",
+    )
+    preview_ranking_warehouse_parser.add_argument("--pg-host", default="localhost")
+    preview_ranking_warehouse_parser.add_argument("--pg-port", type=int, default=5432)
+    preview_ranking_warehouse_parser.add_argument("--pg-database", default="clawer")
+    preview_ranking_warehouse_parser.add_argument("--pg-user", default="test")
+    preview_ranking_warehouse_parser.add_argument("--pg-password", default="")
 
     ingest_parser = subparsers.add_parser(
         "ingest-rankings",

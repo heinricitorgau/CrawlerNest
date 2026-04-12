@@ -1,0 +1,32 @@
+[
+  {
+    "university_name": "MIT",
+    "normalized_university_name": "MIT",
+    "source": "QS",
+    "rank": 1,
+    "year": 2026,
+    "source_url": null,
+    "extracted_at": "2026-04-12T09:08:30.149131+00:00",
+    "ranking_year": 2026,
+    "universe_type": "global",
+    "universe_key": "global",
+    "canonical_university_id": null,
+    "entity_resolution_status": "unresolved",
+    "source_resolution_status": "direct_source_only"
+  },
+  {
+    "university_name": "Oxford",
+    "normalized_university_name": "Oxford",
+    "source": "QS",
+    "rank": 2,
+    "year": 2026,
+    "source_url": null,
+    "extracted_at": "2026-04-12T09:08:30.149131+00:00",
+    "ranking_year": 2026,
+    "universe_type": "global",
+    "universe_key": "global",
+    "canonical_university_id": null,
+    "entity_resolution_status": "unresolved",
+    "source_resolution_status": "direct_source_only"
+  }
+]
