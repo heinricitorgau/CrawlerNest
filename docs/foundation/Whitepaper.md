@@ -96,7 +96,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 4. 核心架構策略與機制  
 5. 資料平台與知識庫設計  
 6. Crawler 框架與 Job 管線  
-7. Ranking Data Production & Resolution Workflow  
+7. 排名資料生產與解析工作流  
 8. AutoEval 與資料品質演進層  
 9. 實體識別與推薦架構  
 10. 開發優先順序與執行策略  
@@ -163,7 +163,7 @@ graph TD
 
 它不替代主資料管線，而是作為與 AutoEval 緊密耦合的 Mini-Agent Development Layer，服務於 extractor、workflow 與系統 refinement。
 
-### 4.1 Mini-Agent Development Architecture
+### 4.1 Mini-Agent 開發架構（Mini-Agent Development Architecture）
 
 Mini-Agent Development Layer 的存在，不是為了追求「完全自動化」，而是為了處理工程系統中一個很實際的張力：
 
@@ -221,23 +221,23 @@ AutoEval 是 Mini-Agent Layer 的核心約束機制。沒有 evaluation 的生�
 **c. Pipeline**  
 Mini-Agent Layer 不直接取代主 pipeline。Crawler、normalizer、database、analytics 與 recommendation 仍是主系統的正式責任鏈。Mini-Agent Layer 的角色是加速 refinement、降低人工試錯成本，並強化可靠性，而不是成為新的 production truth source。
 
-### 4.2 Design Principles
+### 4.2 設計原則（Design Principles）
 
 CrawlerNest 在引入 Mini-Agent Development Layer 後，設計原則變得更加明確：
 
-#### 4.2.1 Evaluation-First Development
+#### 4.2.1 評估優先開發（Evaluation-First Development）
 
 生成不是終點，評估才是決策依據。所有 AI-assisted refinement 都應盡量被拉回到可驗證、可比較、可重跑的評估流程中。
 
-#### 4.2.2 Controlled Automation Over Full Autonomy
+#### 4.2.2 受控自動化優於完全自治（Controlled Automation Over Full Autonomy）
 
 CrawlerNest 選擇的是受控自動化，而不是追求完整自治。原因很直接：資料平台的價值建立在穩定性、可追溯性與責任邊界，而不是最大化自動生成的表面速度。
 
-#### 4.2.3 System Reliability Over Raw Speed
+#### 4.2.3 系統可靠性優先於原始速度（System Reliability Over Raw Speed）
 
 更快的 iteration 很重要，但如果它破壞資料品質、讀取穩定性或推薦可信度，整體系統價值反而會下降。因此，可靠性始終優先於未經驗證的加速。
 
-#### 4.2.4 Human Oversight as a Core Constraint
+#### 4.2.4 人類監督是核心約束（Human Oversight as a Core Constraint）
 
 Human-in-the-loop 並不是過渡方案，而是架構本身的一部分。人類負責定義任務邊界、判斷風險、審視評估結果，並決定哪些 refinement 可以真正進入系統。
 
@@ -263,7 +263,7 @@ B2C / B2B 產品化
 - **下一階段（V2）**：多來源整合深化、實體識別升級、program-level analytics、產品層穩定化
 - **未來（V3+）**：LLM 輔助研究、公開 API、完整 Web 平台、產品化擴張
 
-### 4.4 From Local System to Distributed Platform
+### 4.4 從本機系統走向可分離部署平台（From Local System to Distributed Platform）
 
 CrawlerNest 最初是以 local-first 的研究與工程系統型態建立。這個起點是合理的：單機環境能讓 crawler、normalization、資料庫、API 與前端原型在同一台機器上快速迭代，降低早期部署與基礎設施負擔。然而，當系統逐步演進為多層資料平台後，`localhost`-only 的運行方式已不再只是簡單，而是開始成為結構性瓶頸。
 
@@ -426,7 +426,7 @@ CrawlerNest 目前仍不是全域高可用、多區部署、完全自動化基�
 
 CrawlerNest 的演進方向，是在保留 local-first 工程效率的前提下，逐步建立 cloud-enabled、可分離部署、可持續擴展的資料平台能力。
 
-### 4.5 Role of Node Machines in the CrawlerNest Architecture
+### 4.5 Node Machines 在 CrawlerNest 中的角色（Role of Node Machines in the CrawlerNest Architecture）
 
 在 CrawlerNest 從 local monolith 演進為分散式資料平台之後，node machines 的角色變得更加明確：它們不再只是「跑爬蟲的電腦」，而是整個資料生產層的專用執行節點。
 
@@ -871,169 +871,169 @@ CrawlerNest 已明確區分：
 
 ---
 
-## 10. Ranking Data Production & Resolution Workflow
+## 10. 排名資料生產與解析工作流（Ranking Data Production & Resolution Workflow）
 
 本章描述 CrawlerNest 目前已落地的 ranking 專用資料生產與實體解析工作流，以及其與更下游 production read model 之間的安全邊界。
 
-### 10.1 Design Goals
+### 10.1 設計目標
 
-The ranking workflow is designed as a controlled data production pipeline rather than a direct write path into production-facing models. Its primary objectives are to create a repeatable and observable process for ranking data ingestion, to isolate data quality and resolution risks before they affect downstream consumers, and to support incremental evolution without destabilizing the broader platform.
+這條 ranking workflow 被設計成一條受控的資料生產管線，而不是直接寫入 production-facing model 的捷徑。它的核心目的，是建立一條可重跑、可觀測、可審計的排名資料生產流程，在資料尚未進入更下游的聚合與產品層之前，先把資料品質與實體解析風險隔離開來。
 
-Several design goals shape this workflow:
+這一層設計主要服務以下幾個目標：
 
-- Establish a rerunnable data production process with clear checkpoints and artifacts.
-- Separate crawling, transformation, validation, persistence, and entity resolution into explicit stages.
-- Prevent unverified or weakly resolved data from directly entering production-oriented schemas.
-- Support both automated processing and human curation within the same operating model.
-- Make each stage independently testable, inspectable, and recoverable.
-- Allow future production integration without requiring a redesign of the upstream pipeline.
+- 建立具備明確 checkpoint 與 artifact 的可重跑資料生產流程
+- 將 crawling、transformation、validation、persistence 與 entity resolution 拆成清楚的責任階段
+- 避免未驗證或低信心解析的資料直接進入 production-oriented schema
+- 讓自動化流程與人工 curation 可以在同一套 operating model 中共存
+- 讓每一個階段都能獨立驗證、獨立觀察、獨立重跑
+- 為未來 production integration 預留空間，而不要求上游流程被重新設計
 
-This approach favors safety, traceability, and operational clarity over early optimization.
+整體取向是以安全、可追溯與可運維性優先，而不是過早追求一步到位的最終模型。
 
-### 10.2 Pipeline Overview
+### 10.2 流程概覽
 
-The current ranking workflow can be summarized as follows:
+目前 ranking workflow 可概括如下：
 
 ```text
 crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh
 ```
 
-Each layer serves a distinct role:
+每一層都有清楚的角色：
 
-- `crawl`: Collect ranking source data from ranking crawlers.
-- `raw`: Preserve the original structured crawl output for inspection and replay.
-- `normalized`: Standardize core fields into a consistent internal shape.
-- `staging`: Materialize normalized rows into a lightweight intermediate store for downstream processing.
-- `validate`: Apply deterministic data quality checks before persistence.
-- `ingest`: Write validated rows into a controlled persistence target.
-- `warehouse preview`: Transform staging rows into a warehouse-oriented structure without committing to final production models.
-- `warehouse landing`: Persist warehouse-ready rows in a dedicated landing table.
-- `resolve`: Attach canonical university identities using deterministic matching rules.
-- `report`: Summarize unresolved entities for review.
-- `seed`: Allow manual alias additions to improve future resolution coverage.
-- `refresh`: Re-run resolution and reporting after curation changes.
+- `crawl`：從 ranking crawler 收集來源資料
+- `raw`：保留最原始的結構化 crawl 輸出，作為檢查與重放基礎
+- `normalized`：將核心欄位轉成一致的內部格式
+- `staging`：把 normalized rows 落成輕量中繼層，供後續流程消費
+- `validate`：在持久化之前先套用 deterministic data quality checks
+- `ingest`：將驗證通過的資料寫入受控 persistence target
+- `warehouse preview`：先把 staging rows 映射成 warehouse-oriented 結構，但尚不承諾為最終 production model
+- `warehouse landing`：將 warehouse-ready rows 寫入專用 landing table
+- `resolve`：用 deterministic matching 規則附加 canonical university identity
+- `report`：統計 unresolved entities，供人工 review
+- `seed`：允許人工補入 alias，提升後續 resolution coverage
+- `refresh`：在 curation 之後重新跑 resolution 與 unresolved reporting
 
-The pipeline is intentionally layered so that each stage introduces one form of responsibility and one form of control.
+這條 pipeline 是刻意分層的，因為每一層都代表一種新的責任與控制點，而不是把所有事情壓進單一寫入路徑。
 
-### 10.3 Staging Layer
+### 10.3 中繼層設計（Staging Layer）
 
-The staging layer exists to create a safe boundary between normalized crawl output and persistent storage. Rather than writing normalized ranking rows directly into database tables, the workflow first emits them into a simple staging representation. This intermediate layer serves as an inspection point, a replay point, and a failure-isolation point.
+Staging layer 的存在，是為了在 normalized crawl output 與 persistent storage 之間建立一條安全邊界。系統不是在 normalization 完成後就直接寫入資料庫，而是先把資料落成一個簡單、可檢視、可重跑的 staging representation。這個中繼層同時扮演 inspection point、replay point 與 failure-isolation point。
 
-A file-based staging format is useful for several reasons:
+檔案型 staging representation 之所以有價值，原因包括：
 
-- It is easy to inspect manually.
-- It can be regenerated without side effects.
-- It allows validation to occur before any database mutation.
-- It provides a durable handoff point between extraction and persistence.
+- 容易人工檢視
+- 可以無副作用地重新產生
+- 允許 validation 在任何資料庫 mutation 之前先發生
+- 為 extraction 與 persistence 之間提供明確 handoff
 
-This design avoids coupling crawler output directly to a database contract too early. If crawler behavior changes, normalization rules evolve, or validation becomes stricter, those changes can be absorbed at staging boundaries without immediately affecting downstream warehouse or read layers.
+這樣的設計可避免 crawler output 太早與資料庫契約緊耦合。若 crawler 行為變動、normalization 規則調整，或 validation 標準收緊，這些變化都可以先在 staging 邊界內被吸收，而不會立刻衝擊下游 warehouse 或 read layer。
 
-The validator acts as the staging gate. Its role is to reject clearly invalid or structurally unsafe rows before ingestion. This includes checking required fields, validating numeric and temporal fields, and identifying duplicate records under a defined key strategy. The validator is not intended to be a full data quality platform; it is a conservative gate that prevents obviously unsafe records from progressing.
+validator 在這裡扮演的是 staging gate。它的責任，是在 ingest 之前先擋下明顯無效或結構不安全的資料，例如 required fields 缺失、數值欄位異常、時間欄位不合法，或在定義鍵下出現重複列。它不是一套完整的資料品質平台，而是一個保守但實用的前置安全閘門。
 
 ---
 
-### 10.4 Warehouse Mapping & Landing
+### 10.4 倉儲映射與落地層（Warehouse Mapping & Landing）
 
-A deliberate separation is maintained between staging rows and warehouse-ready rows. The staging representation captures normalized operational data, while the warehouse-oriented representation reflects how that data should be shaped for long-lived analytical storage and future downstream modeling.
+在 staging rows 與 warehouse-ready rows 之間，系統刻意維持一條明確的 mapping 邊界。staging representation 保存的是 normalized operational data，而 warehouse-oriented representation 則反映這些資料應如何被塑造成可長期保存、可追溯、並可支援未來下游建模的結構。
 
-This separation is important because staging data and warehouse data serve different purposes:
+這種分離之所以重要，是因為 staging data 與 warehouse data 本質上服務的是不同目的：
 
-- Staging is operational and transient.
-- Warehouse-ready data is structured for persistence, traceability, and future integration.
-- Not every staging field maps cleanly into long-term warehouse concepts.
-- Some warehouse fields require explicit defaults, placeholders, or later resolution steps.
+- staging 是 operational 且偏 transient 的
+- warehouse-ready data 則是為 persistence、traceability 與未來 integration 準備的
+- 並非每個 staging field 都能直接對應到長期 warehouse 概念
+- 有些 warehouse 欄位必須帶有預設值、placeholder，或等待後續 resolution
 
-A preview artifact is produced before warehouse landing so that mapping assumptions can be inspected without writing into persistent warehouse tables. This makes the mapping layer auditable and easier to evolve. It also creates a safe review point before introducing any stronger coupling to warehouse storage.
+在 warehouse landing 之前，系統會先產出 preview artifact，讓 mapping 假設可被檢視，而不必立即寫入持久化的 warehouse tables。這讓 mapping layer 更容易被審核，也更容易在未來演進。
 
-The warehouse landing table is intentionally not treated as the final production model. Its purpose is to receive warehouse-ready rows in a stable but non-final form. This allows the platform to persist mapped ranking records, verify structure and volume, and support downstream resolution work without prematurely binding the system to final read patterns, aggregation rules, or product-facing schemas.
+warehouse landing table 也不是被當成最終 production model。它的角色，是接住 warehouse-ready rows，形成一個穩定但非最終的落地層。這讓平台可以先持久化已映射的 ranking records，確認資料結構與數量，再繼續往後做 resolution 與更高層的 downstream integration，而不會過早綁死在最終 read pattern、aggregation 規則或 product-facing schema 上。
 
-### 10.5 Entity Resolution Strategy
+### 10.5 實體解析策略
 
-The current entity resolution strategy is intentionally conservative. It uses deterministic exact matching rather than probabilistic or heuristic methods. The goal of this first version is not maximum recall, but reliable, explainable, and reversible identity attachment.
+目前的 entity resolution strategy 是刻意保守的。它採用 deterministic exact matching，而不是 probabilistic 或 heuristic 的方法。這個第一版的目標不是追求最大 coverage，而是先建立可靠、可解釋、可回滾的 identity attachment 能力。
 
-The model is based on two core concepts:
+它建立在兩個核心概念之上：
 
-- A canonical university entity that represents the stable internal identity of an institution.
-- An alias layer that captures alternative names that should resolve to the same canonical entity.
+- canonical university entity：代表一所學校穩定的內部 identity
+- alias layer：保存應解析到同一 canonical entity 的替代名稱
 
-Resolution proceeds through ordered exact matching:
+目前的 resolution 順序如下：
 
-1. Attempt direct match against canonical normalized university names.
-2. If no direct match exists, attempt match through known aliases.
-3. If neither match succeeds, mark the record as unresolved.
+1. 先對 canonical normalized university names 做直接匹配
+2. 若沒有直接命中，再透過已知 alias 做精確匹配
+3. 若兩者都沒有命中，則標記為 unresolved
 
-This produces a binary resolution state:
+因此，目前的 resolution status 是二元的：
 
 - `resolved`
 - `unresolved`
 
-This approach avoids introducing silent ambiguity into the system. Fuzzy matching and AI-based matching may appear attractive for coverage, but they also introduce higher risk of false positives, opaque decisions, and difficult rollback paths. At this stage, the system prefers missed matches over incorrect matches.
+這種方式避免了系統在 identity 層面產生靜默歧義。fuzzy matching 與 AI-based matching 雖然看似能提升 coverage，但也會引入更高的 false positive 風險、更難解釋的判定過程，以及更難回滾的錯誤合併。在這個階段，系統寧願漏解，也不願錯解。
 
-### 10.6 Manual Curation Loop
+### 10.6 人工校正閉環
 
-A key part of the architecture is the manual curation loop:
+這個架構中的一個關鍵閉環是：
 
 ```text
 seed alias -> refresh -> unresolved report
 ```
 
-This loop allows the platform to improve entity resolution coverage incrementally and safely. When unresolved universities appear in reporting, an operator can add a deterministic alias mapping. Once that alias is seeded, the resolution process can be rerun and the unresolved report regenerated immediately.
+這個 loop 讓平台能以低風險、增量式的方式提升 entity resolution coverage。當 unresolved universities 出現在報表中時，操作人員可以手動補入 deterministic alias mapping。alias seed 完成後，系統就能立即重新執行 resolution，並重新產出 unresolved report。
 
-This creates a practical closed loop:
+這構成了一個實際可用的閉環：
 
-- unresolved entities are surfaced explicitly;
-- operators can curate missing mappings;
-- the resolver is rerun against existing landed data;
-- the unresolved population is reduced over time.
+- unresolved entities 會被明確暴露
+- 操作人員可以逐步補齊缺失的 alias mapping
+- resolver 可在既有 landed data 上重新執行
+- unresolved population 會隨著 curation 持續下降
 
-This is a low-risk way to improve data quality because it does not require rewriting crawler logic, changing raw data, or introducing heuristic matching. Human intervention is preserved because institutional naming is often messy, context-dependent, and difficult to model perfectly through automation alone. Manual curation ensures that ambiguous naming issues are resolved deliberately rather than guessed.
+這是一種低風險改善資料品質的方式，因為它不需要重寫 crawler 邏輯、不需要改 raw data、也不需要引入 heuristic matching。之所以要保留人工介入，是因為 institutional naming 本來就常常帶有歷史包袱、語境差異與來源偏差，並不適合在早期階段直接交給系統猜測。
 
-### 10.7 Safety & Isolation Principles
+### 10.7 安全與隔離原則
 
-The workflow is built around several safety and isolation principles.
+這條 workflow 建立在幾個明確的安全與隔離原則之上。
 
-**Staging and production separation**  
-Intermediate representations are kept separate from production-oriented storage. This reduces the chance that malformed or partially resolved ranking data contaminates consumer-facing structures.
+**Staging 與 production 分離**  
+所有 intermediate representation 都與 production-oriented storage 明確分開，避免格式錯誤或尚未完成解析的 ranking data 直接污染 consumer-facing structures。
 
 **Validation gate**  
-Validation occurs before ingestion so that structurally invalid records are filtered before persistence. This establishes a clear control point between extraction and storage.
+validation 先於 ingest 執行，確保結構不合法的 records 會在 persistence 之前被攔下。這使 extraction 與 storage 之間存在一個清楚的控制點。
 
 **Idempotent writes**  
-Persistence steps are designed to tolerate reruns. Re-executing the same workflow should not create uncontrolled duplication or inconsistent state.
+整條 persistence path 被設計成可容忍 rerun。也就是說，同一個 workflow 被重新執行時，不應造成無控制的 duplication 或狀態混亂。
 
 **Conflict protection**  
-Duplicate-protection rules are enforced through deterministic uniqueness policies and conflict-safe insert behavior. This provides resilience during replay, retry, and backfill scenarios.
+duplicate-protection 透過 deterministic uniqueness policy 與 conflict-safe insert 行為來落實，讓 replay、retry 與 backfill 場景更安全。
 
 **Transaction control**  
-Database writes are executed within explicit transaction boundaries so that partial failures do not leave persistent targets in ambiguous states.
+資料庫寫入會包在明確的 transaction 邊界內，只有成功才 commit，失敗則 rollback，避免 persistent target 落入部分成功、部分失敗的模糊狀態。
 
 **Resolution isolation**  
-Entity resolution updates identity-related fields without mutating the original ranking facts. Raw and normalized values remain intact, while canonical identity is layered on separately.
+entity resolution 只更新 identity-related 欄位，不直接改動原始 ranking facts。raw 與 normalized values 仍保留，而 canonical identity 是額外附加上去的。
 
-Taken together, these principles create a workflow that is easier to audit, safer to operate, and more tolerant of incremental change.
+這些原則合起來，使整條 workflow 更容易被審計、更安全、更能承受增量演進。
 
-### 10.8 Current Status
+### 10.8 目前狀態
 
-At present, the ranking workflow has reached a stable intermediate state. Ranking data can be crawled, normalized, validated, staged, ingested, mapped into warehouse-oriented rows, landed into a dedicated warehouse preview table, and processed through a first-pass deterministic entity resolution layer.
+就目前而言，ranking workflow 已經到達一個穩定的中繼狀態。ranking data 已能被 crawl、normalize、validate、staging、ingest、映射成 warehouse-oriented rows、寫入 dedicated warehouse preview table，並再經過第一版 deterministic entity resolution。
 
-The current platform supports both file-based staging and database-backed staging persistence, including PostgreSQL-based landing targets. Warehouse-ready rows can be persisted in a dedicated landing layer, and unresolved entity populations can be measured and reviewed.
+目前平台同時支援 file-based staging 與 database-backed staging persistence，也已支援 PostgreSQL-based landing target。warehouse-ready rows 可以寫入專用 landing layer，而 unresolved entity population 也可以被統計與追蹤。
 
-Entity resolution is currently a first-version exact-match system based on canonical names and curated aliases. This is sufficient for establishing identity boundaries and manual curation patterns, but it should be understood as an intentionally conservative baseline rather than a complete resolution solution.
+entity resolution 目前仍是第一版 exact-match system，建立在 canonical names 與 curated aliases 之上。這已足夠作為 identity boundary 與 manual curation pattern 的基線，但還不應被視為完整的 resolution solution。
 
-The workflow has not yet advanced into final ranking aggregation, production-facing ranking read models, or recommendation-layer consumption. Those downstream layers remain intentionally decoupled from the current staging and landing pipeline.
+目前這條 workflow 尚未直接進入最終 ranking aggregation、production-facing ranking read model，或 recommendation-layer consumption。那些更下游的層，仍刻意與目前的 staging 與 landing pipeline 保持解耦。
 
-### 10.9 Future Direction
+### 10.9 未來方向
 
-The next phase of development should extend this architecture without collapsing its safety boundaries.
+下一階段的工作，應該是在不破壞這些安全邊界的前提下擴展這套架構。
 
-Likely directions include:
+合理的方向包括：
 
-- strengthening entity resolution through broader alias coverage and more structured batch curation workflows;
-- introducing multi-source ranking aggregation over warehouse-landed records;
-- defining a stable production read model once upstream identity and quality contracts are sufficiently mature;
-- building downstream decision and recommendation layers on top of resolved and aggregated ranking data.
+- 擴大 alias coverage，並建立更結構化的 batch curation workflow
+- 在 warehouse-landed records 之上建立 multi-source ranking aggregation
+- 在上游 identity 與 quality contract 穩定後，再定義更正式的 production read model
+- 在 resolved 與 aggregated ranking data 之上，建立更成熟的決策與 recommendation layers
 
-These are natural extensions of the current design, but they should remain downstream of the existing staging, validation, landing, and resolution boundaries. The current architecture is intentionally structured so that those future capabilities can be added incrementally rather than through a disruptive rewrite.
+這些都應該是建立在既有 staging、validation、landing 與 resolution boundary 之後的延伸，而不是回頭把這些安全層拿掉。這也是目前架構最重要的保守原則。
 
 ---
 
