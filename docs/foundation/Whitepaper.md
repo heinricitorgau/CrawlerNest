@@ -1242,73 +1242,50 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 
 **資料平台 → 分析能力 → 評估驅動的 AI 輔助開發 → 產品化**
 
-### 14.3 已完成里程進展 (Historical Timeline)
+### 14.3 已完成時間線（每日一行）
 
-| 日期 | 里程碑 / 更新 | 狀態 | 描述 (Refined) |
-| :--- | :--- | :--- | :--- |
-| **Foundation** | **Crawler Development** | 已完成 | 初期非同步 Pipeline、解析並行化、合規節流機制。 |
-| **Data Platform**| **Entity Resolution** | 已完成 | Python 基線與 C 原型正規化；將分散視圖映射至 Canonical 實體。 |
-| **Data Platform**| **PostgreSQL Switch** | 已完成 | 從 legacy SQLite 遷移至穩健的 PostgreSQL 數據倉儲。 |
-| **Aggregation** | **Multi-Source Rankings**| 已完成 | 引入 Canonical-university 聚合輸出，並建立 global / region / subject universe-aware aggregated truth。 |
-| **Infrastructure**| **Production-Safe Flow** | 已完成 | 建立 Lobster-01 節點部署策略，優化 WAF/403 繞過能力。 |
-| **Decision Engine**| **Recommendation v3** | 已完成 | 從 CLI 規則匹配進化至校準後的混合確定性評分模型。 |
-| **Web Product** | **API Services** | 已完成 | 標準化 Java 後端 API，提供具備 Success Envelope 的 UI 合約。 |
-| **Web Product** | **Website Product Layer** | 已完成 | 交付包含 Rankings Browser、University Detail、Recommendation flow、Compare 與 country-aware filters 的 Next.js 前端。 |
-| **Web Product** | **Rankings Browser Upgrade**| 已完成 | 擴充為具備分頁、搜尋、scope / region / country 過濾與同源 API 代理的正式排名產品。 |
-| **Web Product** | **Decision-Support UX** | 已完成 | 加入 Ranking Evidence、Trust Layer、Explainable Recommendation 與 Compare workflow，支持透明決策。 |
-| **Data Platform**| **Regional Coverage Expansion**| 已完成 | 擴充 Oceania, Africa, North America 區域排名抓取。 |
-| **Pipeline** | **Continuous Resilience** | 已完成 | 實作無限循環與 KeyboardInterrupt (Ctrl+C) 優雅關機與儲存。 |
-| **Web Product** | **Controlled Freshness Model** | 已完成 | 移除自動 polling，改為首次載入、filter 變更與手動 browser refresh 觸發更新，降低 hydration 與不必要 rerender 風險。 |
-| **Data Platform** | **Canonical Visibility Recovery** | 已完成 | 新增 canonical seeding 與 ranking-record backfill，使不可見 crawled universities 可重新進入 aggregated truth。 |
-| **Aggregation** | **Visible Global Expansion** | 已完成 | 完成 canonical/backfill 後，global visible aggregated rows 從 221 擴張到 1323。 |
-| **Web Product** | **Hydration-Safe Rankings UI** | 已完成 | Rankings 頁改為 client-ready gate 與穩定 shell，避免 `useSearchParams()` 與 client fetch 造成 hydration mismatch。 |
-| **Data Platform** | **QS Production Hardening** | 已完成 | QS global crawl 由 page-first 改為 cache/direct-entry-first，加入 resolution cache、snapshot fallback 與 failure classification。 |
-| **Aggregation** | **Rank Truth Repair** | 已完成 | 排名聚合由 score-based 改為 rank-based，`compositeScore` 降為 display-only，恢復真實排名語意。 |
-| **Data Platform** | **Entity Resolution Hardening** | 已完成 | 加入高信度 alias merge（如 LMU / UCB / HKU / NUS / EPFL），提升 multi-source canonical 合併品質。 |
-| **Web Product** | **Evidence & Trust Surfaces** | 已完成 | Rankings list 與 University Detail 可完整顯示 QS / THE / ARWU evidence、agreement summary、trust score 與 trust explain。 |
-| **Web Product** | **Compare Page** | 已完成 | Shortlist 可進入 side-by-side compare，對照 aggregated rank、source evidence、trust、admissions 與 warnings。 |
-| **Data Platform** | **THE Visible Recovery** | 已完成 | 新增 `seed-canonical-from-missing`，將 THE unresolved entities 直接補入 canonical layer，重跑後 THE `matched=2191`、`unresolved=0`。 |
-| **Aggregation** | **Cross-Source Visible Expansion** | 已完成 | 在 THE 補種與重 ingest 後，aggregated visible rows 由 1323 進一步擴張到 2736。 |
-| **Architecture** | **Mini-Agent Positioning Update** | 已完成 | 將 Mini-Agent 明確收斂為受控、evaluation-driven、human-in-the-loop 的 development layer，而非獨立自治系統。 |
-| **Architecture** | **Whitepaper / README Reframing** | 已完成 | 將專案主敘事更新為 Data Infrastructure + Evaluation-Driven AI-Assisted System。 |
-
-*詳細執行日誌：*
-
-| 日期 | 詳細更新記錄 | 狀態 |
+| 日期 | 每日摘要 | 狀態 |
 | :--- | :--- | :--- |
-| 2026-02-04 | 初版 admission crawler 原型 | 已完成 |
-| 2026-02-17 | 完成模組化重構（V2.0）並預設 async 模式 | 已完成 |
+| 2026-02-04 | 完成 admission crawler 原型，建立 admissions 資料抓取起點。 | 已完成 |
+| 2026-02-17 | 完成模組化重構（V2.0）與 async 預設模式，提升採集基線。 | 已完成 |
 | 2026-03-09 | 完成架構藍圖與長期平台願景定義 | 已完成 |
-| 2026-03-15 | 分離 Python 主流程與 C 正規化引擎 | 已完成 |
-| 2026-03-18 | Java 服務升級 Spring Data JPA 與 Maven/JUnit 框架 | 已完成 |
-| 2026-03-19 | PostgreSQL schema 初始化驗證，Spring Boot 啟動驗證 | 已完成 |
-| 2026-03-20 | 打通最小端到端主流程，建立 `crawlernest/run_pipeline.py` 與 Java admissions read path | 已完成 |
-| 2026-03-21 | 完成低規節點策略驗證，確認 Lobster-01 / low-spec mode 可作為受控執行環境 | 已完成 |
-| 2026-03-22 | 建立 AutoEval baseline，並同步強化 crawler 分段模式、批次寫入與 checkpoint/局部更新機制 | 已完成 |
-| 2026-03-23 | 完成 production-safe pipeline、canonical visibility recovery、recommendation/compare API 與 PostgreSQL-only cutover | 已完成 |
-| 2026-03-24 | 完成 recommendation v3 production calibration，收斂 category、confidence 與 risk adjustment 邏輯 | 已完成 |
-| 2026-03-25 | 完成官方 Next.js frontend 整併，確立 Website MVP 單一產品入口並打通核心頁面流程 | 已完成 |
-| 2026-03-26 | 完成 recommendation 同源 proxy 與 Rankings Browser 升級，建立更完整的 product-facing read experience | 已完成 |
-| 2026-03-27 | 完成 Rankings Browser country-aware filtering，將 canonical country normalization 接入最終 read path | 已完成 |
-| 2026-03-28 | 完成 Ranking Evidence、Trust Layer 與 Compare Page 的產品層整合 | 已完成 |
-| 2026-03-29 | 完成 global / region / subject / special universe-aware aggregation read path 對齊 | 已完成 |
-| 2026-03-30 | 完成 aggregated rank truth repair，將排名排序由 score-based 改為 rank-based | 已完成 |
-| 2026-03-31 | 完成 high-confidence alias merge 與多來源 canonical entity resolution hardening | 已完成 |
-| 2026-04-01 | 完成 THE unresolved entities canonical seeding 與 cross-source visible recovery | 已完成 |
-| 2026-04-02 | 完成 rankings UI hydration-safe shell 與 controlled freshness model 收斂 | 已完成 |
-| 2026-04-04 | 完成白皮書架構更新，正式加入 Mini-Agent Development Layer 與 Design Principles | 已完成 |
-| 2026-04-08 | 完成專案定位更新：CrawlerNest 定義為 University Data Intelligence Infrastructure + controlled Mini-Agent Development Layer | 已完成 |
+| 2026-03-15 | 分離 Python 主流程與 C 正規化引擎。 | 已完成 |
+| 2026-03-18 | Java 服務升級至 Spring Data JPA 與 Maven/JUnit 架構。 | 已完成 |
+| 2026-03-19 | 驗證 PostgreSQL schema 與 Spring Boot 啟動整合。 | 已完成 |
+| 2026-03-20 | 打通最小端到端主流程，建立 `run_pipeline.py` 與 Java admissions read path。 | 已完成 |
+| 2026-03-21 | 確認 Lobster-01 / low-spec mode 可作為受控執行環境。 | 已完成 |
+| 2026-03-22 | 建立 AutoEval baseline，並補強 crawler 分段、批次寫入與 checkpoint 機制。 | 已完成 |
+| 2026-03-23 | 完成 production-safe pipeline、canonical visibility recovery 與 PostgreSQL-only cutover。 | 已完成 |
+| 2026-03-24 | 完成 recommendation v3 校準，收斂 category、confidence 與 risk adjustment。 | 已完成 |
+| 2026-03-25 | 完成官方 Next.js frontend 整併，確立 Website MVP 單一入口。 | 已完成 |
+| 2026-03-26 | 完成 Rankings Browser、recommendation proxy、region scope 與 product-facing read path 升級。 | 已完成 |
+| 2026-03-27 | 完成 multi-universe aggregation、shared scoped read path 與 country-aware filtering 對齊。 | 已完成 |
+| 2026-03-28 | 完成 QS 區域 universe 擴充與 Ranking Evidence / Trust / Compare 整合。 | 已完成 |
+| 2026-03-29 | 完成 canonical seeding、ranking-record backfill 與 aggregated visible rows 擴張。 | 已完成 |
+| 2026-03-30 | 完成 THE crawler、`run-the-rankings` 與 THE 可見性修復。 | 已完成 |
+| 2026-03-31 | 完成高信度 alias merge 與多來源 canonical entity resolution hardening。 | 已完成 |
+| 2026-04-01 | 完成前端型別安全、loading/error UI、測試基礎設施與 Python 測試擴充。 | 已完成 |
+| 2026-04-02 | 完成 QS production hardening、snapshot fallback、normalization bridge 與 controlled freshness 收斂。 | 已完成 |
+| 2026-04-03 | 完成 ARWU ingestion、THE ingestion 強化與 rank-based aggregation truth 修復。 | 已完成 |
+| 2026-04-04 | 完成白皮書架構更新、Aggregation Explainability、Strict Trust Layer 與 Explainable Recommendation。 | 已完成 |
+| 2026-04-05 | 完成 canonical country normalization、country filter 真正落地與 Compare Page MVP。 | 已完成 |
+| 2026-04-08 | 完成專案定位更新，正式定義為 University Data Intelligence Infrastructure + controlled Mini-Agent Development Layer。 | 已完成 |
+| 2026-04-10 | 完成 evaluation-driven dev-agent loop 文件化，將 generator / evaluator / validation pipeline 納入系統敘事。 | 已完成 |
+| 2026-04-12 | 完成 ranking staging/validation/preview/resolution pipeline 與 shared crawler core + dual crawler 架構收斂。 | 已完成 |
+| 2026-04-13 | 完成 Whitepaper、system docs、repo docs、Markdown index 與 AutoEval docs 的全域同步。 | 已完成 |
 
-### 14.4 當前階段判讀（截至 2026-04-08）
+### 14.4 當前階段判讀（截至 2026-04-13）
 
 CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
 這個階段的特徵如下：
 
 - 主資料管線已可穩定運作，且具備 multi-source aggregation 與 product-facing read path
+- crawler 層已從單一敘事收斂為 shared crawler core + ranking crawler + admission crawler 的雙 crawler 分工
 - Website Product Layer 已具備 Rankings、Detail、Recommendation、Compare 與 trust/evidence surfaces
 - AutoEval 已建立 baseline，但仍需擴大 coverage 與 regression discipline
-- Mini-Agent Layer 已完成概念定位與文件化，正在作為受控的 development/refinement layer 納入系統敘事
+- Mini-Agent Layer 已完成概念定位與 evaluation-driven loop 文件化，正在作為受控的 development/refinement layer 納入系統敘事
+- 架構文件已拆分為 repo structure / system-engine / whitepaper 三層敘事，文件邊界更清楚
 
 換言之，CrawlerNest 已不是單純 crawler 專案，但也尚未進入 fully scaled platform 階段。它目前最核心的工作，是把「資料平台 + 評估系統 + AI-assisted development layer」這三者之間的責任邊界持續打磨清楚。
 
@@ -1321,70 +1298,7 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 | **2028** | 平台化資料服務與 intelligence tooling | 更清楚的 public interfaces、analytics expansion、system-integrated intelligence tooling |
 | **2029** | 形成可持續擴展的教育資料基礎設施 | 在可靠性、評估能力、產品服務面與 AI-assisted development workflow 之間建立長期穩定平衡 |
 
-### 14.6 補充完成紀錄（Detailed Completion Log）
-
-| 日期 | 補充完成紀錄 | 狀態 |
-| :--- | :--- | :--- |
-| 2026-03-26 | 完成 rankings API 排序與 aggregated source 修正，確保 aggregated rankings 以全域排序後再分頁 | 已完成 |
-| 2026-03-26 | 實作資料庫事務可靠性修復（Early Commit `crawl_run` + Batch 失敗時自動 Rollback） | 已完成 |
-| 2026-03-26 | 完成 `lobster-01` 專屬運行目錄與優化腳本，支援低規節點穩定抓取 | 已完成 |
-| 2026-03-26 | 修復 `ranking_year` 歸屬 Bug，確保 1500+ 大學排名正確顯示於前端 | 已完成 |
-| 2026-03-26 | 修復 Java Backend API 介面不匹配問題，恢復前端資料存取能力 | 已完成 |
-| 2026-03-26 | 完成 shortlist → recommendation flow 打通，讓 Rankings Browser、Shortlist 與 Recommendation 頁形成連續決策流程 | 已完成 |
-| 2026-03-26 | 完成 recommendation 頁 compare / explanation MVP，支援 shortlist 內學校的並排比較與 rule-based 說明 | 已完成 |
-| 2026-03-26 | 完成 rankings API region scope backend support（`scope=region&region=...`），建立 global / region 兩種正式 ranking universe | 已完成 |
-| 2026-03-26 | 完成首頁 Rankings Browser multi-scope integration，支援 global / region selector、URL state 與 region-aware rank display | 已完成 |
-| 2026-03-26 | 完成 rankings search backend 化，搜尋改為在 active ranking universe 內執行（universe → search → paginate） | 已完成 |
-| 2026-03-27 | 完成 ranking semantics shared domain refactor，引入 `RankingContext` / `RankedPosition`，統一 global vs region rank 語意 | 已完成 |
-| 2026-03-27 | 完成 shared scoped-ranking read adapter，讓 rankings 與 recommendation 共用同一條 scoped universe read path | 已完成 |
-| 2026-03-27 | 完成 multi-universe aggregation 升級，讓 `global`、`region`、`subject` 各自產生獨立 aggregated truth | 已完成 |
-| 2026-03-27 | 完成 Europe universe hardening，加入 stable-entry-first、resolution cache 與 failure classification，降低 HTML-first 解析脆弱性 | 已完成 |
-| 2026-03-27 | 修復 region aggregated read correctness，堵住 latest view / read join row explosion，恢復 Europe rankings 一校一列 | 已完成 |
-| 2026-03-27 | 實做爬蟲無限循環與 KeyboardInterrupt (Ctrl+C) 優雅關機機制，確保資料即時入庫不遺失 | 已完成 |
-| 2026-03-28 | 完成 QS 區域 universe 擴充（Oceania、Africa、North America）與 `run-qs-major` 一鍵入口 | 已完成 |
-| 2026-03-29 | 新增 `seed-canonical` 命令，將未 linked 的 `warehouse.universities` 補種為 `canonical_university` 與 `canonical_university_link` | 已完成 |
-| 2026-03-29 | 新增 `backfill-ranking-records` 命令，將 legacy `warehouse.rankings` 回填至 multi-source `warehouse.ranking_record` 並刷新 aggregation | 已完成 |
-| 2026-03-29 | 完成可見性修復鏈路打通，global aggregated visible rows 由 221 增長至 1323，`/api/v1/rankings` 同步反映新總數 | 已完成 |
-| 2026-03-29 | 完成網站 same-origin rankings proxy 與 `no-store` freshness 基線，確保 UI 直接讀取最新 aggregated read model | 已完成 |
-| 2026-03-30 | 完成 THE crawler 與 `run-the-rankings` 一鍵流程，成功抓取 2026 THE world rankings 3118 rows / 2191 valid ranked rows | 已完成 |
-| 2026-03-30 | 新增 `seed-canonical-from-missing` 命令，直接從 `analytics.missing_entity_log` 補種 THE unresolved canonical entities | 已完成 |
-| 2026-03-30 | 完成 THE 可見性修復：THE 重 ingest 後 `matched=2191`、`unresolved=0`，aggregated visible rows 由 1323 增長至 2736 | 已完成 |
-| 2026-04-01 | Website Layer 型別安全強化：重構 Rankings 主頁 `page.tsx`（605→1200 行），引入 `RankingItem`/`RankingsResponse` 等明確型別、`AbortSignal` 防 race condition、`useMemo` 效能優化 | 已完成 |
-| 2026-04-01 | 大學詳情頁強化：新增 `formatValue()` / `renderAdmissionValue()` 空值防護 helper、`DetailCard` 統一卡片 component、`fetchCache = "force-no-store"` 資料新鮮度保證 | 已完成 |
-| 2026-04-01 | 新增大學詳情頁 Skeleton Loading UI（`universities/[slug]/loading.tsx`），使用 `animate-pulse` 佔位動畫，符合 Next.js App Router 慣例 | 已完成 |
-| 2026-04-01 | Recommendations 頁面 CSS 標準化：將所有硬編碼 hex 色碼統一替換為 Tailwind CSS token，提升可維護性 | 已完成 |
-| 2026-04-01 | 修正 `lib/api.ts` TypeScript 型別問題，消除嚴格模式下 `NextRequestInit` 型別警告 | 已完成 |
-| 2026-04-01 | 修復 `FakeMultiSourceRepository.upsert_ranking_records()` 缺少 `run_id` 參數導致的 pipeline 測試失敗（TypeError） | 已完成 |
-| 2026-04-01 | 修復 `FilterSidebar.tsx` `onFilterChange` callback `any` 型別，改為具體型別定義 | 已完成 |
-| 2026-04-01 | 新增 Next.js App Router Global Error Boundary（`app/error.tsx`）與大學詳情頁 Error Boundary（`universities/[slug]/error.tsx`） | 已完成 |
-| 2026-04-01 | 建立前端測試基礎設施（Jest 30 + React Testing Library + ts-jest），前端測試數由 0 → 27 個（`format.ts` 21 個 + `ShortlistButton` 6 個） | 已完成 |
-| 2026-04-01 | Rankings 主頁搜尋欄加入 400ms debounce，輸入停止後自動觸發搜尋，使用 `useRef` 穩定 navigate 引用避免 effect 依賴迴圈 | 已完成 |
-| 2026-04-01 | 新增 Rankings 主頁 Skeleton Loading（`app/loading.tsx`），Next.js App Router 路由切換期間自動啟用，含 header/統計卡/table/分頁 animate-pulse 佔位 | 已完成 |
-| 2026-04-01 | 新增 Recommendations 頁 Skeleton Loading（`app/recommendations/loading.tsx`），含 header/shortlist context/表單欄位 animate-pulse 佔位 | 已完成 |
-| 2026-04-01 | 新增 `ErrorBanner` 可重用元件（`src/components/ErrorBanner.tsx`），具 `role="alert"` 無障礙標準、`message` prop 顯示錯誤、`onDismiss` Dismiss 按鈕 | 已完成 |
-| 2026-04-01 | 整合 ErrorBanner 至 Rankings 主頁：API fetch 失敗時在頁面頂端顯示可 Dismiss 的橫幅提示 | 已完成 |
-| 2026-04-01 | 修復 `lib/api.ts` `init` 為 undefined 時存取 `.next` 屬性的 TypeError（改用 optional chaining `?.next`） | 已完成 |
-| 2026-04-01 | 前端測試由 27 → 51 個（+24）：新增 ErrorBanner（7）、api.ts mock fetch（15）、3 個 loading 元件渲染驗證（15 — 含 RankingsLoading / RecommendationsLoading / UniversityDetailLoading）；Python 維持 78 passed | 已完成 |
-| 2026-04-01 | 修復 `qs_universe_crawlers.py` `datetime.utcnow()` Python 3.12+ DeprecationWarning，改用時區感知 `datetime.now(timezone.utc)` | 已完成 |
-| 2026-04-01 | 新增爬蟲核心測試 `test_crawler.py`（24 tests）：覆蓋 `UniversityCrawler.crawl()`、`_process_university()`、resume checkpoint、detail 403 degrade、stats tracking、node deduplication | 已完成 |
-| 2026-04-01 | 新增 `test_retry.py`（13 tests）：覆蓋 retry 裝飾器指數退避、exception filter、functools.wraps 保留、logging flags | 已完成 |
-| 2026-04-01 | 補強 `test_fetcher.py` resolution cache TTL 測試（+3 tests）：fresh cache 使用、expired cache 繞過、zero-TTL 永不過期 | 已完成 |
-| 2026-04-01 | 新增 THE crawler utility 函數測試 `test_the_crawler.py`（43 tests）：覆蓋 `_to_int`、`_to_float`、`_pick_first`、`_extract_rows`、`_normalize_row`、`_discover_data_urls`、`_extract_rows_from_next_data`、`_extract_rows_from_html_tables` | 已完成 |
-| 2026-04-01 | Python 測試總數由 78 → **161 passed**（+83 tests，+106%），TypeScript 測試維持 51 passed，tsc 無錯誤 | 已完成 |
-| 2026-04-02 | 完成 QS global production crawl stable-entry hardening：global universe 改為 resolution cache / direct entry 優先，不再依賴 HTML page-first 解析 | 已完成 |
-| 2026-04-02 | 新增 QS upstream blocked snapshot fallback：live list fetch 被 Cloudflare / 403 阻擋時，可透明回退至 latest known-good raw snapshot 並明確標記 fallback-backed | 已完成 |
-| 2026-04-02 | 修復 `run_qs_crawl()` 參數流與 `ranking_year` / `detail_chunk_size` regression，恢復 production-safe run command 正常執行 | 已完成 |
-| 2026-04-03 | 完成多來源聚合 rank truth 修復：排序改為 weighted average of ranks，`ORDER BY aggregated_rank ASC`，不再以 `compositeScore` 控制排名 | 已完成 |
-| 2026-04-03 | 補強 canonical entity resolution：加入高信度 alias merge（LMU、UCB、HKU、NUS、EPFL），提升跨來源同校合併率 | 已完成 |
-| 2026-04-04 | 完成 Aggregation Explainability、Strict Trust Layer 與 Explainable Recommendation，讓使用者可看到來源 rank、權重、trust 與 recommendation reasons/warnings | 已完成 |
-| 2026-04-04 | University Detail Page 升級為完整多來源 Ranking Evidence，含 evidence summary、agreement level 與 confidence note | 已完成 |
-| 2026-04-05 | 完成 Rankings Browser hydration-safe refactor，移除 polling / auto refresh，改為 deterministic client-ready render 與手動 refresh 模式 | 已完成 |
-| 2026-04-05 | 完成 country filter UI / proxy / URL state sync：rankings API 支援 `country`、global / region dependent country list、searchable country panel 與 deterministic filter state | 已完成 |
-| 2026-04-05 | 修復 Java rankings read path 的 country filter 真正落地：在最終 read query join `canonical_university` / `countries` metadata，並於 SQL `WHERE` 套用 country predicate，使 `country=Argentina` 不再回 MIT / Oxford / Harvard 類全域結果 | 已完成 |
-| 2026-04-05 | 新增 canonical country normalization layer：將 `China` / `China (mainland)` / `USA` / `UK` 等 alias 收斂為統一 canonical country，並同步修復 country validation、SQL filtering 與 `metadata.countryOptions` duplicate variants 問題 | 已完成 |
-| 2026-04-05 | 完成 Compare Page MVP：以 shortlist 為來源，比較 2–4 所大學的 aggregated rank、QS/THE/ARWU evidence、trust、admissions 與 warnings | 已完成 |
-
-### 14.7 未來階段規劃
+### 14.6 未來階段規劃
 
 - **Phase 1（0-6 個月）**：建立 HTML 樣本庫、完善 extractor 單測、完成 C engine 邊界定義
 - **Phase 2（7-18 個月）**：強化 PostgreSQL analytics schema、實作去重引擎、整合 C engine

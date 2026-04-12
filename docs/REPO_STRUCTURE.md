@@ -39,9 +39,12 @@ crawlernest/
 ├── pipeline/                          # 分段 pipeline 輔助模組
 ├── scripts/                           # 維運、migration、smoke test 腳本
 │
+├── crawlernest-crawler-core/          # 共享 crawler runtime 能力
+├── crawlernest-ranking-crawler/       # ranking crawler engine
+├── crawlernest-admission-crawler/     # admission crawler engine
 ├── crawlernest-core/                  # 核心領域邏輯
-├── crawlernest-extractors/            # 爬蟲 / extractor
-├── crawlernest-jobs/                  # job orchestration
+├── crawlernest-extractors/            # 共享 fetch / parse / extraction helpers
+├── crawlernest-jobs/                  # job orchestration / routing / batch control
 ├── crawlernest-db-writer/             # DB 寫入邏輯
 ├── crawlernest-schema/                # SQL schema / analytics / warehouse
 ├── crawlernest-analytics/             # 分析與匯出工具
@@ -67,8 +70,10 @@ crawlernest/
 其中與 ranking workflow 最直接相關的幾個區塊是：
 
 - `run_pipeline.py`：高層 orchestration 與 command routing
+- `crawlernest-crawler-core/`：shared transport、retry、timeout、logging、checkpoint primitive
 - `pipeline/`：staging、validation、preview、landing 等協調層
 - `crawlernest-ranking-crawler/`：ranking 專用 crawl 與前段資料生產
+- `crawlernest-admission-crawler/`：admission / requirement 專用 crawl
 - `crawlernest-schema/`：warehouse / entity resolution / aggregation schema
 - `crawlernest-samples/`：raw、normalized、staging、preview 等 artifact 輸出
 
@@ -146,8 +151,10 @@ crawlernest/crawlernest-web/src/
 
 - Pipeline: `crawlernest/run_pipeline.py`
 - Ranking workflow helpers: `crawlernest/pipeline/`
+- Shared crawler core: `crawlernest/crawlernest-crawler-core/`
 - Python core: `crawlernest/crawlernest-core/`
 - Ranking crawler engine: `crawlernest/crawlernest-ranking-crawler/`
+- Admission crawler engine: `crawlernest/crawlernest-admission-crawler/`
 - Schema: `crawlernest/crawlernest-schema/`
 - API: `crawlernest/servise_for_java/`
 - Frontend: `crawlernest/crawlernest-web/`

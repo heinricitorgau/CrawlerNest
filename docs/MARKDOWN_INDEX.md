@@ -24,10 +24,11 @@ If someone is new to the repo, this is the fastest path:
 1. `README.md`
 2. `README.zh-TW.md`
 3. `docs/REPO_STRUCTURE.md`
-4. `docs/foundation/MASTER_PROJECT_PLAN.md`
-5. `docs/foundation/Whitepaper.md`
-6. `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md`
-7. `docs/foundation/TESTING_GUIDE.md`
+4. `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+5. `docs/foundation/MASTER_PROJECT_PLAN.md`
+6. `docs/foundation/Whitepaper.md`
+7. `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md`
+8. `docs/foundation/TESTING_GUIDE.md`
 
 ## 1. Root Entry Docs
 
@@ -41,6 +42,7 @@ If someone is new to the repo, this is the fastest path:
 | File | Purpose |
 | --- | --- |
 | `docs/REPO_STRUCTURE.md` | Explains the repo's two-level workspace layout and where major systems live. |
+| `docs/SYSTEM_ENGINE_ARCHITECTURE.md` | Canonical high-level system and engine architecture, including shared crawler core and dual crawler model. |
 | `docs/foundation/MASTER_PROJECT_PLAN.md` | Master plan covering scope, phases, and project-level priorities. |
 | `docs/foundation/Whitepaper.md` | High-level architecture whitepaper in Traditional Chinese. |
 | `docs/foundation/DEV_WORKFLOW.md` | Expected engineering workflow for implementation and delivery. |
@@ -83,7 +85,7 @@ If someone is new to the repo, this is the fastest path:
 
 | File | Purpose |
 | --- | --- |
-| `crawlernest/crawlernest-extractors/README.md` | Source-specific crawling, fetching, and parsing components. |
+| `crawlernest/crawlernest-extractors/README.md` | Shared fetch/parse helpers used by ranking and admission crawler engines. |
 | `crawlernest/crawlernest-jobs/README.md` | Orchestration for job-based crawling pipelines. |
 | `crawlernest/crawlernest-kb/README.md` | Knowledge-base scripts and snapshot storage. |
 | `crawlernest/crawlernest-samples/README.md` | Sample HTML, JSON, and CSV files for testing and parser work. |
@@ -152,6 +154,7 @@ If you want to reduce doc sprawl further, these are the easiest wins:
 The following docs were recently synchronized to reflect the current ranking workflow:
 
 - root project overviews
+- repo structure and system-engine docs
 - ranking crawler module overview
 - system architecture narratives
 - entity resolution overview

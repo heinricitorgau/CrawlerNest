@@ -40,12 +40,12 @@ Ranking Crawler Engine / Admission Crawler Engine
 (crawlernest-ranking-crawler / crawlernest-admission-crawler)
         │
         ▼
-Pipeline / Jobs Orchestration
-(run_pipeline.py / crawlernest-jobs)
-        │
-        ▼
 Fetcher / Extractor Reuse
 (crawlernest-extractors)
+        │
+        ▼
+Pipeline / Jobs Orchestration
+(run_pipeline.py / crawlernest-jobs)
         │
         ▼
 Normalization Engine
@@ -91,7 +91,7 @@ Responsibilities:
 - shared crawler runtime primitives such as HTTP, retry, rate limiting, logging, and snapshot hooks
 - ranking-specific crawling for QS / THE / ARWU and ranking universes
 - admission-specific crawling for university websites and semi-structured requirements
-- orchestration of crawl scope, pagination, and batch execution from pipeline entrypoints
+- orchestration of crawl scope, pagination, resume, and batch execution from pipeline entrypoints
 - safe handoff from crawler output into downstream normalization and staging boundaries
 
 Example crawling targets:
@@ -123,7 +123,7 @@ Responsibilities:
 - provide reusable fetch / parse helpers for crawler engines
 - retrieve HTML or structured payloads
 - parse source content into candidate structured fields
-- support engine-specific extraction without owning orchestration
+- support engine-specific extraction without owning job orchestration or transport runtime
 
 Typical extracted fields include:
 
