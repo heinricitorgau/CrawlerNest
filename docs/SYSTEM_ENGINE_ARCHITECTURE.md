@@ -20,8 +20,12 @@ flowchart TD
     SRC["External Sources<br/>QS / THE / ARWU / university sites"]
 
     subgraph INGEST["Ingestion Layer"]
-        EXT["Crawler / Extractor"]
-        PIPE["Pipeline Orchestrator"]
+        JOBS["Job Orchestration / Pipeline Router"]
+        CCORE["Shared Crawler Core"]
+        RCRAWL["Ranking Crawler"]
+        ACRAWL["Admission Crawler"]
+        REXT["Ranking Extractors"]
+        AEXT["Admission Extractors"]
     end
 
     subgraph CANON["Canonical Layer"]
@@ -56,10 +60,17 @@ flowchart TD
         REFINE["Refine"]
     end
 
-    SRC --> EXT --> PIPE
-    PIPE --> NORM --> ER --> MS
-    PIPE --> RAW
-    PIPE --> KB
+    SRC --> JOBS
+    JOBS --> CCORE
+    CCORE --> RCRAWL
+    CCORE --> ACRAWL
+    RCRAWL --> REXT
+    ACRAWL --> AEXT
+    REXT --> NORM
+    AEXT --> NORM
+    JOBS --> RAW
+    JOBS --> KB
+    NORM --> ER --> MS
     MS --> WH
     WH --> AGG
     AGG --> ANA
@@ -79,14 +90,16 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    A["Source fetch"] --> B["Extraction"]
-    B --> C["Normalization"]
-    C --> D["Entity Resolution"]
-    D --> E["Multi-Source Records"]
-    E --> F["Aggregation"]
-    F --> G["Analytics / Read Models"]
-    G --> H["API"]
-    H --> I["Web Product"]
+    A["Source fetch"] --> B["Shared crawler core"]
+    B --> C["Ranking crawler / Admission crawler"]
+    C --> D["Source-specific extraction"]
+    D --> E["Normalization"]
+    E --> F["Entity Resolution"]
+    F --> G["Multi-Source Records"]
+    G --> H["Aggregation"]
+    H --> I["Analytics / Read Models"]
+    I --> J["API"]
+    J --> K["Web Product"]
 ```
 
 這條路徑代表真正會影響產品資料真相的主鏈：
@@ -114,17 +127,24 @@ flowchart LR
 ```mermaid
 sequenceDiagram
     participant S as Source
-    participant E as Extractor
-    participant P as Pipeline
+    participant J as Job Router
+    participant C as Shared Crawler Core
+    participant RC as Ranking Crawler
+    participant AC as Admission Crawler
+    participant E as Extractors
     participant N as Normalize
     participant R as Entity Resolution
     participant M as Multi-Source
     participant A as Aggregation
     participant D as PostgreSQL
 
-    S->>E: raw source payload
-    E->>P: extracted facts
-    P->>N: normalize fields
+    S->>J: source availability / crawl target
+    J->>C: dispatch crawl job
+    C->>RC: ranking-source job
+    C->>AC: admission-source job
+    RC->>E: ranking extraction
+    AC->>E: admission extraction
+    E->>N: normalize fields
     N->>R: resolve canonical identity
     R->>M: standardized ranking records
     M->>D: source-specific rows
@@ -248,16 +268,17 @@ flowchart LR
 ```mermaid
 flowchart TD
     subgraph PROD["Production Runtime"]
-        A["Ingestion"] --> B["Canonical"]
-        B --> C["Aggregation"]
-        C --> D["Decision"]
-        D --> E["API / Web"]
+        A["Jobs + Shared crawler core"] --> B["Ranking / Admission crawlers"]
+        B --> C["Canonical"]
+        C --> D["Aggregation"]
+        D --> E["Decision"]
+        E --> F["API / Web"]
     end
 
     subgraph IMPROVE["Improvement Loop"]
-        F["Task"] --> G["Generate"]
-        G --> H["Evaluate"]
-        H --> I["Refine"]
+        G["Task"] --> H["Generate"]
+        H --> I["Evaluate"]
+        I --> J["Refine"]
     end
 
     IMPROVE -. improves implementation quality .-> PROD
@@ -267,8 +288,14 @@ flowchart TD
 
 - `crawlernest/run_pipeline.py`
   pipeline orchestrator
-- `crawlernest/crawlernest-extractors/`
-  extraction layer
+- `crawlernest/crawlernest-jobs/`
+  orchestration, routing, resume, batch control
+- `crawlernest/crawlernest-crawler-core/`
+  shared crawler runtime concerns
+- `crawlernest/crawlernest-ranking-crawler/`
+  ranking crawler engine
+- `crawlernest/crawlernest-admission-crawler/`
+  admission crawler engine
 - `crawlernest/crawlernest-core/entity_resolution/`
   canonical engine
 - `crawlernest/crawlernest-core/multi_source/`
