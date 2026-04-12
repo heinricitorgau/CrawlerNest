@@ -7,11 +7,7 @@ from pathlib import Path
 from typing import Protocol
 
 from crawlernest_ranking_crawler.normalize import NormalizedRankingRow
-
-try:
-    import psycopg2
-except ImportError:  # pragma: no cover - optional dependency in local dev
-    psycopg2 = None  # type: ignore[assignment]
+from crawlernest_ranking_crawler.postgres_driver import get_psycopg2
 
 
 @dataclass(slots=True)
@@ -62,8 +58,10 @@ class PostgresRankingWriteAdapter:
     table_name: str = "ranking_staging_records"
 
     def write_rows(self, rows: list[NormalizedRankingRow]) -> WriteResult:
-        if psycopg2 is None:
-            raise RuntimeError("psycopg2 is required for postgres write target")
+        try:
+            psycopg2 = get_psycopg2()
+        except ImportError as exc:
+            raise RuntimeError("psycopg2 is required for postgres write target") from exc
 
         conn = psycopg2.connect(
             host=self.pg_host,
