@@ -24,11 +24,19 @@ External Data Sources
         │
         │ HTTP requests
         ▼
-Crawler Layer
-(crawlernest-jobs)
+Shared Crawler Core
+(crawlernest-crawler-core)
         │
         ▼
-Fetcher / Extractor
+Ranking Crawler Engine / Admission Crawler Engine
+(crawlernest-ranking-crawler / crawlernest-admission-crawler)
+        │
+        ▼
+Pipeline / Jobs Orchestration
+(run_pipeline.py / crawlernest-jobs)
+        │
+        ▼
+Fetcher / Extractor Reuse
 (crawlernest-extractors)
         │
         ▼
@@ -41,8 +49,8 @@ Database Writer
 (crawlernest-db-writer)
         │
         ▼
-SQLite Knowledge Base
-(crawlernest.db)
+PostgreSQL Warehouse / Knowledge Artifacts
+(PostgreSQL / crawlernest-kb)
         │
         ▼
 Analytics Layer
@@ -64,15 +72,18 @@ Interfaces
 Repository:
 
 ```
+crawlernest-crawler-core
+crawlernest-ranking-crawler
+crawlernest-admission-crawler
 crawlernest-jobs
 ```
 
 Responsibilities:
 
-- orchestrate crawling workflows
-- control crawling scope and pagination
-- schedule ranking collection jobs
-- coordinate data collection tasks
+- shared crawler runtime primitives such as HTTP, retry, rate limiting, logging, and snapshot hooks
+- ranking-specific crawling for QS / THE / ARWU and ranking universes
+- admission-specific crawling for university websites and semi-structured requirements
+- orchestration of crawl scope, pagination, and batch execution from pipeline entrypoints
 
 Example crawling targets:
 
@@ -80,11 +91,12 @@ Example crawling targets:
 - QS Subject Rankings
 - Regional University Rankings
 - Sustainability Rankings
+- University admissions and language-requirement pages
 
 Primary entry point:
 
 ```
-run_crawler()
+run_pipeline.py
 ```
 
 ---
@@ -99,10 +111,10 @@ crawlernest-extractors
 
 Responsibilities:
 
-- send HTTP requests
-- retrieve HTML pages
-- parse website content
-- extract structured information
+- provide reusable fetch / parse helpers for crawler engines
+- retrieve HTML or structured payloads
+- parse source content into candidate structured fields
+- support engine-specific extraction without owning orchestration
 
 Typical extracted fields include:
 
@@ -111,11 +123,11 @@ Typical extracted fields include:
 - program information
 - admission requirements
 
-Technologies used:
+Important design rule:
 
-- requests
-- BeautifulSoup
-- lxml
+- `crawlernest-crawler-core` owns transport concerns
+- ranking and admission engines own business-specific crawling behavior
+- `crawlernest-extractors` remains a helper layer rather than the top-level crawler runtime
 
 ---
 
@@ -173,13 +185,7 @@ Important tables include:
 Database engine:
 
 ```
-SQLite
-```
-
-Primary database file:
-
-```
-crawlernest.db
+PostgreSQL
 ```
 
 ---
@@ -317,7 +323,7 @@ Example pipeline for **QS World University Rankings**:
         ↓
 6 crawlernest-db-writer
         ↓
-7 SQLite knowledge base
+7 PostgreSQL warehouse / knowledge artifacts
         ↓
 8 CLI / analytics queries
 ```

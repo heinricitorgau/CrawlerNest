@@ -14,6 +14,7 @@ Students and advisors do not just need more ranking rows. They need transparent 
 
 ## Current Capabilities
 *   **Multi-Source Ranking Ingestion:** QS, THE, and ARWU can now feed the same ranking storage and aggregation path. THE world rankings prefer **structured JSON** (CDN blobs when published, else Next.js `__NEXT_DATA__`) rather than brittle HTML-first scraping.
+*   **Split Crawler Foundation:** The crawling stack now has an explicit shared crawler core plus two independent engines: a **Ranking Crawler Engine** for ranking sources and an **Admission Crawler Engine** for university-site admissions data.
 *   **Universe-Aware Aggregation:** Rankings are handled as distinct universes such as `global`, `region`, `subject`, and `special`, with aggregation isolated per universe.
 *   **Rank-Based Aggregation Truth:** Aggregated rank order is now driven by source ranks, not composite score sorting. Composite score remains a display signal only.
 *   **Ranking Evidence:** Product rows and university detail pages expose QS / THE / ARWU source ranks directly, including disagreement across sources.
@@ -34,6 +35,14 @@ CrawlerNest is built on a strict, decoupled 6-layer architecture:
 4.  **Decision Layer:** Recommendation, trust scoring, evidence summaries, and comparison logic.
 5.  **Mini-Agent Layer:** A lightweight, controlled AI-assisted development loop for scoped task generation, evaluation, and refinement.
 6.  **Product Layer:** Spring Boot APIs and the Next.js website.
+
+Inside the data-production path, the crawler system is now intentionally split into three code boundaries:
+
+- **`crawlernest-crawler-core/`**: shared transport/runtime concerns such as HTTP, retry, rate limiting, logging, and snapshot stubs
+- **`crawlernest-ranking-crawler/`**: ranking-source crawling for QS, THE, ARWU, ranking universes, and structured ranking rows
+- **`crawlernest-admission-crawler/`**: university-site crawling, admission-page discovery, and extraction of semi-structured admission requirements
+
+`run_pipeline.py` remains the top-level orchestration entrypoint, but the long-term direction is for it to call into these crawler engines rather than continue accumulating source-specific crawling behavior directly.
 
 The Mini-Agent Layer follows a constrained loop:
 
