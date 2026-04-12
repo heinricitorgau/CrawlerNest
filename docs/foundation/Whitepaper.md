@@ -119,8 +119,10 @@ graph TD
     end
 
     subgraph "協作與編排層"
-        JOBS[Job 管理器]
-        CRAWL[Crawler 引擎]
+        JOBS[Job 管理器 / Pipeline Router]
+        CCORE[Shared Crawler Core]
+        RCRAWL[Ranking Crawler]
+        ACRAWL[Admission Crawler]
     end
 
     subgraph "處理與驗證層"
@@ -142,8 +144,11 @@ graph TD
 
     CLI --> JOBS
     WEB --> JOBS
-    JOBS --> CRAWL
-    CRAWL --> EXT
+    JOBS --> CCORE
+    CCORE --> RCRAWL
+    CCORE --> ACRAWL
+    RCRAWL --> EXT
+    ACRAWL --> EXT
     EXT --> NORM_PY
     NORM_PY --> NORM_C
     EXT --> AE
@@ -773,21 +778,43 @@ erDiagram
 
 ## 9. Crawler 框架與 Job 管線
 
-### 9.1 統一 Crawler 引擎
+### 9.1 共享 Core + 雙 Crawler 架構
 
-系統採用統一 crawler engine，而非大量散落腳本，便於：
+系統目前不再以「單一 crawler engine 包所有來源」作為長期架構描述，而是演進為：
+
+- **共享 crawler core**
+  負責 transport、retry、timeout、logging、checkpoint、resume 等共通 runtime 能力
+- **ranking crawler**
+  專責 QS / THE / ARWU 等 ranking-source crawling 與 ranking staging workflow
+- **admission crawler**
+  專責 admission / requirement / school-site extraction workflow
+- **job orchestration layer**
+  負責 routing、批次控制、恢復執行與 pipeline 命令編排
+
+這樣的分工比過去的單一 crawler 敘事更符合現在的實作邊界，也更適合未來擴充不同來源、不同節奏與不同資料契約的工作流。
+
+其主要好處如下：
 
 - 統一錯誤處理
 - 統一 logging
 - 統一 retry / timeout
 - 統一 pipeline 編排
+- ranking 與 admission 邏輯清楚分域
+- 不同 crawler 可獨立測試、獨立演進、獨立控制風險
 
 ```mermaid
 graph TD
-    ENGINE[Crawler Engine]
-    ENGINE --> RANK[Ranking Plugins]
-    ENGINE --> ADM[Admission Crawlers]
-    ENGINE --> FUT[未來來源：Tuition / Programs]
+    JOBS[Job Manager / Pipeline Router]
+    CORE[Shared Crawler Core]
+    RANK[Ranking Crawler]
+    ADM[Admission Crawler]
+    FUT[未來來源：Tuition / Programs]
+
+    JOBS --> CORE
+    CORE --> RANK
+    CORE --> ADM
+    RANK --> FUT
+    ADM --> FUT
 ```
 
 ### 9.2 Job 級編排
@@ -833,9 +860,13 @@ graph TD
 
 ```mermaid
 graph LR
-    JOBS[Crawler Jobs] --> FETCH[Fetcher]
-    FETCH --> EXT[Extractor]
-    EXT --> NORM_PY[Python Normalization]
+    JOBS[Crawler Jobs] --> CORE[Shared Crawler Core]
+    CORE --> RANK[Ranking Crawler]
+    CORE --> ADM[Admission Crawler]
+    RANK --> EXT_R[Ranking Extractor]
+    ADM --> EXT_A[Admission Extractor]
+    EXT_R --> NORM_PY[Python Normalization]
+    EXT_A --> NORM_PY
     NORM_PY --> NORM_C[C Engine]
     NORM_C --> DB[Knowledge Base]
     DB --> ANA[Analytics]
