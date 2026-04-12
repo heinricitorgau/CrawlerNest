@@ -37,7 +37,11 @@ def ingest_ranking_staging_file(
     *,
     allow_partial: bool = False,
     write_target: str = "sqlite",
-    postgres_log_path: Path | None = None,
+    pg_host: str = "localhost",
+    pg_port: int = 5432,
+    pg_database: str = "clawer",
+    pg_user: str = "test",
+    pg_password: str = "",
 ) -> RankingStagingIngestSummary:
     validation = validate_ranking_staging_rows(staging_file)
     summary = validation.summary
@@ -50,7 +54,11 @@ def ingest_ranking_staging_file(
     adapter = build_write_adapter(
         write_target=write_target,
         sqlite_db_path=sqlite_db_path,
-        postgres_log_path=postgres_log_path,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
     )
     write_result = adapter.write_rows(_coerce_valid_rows(validation.valid_rows))
 
@@ -78,13 +86,22 @@ def build_write_adapter(
     *,
     write_target: str,
     sqlite_db_path: Path,
-    postgres_log_path: Path | None,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
 ) -> RankingWriteAdapter:
     if write_target == "sqlite":
         return SQLiteRankingWriteAdapter(sqlite_db_path=sqlite_db_path)
     if write_target == "postgres":
-        target_path = postgres_log_path or sqlite_db_path.with_name("postgres_ranking_write_requests.jsonl")
-        return PostgresRankingWriteAdapter(request_log_path=target_path)
+        return PostgresRankingWriteAdapter(
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
     raise ValueError(f"Unsupported write target: {write_target}")
 
 

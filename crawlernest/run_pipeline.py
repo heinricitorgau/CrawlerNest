@@ -2624,7 +2624,11 @@ def _ingest_ranking_staging(
     *,
     allow_partial: bool,
     write_target: str,
-    postgres_log_file: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
 ) -> dict[str, Any]:
     workspace_root = Path(__file__).resolve().parent.parent
     if str(workspace_root) not in sys.path:
@@ -2640,7 +2644,11 @@ def _ingest_ranking_staging(
         Path(sqlite_db_file),
         allow_partial=allow_partial,
         write_target=write_target,
-        postgres_log_path=Path(postgres_log_file),
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
     )
     return ingest_summary_to_dict(summary)
 
@@ -2696,9 +2704,13 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
                 args.sqlite_db_file,
                 allow_partial=bool(getattr(args, "allow_partial_ingest", False)),
                 write_target=str(getattr(args, "write_target", "sqlite")),
-                postgres_log_file=str(getattr(args, "postgres_log_file", "")),
+                pg_host=str(getattr(args, "pg_host", "localhost")),
+                pg_port=int(getattr(args, "pg_port", 5432)),
+                pg_database=str(getattr(args, "pg_database", "clawer")),
+                pg_user=str(getattr(args, "pg_user", "test")),
+                pg_password=str(getattr(args, "pg_password", "")),
             )
-        except ValueError as exc:
+        except (ValueError, RuntimeError) as exc:
             print(f"[ingest-ranking-staging] aborted: {exc}")
             validation_summary = _validate_ranking_staging(args.staging_input_file)
             print(

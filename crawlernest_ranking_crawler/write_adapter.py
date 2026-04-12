@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import sqlite3
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -8,6 +7,11 @@ from pathlib import Path
 from typing import Protocol
 
 from crawlernest_ranking_crawler.normalize import NormalizedRankingRow
+
+try:
+    import psycopg2
+except ImportError:  # pragma: no cover - optional dependency in local dev
+    psycopg2 = None  # type: ignore[assignment]
 
 
 @dataclass(slots=True)
@@ -50,32 +54,45 @@ class SQLiteRankingWriteAdapter:
 
 @dataclass(slots=True)
 class PostgresRankingWriteAdapter:
-    request_log_path: Path
+    pg_host: str
+    pg_port: int
+    pg_database: str
+    pg_user: str
+    pg_password: str
     table_name: str = "ranking_staging_records"
 
     def write_rows(self, rows: list[NormalizedRankingRow]) -> WriteResult:
-        self.request_log_path.parent.mkdir(parents=True, exist_ok=True)
-        requests = [
-            json.dumps(
-                {
-                    "table_name": self.table_name,
-                    "row": _row_to_payload(row),
-                },
-                ensure_ascii=False,
-            )
-            for row in rows
-        ]
-        serialized = "\n".join(requests)
-        if requests:
-            serialized += "\n"
-        self.request_log_path.write_text(serialized, encoding="utf-8")
+        if psycopg2 is None:
+            raise RuntimeError("psycopg2 is required for postgres write target")
+
+        conn = psycopg2.connect(
+            host=self.pg_host,
+            port=self.pg_port,
+            database=self.pg_database,
+            user=self.pg_user,
+            password=self.pg_password,
+        )
+        try:
+            inserted, skipped_existing = _insert_postgres_rows(conn, self.table_name, rows)
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
+
         return WriteResult(
             write_target="postgres",
-            target_location=str(self.request_log_path),
+            target_location=_postgres_target_location(
+                host=self.pg_host,
+                port=self.pg_port,
+                database=self.pg_database,
+                table_name=self.table_name,
+            ),
             table_name=self.table_name,
-            inserted_row_count=len(rows),
-            skipped_existing_row_count=0,
-            mode="stub",
+            inserted_row_count=inserted,
+            skipped_existing_row_count=skipped_existing,
+            mode="persistent",
         )
 
 
@@ -146,3 +163,66 @@ def _row_to_payload(row: NormalizedRankingRow) -> dict[str, object]:
     if isinstance(extracted_at, datetime):
         payload["extracted_at"] = extracted_at.isoformat()
     return payload
+
+
+def _insert_postgres_rows(
+    conn: "psycopg2.extensions.connection",
+    table_name: str,
+    rows: list[NormalizedRankingRow],
+) -> tuple[int, int]:
+    inserted = 0
+    skipped_existing = 0
+    with conn.cursor() as cur:
+        _ensure_postgres_table(cur, table_name)
+        for row in rows:
+            cur.execute(
+                f"""
+                INSERT INTO {table_name} (
+                    university_name,
+                    normalized_university_name,
+                    source,
+                    rank,
+                    year,
+                    source_url,
+                    extracted_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (normalized_university_name, source, year, rank) DO NOTHING
+                RETURNING 1
+                """,
+                (
+                    row.university_name,
+                    row.normalized_university_name,
+                    row.source,
+                    row.rank,
+                    row.year,
+                    row.source_url,
+                    row.extracted_at,
+                ),
+            )
+            if cur.fetchone() is not None:
+                inserted += 1
+            else:
+                skipped_existing += 1
+    return inserted, skipped_existing
+
+
+def _ensure_postgres_table(cur: "psycopg2.extensions.cursor", table_name: str) -> None:
+    cur.execute(
+        f"""
+        CREATE TABLE IF NOT EXISTS {table_name} (
+            id BIGSERIAL PRIMARY KEY,
+            university_name TEXT NOT NULL,
+            normalized_university_name TEXT NOT NULL,
+            source TEXT NOT NULL,
+            rank INTEGER NOT NULL,
+            year INTEGER NOT NULL,
+            source_url TEXT NULL,
+            extracted_at TIMESTAMPTZ NOT NULL,
+            UNIQUE (normalized_university_name, source, year, rank)
+        )
+        """
+    )
+
+
+def _postgres_target_location(*, host: str, port: int, database: str, table_name: str) -> str:
+    return f"postgresql://{host}:{port}/{database}#{table_name}"
