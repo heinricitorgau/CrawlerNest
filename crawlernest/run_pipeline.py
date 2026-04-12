@@ -2767,6 +2767,37 @@ def _write_ranking_warehouse_preview(
     return warehouse_landing_summary_to_dict(summary)
 
 
+def _resolve_ranking_entities(
+    *,
+    target_schema: str,
+    target_table: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_ranking_crawler.entity_resolver import (  # noqa: E402
+        entity_resolution_summary_to_dict,
+        resolve_ranking_preview_entities,
+    )
+
+    summary = resolve_ranking_preview_entities(
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        target_schema=target_schema,
+        target_table=target_table,
+    )
+    return entity_resolution_summary_to_dict(summary)
+
+
 
 
 def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
@@ -2900,6 +2931,30 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
         )
         print(f"[write-ranking-warehouse-preview] target={summary['target_location']}")
         print(f"[write-ranking-warehouse-preview] table={summary['table_name']}")
+        return 0
+
+    if args.command == "resolve-ranking-entities":
+        try:
+            summary = _resolve_ranking_entities(
+                target_schema=str(args.target_schema),
+                target_table=str(args.target_table),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[resolve-ranking-entities] aborted: {exc}")
+            return 1
+
+        print(
+            "[resolve-ranking-entities] "
+            f"total={summary['total_rows']} "
+            f"resolved={summary['resolved_row_count']} "
+            f"unresolved={summary['unresolved_row_count']}"
+        )
+        print(f"[resolve-ranking-entities] target={summary['target_table']}")
         return 0
 
     if args.command == "seed-canonical":
