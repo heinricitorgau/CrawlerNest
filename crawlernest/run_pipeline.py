@@ -2707,6 +2707,66 @@ def _preview_ranking_warehouse_map(
     }
 
 
+def _write_ranking_warehouse_preview(
+    *,
+    input_source: str,
+    preview_input_file: str,
+    staging_input_file: str,
+    staging_table: str,
+    landing_schema: str,
+    landing_table: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_ranking_crawler.warehouse_mapper import (  # noqa: E402
+        load_staging_rows_from_jsonl,
+        load_staging_rows_from_postgres,
+        map_staging_rows_to_warehouse_rows,
+    )
+    from crawlernest_ranking_crawler.warehouse_writer import (  # noqa: E402
+        load_warehouse_preview_rows,
+        warehouse_landing_summary_to_dict,
+        write_warehouse_landing_rows,
+    )
+
+    if input_source == "preview-json":
+        rows = load_warehouse_preview_rows(Path(preview_input_file))
+    elif input_source == "jsonl":
+        rows = map_staging_rows_to_warehouse_rows(load_staging_rows_from_jsonl(Path(staging_input_file)))
+    elif input_source == "postgres":
+        rows = map_staging_rows_to_warehouse_rows(
+            load_staging_rows_from_postgres(
+                table_name=staging_table,
+                pg_host=pg_host,
+                pg_port=pg_port,
+                pg_database=pg_database,
+                pg_user=pg_user,
+                pg_password=pg_password,
+            )
+        )
+    else:
+        raise ValueError(f"Unsupported input source: {input_source}")
+
+    summary = write_warehouse_landing_rows(
+        rows,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        schema_name=landing_schema,
+        table_name=landing_table,
+    )
+    return warehouse_landing_summary_to_dict(summary)
+
+
 
 
 def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
@@ -2811,6 +2871,35 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
         if summary["preview_rows"]:
             print("[preview-ranking-warehouse-map] preview_rows:")
             print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "write-ranking-warehouse-preview":
+        try:
+            summary = _write_ranking_warehouse_preview(
+                input_source=str(args.input_source),
+                preview_input_file=str(args.preview_input_file),
+                staging_input_file=str(args.staging_input_file),
+                staging_table=str(args.staging_table),
+                landing_schema=str(args.landing_schema),
+                landing_table=str(args.landing_table),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[write-ranking-warehouse-preview] aborted: {exc}")
+            return 1
+
+        print(
+            "[write-ranking-warehouse-preview] "
+            f"rows={summary['row_count']} "
+            f"inserted={summary['inserted_row_count']} "
+            f"skipped_existing={summary['skipped_existing_row_count']}"
+        )
+        print(f"[write-ranking-warehouse-preview] target={summary['target_location']}")
+        print(f"[write-ranking-warehouse-preview] table={summary['table_name']}")
         return 0
 
     if args.command == "seed-canonical":
