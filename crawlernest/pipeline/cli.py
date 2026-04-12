@@ -236,6 +236,47 @@ def build_parser(
     preview_ranking_warehouse_parser.add_argument("--pg-user", default="test")
     preview_ranking_warehouse_parser.add_argument("--pg-password", default="")
 
+    write_ranking_warehouse_parser = subparsers.add_parser(
+        "write-ranking-warehouse-preview",
+        help="Write warehouse-ready ranking preview rows into a safe warehouse landing table",
+    )
+    write_ranking_warehouse_parser.add_argument(
+        "--input-source",
+        choices=["preview-json", "jsonl", "postgres"],
+        default="preview-json",
+        help="Where to load warehouse-ready rows from before landing write",
+    )
+    write_ranking_warehouse_parser.add_argument(
+        "--preview-input-file",
+        default=str(default_ranking_warehouse_preview),
+        help="Warehouse preview artifact used when --input-source=preview-json",
+    )
+    write_ranking_warehouse_parser.add_argument(
+        "--staging-input-file",
+        default=str(default_ranking_records_staging),
+        help="JSONL staging file used when --input-source=jsonl",
+    )
+    write_ranking_warehouse_parser.add_argument(
+        "--staging-table",
+        default="ranking_staging_records",
+        help="PostgreSQL staging table used when --input-source=postgres",
+    )
+    write_ranking_warehouse_parser.add_argument(
+        "--landing-schema",
+        default="warehouse",
+        help="Target schema for warehouse landing writes",
+    )
+    write_ranking_warehouse_parser.add_argument(
+        "--landing-table",
+        default="ranking_records_preview",
+        help="Target table for warehouse landing writes",
+    )
+    write_ranking_warehouse_parser.add_argument("--pg-host", default="localhost")
+    write_ranking_warehouse_parser.add_argument("--pg-port", type=int, default=5432)
+    write_ranking_warehouse_parser.add_argument("--pg-database", default="clawer")
+    write_ranking_warehouse_parser.add_argument("--pg-user", default="test")
+    write_ranking_warehouse_parser.add_argument("--pg-password", default="")
+
     ingest_parser = subparsers.add_parser(
         "ingest-rankings",
         help="Ingest standardized ranking payloads for QS/THE/ARWU into multi-source tables and refresh aggregation",
