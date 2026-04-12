@@ -2653,6 +2653,60 @@ def _ingest_ranking_staging(
     return ingest_summary_to_dict(summary)
 
 
+def _preview_ranking_warehouse_map(
+    *,
+    input_source: str,
+    staging_input_file: str,
+    staging_table: str,
+    output_file: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_ranking_crawler.warehouse_mapper import (  # noqa: E402
+        load_staging_rows_from_jsonl,
+        load_staging_rows_from_postgres,
+        map_staging_rows_to_warehouse_rows,
+        warehouse_rows_to_jsonable,
+        write_warehouse_preview,
+    )
+
+    if input_source == "jsonl":
+        staging_rows = load_staging_rows_from_jsonl(Path(staging_input_file))
+        source_location = str(Path(staging_input_file))
+    elif input_source == "postgres":
+        staging_rows = load_staging_rows_from_postgres(
+            table_name=staging_table,
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+        source_location = f"postgresql://{pg_host}:{pg_port}/{pg_database}#{staging_table}"
+    else:
+        raise ValueError(f"Unsupported input source: {input_source}")
+
+    mapped_rows = map_staging_rows_to_warehouse_rows(staging_rows)
+    output_path = Path(output_file)
+    write_warehouse_preview(mapped_rows, output_path)
+    preview_payload = warehouse_rows_to_jsonable(mapped_rows[:5])
+
+    return {
+        "input_source": input_source,
+        "source_location": source_location,
+        "row_count": len(mapped_rows),
+        "output_file": str(output_path),
+        "preview_rows": preview_payload,
+    }
+
+
 
 
 def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
@@ -2734,6 +2788,29 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
         )
         print(f"[ingest-ranking-staging] target_location={summary['target_location']}")
         print(f"[ingest-ranking-staging] table={summary['table_name']}")
+        return 0
+
+    if args.command == "preview-ranking-warehouse-map":
+        summary = _preview_ranking_warehouse_map(
+            input_source=str(args.input_source),
+            staging_input_file=str(args.staging_input_file),
+            staging_table=str(args.staging_table),
+            output_file=str(args.output_file),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
+        )
+        print(
+            "[preview-ranking-warehouse-map] "
+            f"input_source={summary['input_source']} "
+            f"rows={summary['row_count']} "
+            f"output={summary['output_file']}"
+        )
+        if summary["preview_rows"]:
+            print("[preview-ranking-warehouse-map] preview_rows:")
+            print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
         return 0
 
     if args.command == "seed-canonical":
