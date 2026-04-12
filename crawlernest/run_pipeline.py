@@ -2618,6 +2618,29 @@ def _validate_ranking_staging(staging_file: str) -> dict[str, Any]:
     return summary_to_dict(summary)
 
 
+def _ingest_ranking_staging(
+    staging_file: str,
+    sqlite_db_file: str,
+    *,
+    allow_partial: bool,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_ranking_crawler.ingest import (  # noqa: E402
+        ingest_ranking_staging_file,
+        ingest_summary_to_dict,
+    )
+
+    summary = ingest_ranking_staging_file(
+        Path(staging_file),
+        Path(sqlite_db_file),
+        allow_partial=allow_partial,
+    )
+    return ingest_summary_to_dict(summary)
+
+
 
 
 def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
@@ -2645,8 +2668,53 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
         return 0
 
     if args.command == "validate-ranking-staging":
-        summary = _validate_ranking_staging(args.staging_file)
-        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        summary = _validate_ranking_staging(args.staging_input_file)
+        print(
+            "[validate-ranking-staging] "
+            f"total={summary['total_rows']} "
+            f"valid={summary['valid_row_count']} "
+            f"invalid={summary['invalid_row_count']} "
+            f"duplicates={summary['duplicate_row_count']}"
+        )
+        print(f"[validate-ranking-staging] staging_file={summary['staging_file']}")
+        if summary["error_samples"]:
+            print("[validate-ranking-staging] error_samples:")
+            print(json.dumps(summary["error_samples"], ensure_ascii=False, indent=2))
+        if summary["duplicate_samples"]:
+            print("[validate-ranking-staging] duplicate_samples:")
+            print(json.dumps(summary["duplicate_samples"], ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "ingest-ranking-staging":
+        try:
+            summary = _ingest_ranking_staging(
+                args.staging_input_file,
+                args.sqlite_db_file,
+                allow_partial=bool(getattr(args, "allow_partial_ingest", False)),
+            )
+        except ValueError as exc:
+            print(f"[ingest-ranking-staging] aborted: {exc}")
+            validation_summary = _validate_ranking_staging(args.staging_input_file)
+            print(
+                "[ingest-ranking-staging] "
+                f"total={validation_summary['total_rows']} "
+                f"valid={validation_summary['valid_row_count']} "
+                f"invalid={validation_summary['invalid_row_count']} "
+                f"duplicates={validation_summary['duplicate_row_count']}"
+            )
+            return 1
+
+        print(
+            "[ingest-ranking-staging] "
+            f"mode={summary['mode']} "
+            f"inserted={summary['inserted_row_count']} "
+            f"skipped_existing={summary['skipped_existing_row_count']} "
+            f"valid={summary['valid_row_count']} "
+            f"invalid={summary['invalid_row_count']} "
+            f"duplicates={summary['duplicate_row_count']}"
+        )
+        print(f"[ingest-ranking-staging] sqlite_db={summary['sqlite_db']}")
+        print(f"[ingest-ranking-staging] table={summary['table_name']}")
         return 0
 
     if args.command == "seed-canonical":
