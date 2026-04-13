@@ -21,6 +21,8 @@ def build_parser(
     default_ranking_records_staging = workspace_root / "crawlernest-samples" / "ranking_records_staging.jsonl"
     default_ranking_ingest_db = workspace_root / "crawlernest-samples" / "ranking_staging_ingest.sqlite3"
     default_ranking_warehouse_preview = workspace_root / "crawlernest-samples" / "ranking_warehouse_preview.json"
+    default_aggregated_ranking_preview = workspace_root / "crawlernest-samples" / "aggregated_rankings_preview.json"
+    default_decision_ranking_preview = workspace_root / "crawlernest-samples" / "ranking_decision_preview.json"
     default_unresolved_report = workspace_root / "crawlernest-samples" / "ranking_unresolved_entities.json"
     default_admission_records = workspace_root / "crawlernest-samples" / "admission_records.json"
 
@@ -277,6 +279,87 @@ def build_parser(
     write_ranking_warehouse_parser.add_argument("--pg-database", default="clawer")
     write_ranking_warehouse_parser.add_argument("--pg-user", default="test")
     write_ranking_warehouse_parser.add_argument("--pg-password", default="")
+
+    aggregate_ranking_preview_parser = subparsers.add_parser(
+        "aggregate-ranking-preview",
+        help="Aggregate warehouse-ready ranking preview rows into a safe aggregated preview table",
+    )
+    aggregate_ranking_preview_parser.add_argument(
+        "--input-source",
+        choices=["preview-json", "postgres"],
+        default="postgres",
+        help="Where to load ranking rows from before preview aggregation",
+    )
+    aggregate_ranking_preview_parser.add_argument(
+        "--preview-input-file",
+        default=str(default_ranking_warehouse_preview),
+        help="Warehouse preview artifact used when --input-source=preview-json",
+    )
+    aggregate_ranking_preview_parser.add_argument(
+        "--source-schema",
+        default="warehouse",
+        help="Schema containing the warehouse preview source table when --input-source=postgres",
+    )
+    aggregate_ranking_preview_parser.add_argument(
+        "--source-table",
+        default="ranking_records_preview",
+        help="Warehouse preview source table when --input-source=postgres",
+    )
+    aggregate_ranking_preview_parser.add_argument(
+        "--target-schema",
+        default="warehouse",
+        help="Target schema for aggregated preview writes",
+    )
+    aggregate_ranking_preview_parser.add_argument(
+        "--target-table",
+        default="aggregated_rankings_preview",
+        help="Target table for aggregated preview writes",
+    )
+    aggregate_ranking_preview_parser.add_argument(
+        "--output-file",
+        default=str(default_aggregated_ranking_preview),
+        help="Optional JSON artifact path for aggregated preview rows",
+    )
+    aggregate_ranking_preview_parser.add_argument("--pg-host", default="localhost")
+    aggregate_ranking_preview_parser.add_argument("--pg-port", type=int, default=5432)
+    aggregate_ranking_preview_parser.add_argument("--pg-database", default="clawer")
+    aggregate_ranking_preview_parser.add_argument("--pg-user", default="test")
+    aggregate_ranking_preview_parser.add_argument("--pg-password", default="")
+
+    decision_ranking_preview_parser = subparsers.add_parser(
+        "decision-ranking-preview",
+        help="Build decision-layer preview rows from aggregated rankings preview",
+    )
+    decision_ranking_preview_parser.add_argument(
+        "--source-schema",
+        default="warehouse",
+        help="Schema containing the aggregated rankings preview source table",
+    )
+    decision_ranking_preview_parser.add_argument(
+        "--source-table",
+        default="aggregated_rankings_preview",
+        help="Source table used to load aggregated ranking rows",
+    )
+    decision_ranking_preview_parser.add_argument(
+        "--target-schema",
+        default="warehouse",
+        help="Target schema for decision preview writes",
+    )
+    decision_ranking_preview_parser.add_argument(
+        "--target-table",
+        default="ranking_decision_preview",
+        help="Target table for decision preview writes",
+    )
+    decision_ranking_preview_parser.add_argument(
+        "--output-file",
+        default=str(default_decision_ranking_preview),
+        help="Optional JSON artifact path for decision preview rows",
+    )
+    decision_ranking_preview_parser.add_argument("--pg-host", default="localhost")
+    decision_ranking_preview_parser.add_argument("--pg-port", type=int, default=5432)
+    decision_ranking_preview_parser.add_argument("--pg-database", default="clawer")
+    decision_ranking_preview_parser.add_argument("--pg-user", default="test")
+    decision_ranking_preview_parser.add_argument("--pg-password", default="")
 
     resolve_ranking_entities_parser = subparsers.add_parser(
         "resolve-ranking-entities",

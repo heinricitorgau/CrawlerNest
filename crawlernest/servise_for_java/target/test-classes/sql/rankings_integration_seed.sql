@@ -404,6 +404,60 @@ SET aggregation_run_id = EXCLUDED.aggregation_run_id,
     source_normalized_scores_json = EXCLUDED.source_normalized_scores_json,
     source_weights_used_json = EXCLUDED.source_weights_used_json;
 
+INSERT INTO warehouse.ranking_decision_preview (
+    normalized_university_name,
+    ranking_year,
+    aggregated_rank,
+    source_count,
+    std_deviation,
+    trust_score,
+    trust_level,
+    sources,
+    aggregation_explain,
+    trust_explain
+)
+SELECT
+    cu.display_name_normalized,
+    ar.ranking_year,
+    ar.display_rank::double precision,
+    2,
+    1.0,
+    88.0,
+    'high',
+    ar.source_ranks_json,
+    jsonb_build_object(
+        'sources', ar.source_ranks_json,
+        'aggregated_rank', ar.display_rank::double precision,
+        'source_count', 2,
+        'std_deviation', 1.0,
+        'aggregation_method', ar.aggregation_method_version
+    ),
+    jsonb_build_object(
+        'coverage_score', 0.6667,
+        'consistency_score', 80.0,
+        'std_deviation', 1.0,
+        'notes', jsonb_build_array(
+            'Two ranking sources available.',
+            'Ranking sources show strong agreement.'
+        )
+    )
+FROM analytics.aggregated_rankings ar
+JOIN warehouse.canonical_university cu
+  ON cu.canonical_university_id = ar.canonical_university_id
+WHERE ar.ranking_year = 2099
+  AND ar.universe_type = 'global'
+  AND ar.universe_key = 'global'
+ON CONFLICT (normalized_university_name, ranking_year) DO UPDATE
+SET aggregated_rank = EXCLUDED.aggregated_rank,
+    source_count = EXCLUDED.source_count,
+    std_deviation = EXCLUDED.std_deviation,
+    trust_score = EXCLUDED.trust_score,
+    trust_level = EXCLUDED.trust_level,
+    sources = EXCLUDED.sources,
+    aggregation_explain = EXCLUDED.aggregation_explain,
+    trust_explain = EXCLUDED.trust_explain,
+    updated_at = CURRENT_TIMESTAMP;
+
 INSERT INTO analytics.aggregation_runs (
     aggregation_run_id,
     run_label,

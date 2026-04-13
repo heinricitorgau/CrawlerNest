@@ -59,6 +59,23 @@ CREATE TABLE IF NOT EXISTS warehouse.admission_requirements (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS warehouse.ranking_decision_preview (
+    normalized_university_name TEXT NOT NULL,
+    ranking_year INTEGER NOT NULL,
+    aggregated_rank DOUBLE PRECISION,
+    source_count INTEGER,
+    std_deviation DOUBLE PRECISION,
+    trust_score DOUBLE PRECISION,
+    trust_level TEXT,
+    sources JSONB NOT NULL DEFAULT '{}'::jsonb,
+    aggregation_explain JSONB NOT NULL DEFAULT '{}'::jsonb,
+    trust_explain JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_ranking_decision_preview_test
+        UNIQUE (normalized_university_name, ranking_year)
+);
+
 CREATE TABLE IF NOT EXISTS analytics.aggregation_runs (
     aggregation_run_id BIGSERIAL PRIMARY KEY,
     run_label TEXT,

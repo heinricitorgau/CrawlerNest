@@ -1,18 +1,31 @@
 package clawer.repository;
 
+import clawer.dto.AggregationExplainDTO;
+import clawer.dto.TrustExplainDTO;
 import clawer.domain.ranking.ScopedRankedUniversity;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 class RankingRowMapper {
     private final SourceRankParser sourceRankParser;
+    private final ObjectMapper objectMapper;
     private final Logger logger;
+    private static final Map<String, Double> DEFAULT_SOURCE_WEIGHTS = Map.of(
+            "QS", 0.40,
+            "THE", 0.35,
+            "ARWU", 0.25
+    );
 
-    RankingRowMapper(SourceRankParser sourceRankParser, Logger logger) {
+    RankingRowMapper(SourceRankParser sourceRankParser, ObjectMapper objectMapper, Logger logger) {
         this.sourceRankParser = sourceRankParser;
+        this.objectMapper = objectMapper;
         this.logger = logger;
     }
 
@@ -45,14 +58,137 @@ class RankingRowMapper {
         Object rawSourceRanksJson = rs.getObject("source_ranks_json");
         Map<String, Integer> parsedSourceRanks = sourceRankParser.parse(rawSourceRanksJson);
         row.setSourceRanks(parsedSourceRanks);
-        row.setSourceCount(parsedSourceRanks.size());
+        int sourceCount = rs.getInt("source_count");
+        row.setSourceCount(rs.wasNull() ? parsedSourceRanks.size() : sourceCount);
+
+        double trustScore = rs.getDouble("trust_score");
+        row.setTrustScore(rs.wasNull() ? null : trustScore);
+        row.setTrustLevel(rs.getString("trust_level"));
+        row.setAggregationExplain(parseAggregationExplain(rs.getObject("aggregation_explain"), parsedSourceRanks, row));
+        row.setTrustExplain(parseTrustExplain(rs.getObject("trust_explain"), parsedSourceRanks));
         logger.info(
-                "scoped ranking row evidence debug: canonicalUniversityId={}, rawSourceRanksJson={}, parsedSourceRanks={}, sourceCount={}",
+                "scoped ranking row evidence debug: canonicalUniversityId={}, rawSourceRanksJson={}, parsedSourceRanks={}, sourceCount={}, trustScore={}, trustLevel={}",
                 row.getCanonicalUniversityId(),
                 rawSourceRanksJson,
                 parsedSourceRanks,
-                row.getSourceCount()
+                row.getSourceCount(),
+                row.getTrustScore(),
+                row.getTrustLevel()
         );
         return row;
+    }
+
+    private AggregationExplainDTO parseAggregationExplain(
+            Object value,
+            Map<String, Integer> parsedSourceRanks,
+            ScopedRankedUniversity row
+    ) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            Map<String, Object> raw = objectMapper.readValue(value.toString(), new TypeReference<>() {});
+            AggregationExplainDTO dto = new AggregationExplainDTO();
+
+            Map<String, Integer> sources = sourceRankParser.parse(raw.get("sources"));
+            dto.setSources(sources.isEmpty() ? new LinkedHashMap<>(parsedSourceRanks) : sources);
+            dto.setWeights(buildDefaultWeights(dto.getSources()));
+            dto.setAggregatedRankValue(asDouble(raw.get("aggregated_rank")));
+            dto.setAvailableSourceCount(asInteger(raw.get("source_count")));
+            Object aggregationMethod = raw.get("aggregation_method");
+            dto.setAggregationMethodVersion(aggregationMethod == null ? row.getAggregationMethodVersion() : aggregationMethod.toString());
+            dto.setCoverageRatio(row.getCoverageRatio());
+            dto.setCompositeScore(row.getCompositeScore());
+            dto.setNote(buildAggregationNote(dto.getAvailableSourceCount()));
+            return dto;
+        } catch (Exception ex) {
+            logger.warn("failed to parse aggregation_explain json", ex);
+            return null;
+        }
+    }
+
+    private TrustExplainDTO parseTrustExplain(Object value, Map<String, Integer> parsedSourceRanks) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            Map<String, Object> raw = objectMapper.readValue(value.toString(), new TypeReference<>() {});
+            TrustExplainDTO dto = new TrustExplainDTO();
+            dto.setSources(new LinkedHashMap<>(parsedSourceRanks));
+
+            Double coverageScore = asDouble(raw.get("coverage_score"));
+            dto.setCoverageScore(coverageScore == null ? 0.0 : coverageScore * 100.0);
+            Double consistencyScore = asDouble(raw.get("consistency_score"));
+            dto.setConsistencyScore(consistencyScore == null ? 0.0 : consistencyScore);
+            Double stdDeviation = asDouble(raw.get("std_deviation"));
+            dto.setStdDeviation(stdDeviation == null ? 0.0 : stdDeviation);
+            dto.setNotes(asStringList(raw.get("notes")));
+            return dto;
+        } catch (Exception ex) {
+            logger.warn("failed to parse trust_explain json", ex);
+            return null;
+        }
+    }
+
+    private Map<String, Double> buildDefaultWeights(Map<String, Integer> sources) {
+        Map<String, Double> weights = new LinkedHashMap<>();
+        for (String source : List.of("QS", "THE", "ARWU")) {
+            if (sources.containsKey(source)) {
+                weights.put(source, DEFAULT_SOURCE_WEIGHTS.getOrDefault(source, 0.0));
+            }
+        }
+        if (weights.isEmpty()) {
+            for (Map.Entry<String, Integer> entry : sources.entrySet()) {
+                weights.put(entry.getKey(), DEFAULT_SOURCE_WEIGHTS.getOrDefault(entry.getKey(), 0.0));
+            }
+        }
+        return weights;
+    }
+
+    private String buildAggregationNote(Integer availableSourceCount) {
+        if (availableSourceCount == null) {
+            return null;
+        }
+        return switch (availableSourceCount) {
+            case 3 -> "Three ranking sources available.";
+            case 2 -> "Two ranking sources available.";
+            case 1 -> "Only one ranking source available.";
+            default -> "No ranking source evidence available.";
+        };
+    }
+
+    private Double asDouble(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.doubleValue();
+        }
+        try {
+            return Double.parseDouble(value.toString());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private Integer asInteger(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return (int) Math.round(number.doubleValue());
+        }
+        try {
+            return (int) Math.round(Double.parseDouble(value.toString()));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private List<String> asStringList(Object value) {
+        if (value instanceof List<?> list) {
+            return list.stream().map(String::valueOf).toList();
+        }
+        return List.of();
     }
 }

@@ -6,6 +6,7 @@ clawer/config/DatabaseConfig.class
 clawer/model/Ranking.class
 clawer/model/RecommendationExplainDimensions.class
 clawer/service/AdmissionService.class
+clawer/repository/RankingRowMapper$2.class
 clawer/api/AdmissionController.class
 clawer/api/RankingController.class
 clawer/repository/AggregatedRankingReadRepository.class
@@ -32,6 +33,7 @@ clawer/domain/ranking/ScopedRankedUniversity.class
 clawer/service/UniversityService.class
 clawer/domain/ranking/RankedPosition.class
 clawer/service/ComparisonService$ResolvedCandidate.class
+clawer/repository/RankingRowMapper$1.class
 clawer/service/ComparisonService$1.class
 clawer/service/RankingService.class
 clawer/domain/ranking/RankingContext.class

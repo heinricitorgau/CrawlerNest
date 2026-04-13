@@ -1,5 +1,8 @@
 package clawer.domain.ranking;
 
+import clawer.dto.AggregationExplainDTO;
+import clawer.dto.TrustExplainDTO;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -16,6 +19,10 @@ public class ScopedRankedUniversity {
     private Double coverageRatio;
     private Double ieltsMin;
     private String aggregationMethodVersion;
+    private Double trustScore;
+    private String trustLevel;
+    private AggregationExplainDTO aggregationExplain;
+    private TrustExplainDTO trustExplain;
     private Map<String, Integer> sourceRanks = new LinkedHashMap<>();
 
     public Long getCanonicalUniversityId() {
@@ -112,6 +119,38 @@ public class ScopedRankedUniversity {
 
     public void setAggregationMethodVersion(String aggregationMethodVersion) {
         this.aggregationMethodVersion = aggregationMethodVersion;
+    }
+
+    public Double getTrustScore() {
+        return trustScore;
+    }
+
+    public void setTrustScore(Double trustScore) {
+        this.trustScore = trustScore;
+    }
+
+    public String getTrustLevel() {
+        return trustLevel;
+    }
+
+    public void setTrustLevel(String trustLevel) {
+        this.trustLevel = trustLevel;
+    }
+
+    public AggregationExplainDTO getAggregationExplain() {
+        return aggregationExplain;
+    }
+
+    public void setAggregationExplain(AggregationExplainDTO aggregationExplain) {
+        this.aggregationExplain = aggregationExplain;
+    }
+
+    public TrustExplainDTO getTrustExplain() {
+        return trustExplain;
+    }
+
+    public void setTrustExplain(TrustExplainDTO trustExplain) {
+        this.trustExplain = trustExplain;
     }
 
     public Map<String, Integer> getSourceRanks() {
