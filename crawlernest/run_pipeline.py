@@ -2767,6 +2767,144 @@ def _write_ranking_warehouse_preview(
     return warehouse_landing_summary_to_dict(summary)
 
 
+def _aggregate_ranking_preview(
+    *,
+    input_source: str,
+    preview_input_file: str,
+    source_schema: str,
+    source_table: str,
+    target_schema: str,
+    target_table: str,
+    output_file: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_ranking_crawler.aggregation_writer import (  # noqa: E402
+        aggregation_write_summary_to_dict,
+        write_aggregated_rows,
+    )
+    from crawlernest_ranking_crawler.aggregator import (  # noqa: E402
+        aggregate_rankings,
+        aggregated_rows_to_jsonable,
+    )
+    from crawlernest_ranking_crawler.postgres_driver import get_psycopg2  # noqa: E402
+    from crawlernest_ranking_crawler.warehouse_mapper import (  # noqa: E402
+        load_staging_rows_from_postgres,
+        map_staging_rows_to_warehouse_rows,
+    )
+    from crawlernest_ranking_crawler.warehouse_writer import load_warehouse_preview_rows  # noqa: E402
+
+    if input_source == "preview-json":
+        source_rows = load_warehouse_preview_rows(Path(preview_input_file))
+        source_location = str(Path(preview_input_file))
+    elif input_source == "postgres":
+        staging_rows = load_staging_rows_from_postgres(
+            table_name=f"{source_schema}.{source_table}",
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+        source_rows = map_staging_rows_to_warehouse_rows(staging_rows)
+        source_location = f"postgresql://{pg_host}:{pg_port}/{pg_database}#{source_schema}.{source_table}"
+    else:
+        raise ValueError(f"Unsupported input source: {input_source}")
+
+    aggregated_rows = aggregate_rankings(source_rows)
+    output_path = Path(output_file)
+    save_json_artifact(output_path, aggregated_rows_to_jsonable(aggregated_rows))
+
+    psycopg2 = get_psycopg2()
+    conn = psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        dbname=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
+    try:
+        summary = write_aggregated_rows(
+            aggregated_rows,
+            conn,
+            schema_name=target_schema,
+            table_name=target_table,
+        )
+    finally:
+        conn.close()
+
+    payload = aggregation_write_summary_to_dict(summary)
+    payload["input_source"] = input_source
+    payload["source_location"] = source_location
+    payload["output_file"] = str(output_path)
+    payload["preview_rows"] = aggregated_rows_to_jsonable(aggregated_rows[:5])
+    return payload
+
+
+def _decision_ranking_preview(
+    *,
+    source_schema: str,
+    source_table: str,
+    target_schema: str,
+    target_table: str,
+    output_file: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from dataclasses import asdict  # noqa: E402
+
+    from crawlernest_ranking_crawler.decision_writer import (  # noqa: E402
+        build_decision_row,
+        decision_write_summary_to_dict,
+        load_aggregated_rows_from_postgres,
+        write_decision_rows,
+    )
+    from crawlernest_ranking_crawler.explain_layer import build_explain  # noqa: E402
+    from crawlernest_ranking_crawler.postgres_driver import get_psycopg2  # noqa: E402
+
+    psycopg2 = get_psycopg2()
+    conn = psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        dbname=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
+    try:
+        aggregated_rows = load_aggregated_rows_from_postgres(conn)
+        decision_rows = [build_decision_row(row, build_explain(row)) for row in aggregated_rows]
+        output_path = Path(output_file)
+        save_json_artifact(output_path, [asdict(row) for row in decision_rows])
+        summary = write_decision_rows(
+            decision_rows,
+            conn,
+            schema_name=target_schema,
+            table_name=target_table,
+        )
+    finally:
+        conn.close()
+
+    payload = decision_write_summary_to_dict(summary)
+    payload["source_location"] = f"postgresql://{pg_host}:{pg_port}/{pg_database}#{source_schema}.{source_table}"
+    payload["output_file"] = str(Path(output_file))
+    payload["preview_rows"] = [asdict(row) for row in decision_rows[:5]]
+    return payload
+
+
 def _resolve_ranking_entities(
     *,
     target_schema: str,
@@ -3080,6 +3218,65 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
         )
         print(f"[write-ranking-warehouse-preview] target={summary['target_location']}")
         print(f"[write-ranking-warehouse-preview] table={summary['table_name']}")
+        return 0
+
+    if args.command == "aggregate-ranking-preview":
+        try:
+            summary = _aggregate_ranking_preview(
+                input_source=str(args.input_source),
+                preview_input_file=str(args.preview_input_file),
+                source_schema=str(args.source_schema),
+                source_table=str(args.source_table),
+                target_schema=str(args.target_schema),
+                target_table=str(args.target_table),
+                output_file=str(args.output_file),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[aggregate-ranking-preview] aborted: {exc}")
+            return 1
+
+        print(
+            "[aggregate-ranking-preview] "
+            f"input_source={summary['input_source']} "
+            f"rows={summary['row_count']} "
+            f"written={summary['written_row_count']}"
+        )
+        print(f"[aggregate-ranking-preview] source={summary['source_location']}")
+        print(f"[aggregate-ranking-preview] output={summary['output_file']}")
+        print(f"[aggregate-ranking-preview] target={summary['target_location']}")
+        print(f"[aggregate-ranking-preview] table={summary['table_name']}")
+        if summary["preview_rows"]:
+            print("[aggregate-ranking-preview] preview_rows:")
+            print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "decision-ranking-preview":
+        try:
+            summary = _decision_ranking_preview(
+                source_schema=str(args.source_schema),
+                source_table=str(args.source_table),
+                target_schema=str(args.target_schema),
+                target_table=str(args.target_table),
+                output_file=str(args.output_file),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[decision-ranking-preview] aborted: {exc}")
+            return 1
+
+        print(
+            f"[decision-ranking-preview] rows={summary['row_count']} "
+            f"inserted={summary['inserted_row_count']}"
+        )
         return 0
 
     if args.command == "resolve-ranking-entities":

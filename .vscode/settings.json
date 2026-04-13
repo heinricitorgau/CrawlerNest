@@ -81,7 +81,7 @@
     "crawlernest/crawlernest-db-writer",
     "crawlernest/crawlernest-analytics"
   ],
-  "python.languageServer": "Pylance",
+  "python.languageServer": "Jedi",
   "python.terminal.activateEnvironment": true,
   "editor.minimap.enabled": false,
   "editor.codeLens": false,

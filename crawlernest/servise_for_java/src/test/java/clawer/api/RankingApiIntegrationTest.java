@@ -63,10 +63,79 @@ class RankingApiIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.items.length()").value(20))
                 .andExpect(jsonPath("$.data.items[0].aggregatedRank").value(1))
+                .andExpect(jsonPath("$.data.items[0].trustScore").exists())
+                .andExpect(jsonPath("$.data.items[0].trustLevel").isString())
+                .andExpect(jsonPath("$.data.items[0].trustExplain").exists())
                 .andExpect(jsonPath("$.data.items[0].aggregationExplain.sources.QS").exists())
                 .andExpect(jsonPath("$.data.items[0].aggregationExplain.weights.QS").value(0.4))
                 .andExpect(jsonPath("$.data.items[0].aggregationExplain.availableSourceCount").value(2))
                 .andExpect(jsonPath("$.data.items[19].aggregatedRank").value(20));
+    }
+
+    @Test
+    void responseShapeStillExposesDecisionFieldsWithoutBreakingLegacyContract() throws Exception {
+        mockMvc.perform(get("/api/v1/rankings")
+                        .param("page", "1")
+                        .param("pageSize", "1")
+                        .param("source", "AGGREGATED")
+                        .param("year", "2099")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.items[0].canonicalUniversityId").exists())
+                .andExpect(jsonPath("$.data.items[0].universityName").isString())
+                .andExpect(jsonPath("$.data.items[0].country").isString())
+                .andExpect(jsonPath("$.data.items[0].slug").isString())
+                .andExpect(jsonPath("$.data.items[0].rankingYear").value(2099))
+                .andExpect(jsonPath("$.data.items[0].aggregatedRank").exists())
+                .andExpect(jsonPath("$.data.items[0].sourceCount").exists())
+                .andExpect(jsonPath("$.data.items[0].globalRank").exists())
+                .andExpect(jsonPath("$.data.items[0].trustScore").exists())
+                .andExpect(jsonPath("$.data.items[0].trustLevel").isString())
+                .andExpect(jsonPath("$.data.items[0].aggregationExplain.sources").exists())
+                .andExpect(jsonPath("$.data.items[0].aggregationExplain.availableSourceCount").exists())
+                .andExpect(jsonPath("$.data.items[0].trustExplain.coverageScore").exists())
+                .andExpect(jsonPath("$.data.items[0].trustExplain.notes").isArray());
+    }
+
+    @Test
+    void decisionPreviewValuesFlowThroughApiWithoutJavaRecomputingTrustOrExplain() throws Exception {
+        jdbcTemplate.update("""
+                UPDATE warehouse.ranking_decision_preview
+                SET trust_score = ?,
+                    trust_level = ?,
+                    source_count = ?,
+                    aggregation_explain = ?::jsonb,
+                    trust_explain = ?::jsonb
+                WHERE normalized_university_name = ?
+                  AND ranking_year = ?
+                """,
+                12.34,
+                "low",
+                1,
+                "{\"sources\":{\"QS\":1},\"aggregated_rank\":1.0,\"source_count\":1,\"std_deviation\":99.0,\"aggregation_method\":\"decision_test_v1\"}",
+                "{\"coverage_score\":0.3333,\"consistency_score\":20.0,\"std_deviation\":99.0,\"notes\":[\"Only one ranking source available.\",\"Large disagreement across sources.\"]}",
+                "eth zurich",
+                2099
+        );
+
+        mockMvc.perform(get("/api/v1/rankings")
+                        .param("page", "1")
+                        .param("pageSize", "1")
+                        .param("source", "AGGREGATED")
+                        .param("year", "2099")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items[0].universityName").value("ETH Zurich"))
+                .andExpect(jsonPath("$.data.items[0].trustScore").value(12.34))
+                .andExpect(jsonPath("$.data.items[0].trustLevel").value("low"))
+                .andExpect(jsonPath("$.data.items[0].sourceCount").value(1))
+                .andExpect(jsonPath("$.data.items[0].aggregationExplain.availableSourceCount").value(1))
+                .andExpect(jsonPath("$.data.items[0].aggregationExplain.aggregationMethodVersion").value("decision_test_v1"))
+                .andExpect(jsonPath("$.data.items[0].trustExplain.consistencyScore").value(20.0))
+                .andExpect(jsonPath("$.data.items[0].trustExplain.stdDeviation").value(99.0))
+                .andExpect(jsonPath("$.data.items[0].trustExplain.notes[0]").value("Only one ranking source available."))
+                .andExpect(jsonPath("$.data.items[0].trustExplain.notes[1]").value("Large disagreement across sources."));
     }
 
     @Test

@@ -46,7 +46,11 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                 source_count,
                 search_score,
                 source_ranks_json,
-                aggregation_method_version
+                aggregation_method_version,
+                trust_score,
+                trust_level,
+                aggregation_explain,
+                trust_explain
             """;
 
     private final JdbcTemplate jdbcTemplate;
@@ -54,7 +58,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
 
     public JdbcScopedRankingReadAdapter(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
-        this.rankingRowMapper = new RankingRowMapper(new SourceRankParser(objectMapper), LOGGER);
+        this.rankingRowMapper = new RankingRowMapper(new SourceRankParser(objectMapper), objectMapper, LOGGER);
     }
 
     @Override
@@ -218,26 +222,43 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                       AND universe_key = 'global'
                     GROUP BY canonical_university_id
                 ),
+                scoped_reference AS (
+                    SELECT
+                        canonical_university_id,
+                        ranking_year,
+                        display_rank,
+                        composite_score,
+                        coverage_ratio,
+                        aggregation_method_version
+                    FROM analytics.v_aggregated_rankings_latest
+                    WHERE (?::integer IS NULL OR ranking_year = ?::integer)
+                      AND universe_type = ?
+                      AND universe_key = ?
+                ),
                 scoped_base AS (
                     SELECT
-                        ar.canonical_university_id,
+                        cu.canonical_university_id,
                         cu.display_name AS university_name,
                         cu.canonical_slug AS slug,
                         c.country_name AS country_name,
                         c.country_code AS country_code,
-                        ar.ranking_year,
-                        COALESCE(global_ref.global_rank, ar.display_rank) AS global_rank,
-                        ar.display_rank AS scope_rank,
-                        ar.composite_score,
-                        ar.coverage_ratio,
+                        dp.ranking_year,
+                        COALESCE(global_ref.global_rank, ROUND(dp.aggregated_rank)::integer) AS global_rank,
+                        scoped_ref.display_rank AS scope_rank,
+                        scoped_ref.composite_score,
+                        scoped_ref.coverage_ratio,
                         ads.ielts_min,
-                        ar.source_ranks_json,
-                        ar.aggregation_method_version,
+                        dp.sources AS source_ranks_json,
+                        COALESCE(dp.aggregation_explain ->> 'aggregation_method', scoped_ref.aggregation_method_version) AS aggregation_method_version,
                         COALESCE(c.region_name, '') AS region_name,
-                        COALESCE((
+                        COALESCE(dp.source_count, (
                             SELECT COUNT(*)
-                            FROM jsonb_object_keys(ar.source_ranks_json)
+                            FROM jsonb_object_keys(dp.sources)
                         ), 0) AS source_count,
+                        dp.trust_score,
+                        dp.trust_level,
+                        dp.aggregation_explain,
+                        dp.trust_explain,
                         GREATEST(
                             CASE
                                 WHEN ? = '' THEN 0
@@ -264,11 +285,14 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                             END,
                             COALESCE(alias_match.alias_search_score, 0)
                         ) AS search_score
-                    FROM analytics.v_aggregated_rankings_latest ar
+                    FROM warehouse.ranking_decision_preview dp
                     JOIN warehouse.canonical_university cu
-                      ON cu.canonical_university_id = ar.canonical_university_id
+                      ON cu.display_name_normalized = dp.normalized_university_name
                     LEFT JOIN warehouse.countries c
                       ON c.country_id = cu.country_id
+                    JOIN scoped_reference scoped_ref
+                      ON scoped_ref.canonical_university_id = cu.canonical_university_id
+                     AND scoped_ref.ranking_year = dp.ranking_year
                     LEFT JOIN LATERAL (
                         SELECT MAX(
                             CASE
@@ -296,12 +320,10 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                         WHERE ua.canonical_university_id = cu.canonical_university_id
                     ) alias_match ON TRUE
                     LEFT JOIN global_reference global_ref
-                      ON global_ref.canonical_university_id = ar.canonical_university_id
+                      ON global_ref.canonical_university_id = cu.canonical_university_id
                     LEFT JOIN admission_summary ads
-                      ON ads.canonical_university_id = ar.canonical_university_id
-                    WHERE (?::integer IS NULL OR ar.ranking_year = ?::integer)
-                      AND ar.universe_type = ?
-                      AND ar.universe_key = ?
+                      ON ads.canonical_university_id = cu.canonical_university_id
+                    WHERE (?::integer IS NULL OR dp.ranking_year = ?::integer)
                       AND ( ?::text IS NULL OR 
                 """);
         sql.append(canonicalCountrySql).append("""
@@ -323,18 +345,24 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                         source_ranks_json,
                         aggregation_method_version,
                         source_count,
-                        search_score
+                        search_score,
+                        trust_score,
+                        trust_level,
+                        aggregation_explain,
+                        trust_explain
                     FROM scoped_base
                 )
                 """);
 
         argsList.add(year);
         argsList.add(year);
-        addRepeatedArgs(argsList, normalizedSearch, 24);
         argsList.add(year);
         argsList.add(year);
         argsList.add(context.universeType());
         argsList.add(context.universeKey());
+        addRepeatedArgs(argsList, normalizedSearch, 24);
+        argsList.add(year);
+        argsList.add(year);
         argsList.add(countryNameFilter);
         argsList.add(countryNameFilter);
         return sql;
