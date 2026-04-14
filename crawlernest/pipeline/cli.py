@@ -340,6 +340,29 @@ def build_parser(
     unresolved_admission_entities_parser.add_argument("--pg-user", default="test")
     unresolved_admission_entities_parser.add_argument("--pg-password", default="")
 
+    refresh_admission_resolution_parser = subparsers.add_parser(
+        "refresh-admission-resolution",
+        help="Refresh deterministic admission entity resolution, then regenerate the unresolved admission report",
+    )
+    refresh_admission_resolution_parser.add_argument("--target-schema", default="warehouse")
+    refresh_admission_resolution_parser.add_argument("--target-table", default="admission_records_preview")
+    refresh_admission_resolution_parser.add_argument(
+        "--limit",
+        type=int,
+        default=20,
+        help="How many unresolved admission universities to print after the refresh",
+    )
+    refresh_admission_resolution_parser.add_argument(
+        "--output-file",
+        default="",
+        help=f"Optional JSON output file for the refreshed unresolved admission report (example default: {default_admission_unresolved_report})",
+    )
+    refresh_admission_resolution_parser.add_argument("--pg-host", default="localhost")
+    refresh_admission_resolution_parser.add_argument("--pg-port", type=int, default=5432)
+    refresh_admission_resolution_parser.add_argument("--pg-database", default="clawer")
+    refresh_admission_resolution_parser.add_argument("--pg-user", default="test")
+    refresh_admission_resolution_parser.add_argument("--pg-password", default="")
+
     validate_ranking_staging_parser = subparsers.add_parser(
         "validate-ranking-staging",
         help="Validate ranking staging JSONL before any formal DB write step",

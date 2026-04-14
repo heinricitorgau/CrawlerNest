@@ -3011,6 +3011,83 @@ def _get_unresolved_admission_entities(
     }
 
 
+def _refresh_admission_resolution(
+    *,
+    target_schema: str,
+    target_table: str,
+    limit: int,
+    output_file: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    full_summary_limit = 1_000_000
+
+    before_summary = _get_unresolved_admission_entities(
+        target_schema=target_schema,
+        target_table=target_table,
+        limit=full_summary_limit,
+        output_file="",
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+    )
+
+    resolution_summary = _resolve_admission_entities(
+        target_schema=target_schema,
+        target_table=target_table,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+    )
+
+    after_full_summary = _get_unresolved_admission_entities(
+        target_schema=target_schema,
+        target_table=target_table,
+        limit=full_summary_limit,
+        output_file="",
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+    )
+    after_display_summary = _get_unresolved_admission_entities(
+        target_schema=target_schema,
+        target_table=target_table,
+        limit=limit,
+        output_file=output_file,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+    )
+
+    before_unresolved_count = sum(int(row["occurrence_count"]) for row in before_summary["rows"])
+    after_unresolved_count = sum(int(row["occurrence_count"]) for row in after_full_summary["rows"])
+
+    return {
+        "target_table": before_summary["target_table"],
+        "before_unresolved_count": before_unresolved_count,
+        "before_distinct_university_count": before_summary["row_count"],
+        "after_unresolved_count": after_unresolved_count,
+        "after_distinct_university_count": after_full_summary["row_count"],
+        "resolved_row_count": resolution_summary["resolved_row_count"],
+        "unresolved_row_count": resolution_summary["unresolved_row_count"],
+        "canonical_exact_match_count": resolution_summary["canonical_exact_match_count"],
+        "alias_exact_match_count": resolution_summary["alias_exact_match_count"],
+        "display_rows": after_display_summary["rows"],
+        "output_file": after_display_summary["output_file"],
+    }
+
+
 def _aggregate_ranking_preview(
     *,
     input_source: str,
@@ -3534,6 +3611,45 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
             print("No unresolved admission entities found.")
         if summary["output_file"]:
             print(f"[unresolved-admission-entities] output={summary['output_file']}")
+        return 0
+
+    if args.command == "refresh-admission-resolution":
+        try:
+            summary = _refresh_admission_resolution(
+                target_schema=str(args.target_schema),
+                target_table=str(args.target_table),
+                limit=int(args.limit),
+                output_file=str(args.output_file),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[refresh-admission-resolution] aborted: {exc}")
+            return 1
+
+        print(
+            "[refresh-admission-resolution] "
+            f"target={summary['target_table']} "
+            f"before_unresolved={summary['before_unresolved_count']} "
+            f"after_unresolved={summary['after_unresolved_count']} "
+            f"before_distinct={summary['before_distinct_university_count']} "
+            f"after_distinct={summary['after_distinct_university_count']} "
+            f"resolved={summary['resolved_row_count']} "
+            f"unresolved={summary['unresolved_row_count']} "
+            f"canonical_exact={summary['canonical_exact_match_count']} "
+            f"alias_exact={summary['alias_exact_match_count']}"
+        )
+        if summary["display_rows"]:
+            print("normalized_university_name | occurrence_count")
+            for row in summary["display_rows"]:
+                print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
+        else:
+            print("No unresolved admission entities found.")
+        if summary["output_file"]:
+            print(f"[refresh-admission-resolution] output={summary['output_file']}")
         return 0
 
     if args.command == "validate-ranking-staging":

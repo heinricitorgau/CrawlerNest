@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import re
 from typing import Any
 
-from crawlernest_ranking_crawler.entity_resolver import _ensure_resolution_tables
 from crawlernest_ranking_crawler.normalize import normalize_university_name
 from crawlernest_ranking_crawler.postgres_driver import get_psycopg2
 
@@ -46,8 +46,6 @@ def add_university_alias(
     )
     try:
         with conn.cursor() as cur:
-            _ensure_resolution_tables(cur)
-
             canonical_id, created_canonical = _get_or_create_canonical(
                 cur,
                 canonical_name=canonical_name,
@@ -89,14 +87,23 @@ def _get_or_create_canonical(
     canonical_name: str,
     normalized_canonical_name: str,
 ) -> tuple[int, bool]:
+    canonical_slug = _build_canonical_slug(canonical_name, normalized_canonical_name)
     cur.execute(
         """
-        INSERT INTO warehouse.canonical_universities (normalized_name, display_name)
-        VALUES (%s, %s)
-        ON CONFLICT (normalized_name) DO NOTHING
+        INSERT INTO warehouse.canonical_university (
+            canonical_slug,
+            display_name,
+            display_name_normalized,
+            status
+        )
+        VALUES (%s, %s, %s, 'active')
+        ON CONFLICT (canonical_slug) DO UPDATE
+        SET display_name = EXCLUDED.display_name,
+            display_name_normalized = EXCLUDED.display_name_normalized,
+            updated_at = CURRENT_TIMESTAMP
         RETURNING canonical_university_id
         """,
-        (normalized_canonical_name, canonical_name),
+        (canonical_slug, canonical_name, normalized_canonical_name),
     )
     created = cur.fetchone()
     if created is not None:
@@ -105,8 +112,8 @@ def _get_or_create_canonical(
     cur.execute(
         """
         SELECT canonical_university_id
-        FROM warehouse.canonical_universities
-        WHERE normalized_name = %s
+        FROM warehouse.canonical_university
+        WHERE display_name_normalized = %s
         """,
         (normalized_canonical_name,),
     )
@@ -125,9 +132,9 @@ def _ensure_alias_points_to_canonical(
 ) -> bool:
     cur.execute(
         """
-        SELECT university_id
-        FROM warehouse.university_aliases
-        WHERE source_school_name = %s
+        SELECT canonical_university_id
+        FROM warehouse.university_alias
+        WHERE alias_normalized = %s
         """,
         (normalized_alias,),
     )
@@ -142,14 +149,36 @@ def _ensure_alias_points_to_canonical(
 
     cur.execute(
         """
-        INSERT INTO warehouse.university_aliases (
-            university_id,
+        INSERT INTO warehouse.university_alias (
+            canonical_university_id,
+            alias_text,
+            alias_normalized,
             source_name,
-            source_school_name,
-            match_type,
-            confidence_score
-        ) VALUES (%s, %s, %s, %s, %s)
+            is_primary,
+            is_abbreviation,
+            metadata
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb)
+        ON CONFLICT DO NOTHING
         """,
-        (canonical_university_id, "manual", normalized_alias, "exact", 1.0),
+        (
+            canonical_university_id,
+            alias,
+            normalized_alias,
+            "manual",
+            False,
+            _looks_like_abbreviation(alias),
+            '{"seed_origin":"seed-university-alias","match_type":"exact","confidence_score":1.0}',
+        ),
     )
     return True
+
+
+def _build_canonical_slug(canonical_name: str, normalized_canonical_name: str) -> str:
+    base = normalized_canonical_name or normalize_university_name(canonical_name)
+    slug = re.sub(r"[^a-z0-9]+", "-", base.lower()).strip("-")
+    return slug or "canonical-university"
+
+
+def _looks_like_abbreviation(alias: str) -> bool:
+    compact = re.sub(r"[^A-Za-z]", "", alias)
+    return bool(compact) and compact.isupper() and len(compact) <= 10
