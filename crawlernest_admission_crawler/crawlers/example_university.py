@@ -11,13 +11,14 @@ class ExampleUniversityCrawler:
         return [
             AdmissionRecord(
                 university_name="MIT",
+                source_url="https://example.edu/admissions",
+                country="United States",
                 ielts_requirement=7.0,
                 toefl_requirement=100,
-                source_url="https://example.edu/admissions",
                 extracted_at=extracted_at,
-                confidence=0.95,
                 raw_payload={
                     "university": "MIT",
+                    "country": "United States",
                     "ielts_requirement": 7.0,
                     "toefl_requirement": 100,
                     "source_url": "https://example.edu/admissions",

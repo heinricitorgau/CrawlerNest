@@ -1,6 +1,7 @@
 [
   {
     "university_name": "MIT",
+    "normalized_university_name": "MIT",
     "source_url": "https://example.edu/admissions",
     "country": "United States",
     "ielts_requirement": 7.0,

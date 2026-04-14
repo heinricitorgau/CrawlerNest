@@ -25,6 +25,11 @@ def build_parser(
     default_decision_ranking_preview = workspace_root / "crawlernest-samples" / "ranking_decision_preview.json"
     default_unresolved_report = workspace_root / "crawlernest-samples" / "ranking_unresolved_entities.json"
     default_admission_records = workspace_root / "crawlernest-samples" / "admission_records.json"
+    default_admission_records_normalized = workspace_root / "crawlernest-samples" / "admission_records_normalized.json"
+    default_admission_records_staging = workspace_root / "crawlernest-samples" / "admission_records_staging.jsonl"
+    default_admission_ingest_db = workspace_root / "crawlernest-samples" / "admission_staging_ingest.sqlite3"
+    default_admission_warehouse_preview = workspace_root / "crawlernest-samples" / "admission_warehouse_preview.json"
+    default_admission_unresolved_report = workspace_root / "crawlernest-samples" / "admission_unresolved_entities.json"
 
     parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -166,6 +171,174 @@ def build_parser(
         default=str(default_admission_records),
         help="JSON output path for serialized admission records",
     )
+    crawl_admission_parser.add_argument(
+        "--with-normalized-output",
+        action="store_true",
+        help="Also export a normalized admission artifact",
+    )
+    crawl_admission_parser.add_argument(
+        "--normalized-output-file",
+        default=str(default_admission_records_normalized),
+        help="JSON output path for normalized admission rows",
+    )
+    crawl_admission_parser.add_argument(
+        "--write-staging",
+        action="store_true",
+        help="Write normalized admission rows to a staging JSONL artifact",
+    )
+    crawl_admission_parser.add_argument(
+        "--staging-output-file",
+        default=str(default_admission_records_staging),
+        help="JSONL output path for normalized admission staging rows",
+    )
+
+    validate_admission_staging_parser = subparsers.add_parser(
+        "validate-admission-staging",
+        help="Validate admission staging JSONL before any formal DB write step",
+    )
+    validate_admission_staging_parser.add_argument(
+        "--staging-input-file",
+        default=str(default_admission_records_staging),
+        help="JSONL staging file to validate",
+    )
+
+    ingest_admission_staging_parser = subparsers.add_parser(
+        "ingest-admission-staging",
+        help="Ingest validated admission staging JSONL into a safe staging store",
+    )
+    ingest_admission_staging_parser.add_argument(
+        "--staging-input-file",
+        default=str(default_admission_records_staging),
+        help="JSONL staging file to ingest",
+    )
+    ingest_admission_staging_parser.add_argument(
+        "--sqlite-db-file",
+        default=str(default_admission_ingest_db),
+        help="SQLite file used for safe admission staging ingestion",
+    )
+    ingest_admission_staging_parser.add_argument(
+        "--write-target",
+        choices=["sqlite", "postgres"],
+        default="sqlite",
+        help="Write target adapter used by admission staging ingestion",
+    )
+    ingest_admission_staging_parser.add_argument(
+        "--staging-table",
+        default="admission_staging_records",
+        help="PostgreSQL staging table used when --write-target=postgres",
+    )
+    ingest_admission_staging_parser.add_argument("--pg-host", default="localhost")
+    ingest_admission_staging_parser.add_argument("--pg-port", type=int, default=5432)
+    ingest_admission_staging_parser.add_argument("--pg-database", default="clawer")
+    ingest_admission_staging_parser.add_argument("--pg-user", default="test")
+    ingest_admission_staging_parser.add_argument("--pg-password", default="")
+    ingest_admission_staging_parser.add_argument(
+        "--allow-partial-ingest",
+        action="store_true",
+        help="Ingest only validated rows even if invalid or duplicate rows are present",
+    )
+
+    preview_admission_warehouse_parser = subparsers.add_parser(
+        "preview-admission-warehouse-map",
+        help="Preview how admission staging rows would map into warehouse-ready admission rows",
+    )
+    preview_admission_warehouse_parser.add_argument(
+        "--input-source",
+        choices=["jsonl", "postgres"],
+        default="jsonl",
+        help="Where to load admission staging rows from for warehouse mapping preview",
+    )
+    preview_admission_warehouse_parser.add_argument(
+        "--staging-input-file",
+        default=str(default_admission_records_staging),
+        help="JSONL staging file used when --input-source=jsonl",
+    )
+    preview_admission_warehouse_parser.add_argument(
+        "--staging-table",
+        default="admission_staging_records",
+        help="PostgreSQL staging table used when --input-source=postgres",
+    )
+    preview_admission_warehouse_parser.add_argument(
+        "--output-file",
+        default=str(default_admission_warehouse_preview),
+        help="Artifact path for warehouse-ready admission preview rows",
+    )
+    preview_admission_warehouse_parser.add_argument("--pg-host", default="localhost")
+    preview_admission_warehouse_parser.add_argument("--pg-port", type=int, default=5432)
+    preview_admission_warehouse_parser.add_argument("--pg-database", default="clawer")
+    preview_admission_warehouse_parser.add_argument("--pg-user", default="test")
+    preview_admission_warehouse_parser.add_argument("--pg-password", default="")
+
+    write_admission_warehouse_parser = subparsers.add_parser(
+        "write-admission-warehouse-preview",
+        help="Write warehouse-ready admission preview rows into a safe warehouse landing table",
+    )
+    write_admission_warehouse_parser.add_argument(
+        "--input-source",
+        choices=["preview-json", "jsonl", "postgres"],
+        default="preview-json",
+        help="Where to load warehouse-ready admission rows from before landing write",
+    )
+    write_admission_warehouse_parser.add_argument(
+        "--preview-input-file",
+        default=str(default_admission_warehouse_preview),
+        help="Admission warehouse preview artifact used when --input-source=preview-json",
+    )
+    write_admission_warehouse_parser.add_argument(
+        "--staging-input-file",
+        default=str(default_admission_records_staging),
+        help="JSONL staging file used when --input-source=jsonl",
+    )
+    write_admission_warehouse_parser.add_argument(
+        "--staging-table",
+        default="admission_staging_records",
+        help="PostgreSQL staging table used when --input-source=postgres",
+    )
+    write_admission_warehouse_parser.add_argument(
+        "--landing-schema",
+        default="warehouse",
+        help="Target schema for admission warehouse landing writes",
+    )
+    write_admission_warehouse_parser.add_argument(
+        "--landing-table",
+        default="admission_records_preview",
+        help="Target table for admission warehouse landing writes",
+    )
+    write_admission_warehouse_parser.add_argument("--pg-host", default="localhost")
+    write_admission_warehouse_parser.add_argument("--pg-port", type=int, default=5432)
+    write_admission_warehouse_parser.add_argument("--pg-database", default="clawer")
+    write_admission_warehouse_parser.add_argument("--pg-user", default="test")
+    write_admission_warehouse_parser.add_argument("--pg-password", default="")
+
+    resolve_admission_entities_parser = subparsers.add_parser(
+        "resolve-admission-entities",
+        help="Resolve admission preview rows against canonical_university and university_alias using deterministic exact match",
+    )
+    resolve_admission_entities_parser.add_argument("--target-schema", default="warehouse")
+    resolve_admission_entities_parser.add_argument("--target-table", default="admission_records_preview")
+    resolve_admission_entities_parser.add_argument("--pg-host", default="localhost")
+    resolve_admission_entities_parser.add_argument("--pg-port", type=int, default=5432)
+    resolve_admission_entities_parser.add_argument("--pg-database", default="clawer")
+    resolve_admission_entities_parser.add_argument("--pg-user", default="test")
+    resolve_admission_entities_parser.add_argument("--pg-password", default="")
+
+    unresolved_admission_entities_parser = subparsers.add_parser(
+        "unresolved-admission-entities",
+        help="Read-only report of unresolved admission entities grouped by normalized university name",
+    )
+    unresolved_admission_entities_parser.add_argument("--target-schema", default="warehouse")
+    unresolved_admission_entities_parser.add_argument("--target-table", default="admission_records_preview")
+    unresolved_admission_entities_parser.add_argument("--limit", type=int, default=20)
+    unresolved_admission_entities_parser.add_argument(
+        "--output-file",
+        default="",
+        help=f"Optional JSON output file for unresolved admission report (example default: {default_admission_unresolved_report})",
+    )
+    unresolved_admission_entities_parser.add_argument("--pg-host", default="localhost")
+    unresolved_admission_entities_parser.add_argument("--pg-port", type=int, default=5432)
+    unresolved_admission_entities_parser.add_argument("--pg-database", default="clawer")
+    unresolved_admission_entities_parser.add_argument("--pg-user", default="test")
+    unresolved_admission_entities_parser.add_argument("--pg-password", default="")
 
     validate_ranking_staging_parser = subparsers.add_parser(
         "validate-ranking-staging",

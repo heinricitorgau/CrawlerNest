@@ -1,11 +1,14 @@
 [
   {
     "university_name": "MIT",
+    "normalized_university_name": "MIT",
     "source_url": "https://example.edu/admissions",
     "country": "United States",
     "ielts_requirement": 7.0,
     "toefl_requirement": 100,
     "extracted_at": "2026-04-14T10:06:49.097214+00:00",
+    "canonical_university_id": null,
+    "entity_resolution_status": "unresolved",
     "raw_payload": {
       "university": "MIT",
       "country": "United States",

@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from crawlernest_admission_crawler.engine import AdmissionCrawlerEngine
+from crawlernest_admission_crawler.normalize import normalize_admission_records
+from crawlernest_admission_crawler.writer import write_normalized_admission_rows_to_jsonl
 from crawlernest_ranking_crawler.engine import RankingCrawlerEngine
 from crawlernest_ranking_crawler.normalize import normalize_ranking_records
 from crawlernest_ranking_crawler.writer import write_normalized_ranking_rows_to_jsonl
@@ -34,10 +36,26 @@ def run_ranking_sample_export(
     return output_path, len(records), normalized_path, staging_path
 
 
-def run_admission_sample_export(output_path: Path) -> tuple[Path, int]:
+def run_admission_sample_export(
+    output_path: Path,
+    *,
+    normalized_output_path: Path | None = None,
+    staging_output_path: Path | None = None,
+) -> tuple[Path, int, Path | None, Path | None]:
     records = AdmissionCrawlerEngine().run()
     write_records_to_json(records, output_path)
-    return output_path, len(records)
+    normalized_path: Path | None = None
+    staging_path: Path | None = None
+    normalized_rows = None
+    if normalized_output_path is not None or staging_output_path is not None:
+        normalized_rows = normalize_admission_records(records)
+    if normalized_output_path is not None and normalized_rows is not None:
+        write_records_to_json(normalized_rows, normalized_output_path)
+        normalized_path = normalized_output_path
+    if staging_output_path is not None and normalized_rows is not None:
+        write_normalized_admission_rows_to_jsonl(normalized_rows, staging_output_path)
+        staging_path = staging_output_path
+    return output_path, len(records), normalized_path, staging_path
 
 
 def write_records_to_json(records: Sequence[Any], output_path: Path) -> None:
