@@ -2599,8 +2599,13 @@ def _run_sample_crawl_export(
             staging_output_path=staging_path,
         )
     if command == "crawl-admission":
-        admission_output_path, count = run_admission_sample_export(output_path)
-        return admission_output_path, count, None, None
+        normalized_path = Path(normalized_output_file) if normalized_output_file else None
+        staging_path = Path(staging_output_file) if staging_output_file else None
+        return run_admission_sample_export(
+            output_path,
+            normalized_output_path=normalized_path,
+            staging_output_path=staging_path,
+        )
     raise ValueError(f"Unsupported sample crawl command: {command}")
 
 
@@ -2615,6 +2620,20 @@ def _validate_ranking_staging(staging_file: str) -> dict[str, Any]:
     )
 
     summary = validate_ranking_staging_file(Path(staging_file))
+    return summary_to_dict(summary)
+
+
+def _validate_admission_staging(staging_file: str) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_admission_crawler.validator import (  # noqa: E402
+        summary_to_dict,
+        validate_admission_staging_file,
+    )
+
+    summary = validate_admission_staging_file(Path(staging_file))
     return summary_to_dict(summary)
 
 
@@ -2653,6 +2672,43 @@ def _ingest_ranking_staging(
     return ingest_summary_to_dict(summary)
 
 
+def _ingest_admission_staging(
+    staging_file: str,
+    sqlite_db_file: str,
+    *,
+    allow_partial: bool,
+    write_target: str,
+    staging_table: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_admission_crawler.writer import (  # noqa: E402
+        ingest_admission_staging_file,
+        ingest_summary_to_dict,
+    )
+
+    summary = ingest_admission_staging_file(
+        Path(staging_file),
+        Path(sqlite_db_file),
+        allow_partial=allow_partial,
+        write_target=write_target,
+        staging_table=staging_table,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+    )
+    return ingest_summary_to_dict(summary)
+
+
 def _preview_ranking_warehouse_map(
     *,
     input_source: str,
@@ -2670,6 +2726,60 @@ def _preview_ranking_warehouse_map(
         sys.path.insert(0, str(workspace_root))
 
     from crawlernest_ranking_crawler.warehouse_mapper import (  # noqa: E402
+        load_staging_rows_from_jsonl,
+        load_staging_rows_from_postgres,
+        map_staging_rows_to_warehouse_rows,
+        warehouse_rows_to_jsonable,
+        write_warehouse_preview,
+    )
+
+    if input_source == "jsonl":
+        staging_rows = load_staging_rows_from_jsonl(Path(staging_input_file))
+        source_location = str(Path(staging_input_file))
+    elif input_source == "postgres":
+        staging_rows = load_staging_rows_from_postgres(
+            table_name=staging_table,
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+        source_location = f"postgresql://{pg_host}:{pg_port}/{pg_database}#{staging_table}"
+    else:
+        raise ValueError(f"Unsupported input source: {input_source}")
+
+    mapped_rows = map_staging_rows_to_warehouse_rows(staging_rows)
+    output_path = Path(output_file)
+    write_warehouse_preview(mapped_rows, output_path)
+    preview_payload = warehouse_rows_to_jsonable(mapped_rows[:5])
+
+    return {
+        "input_source": input_source,
+        "source_location": source_location,
+        "row_count": len(mapped_rows),
+        "output_file": str(output_path),
+        "preview_rows": preview_payload,
+    }
+
+
+def _preview_admission_warehouse_map(
+    *,
+    input_source: str,
+    staging_input_file: str,
+    staging_table: str,
+    output_file: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_admission_crawler.warehouse_mapper import (  # noqa: E402
         load_staging_rows_from_jsonl,
         load_staging_rows_from_postgres,
         map_staging_rows_to_warehouse_rows,
@@ -2765,6 +2875,140 @@ def _write_ranking_warehouse_preview(
         table_name=landing_table,
     )
     return warehouse_landing_summary_to_dict(summary)
+
+
+def _write_admission_warehouse_preview(
+    *,
+    input_source: str,
+    preview_input_file: str,
+    staging_input_file: str,
+    staging_table: str,
+    landing_schema: str,
+    landing_table: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_admission_crawler.warehouse_mapper import (  # noqa: E402
+        load_staging_rows_from_jsonl,
+        load_staging_rows_from_postgres,
+        map_staging_rows_to_warehouse_rows,
+    )
+    from crawlernest_admission_crawler.warehouse_writer import (  # noqa: E402
+        load_warehouse_preview_rows,
+        warehouse_landing_summary_to_dict,
+        write_warehouse_landing_rows,
+    )
+
+    if input_source == "preview-json":
+        rows = load_warehouse_preview_rows(Path(preview_input_file))
+    elif input_source == "jsonl":
+        rows = map_staging_rows_to_warehouse_rows(load_staging_rows_from_jsonl(Path(staging_input_file)))
+    elif input_source == "postgres":
+        rows = map_staging_rows_to_warehouse_rows(
+            load_staging_rows_from_postgres(
+                table_name=staging_table,
+                pg_host=pg_host,
+                pg_port=pg_port,
+                pg_database=pg_database,
+                pg_user=pg_user,
+                pg_password=pg_password,
+            )
+        )
+    else:
+        raise ValueError(f"Unsupported input source: {input_source}")
+
+    summary = write_warehouse_landing_rows(
+        rows,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        schema_name=landing_schema,
+        table_name=landing_table,
+    )
+    return warehouse_landing_summary_to_dict(summary)
+
+
+def _resolve_admission_entities(
+    *,
+    target_schema: str,
+    target_table: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_admission_crawler.entity_resolver import (  # noqa: E402
+        entity_resolution_summary_to_dict,
+        resolve_admission_preview_entities,
+    )
+
+    summary = resolve_admission_preview_entities(
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        target_schema=target_schema,
+        target_table=target_table,
+    )
+    return entity_resolution_summary_to_dict(summary)
+
+
+def _get_unresolved_admission_entities(
+    *,
+    target_schema: str,
+    target_table: str,
+    limit: int,
+    output_file: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest_admission_crawler.unresolved_report import (  # noqa: E402
+        get_unresolved_admission_entities,
+        unresolved_rows_to_dicts,
+        write_unresolved_report,
+    )
+
+    rows = get_unresolved_admission_entities(
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        target_schema=target_schema,
+        target_table=target_table,
+        limit=limit,
+    )
+    if output_file:
+        write_unresolved_report(rows, Path(output_file))
+
+    return {
+        "target_table": f"{target_schema}.{target_table}",
+        "row_count": len(rows),
+        "rows": unresolved_rows_to_dicts(rows),
+        "output_file": output_file,
+    }
 
 
 def _aggregate_ranking_preview(
@@ -3107,8 +3351,189 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
         return 0
 
     if args.command == "crawl-admission":
-        output_path, count, _, _ = _run_sample_crawl_export(args.command, args.output_file)
+        output_path, count, normalized_path, staging_path = _run_sample_crawl_export(
+            args.command,
+            args.output_file,
+            normalized_output_file=(
+                args.normalized_output_file if getattr(args, "with_normalized_output", False) else None
+            ),
+            staging_output_file=(
+                args.staging_output_file if getattr(args, "write_staging", False) else None
+            ),
+        )
         print(f"[crawl-admission] exported={count} output={output_path}")
+        if normalized_path is not None:
+            print(f"[crawl-admission] normalized_output={normalized_path}")
+        if staging_path is not None:
+            print(f"[crawl-admission] staging_output={staging_path}")
+        return 0
+
+    if args.command == "validate-admission-staging":
+        summary = _validate_admission_staging(args.staging_input_file)
+        print(
+            "[validate-admission-staging] "
+            f"total={summary['total_rows']} "
+            f"valid={summary['valid_row_count']} "
+            f"invalid={summary['invalid_row_count']} "
+            f"duplicates={summary['duplicate_row_count']}"
+        )
+        print(f"[validate-admission-staging] staging_file={summary['staging_file']}")
+        if summary["error_samples"]:
+            print("[validate-admission-staging] error_samples:")
+            print(json.dumps(summary["error_samples"], ensure_ascii=False, indent=2))
+        if summary["duplicate_samples"]:
+            print("[validate-admission-staging] duplicate_samples:")
+            print(json.dumps(summary["duplicate_samples"], ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "ingest-admission-staging":
+        try:
+            summary = _ingest_admission_staging(
+                args.staging_input_file,
+                args.sqlite_db_file,
+                allow_partial=bool(getattr(args, "allow_partial_ingest", False)),
+                write_target=str(getattr(args, "write_target", "sqlite")),
+                staging_table=str(getattr(args, "staging_table", "admission_staging_records")),
+                pg_host=str(getattr(args, "pg_host", "localhost")),
+                pg_port=int(getattr(args, "pg_port", 5432)),
+                pg_database=str(getattr(args, "pg_database", "clawer")),
+                pg_user=str(getattr(args, "pg_user", "test")),
+                pg_password=str(getattr(args, "pg_password", "")),
+            )
+        except (ValueError, RuntimeError) as exc:
+            print(f"[ingest-admission-staging] aborted: {exc}")
+            validation_summary = _validate_admission_staging(args.staging_input_file)
+            print(
+                "[ingest-admission-staging] "
+                f"total={validation_summary['total_rows']} "
+                f"valid={validation_summary['valid_row_count']} "
+                f"invalid={validation_summary['invalid_row_count']} "
+                f"duplicates={validation_summary['duplicate_row_count']}"
+            )
+            return 1
+
+        print(
+            "[ingest-admission-staging] "
+            f"write_target={summary['write_target']} "
+            f"mode={summary['mode']} "
+            f"inserted={summary['inserted_row_count']} "
+            f"skipped_existing={summary['skipped_existing_row_count']} "
+            f"valid={summary['valid_row_count']} "
+            f"invalid={summary['invalid_row_count']} "
+            f"duplicates={summary['duplicate_row_count']}"
+        )
+        print(f"[ingest-admission-staging] target_location={summary['target_location']}")
+        print(f"[ingest-admission-staging] table={summary['table_name']}")
+        return 0
+
+    if args.command == "preview-admission-warehouse-map":
+        summary = _preview_admission_warehouse_map(
+            input_source=str(args.input_source),
+            staging_input_file=str(args.staging_input_file),
+            staging_table=str(args.staging_table),
+            output_file=str(args.output_file),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
+        )
+        print(
+            "[preview-admission-warehouse-map] "
+            f"input_source={summary['input_source']} "
+            f"rows={summary['row_count']} "
+            f"output={summary['output_file']}"
+        )
+        if summary["preview_rows"]:
+            print("[preview-admission-warehouse-map] preview_rows:")
+            print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "write-admission-warehouse-preview":
+        try:
+            summary = _write_admission_warehouse_preview(
+                input_source=str(args.input_source),
+                preview_input_file=str(args.preview_input_file),
+                staging_input_file=str(args.staging_input_file),
+                staging_table=str(args.staging_table),
+                landing_schema=str(args.landing_schema),
+                landing_table=str(args.landing_table),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[write-admission-warehouse-preview] aborted: {exc}")
+            return 1
+
+        print(
+            "[write-admission-warehouse-preview] "
+            f"rows={summary['row_count']} "
+            f"inserted={summary['inserted_row_count']} "
+            f"skipped_existing={summary['skipped_existing_row_count']}"
+        )
+        print(f"[write-admission-warehouse-preview] target={summary['target_location']}")
+        print(f"[write-admission-warehouse-preview] table={summary['table_name']}")
+        return 0
+
+    if args.command == "resolve-admission-entities":
+        try:
+            summary = _resolve_admission_entities(
+                target_schema=str(args.target_schema),
+                target_table=str(args.target_table),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[resolve-admission-entities] aborted: {exc}")
+            return 1
+
+        print(
+            "[resolve-admission-entities] "
+            f"total={summary['total_rows']} "
+            f"resolved={summary['resolved_row_count']} "
+            f"unresolved={summary['unresolved_row_count']} "
+            f"canonical_exact={summary['canonical_exact_match_count']} "
+            f"alias_exact={summary['alias_exact_match_count']}"
+        )
+        print(f"[resolve-admission-entities] target={summary['target_table']}")
+        return 0
+
+    if args.command == "unresolved-admission-entities":
+        try:
+            summary = _get_unresolved_admission_entities(
+                target_schema=str(args.target_schema),
+                target_table=str(args.target_table),
+                limit=int(args.limit),
+                output_file=str(args.output_file),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[unresolved-admission-entities] aborted: {exc}")
+            return 1
+
+        print(
+            "[unresolved-admission-entities] "
+            f"target={summary['target_table']} "
+            f"rows={summary['row_count']}"
+        )
+        if summary["rows"]:
+            print("normalized_university_name | occurrence_count")
+            for row in summary["rows"]:
+                print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
+        else:
+            print("No unresolved admission entities found.")
+        if summary["output_file"]:
+            print(f"[unresolved-admission-entities] output={summary['output_file']}")
         return 0
 
     if args.command == "validate-ranking-staging":
