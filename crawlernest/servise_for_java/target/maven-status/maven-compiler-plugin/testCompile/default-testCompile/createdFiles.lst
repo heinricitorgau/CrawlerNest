@@ -10,6 +10,7 @@ clawer/service/RecommendationServiceScopeAwareTest.class
 clawer/api/RecommendationControllerTest$NoopScopedRankingReadAdapter.class
 clawer/service/RecommendationServiceScopeAwareTest$NoopScopedRankingReadAdapter.class
 clawer/domain/ranking/RankingContextDomainTest.class
+clawer/api/UniversityPreviewApiIntegrationTest.class
 clawer/api/RankingApiIntegrationTest.class
 clawer/service/AggregationExplainabilityTest.class
 clawer/api/RecommendationControllerTest$FakeRecommendationService.class
