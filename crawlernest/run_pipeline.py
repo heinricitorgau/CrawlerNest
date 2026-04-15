@@ -3088,6 +3088,60 @@ def _refresh_admission_resolution(
     }
 
 
+def _preview_ranking_admission_convergence(
+    *,
+    ranking_schema: str,
+    ranking_table: str,
+    admission_schema: str,
+    admission_table: str,
+    limit: int,
+    output_file: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest.pipeline.convergence_preview import (  # noqa: E402
+        build_convergence_preview,
+        build_terminal_summary,
+        convergence_rows_to_dicts,
+        write_convergence_preview,
+    )
+
+    rows = build_convergence_preview(
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        ranking_schema=ranking_schema,
+        ranking_table=ranking_table,
+        admission_schema=admission_schema,
+        admission_table=admission_table,
+        limit=limit,
+    )
+    if output_file:
+        write_convergence_preview(rows, Path(output_file))
+
+    terminal_summary = build_terminal_summary(rows)
+    return {
+        "ranking_table": f"{ranking_schema}.{ranking_table}",
+        "admission_table": f"{admission_schema}.{admission_table}",
+        "row_count": terminal_summary["row_count"],
+        "both_count": terminal_summary["both_count"],
+        "ranking_only_count": terminal_summary["ranking_only_count"],
+        "admission_only_count": terminal_summary["admission_only_count"],
+        "rows": convergence_rows_to_dicts(rows),
+        "preview_rows": convergence_rows_to_dicts(rows[: min(5, len(rows))]),
+        "output_file": output_file,
+    }
+
+
 def _aggregate_ranking_preview(
     *,
     input_source: str,
@@ -3650,6 +3704,43 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
             print("No unresolved admission entities found.")
         if summary["output_file"]:
             print(f"[refresh-admission-resolution] output={summary['output_file']}")
+        return 0
+
+    if args.command == "preview-ranking-admission-convergence":
+        try:
+            summary = _preview_ranking_admission_convergence(
+                ranking_schema=str(args.ranking_schema),
+                ranking_table=str(args.ranking_table),
+                admission_schema=str(args.admission_schema),
+                admission_table=str(args.admission_table),
+                limit=int(args.limit),
+                output_file=str(args.output_file),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except RuntimeError as exc:
+            print(f"[preview-ranking-admission-convergence] aborted: {exc}")
+            return 1
+
+        print(
+            "[preview-ranking-admission-convergence] "
+            f"rows={summary['row_count']} "
+            f"both={summary['both_count']} "
+            f"ranking_only={summary['ranking_only_count']} "
+            f"admission_only={summary['admission_only_count']}"
+        )
+        print(f"[preview-ranking-admission-convergence] ranking_table={summary['ranking_table']}")
+        print(f"[preview-ranking-admission-convergence] admission_table={summary['admission_table']}")
+        if summary["preview_rows"]:
+            print("[preview-ranking-admission-convergence] preview_rows:")
+            print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
+        else:
+            print("No converged ranking/admission preview rows found.")
+        if summary["output_file"]:
+            print(f"[preview-ranking-admission-convergence] output={summary['output_file']}")
         return 0
 
     if args.command == "validate-ranking-staging":
