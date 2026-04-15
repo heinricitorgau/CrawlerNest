@@ -31,6 +31,7 @@ def build_parser(
     default_admission_warehouse_preview = workspace_root / "crawlernest-samples" / "admission_warehouse_preview.json"
     default_admission_unresolved_report = workspace_root / "crawlernest-samples" / "admission_unresolved_entities.json"
     default_convergence_preview = workspace_root / "crawlernest-samples" / "ranking_admission_convergence_preview.json"
+    default_canonical_detail_preview = workspace_root / "crawlernest-samples" / "canonical_university_detail_preview.json"
 
     parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -388,6 +389,27 @@ def build_parser(
     convergence_preview_parser.add_argument("--pg-database", default="clawer")
     convergence_preview_parser.add_argument("--pg-user", default="test")
     convergence_preview_parser.add_argument("--pg-password", default="")
+
+    canonical_detail_preview_parser = subparsers.add_parser(
+        "preview-canonical-university-detail",
+        help="Read-only preview of a single canonical university assembled from identity, ranking, and admission preview tables",
+    )
+    canonical_detail_preview_parser.add_argument("--canonical-university-id", type=int, default=None)
+    canonical_detail_preview_parser.add_argument("--university-name", default="")
+    canonical_detail_preview_parser.add_argument(
+        "--output-file",
+        default="",
+        help=f"Optional JSON output file for canonical university detail preview (example default: {default_canonical_detail_preview})",
+    )
+    canonical_detail_preview_parser.add_argument("--ranking-schema", default="warehouse")
+    canonical_detail_preview_parser.add_argument("--ranking-table", default="ranking_records_preview")
+    canonical_detail_preview_parser.add_argument("--admission-schema", default="warehouse")
+    canonical_detail_preview_parser.add_argument("--admission-table", default="admission_records_preview")
+    canonical_detail_preview_parser.add_argument("--pg-host", default="localhost")
+    canonical_detail_preview_parser.add_argument("--pg-port", type=int, default=5432)
+    canonical_detail_preview_parser.add_argument("--pg-database", default="clawer")
+    canonical_detail_preview_parser.add_argument("--pg-user", default="test")
+    canonical_detail_preview_parser.add_argument("--pg-password", default="")
 
     validate_ranking_staging_parser = subparsers.add_parser(
         "validate-ranking-staging",

@@ -1,0 +1,46 @@
+{
+  "canonical_university_id": 2759,
+  "university_display_name": "Massachusetts Institute of Technology",
+  "normalized_university_name": "Massachusetts Institute Of Technology",
+  "aliases": [
+    "MIT"
+  ],
+  "identity_summary": {
+    "canonical_slug": "massachusetts-institute-of-technology",
+    "status": "active",
+    "alias_count": 1,
+    "country_id": null,
+    "city_name": null,
+    "website_url": null,
+    "matched_by": "display_name_normalized",
+    "matched_value": "Massachusetts Institute Of Technology"
+  },
+  "ranking_summary": {
+    "row_count": 1,
+    "source_count": 1,
+    "sources": [
+      "QS"
+    ],
+    "ranking_years": [
+      2026
+    ],
+    "best_rank": 1,
+    "best_source": "QS",
+    "best_ranking_year": 2026
+  },
+  "admission_summary": {
+    "row_count": 1,
+    "source_url_count": 1,
+    "countries": [
+      "United States"
+    ],
+    "best_ielts_requirement": 7.0,
+    "best_toefl_requirement": 100,
+    "latest_extracted_at": "2026-04-14T18:06:49.097214+08:00"
+  },
+  "data_availability": {
+    "has_ranking_data": true,
+    "has_admission_data": true,
+    "missing_sections": []
+  }
+}
