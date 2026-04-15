@@ -24,8 +24,10 @@ def resolve_university(
     cur.execute(
         """
         SELECT canonical_university_id
-        FROM warehouse.canonical_universities
-        WHERE normalized_name = %s
+        FROM warehouse.canonical_university
+        WHERE display_name_normalized = %s
+        ORDER BY canonical_university_id ASC
+        LIMIT 1
         """,
         (normalized_name,),
     )
@@ -35,9 +37,11 @@ def resolve_university(
 
     cur.execute(
         """
-        SELECT university_id
-        FROM warehouse.university_aliases
-        WHERE source_school_name = %s
+        SELECT canonical_university_id
+        FROM warehouse.university_alias
+        WHERE alias_normalized = %s
+        ORDER BY canonical_university_id ASC, alias_id ASC
+        LIMIT 1
         """,
         (normalized_name,),
     )
@@ -110,30 +114,29 @@ def entity_resolution_summary_to_dict(summary: EntityResolutionSummary) -> dict[
 
 
 def _ensure_resolution_tables(cur: "psycopg2.extensions.cursor") -> None:
-    cur.execute("CREATE SCHEMA IF NOT EXISTS warehouse")
     cur.execute(
         """
-        CREATE TABLE IF NOT EXISTS warehouse.canonical_universities (
-            canonical_university_id BIGSERIAL PRIMARY KEY,
-            normalized_name TEXT NOT NULL UNIQUE,
-            display_name TEXT NULL
-        )
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'warehouse'
+          AND table_name = 'canonical_university'
+        LIMIT 1
         """
     )
+    if cur.fetchone() is None:
+        raise RuntimeError("required table not found: warehouse.canonical_university")
+
     cur.execute(
         """
-        CREATE TABLE IF NOT EXISTS warehouse.university_aliases (
-            alias_id BIGSERIAL PRIMARY KEY,
-            university_id BIGINT NOT NULL
-                REFERENCES warehouse.canonical_universities(canonical_university_id),
-            source_name TEXT NOT NULL DEFAULT 'manual',
-            source_school_name TEXT NOT NULL UNIQUE,
-            match_type TEXT NOT NULL DEFAULT 'exact',
-            confidence_score REAL NOT NULL DEFAULT 1.0,
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        )
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'warehouse'
+          AND table_name = 'university_alias'
+        LIMIT 1
         """
     )
+    if cur.fetchone() is None:
+        raise RuntimeError("required table not found: warehouse.university_alias")
 
 
 def _load_preview_rows(
