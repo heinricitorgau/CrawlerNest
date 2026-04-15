@@ -3088,6 +3088,93 @@ def _refresh_admission_resolution(
     }
 
 
+def _rebuild_preview_and_resolve(
+    *,
+    ranking_preview_input_file: str,
+    admission_preview_input_file: str,
+    ranking_landing_schema: str,
+    ranking_landing_table: str,
+    admission_landing_schema: str,
+    admission_landing_table: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+    refresh_limit: int,
+    refresh_output_file: str,
+) -> dict[str, Any]:
+    try:
+        ranking_summary = _write_ranking_warehouse_preview(
+            input_source="preview-json",
+            preview_input_file=ranking_preview_input_file,
+            staging_input_file="",
+            staging_table="",
+            landing_schema=ranking_landing_schema,
+            landing_table=ranking_landing_table,
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Step 1 failed: write-ranking-warehouse-preview: {exc}") from exc
+
+    try:
+        admission_summary = _write_admission_warehouse_preview(
+            input_source="preview-json",
+            preview_input_file=admission_preview_input_file,
+            staging_input_file="",
+            staging_table="",
+            landing_schema=admission_landing_schema,
+            landing_table=admission_landing_table,
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Step 2 failed: write-admission-warehouse-preview: {exc}") from exc
+
+    try:
+        ranking_resolution_summary = _resolve_ranking_entities(
+            target_schema=ranking_landing_schema,
+            target_table=ranking_landing_table,
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Step 3 failed: resolve-ranking-entities: {exc}") from exc
+
+    try:
+        admission_resolution_summary = _refresh_admission_resolution(
+            target_schema=admission_landing_schema,
+            target_table=admission_landing_table,
+            limit=refresh_limit,
+            output_file=refresh_output_file,
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+        )
+    except Exception as exc:
+        raise RuntimeError(f"Step 4 failed: refresh-admission-resolution: {exc}") from exc
+
+    return {
+        "ranking_preview_summary": ranking_summary,
+        "admission_preview_summary": admission_summary,
+        "ranking_resolution_summary": ranking_resolution_summary,
+        "admission_resolution_summary": admission_resolution_summary,
+        "success": True,
+    }
+
+
 def _preview_ranking_admission_convergence(
     *,
     ranking_schema: str,
@@ -3750,6 +3837,67 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
             print("No unresolved admission entities found.")
         if summary["output_file"]:
             print(f"[refresh-admission-resolution] output={summary['output_file']}")
+        return 0
+
+    if args.command == "rebuild-preview-and-resolve":
+        ensure_postgres_schema(
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+        )
+        try:
+            summary = _rebuild_preview_and_resolve(
+                ranking_preview_input_file=str(args.ranking_preview_input_file),
+                admission_preview_input_file=str(args.admission_preview_input_file),
+                ranking_landing_schema=str(args.ranking_landing_schema),
+                ranking_landing_table=str(args.ranking_landing_table),
+                admission_landing_schema=str(args.admission_landing_schema),
+                admission_landing_table=str(args.admission_landing_table),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+                refresh_limit=int(args.limit),
+                refresh_output_file=str(args.output_file),
+            )
+        except RuntimeError as exc:
+            print(f"[rebuild-preview-and-resolve] aborted: {exc}")
+            return 1
+
+        ranking_summary = summary["ranking_preview_summary"]
+        admission_summary = summary["admission_preview_summary"]
+        ranking_resolution_summary = summary["ranking_resolution_summary"]
+        admission_resolution_summary = summary["admission_resolution_summary"]
+
+        print(
+            "[rebuild-preview-and-resolve] ranking_preview "
+            f"rows={ranking_summary['row_count']} "
+            f"inserted={ranking_summary['inserted_row_count']} "
+            f"skipped_existing={ranking_summary['skipped_existing_row_count']}"
+        )
+        print(
+            "[rebuild-preview-and-resolve] admission_preview "
+            f"rows={admission_summary['row_count']} "
+            f"inserted={admission_summary['inserted_row_count']} "
+            f"skipped_existing={admission_summary['skipped_existing_row_count']}"
+        )
+        print(
+            "[rebuild-preview-and-resolve] ranking_resolution "
+            f"total={ranking_resolution_summary['total_rows']} "
+            f"resolved={ranking_resolution_summary['resolved_row_count']} "
+            f"unresolved={ranking_resolution_summary['unresolved_row_count']}"
+        )
+        print(
+            "[rebuild-preview-and-resolve] admission_resolution "
+            f"resolved={admission_resolution_summary['resolved_row_count']} "
+            f"unresolved={admission_resolution_summary['unresolved_row_count']} "
+            f"before_distinct={admission_resolution_summary['before_distinct_university_count']} "
+            f"after_distinct={admission_resolution_summary['after_distinct_university_count']}"
+        )
+        print("[rebuild-preview-and-resolve] overall_status=success")
         return 0
 
     if args.command == "preview-ranking-admission-convergence":
