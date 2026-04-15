@@ -30,6 +30,7 @@ def build_parser(
     default_admission_ingest_db = workspace_root / "crawlernest-samples" / "admission_staging_ingest.sqlite3"
     default_admission_warehouse_preview = workspace_root / "crawlernest-samples" / "admission_warehouse_preview.json"
     default_admission_unresolved_report = workspace_root / "crawlernest-samples" / "admission_unresolved_entities.json"
+    default_convergence_preview = workspace_root / "crawlernest-samples" / "ranking_admission_convergence_preview.json"
 
     parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -362,6 +363,31 @@ def build_parser(
     refresh_admission_resolution_parser.add_argument("--pg-database", default="clawer")
     refresh_admission_resolution_parser.add_argument("--pg-user", default="test")
     refresh_admission_resolution_parser.add_argument("--pg-password", default="")
+
+    convergence_preview_parser = subparsers.add_parser(
+        "preview-ranking-admission-convergence",
+        help="Read-only preview of ranking and admission data converged by canonical university identity",
+    )
+    convergence_preview_parser.add_argument("--ranking-schema", default="warehouse")
+    convergence_preview_parser.add_argument("--ranking-table", default="ranking_records_preview")
+    convergence_preview_parser.add_argument("--admission-schema", default="warehouse")
+    convergence_preview_parser.add_argument("--admission-table", default="admission_records_preview")
+    convergence_preview_parser.add_argument(
+        "--limit",
+        type=int,
+        default=50,
+        help="How many converged canonical rows to preview",
+    )
+    convergence_preview_parser.add_argument(
+        "--output-file",
+        default="",
+        help=f"Optional JSON output file for convergence preview (example default: {default_convergence_preview})",
+    )
+    convergence_preview_parser.add_argument("--pg-host", default="localhost")
+    convergence_preview_parser.add_argument("--pg-port", type=int, default=5432)
+    convergence_preview_parser.add_argument("--pg-database", default="clawer")
+    convergence_preview_parser.add_argument("--pg-user", default="test")
+    convergence_preview_parser.add_argument("--pg-password", default="")
 
     validate_ranking_staging_parser = subparsers.add_parser(
         "validate-ranking-staging",
