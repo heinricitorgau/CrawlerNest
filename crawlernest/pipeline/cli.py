@@ -365,6 +365,57 @@ def build_parser(
     refresh_admission_resolution_parser.add_argument("--pg-user", default="test")
     refresh_admission_resolution_parser.add_argument("--pg-password", default="")
 
+    rebuild_preview_and_resolve_parser = subparsers.add_parser(
+        "rebuild-preview-and-resolve",
+        help="Write preview landing rows and run ranking/admission resolution in sequence",
+    )
+    rebuild_preview_and_resolve_parser.add_argument(
+        "--ranking-preview-input-file",
+        default=str(default_ranking_warehouse_preview),
+        help="Preview JSON input file for ranking warehouse writes",
+    )
+    rebuild_preview_and_resolve_parser.add_argument(
+        "--admission-preview-input-file",
+        default=str(default_admission_warehouse_preview),
+        help="Preview JSON input file for admission warehouse writes",
+    )
+    rebuild_preview_and_resolve_parser.add_argument(
+        "--ranking-landing-schema",
+        default="warehouse",
+        help="Target schema for ranking preview landing writes",
+    )
+    rebuild_preview_and_resolve_parser.add_argument(
+        "--ranking-landing-table",
+        default="ranking_records_preview",
+        help="Target table for ranking preview landing writes",
+    )
+    rebuild_preview_and_resolve_parser.add_argument(
+        "--admission-landing-schema",
+        default="warehouse",
+        help="Target schema for admission preview landing writes",
+    )
+    rebuild_preview_and_resolve_parser.add_argument(
+        "--admission-landing-table",
+        default="admission_records_preview",
+        help="Target table for admission preview landing writes",
+    )
+    rebuild_preview_and_resolve_parser.add_argument(
+        "--limit",
+        type=int,
+        default=20,
+        help="How many unresolved admission universities to print after resolution",
+    )
+    rebuild_preview_and_resolve_parser.add_argument(
+        "--output-file",
+        default="",
+        help="Optional JSON output file for the refreshed unresolved admission report",
+    )
+    rebuild_preview_and_resolve_parser.add_argument("--pg-host", default="localhost")
+    rebuild_preview_and_resolve_parser.add_argument("--pg-port", type=int, default=5432)
+    rebuild_preview_and_resolve_parser.add_argument("--pg-database", default="clawer")
+    rebuild_preview_and_resolve_parser.add_argument("--pg-user", default="test")
+    rebuild_preview_and_resolve_parser.add_argument("--pg-password", default="")
+
     convergence_preview_parser = subparsers.add_parser(
         "preview-ranking-admission-convergence",
         help="Read-only preview of ranking and admission data converged by canonical university identity",

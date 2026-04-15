@@ -14,6 +14,8 @@ class WarehouseLandingWriteSummary:
     row_count: int
     inserted_row_count: int
     skipped_existing_row_count: int
+    before_row_count: int
+    after_row_count: int
     target_location: str
     table_name: str
     mode: str
@@ -74,6 +76,11 @@ def write_warehouse_landing_rows(
         password=pg_password,
     )
     try:
+        before_row_count = _count_rows(
+            conn,
+            schema_name=schema_name,
+            table_name=table_name,
+        )
         inserted, skipped_existing = _insert_rows(
             conn,
             schema_name=schema_name,
@@ -81,16 +88,38 @@ def write_warehouse_landing_rows(
             rows=rows,
         )
         conn.commit()
+        after_row_count = _count_rows(
+            conn,
+            schema_name=schema_name,
+            table_name=table_name,
+        )
     except Exception:
         conn.rollback()
         raise
     finally:
+        dsn_parameters = conn.get_dsn_parameters()
         conn.close()
+
+    verified_inserted = after_row_count - before_row_count
+    if verified_inserted < 0:
+        raise RuntimeError(
+            f"warehouse preview row count decreased unexpectedly for {schema_name}.{table_name}: "
+            f"before={before_row_count}, after={after_row_count}"
+        )
+    if verified_inserted != inserted:
+        raise RuntimeError(
+            f"warehouse preview write summary mismatch for {schema_name}.{table_name}: "
+            f"writer_inserted={inserted}, verified_inserted={verified_inserted}, "
+            f"before={before_row_count}, after={after_row_count}"
+        )
+    skipped_existing = max(0, len(rows) - verified_inserted)
 
     return WarehouseLandingWriteSummary(
         row_count=len(rows),
-        inserted_row_count=inserted,
+        inserted_row_count=verified_inserted,
         skipped_existing_row_count=skipped_existing,
+        before_row_count=before_row_count,
+        after_row_count=after_row_count,
         target_location=f"postgresql://{pg_host}:{pg_port}/{pg_database}#{schema_name}.{table_name}",
         table_name=f"{schema_name}.{table_name}",
         mode="persistent",
@@ -206,3 +235,16 @@ def _ensure_table(
         )
         """
     )
+
+
+def _count_rows(
+    conn: "psycopg2.extensions.connection",
+    *,
+    schema_name: str,
+    table_name: str,
+) -> int:
+    with conn.cursor() as cur:
+        _ensure_table(cur, schema_name=schema_name, table_name=table_name)
+        cur.execute(f"SELECT COUNT(*) FROM {schema_name}.{table_name}")
+        row = cur.fetchone()
+    return 0 if row is None else int(row[0])
