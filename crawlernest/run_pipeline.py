@@ -3142,6 +3142,52 @@ def _preview_ranking_admission_convergence(
     }
 
 
+def _preview_canonical_university_detail(
+    *,
+    canonical_university_id: int | None,
+    university_name: str,
+    output_file: str,
+    ranking_schema: str,
+    ranking_table: str,
+    admission_schema: str,
+    admission_table: str,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    workspace_root = Path(__file__).resolve().parent.parent
+    if str(workspace_root) not in sys.path:
+        sys.path.insert(0, str(workspace_root))
+
+    from crawlernest.pipeline.canonical_university_detail_preview import (  # noqa: E402
+        build_canonical_university_detail_preview,
+        detail_preview_to_dict,
+        write_detail_preview,
+    )
+
+    preview = build_canonical_university_detail_preview(
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        canonical_university_id=canonical_university_id,
+        university_name=university_name,
+        ranking_schema=ranking_schema,
+        ranking_table=ranking_table,
+        admission_schema=admission_schema,
+        admission_table=admission_table,
+    )
+    if output_file:
+        write_detail_preview(preview, Path(output_file))
+
+    payload = detail_preview_to_dict(preview)
+    payload["output_file"] = output_file
+    return payload
+
+
 def _aggregate_ranking_preview(
     *,
     input_source: str,
@@ -3741,6 +3787,41 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
             print("No converged ranking/admission preview rows found.")
         if summary["output_file"]:
             print(f"[preview-ranking-admission-convergence] output={summary['output_file']}")
+        return 0
+
+    if args.command == "preview-canonical-university-detail":
+        try:
+            summary = _preview_canonical_university_detail(
+                canonical_university_id=(
+                    None if getattr(args, "canonical_university_id", None) is None
+                    else int(args.canonical_university_id)
+                ),
+                university_name=str(getattr(args, "university_name", "") or ""),
+                output_file=str(getattr(args, "output_file", "") or ""),
+                ranking_schema=str(getattr(args, "ranking_schema", "warehouse")),
+                ranking_table=str(getattr(args, "ranking_table", "ranking_records_preview")),
+                admission_schema=str(getattr(args, "admission_schema", "warehouse")),
+                admission_table=str(getattr(args, "admission_table", "admission_records_preview")),
+                pg_host=str(args.pg_host),
+                pg_port=int(args.pg_port),
+                pg_database=str(args.pg_database),
+                pg_user=str(args.pg_user),
+                pg_password=str(args.pg_password),
+            )
+        except (RuntimeError, ValueError) as exc:
+            print(f"[preview-canonical-university-detail] aborted: {exc}")
+            return 1
+
+        print(
+            "[preview-canonical-university-detail] "
+            f"canonical_university_id={summary['canonical_university_id']} "
+            f"has_ranking_data={summary['data_availability']['has_ranking_data']} "
+            f"has_admission_data={summary['data_availability']['has_admission_data']}"
+        )
+        print("[preview-canonical-university-detail] preview:")
+        print(json.dumps({k: v for k, v in summary.items() if k != "output_file"}, ensure_ascii=False, indent=2))
+        if summary["output_file"]:
+            print(f"[preview-canonical-university-detail] output={summary['output_file']}")
         return 0
 
     if args.command == "validate-ranking-staging":
