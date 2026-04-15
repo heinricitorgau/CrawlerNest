@@ -1,0 +1,30 @@
+[
+  {
+    "canonical_university_id": 2759,
+    "university_display_name": "Massachusetts Institute of Technology",
+    "ranking_summary": {
+      "row_count": 1,
+      "source_count": 1,
+      "sources": [
+        "QS"
+      ],
+      "ranking_years": [
+        2026
+      ],
+      "best_rank": 1,
+      "best_source": "QS",
+      "best_ranking_year": 2026
+    },
+    "admission_summary": {
+      "row_count": 1,
+      "source_url_count": 1,
+      "countries": [
+        "United States"
+      ],
+      "best_ielts_requirement": 7.0,
+      "best_toefl_requirement": 100,
+      "latest_extracted_at": "2026-04-14T18:06:49.097214+08:00"
+    },
+    "missing_data": []
+  }
+]
