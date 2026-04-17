@@ -24,6 +24,9 @@ def resolve_normalized_university_exact(
     cur: "psycopg2.extensions.cursor",
     normalized_name: str,
 ) -> tuple[int | None, str]:
+    # Normalize to lowercase for case-insensitive matching
+    normalized_lower = normalized_name.lower().strip() if normalized_name else ""
+
     cur.execute(
         """
         SELECT canonical_university_id
@@ -32,7 +35,7 @@ def resolve_normalized_university_exact(
         ORDER BY canonical_university_id ASC
         LIMIT 1
         """,
-        (normalized_name,),
+        (normalized_lower,),
     )
     row = cur.fetchone()
     if row is not None:
@@ -46,7 +49,7 @@ def resolve_normalized_university_exact(
         ORDER BY canonical_university_id ASC, alias_id ASC
         LIMIT 1
         """,
-        (normalized_name,),
+        (normalized_lower,),
     )
     row = cur.fetchone()
     if row is not None:

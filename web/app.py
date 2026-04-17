@@ -1,3 +1,17 @@
+"""
+web/app.py
+==========
+
+FastAPI application — original entry point (kept for backward compatibility).
+
+Previously imported Agent directly.  Now delegates to AgentService so that
+the web layer no longer knows about engine internals.
+
+To start the server:
+    python web/app.py
+    uvicorn web.app:app --host 127.0.0.1 --port 8000
+"""
+
 from __future__ import annotations
 
 import sys
@@ -11,8 +25,14 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from agent.engine import Agent
-print("USING MAIN AGENT ENGINE")
+from agent.contracts import TaskRequest
+from agent.service import create_web_service
+from runtime.config import get_config
+
+
+# ---------------------------------------------------------------------------
+# Pydantic schemas
+# ---------------------------------------------------------------------------
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1)
@@ -20,24 +40,20 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     task: str
-    steps: list[dict[str, object]]
-    mode: str
-    file_resolution: dict[str, object]
-    patch_execution: dict[str, object]
-    generated: str
-    initial_score: float
-    initial_reason: str
-    refined: str
-    final_score: float
-    final_reason: str
-    improved: bool
+    result: str
+    score: float
+    passed: bool
     iterations: int
-    improvement_history: list[dict[str, float]]
-    final_result: str
+    mode: str
+    error: str | None = None
 
 
-app = FastAPI(title="CrawlerNest Agent Web API", version="0.1.0")
-agent = Agent()
+# ---------------------------------------------------------------------------
+# App
+# ---------------------------------------------------------------------------
+
+app = FastAPI(title="CrawlerNest Agent Web API", version="0.2.0")
+_cfg = get_config()
 
 
 @app.get("/health")
@@ -46,9 +62,24 @@ def health() -> dict[str, str]:
 
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest) -> dict[str, object]:
-    return agent.run(request.message)
+def chat(request: ChatRequest) -> ChatResponse:
+    service = create_web_service(threshold=_cfg.agent_threshold)
+    response = service.run(TaskRequest(prompt=request.message, task_type="web"))
+    return ChatResponse(
+        task=response.task,
+        result=response.result,
+        score=response.score,
+        passed=response.passed,
+        iterations=response.iterations,
+        mode=response.mode,
+        error=response.error,
+    )
 
 
 if __name__ == "__main__":
-    uvicorn.run("web.app:app", host="127.0.0.1", port=8000, reload=False)
+    uvicorn.run(
+        "web.app:app",
+        host=_cfg.web_host,
+        port=_cfg.web_port,
+        reload=_cfg.web_reload,
+    )

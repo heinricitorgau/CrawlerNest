@@ -41,6 +41,7 @@ clawer/domain/ranking/RankedPosition.class
 clawer/service/ComparisonService$ResolvedCandidate.class
 clawer/repository/RankingRowMapper$1.class
 clawer/service/ComparisonService$1.class
+clawer/config/CorsConfig.class
 clawer/service/RankingService.class
 clawer/api/UniversityPreviewController.class
 clawer/domain/ranking/RankingContext.class

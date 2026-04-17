@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "upstream_blocked",
   "message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/3990755 (HTTP 403)",
-  "run_id": "qs-region-asia-2026-2026-04-03T12:00:18Z",
+  "run_id": "qs-region-asia-2026-2026-04-15T16:55:15Z",
   "universe_type": "region",
   "universe_key": "asia",
   "ranking_year": 2026,

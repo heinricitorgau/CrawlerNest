@@ -2,6 +2,12 @@ DELETE FROM analytics.aggregated_rankings
 WHERE ranking_year IN (2098, 2099)
    OR canonical_university_id BETWEEN 990001 AND 990040;
 
+DELETE FROM warehouse.admission_records_preview
+WHERE canonical_university_id BETWEEN 990001 AND 990040;
+
+DELETE FROM warehouse.ranking_records_preview
+WHERE canonical_university_id BETWEEN 990001 AND 990040;
+
 DELETE FROM analytics.aggregation_runs
 WHERE ranking_year IN (2098, 2099)
    OR run_label = 'ranking_api_integration_test';
@@ -457,6 +463,116 @@ SET aggregated_rank = EXCLUDED.aggregated_rank,
     aggregation_explain = EXCLUDED.aggregation_explain,
     trust_explain = EXCLUDED.trust_explain,
     updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO warehouse.ranking_records_preview (
+    university_name,
+    normalized_university_name,
+    source,
+    rank,
+    year,
+    source_url,
+    extracted_at,
+    ranking_year,
+    universe_type,
+    universe_key,
+    canonical_university_id,
+    entity_resolution_status,
+    source_resolution_status
+)
+SELECT
+    cu.display_name,
+    cu.display_name_normalized,
+    'QS',
+    ar.display_rank,
+    ar.ranking_year,
+    'https://example.edu/rankings/' || cu.canonical_slug,
+    CURRENT_TIMESTAMP,
+    ar.ranking_year,
+    ar.universe_type,
+    ar.universe_key,
+    ar.canonical_university_id,
+    'resolved',
+    'direct_source_only'
+FROM analytics.aggregated_rankings ar
+JOIN warehouse.canonical_university cu
+  ON cu.canonical_university_id = ar.canonical_university_id
+WHERE ar.ranking_year = 2099
+  AND ar.universe_type = 'global'
+  AND ar.universe_key = 'global';
+
+INSERT INTO warehouse.admission_records_preview (
+    university_name,
+    normalized_university_name,
+    source_url,
+    country,
+    ielts_requirement,
+    toefl_requirement,
+    extracted_at,
+    canonical_university_id,
+    entity_resolution_status,
+    raw_payload
+)
+VALUES
+    (
+        'ETH Zurich',
+        'eth zurich',
+        'https://example.edu/admissions/eth-zurich',
+        'Switzerland',
+        7.0,
+        100,
+        CURRENT_TIMESTAMP,
+        990001,
+        'resolved_canonical_exact',
+        '{"source":"integration-test"}'::jsonb
+    ),
+    (
+        'Massachusetts Institute of Technology',
+        'massachusetts institute of technology',
+        'https://example.edu/admissions/mit',
+        'United States',
+        7.5,
+        105,
+        CURRENT_TIMESTAMP,
+        990002,
+        'resolved_alias_exact',
+        '{"source":"integration-test"}'::jsonb
+    ),
+    (
+        'Delft University of Technology',
+        'delft university of technology',
+        'https://example.edu/admissions/delft',
+        'Netherlands',
+        6.5,
+        92,
+        CURRENT_TIMESTAMP,
+        990003,
+        'resolved_canonical_exact',
+        '{"source":"integration-test"}'::jsonb
+    ),
+    (
+        'University of Oxford',
+        'university of oxford',
+        'https://example.edu/admissions/oxford',
+        'United Kingdom',
+        7.5,
+        110,
+        CURRENT_TIMESTAMP,
+        990028,
+        'resolved_canonical_exact',
+        '{"source":"integration-test"}'::jsonb
+    ),
+    (
+        'University of Barcelona',
+        'university of barcelona',
+        'https://example.edu/admissions/barcelona',
+        'Spain',
+        6.5,
+        90,
+        CURRENT_TIMESTAMP,
+        990029,
+        'resolved_canonical_exact',
+        '{"source":"integration-test"}'::jsonb
+    );
 
 INSERT INTO analytics.aggregation_runs (
     aggregation_run_id,

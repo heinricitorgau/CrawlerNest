@@ -76,6 +76,37 @@ CREATE TABLE IF NOT EXISTS warehouse.ranking_decision_preview (
         UNIQUE (normalized_university_name, ranking_year)
 );
 
+CREATE TABLE IF NOT EXISTS warehouse.ranking_records_preview (
+    id BIGSERIAL PRIMARY KEY,
+    university_name TEXT NOT NULL,
+    normalized_university_name TEXT NOT NULL,
+    source TEXT NOT NULL,
+    rank INTEGER NOT NULL,
+    year INTEGER NOT NULL,
+    source_url TEXT,
+    extracted_at TIMESTAMPTZ NOT NULL,
+    ranking_year INTEGER NOT NULL,
+    universe_type TEXT NOT NULL,
+    universe_key TEXT NOT NULL,
+    canonical_university_id BIGINT,
+    entity_resolution_status TEXT NOT NULL,
+    source_resolution_status TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS warehouse.admission_records_preview (
+    id BIGSERIAL PRIMARY KEY,
+    university_name TEXT NOT NULL,
+    normalized_university_name TEXT NOT NULL,
+    source_url TEXT NOT NULL,
+    country TEXT,
+    ielts_requirement DOUBLE PRECISION,
+    toefl_requirement INTEGER,
+    extracted_at TIMESTAMPTZ NOT NULL,
+    canonical_university_id BIGINT,
+    entity_resolution_status TEXT NOT NULL,
+    raw_payload JSONB
+);
+
 CREATE TABLE IF NOT EXISTS analytics.aggregation_runs (
     aggregation_run_id BIGSERIAL PRIMARY KEY,
     run_label TEXT,

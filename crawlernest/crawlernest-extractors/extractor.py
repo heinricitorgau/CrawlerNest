@@ -10,10 +10,20 @@ returns a plain dict with exactly these keys:
 
 from __future__ import annotations
 
+import os
+import sys
 import json
 import re
-from typing import Any, Optional
 
+
+# Dynamically add crawlernest-core to sys.path
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CORE_PATH = os.path.join(PROJECT_ROOT, "crawlernest-core")
+if CORE_PATH not in sys.path:
+    sys.path.insert(0, CORE_PATH)
+
+
+from typing import Any, Optional
 from models import AdmissionRequirements
 
 

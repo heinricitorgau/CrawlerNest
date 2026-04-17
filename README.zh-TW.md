@@ -8,7 +8,7 @@
 
 CrawlerNest 是一套端到端的大學資料平台，能把分散的網頁資料轉成結構化、可查詢的大學 intelligence。它聚合 QS、THE、ARWU 等排名來源，提供 ranking evidence 與 trust signals，並支援學生、顧問與產品團隊所需的 explainable recommendation 與 comparison workflows。
 
-目前系統也正逐步納入 **Mini-Agent Development Layer**：這是一個輕量、受控的 workflow，用來加速開發與系統 refinement。這一層與 evaluation 深度耦合，並且必須有人類監督。它不是獨立的自治 agent system。
+目前系統也正逐步納入 **Mini-Agent Development Layer** 與早期的 **Web Agent path**：這是一個輕量、受控的 workflow，用來加速開發、進行系統 refinement，並在 CrawlerNest 資料層之上提供 web-facing agent interaction。這一層仍與 evaluation、provider visibility、safe fallback 與人工監督深度耦合；它不是獨立的自治 agent system。
 
 ## 為什麼要做這個系統？
 
@@ -19,6 +19,7 @@ CrawlerNest 是一套端到端的大學資料平台，能把分散的網頁資�
 *   **多來源排名 Ingestion：** QS、THE、ARWU 已可進入同一條 ranking storage / aggregation path。THE world rankings 優先使用**結構化 JSON**（已發布時使用 CDN blobs，否則退回 Next.js `__NEXT_DATA__`），而非脆弱的 HTML-first 抓法。
 *   **拆分式 Crawler Foundation：** 爬蟲層現在已明確拆成共享 crawler core，以及兩套彼此獨立的 engine：負責排名來源的 **Ranking Crawler Engine**，以及負責學校官網 admissions 資料的 **Admission Crawler Engine**。
 *   **Ranking Production Workflow：** ranking path 已建立一條受控資料生產鏈：raw artifact、normalized artifact、staging output、validation gate、controlled ingest、warehouse preview、warehouse landing、deterministic entity resolution、unresolved reporting、alias seeding 與 refresh orchestration。
+*   **Admission Production Workflow：** admission path 也已建立自己的受控資料生產鏈，從 crawl 到 staging、validation、warehouse preview、warehouse landing、deterministic entity resolution、unresolved reporting 與 alias-driven refresh。
 *   **Universe-Aware Aggregation：** 排名已區分為 `global`、`region`、`subject`、`special` 等 universe，aggregation 會依 universe 隔離處理。
 *   **以 Rank 為主的 Aggregation Truth：** aggregated rank 由來源 rank 決定，而不是用 composite score 排序；`compositeScore` 僅保留為展示訊號。
 *   **Ranking Evidence：** 產品列與大學 detail page 可直接顯示 QS / THE / ARWU 的來源排名，以及來源間的差異。
@@ -27,8 +28,12 @@ CrawlerNest 是一套端到端的大學資料平台，能把分散的網頁資�
 *   **Compare Workflow：** shortlist 中的學校可 side by side 比較 aggregated rank、source evidence、trust 與 admissions context。
 *   **Canonical Country Filtering：** rankings country filter 已統一走 canonical country normalization。像 `China`、`China (mainland)`、`USA`、`UK` 這些變體都會先正規化，再進入 validation、SQL filtering 與 metadata generation。
 *   **Canonical Recovery Path：** 尚未 linked 的 crawled universities 可提升為 `canonical_university`，並回填到 `warehouse.ranking_record`，不需改動 crawler 行為。
+*   **Convergence Preview Layer：** ranking 與 admission preview rows 現在可透過共享 canonical identity 匯流，先組裝 convergence preview 與 canonical university detail preview，再進入更正式的產品 read model 設計。
 *   **Ingestion Traceability：** 每次 ingest 都會將 `run_id` / `updated_at` trace fields 寫入 PostgreSQL ranking records。
-*   **API Platform：** Java Spring Boot API 已提供 rankings、university detail、recommendations 與 comparison data 給產品 UI。
+*   **API Platform：** Java Spring Boot API 已提供 rankings、university detail、recommendations、comparison data，以及 canonical university detail preview 的 thin preview endpoint 給產品 UI。
+*   **Split Agent Runtime：** Web Agent 與 Dev Agent 現在已有顯式 execution boundary、分離的 tool scope 與分離的 response contract，但仍共享較低層的 planner / validation / memory capabilities。
+*   **Web Agent Generation Layer：** web-facing `/agent` path 已具備 provider-aware generation layer，包含 task-specific context building、task-specific prompt routing、OpenAI-compatible / local model path，以及在未配置模型時的 deterministic fallback。
+*   **Agent Observability：** debug mode 現在可觀察 generation source、provider status、memory summaries 與 recent-entity carry-over signals，同時不把這些工程細節暴露到 normal mode。
 *   **Database Reliability：** PostgreSQL transaction handling、canonical repair paths 與 operational snapshot fallback，可在上游不穩定時維持產品可用性。
 
 ## 高層架構
@@ -39,8 +44,8 @@ CrawlerNest 採用嚴格解耦的 6 層架構：
 2.  **Canonical Layer：** 負責 entity resolution、alias handling、normalization，以及 source-to-canonical mapping。
 3.  **Aggregation Layer：** 負責 PostgreSQL warehouse 與 universe-aware ranking truth。
 4.  **Decision Layer：** 負責 recommendation、trust scoring、evidence summaries 與 comparison logic。
-5.  **Mini-Agent Layer：** 一個輕量、受控的 AI-assisted development loop，用於有範圍的 task generation、evaluation 與 refinement。
-6.  **Product Layer：** Spring Boot API 與 Next.js website。
+5.  **Mini-Agent Layer：** 一個輕量、受控的 AI-assisted development loop，用於有範圍的 task generation、evaluation、refinement 與 engineering validation。
+6.  **Product Layer：** Spring Boot API、Next.js website，以及建立在同一套受控 agent substrate 之上的 web-facing agent surface。
 
 在資料生產路徑內，crawler 系統現在刻意拆成三個程式邊界：
 
@@ -89,7 +94,12 @@ Core Intelligence Layer 負責平台的主要資料與決策流程。它涵蓋�
 
 ### Agent Capability Layer
 
-Agent Capability Layer 位於 operational core 之上，作為一個受控的 improvement 與 assistance system。它包含 agent engine、evaluator 與 refiner 等元件，共同支援 iterative task execution、refinement loops，以及 development assistance。這一層不是要取代 core system，而是提供有邊界的 reasoning、evaluation-driven improvement，以及對 extractor hardening、parser refinement 與 system validation 等工程 workflow 的範圍化支援。
+Agent Capability Layer 位於 operational core 之上，作為一個受控的 improvement 與 assistance system。它現在有兩條顯式模式：
+
+- **Dev Agent**：用於 extractor hardening、parser refinement、evaluation loops 與 engineering-facing validation
+- **Web Agent**：用於 conversational ranking explanation、university lookup、recommendation guidance，以及 web-facing agent interaction
+
+兩者共享有邊界的低層能力，但不共享同一套 execution policy。Dev Agent 維持 engineering-facing、validation-heavy 的特性；Web Agent 則維持 formatter-driven、provider-aware、fallback-safe，並專注於產生 user-facing responses，而不暴露 development-only behavior。
 
 CrawlerNest Platform
 │
@@ -426,13 +436,13 @@ THE universities 不會來自 `warehouse.universities`，因此光靠 `seed-cano
 
 這反映了目前實際的工程成熟度：
 
-*   ✅ **production-safe pipeline：** 已完成（2,736 所大學，QS + THE 雙來源）
+*   ✅ **production-safe pipeline：** 已完成（目前 rankings API 查詢下可見 2,767 所 global universities）
 *   ✅ **PostgreSQL integration：** 已完成（具 transaction-safe rollback）
 *   ✅ **recommendation engine（v3 decision system）：** 已完成
 *   ✅ **API v1 readiness：** 已完成（已修復、pagination-aligned、scope-aware、country-aware）
 *   ✅ **node deployment（Lobster-01）：** 已完成（單一 canonical `lobster-01/` runtime 目錄）
 *   ✅ **multi-source（QS + THE）：** 已運行（2,191 所 THE universities 完成 matched）
-*   ✅ **website product layer：** 已運行（rankings、detail、recommendation、compare、evidence、trust、country-aware filters）
+*   ✅ **website product layer：** 已運行（rankings、detail、recommendation、compare、evidence、trust、country-aware filters、preview university page、`/agent`）
 
 ## 里程碑與開發歷史
 
@@ -463,6 +473,10 @@ CrawlerNest 的工程深度，建立在一系列明確的 milestones 之上：
 *   **2026-04-04：** 加入 aggregation explainability、strict trust layer、explainable recommendation 與更完整的 university detail evidence。
 *   **2026-04-05：** 完成 hydration-safe rankings refactor、compare page MVP，以及透過最終 Java rankings read query 打通端到端 country filtering。
 *   **2026-04-05：** 加入集中式 canonical country normalization layer，讓 alias inputs 與 metadata variants 收斂為穩定的 product-facing country filters。
+*   **2026-04-14：** 完成 admission production workflow、deterministic admission entity resolution，以及 shared alias seeding / refresh loop。
+*   **2026-04-15：** 完成 ranking + admission convergence preview、canonical university detail preview、Java preview API 與 preview university page。
+*   **2026-04-16：** 完成 rankings 主 API 從 demo-grade preview rows 切換到正式 ranking warehouse，並對齊 frontend rankings browser 的 total matches / current-page rows 語義。
+*   **2026-04-17：** 完成 Web / Dev Agent 顯式分流、Web Agent formatter 邊界、generation layer（context / prompt / response generator）、`/agent` normal/debug mode 分流，以及 memory debug summary 與 recent-entity carry-over 強化。
 
 ## AutoEval Extractor Milestone
 

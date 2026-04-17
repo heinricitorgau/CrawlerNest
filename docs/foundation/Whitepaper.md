@@ -1273,8 +1273,12 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-04-10 | 完成 evaluation-driven dev-agent loop 文件化，將 generator / evaluator / validation pipeline 納入系統敘事。 | 已完成 |
 | 2026-04-12 | 完成 ranking staging/validation/preview/resolution pipeline 與 shared crawler core + dual crawler 架構收斂。 | 已完成 |
 | 2026-04-13 | 完成 Whitepaper、system docs、repo docs、Markdown index 與 AutoEval docs 的全域同步。 | 已完成 |
+| 2026-04-14 | 完成 admission pipeline（crawl → staging → preview → landing）、deterministic entity resolution 與 shared alias seeding / refresh workflow。 | 已完成 |
+| 2026-04-15 | 完成 ranking + admission convergence preview、canonical university detail preview、Java preview API 與 preview university page。 | 已完成 |
+| 2026-04-16 | 完成 rankings 主 API 由 preview rows 切換至正式 ranking warehouse，並收斂前端 rankings browser 為 product-facing ranking site。 | 已完成 |
+| 2026-04-17 | 完成 Web / Dev Agent 顯式分流、Web Agent formatter 邊界、generation layer（context / prompt / response generator）、`/agent` 頁 debug/normal mode 收斂，以及 memory debug summary / recent-entity carry-over 強化。 | 已完成 |
 
-### 14.4 當前階段判讀（截至 2026-04-13）
+### 14.4 當前階段判讀（截至 2026-04-17）
 
 CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
@@ -1283,11 +1287,15 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 - 主資料管線已可穩定運作，且具備 multi-source aggregation 與 product-facing read path
 - crawler 層已從單一敘事收斂為 shared crawler core + ranking crawler + admission crawler 的雙 crawler 分工
 - Website Product Layer 已具備 Rankings、Detail、Recommendation、Compare 與 trust/evidence surfaces
+- admission path 已具備獨立 staging / preview / landing / deterministic resolution 能力，並可透過 canonical identity layer 與 ranking path 匯流
+- preview integration layer 已能組裝 canonical university detail，並提供 Java / Next.js preview read path 作為 school detail productization 前置模型
+- rankings 主 read path 已不再依賴 demo-grade preview rows，而是建立在正式 ranking warehouse 與較清楚的前端 page-level / universe-level 語義之上
 - AutoEval 已建立 baseline，但仍需擴大 coverage 與 regression discipline
-- Mini-Agent Layer 已完成概念定位與 evaluation-driven loop 文件化，正在作為受控的 development/refinement layer 納入系統敘事
+- Mini-Agent Layer 已不只停留於概念定位，Web / Dev Agent 已建立顯式執行邊界；其中 Web Agent 已具備 formatter 邊界、safe fallback、provider-aware generation path 與 recommendation / ranking / lookup 的 task-specific context/prompt routing
+- `/agent` page 已由工程測試面板收斂為具 normal/debug mode 的 web agent 入口，且 memory debug 已補上 human-readable summary 與 recent-entity carry-over 可觀測性
 - 架構文件已拆分為 repo structure / system-engine / whitepaper 三層敘事，文件邊界更清楚
 
-換言之，CrawlerNest 已不是單純 crawler 專案，但也尚未進入 fully scaled platform 階段。它目前最核心的工作，是把「資料平台 + 評估系統 + AI-assisted development layer」這三者之間的責任邊界持續打磨清楚。
+換言之，CrawlerNest 已不是單純 crawler 專案，但也尚未進入 fully scaled platform 階段。它目前最核心的工作，是把「資料平台 + 評估系統 + Web-facing generative agent path + AI-assisted development layer」這四者之間的責任邊界持續打磨清楚。
 
 ### 14.5 四年展望（Forward Timeline）
 

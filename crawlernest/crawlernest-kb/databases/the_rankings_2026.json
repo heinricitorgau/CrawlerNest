@@ -3195,7 +3195,7 @@
           "scores_international_outlook_rank": "106",
           "iid": "i-77136163",
           "record_type": "master_account",
-          "member_level": "0",
+          "member_level": "11",
           "url": "/world-university-rankings/wageningen-university-research",
           "nid": 540,
           "location": "Netherlands",
@@ -5504,7 +5504,7 @@
             "link": "https://www.timeshighereducation.com/student/free-documents-verification-service?utm_medium=thewebsite&utm_campaign=cta-link&utm_source=rankings&iid=i-58407012",
             "text": "Verify Documents"
           },
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2025-03/profile-logo-default.png?itok=yBZuAP2B",
+          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2026-04/uio-logo-800x800.png?itok=44kE4J8D",
           "enhanced": true
         }
       }
@@ -12209,7 +12209,7 @@
           "scores_international_outlook_rank": "1676",
           "iid": "i-34479651",
           "record_type": "master_account",
-          "member_level": "0",
+          "member_level": "11",
           "url": "/world-university-rankings/central-south-university",
           "nid": 589367,
           "location": "China",
@@ -12866,8 +12866,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/migrated_institution_logos/lut_label_rgb_jpeg_1_0.png?itok=Irj1qu09",
-          "enhanced": true
+          "logo_url": null,
+          "enhanced": false
         }
       }
     },
@@ -24363,8 +24363,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/migrated_institution_logos/constructoruniversity2.png?itok=rt0UyFS7",
-          "enhanced": true
+          "logo_url": null,
+          "enhanced": false
         }
       }
     },
@@ -31584,7 +31584,7 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2026-03/KFU%20Logo.png?itok=L2peKztq",
+          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2026-04/1-KFU_Logo_Arabic%5B1%5D.jpg?itok=x2V19NPD",
           "enhanced": true
         }
       }
@@ -35426,8 +35426,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/migrated_institution_logos/logoubi.png?itok=DA_F0hDz",
-          "enhanced": true
+          "logo_url": null,
+          "enhanced": false
         }
       }
     },
@@ -66226,7 +66226,7 @@
           "scores_international_outlook_rank": "1644",
           "iid": "i-66281842",
           "record_type": "master_account",
-          "member_level": "0",
+          "member_level": "11",
           "url": "/world-university-rankings/university-anbar",
           "nid": 623679,
           "location": "Iraq",
@@ -74494,19 +74494,19 @@
     },
     {
       "id": "624363",
-      "name": "Dumlupinar University",
+      "name": "Kütahya Dumlupınar University",
       "country": "Turkey",
       "year": 2026,
       "ranking_type": "world",
       "rank": 1501,
       "score": null,
-      "url": "https://www.timeshighereducation.com/world-university-rankings/dumlupinar-university",
+      "url": "https://www.timeshighereducation.com/world-university-rankings/kutahya-dumlupinar-university",
       "metadata": {
         "raw_source": "THE",
         "raw_row": {
           "rank_order": "16040",
           "rank": "1501+",
-          "name": "Dumlupinar University",
+          "name": "Kütahya Dumlupınar University",
           "scores_overall": "10.3–27.2",
           "scores_overall_rank": "16040",
           "scores_teaching": "11.5",
@@ -74522,14 +74522,14 @@
           "iid": "i-69156713",
           "record_type": "master_account",
           "member_level": "0",
-          "url": "/world-university-rankings/dumlupinar-university",
+          "url": "/world-university-rankings/kutahya-dumlupinar-university",
           "nid": 624363,
           "location": "Turkey",
           "stats_number_students": "51,517",
           "stats_student_staff_ratio": "59.1",
           "stats_pc_intl_students": "20%",
           "stats_female_male_ratio": "26 : 74",
-          "aliases": "Dumlupinar University",
+          "aliases": "Kütahya Dumlupınar University",
           "closed": false,
           "unaccredited": false,
           "disabled": false,

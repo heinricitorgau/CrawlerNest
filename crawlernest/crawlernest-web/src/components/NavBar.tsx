@@ -19,6 +19,7 @@ function GitHubIcon() {
 
 const NAV_LINKS = [
   { label: "Rankings", href: "/" },
+  { label: "Agent", href: "/agent" },
   { label: "About", href: "/about" },
 ];
 
