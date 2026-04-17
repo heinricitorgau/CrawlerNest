@@ -1,6 +1,6 @@
 {
-  "description": "extractor baseline passes 18-sample hard dataset",
-  "commit": "f1f46c1",
+  "description": "baseline extractor evaluation",
+  "commit": "01ac004",
   "dataset": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-autoeval/datasets/extractor_goldens/samples.json",
   "extractor_file": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-extractors/extractor.py",
   "summary": {
@@ -10,8 +10,8 @@
     "optional_fill_rate": 1.0,
     "error_count": 0,
     "error_rate": 0.0,
-    "runtime_s": 0.001685,
-    "score": 0.95,
+    "runtime_s": 0.003026,
+    "score": 0.949999,
     "status": "keep"
   },
   "samples": [
@@ -24,7 +24,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 0.000673,
+      "runtime_s": 0.000923,
       "exception": null,
       "expected": {
         "university": "National Taiwan University",
@@ -48,7 +48,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 0.000262,
+      "runtime_s": 0.000551,
       "exception": null,
       "expected": {
         "university": "National Cheng Kung University",
@@ -72,7 +72,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 0.000269,
+      "runtime_s": 0.000535,
       "exception": null,
       "expected": {
         "university": "National Yang Ming Chiao Tung University",
@@ -96,7 +96,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 3.1e-05,
+      "runtime_s": 8.8e-05,
       "exception": null,
       "expected": {
         "university": "National Central University",
@@ -120,7 +120,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 2.9e-05,
+      "runtime_s": 8.7e-05,
       "exception": null,
       "expected": {
         "university": "National Taiwan Normal University",
@@ -144,7 +144,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 5.5e-05,
+      "runtime_s": 0.000167,
       "exception": null,
       "expected": {
         "university": "Fu Jen Catholic University",
@@ -168,7 +168,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 2.2e-05,
+      "runtime_s": 3e-05,
       "exception": null,
       "expected": {
         "university": "Tamkang University",
@@ -192,7 +192,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 2.4e-05,
+      "runtime_s": 2.8e-05,
       "exception": null,
       "expected": {
         "university": "National Taipei University of Technology",
@@ -216,7 +216,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 5.3e-05,
+      "runtime_s": 7.9e-05,
       "exception": null,
       "expected": {
         "university": "National Dong Hwa University",
@@ -240,7 +240,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 2.8e-05,
+      "runtime_s": 3.1e-05,
       "exception": null,
       "expected": {
         "university": "National Kaohsiung University of Science and Technology",
@@ -264,7 +264,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 2.5e-05,
+      "runtime_s": 2.8e-05,
       "exception": null,
       "expected": {
         "university": "National Sun Yat-sen University",
@@ -288,7 +288,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 2.6e-05,
+      "runtime_s": 2.7e-05,
       "exception": null,
       "expected": {
         "university": "National Chengchi University",
@@ -312,7 +312,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 2.9e-05,
+      "runtime_s": 3.4e-05,
       "exception": null,
       "expected": {
         "university": "National Tsing Hua University",
@@ -336,7 +336,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 7.2e-05,
+      "runtime_s": 0.000202,
       "exception": null,
       "expected": {
         "university": "National Yang Ming Chiao Tung University",
@@ -360,7 +360,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 2.7e-05,
+      "runtime_s": 7.5e-05,
       "exception": null,
       "expected": {
         "university": "National Central University",
@@ -384,7 +384,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 1.1e-05,
+      "runtime_s": 2.5e-05,
       "exception": null,
       "expected": {
         "university": "National Taiwan University",
@@ -408,7 +408,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 2.6e-05,
+      "runtime_s": 5.2e-05,
       "exception": null,
       "expected": {
         "university": "National Taiwan Normal University",
@@ -432,7 +432,7 @@
       "optional_filled": 0,
       "optional_exact": 0,
       "field_errors": 0,
-      "runtime_s": 2.3e-05,
+      "runtime_s": 6.5e-05,
       "exception": null,
       "expected": {
         "university": "National Taipei University of Technology",

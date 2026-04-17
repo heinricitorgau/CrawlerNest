@@ -7,7 +7,7 @@ Traditional Chinese version: [README.zh-TW.md](README.zh-TW.md)
 ## What is this system?
 CrawlerNest is an end-to-end data platform that transforms fragmented web data into structured, queryable university intelligence. It aggregates ranking sources such as QS, THE, and ARWU, exposes ranking evidence and trust signals, and powers explainable recommendation and comparison workflows for students, counselors, and product teams.
 
-It is now also evolving with a **Mini-Agent Development Layer**: a lightweight, controlled workflow for development acceleration and system refinement. This layer is deeply tied to evaluation and requires human oversight. It is not a standalone autonomous agent system.
+It is now also evolving with a **Mini-Agent Development Layer** and an early **Web Agent path**: a lightweight, controlled workflow for development acceleration, system refinement, and web-facing agent interaction on top of CrawlerNest data. This layer remains deeply tied to evaluation, provider visibility, safe fallback behavior, and human oversight. It is not a standalone autonomous agent system.
 
 ## Why it exists
 Students and advisors do not just need more ranking rows. They need transparent evidence, comparable signals, and decision support they can trust. CrawlerNest exists to make ranking aggregation understandable rather than opaque, and useful rather than merely searchable.
@@ -16,6 +16,7 @@ Students and advisors do not just need more ranking rows. They need transparent 
 *   **Multi-Source Ranking Ingestion:** QS, THE, and ARWU can now feed the same ranking storage and aggregation path. THE world rankings prefer **structured JSON** (CDN blobs when published, else Next.js `__NEXT_DATA__`) rather than brittle HTML-first scraping.
 *   **Split Crawler Foundation:** The crawling stack now has an explicit shared crawler core plus two independent engines: a **Ranking Crawler Engine** for ranking sources and an **Admission Crawler Engine** for university-site admissions data.
 *   **Ranking Production Workflow:** The ranking path now runs through a controlled production-oriented chain: raw artifact, normalized artifact, staging output, validation gate, controlled ingest, warehouse preview, warehouse landing, deterministic entity resolution, unresolved reporting, alias seeding, and refresh orchestration.
+*   **Admission Production Workflow:** The admission path now has its own controlled chain from crawl through staging, validation, warehouse preview, warehouse landing, deterministic entity resolution, unresolved reporting, and alias-driven refresh.
 *   **Universe-Aware Aggregation:** Rankings are handled as distinct universes such as `global`, `region`, `subject`, and `special`, with aggregation isolated per universe.
 *   **Rank-Based Aggregation Truth:** Aggregated rank order is now driven by source ranks, not composite score sorting. Composite score remains a display signal only.
 *   **Ranking Evidence:** Product rows and university detail pages expose QS / THE / ARWU source ranks directly, including disagreement across sources.
@@ -24,8 +25,12 @@ Students and advisors do not just need more ranking rows. They need transparent 
 *   **Compare Workflow:** Shortlisted universities can be compared side by side using aggregated rank, source evidence, trust, and admissions context.
 *   **Canonical Country Filtering:** Rankings country filters now flow through a centralized canonical country normalization layer. Variants such as `China`, `China (mainland)`, `USA`, and `UK` are normalized before validation, SQL filtering, and metadata generation.
 *   **Canonical Recovery Path:** Unlinked crawled universities can be promoted into `canonical_university` and backfilled into `warehouse.ranking_record` without changing crawler behavior.
+*   **Convergence Preview Layer:** Ranking and admission preview rows can now be joined through shared canonical identity, producing convergence preview and canonical university detail preview objects before product read-model hardening.
 *   **Ingestion Traceability:** Every ingest run writes `run_id` / `updated_at` trace fields into PostgreSQL ranking records.
-*   **API Platform:** Java Spring Boot APIs expose rankings, university detail, recommendations, and comparison data for the product UI.
+*   **API Platform:** Java Spring Boot APIs expose rankings, university detail, recommendations, comparison data, and a thin preview endpoint for canonical university detail preview.
+*   **Split Agent Runtime:** Web Agent and Dev Agent now have explicit execution boundaries, separate tool scopes, and separate response contracts, while still sharing lower-level planner / validation / memory capabilities.
+*   **Web Agent Generation Layer:** The web-facing `/agent` path now includes a provider-aware generation layer with task-specific context building, task-specific prompt routing, OpenAI-compatible / local-model support, and deterministic fallback when no model is available.
+*   **Agent Observability:** Debug mode now exposes generation source, provider status, memory summaries, and recent-entity carry-over signals without leaking those details into normal user mode.
 *   **Database Reliability:** PostgreSQL transaction handling, canonical repair paths, and operational snapshot fallback keep the product usable even when upstream sources are unstable.
 
 ## High-Level Architecture
@@ -34,8 +39,8 @@ CrawlerNest is built on a strict, decoupled 6-layer architecture:
 2.  **Canonical Layer:** Entity resolution, alias handling, normalization, and source-to-canonical mapping.
 3.  **Aggregation Layer:** PostgreSQL warehouse and universe-aware ranking truth.
 4.  **Decision Layer:** Recommendation, trust scoring, evidence summaries, and comparison logic.
-5.  **Mini-Agent Layer:** A lightweight, controlled AI-assisted development loop for scoped task generation, evaluation, and refinement.
-6.  **Product Layer:** Spring Boot APIs and the Next.js website.
+5.  **Mini-Agent Layer:** A lightweight, controlled AI-assisted development loop for scoped task generation, evaluation, refinement, and engineering validation.
+6.  **Product Layer:** Spring Boot APIs, the Next.js website, and a web-facing agent surface built on top of the same controlled agent substrate.
 
 Inside the data-production path, the crawler system is now intentionally split into three code boundaries:
 
@@ -84,7 +89,12 @@ The Core Intelligence Layer is responsible for the platform's primary data and d
 
 ### Agent Capability Layer
 
-The Agent Capability Layer sits above the operational core as a controlled improvement and assistance system. It includes the agent engine, evaluator, and refiner components that together support iterative task execution, refinement loops, and development assistance. Rather than replacing the core system, this layer provides bounded reasoning, evaluation-driven improvement, and scoped support for engineering workflows such as extractor hardening, parser refinement, and system validation.
+The Agent Capability Layer sits above the operational core as a controlled improvement and assistance system. It now has two explicit modes:
+
+- a **Dev Agent** path for extractor hardening, parser refinement, evaluation loops, and engineering-facing validation
+- a **Web Agent** path for conversational ranking explanation, university lookup, recommendation guidance, and web-facing agent interaction
+
+Both modes share bounded lower-level capabilities, but they do not share the same execution policy. The Dev Agent remains engineering-facing and validation-heavy, while the Web Agent is formatter-driven, provider-aware, fallback-safe, and designed to produce user-facing responses without exposing development-only behavior.
 
 CrawlerNest Platform
 │
@@ -409,13 +419,13 @@ For the current repository map and working paths, see [Repository Structure](doc
 
 ## Current System Status
 This reflects our actual engineering maturity:
-*   ✅ **production-safe pipeline:** DONE (2,736 universities — QS + THE dual source)
+*   ✅ **production-safe pipeline:** DONE (2,767 global universities visible through the current rankings API query)
 *   ✅ **PostgreSQL integration:** DONE (transaction-safe with rollback)
 *   ✅ **recommendation engine (v3 decision system):** DONE
 *   ✅ **API v1 readiness:** DONE (repaired, pagination-aligned, scope-aware, country-aware)
 *   ✅ **node deployment (Lobster-01):** DONE (single canonical `lobster-01/` runtime directory)
 *   ✅ **multi-source (QS + THE):** OPERATIONAL (2,191 THE universities matched)
-*   ✅ **website product layer:** OPERATIONAL (rankings, detail, recommendation, compare, evidence, trust, country-aware filters)
+*   ✅ **website product layer:** OPERATIONAL (rankings, detail, recommendation, compare, evidence, trust, country-aware filters, preview university page, `/agent`)
 
 ## Milestones & Development History
 CrawlerNest's engineering depth is built on a history of rigorous milestones:
@@ -441,6 +451,10 @@ CrawlerNest's engineering depth is built on a history of rigorous milestones:
 *   **2026-04-04:** Added aggregation explainability, strict trust layer, explainable recommendation, and richer university detail evidence.
 *   **2026-04-05:** Completed hydration-safe rankings refactor, compare page MVP, and end-to-end country filtering wired through the final Java rankings read query.
 *   **2026-04-05:** Added a centralized canonical country normalization layer so alias inputs and metadata variants resolve to stable product-facing country filters.
+*   **2026-04-14:** Completed the admission production workflow, deterministic admission entity resolution, and shared alias seeding / refresh loop.
+*   **2026-04-15:** Completed ranking + admission convergence preview, canonical university detail preview, Java preview API, and the preview university page.
+*   **2026-04-16:** Switched the rankings main API from demo-grade preview rows to the full ranking warehouse and aligned the frontend rankings browser semantics around total matches vs rows on the current page.
+*   **2026-04-17:** Completed the explicit Web / Dev Agent split, Web Agent formatter boundary, generation layer (context / prompt / response generator), `/agent` normal/debug mode split, and memory debug upgrades including summary reporting and recent-entity carry-over.
 
 ## AutoEval Extractor Milestone
 

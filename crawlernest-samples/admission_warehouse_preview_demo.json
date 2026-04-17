@@ -1,0 +1,92 @@
+[
+  {
+    "university_name": "MIT",
+    "normalized_university_name": "Massachusetts Institute Of Technology",
+    "source_url": "https://admissions.mit.edu/international",
+    "country": "United States",
+    "ielts_requirement": 7.0,
+    "toefl_requirement": 100,
+    "extracted_at": "2026-04-15T00:00:00.000000+00:00",
+    "canonical_university_id": null,
+    "entity_resolution_status": "unresolved",
+    "raw_payload": {
+      "university": "MIT",
+      "country": "United States",
+      "ielts_requirement": 7.0,
+      "toefl_requirement": 100,
+      "source_url": "https://admissions.mit.edu/international"
+    }
+  },
+  {
+    "university_name": "Oxford",
+    "normalized_university_name": "University Of Oxford",
+    "source_url": "https://www.ox.ac.uk/admissions/postgraduate/",
+    "country": "United Kingdom",
+    "ielts_requirement": 7.5,
+    "toefl_requirement": 110,
+    "extracted_at": "2026-04-15T00:00:00.000000+00:00",
+    "canonical_university_id": null,
+    "entity_resolution_status": "unresolved",
+    "raw_payload": {
+      "university": "Oxford",
+      "country": "United Kingdom",
+      "ielts_requirement": 7.5,
+      "toefl_requirement": 110,
+      "source_url": "https://www.ox.ac.uk/admissions/postgraduate/"
+    }
+  },
+  {
+    "university_name": "Harvard",
+    "normalized_university_name": "Harvard University",
+    "source_url": "https://www.admissions.college.harvard.edu/",
+    "country": "United States",
+    "ielts_requirement": 7.0,
+    "toefl_requirement": 105,
+    "extracted_at": "2026-04-15T00:00:00.000000+00:00",
+    "canonical_university_id": null,
+    "entity_resolution_status": "unresolved",
+    "raw_payload": {
+      "university": "Harvard",
+      "country": "United States",
+      "ielts_requirement": 7.0,
+      "toefl_requirement": 105,
+      "source_url": "https://www.admissions.college.harvard.edu/"
+    }
+  },
+  {
+    "university_name": "Stanford",
+    "normalized_university_name": "Stanford University",
+    "source_url": "https://admission.stanford.edu/",
+    "country": "United States",
+    "ielts_requirement": 7.0,
+    "toefl_requirement": 100,
+    "extracted_at": "2026-04-15T00:00:00.000000+00:00",
+    "canonical_university_id": null,
+    "entity_resolution_status": "unresolved",
+    "raw_payload": {
+      "university": "Stanford",
+      "country": "United States",
+      "ielts_requirement": 7.0,
+      "toefl_requirement": 100,
+      "source_url": "https://admission.stanford.edu/"
+    }
+  },
+  {
+    "university_name": "Cambridge",
+    "normalized_university_name": "University Of Cambridge",
+    "source_url": "https://www.cam.ac.uk/admissions/",
+    "country": "United Kingdom",
+    "ielts_requirement": 7.5,
+    "toefl_requirement": 110,
+    "extracted_at": "2026-04-15T00:00:00.000000+00:00",
+    "canonical_university_id": null,
+    "entity_resolution_status": "unresolved",
+    "raw_payload": {
+      "university": "Cambridge",
+      "country": "United Kingdom",
+      "ielts_requirement": 7.5,
+      "toefl_requirement": 110,
+      "source_url": "https://www.cam.ac.uk/admissions/"
+    }
+  }
+]

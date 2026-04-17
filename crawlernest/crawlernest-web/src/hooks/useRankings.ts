@@ -71,9 +71,19 @@ export function useRankings({
         }
 
         if (isMounted) {
-          setItems(Array.isArray(payload?.data?.items) ? payload.data.items : []);
-          setTotalCount(payload?.metadata?.totalCount ?? 0);
-          setMetadata(payload?.metadata ?? {});
+          const resolvedItems = Array.isArray(payload?.data?.items) ? payload.data.items : [];
+          const resolvedMetadata =
+            payload?.data?.metadata && typeof payload.data.metadata === "object"
+              ? payload.data.metadata
+              : {};
+
+          setItems(resolvedItems);
+          setTotalCount(
+            typeof resolvedMetadata?.totalCount === "number"
+              ? resolvedMetadata.totalCount
+              : 0
+          );
+          setMetadata(resolvedMetadata);
         }
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {

@@ -37,6 +37,7 @@
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/api/RankingController.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/AggregatedRankingDTO.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/Application.java
+/Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/config/CorsConfig.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/CanonicalUniversityDetailPreviewDTO.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/domain/ranking/ScopedRankingReadAdapter.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/model/Program.java

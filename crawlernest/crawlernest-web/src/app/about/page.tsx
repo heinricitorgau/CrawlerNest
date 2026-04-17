@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "About | CrawlerNest",
-  description: "Learn about CrawlerNest — the open-source university ranking intelligence platform aggregating QS and THE data for 2,736+ institutions.",
+  description:
+    "Learn about CrawlerNest — the open-source university ranking intelligence platform structuring global ranking, admission, preview, and agent-ready education data.",
 };
 
 // ─── Section wrapper ──────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ export default function AboutPage() {
         <div className="max-w-3xl">
           {/* Eyebrow */}
           <span className="inline-block rounded-full border border-[#3d7a5a] px-3 py-1 text-xs text-[#3d7a5a]">
-            Open Source · March 2026
+            Open Source · April 2026
           </span>
 
           {/* Headline */}
@@ -57,8 +58,9 @@ export default function AboutPage() {
           {/* Subheadline */}
           <p className="mt-6 max-w-2xl text-lg leading-8 text-[#6b7068]">
             CrawlerNest crawls, normalizes, and warehouses ranking and admission
-            data from 1,500+ universities — powering a deterministic
-            recommendation engine that helps students make data-driven choices.
+            data into a shared university intelligence layer — powering rankings,
+            preview profiles, recommendations, and an emerging agent interface for
+            education search.
           </p>
 
           {/* Pull quote */}
@@ -91,9 +93,9 @@ export default function AboutPage() {
         <div className="rounded-3xl border border-[#e0ddd8] bg-white py-8 shadow-sm">
           <div className="grid grid-cols-2 divide-x divide-[#e0ddd8] md:grid-cols-4">
             {[
-              { number: "1,500+", label: "Universities" },
-              { number: "31", label: "Countries" },
-              { number: "2", label: "Ranking Sources" },
+              { number: "2,767", label: "Tracked ranking matches" },
+              { number: "2026", label: "Current live edition" },
+              { number: "Preview + Agent", label: "Product layers" },
               { number: "v3", label: "Decision Engine" },
             ].map((stat) => (
               <div key={stat.label} className="px-8 py-4 text-center">
@@ -117,21 +119,23 @@ export default function AboutPage() {
               CrawlerNest replaces manual cross-referencing with a single
               queryable data layer. Instead of browsing QS, THE, and university
               sites separately, students query once and get structured,
-              comparable results.
+              comparable results across rankings, admission signals, and preview
+              profiles.
             </p>
             <p>
               The recommendation engine generates explainable reach / target /
-              safety groupings — replacing expensive consulting with transparent,
-              data-driven guidance.
+              safety groupings, while the preview and agent layers expose the same
+              canonical university model through user-facing interfaces.
             </p>
           </div>
 
           {/* Right: flow diagram */}
           <div className="flex flex-col items-stretch gap-3">
             {[
-              { emoji: "📊", label: "QS Rankings · THE Rankings", sublabel: "Source data" },
-              { emoji: "⚙️", label: "CrawlerNest Pipeline", sublabel: "Crawl · Normalize · Aggregate" },
-              { emoji: "🎯", label: "Reach / Target / Safety", sublabel: "Decision output" },
+              { emoji: "📊", label: "Ranking · Admission Sources", sublabel: "QS · THE · university pages" },
+              { emoji: "⚙️", label: "CrawlerNest Pipeline", sublabel: "Crawl · Normalize · Resolve · Aggregate" },
+              { emoji: "🧭", label: "Preview + Rankings Browser", sublabel: "Queryable product surface" },
+              { emoji: "🤖", label: "Web / Dev Agent Layer", sublabel: "Shared intelligence, separate policies" },
             ].map((step, i) => (
               <div key={step.label}>
                 <div className="flex items-center gap-4 rounded-2xl border border-[#e0ddd8] bg-white px-5 py-4 shadow-sm">
@@ -141,7 +145,7 @@ export default function AboutPage() {
                     <div className="text-xs text-[#6b7068]">{step.sublabel}</div>
                   </div>
                 </div>
-                {i < 2 && (
+                {i < 3 && (
                   <div className="flex justify-center py-1 text-[#e0ddd8] text-xl font-light">
                     ↓
                   </div>
@@ -155,7 +159,10 @@ export default function AboutPage() {
       {/* ── 4. Current Status ───────────────────────────────────────────── */}
       <Section>
         <SectionHeading>Current Status</SectionHeading>
-        <p className="mt-3 text-[#6b7068]">All core modules are operational.</p>
+        <p className="mt-3 text-[#6b7068]">
+          The core data pipeline is operational, and the product layer now includes
+          rankings, preview profiles, and a first user-facing agent interface.
+        </p>
         <div className="mt-8 overflow-hidden rounded-3xl border border-[#e0ddd8] bg-white shadow-sm">
           <table className="w-full border-collapse text-sm">
             <thead>
@@ -171,7 +178,7 @@ export default function AboutPage() {
                   module: "Async crawler pipeline",
                   status: "Operational",
                   green: true,
-                  scale: "1,500+ universities",
+                  scale: "Ranking + admission ingestion",
                 },
                 {
                   module: "PostgreSQL warehouse",
@@ -189,7 +196,7 @@ export default function AboutPage() {
                   module: "Java Spring Boot API",
                   status: "Operational",
                   green: true,
-                  scale: "/universities /rankings /admissions",
+                  scale: "/rankings + preview query surfaces",
                 },
                 {
                   module: "Recommendation engine (v3)",
@@ -199,9 +206,15 @@ export default function AboutPage() {
                 },
                 {
                   module: "Next.js consumer website",
-                  status: "In Progress",
-                  green: false,
-                  scale: "Rankings browser + recommendation UI",
+                  status: "Operational",
+                  green: true,
+                  scale: "Rankings browser + preview + agent UI",
+                },
+                {
+                  module: "Split agent runtime",
+                  status: "Operational",
+                  green: true,
+                  scale: "Web Agent + Dev Agent with shared core",
                 },
               ].map((row, i) => (
                 <tr
@@ -233,14 +246,18 @@ export default function AboutPage() {
       {/* ── 5. Architecture ─────────────────────────────────────────────── */}
       <Section cream>
         <SectionHeading>Architecture</SectionHeading>
-        <p className="mt-3 text-[#6b7068]">A five-layer pipeline from raw web data to student decision.</p>
+        <p className="mt-3 text-[#6b7068]">
+          A six-layer pipeline from raw web data to rankings, preview, recommendations,
+          and agent-driven interactions.
+        </p>
         <div className="mt-10 flex flex-col items-stretch gap-3 md:flex-row md:items-center">
           {[
             { num: "01", title: "Data Layer", sub: "Crawlers" },
             { num: "02", title: "Canonical Layer", sub: "Normalization" },
             { num: "03", title: "Aggregation Layer", sub: "PostgreSQL" },
             { num: "04", title: "Decision Layer", sub: "Rec Engine" },
-            { num: "05", title: "API & Product", sub: "Spring Boot + Next.js" },
+            { num: "05", title: "API & Preview Layer", sub: "Spring Boot + product read models" },
+            { num: "06", title: "Agent Layer", sub: "Web Agent + Dev Agent" },
           ].map((layer, i) => (
             <div key={layer.num} className="flex flex-row items-center gap-3 md:flex-1">
               <div className="flex-1 rounded-2xl border border-[#e0ddd8] bg-white px-4 py-5 shadow-sm">
@@ -252,7 +269,7 @@ export default function AboutPage() {
                 </div>
                 <div className="mt-0.5 text-xs text-[#6b7068]">{layer.sub}</div>
               </div>
-              {i < 4 && (
+              {i < 5 && (
                 <span className="shrink-0 text-[#c0bdb8] md:text-base">→</span>
               )}
             </div>
@@ -292,18 +309,18 @@ export default function AboutPage() {
               phase: "NOW",
               filled: true,
               items: [
-                "Web platform MVP",
-                "Expanded regional coverage",
-                "AutoEval integration",
+                "Global rankings browser backed by warehouse data",
+                "University preview page and preview API",
+                "Web Agent + Dev Agent split with shared core",
               ],
             },
             {
               phase: "NEXT 6–18 MONTHS",
               filled: false,
               items: [
-                "THE + ARWU ranking sources",
-                "Program-level analytics",
-                "Entity resolution",
+                "Conversational agent with stronger intent routing",
+                "Recommendation UI integrated into the agent flow",
+                "Program-level and deeper admission analytics",
               ],
             },
             {
@@ -312,7 +329,7 @@ export default function AboutPage() {
               items: [
                 "Public API",
                 "LLM-assisted data verification",
-                "AI consulting insights",
+                "AI consulting and comparative planning workflows",
               ],
             },
           ].map((step, i) => (
