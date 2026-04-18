@@ -1,0 +1,551 @@
+{
+  "description": "admission extractor Phase2 baseline",
+  "commit": "b5c1f4e",
+  "dataset": "/sessions/bold-focused-gauss/mnt/crawlernest/crawlernest/crawlernest-autoeval/datasets/admission_goldens/samples.json",
+  "extractor_file": "/sessions/bold-focused-gauss/mnt/crawlernest/crawlernest/crawlernest-admission-crawler/extractors/admission_text_extractor.py",
+  "summary": {
+    "sample_count": 18,
+    "required_fill_rate": 0.904762,
+    "exact_match_rate": 0.851351,
+    "optional_fill_rate": 0.3125,
+    "error_count": 11,
+    "error_rate": 0.148649,
+    "runtime_s": 0.000765,
+    "score": 0.731785,
+    "status": "keep"
+  },
+  "samples": [
+    {
+      "sample_id": "adm-001",
+      "required_total": 3,
+      "required_filled": 3,
+      "required_exact": 3,
+      "optional_total": 1,
+      "optional_filled": 1,
+      "optional_exact": 1,
+      "field_errors": 0,
+      "runtime_s": 8.8e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": 92,
+        "degree_level": "postgraduate",
+        "deadline": "2026-01-15"
+      },
+      "predicted": {
+        "ielts": 6.5,
+        "toefl": 92,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-01-15",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-002",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 0,
+      "runtime_s": 4e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 7.0,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-03-31"
+      },
+      "predicted": {
+        "ielts": 7.0,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-03-31",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-003",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 0,
+      "runtime_s": 2.5e-05,
+      "exception": null,
+      "expected": {
+        "ielts": null,
+        "toefl": 100,
+        "degree_level": "doctoral",
+        "deadline": "2026-02-01"
+      },
+      "predicted": {
+        "ielts": null,
+        "toefl": 100,
+        "duolingo": null,
+        "degree_level": "doctoral",
+        "deadline": "2026-02-01",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-004",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 3,
+      "optional_filled": 1,
+      "optional_exact": 3,
+      "field_errors": 0,
+      "runtime_s": 3.3e-05,
+      "exception": null,
+      "expected": {
+        "ielts": null,
+        "toefl": null,
+        "duolingo": 115,
+        "degree_level": "postgraduate",
+        "deadline": "2026-01-15"
+      },
+      "predicted": {
+        "ielts": null,
+        "toefl": null,
+        "duolingo": 115,
+        "degree_level": "postgraduate",
+        "deadline": "2026-01-15",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-005",
+      "required_total": 4,
+      "required_filled": 4,
+      "required_exact": 4,
+      "optional_total": 1,
+      "optional_filled": 1,
+      "optional_exact": 1,
+      "field_errors": 0,
+      "runtime_s": 2.9e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 7.5,
+        "toefl": 110,
+        "duolingo": 130,
+        "degree_level": "doctoral",
+        "deadline": "2026-11-30"
+      },
+      "predicted": {
+        "ielts": 7.5,
+        "toefl": 110,
+        "duolingo": 130,
+        "degree_level": "doctoral",
+        "deadline": "2026-11-30",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-006",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 1,
+      "optional_total": 2,
+      "optional_filled": 0,
+      "optional_exact": 1,
+      "field_errors": 2,
+      "runtime_s": 4.2e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.0,
+        "toefl": null,
+        "degree_level": "undergraduate",
+        "gpa": 3.0
+      },
+      "predicted": {
+        "ielts": 6.0,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": [
+        "degree_level",
+        "gpa"
+      ]
+    },
+    {
+      "sample_id": "adm-007",
+      "required_total": 3,
+      "required_filled": 3,
+      "required_exact": 3,
+      "optional_total": 1,
+      "optional_filled": 0,
+      "optional_exact": 1,
+      "field_errors": 0,
+      "runtime_s": 3.5e-05,
+      "exception": null,
+      "expected": {
+        "ielts": null,
+        "toefl": 90,
+        "degree_level": "postgraduate",
+        "gpa": 3.5
+      },
+      "predicted": {
+        "ielts": null,
+        "toefl": 90,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": null,
+        "gpa": 3.5
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-008",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 2,
+      "optional_filled": 0,
+      "optional_exact": 1,
+      "field_errors": 1,
+      "runtime_s": 7e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-04-15"
+      },
+      "predicted": {
+        "ielts": 6.5,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": [
+        "deadline"
+      ]
+    },
+    {
+      "sample_id": "adm-009",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 3,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 1,
+      "runtime_s": 4.1e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "gpa": 3.0,
+        "deadline": "2026-06-30"
+      },
+      "predicted": {
+        "ielts": 6.5,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-06-30",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": [
+        "gpa"
+      ]
+    },
+    {
+      "sample_id": "adm-010",
+      "required_total": 4,
+      "required_filled": 4,
+      "required_exact": 4,
+      "optional_total": 1,
+      "optional_filled": 1,
+      "optional_exact": 1,
+      "field_errors": 0,
+      "runtime_s": 3.3e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 7.0,
+        "toefl": 100,
+        "degree_level": "doctoral",
+        "gpa": 3.5,
+        "deadline": "2026-12-01"
+      },
+      "predicted": {
+        "ielts": 7.0,
+        "toefl": 100,
+        "duolingo": null,
+        "degree_level": "doctoral",
+        "deadline": "2026-12-01",
+        "gpa": 3.5
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-011",
+      "required_total": 1,
+      "required_filled": 1,
+      "required_exact": 0,
+      "optional_total": 3,
+      "optional_filled": 0,
+      "optional_exact": 3,
+      "field_errors": 1,
+      "runtime_s": 7.7e-05,
+      "exception": null,
+      "expected": {
+        "ielts": null,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "undergraduate"
+      },
+      "predicted": {
+        "ielts": null,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": [
+        "degree_level"
+      ]
+    },
+    {
+      "sample_id": "adm-012",
+      "required_total": 3,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 1,
+      "optional_filled": 0,
+      "optional_exact": 1,
+      "field_errors": 1,
+      "runtime_s": 3e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-02-28"
+      },
+      "predicted": {
+        "ielts": 6.5,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [
+        "deadline"
+      ],
+      "mismatch_fields": [
+        "deadline"
+      ]
+    },
+    {
+      "sample_id": "adm-013",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 0,
+      "runtime_s": 4.1e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-03-01"
+      },
+      "predicted": {
+        "ielts": 6.5,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-03-01",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-014",
+      "required_total": 1,
+      "required_filled": 1,
+      "required_exact": 1,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 1,
+      "field_errors": 1,
+      "runtime_s": 2.8e-05,
+      "exception": null,
+      "expected": {
+        "ielts": null,
+        "toefl": 50,
+        "degree_level": "undergraduate"
+      },
+      "predicted": {
+        "ielts": null,
+        "toefl": 50,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": [
+        "degree_level"
+      ]
+    },
+    {
+      "sample_id": "adm-015",
+      "required_total": 1,
+      "required_filled": 1,
+      "required_exact": 1,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 0,
+      "runtime_s": 2.7e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 9.0,
+        "toefl": null,
+        "degree_level": "doctoral"
+      },
+      "predicted": {
+        "ielts": 9.0,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "doctoral",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-016",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 1,
+      "optional_filled": 0,
+      "optional_exact": 1,
+      "field_errors": 0,
+      "runtime_s": 3.8e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 7.5,
+        "toefl": null,
+        "degree_level": "doctoral"
+      },
+      "predicted": {
+        "ielts": 7.5,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "doctoral",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-017",
+      "required_total": 2,
+      "required_filled": 1,
+      "required_exact": 1,
+      "optional_total": 2,
+      "optional_filled": 0,
+      "optional_exact": 2,
+      "field_errors": 1,
+      "runtime_s": 6e-05,
+      "exception": null,
+      "expected": {
+        "ielts": null,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-09-30"
+      },
+      "predicted": {
+        "ielts": null,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [
+        "deadline"
+      ],
+      "mismatch_fields": [
+        "deadline"
+      ]
+    },
+    {
+      "sample_id": "adm-018",
+      "required_total": 4,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 1,
+      "optional_filled": 0,
+      "optional_exact": 0,
+      "field_errors": 3,
+      "runtime_s": 2.8e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": 90,
+        "degree_level": "postgraduate",
+        "gpa": 3.0,
+        "deadline": "2026-05-15"
+      },
+      "predicted": {
+        "ielts": null,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-05-15",
+        "gpa": null
+      },
+      "missing_fields": [
+        "ielts",
+        "toefl"
+      ],
+      "mismatch_fields": [
+        "ielts",
+        "toefl",
+        "gpa"
+      ]
+    }
+  ]
+}

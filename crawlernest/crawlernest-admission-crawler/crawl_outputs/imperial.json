@@ -1,0 +1,33 @@
+{
+  "university_name": "Imperial College London",
+  "base_url": "https://www.imperial.ac.uk",
+  "total_urls": 1,
+  "success_count": 1,
+  "extraction_success_count": 1,
+  "failure_breakdown": {},
+  "url_results": [
+    {
+      "url": "https://www.imperial.ac.uk/study/application-guide/requirements/english-language/",
+      "crawl_status": "success",
+      "extracted_fields": [
+        "ielts",
+        "toefl",
+        "deadline",
+        "gpa",
+        "degree_level"
+      ],
+      "extracted_fields_count": 5,
+      "missing_required_fields": [],
+      "has_language_score": true,
+      "confidence_flags": {
+        "ielts": true,
+        "toefl": true,
+        "deadline": true,
+        "gpa": true,
+        "degree_level": true
+      },
+      "is_usable": true
+    }
+  ],
+  "warnings": []
+}

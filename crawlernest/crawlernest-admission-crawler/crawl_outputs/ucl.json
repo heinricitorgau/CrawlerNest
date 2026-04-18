@@ -1,0 +1,46 @@
+{
+  "university_name": "UCL (University College London)",
+  "base_url": "https://www.ucl.ac.uk",
+  "total_urls": 2,
+  "success_count": 1,
+  "extraction_success_count": 1,
+  "failure_breakdown": {
+    "blocked": 1
+  },
+  "url_results": [
+    {
+      "url": "https://www.ucl.ac.uk/prospective-students/graduate/taught-degrees/english-language-requirements",
+      "crawl_status": "success",
+      "extracted_fields": [
+        "ielts",
+        "deadline",
+        "degree_level"
+      ],
+      "extracted_fields_count": 3,
+      "missing_required_fields": [],
+      "has_language_score": true,
+      "confidence_flags": {
+        "ielts": true,
+        "deadline": true,
+        "degree_level": true
+      },
+      "is_usable": true
+    },
+    {
+      "url": "https://www.ucl.ac.uk/prospective-students/graduate/research-degrees/english-language-requirements",
+      "crawl_status": "blocked",
+      "extracted_fields": [],
+      "extracted_fields_count": 0,
+      "missing_required_fields": [
+        "degree_level",
+        "Duolingo",
+        "IELTS",
+        "TOEFL"
+      ],
+      "has_language_score": false,
+      "confidence_flags": {},
+      "is_usable": false
+    }
+  ],
+  "warnings": []
+}

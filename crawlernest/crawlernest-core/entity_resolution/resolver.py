@@ -121,7 +121,14 @@ class EntityResolver:
                 confidence_score=1.0,
                 matching_method="exact",
                 candidate_count=1,
-                metadata={"normalized_name": norm_name},
+                metadata=self._build_metadata(
+                    record=record,
+                    canonical_id=cid,
+                    matched_alias=matched_alias,
+                    normalized_name=norm_name,
+                    candidate_count=1,
+                    score=1.0,
+                ),
             )
 
         # Stage 2: Normalized alias exact
@@ -136,7 +143,14 @@ class EntityResolver:
                 confidence_score=0.98,
                 matching_method="normalized",
                 candidate_count=1,
-                metadata={"normalized_name": norm_name},
+                metadata=self._build_metadata(
+                    record=record,
+                    canonical_id=cid,
+                    matched_alias=matched_alias,
+                    normalized_name=norm_name,
+                    candidate_count=1,
+                    score=0.98,
+                ),
             )
 
         # Stage 3: Exact canonical display-name match
@@ -151,7 +165,14 @@ class EntityResolver:
                 confidence_score=0.99,
                 matching_method="exact_display",
                 candidate_count=1,
-                metadata={"normalized_name": norm_name},
+                metadata=self._build_metadata(
+                    record=record,
+                    canonical_id=cid,
+                    matched_alias=matched_alias,
+                    normalized_name=norm_name,
+                    candidate_count=1,
+                    score=0.99,
+                ),
             )
 
         # Stage 4: Normalized canonical display-name match
@@ -166,7 +187,14 @@ class EntityResolver:
                 confidence_score=0.97,
                 matching_method="normalized_display",
                 candidate_count=1,
-                metadata={"normalized_name": norm_name},
+                metadata=self._build_metadata(
+                    record=record,
+                    canonical_id=cid,
+                    matched_alias=matched_alias,
+                    normalized_name=norm_name,
+                    candidate_count=1,
+                    score=0.97,
+                ),
             )
 
         # Stage 5: Fuzzy on blocked candidates
@@ -185,7 +213,14 @@ class EntityResolver:
                     confidence_score=round(score, 4),
                     matching_method=method if resolved_id else "unresolved",
                     candidate_count=len(blocked),
-                    metadata={"normalized_name": norm_name},
+                    metadata=self._build_metadata(
+                        record=record,
+                        canonical_id=resolved_id,
+                        matched_alias=matched_alias,
+                        normalized_name=norm_name,
+                        candidate_count=len(blocked),
+                        score=round(score, 4),
+                    ),
                 )
 
         # Stage 4: embedding (optional, pluggable)
@@ -204,7 +239,14 @@ class EntityResolver:
                         confidence_score=round(score, 4),
                         matching_method=method,
                         candidate_count=len(candidates),
-                        metadata={"normalized_name": norm_name},
+                        metadata=self._build_metadata(
+                            record=record,
+                            canonical_id=cid,
+                            matched_alias=matched_alias,
+                            normalized_name=norm_name,
+                            candidate_count=len(candidates),
+                            score=round(score, 4),
+                        ),
                     )
 
         return ResolutionResult(
@@ -215,8 +257,44 @@ class EntityResolver:
             confidence_score=0.0,
             matching_method="unresolved",
             candidate_count=len(blocked),
-            metadata={"normalized_name": norm_name},
+            metadata=self._build_metadata(
+                record=record,
+                canonical_id=None,
+                matched_alias=None,
+                normalized_name=norm_name,
+                candidate_count=len(blocked),
+                score=0.0,
+            ),
         )
+
+    def _build_metadata(
+        self,
+        *,
+        record: EntityRecord,
+        canonical_id: int | None,
+        matched_alias: str | None,
+        normalized_name: str,
+        candidate_count: int,
+        score: float,
+    ) -> dict[str, object]:
+        metadata: dict[str, object] = {
+            "normalized_name": normalized_name,
+            "token_overlap": round(self._token_overlap(record.university_name, matched_alias), 4),
+            "candidate_count_hint": candidate_count,
+        }
+        if canonical_id is not None:
+            profile = self._profiles_by_id.get(canonical_id)
+            if profile and profile.country_hint:
+                metadata["matched_country_hint"] = profile.country_hint
+                country_mismatch = self._country_mismatch(record.country_hint, profile.country_hint)
+                metadata["country_mismatch"] = country_mismatch
+                metadata["suspicious_merge"] = bool(
+                    country_mismatch or (score < self.thresholds.fuzzy_accept and metadata["token_overlap"] < 0.35)
+                )
+        else:
+            metadata["country_mismatch"] = False
+            metadata["suspicious_merge"] = False
+        return metadata
 
     @staticmethod
     def _finalize_unique_index(candidates: dict[str, list[tuple[int, str]]]) -> dict[str, tuple[int, str]]:
@@ -292,6 +370,23 @@ class EntityResolver:
                 if best is None or score > best[2]:
                     best = (cid, alias, score)
         return best
+
+    @staticmethod
+    def _token_overlap(raw_name: str, matched_alias: str | None) -> float:
+        if not matched_alias:
+            return 0.0
+        left = set(tokenize_for_blocking(raw_name))
+        right = set(tokenize_for_blocking(matched_alias))
+        if not left and not right:
+            return 0.0
+        return len(left & right) / max(len(left | right), 1)
+
+    def _country_mismatch(self, record_country: str | None, profile_country: str | None) -> bool:
+        if not record_country or not profile_country:
+            return False
+        record_variants = set(self._country_variants(record_country))
+        profile_variants = set(self._country_variants(profile_country))
+        return record_variants.isdisjoint(profile_variants)
 
     @staticmethod
     def _strip_parenthetical_suffix(alias: str) -> str:

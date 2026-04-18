@@ -1,448 +1,522 @@
 {
   "description": "baseline extractor evaluation",
-  "commit": "01ac004",
-  "dataset": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-autoeval/datasets/extractor_goldens/samples.json",
-  "extractor_file": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-extractors/extractor.py",
+  "commit": "b5c1f4e",
+  "dataset": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-autoeval/datasets/admission_goldens/samples.json",
+  "extractor_file": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-admission-crawler/extractors/admission_text_extractor.py",
   "summary": {
     "sample_count": 18,
     "required_fill_rate": 1.0,
     "exact_match_rate": 1.0,
-    "optional_fill_rate": 1.0,
+    "optional_fill_rate": 0.4375,
     "error_count": 0,
     "error_rate": 0.0,
-    "runtime_s": 0.003026,
-    "score": 0.949999,
+    "runtime_s": 0.000646,
+    "score": 0.865625,
     "status": "keep"
   },
   "samples": [
     {
-      "sample_id": "hard-001",
+      "sample_id": "adm-001",
       "required_total": 3,
       "required_filled": 3,
       "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
+      "optional_total": 1,
+      "optional_filled": 1,
+      "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 0.000923,
+      "runtime_s": 5.3e-05,
       "exception": null,
       "expected": {
-        "university": "National Taiwan University",
-        "program": "Computer Science",
-        "quota": 120
+        "ielts": 6.5,
+        "toefl": 92,
+        "degree_level": "postgraduate",
+        "deadline": "2026-01-15"
       },
       "predicted": {
-        "university": "National Taiwan University",
-        "program": "Computer Science",
-        "quota": 120
+        "ielts": 6.5,
+        "toefl": 92,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-01-15",
+        "gpa": null
       },
       "missing_fields": [],
       "mismatch_fields": []
     },
     {
-      "sample_id": "hard-002",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
+      "sample_id": "adm-002",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 0.000551,
+      "runtime_s": 3.8e-05,
       "exception": null,
       "expected": {
-        "university": "National Cheng Kung University",
-        "program": "Civil Engineering",
-        "quota": 150
+        "ielts": 7.0,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-03-31"
       },
       "predicted": {
-        "university": "National Cheng Kung University",
-        "program": "Civil Engineering",
-        "quota": 150
+        "ielts": 7.0,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-03-31",
+        "gpa": null
       },
       "missing_fields": [],
       "mismatch_fields": []
     },
     {
-      "sample_id": "hard-003",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 0.000535,
-      "exception": null,
-      "expected": {
-        "university": "National Yang Ming Chiao Tung University",
-        "program": "Data Science and Engineering",
-        "quota": 90
-      },
-      "predicted": {
-        "university": "National Yang Ming Chiao Tung University",
-        "program": "Data Science and Engineering",
-        "quota": 90
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-004",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 8.8e-05,
-      "exception": null,
-      "expected": {
-        "university": "National Central University",
-        "program": "Atmospheric Sciences",
-        "quota": 120
-      },
-      "predicted": {
-        "university": "National Central University",
-        "program": "Atmospheric Sciences",
-        "quota": 120
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-005",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 8.7e-05,
-      "exception": null,
-      "expected": {
-        "university": "National Taiwan Normal University",
-        "program": "Education Leadership",
-        "quota": 75
-      },
-      "predicted": {
-        "university": "National Taiwan Normal University",
-        "program": "Education Leadership",
-        "quota": 75
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-006",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 0.000167,
-      "exception": null,
-      "expected": {
-        "university": "Fu Jen Catholic University",
-        "program": "Psychology",
-        "quota": 70
-      },
-      "predicted": {
-        "university": "Fu Jen Catholic University",
-        "program": "Psychology",
-        "quota": 70
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-007",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 3e-05,
-      "exception": null,
-      "expected": {
-        "university": "Tamkang University",
-        "program": "International Business Analytics",
-        "quota": 65
-      },
-      "predicted": {
-        "university": "Tamkang University",
-        "program": "International Business Analytics",
-        "quota": 65
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-008",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 2.8e-05,
-      "exception": null,
-      "expected": {
-        "university": "National Taipei University of Technology",
-        "program": "Industrial Design",
-        "quota": 120
-      },
-      "predicted": {
-        "university": "National Taipei University of Technology",
-        "program": "Industrial Design",
-        "quota": 120
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-009",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 7.9e-05,
-      "exception": null,
-      "expected": {
-        "university": "National Dong Hwa University",
-        "program": "Tourism Management",
-        "quota": 120
-      },
-      "predicted": {
-        "university": "National Dong Hwa University",
-        "program": "Tourism Management",
-        "quota": 120
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-010",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 3.1e-05,
-      "exception": null,
-      "expected": {
-        "university": "National Kaohsiung University of Science and Technology",
-        "program": "Mechanical Engineering",
-        "quota": 110
-      },
-      "predicted": {
-        "university": "National Kaohsiung University of Science and Technology",
-        "program": "Mechanical Engineering",
-        "quota": 110
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-011",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 2.8e-05,
-      "exception": null,
-      "expected": {
-        "university": "National Sun Yat-sen University",
-        "program": "Marine Biology",
-        "quota": 45
-      },
-      "predicted": {
-        "university": "National Sun Yat-sen University",
-        "program": "Marine Biology",
-        "quota": 45
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-012",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 2.7e-05,
-      "exception": null,
-      "expected": {
-        "university": "National Chengchi University",
-        "program": "Data Science",
-        "quota": 80
-      },
-      "predicted": {
-        "university": "National Chengchi University",
-        "program": "Data Science",
-        "quota": 80
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-013",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 3.4e-05,
-      "exception": null,
-      "expected": {
-        "university": "National Tsing Hua University",
-        "program": "Electrical Engineering",
-        "quota": 150
-      },
-      "predicted": {
-        "university": "National Tsing Hua University",
-        "program": "Electrical Engineering",
-        "quota": 150
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-014",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 0.000202,
-      "exception": null,
-      "expected": {
-        "university": "National Yang Ming Chiao Tung University",
-        "program": "Biomedical Engineering",
-        "quota": 60
-      },
-      "predicted": {
-        "university": "National Yang Ming Chiao Tung University",
-        "program": "Biomedical Engineering",
-        "quota": 60
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-015",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
-      "field_errors": 0,
-      "runtime_s": 7.5e-05,
-      "exception": null,
-      "expected": {
-        "university": "National Central University",
-        "program": "Atmospheric Sciences",
-        "quota": 120
-      },
-      "predicted": {
-        "university": "National Central University",
-        "program": "Atmospheric Sciences",
-        "quota": 120
-      },
-      "missing_fields": [],
-      "mismatch_fields": []
-    },
-    {
-      "sample_id": "hard-016",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
+      "sample_id": "adm-003",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
       "field_errors": 0,
       "runtime_s": 2.5e-05,
       "exception": null,
       "expected": {
-        "university": "National Taiwan University",
-        "program": "Computer Science",
-        "quota": 120
+        "ielts": null,
+        "toefl": 100,
+        "degree_level": "doctoral",
+        "deadline": "2026-02-01"
       },
       "predicted": {
-        "university": "National Taiwan University",
-        "program": "Computer Science",
-        "quota": 120
+        "ielts": null,
+        "toefl": 100,
+        "duolingo": null,
+        "degree_level": "doctoral",
+        "deadline": "2026-02-01",
+        "gpa": null
       },
       "missing_fields": [],
       "mismatch_fields": []
     },
     {
-      "sample_id": "hard-017",
-      "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
-      "optional_total": 0,
-      "optional_filled": 0,
-      "optional_exact": 0,
+      "sample_id": "adm-004",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 3,
+      "optional_filled": 1,
+      "optional_exact": 3,
       "field_errors": 0,
-      "runtime_s": 5.2e-05,
+      "runtime_s": 3.3e-05,
       "exception": null,
       "expected": {
-        "university": "National Taiwan Normal University",
-        "program": "Education",
-        "quota": 90
+        "ielts": null,
+        "toefl": null,
+        "duolingo": 115,
+        "degree_level": "postgraduate",
+        "deadline": "2026-01-15"
       },
       "predicted": {
-        "university": "National Taiwan Normal University",
-        "program": "Education",
-        "quota": 90
+        "ielts": null,
+        "toefl": null,
+        "duolingo": 115,
+        "degree_level": "postgraduate",
+        "deadline": "2026-01-15",
+        "gpa": null
       },
       "missing_fields": [],
       "mismatch_fields": []
     },
     {
-      "sample_id": "hard-018",
+      "sample_id": "adm-005",
+      "required_total": 4,
+      "required_filled": 4,
+      "required_exact": 4,
+      "optional_total": 1,
+      "optional_filled": 1,
+      "optional_exact": 1,
+      "field_errors": 0,
+      "runtime_s": 2.9e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 7.5,
+        "toefl": 110,
+        "duolingo": 130,
+        "degree_level": "doctoral",
+        "deadline": "2026-11-30"
+      },
+      "predicted": {
+        "ielts": 7.5,
+        "toefl": 110,
+        "duolingo": 130,
+        "degree_level": "doctoral",
+        "deadline": "2026-11-30",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-006",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 0,
+      "runtime_s": 4.2e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.0,
+        "toefl": null,
+        "degree_level": "undergraduate",
+        "gpa": 3.0
+      },
+      "predicted": {
+        "ielts": 6.0,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "undergraduate",
+        "deadline": null,
+        "gpa": 3.0
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-007",
       "required_total": 3,
       "required_filled": 3,
       "required_exact": 3,
-      "optional_total": 0,
+      "optional_total": 1,
       "optional_filled": 0,
-      "optional_exact": 0,
+      "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 6.5e-05,
+      "runtime_s": 3.4e-05,
       "exception": null,
       "expected": {
-        "university": "National Taipei University of Technology",
-        "program": "Industrial Design Innovation",
-        "quota": 120
+        "ielts": null,
+        "toefl": 90,
+        "degree_level": "postgraduate",
+        "gpa": 3.5
       },
       "predicted": {
-        "university": "National Taipei University of Technology",
-        "program": "Industrial Design Innovation",
-        "quota": 120
+        "ielts": null,
+        "toefl": 90,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": null,
+        "gpa": 3.5
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-008",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 0,
+      "runtime_s": 5.3e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-04-15"
+      },
+      "predicted": {
+        "ielts": 6.5,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-04-15",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-009",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 3,
+      "optional_filled": 2,
+      "optional_exact": 3,
+      "field_errors": 0,
+      "runtime_s": 2.8e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "gpa": 3.0,
+        "deadline": "2026-06-30"
+      },
+      "predicted": {
+        "ielts": 6.5,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-06-30",
+        "gpa": 3.0
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-010",
+      "required_total": 4,
+      "required_filled": 4,
+      "required_exact": 4,
+      "optional_total": 1,
+      "optional_filled": 1,
+      "optional_exact": 1,
+      "field_errors": 0,
+      "runtime_s": 3.1e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 7.0,
+        "toefl": 100,
+        "degree_level": "doctoral",
+        "gpa": 3.5,
+        "deadline": "2026-12-01"
+      },
+      "predicted": {
+        "ielts": 7.0,
+        "toefl": 100,
+        "duolingo": null,
+        "degree_level": "doctoral",
+        "deadline": "2026-12-01",
+        "gpa": 3.5
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-011",
+      "required_total": 1,
+      "required_filled": 1,
+      "required_exact": 1,
+      "optional_total": 3,
+      "optional_filled": 0,
+      "optional_exact": 3,
+      "field_errors": 0,
+      "runtime_s": 7.1e-05,
+      "exception": null,
+      "expected": {
+        "ielts": null,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "undergraduate"
+      },
+      "predicted": {
+        "ielts": null,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "undergraduate",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-012",
+      "required_total": 3,
+      "required_filled": 3,
+      "required_exact": 3,
+      "optional_total": 1,
+      "optional_filled": 0,
+      "optional_exact": 1,
+      "field_errors": 0,
+      "runtime_s": 2.2e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-02-28"
+      },
+      "predicted": {
+        "ielts": 6.5,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-02-28",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-013",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 0,
+      "runtime_s": 3.9e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-03-01"
+      },
+      "predicted": {
+        "ielts": 6.5,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-03-01",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-014",
+      "required_total": 1,
+      "required_filled": 1,
+      "required_exact": 1,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 0,
+      "runtime_s": 2.8e-05,
+      "exception": null,
+      "expected": {
+        "ielts": null,
+        "toefl": 50,
+        "degree_level": "undergraduate"
+      },
+      "predicted": {
+        "ielts": null,
+        "toefl": 50,
+        "duolingo": null,
+        "degree_level": "undergraduate",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-015",
+      "required_total": 1,
+      "required_filled": 1,
+      "required_exact": 1,
+      "optional_total": 2,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 0,
+      "runtime_s": 2.5e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 9.0,
+        "toefl": null,
+        "degree_level": "doctoral"
+      },
+      "predicted": {
+        "ielts": 9.0,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "doctoral",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-016",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 1,
+      "optional_filled": 0,
+      "optional_exact": 1,
+      "field_errors": 0,
+      "runtime_s": 3e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 7.5,
+        "toefl": null,
+        "degree_level": "doctoral"
+      },
+      "predicted": {
+        "ielts": 7.5,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "doctoral",
+        "deadline": null,
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-017",
+      "required_total": 2,
+      "required_filled": 2,
+      "required_exact": 2,
+      "optional_total": 2,
+      "optional_filled": 0,
+      "optional_exact": 2,
+      "field_errors": 0,
+      "runtime_s": 3.8e-05,
+      "exception": null,
+      "expected": {
+        "ielts": null,
+        "toefl": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-09-30"
+      },
+      "predicted": {
+        "ielts": null,
+        "toefl": null,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-09-30",
+        "gpa": null
+      },
+      "missing_fields": [],
+      "mismatch_fields": []
+    },
+    {
+      "sample_id": "adm-018",
+      "required_total": 4,
+      "required_filled": 4,
+      "required_exact": 4,
+      "optional_total": 1,
+      "optional_filled": 1,
+      "optional_exact": 1,
+      "field_errors": 0,
+      "runtime_s": 2.7e-05,
+      "exception": null,
+      "expected": {
+        "ielts": 6.5,
+        "toefl": 90,
+        "degree_level": "postgraduate",
+        "gpa": 3.0,
+        "deadline": "2026-05-15"
+      },
+      "predicted": {
+        "ielts": 6.5,
+        "toefl": 90,
+        "duolingo": null,
+        "degree_level": "postgraduate",
+        "deadline": "2026-05-15",
+        "gpa": 3.0
       },
       "missing_fields": [],
       "mismatch_fields": []

@@ -53,6 +53,7 @@ class EntityResolutionRepository:
     def upsert_source_mapping(self, result: ResolutionResult, threshold_used: float) -> None:
         if result.canonical_university_id is None:
             return
+        suspicious_merge = bool(result.metadata.get("suspicious_merge")) if isinstance(result.metadata, dict) else False
         with self.conn.cursor() as cur:
             cur.execute(
                 """
@@ -84,7 +85,11 @@ class EntityResolutionRepository:
                     result.matching_method,
                     result.confidence_score,
                     threshold_used,
-                    "auto_accepted" if result.matching_method not in {"fuzzy_review", "embedding_review"} else "manual_review",
+                    (
+                        "manual_review"
+                        if suspicious_merge or result.matching_method in {"fuzzy_review", "embedding_review"}
+                        else "auto_accepted"
+                    ),
                     json.dumps(result.metadata, ensure_ascii=False),
                 ),
             )
