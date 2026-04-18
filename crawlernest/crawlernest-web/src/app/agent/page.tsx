@@ -158,6 +158,7 @@ type SelfImprovementDebugData = {
   strategy_source?: "stored" | "newly_generated" | "none";
   reason: string;
   applied_strategies?: string[];
+  anti_patterns?: string[];
   last_experience?: {
     status?: string;
     final_score?: number;
@@ -191,6 +192,15 @@ type MetaDebugData = {
   }>;
 };
 
+type RewriteDebugData = {
+  patch_generated: boolean;
+  patch_valid: boolean;
+  applied_in_sandbox: boolean;
+  improved: boolean;
+  score_delta: number;
+  status?: string;
+};
+
 type AgentResponse = {
   success: boolean;
   error?: string;
@@ -212,6 +222,7 @@ type AgentResponse = {
       longTermMemoryDebug?: LongTermMemoryDebugData;
       selfImprovementDebug?: SelfImprovementDebugData;
       metaDebug?: MetaDebugData;
+      rewriteDebug?: RewriteDebugData;
       items?: Array<{
         label: string;
         kind?: string;
@@ -1404,6 +1415,19 @@ function renderSelfImprovementDebug(selfImprovementDebug: SelfImprovementDebugDa
             </ul>
           </div>
         ) : null}
+
+        {selfImprovementDebug.anti_patterns?.length ? (
+          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-amber-700">
+              Anti-patterns
+            </div>
+            <ul className="space-y-1.5 text-[11px] text-amber-700">
+              {selfImprovementDebug.anti_patterns.map((item, index) => (
+                <li key={`${item}-${index}`}>• {item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -1483,6 +1507,38 @@ function renderMetaDebug(metaDebug: MetaDebugData): React.ReactNode {
             </ul>
           </div>
         ) : null}
+      </div>
+    </div>
+  );
+}
+
+function renderRewriteDebug(rewriteDebug: RewriteDebugData): React.ReactNode {
+  return (
+    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
+      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+        Rewrite debug
+      </div>
+
+      <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+            {rewriteDebug.status ?? "unknown"}
+          </span>
+          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+            delta: {rewriteDebug.score_delta >= 0 ? "+" : ""}{rewriteDebug.score_delta.toFixed(2)}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
+          <span className="text-[#6b7068]">patch generated</span>
+          <span className="font-medium text-[#1a1a1a]">{rewriteDebug.patch_generated ? "yes" : "no"}</span>
+          <span className="text-[#6b7068]">patch valid</span>
+          <span className="font-medium text-[#1a1a1a]">{rewriteDebug.patch_valid ? "yes" : "no"}</span>
+          <span className="text-[#6b7068]">sandbox applied</span>
+          <span className="font-medium text-[#1a1a1a]">{rewriteDebug.applied_in_sandbox ? "yes" : "no"}</span>
+          <span className="text-[#6b7068]">improved</span>
+          <span className="font-medium text-[#1a1a1a]">{rewriteDebug.improved ? "yes" : "no"}</span>
+        </div>
       </div>
     </div>
   );
@@ -2128,6 +2184,10 @@ export default function AgentPage() {
 
                                 {formatted?.metaDebug
                                   ? renderMetaDebug(formatted.metaDebug)
+                                  : null}
+
+                                {formatted?.rewriteDebug
+                                  ? renderRewriteDebug(formatted.rewriteDebug)
                                   : null}
 
                                 {!isDevMode && formatted?.orchestrationDebug

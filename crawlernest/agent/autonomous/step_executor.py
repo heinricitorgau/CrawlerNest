@@ -2,10 +2,24 @@ from __future__ import annotations
 
 
 class StepExecutor:
-    def __init__(self, *, dev_tools, file_resolver, patch_builder) -> None:
+    def __init__(
+        self,
+        *,
+        dev_tools,
+        file_resolver,
+        patch_builder,
+        patch_generator=None,
+        patch_validator=None,
+        patch_executor=None,
+        root_dir: str | None = None,
+    ) -> None:
         self._dev_tools = dev_tools
         self._file_resolver = file_resolver
         self._patch_builder = patch_builder
+        self._patch_generator = patch_generator
+        self._patch_validator = patch_validator
+        self._patch_executor = patch_executor
+        self._root_dir = root_dir
 
     def execute(
         self,
@@ -61,14 +75,28 @@ class StepExecutor:
                 context=context,
                 repo_index=repo_index,
             )
-            file_patch = self._patch_builder.build(
-                task=goal,
-                resolution_result=resolution,
-                repo_index=repo_index,
+            patch_candidate = (
+                self._patch_generator.generate(
+                    task=goal,
+                    resolution_result=resolution,
+                    repo_index=repo_index,
+                )
+                if self._patch_generator is not None
+                else None
+            )
+            file_patch = (
+                patch_candidate.get("semantic_patch")
+                if isinstance(patch_candidate, dict) and isinstance(patch_candidate.get("semantic_patch"), dict)
+                else self._patch_builder.build(
+                    task=goal,
+                    resolution_result=resolution,
+                    repo_index=repo_index,
+                )
             )
             return {
                 "resolution": resolution,
                 "filePatch": file_patch,
+                "patchCandidate": patch_candidate,
                 "strategyHints": step_strategy_hints,
             }
 
@@ -82,9 +110,32 @@ class StepExecutor:
                 resolution_result=resolution,
                 repo_index=repo_index,
             )
+            patch_candidate = state.get("patchCandidate")
+            patch_validation = (
+                self._patch_validator.validate(
+                    patch_candidate=patch_candidate,
+                    repo_index=repo_index,
+                    root_dir=self._root_dir or "",
+                )
+                if self._patch_validator is not None and isinstance(patch_candidate, dict)
+                else None
+            )
+            patch_execution = (
+                self._patch_executor.execute_in_sandbox(
+                    patch_candidate=patch_candidate,
+                    patch_validation=patch_validation,
+                    resolution_result=resolution,
+                )
+                if self._patch_executor is not None
+                and isinstance(patch_candidate, dict)
+                and isinstance(patch_validation, dict)
+                else None
+            )
             return {
                 "resolution": resolution,
                 "validation": validation,
+                "patchValidation": patch_validation,
+                "patchExecution": patch_execution,
                 "strategyHints": step_strategy_hints,
             }
 

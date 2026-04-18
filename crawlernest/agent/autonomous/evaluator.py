@@ -35,8 +35,17 @@ class AutonomousEvaluator:
 
         elif step_name == "validate":
             validation = step_result.get("validation", {})
+            patch_execution = step_result.get("patchExecution", {})
             validation_status = validation.get("status")
-            if validation_status == "pass":
+            if isinstance(patch_execution, dict) and patch_execution.get("applied_in_sandbox"):
+                after_score = float(patch_execution.get("after_score", 0.0))
+                score = max(0.3, min(1.0, after_score))
+                status = "good"
+                if patch_execution.get("improvement"):
+                    reason = "Sandbox patch evaluation shows an improvement."
+                else:
+                    reason = "Sandbox patch evaluation ran, but improvement stayed limited."
+            elif validation_status == "pass":
                 score = 0.95
                 status = "good"
                 reason = "Validation checks passed."
