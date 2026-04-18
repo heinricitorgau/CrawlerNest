@@ -8,11 +8,16 @@ from typing import Any
 class RetrievedContext:
     task_kind: str
     user_input: str
+    original_input: str | None = None
+    rewritten_query: str | None = None
+    resolved_reference: dict[str, Any] | None = None
     focus_entity: str | None = None
     summary_facts: list[str] = field(default_factory=list)
     records: list[dict[str, Any]] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
     source_hints: list[str] = field(default_factory=list)
+    long_term_memory: list[dict[str, Any]] = field(default_factory=list)
+    strategy_hints: list[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)

@@ -51,6 +51,146 @@ type MemoryDebugData = {
   rejected_turns: MemoryTurnDebug[];
 };
 
+type ReferenceDebugData = {
+  original_input: string;
+  rewrite_applied: boolean;
+  rewritten_query: string | null;
+  rewrite_reason: string;
+  resolved_reference: {
+    detected: boolean;
+    input_type: "explicit_entity" | "pronoun_followup" | "compare_followup" | "none";
+    resolved_entities: string[];
+    confidence: "low" | "medium" | "high";
+    reason: string;
+  };
+};
+
+type GroundingDebugData = {
+  answer_preview: string;
+  grounding_sources: {
+    retrieval: {
+      used: boolean;
+      matched_items: string[];
+      match_score: number;
+      reason?: string | null;
+    };
+    memory: {
+      used: boolean;
+      matched_items: string[];
+      match_score: number;
+      reason?: string | null;
+    };
+    generation: {
+      used: boolean;
+      matched_items: string[];
+      match_score: number;
+      reason?: string | null;
+    };
+  };
+  grounding_score: {
+    overall: number;
+    breakdown: {
+      retrieval_weight: number;
+      memory_weight: number;
+    };
+  };
+  hallucination_risk: {
+    level: "low" | "medium" | "high";
+    reason: string;
+  };
+  explanation: {
+    summary: string;
+    detail: string;
+  };
+};
+
+type PolicyDebugData = {
+  mode: "deterministic" | "hybrid" | "llm";
+  reason: string;
+  signals: {
+    has_retrieval: boolean;
+    retrieval_confidence: number;
+    has_memory: boolean;
+    ambiguity_level: "low" | "medium" | "high";
+    query_type: "fact" | "comparison" | "recommendation" | "open_ended";
+  };
+};
+
+type OrchestrationDebugData = {
+  route: "web" | "dev" | "web_to_dev";
+  reason: string;
+  signals: {
+    is_dev_intent: boolean;
+    has_code_keywords: boolean;
+    explicit_dev_kind: boolean;
+  };
+  dev_call: {
+    invoked: boolean;
+    latency_ms: number | null;
+    returned: {
+      has_patch: boolean;
+    };
+  };
+};
+
+type LongTermMemoryDebugData = {
+  retrieved: Array<{
+    content: string;
+    type: string;
+    used: boolean;
+    confidence: number;
+    importance: number;
+    decayScore: number;
+  }>;
+};
+
+type SelfImprovementDebugData = {
+  performance: {
+    task_kind: string;
+    sample_size: number;
+    avg_score: number;
+    failure_rate: number;
+    success_rate: number;
+    common_failure_step: string | null;
+  };
+  new_strategy_generated: boolean;
+  strategy_applied: boolean;
+  strategy_source?: "stored" | "newly_generated" | "none";
+  reason: string;
+  applied_strategies?: string[];
+  last_experience?: {
+    status?: string;
+    final_score?: number;
+  };
+};
+
+type MetaDebugData = {
+  strategy_applied: boolean;
+  strategy_type: string | null;
+  confidence: number | null;
+  source: string | null;
+  applied?: Array<{
+    id?: string;
+    strategy_type?: string;
+    confidence?: number;
+    source?: string;
+    version?: string;
+    target?: string | null;
+  }>;
+  generated?: Array<{
+    id?: string;
+    strategy_type?: string;
+    confidence?: number;
+    source?: string;
+    version?: string;
+  }>;
+  rolled_back?: Array<{
+    id?: string;
+    strategy_type?: string;
+    reason?: string;
+  }>;
+};
+
 type AgentResponse = {
   success: boolean;
   error?: string;
@@ -65,6 +205,13 @@ type AgentResponse = {
       explanationParagraphs?: string[];
       sessionId?: string;
       memoryDebug?: MemoryDebugData;
+      referenceDebug?: ReferenceDebugData;
+      groundingDebug?: GroundingDebugData;
+      policyDebug?: PolicyDebugData;
+      orchestrationDebug?: OrchestrationDebugData;
+      longTermMemoryDebug?: LongTermMemoryDebugData;
+      selfImprovementDebug?: SelfImprovementDebugData;
+      metaDebug?: MetaDebugData;
       items?: Array<{
         label: string;
         kind?: string;
@@ -932,6 +1079,415 @@ function renderMemoryDebug(md: MemoryDebugData): React.ReactNode {
   );
 }
 
+function renderReferenceDebug(referenceDebug: ReferenceDebugData): React.ReactNode {
+  const confidenceStyle =
+    AMBIGUITY_STYLES[referenceDebug.resolved_reference.confidence] ??
+    AMBIGUITY_STYLES.medium;
+
+  return (
+    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
+      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+        Reference debug
+      </div>
+
+      <div className="mb-3 rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+            {referenceDebug.resolved_reference.input_type.replace(/_/g, " ")}
+          </span>
+          <span className={`rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] ${confidenceStyle.border} ${confidenceStyle.bg} ${confidenceStyle.text}`}>
+            confidence: {referenceDebug.resolved_reference.confidence}
+          </span>
+          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+            rewrite {referenceDebug.rewrite_applied ? "applied" : "not applied"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
+          <span className="text-[#6b7068]">original</span>
+          <span className="font-medium text-[#1a1a1a]">{referenceDebug.original_input}</span>
+          <span className="text-[#6b7068]">rewritten</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {referenceDebug.rewritten_query ?? "—"}
+          </span>
+          <span className="text-[#6b7068]">entities</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {referenceDebug.resolved_reference.resolved_entities.length > 0
+              ? referenceDebug.resolved_reference.resolved_entities.join(", ")
+              : "—"}
+          </span>
+          <span className="text-[#6b7068]">reason</span>
+          <span className="text-[#1a1a1a]">{referenceDebug.resolved_reference.reason}</span>
+          <span className="text-[#6b7068]">rewrite note</span>
+          <span className="text-[#1a1a1a]">{referenceDebug.rewrite_reason}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function renderGroundingDebug(groundingDebug: GroundingDebugData): React.ReactNode {
+  const riskStyle =
+    AMBIGUITY_STYLES[groundingDebug.hallucination_risk.level] ??
+    AMBIGUITY_STYLES.medium;
+  const sources = groundingDebug.grounding_sources;
+
+  const renderSource = (
+    label: string,
+    source: {
+      used: boolean;
+      matched_items: string[];
+      match_score: number;
+      reason?: string | null;
+    },
+  ) => (
+    <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+          {label}
+        </span>
+        <span
+          className={`rounded-full border px-2.5 py-0.5 text-[10px] ${
+            source.used
+              ? "border-[#cfe5d7] bg-[#edf7f1] text-[#1a6b3a]"
+              : "border-[#e0ddd8] bg-white text-[#6b7068]"
+          }`}
+        >
+          {source.used ? "used" : "not used"}
+        </span>
+        <span className="ml-auto rounded-full border border-[#d8d3cb] bg-white px-2 py-0.5 font-mono text-[10px] text-[#6b7068]">
+          {source.match_score.toFixed(2)}
+        </span>
+      </div>
+      {source.reason ? (
+        <div className="text-[11px] leading-5 text-[#1a1a1a]">{source.reason}</div>
+      ) : null}
+      {source.matched_items.length > 0 ? (
+        <div className="mt-2 space-y-1">
+          {source.matched_items.map((item) => (
+            <div key={`${label}-${item}`} className="font-mono text-[11px] leading-5 text-[#6b7068]">
+              • {item}
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+
+  return (
+    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
+      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+        Grounding debug
+      </div>
+
+      <div className="mb-3 rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+            grounding {groundingDebug.grounding_score.overall.toFixed(2)}
+          </span>
+          <span className={`rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] ${riskStyle.border} ${riskStyle.bg} ${riskStyle.text}`}>
+            risk: {groundingDebug.hallucination_risk.level}
+          </span>
+        </div>
+        <div className="text-[11px] leading-5 text-[#1a1a1a]">
+          {groundingDebug.explanation.summary}
+        </div>
+        <div className="mt-1 text-[11px] leading-5 text-[#6b7068]">
+          {groundingDebug.explanation.detail}
+        </div>
+        <div className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
+          <span className="text-[#6b7068]">retrieval</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {groundingDebug.grounding_score.breakdown.retrieval_weight.toFixed(2)}
+          </span>
+          <span className="text-[#6b7068]">memory</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {groundingDebug.grounding_score.breakdown.memory_weight.toFixed(2)}
+          </span>
+          <span className="text-[#6b7068]">answer</span>
+          <span className="text-[#1a1a1a]">{groundingDebug.answer_preview}</span>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {renderSource("retrieval", sources.retrieval)}
+        {renderSource("memory", sources.memory)}
+        {renderSource("generation", sources.generation)}
+      </div>
+    </div>
+  );
+}
+
+function renderPolicyDebug(policyDebug: PolicyDebugData): React.ReactNode {
+  const ambiguityStyle =
+    AMBIGUITY_STYLES[policyDebug.signals.ambiguity_level] ??
+    AMBIGUITY_STYLES.medium;
+
+  return (
+    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
+      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+        Policy debug
+      </div>
+
+      <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+            {policyDebug.mode}
+          </span>
+          <span className={`rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] ${ambiguityStyle.border} ${ambiguityStyle.bg} ${ambiguityStyle.text}`}>
+            ambiguity: {policyDebug.signals.ambiguity_level}
+          </span>
+          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+            {policyDebug.signals.query_type}
+          </span>
+        </div>
+
+        <div className="text-[11px] leading-5 text-[#1a1a1a]">{policyDebug.reason}</div>
+
+        <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
+          <span className="text-[#6b7068]">retrieval</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {policyDebug.signals.has_retrieval ? "yes" : "no"} · {policyDebug.signals.retrieval_confidence.toFixed(2)}
+          </span>
+          <span className="text-[#6b7068]">memory</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {policyDebug.signals.has_memory ? "yes" : "no"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function renderOrchestrationDebug(orchestrationDebug: OrchestrationDebugData): React.ReactNode {
+  return (
+    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
+      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+        Orchestration debug
+      </div>
+
+      <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+            {orchestrationDebug.route}
+          </span>
+          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+            dev call: {orchestrationDebug.dev_call.invoked ? "yes" : "no"}
+          </span>
+        </div>
+
+        <div className="text-[11px] leading-5 text-[#1a1a1a]">{orchestrationDebug.reason}</div>
+
+        <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
+          <span className="text-[#6b7068]">dev intent</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {orchestrationDebug.signals.is_dev_intent ? "yes" : "no"}
+          </span>
+          <span className="text-[#6b7068]">code keywords</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {orchestrationDebug.signals.has_code_keywords ? "yes" : "no"}
+          </span>
+          <span className="text-[#6b7068]">explicit dev kind</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {orchestrationDebug.signals.explicit_dev_kind ? "yes" : "no"}
+          </span>
+          <span className="text-[#6b7068]">latency</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {orchestrationDebug.dev_call.latency_ms ?? "—"} ms
+          </span>
+          <span className="text-[#6b7068]">returned patch</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {orchestrationDebug.dev_call.returned.has_patch ? "yes" : "no"}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function renderLongTermMemoryDebug(longTermMemoryDebug: LongTermMemoryDebugData): React.ReactNode {
+  return (
+    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
+      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+        Long-term memory debug
+      </div>
+      {longTermMemoryDebug.retrieved.length === 0 ? (
+        <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3 text-[11px] text-[#6b7068]">
+          No long-term memory entries were used.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {longTermMemoryDebug.retrieved.map((entry, index) => (
+            <div key={`${entry.type}-${index}`} className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+                  {entry.type}
+                </span>
+                <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+                  confidence: {entry.confidence.toFixed(2)}
+                </span>
+              </div>
+              <div className="text-[11px] leading-5 text-[#1a1a1a]">{entry.content}</div>
+              <div className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
+                <span className="text-[#6b7068]">used</span>
+                <span className="font-medium text-[#1a1a1a]">{entry.used ? "yes" : "no"}</span>
+                <span className="text-[#6b7068]">importance</span>
+                <span className="font-medium text-[#1a1a1a]">{entry.importance.toFixed(2)}</span>
+                <span className="text-[#6b7068]">decay</span>
+                <span className="font-medium text-[#1a1a1a]">{entry.decayScore.toFixed(2)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function renderSelfImprovementDebug(selfImprovementDebug: SelfImprovementDebugData): React.ReactNode {
+  const performance = selfImprovementDebug.performance;
+  return (
+    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
+      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+        Self-improvement debug
+      </div>
+
+      <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+            sample: {performance.sample_size}
+          </span>
+          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+            source: {selfImprovementDebug.strategy_source ?? "none"}
+          </span>
+          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+            avg: {performance.avg_score.toFixed(2)}
+          </span>
+          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+            failure: {(performance.failure_rate * 100).toFixed(0)}%
+          </span>
+        </div>
+
+        <div className="text-[11px] leading-5 text-[#1a1a1a]">{selfImprovementDebug.reason}</div>
+
+        <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
+          <span className="text-[#6b7068]">strategy applied</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {selfImprovementDebug.strategy_applied ? "yes" : "no"}
+          </span>
+          <span className="text-[#6b7068]">new strategy</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {selfImprovementDebug.new_strategy_generated ? "yes" : "no"}
+          </span>
+          <span className="text-[#6b7068]">common failure step</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {performance.common_failure_step ?? "—"}
+          </span>
+          <span className="text-[#6b7068]">last outcome</span>
+          <span className="font-medium text-[#1a1a1a]">
+            {selfImprovementDebug.last_experience?.status ?? "—"}
+            {typeof selfImprovementDebug.last_experience?.final_score === "number"
+              ? ` · ${selfImprovementDebug.last_experience.final_score.toFixed(2)}`
+              : ""}
+          </span>
+        </div>
+
+        {selfImprovementDebug.applied_strategies?.length ? (
+          <div className="mt-3 rounded-xl border border-[#ece7de] bg-[#faf8f4] px-3 py-3">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[#6b7068]">
+              Applied strategies
+            </div>
+            <ul className="space-y-1.5 text-[11px] text-[#1a1a1a]">
+              {selfImprovementDebug.applied_strategies.map((item, index) => (
+                <li key={`${item}-${index}`}>• {item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function renderMetaDebug(metaDebug: MetaDebugData): React.ReactNode {
+  return (
+    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
+      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+        Meta debug
+      </div>
+
+      <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+            {metaDebug.strategy_applied ? "applied" : "not applied"}
+          </span>
+          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+            {metaDebug.strategy_type ?? "none"}
+          </span>
+          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+            {typeof metaDebug.confidence === "number"
+              ? metaDebug.confidence.toFixed(2)
+              : "—"}
+          </span>
+        </div>
+
+        <div className="text-[11px] leading-5 text-[#1a1a1a]">
+          source: {metaDebug.source ?? "none"}
+        </div>
+
+        {metaDebug.applied?.length ? (
+          <div className="mt-3 rounded-xl border border-[#ece7de] bg-[#faf8f4] px-3 py-3">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[#6b7068]">
+              Applied strategies
+            </div>
+            <ul className="space-y-1.5 text-[11px] text-[#1a1a1a]">
+              {metaDebug.applied.map((entry, index) => (
+                <li key={`${entry.id ?? entry.strategy_type ?? "applied"}-${index}`}>
+                  • {entry.strategy_type ?? "strategy"}
+                  {entry.version ? ` · ${entry.version}` : ""}
+                  {typeof entry.confidence === "number" ? ` · ${entry.confidence.toFixed(2)}` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {metaDebug.generated?.length ? (
+          <div className="mt-3 rounded-xl border border-[#ece7de] bg-[#faf8f4] px-3 py-3">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[#6b7068]">
+              Generated strategies
+            </div>
+            <ul className="space-y-1.5 text-[11px] text-[#1a1a1a]">
+              {metaDebug.generated.map((entry, index) => (
+                <li key={`${entry.id ?? entry.strategy_type ?? "generated"}-${index}`}>
+                  • {entry.strategy_type ?? "strategy"}
+                  {entry.version ? ` · ${entry.version}` : ""}
+                  {typeof entry.confidence === "number" ? ` · ${entry.confidence.toFixed(2)}` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {metaDebug.rolled_back?.length ? (
+          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-3">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-red-700">
+              Rolled back
+            </div>
+            <ul className="space-y-1.5 text-[11px] text-red-700">
+              {metaDebug.rolled_back.map((entry, index) => (
+                <li key={`${entry.id ?? entry.strategy_type ?? "rollback"}-${index}`}>
+                  • {entry.strategy_type ?? "strategy"}{entry.reason ? ` · ${entry.reason}` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export default function AgentPage() {
   const searchParams = useSearchParams();
   const debugFromQuery = searchParams.get("debug") === "1";
@@ -1561,6 +2117,34 @@ export default function AgentPage() {
                                     </pre>
                                   </div>
                                 ) : null}
+
+                                {!isDevMode && formatted?.referenceDebug
+                                  ? renderReferenceDebug(formatted.referenceDebug)
+                                  : null}
+
+                                {!isDevMode && formatted?.policyDebug
+                                  ? renderPolicyDebug(formatted.policyDebug)
+                                  : null}
+
+                                {formatted?.metaDebug
+                                  ? renderMetaDebug(formatted.metaDebug)
+                                  : null}
+
+                                {!isDevMode && formatted?.orchestrationDebug
+                                  ? renderOrchestrationDebug(formatted.orchestrationDebug)
+                                  : null}
+
+                                {!isDevMode && formatted?.longTermMemoryDebug
+                                  ? renderLongTermMemoryDebug(formatted.longTermMemoryDebug)
+                                  : null}
+
+                                {formatted?.selfImprovementDebug
+                                  ? renderSelfImprovementDebug(formatted.selfImprovementDebug)
+                                  : null}
+
+                                {!isDevMode && formatted?.groundingDebug
+                                  ? renderGroundingDebug(formatted.groundingDebug)
+                                  : null}
 
                                 {/* Memory debug — only present when debug=true and generation ran */}
                                 {!isDevMode && formatted?.memoryDebug

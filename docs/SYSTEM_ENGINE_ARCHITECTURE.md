@@ -1,312 +1,337 @@
-# CrawlerNest System And Engine Architecture
+# System And Engine Architecture
 
-這份文件描述的是 **CrawlerNest 系統架構與核心引擎架構**。  
-如果你要看 repo / 目錄怎麼分布，請改看：
+這份文件描述的是 **CrawlerNest 目前的系統分層、資料流與執行面**。
+如果你要看 repo 目錄怎麼放，請改看：
 
 - `docs/REPO_STRUCTURE.md`
 
-目前 ranking path 已形成一條安全的資料生產鏈：
+目前可以用一句話概括主系統：
 
-```text
-crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh
-```
+`sources -> crawlers/extractors -> normalize -> staging/ingest -> entity resolution -> multi-source -> aggregation -> recommendation/comparison -> API -> web`
 
-這條路徑的重點不是提早進 production read model，而是先把 ranking data 的產生、落地、解析與人工補種閉環做穩。
+同時，repo 內還並存一條 agent/mini-agent 能力線，主要服務於互動查詢、agent API 與開發迭代，不直接取代資料真相主鏈。
 
-## 1. Full System View
+## 1. Architecture Snapshot
 
 ```mermaid
 flowchart TD
-    SRC["External Sources<br/>QS / THE / ARWU / university sites"]
+    SRC["External sources<br/>QS / THE / ARWU / university sites"]
 
-    subgraph INGEST["Ingestion Layer"]
-        JOBS["Job Orchestration / Pipeline Router"]
-        CCORE["Shared Crawler Core"]
-        RCRAWL["Ranking Crawler"]
-        ACRAWL["Admission Crawler"]
-        REXT["Ranking Extractors"]
-        AEXT["Admission Extractors"]
+    subgraph INGEST["Ingestion And Crawl Layer"]
+        PIPE["run_pipeline.py / pipeline/"]
+        JOBS["crawlernest-jobs/"]
+        EXT["crawlernest-extractors/"]
+        RCRAWL["crawlernest-ranking-crawler/"]
+        ACRAWL["crawlernest-admission-crawler/"]
+        WRITE["crawlernest-db-writer/"]
+        KB["crawlernest-kb/"]
     end
 
-    subgraph CANON["Canonical Layer"]
-        NORM["Normalization"]
-        ER["Entity Resolution"]
-        MS["Multi-Source Integration"]
+    subgraph CORE["Core Domain Layer"]
+        NORM["normalization helpers"]
+        ER["entity_resolution"]
+        MS["multi_source"]
+        AGG["ranking_aggregation"]
+        REC["recommendation_engine"]
+        CMP["comparison"]
     end
 
-    subgraph DATA["Data Layer"]
-        RAW["Raw / staging"]
-        WH["Warehouse truth"]
-        ANA["Analytics views"]
-        KB["Knowledge artifacts / caches / snapshots"]
-    end
-
-    subgraph ENGINE["Decision Engine Layer"]
-        AGG["Ranking Aggregation Engine"]
-        REC["Recommendation Engine"]
-        CMP["Comparison Logic"]
-        TRUST["Trust / Evidence Layer"]
+    subgraph SERVICE["Service And Interface Layer"]
+        FACADE["core/services/"]
+        PAPI["interfaces/api/agent_api"]
+        PCLI["interfaces/cli/agent_cli"]
+        JAVA["servise_for_java"]
     end
 
     subgraph PRODUCT["Product Layer"]
-        API["Spring Boot API"]
-        WEB["Next.js Web"]
+        WEB["crawlernest-web"]
     end
 
-    subgraph DEVX["Mini-Agent Dev Layer"]
-        TASK["Task"]
-        GEN["Generate"]
-        EVAL["Evaluate"]
-        REFINE["Refine"]
+    subgraph AGENT["Agent Layer"]
+        AGS["crawlernest/agent/"]
+        MINI["crawlernest-mini-agent/"]
+        EVAL["crawlernest-autoeval/"]
     end
 
+    SRC --> PIPE
     SRC --> JOBS
-    JOBS --> CCORE
-    CCORE --> RCRAWL
-    CCORE --> ACRAWL
-    RCRAWL --> REXT
-    ACRAWL --> AEXT
-    REXT --> NORM
-    AEXT --> NORM
-    JOBS --> RAW
-    JOBS --> KB
-    NORM --> ER --> MS
-    MS --> WH
-    WH --> AGG
-    AGG --> ANA
-    ANA --> REC
-    ANA --> CMP
-    ANA --> TRUST
-    REC --> API
-    CMP --> API
-    TRUST --> API
-    ANA --> API
-    API --> WEB
-
-    TASK --> GEN --> EVAL --> REFINE --> GEN
+    PIPE --> RCRAWL
+    PIPE --> ACRAWL
+    JOBS --> RCRAWL
+    JOBS --> ACRAWL
+    RCRAWL --> EXT
+    ACRAWL --> EXT
+    EXT --> NORM
+    PIPE --> WRITE
+    PIPE --> KB
+    WRITE --> ER
+    NORM --> ER
+    ER --> MS
+    MS --> AGG
+    AGG --> REC
+    AGG --> CMP
+    AGG --> FACADE
+    REC --> FACADE
+    CMP --> FACADE
+    FACADE --> JAVA
+    FACADE --> PAPI
+    FACADE --> PCLI
+    JAVA --> WEB
+    PAPI --> WEB
+    AGS --> PAPI
+    AGS --> PCLI
+    MINI --> AGS
+    EVAL -. improves extractors and agent quality .-> AGS
+    EVAL -. improves extractors and parser quality .-> EXT
 ```
 
-## 2. Main Production Truth Path
+## 2. Runtime Surfaces
+
+目前系統不是單一服務，而是幾個執行面並存：
+
+1. `crawlernest/run_pipeline.py`
+   ranking / admission / ingest / resolution / backfill 等資料生產主入口。
+2. `crawlernest/run_platform.py`
+   將模組加進 `sys.path` 後，轉入 `clawer_main` 的平台啟動入口。
+3. `crawlernest/interfaces/api/agent_api/server.py`
+   Python agent API server，提供 `/health` 與 `/api/v1/agent/tasks`。
+4. `crawlernest/interfaces/cli/agent_cli/main.py`
+   Python agent CLI，支援 `dev` / `web` mode 與多種 task kind。
+5. `crawlernest/servise_for_java/`
+   Spring Boot API，承接產品型 REST 需求。
+6. `crawlernest/crawlernest-web/`
+   Next.js 前端，對使用者暴露 rankings、recommendations、compare、universities、agent、preview 等頁面。
+
+## 3. Primary Data Truth Path
+
+這條路徑是目前最重要的 production truth path：
 
 ```mermaid
 flowchart LR
-    A["Source fetch"] --> B["Shared crawler core"]
-    B --> C["Ranking crawler / Admission crawler"]
-    C --> D["Source-specific extraction"]
-    D --> E["Normalization"]
-    E --> F["Entity Resolution"]
-    F --> G["Multi-Source Records"]
-    G --> H["Aggregation"]
-    H --> I["Analytics / Read Models"]
-    I --> J["API"]
-    J --> K["Web Product"]
+    A["Source fetch"] --> B["Crawler / extractor"]
+    B --> C["Normalization"]
+    C --> D["Staging / ingest / write"]
+    D --> E["Entity resolution"]
+    E --> F["Multi-source integration"]
+    F --> G["Ranking aggregation"]
+    G --> H["Recommendation / comparison"]
+    H --> I["Service layer"]
+    I --> J["API surfaces"]
+    J --> K["Web product"]
 ```
 
-這條路徑代表真正會影響產品資料真相的主鏈：
+對 ranking workflow 來說，文件與 README 裡反覆出現的操作鏈仍然成立：
 
-- 外部來源資料進來
-- 轉成平台可理解格式
-- 對齊 canonical identity
-- 保留 source truth
-- 再做 aggregated truth
-- 最後提供給 API 與產品層
+`crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh`
 
-對 ranking 而言，主 truth path 前面現在多了一條更保守的前置帶：
+但就現行程式結構來說，這些步驟不是都塞在單一模組，而是分散在：
 
-- raw artifact
-- normalized artifact
-- staging artifact
-- validation gate
-- controlled ingest
-- warehouse preview / landing
+- `run_pipeline.py`
+- `pipeline/`
+- `crawlernest-ranking-crawler/`
+- `crawlernest-db-writer/`
+- `crawlernest-core/entity_resolution/`
+- `crawlernest-core/multi_source/`
+- `crawlernest-schema/`
 
-也就是說，ranking 資料不會在 crawler 結束後直接進入最終可讀 truth。
+## 4. Ingestion And Crawl Layer
 
-## 3. Data Engine Architecture
+### Main responsibilities
 
-```mermaid
-sequenceDiagram
-    participant S as Source
-    participant J as Job Router
-    participant C as Shared Crawler Core
-    participant RC as Ranking Crawler
-    participant AC as Admission Crawler
-    participant E as Extractors
-    participant N as Normalize
-    participant R as Entity Resolution
-    participant M as Multi-Source
-    participant A as Aggregation
-    participant D as PostgreSQL
+- 從 QS、THE、ARWU 與學校網站抓取資料
+- 做 source-specific extraction
+- 產生 snapshot、checkpoint、staging 與 write payload
+- 控制 resume、batch、backfill、seed、refresh 等 operational flow
 
-    S->>J: source availability / crawl target
-    J->>C: dispatch crawl job
-    C->>RC: ranking-source job
-    C->>AC: admission-source job
-    RC->>E: ranking extraction
-    AC->>E: admission extraction
-    E->>N: normalize fields
-    N->>R: resolve canonical identity
-    R->>M: standardized ranking records
-    M->>D: source-specific rows
-    M->>A: integrated ranking records
-    A->>D: aggregated rankings / analytics views
-```
-
-### Core data rules
-
-- source rows 不互相覆蓋
-- canonical linking 先於平台 truth
-- aggregation 只建立平台層 truth，不抹掉來源差異
-- product 層消費的是 analytics/read model，不是原始 crawler payload
-- staging / warehouse landing 與最終 production read model 明確分離
-- entity resolution 不直接改 raw crawler data
-
-## 4. Aggregation Engine
-
-```mermaid
-flowchart LR
-    QS["QS rank"] --> AGG["Aggregation Engine"]
-    THE["THE rank"] --> AGG
-    ARWU["ARWU rank"] --> AGG
-    CFG["Source weights / aggregation config"] --> AGG
-    AGG --> OUT1["Aggregated rank"]
-    AGG --> OUT2["Composite score(display only)"]
-    AGG --> OUT3["Coverage ratio"]
-    AGG --> OUT4["Evidence / source detail"]
-```
-
-### Aggregation intent
-
-- 聚合是 deterministic analytics，不是 ML
-- ranking order 以來源 rank 為核心
-- composite score 只是輔助顯示，不是排序真相
-- coverage 與 source evidence 會一起保留給後續 decision layer
-
-## 5. Recommendation Engine
-
-```mermaid
-flowchart TD
-    AR["Aggregated rankings"] --> REC["Recommendation Engine"]
-    ADM["IELTS / admission constraints"] --> REC
-    PREF["Country / target rank / risk profile"] --> REC
-
-    REC --> FIL["Eligibility filtering"]
-    FIL --> SCORE["Base scoring"]
-    SCORE --> ADJ["Preference / risk adjustment"]
-    ADJ --> CAT["Reach / Target / Safety"]
-    CAT --> EXP["Explanation / confidence / warnings"]
-    EXP --> API["Recommendation API payload"]
-```
-
-### Recommendation intent
-
-- 目前是 explainable deterministic rule engine
-- 先過 eligibility，再算 score，再做風險與偏好修正
-- 最後輸出 category、confidence、explanation，不只給一個分數
-
-## 6. Trust / Evidence Engine
-
-```mermaid
-flowchart LR
-    SR["Source ranks"] --> EVI["Evidence Builder"]
-    SC["Source coverage"] --> EVI
-    DIS["Source disagreement"] --> EVI
-    EVI --> TR["Trust signal"]
-    EVI --> RS["Ranking evidence summary"]
-    TR --> API["API payload"]
-    RS --> API
-```
-
-### Trust intent
-
-- 不把來源差異藏起來
-- 讓產品層直接看到 evidence / disagreement / coverage
-- 把不確定性顯式交給使用者，而不是假裝資料永遠完整一致
-
-## 7. Product Architecture
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant W as Next.js Web
-    participant A as Spring Boot API
-    participant X as Analytics Views
-    participant C as Canonical Metadata
-
-    U->>W: rankings / compare / recommend request
-    W->>A: HTTP request
-    A->>X: query ranking / recommendation views
-    A->>C: join university metadata
-    X-->>A: analytics truth
-    C-->>A: canonical metadata
-    A-->>W: structured response
-    W-->>U: UI rendering
-```
-
-## 8. Mini-Agent Development Loop
-
-這層不是 production truth engine，而是 **開發改進引擎**。
-
-```mermaid
-flowchart LR
-    T["Human-defined task"] --> G["Generate"]
-    G --> E["Evaluate"]
-    E --> R["Refine"]
-    R --> G
-    E --> H["Human adoption decision"]
-```
-
-### Role
-
-- 幫助 extractor / parser / workflow refinement
-- 不直接產生 ranking truth
-- 用 evaluator 限制 hallucination 與脆弱修改
-- 加速開發，但不直接產生 ranking truth
-
-## 9. Boundary Summary
-
-```mermaid
-flowchart TD
-    subgraph PROD["Production Runtime"]
-        A["Jobs + Shared crawler core"] --> B["Ranking / Admission crawlers"]
-        B --> C["Canonical"]
-        C --> D["Aggregation"]
-        D --> E["Decision"]
-        E --> F["API / Web"]
-    end
-
-    subgraph IMPROVE["Improvement Loop"]
-        G["Task"] --> H["Generate"]
-        H --> I["Evaluate"]
-        I --> J["Refine"]
-    end
-
-    IMPROVE -. improves implementation quality .-> PROD
-```
-
-## 10. Minimal Implementation Mapping
+### Main modules
 
 - `crawlernest/run_pipeline.py`
-  pipeline orchestrator
+  高層 orchestration。它會 bootstrap module paths，然後協調 crawler、schema、entity resolution、multi-source、recommendation 等能力。
+- `crawlernest/pipeline/`
+  提供 parser、command dispatch 與 stage helper，不承載全部業務邏輯。
 - `crawlernest/crawlernest-jobs/`
-  orchestration, routing, resume, batch control
-- `crawlernest/crawlernest-crawler-core/`
-  shared crawler runtime concerns
+  放較偏 job-routing 與命令分派的實作，例如 `pipeline_command_router.py`、`qs_universe_registry.py`、`the_crawler.py`、`arwu_crawler.py`。
 - `crawlernest/crawlernest-ranking-crawler/`
-  ranking crawler engine
+  ranking source 專用 crawler 與 extractors。
 - `crawlernest/crawlernest-admission-crawler/`
-  admission crawler engine
-- `crawlernest/crawlernest-core/entity_resolution/`
-  canonical engine
-- `crawlernest/crawlernest-core/multi_source/`
-  source integration engine
-- `crawlernest/crawlernest-core/ranking_aggregation/`
-  aggregation engine
-- `crawlernest/crawlernest-core/recommendation_engine/`
-  recommendation engine
-- `crawlernest/servise_for_java/`
-  product API
-- `crawlernest/crawlernest-web/`
-  product UI
-- `agent/evaluator.py`
-  evaluator logic
+  admission requirement 專用 crawler、extractors 與 `site_profiles/`。
+- `crawlernest/crawlernest-extractors/`
+  共用 `fetcher.py`、`extractor.py`。
+- `crawlernest/crawlernest-kb/`
+  runtime snapshot、checkpoint、resolution cache、本機資料庫等知識資產。
+
+### Design notes
+
+- `pipeline/` 在目前架構中比較像 orchestration shell，不是完整業務核心。
+- `run_pipeline.py` 仍然很重要，而且直接串接許多 module；它不是單純薄 wrapper。
+- `crawlernest-kb/` 是 runtime artifact 與 cache 的重要落點，不能只當文件範例資料夾看待。
+
+## 5. Core Domain Layer
+
+核心領域引擎主要在 `crawlernest/crawlernest-core/`：
+
+```text
+entity_resolution/     canonical university identity、alias linking
+multi_source/          將 QS / THE / ARWU 對齊成整合資料
+ranking_aggregation/   生成 aggregated ranking 與相關 evidence
+recommendation_engine/ deterministic, explainable recommendation logic
+comparison/            比較邏輯
+constants/             國家、區域、預設常數
+utils/                 共用工具
+```
+
+### Core rules
+
+- source truth 與平台 truth 分開處理
+- entity resolution 先建立 canonical identity，再做多來源整合
+- aggregation 是 deterministic analytics，不是黑箱 ML
+- recommendation 建立在 aggregation 與 admission constraints 之上
+- comparison 與 recommendation 都消費 core domain，而不是直接碰原始 crawler payload
+
+## 6. Service And API Layer
+
+這層的目的是把核心引擎包成較穩定的服務介面。
+
+### Python service facade
+
+`crawlernest/core/services/` 目前至少包含：
+
+- `ranking_service.py`
+- `recommendation_service.py`
+- `university_service.py`
+
+它們會把 DB 設定、core repositories 與 payload 整理成較接近產品/API 消費的形狀。
+
+### Python agent API
+
+`crawlernest/interfaces/api/agent_api/server.py` 是一個輕量 HTTP server：
+
+- `GET /health`
+- `POST /api/v1/agent/tasks`
+
+它依賴 `crawlernest.agent.web_agent.generation.response_generator` 與 `AgentApiHandler`，說明目前 agent 能力已經有獨立的 Python API 面。
+
+### Spring Boot API
+
+`crawlernest/servise_for_java/src/main/java/clawer/` 仍是產品 API 的重要面：
+
+- `api/`
+- `service/`
+- `repository/`
+- `dto/`
+- `model/`
+- `domain/`
+- `config/`
+- `util/`
+
+因此現在的產品 API 不是只有一條 Python 線，而是 **Java product API + Python agent API** 並存。
+
+## 7. Frontend Layer
+
+`crawlernest/crawlernest-web/` 是 Next.js 前端產品，目前重要頁面與路由包括：
+
+- `src/app/rankings/`
+- `src/app/recommendations/`
+- `src/app/compare/`
+- `src/app/universities/`
+- `src/app/agent/`
+- `src/app/preview/`
+- `src/app/api/*`
+
+這代表前端除了面向正式產品頁，也承接 preview 與 agent 互動流。
+
+## 8. Agent And Improvement Layer
+
+CrawlerNest 目前還有一條獨立但重要的 agent 能力線：
+
+### `crawlernest/agent/`
+
+這是現行 Python agent 系統，包含：
+
+- `engine/`
+- `planner/`
+- `orchestration/`
+- `tools/`
+- `web_agent/`
+- `memory_long_term/`
+- `policies/`
+- `validation/`
+- `self_improvement/`
+
+它既可作為互動查詢層，也承接 dev/web mode 的任務執行。
+
+### `crawlernest/crawlernest-mini-agent/`
+
+這不是單純 demo，而是另一條獨立產品/實驗線，內含：
+
+- `src/` TypeScript/Node 側 runtime 與 UI modules
+- `rust/crates/` 多個 Rust crates，例如 `api`、`commands`、`runtime`、`tools`
+- `tests/`
+- `docs/`
+
+### `crawlernest/crawlernest-autoeval/`
+
+這層負責 extractor / agent loop 的評估與改進：
+
+- `datasets/`
+- `runners/`
+- `reports/`
+- `sandbox/`
+
+它的角色是提升品質，不直接作為 ranking truth source。
+
+## 9. Data Assets And Persistence
+
+目前資料層不是單一資料庫，而是多種 artifact 並存：
+
+- `crawlernest/crawlernest-schema/`
+  SQL schema、aggregation schema、recommendation query 資產。
+- `crawlernest/crawlernest-kb/`
+  runtime snapshots、checkpoint、resolution cache、local DB。
+- `crawlernest/crawlernest-samples/`
+  demo、preview、normalized、staging 等樣本輸出。
+- `clawer.db`
+  workspace 內的 SQLite artifact。
+- PostgreSQL
+  由 schema 與 service/repository 路徑共同支持，是產品查詢與推薦的重要存放層。
+
+## 10. Boundary Summary
+
+```mermaid
+flowchart TD
+    subgraph Truth["Production Truth Path"]
+        A["Crawlers / extractors"] --> B["normalize / ingest / write"]
+        B --> C["entity resolution / multi-source"]
+        C --> D["aggregation / recommendation / comparison"]
+        D --> E["service layer"]
+        E --> F["Java API / Python agent API / CLI"]
+        F --> G["Next.js product"]
+    end
+
+    subgraph Improve["Improvement Path"]
+        H["agent/"] --> I["mini-agent"]
+        I --> J["autoeval"]
+    end
+
+    Improve -. improves tooling, extraction, UX, and evaluation quality .-> Truth
+```
+
+## 11. Current Canonical Mapping
+
+- Pipeline orchestration: `crawlernest/run_pipeline.py`
+- Stage helpers: `crawlernest/pipeline/`
+- Job routing: `crawlernest/crawlernest-jobs/`
+- Shared extraction helpers: `crawlernest/crawlernest-extractors/`
+- Ranking crawler: `crawlernest/crawlernest-ranking-crawler/`
+- Admission crawler: `crawlernest/crawlernest-admission-crawler/`
+- Core domain engine: `crawlernest/crawlernest-core/`
+- Service facade: `crawlernest/core/services/`
+- Python agent API: `crawlernest/interfaces/api/agent_api/`
+- Python agent CLI: `crawlernest/interfaces/cli/agent_cli/`
+- Product API: `crawlernest/servise_for_java/`
+- Product web: `crawlernest/crawlernest-web/`
+- Agent system: `crawlernest/agent/`
+- Mini-agent line: `crawlernest/crawlernest-mini-agent/`
+- Evaluation: `crawlernest/crawlernest-autoeval/`
+- Schema: `crawlernest/crawlernest-schema/`
+- Runtime knowledge/cache: `crawlernest/crawlernest-kb/`

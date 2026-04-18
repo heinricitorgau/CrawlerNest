@@ -15,11 +15,17 @@ class WebPromptBuilder:
         self,
         *,
         user_input: str,
+        original_input: str | None = None,
+        rewritten_query: str | None = None,
+        resolved_reference: dict | None = None,
         retrieved: RetrievedContext,
         policy: WebAgentPolicy,
+        generation_mode: str = "hybrid",
         conversation_history: list[ConversationTurn] | None = None,
+        prompt_patches: list[str] | None = None,
     ) -> PromptPayload:
-        language = self._detect_language(user_input)
+        effective_original_input = original_input or user_input
+        language = self._detect_language(effective_original_input)
         lookup_intents = self._detect_lookup_intents(user_input) if retrieved.task_kind == "university_lookup" else []
         ranking_intents = self._detect_ranking_intents(user_input) if retrieved.task_kind == "ranking_explain" else []
         system_instruction = self._build_system_instruction(
@@ -27,6 +33,7 @@ class WebPromptBuilder:
             language=language,
             lookup_intents=lookup_intents,
             ranking_intents=ranking_intents,
+            generation_mode=generation_mode,
         )
         response_constraints = self._build_response_constraints(
             task_kind=retrieved.task_kind,
@@ -34,11 +41,18 @@ class WebPromptBuilder:
             policy=policy,
             lookup_intents=lookup_intents,
             ranking_intents=ranking_intents,
+            generation_mode=generation_mode,
+            prompt_patches=prompt_patches or [],
         )
 
         context_parts: list[str] = self._build_context_parts(
             retrieved=retrieved,
             policy=policy,
+            original_input=effective_original_input,
+            rewritten_query=rewritten_query,
+            resolved_reference=resolved_reference,
+            generation_mode=generation_mode,
+            prompt_patches=prompt_patches or [],
         )
 
         context_block = "\n".join(context_parts).strip()
@@ -54,7 +68,7 @@ class WebPromptBuilder:
 
         return PromptPayload(
             system_instruction=system_instruction,
-            user_message=user_input,
+            user_message=effective_original_input,
             context_block=context_block,
             response_constraints=response_constraints,
             conversation_turns=conversation_turns,
@@ -70,6 +84,7 @@ class WebPromptBuilder:
         language: str,
         lookup_intents: list[str],
         ranking_intents: list[str],
+        generation_mode: str,
     ) -> str:
         base = (
             "You are CrawlerNest Web Agent. Answer in a helpful, natural, user-facing way. "
@@ -132,10 +147,15 @@ class WebPromptBuilder:
             if language == "zh"
             else "Respond in English."
         )
+        mode_hint = (
+            "Use the retrieved context as the primary basis for the answer."
+            if generation_mode == "hybrid"
+            else "You may answer more freely, but stay conservative and clearly signal uncertainty when the retrieved context is weak."
+        )
 
         return " ".join(
             part
-            for part in [base, task_overrides.get(task_kind, ""), language_hint]
+            for part in [base, task_overrides.get(task_kind, ""), mode_hint, language_hint]
             if part
         )
 
@@ -147,6 +167,8 @@ class WebPromptBuilder:
         policy: WebAgentPolicy,
         lookup_intents: list[str],
         ranking_intents: list[str],
+        generation_mode: str,
+        prompt_patches: list[str],
     ) -> list[str]:
         constraints = [
             "Prefer concise natural language over rigid templates.",
@@ -230,6 +252,14 @@ class WebPromptBuilder:
                 "Write as a user-facing assistant, not as an engineering report."
             )
 
+        if generation_mode == "hybrid":
+            constraints.append("Anchor the answer to the retrieved context whenever possible.")
+        elif generation_mode == "llm":
+            constraints.append("Do not present speculation as confirmed fact when retrieval support is weak.")
+
+        if prompt_patches:
+            constraints.extend(f"Prompt patch: {patch}" for patch in prompt_patches[:4])
+
         if language == "zh":
             constraints.append("Keep the tone natural in Traditional Chinese.")
 
@@ -240,13 +270,31 @@ class WebPromptBuilder:
         *,
         retrieved: RetrievedContext,
         policy: WebAgentPolicy,
+        original_input: str,
+        rewritten_query: str | None,
+        resolved_reference: dict | None,
+        generation_mode: str,
+        prompt_patches: list[str],
     ) -> list[str]:
         context_parts: list[str] = []
+        context_parts.append(f"Original user question: {original_input}")
+        if rewritten_query and rewritten_query.strip() and rewritten_query.strip() != original_input.strip():
+            context_parts.append(f"Interpretation hint: normalized retrieval query = {rewritten_query}")
+        if isinstance(resolved_reference, dict) and resolved_reference.get("detected"):
+            resolved_entities = resolved_reference.get("resolved_entities")
+            if isinstance(resolved_entities, list) and resolved_entities:
+                context_parts.append(
+                    "Resolved reference: "
+                    + ", ".join(str(entity) for entity in resolved_entities[:3])
+                )
+            input_type = resolved_reference.get("input_type")
+            if input_type:
+                context_parts.append(f"Reference type: {input_type}")
         if retrieved.summary_facts:
             context_parts.append("Summary facts:")
             context_parts.extend(f"- {fact}" for fact in retrieved.summary_facts)
 
-        if retrieved.records:
+        if retrieved.records and generation_mode != "llm":
             context_parts.append("Retrieved records:")
             for index, record in enumerate(retrieved.records[: policy.max_context_items], start=1):
                 compact_record = ", ".join(
@@ -261,6 +309,23 @@ class WebPromptBuilder:
             context_parts.append(
                 "Source hints: " + ", ".join(retrieved.source_hints[:4])
             )
+        if retrieved.long_term_memory:
+            context_parts.append("Long-term memory:")
+            for memory in retrieved.long_term_memory[:4]:
+                content = memory.get("content")
+                confidence = memory.get("confidence")
+                if content:
+                    suffix = f" (confidence={confidence:.2f})" if isinstance(confidence, (int, float)) else ""
+                    context_parts.append(f"- {content}{suffix}")
+        if retrieved.strategy_hints:
+            context_parts.append("Behavior strategy hints:")
+            context_parts.extend(f"- {hint}" for hint in retrieved.strategy_hints[:4])
+        if prompt_patches:
+            context_parts.append("Prompt optimization patches:")
+            context_parts.extend(f"- {patch}" for patch in prompt_patches[:4])
+        if generation_mode == "llm" and retrieved.summary_facts:
+            context_parts.append("Minimal retrieval hints:")
+            context_parts.extend(f"- {fact}" for fact in retrieved.summary_facts[:3])
         return context_parts
 
     def _detect_lookup_intents(self, user_input: str) -> list[str]:
