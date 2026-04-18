@@ -149,21 +149,6 @@ flowchart LR
     EVAL -. evaluate / improve .-> EXT["crawlernest-extractors/"]
 ```
 
-```mermaid
-flowchart TD
-    subgraph AgentStack["crawlernest/agent/"]
-        A1["engine"]
-        A2["planner"]
-        A3["orchestration"]
-        A4["tools"]
-        A5["web_agent"]
-        A6["memory_long_term"]
-        A7["policies"]
-        A8["validation"]
-        A9["self_improvement"]
-    end
-```
-
 ## 6. Data Assets And Persistence
 
 ```mermaid

@@ -159,6 +159,14 @@ type SelfImprovementDebugData = {
   reason: string;
   applied_strategies?: string[];
   anti_patterns?: string[];
+  strategy_lineage?: Array<{
+    patch_status?: string;
+    patch_record_id?: string;
+    strategy_id?: string;
+    strategy_type?: string;
+    version?: string;
+    source?: string;
+  }>;
   last_experience?: {
     status?: string;
     final_score?: number;
@@ -1424,6 +1432,23 @@ function renderSelfImprovementDebug(selfImprovementDebug: SelfImprovementDebugDa
             <ul className="space-y-1.5 text-[11px] text-amber-700">
               {selfImprovementDebug.anti_patterns.map((item, index) => (
                 <li key={`${item}-${index}`}>• {item}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {selfImprovementDebug.strategy_lineage?.length ? (
+          <div className="mt-3 rounded-xl border border-[#ece7de] bg-[#faf8f4] px-3 py-3">
+            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[#6b7068]">
+              Strategy lineage
+            </div>
+            <ul className="space-y-1.5 text-[11px] text-[#1a1a1a]">
+              {selfImprovementDebug.strategy_lineage.map((entry, index) => (
+                <li key={`${entry.patch_record_id ?? entry.strategy_id ?? "lineage"}-${index}`}>
+                  • {entry.patch_status ?? "unknown"} → {entry.strategy_type ?? "strategy"}
+                  {entry.version ? ` · ${entry.version}` : ""}
+                  {entry.source ? ` · ${entry.source}` : ""}
+                </li>
               ))}
             </ul>
           </div>

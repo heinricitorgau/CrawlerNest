@@ -185,8 +185,9 @@ class DevAgentEngine:
             normalized_target = str(target_hint) if isinstance(target_hint, str) and target_hint.strip() else None
             if patch_record.get("status") == "approved":
                 patch_hint = str(patch_candidate.get("patch") or "").strip()
+                patch_feedback_strategy = None
                 if patch_hint:
-                    self._strategy_store.upsert(
+                    patch_feedback_strategy = self._strategy_store.upsert(
                         engine="dev",
                         task_kind=request.kind,
                         strategy=[
@@ -203,8 +204,9 @@ class DevAgentEngine:
                     )
             elif patch_record.get("status") in {"discarded", "rejected"}:
                 patch_hint = str(patch_candidate.get("patch") or patch_candidate.get("reason") or "").strip()
+                patch_feedback_strategy = None
                 if patch_hint:
-                    self._strategy_store.upsert(
+                    patch_feedback_strategy = self._strategy_store.upsert(
                         engine="dev",
                         task_kind=request.kind,
                         strategy=[
@@ -219,6 +221,8 @@ class DevAgentEngine:
                         rollout_percent=100,
                         status="active",
                     )
+            else:
+                patch_feedback_strategy = None
             refinement = self._tools.dev_tools.suggest_refinement_loop(
                 request.user_input,
                 effective_context,
@@ -333,6 +337,20 @@ class DevAgentEngine:
                     ),
                     "applied_strategies": strategy_hints[:4],
                     "anti_patterns": anti_pattern_hints[:4],
+                    "strategy_lineage": (
+                        [
+                            {
+                                "patch_status": patch_record.get("status"),
+                                "patch_record_id": patch_record.get("id"),
+                                "strategy_id": patch_feedback_strategy.get("id"),
+                                "strategy_type": patch_feedback_strategy.get("strategy_type"),
+                                "version": patch_feedback_strategy.get("version"),
+                                "source": patch_feedback_strategy.get("source"),
+                            }
+                        ]
+                        if isinstance(patch_feedback_strategy, dict)
+                        else []
+                    ),
                     "last_experience": {
                         "status": experience.get("status"),
                         "final_score": experience.get("final_score"),
