@@ -17,4 +17,25 @@ class AdmissionCrawlerEngine:
             all_results.extend(crawler.crawl())
 
         Logger.info(f"Collected {len(all_results)} admission records")
+
+        # === Crawl Quality Summary Integration ===
+        from cli.crawl_quality_summary import print_crawl_quality_summary
+        # 假設這裡 all_results 已經有 anomaly/resolution 欄位，否則需 mock summary
+        summary = {
+            "total_records": len(all_results),
+            "anomalies": {
+                "input_truncated": sum(1 for r in all_results if getattr(r, 'input_truncated', False)),
+                "invalid_ielts": sum(1 for r in all_results if getattr(r, 'invalid_ielts', False)),
+                "invalid_toefl": sum(1 for r in all_results if getattr(r, 'invalid_toefl', False)),
+                "invalid_gpa": sum(1 for r in all_results if getattr(r, 'invalid_gpa', False)),
+                "invalid_deadline": sum(1 for r in all_results if getattr(r, 'invalid_deadline', False)),
+                "source_host_mismatch": sum(1 for r in all_results if getattr(r, 'source_host_mismatch', False)),
+            },
+            "resolution": {
+                "suspicious_mapping": sum(1 for r in all_results if getattr(r, 'suspicious_merge', False)),
+                "country_mismatch": sum(1 for r in all_results if getattr(r, 'country_mismatch', False)),
+                "manual_review": sum(1 for r in all_results if getattr(r, 'manual_review', False)),
+            },
+        }
+        print_crawl_quality_summary(summary)
         return all_results

@@ -1,0 +1,220 @@
+[
+  {
+    "id": "adm-001",
+    "description": "Full happy path: IELTS + TOEFL + degree + deadline, plain text",
+    "required_fields": ["ielts", "toefl", "degree_level"],
+    "input": "University of Edinburgh - Postgraduate Admissions\nDegree level: Postgraduate (Masters)\nEnglish language requirements:\n  IELTS: 6.5 overall\n  TOEFL iBT: 92 minimum\nApplication deadline: Apply by 2026-01-15",
+    "expected": {
+      "ielts": 6.5,
+      "toefl": 92,
+      "degree_level": "postgraduate",
+      "deadline": "2026-01-15"
+    }
+  },
+  {
+    "id": "adm-002",
+    "description": "IELTS only, no TOEFL, postgraduate, deadline as month name",
+    "required_fields": ["ielts", "degree_level"],
+    "input": "<h1>Masters Programme Admissions</h1><p>We accept postgraduate applications year-round.</p><p>English requirement: IELTS score of 7.0 or above.</p><p>Closing date: March 31, 2026.</p>",
+    "expected": {
+      "ielts": 7.0,
+      "toefl": null,
+      "degree_level": "postgraduate",
+      "deadline": "2026-03-31"
+    }
+  },
+  {
+    "id": "adm-003",
+    "description": "TOEFL only, doctoral program, ISO deadline",
+    "required_fields": ["toefl", "degree_level"],
+    "input": "PhD Admissions\nThis doctoral program accepts applications for Fall 2026.\nEnglish: TOEFL 100 minimum. IELTS not accepted.\nDeadline: 2026-02-01",
+    "expected": {
+      "ielts": null,
+      "toefl": 100,
+      "degree_level": "doctoral",
+      "deadline": "2026-02-01"
+    }
+  },
+  {
+    "id": "adm-004",
+    "description": "Duolingo English Test, no IELTS/TOEFL, postgraduate",
+    "required_fields": ["duolingo", "degree_level"],
+    "input": "<div class='admissions'><p>Graduate Program in Data Science</p><p>English Proficiency: Duolingo English Test 115 or above accepted.</p><p>Application deadline: January 15, 2026.</p></div>",
+    "expected": {
+      "ielts": null,
+      "toefl": null,
+      "duolingo": 115,
+      "degree_level": "postgraduate",
+      "deadline": "2026-01-15"
+    }
+  },
+  {
+    "id": "adm-005",
+    "description": "All three language tests present, doctoral",
+    "required_fields": ["ielts", "toefl", "duolingo", "degree_level"],
+    "input": "Doctor of Philosophy - Linguistics\nApplicants must demonstrate English proficiency via one of: IELTS 7.5, TOEFL iBT 110, or Duolingo 130.\nApply before 2026-11-30.",
+    "expected": {
+      "ielts": 7.5,
+      "toefl": 110,
+      "duolingo": 130,
+      "degree_level": "doctoral",
+      "deadline": "2026-11-30"
+    }
+  },
+  {
+    "id": "adm-006",
+    "description": "Bachelor/undergraduate program, IELTS 6.0",
+    "required_fields": ["ielts", "degree_level"],
+    "input": "<section><h2>Undergraduate Admissions 2026</h2><p>Bachelor's degree applicants must hold an IELTS score of 6.0 overall with no band below 5.5.</p><p>GPA: minimum 3.0/4.0</p></section>",
+    "expected": {
+      "ielts": 6.0,
+      "toefl": null,
+      "degree_level": "undergraduate",
+      "gpa": 3.0
+    }
+  },
+  {
+    "id": "adm-007",
+    "description": "GPA requirement with TOEFL, postgraduate, no deadline",
+    "required_fields": ["toefl", "degree_level", "gpa"],
+    "input": "MSc Computer Science Admissions\nRequirements:\n- Minimum GPA of 3.5 (on a 4.0 scale)\n- TOEFL score: 90 or above\n- Two letters of recommendation",
+    "expected": {
+      "ielts": null,
+      "toefl": 90,
+      "degree_level": "postgraduate",
+      "gpa": 3.5
+    }
+  },
+  {
+    "id": "adm-008",
+    "description": "HTML with heavy noise: promo banners, nav, footer",
+    "required_fields": ["ielts", "degree_level"],
+    "input": "<nav>Home | About | Contact</nav><div class='promo'>50% scholarship available! Apply now!</div><main><h1>MBA Programme</h1><p>The MBA is our flagship postgraduate degree designed for working professionals.</p><p>English requirement: IELTS 6.5 minimum, all bands at least 6.0.</p><p>Application deadline: 15 April 2026</p></main><footer>Privacy Policy | Terms</footer>",
+    "expected": {
+      "ielts": 6.5,
+      "toefl": null,
+      "degree_level": "postgraduate",
+      "deadline": "2026-04-15"
+    }
+  },
+  {
+    "id": "adm-009",
+    "description": "Mixed Chinese/English text, postgraduate, IELTS",
+    "required_fields": ["ielts", "degree_level"],
+    "input": "碩士班（Master's Program）招生資訊\n英語能力要求：IELTS 6.5 overall 或同等英語成績。\nGPA 最低 3.0 / 4.0\n申請截止日期：2026-06-30",
+    "expected": {
+      "ielts": 6.5,
+      "toefl": null,
+      "degree_level": "postgraduate",
+      "gpa": 3.0,
+      "deadline": "2026-06-30"
+    }
+  },
+  {
+    "id": "adm-010",
+    "description": "PhD program, IELTS 7.0, TOEFL 100, GPA 3.5, full dataset",
+    "required_fields": ["ielts", "toefl", "degree_level", "gpa"],
+    "input": "Doctoral Programme - Environmental Science\nFor PhD admission, applicants should have: IELTS Academic 7.0 overall; or TOEFL iBT 100; GPA of 3.5/4.0 or equivalent.\nThe closing date is December 1, 2026.",
+    "expected": {
+      "ielts": 7.0,
+      "toefl": 100,
+      "degree_level": "doctoral",
+      "gpa": 3.5,
+      "deadline": "2026-12-01"
+    }
+  },
+  {
+    "id": "adm-011",
+    "description": "No language score mentioned — all language fields should be null",
+    "required_fields": ["degree_level"],
+    "input": "Bachelor of Arts - History\nThis undergraduate program accepts students with strong academic backgrounds.\nApplications open from January 2026. No specific language test required — applicants from non-English speaking countries should submit a personal statement in English.",
+    "expected": {
+      "ielts": null,
+      "toefl": null,
+      "duolingo": null,
+      "degree_level": "undergraduate"
+    }
+  },
+  {
+    "id": "adm-012",
+    "description": "IELTS with half-band score (6.5), deadline as Day Month Year",
+    "required_fields": ["ielts", "degree_level", "deadline"],
+    "input": "<article><h2>Postgraduate Research Programme</h2><p>English Language: IELTS minimum 6.5</p><p>Deadline: 28 February 2026</p></article>",
+    "expected": {
+      "ielts": 6.5,
+      "toefl": null,
+      "degree_level": "postgraduate",
+      "deadline": "2026-02-28"
+    }
+  },
+  {
+    "id": "adm-013",
+    "description": "Noise numbers that are NOT IELTS/TOEFL scores (year, ranking, fees)",
+    "required_fields": ["ielts", "degree_level"],
+    "input": "University Ranking: #45 globally (QS 2026). Founded 1872.\nMaster of Science in Finance — tuition: USD 22,500/year.\nLanguage requirement: IELTS 6.5 or equivalent. No TOEFL accepted.\nApply by 2026-03-01.",
+    "expected": {
+      "ielts": 6.5,
+      "toefl": null,
+      "degree_level": "postgraduate",
+      "deadline": "2026-03-01"
+    }
+  },
+  {
+    "id": "adm-014",
+    "description": "TOEFL score just at boundary (50) — minimum valid",
+    "required_fields": ["toefl"],
+    "input": "Undergraduate Admissions English Requirement: TOEFL 50 (minimum accepted score for conditional entry).",
+    "expected": {
+      "ielts": null,
+      "toefl": 50,
+      "degree_level": "undergraduate"
+    }
+  },
+  {
+    "id": "adm-015",
+    "description": "IELTS boundary score 9.0 — maximum valid",
+    "required_fields": ["ielts"],
+    "input": "Advanced Research Programme (doctoral level). For native speakers or those holding IELTS 9.0, no further proof is required.",
+    "expected": {
+      "ielts": 9.0,
+      "toefl": null,
+      "degree_level": "doctoral"
+    }
+  },
+  {
+    "id": "adm-016",
+    "description": "D.Phil (Oxford style doctoral), IELTS 7.5, no deadline",
+    "required_fields": ["ielts", "degree_level"],
+    "input": "D.Phil Programme in Philosophy\nEnglish requirement for this doctoral-level degree: IELTS Academic 7.5 overall, with a minimum of 7.0 in each component.",
+    "expected": {
+      "ielts": 7.5,
+      "toefl": null,
+      "degree_level": "doctoral"
+    }
+  },
+  {
+    "id": "adm-017",
+    "description": "Deadline only — no language score, postgraduate",
+    "required_fields": ["deadline", "degree_level"],
+    "input": "<div>Graduate School Application Portal</div><p>The postgraduate application deadline for Semester 1, 2026 is 30 September 2026.</p><p>English proficiency documentation must be submitted at least 2 weeks before the closing date.</p>",
+    "expected": {
+      "ielts": null,
+      "toefl": null,
+      "degree_level": "postgraduate",
+      "deadline": "2026-09-30"
+    }
+  },
+  {
+    "id": "adm-018",
+    "description": "JSON-structured input (scraped structured data), all fields",
+    "required_fields": ["ielts", "toefl", "degree_level", "deadline"],
+    "input": "{\"type\": \"admissions\", \"level\": \"Masters\", \"requirements\": {\"language\": {\"IELTS\": \"6.5 overall\", \"TOEFL\": \"90 iBT\"}, \"GPA\": \"3.0/4.0\"}, \"deadline\": \"2026-05-15\"}",
+    "expected": {
+      "ielts": 6.5,
+      "toefl": 90,
+      "degree_level": "postgraduate",
+      "gpa": 3.0,
+      "deadline": "2026-05-15"
+    }
+  }
+]

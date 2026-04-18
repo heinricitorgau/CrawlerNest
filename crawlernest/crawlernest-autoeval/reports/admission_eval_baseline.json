@@ -1,17 +1,17 @@
 {
-  "description": "baseline extractor evaluation",
+  "description": "admission extractor Phase2 baseline",
   "commit": "b5c1f4e",
-  "dataset": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-autoeval/datasets/admission_goldens/samples.json",
-  "extractor_file": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-admission-crawler/extractors/admission_text_extractor.py",
+  "dataset": "/sessions/bold-focused-gauss/mnt/crawlernest/crawlernest/crawlernest-autoeval/datasets/admission_goldens/samples.json",
+  "extractor_file": "/sessions/bold-focused-gauss/mnt/crawlernest/crawlernest/crawlernest-admission-crawler/extractors/admission_text_extractor.py",
   "summary": {
     "sample_count": 18,
-    "required_fill_rate": 1.0,
-    "exact_match_rate": 1.0,
-    "optional_fill_rate": 0.4375,
-    "error_count": 0,
-    "error_rate": 0.0,
-    "runtime_s": 0.000646,
-    "score": 0.865625,
+    "required_fill_rate": 0.904762,
+    "exact_match_rate": 0.851351,
+    "optional_fill_rate": 0.3125,
+    "error_count": 11,
+    "error_rate": 0.148649,
+    "runtime_s": 0.000765,
+    "score": 0.731785,
     "status": "keep"
   },
   "samples": [
@@ -24,7 +24,7 @@
       "optional_filled": 1,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 5.3e-05,
+      "runtime_s": 8.8e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -52,7 +52,7 @@
       "optional_filled": 1,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 3.8e-05,
+      "runtime_s": 4e-05,
       "exception": null,
       "expected": {
         "ielts": 7.0,
@@ -161,11 +161,11 @@
       "sample_id": "adm-006",
       "required_total": 2,
       "required_filled": 2,
-      "required_exact": 2,
+      "required_exact": 1,
       "optional_total": 2,
-      "optional_filled": 1,
-      "optional_exact": 2,
-      "field_errors": 0,
+      "optional_filled": 0,
+      "optional_exact": 1,
+      "field_errors": 2,
       "runtime_s": 4.2e-05,
       "exception": null,
       "expected": {
@@ -178,12 +178,15 @@
         "ielts": 6.0,
         "toefl": null,
         "duolingo": null,
-        "degree_level": "undergraduate",
+        "degree_level": "postgraduate",
         "deadline": null,
-        "gpa": 3.0
+        "gpa": null
       },
       "missing_fields": [],
-      "mismatch_fields": []
+      "mismatch_fields": [
+        "degree_level",
+        "gpa"
+      ]
     },
     {
       "sample_id": "adm-007",
@@ -194,7 +197,7 @@
       "optional_filled": 0,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 3.4e-05,
+      "runtime_s": 3.5e-05,
       "exception": null,
       "expected": {
         "ielts": null,
@@ -219,10 +222,10 @@
       "required_filled": 2,
       "required_exact": 2,
       "optional_total": 2,
-      "optional_filled": 1,
-      "optional_exact": 2,
-      "field_errors": 0,
-      "runtime_s": 5.3e-05,
+      "optional_filled": 0,
+      "optional_exact": 1,
+      "field_errors": 1,
+      "runtime_s": 7e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -235,11 +238,13 @@
         "toefl": null,
         "duolingo": null,
         "degree_level": "postgraduate",
-        "deadline": "2026-04-15",
+        "deadline": null,
         "gpa": null
       },
       "missing_fields": [],
-      "mismatch_fields": []
+      "mismatch_fields": [
+        "deadline"
+      ]
     },
     {
       "sample_id": "adm-009",
@@ -247,10 +252,10 @@
       "required_filled": 2,
       "required_exact": 2,
       "optional_total": 3,
-      "optional_filled": 2,
-      "optional_exact": 3,
-      "field_errors": 0,
-      "runtime_s": 2.8e-05,
+      "optional_filled": 1,
+      "optional_exact": 2,
+      "field_errors": 1,
+      "runtime_s": 4.1e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -265,10 +270,12 @@
         "duolingo": null,
         "degree_level": "postgraduate",
         "deadline": "2026-06-30",
-        "gpa": 3.0
+        "gpa": null
       },
       "missing_fields": [],
-      "mismatch_fields": []
+      "mismatch_fields": [
+        "gpa"
+      ]
     },
     {
       "sample_id": "adm-010",
@@ -279,7 +286,7 @@
       "optional_filled": 1,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 3.1e-05,
+      "runtime_s": 3.3e-05,
       "exception": null,
       "expected": {
         "ielts": 7.0,
@@ -303,12 +310,12 @@
       "sample_id": "adm-011",
       "required_total": 1,
       "required_filled": 1,
-      "required_exact": 1,
+      "required_exact": 0,
       "optional_total": 3,
       "optional_filled": 0,
       "optional_exact": 3,
-      "field_errors": 0,
-      "runtime_s": 7.1e-05,
+      "field_errors": 1,
+      "runtime_s": 7.7e-05,
       "exception": null,
       "expected": {
         "ielts": null,
@@ -320,23 +327,25 @@
         "ielts": null,
         "toefl": null,
         "duolingo": null,
-        "degree_level": "undergraduate",
+        "degree_level": "postgraduate",
         "deadline": null,
         "gpa": null
       },
       "missing_fields": [],
-      "mismatch_fields": []
+      "mismatch_fields": [
+        "degree_level"
+      ]
     },
     {
       "sample_id": "adm-012",
       "required_total": 3,
-      "required_filled": 3,
-      "required_exact": 3,
+      "required_filled": 2,
+      "required_exact": 2,
       "optional_total": 1,
       "optional_filled": 0,
       "optional_exact": 1,
-      "field_errors": 0,
-      "runtime_s": 2.2e-05,
+      "field_errors": 1,
+      "runtime_s": 3e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -349,11 +358,15 @@
         "toefl": null,
         "duolingo": null,
         "degree_level": "postgraduate",
-        "deadline": "2026-02-28",
+        "deadline": null,
         "gpa": null
       },
-      "missing_fields": [],
-      "mismatch_fields": []
+      "missing_fields": [
+        "deadline"
+      ],
+      "mismatch_fields": [
+        "deadline"
+      ]
     },
     {
       "sample_id": "adm-013",
@@ -364,7 +377,7 @@
       "optional_filled": 1,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 3.9e-05,
+      "runtime_s": 4.1e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -390,8 +403,8 @@
       "required_exact": 1,
       "optional_total": 2,
       "optional_filled": 1,
-      "optional_exact": 2,
-      "field_errors": 0,
+      "optional_exact": 1,
+      "field_errors": 1,
       "runtime_s": 2.8e-05,
       "exception": null,
       "expected": {
@@ -403,12 +416,14 @@
         "ielts": null,
         "toefl": 50,
         "duolingo": null,
-        "degree_level": "undergraduate",
+        "degree_level": "postgraduate",
         "deadline": null,
         "gpa": null
       },
       "missing_fields": [],
-      "mismatch_fields": []
+      "mismatch_fields": [
+        "degree_level"
+      ]
     },
     {
       "sample_id": "adm-015",
@@ -419,7 +434,7 @@
       "optional_filled": 1,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 2.5e-05,
+      "runtime_s": 2.7e-05,
       "exception": null,
       "expected": {
         "ielts": 9.0,
@@ -446,7 +461,7 @@
       "optional_filled": 0,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 3e-05,
+      "runtime_s": 3.8e-05,
       "exception": null,
       "expected": {
         "ielts": 7.5,
@@ -467,13 +482,13 @@
     {
       "sample_id": "adm-017",
       "required_total": 2,
-      "required_filled": 2,
-      "required_exact": 2,
+      "required_filled": 1,
+      "required_exact": 1,
       "optional_total": 2,
       "optional_filled": 0,
       "optional_exact": 2,
-      "field_errors": 0,
-      "runtime_s": 3.8e-05,
+      "field_errors": 1,
+      "runtime_s": 6e-05,
       "exception": null,
       "expected": {
         "ielts": null,
@@ -486,22 +501,26 @@
         "toefl": null,
         "duolingo": null,
         "degree_level": "postgraduate",
-        "deadline": "2026-09-30",
+        "deadline": null,
         "gpa": null
       },
-      "missing_fields": [],
-      "mismatch_fields": []
+      "missing_fields": [
+        "deadline"
+      ],
+      "mismatch_fields": [
+        "deadline"
+      ]
     },
     {
       "sample_id": "adm-018",
       "required_total": 4,
-      "required_filled": 4,
-      "required_exact": 4,
+      "required_filled": 2,
+      "required_exact": 2,
       "optional_total": 1,
-      "optional_filled": 1,
-      "optional_exact": 1,
-      "field_errors": 0,
-      "runtime_s": 2.7e-05,
+      "optional_filled": 0,
+      "optional_exact": 0,
+      "field_errors": 3,
+      "runtime_s": 2.8e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -511,15 +530,22 @@
         "deadline": "2026-05-15"
       },
       "predicted": {
-        "ielts": 6.5,
-        "toefl": 90,
+        "ielts": null,
+        "toefl": null,
         "duolingo": null,
         "degree_level": "postgraduate",
         "deadline": "2026-05-15",
-        "gpa": 3.0
+        "gpa": null
       },
-      "missing_fields": [],
-      "mismatch_fields": []
+      "missing_fields": [
+        "ielts",
+        "toefl"
+      ],
+      "mismatch_fields": [
+        "ielts",
+        "toefl",
+        "gpa"
+      ]
     }
   ]
 }

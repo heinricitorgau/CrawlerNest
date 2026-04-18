@@ -15,6 +15,9 @@ class EntityResolutionSummary:
     total_rows: int
     resolved_row_count: int
     unresolved_row_count: int
+    manual_review_mapping_count: int
+    suspicious_mapping_count: int
+    country_mismatch_mapping_count: int
 
 
 def resolve_university(
@@ -77,11 +80,12 @@ def resolve_ranking_preview_entities(
         with conn.cursor() as cur:
             _ensure_resolution_tables(cur)
             rows = _load_preview_rows(cur, target_schema=target_schema, target_table=target_table)
+            source_names = tuple(sorted({source for _, _, source in rows if source}))
 
             resolved_row_count = 0
             unresolved_row_count = 0
 
-            for row_id, normalized_name in rows:
+            for row_id, normalized_name, _source_name in rows:
                 canonical_id, status = resolve_university(cur, normalized_name)
                 cur.execute(
                     f"""
@@ -97,6 +101,8 @@ def resolve_ranking_preview_entities(
                 else:
                     unresolved_row_count += 1
 
+            mapping_stats = _load_mapping_review_stats(cur, source_names=source_names)
+
         conn.commit()
     except Exception:
         conn.rollback()
@@ -109,6 +115,9 @@ def resolve_ranking_preview_entities(
         total_rows=len(rows),
         resolved_row_count=resolved_row_count,
         unresolved_row_count=unresolved_row_count,
+        manual_review_mapping_count=mapping_stats["manual_review_mapping_count"],
+        suspicious_mapping_count=mapping_stats["suspicious_mapping_count"],
+        country_mismatch_mapping_count=mapping_stats["country_mismatch_mapping_count"],
     )
 
 
@@ -147,12 +156,59 @@ def _load_preview_rows(
     *,
     target_schema: str,
     target_table: str,
-) -> list[tuple[int, str]]:
+) -> list[tuple[int, str, str]]:
     cur.execute(
         f"""
-        SELECT id, normalized_university_name
+        SELECT id, normalized_university_name, source
         FROM {target_schema}.{target_table}
         ORDER BY id ASC
         """
     )
-    return [(int(row[0]), str(row[1])) for row in cur.fetchall()]
+    return [(int(row[0]), str(row[1]), str(row[2])) for row in cur.fetchall()]
+
+
+def _load_mapping_review_stats(
+    cur: "psycopg2.extensions.cursor",
+    *,
+    source_names: tuple[str, ...],
+) -> dict[str, int]:
+    if not source_names:
+        return {
+            "manual_review_mapping_count": 0,
+            "suspicious_mapping_count": 0,
+            "country_mismatch_mapping_count": 0,
+        }
+
+    cur.execute(
+        """
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'warehouse'
+          AND table_name = 'source_mapping'
+        LIMIT 1
+        """
+    )
+    if cur.fetchone() is None:
+        return {
+            "manual_review_mapping_count": 0,
+            "suspicious_mapping_count": 0,
+            "country_mismatch_mapping_count": 0,
+        }
+
+    cur.execute(
+        """
+        SELECT
+            COUNT(*) FILTER (WHERE review_status = 'manual_review') AS manual_review_mapping_count,
+            COUNT(*) FILTER (WHERE COALESCE((metadata ->> 'suspicious_merge')::boolean, FALSE)) AS suspicious_mapping_count,
+            COUNT(*) FILTER (WHERE COALESCE((metadata ->> 'country_mismatch')::boolean, FALSE)) AS country_mismatch_mapping_count
+        FROM warehouse.source_mapping
+        WHERE source_name = ANY(%s)
+        """,
+        (list(source_names),),
+    )
+    row = cur.fetchone()
+    return {
+        "manual_review_mapping_count": 0 if row is None or row[0] is None else int(row[0]),
+        "suspicious_mapping_count": 0 if row is None or row[1] is None else int(row[1]),
+        "country_mismatch_mapping_count": 0 if row is None or row[2] is None else int(row[2]),
+    }

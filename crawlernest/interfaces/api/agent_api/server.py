@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -11,6 +12,9 @@ from crawlernest.agent.web_agent.generation.response_generator import (
 )
 
 from .handler import AgentApiHandler
+
+
+_MAX_REQUEST_BYTES = int(os.environ.get("CRAWLERNEST_AGENT_API_MAX_REQUEST_BYTES", "131072"))
 
 
 class _RequestHandler(BaseHTTPRequestHandler):
@@ -43,7 +47,27 @@ class _RequestHandler(BaseHTTPRequestHandler):
             return
 
         content_length = int(self.headers.get("Content-Length", "0"))
+        if content_length > _MAX_REQUEST_BYTES:
+            self._write_json(
+                HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+                {
+                    "success": False,
+                    "error": "request body too large",
+                    "limit_bytes": _MAX_REQUEST_BYTES,
+                },
+            )
+            return
         raw_body = self.rfile.read(content_length)
+        if len(raw_body) > _MAX_REQUEST_BYTES:
+            self._write_json(
+                HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+                {
+                    "success": False,
+                    "error": "request body too large",
+                    "limit_bytes": _MAX_REQUEST_BYTES,
+                },
+            )
+            return
 
         try:
             payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}

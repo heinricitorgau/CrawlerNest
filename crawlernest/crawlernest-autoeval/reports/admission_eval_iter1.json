@@ -1,8 +1,8 @@
 {
-  "description": "baseline extractor evaluation",
+  "description": "admission extractor iter1: fix graduate boundary, GPA colon, day-month-year deadline, JSON quotes",
   "commit": "b5c1f4e",
-  "dataset": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-autoeval/datasets/admission_goldens/samples.json",
-  "extractor_file": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-admission-crawler/extractors/admission_text_extractor.py",
+  "dataset": "/sessions/bold-focused-gauss/mnt/crawlernest/crawlernest/crawlernest-autoeval/datasets/admission_goldens/samples.json",
+  "extractor_file": "/sessions/bold-focused-gauss/mnt/crawlernest/crawlernest/crawlernest-admission-crawler/extractors/admission_text_extractor.py",
   "summary": {
     "sample_count": 18,
     "required_fill_rate": 1.0,
@@ -10,7 +10,7 @@
     "optional_fill_rate": 0.4375,
     "error_count": 0,
     "error_rate": 0.0,
-    "runtime_s": 0.000646,
+    "runtime_s": 0.000778,
     "score": 0.865625,
     "status": "keep"
   },
@@ -24,7 +24,7 @@
       "optional_filled": 1,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 5.3e-05,
+      "runtime_s": 6.5e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -52,7 +52,7 @@
       "optional_filled": 1,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 3.8e-05,
+      "runtime_s": 3.9e-05,
       "exception": null,
       "expected": {
         "ielts": 7.0,
@@ -80,7 +80,7 @@
       "optional_filled": 1,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 2.5e-05,
+      "runtime_s": 2.6e-05,
       "exception": null,
       "expected": {
         "ielts": null,
@@ -108,7 +108,7 @@
       "optional_filled": 1,
       "optional_exact": 3,
       "field_errors": 0,
-      "runtime_s": 3.3e-05,
+      "runtime_s": 3.5e-05,
       "exception": null,
       "expected": {
         "ielts": null,
@@ -137,7 +137,7 @@
       "optional_filled": 1,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 2.9e-05,
+      "runtime_s": 3.1e-05,
       "exception": null,
       "expected": {
         "ielts": 7.5,
@@ -166,7 +166,7 @@
       "optional_filled": 1,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 4.2e-05,
+      "runtime_s": 6.3e-05,
       "exception": null,
       "expected": {
         "ielts": 6.0,
@@ -194,7 +194,7 @@
       "optional_filled": 0,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 3.4e-05,
+      "runtime_s": 3.9e-05,
       "exception": null,
       "expected": {
         "ielts": null,
@@ -222,7 +222,7 @@
       "optional_filled": 1,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 5.3e-05,
+      "runtime_s": 6e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -250,7 +250,7 @@
       "optional_filled": 2,
       "optional_exact": 3,
       "field_errors": 0,
-      "runtime_s": 2.8e-05,
+      "runtime_s": 3.5e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -279,7 +279,7 @@
       "optional_filled": 1,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 3.1e-05,
+      "runtime_s": 4.2e-05,
       "exception": null,
       "expected": {
         "ielts": 7.0,
@@ -308,7 +308,7 @@
       "optional_filled": 0,
       "optional_exact": 3,
       "field_errors": 0,
-      "runtime_s": 7.1e-05,
+      "runtime_s": 9.2e-05,
       "exception": null,
       "expected": {
         "ielts": null,
@@ -336,7 +336,7 @@
       "optional_filled": 0,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 2.2e-05,
+      "runtime_s": 2.6e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -364,7 +364,7 @@
       "optional_filled": 1,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 3.9e-05,
+      "runtime_s": 5.1e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,
@@ -392,7 +392,7 @@
       "optional_filled": 1,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 2.8e-05,
+      "runtime_s": 3.3e-05,
       "exception": null,
       "expected": {
         "ielts": null,
@@ -419,7 +419,7 @@
       "optional_filled": 1,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 2.5e-05,
+      "runtime_s": 2.9e-05,
       "exception": null,
       "expected": {
         "ielts": 9.0,
@@ -446,7 +446,7 @@
       "optional_filled": 0,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 3e-05,
+      "runtime_s": 3.6e-05,
       "exception": null,
       "expected": {
         "ielts": 7.5,
@@ -473,7 +473,7 @@
       "optional_filled": 0,
       "optional_exact": 2,
       "field_errors": 0,
-      "runtime_s": 3.8e-05,
+      "runtime_s": 4.5e-05,
       "exception": null,
       "expected": {
         "ielts": null,
@@ -501,7 +501,7 @@
       "optional_filled": 1,
       "optional_exact": 1,
       "field_errors": 0,
-      "runtime_s": 2.7e-05,
+      "runtime_s": 3.1e-05,
       "exception": null,
       "expected": {
         "ielts": 6.5,

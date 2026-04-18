@@ -18,6 +18,9 @@ class EntityResolutionSummary:
     unresolved_row_count: int
     canonical_exact_match_count: int
     alias_exact_match_count: int
+    manual_review_mapping_count: int
+    suspicious_mapping_count: int
+    country_mismatch_mapping_count: int
 
 
 def resolve_normalized_university_exact(
@@ -105,6 +108,8 @@ def resolve_admission_preview_entities(
                 else:
                     unresolved_row_count += 1
 
+            mapping_stats = _load_mapping_review_stats(cur, source_names=("university_site",))
+
         conn.commit()
     except Exception:
         conn.rollback()
@@ -119,6 +124,9 @@ def resolve_admission_preview_entities(
         unresolved_row_count=unresolved_row_count,
         canonical_exact_match_count=canonical_exact_match_count,
         alias_exact_match_count=alias_exact_match_count,
+        manual_review_mapping_count=mapping_stats["manual_review_mapping_count"],
+        suspicious_mapping_count=mapping_stats["suspicious_mapping_count"],
+        country_mismatch_mapping_count=mapping_stats["country_mismatch_mapping_count"],
     )
 
 
@@ -140,3 +148,50 @@ def _load_preview_rows(
         """
     )
     return [(int(row[0]), str(row[1])) for row in cur.fetchall()]
+
+
+def _load_mapping_review_stats(
+    cur: "psycopg2.extensions.cursor",
+    *,
+    source_names: tuple[str, ...],
+) -> dict[str, int]:
+    if not source_names:
+        return {
+            "manual_review_mapping_count": 0,
+            "suspicious_mapping_count": 0,
+            "country_mismatch_mapping_count": 0,
+        }
+
+    cur.execute(
+        """
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'warehouse'
+          AND table_name = 'source_mapping'
+        LIMIT 1
+        """
+    )
+    if cur.fetchone() is None:
+        return {
+            "manual_review_mapping_count": 0,
+            "suspicious_mapping_count": 0,
+            "country_mismatch_mapping_count": 0,
+        }
+
+    cur.execute(
+        """
+        SELECT
+            COUNT(*) FILTER (WHERE review_status = 'manual_review') AS manual_review_mapping_count,
+            COUNT(*) FILTER (WHERE COALESCE((metadata ->> 'suspicious_merge')::boolean, FALSE)) AS suspicious_mapping_count,
+            COUNT(*) FILTER (WHERE COALESCE((metadata ->> 'country_mismatch')::boolean, FALSE)) AS country_mismatch_mapping_count
+        FROM warehouse.source_mapping
+        WHERE source_name = ANY(%s)
+        """,
+        (list(source_names),),
+    )
+    row = cur.fetchone()
+    return {
+        "manual_review_mapping_count": 0 if row is None or row[0] is None else int(row[0]),
+        "suspicious_mapping_count": 0 if row is None or row[1] is None else int(row[1]),
+        "country_mismatch_mapping_count": 0 if row is None or row[2] is None else int(row[2]),
+    }

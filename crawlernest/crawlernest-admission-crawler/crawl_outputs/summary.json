@@ -1,0 +1,96 @@
+[
+  {
+    "key": "ucl",
+    "university": "UCL (University College London)",
+    "urls_attempted": 2,
+    "success_count": 1,
+    "usable_count": 1,
+    "failure_breakdown": {
+      "blocked": 1
+    },
+    "elapsed_s": 2.026,
+    "output": "crawl_outputs/ucl.json"
+  },
+  {
+    "key": "melbourne",
+    "university": "University of Melbourne",
+    "urls_attempted": 2,
+    "success_count": 1,
+    "usable_count": 1,
+    "failure_breakdown": {
+      "blocked": 1
+    },
+    "elapsed_s": 2.03,
+    "output": "crawl_outputs/melbourne.json"
+  },
+  {
+    "key": "toronto",
+    "university": "University of Toronto",
+    "urls_attempted": 2,
+    "success_count": 1,
+    "usable_count": 1,
+    "failure_breakdown": {
+      "blocked": 1
+    },
+    "elapsed_s": 2.034,
+    "output": "crawl_outputs/toronto.json"
+  },
+  {
+    "key": "nus",
+    "university": "National University of Singapore",
+    "urls_attempted": 2,
+    "success_count": 1,
+    "usable_count": 1,
+    "failure_breakdown": {
+      "blocked": 1
+    },
+    "elapsed_s": 2.028,
+    "output": "crawl_outputs/nus.json"
+  },
+  {
+    "key": "manchester",
+    "university": "University of Manchester",
+    "urls_attempted": 2,
+    "success_count": 1,
+    "usable_count": 1,
+    "failure_breakdown": {
+      "blocked": 1
+    },
+    "elapsed_s": 2.033,
+    "output": "crawl_outputs/manchester.json"
+  },
+  {
+    "key": "oxford",
+    "university": "University of Oxford",
+    "urls_attempted": 2,
+    "success_count": 1,
+    "usable_count": 1,
+    "failure_breakdown": {
+      "blocked": 1
+    },
+    "elapsed_s": 2.03,
+    "output": "crawl_outputs/oxford.json"
+  },
+  {
+    "key": "imperial",
+    "university": "Imperial College London",
+    "urls_attempted": 1,
+    "success_count": 1,
+    "usable_count": 1,
+    "failure_breakdown": {},
+    "elapsed_s": 0.002,
+    "output": "crawl_outputs/imperial.json"
+  },
+  {
+    "key": "mit",
+    "university": "Massachusetts Institute of Technology",
+    "urls_attempted": 2,
+    "success_count": 1,
+    "usable_count": 1,
+    "failure_breakdown": {
+      "blocked": 1
+    },
+    "elapsed_s": 2.026,
+    "output": "crawl_outputs/mit.json"
+  }
+]
