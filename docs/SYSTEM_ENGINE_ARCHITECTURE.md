@@ -86,20 +86,6 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    A["Source fetch"] --> B["Crawler / extractor"]
-    B --> C["Normalized records"]
-    C --> D["Staging / ingest / write"]
-    D --> E["Entity resolution"]
-    E --> F["Multi-source integration"]
-    F --> G["Ranking aggregation"]
-    G --> H["Recommendation / comparison"]
-    H --> I["Service facade"]
-    I --> J["API surfaces"]
-    J --> K["Web product"]
-```
-
-```mermaid
-flowchart LR
     A["crawl"] --> B["raw"]
     B --> C["normalized"]
     C --> D["staging"]
@@ -108,9 +94,12 @@ flowchart LR
     F --> G["warehouse preview"]
     G --> H["warehouse landing"]
     H --> I["resolve"]
-    I --> J["report"]
-    J --> K["seed"]
-    K --> L["refresh"]
+    I --> J["multi-source"]
+    J --> K["aggregation"]
+    K --> L["recommendation / comparison"]
+    L --> M["service facade"]
+    M --> N["API surfaces"]
+    N --> O["web product"]
 ```
 
 ## 3. Runtime Surfaces
@@ -134,34 +123,7 @@ flowchart TD
     WEB --> UI["Next.js product UI"]
 ```
 
-## 4. Ingestion And Crawl View
-
-```mermaid
-flowchart LR
-    SRC["QS / THE / ARWU / university sites"]
-    PIPE["run_pipeline.py"]
-    PSTAGE["pipeline/"]
-    JOBS["crawlernest-jobs/"]
-    RC["ranking-crawler"]
-    AC["admission-crawler"]
-    EXT["extractors"]
-    WRITE["db-writer"]
-    KB["kb / checkpoint / snapshot"]
-
-    SRC --> PIPE
-    SRC --> JOBS
-    PIPE --> PSTAGE
-    PSTAGE --> RC
-    PSTAGE --> AC
-    JOBS --> RC
-    JOBS --> AC
-    RC --> EXT
-    AC --> EXT
-    EXT --> WRITE
-    PIPE --> KB
-```
-
-## 5. Core Domain View
+## 4. Core Domain View
 
 ```mermaid
 flowchart LR
@@ -176,43 +138,7 @@ flowchart LR
     CONST --> CMP
 ```
 
-## 6. Service And Product View
-
-```mermaid
-flowchart LR
-    CORE["crawlernest-core/"] --> FACADE["core/services/"]
-    FACADE --> JAVA["servise_for_java"]
-    FACADE --> PAPI["interfaces/api/agent_api"]
-    FACADE --> PCLI["interfaces/cli/agent_cli"]
-    JAVA --> WEB["crawlernest-web"]
-    PAPI --> WEB
-```
-
-```mermaid
-flowchart TD
-    subgraph JavaAPI["servise_for_java"]
-        J1["api/"]
-        J2["service/"]
-        J3["repository/"]
-        J4["dto/"]
-        J5["domain/"]
-        J6["model/"]
-        J7["config/"]
-        J8["util/"]
-    end
-
-    subgraph WebUI["crawlernest-web/src/app"]
-        W1["rankings"]
-        W2["recommendations"]
-        W3["compare"]
-        W4["universities"]
-        W5["agent"]
-        W6["preview"]
-        W7["api/*"]
-    end
-```
-
-## 7. Agent And Improvement View
+## 5. Agent And Improvement View
 
 ```mermaid
 flowchart LR
@@ -238,7 +164,7 @@ flowchart TD
     end
 ```
 
-## 8. Data Assets And Persistence
+## 6. Data Assets And Persistence
 
 ```mermaid
 flowchart LR
@@ -249,7 +175,7 @@ flowchart LR
     PG --> FACADE["core/services/"]
 ```
 
-## 9. Canonical Module Map
+## 7. Canonical Module Map
 
 ```mermaid
 mindmap
