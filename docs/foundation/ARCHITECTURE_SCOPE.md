@@ -12,6 +12,13 @@ Core rule:
 - Build recommendation on top of trusted data.
 - Let agents assist only after the upstream system is stable.
 
+Reference docs:
+
+- `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
+  current executable architecture
+- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+  longer-term vision architecture
+
 ## Mainline System
 
 CrawlerNest mainline architecture is the following data path:
@@ -21,7 +28,8 @@ CrawlerNest mainline architecture is the following data path:
 3. `normalize`
 4. `canonicalize`
 5. `write`
-6. `query`
+6. `warehouse`
+7. `query`
 
 This path is the primary delivery path for:
 
@@ -57,6 +65,11 @@ The current development priority order is:
 - warehouse schema stabilization
 - formal API semantics
 - explainable recommendation based on ranking + admission fit
+
+Execution note:
+
+- recommendation is allowed only as a limited, explainable, rule-based layer on top of trusted upstream data
+- agent systems remain support layers, not production data-path owners
 
 ### Advanced Layers, Not Current Mainline
 
@@ -202,4 +215,3 @@ When roadmap tradeoffs appear, the tie-breaker is:
 - prefer explainability over complexity
 - prefer review-gated change over autonomous change
 - prefer warehouse truth over preview convenience
-

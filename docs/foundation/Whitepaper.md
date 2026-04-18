@@ -2,6 +2,15 @@
 
 本文件為 CrawlerNest 專案的最高層級技術架構文件（Master Technical Architecture Document）。
 
+執行註記：
+
+- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+  代表長期完整 vision
+- `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
+  代表目前可執行的 MVP / controlled system
+
+本白皮書偏向願景、分層原則與演進方向，不應被直接解讀為「所有層都已經是現在的主執行路徑」。
+
 CrawlerNest 的目標，不只是建立一套可以抓取大學資料的爬蟲，而是逐步演進成一個可持續擴展、可追溯、可分析、可推薦、可比較、可產品化的教育資料平台。
 
 在此基礎上，CrawlerNest 也正在引入一層 **Mini-Agent Development Layer**，作為受控、可評估、且必須有人類監督的 AI-assisted development workflow。這一層並不是自治型 AI 系統，而是用來加速開發、強化評估閉環、並提升系統韌性的輕量化架構層。
@@ -56,7 +65,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 
 目前 CrawlerNest 的核心策略如下：
 
-1. **資料聚合優先**：QS、THE、ARWU 已可進入同一條 multi-source ranking path，並在統一 universe-aware truth 下被讀取
+1. **資料正確性優先**：先把 crawl、extract、normalize、write、warehouse、API、web 主鏈穩定下來
 2. **知識庫優先**：建立可查詢、可維護、可追溯的大學資料基底
 3. **決策系統先 explainable 再 intelligent**：先以 deterministic recommendation / comparison / trust layer 打穩決策層，再逐步推進 AI 能力
 4. **模組解耦**：crawler、extractor、normalization、db、analytics、API 彼此保持相對獨立
@@ -65,6 +74,23 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 7. **產品層逐步落地**：在不破壞資料平台與 API 穩定性的前提下，逐步交付 Rankings Browser、University Detail、Compare、Recommendation Engine 等網站能力
 8. **可見性閉環優先**：爬到的資料若尚未 canonical 化或尚未回填至 `warehouse.ranking_record`，必須提供補種與回填路徑，避免資料永久停留在不可見層
 9. **評估驅動的 AI 輔助開發**：Mini-Agent Layer 僅作為受控開發加速層，必須經過 AutoEval 與人工判斷後才可影響主系統路徑
+
+### 2.1.1 當前執行現實（Execution Reality）
+
+若以目前工程主線來看，系統應優先理解為三個區域：
+
+1. **Active Data Pipeline**
+   `crawl -> extract -> normalize -> write -> warehouse -> API -> web`
+2. **Controlled Expansion**
+   admission enrichment 與 basic rule-based recommendation
+3. **Development Support**
+   Mini-Agent、AutoEval、較完整 aggregation / agent loop 等支援層
+
+也就是說：
+
+- Agent 不是 production data path 的一部分
+- Admission crawler 仍處於 controlled pilot stage
+- Data correctness 優先於 automation breadth
 
 ### 2.2 模組完成度地圖（截至 2026 年 3 月）
 
