@@ -1,6 +1,20 @@
 from __future__ import annotations
 
+from crawlernest.agent.autonomous.evaluator import AutonomousEvaluator
+from crawlernest.agent.autonomous.loop_controller import LoopController
+from crawlernest.agent.autonomous.step_executor import StepExecutor
+from crawlernest.agent.autonomous.stop_policy import StopPolicy
+from crawlernest.agent.autonomous.task_graph import TaskGraphBuilder
 from crawlernest.agent.dev_agent.policy.dev_agent_policy import DevAgentPolicy
+from crawlernest.agent.dev_agent.repo.change_summary import ChangeSummaryBuilder
+from crawlernest.agent.dev_agent.repo.file_resolver import FileResolver
+from crawlernest.agent.dev_agent.repo.patch_builder import PatchBuilder
+from crawlernest.agent.dev_agent.repo.repo_indexer import RepoIndexer
+from crawlernest.agent.meta.meta_controller import MetaController
+from crawlernest.agent.self_improvement.experience_store import ExperienceStore
+from crawlernest.agent.self_improvement.improvement_engine import ImprovementEngine
+from crawlernest.agent.self_improvement.performance_tracker import PerformanceTracker
+from crawlernest.agent.self_improvement.strategy_store import StrategyStore
 from crawlernest.agent.dev_agent.tool_router.dev_tool_router import DevToolRouter
 from crawlernest.agent.shared.models.task_request import TaskRequest
 from crawlernest.agent.shared.models.task_response import TaskResponse
@@ -13,19 +27,230 @@ class DevAgentEngine:
         planner: SharedPlanner | None = None,
         tool_router: DevToolRouter | None = None,
         policy: DevAgentPolicy | None = None,
+        repo_indexer: RepoIndexer | None = None,
+        file_resolver: FileResolver | None = None,
+        patch_builder: PatchBuilder | None = None,
+        change_summary: ChangeSummaryBuilder | None = None,
+        loop_controller: LoopController | None = None,
+        experience_store: ExperienceStore | None = None,
+        strategy_store: StrategyStore | None = None,
+        performance_tracker: PerformanceTracker | None = None,
+        improvement_engine: ImprovementEngine | None = None,
+        meta_controller: MetaController | None = None,
     ) -> None:
         self._planner = planner or SharedPlanner()
         self._tools = tool_router or DevToolRouter()
         self._policy = policy or DevAgentPolicy()
+        self._repo_indexer = repo_indexer or RepoIndexer()
+        self._file_resolver = file_resolver or FileResolver()
+        self._patch_builder = patch_builder or PatchBuilder()
+        self._change_summary = change_summary or ChangeSummaryBuilder()
+        self._experience_store = experience_store or ExperienceStore()
+        self._strategy_store = strategy_store or StrategyStore()
+        self._performance_tracker = performance_tracker or PerformanceTracker()
+        self._improvement_engine = improvement_engine or ImprovementEngine()
+        self._meta_controller = meta_controller or MetaController(strategy_store=self._strategy_store)
+        self._loop_controller = loop_controller or LoopController(
+            task_graph=TaskGraphBuilder(),
+            step_executor=StepExecutor(
+                dev_tools=self._tools.dev_tools,
+                file_resolver=self._file_resolver,
+                patch_builder=self._patch_builder,
+            ),
+            evaluator=AutonomousEvaluator(),
+            stop_policy=StopPolicy(success_threshold=self._policy.autonomous_success_threshold),
+            max_iterations=self._policy.autonomous_max_iterations,
+        )
 
     def execute(self, request: TaskRequest) -> TaskResponse:
         plan = self._planner.build_plan(request)
 
         if request.kind == "dev_refinement":
-            data = self._tools.dev_tools.suggest_refinement_loop(
-                request.user_input,
-                request.context,
+            repo_index = self._repo_indexer.build_index()
+            pre_resolution = self._file_resolver.resolve(
+                user_input=request.user_input,
+                context=request.context,
+                repo_index=repo_index,
             )
+            target_hint = pre_resolution.get("symbol") or pre_resolution.get("file_path") or request.context.get("target")
+            applied_strategy_entries = self._strategy_store.query(
+                engine="dev",
+                task_kind=request.kind,
+                target=str(target_hint) if isinstance(target_hint, str) and target_hint.strip() else None,
+                min_confidence=self._policy.self_improvement_strategy_confidence,
+                limit=2,
+                strategy_type="behavior",
+            )
+            strategy_hints = [
+                hint
+                for entry in applied_strategy_entries
+                for hint in entry.get("strategy", [])
+                if isinstance(hint, str) and hint.strip()
+            ]
+            effective_context = dict(request.context)
+            if strategy_hints:
+                effective_context["strategy_hints"] = strategy_hints
+            meta_resolution = self._meta_controller.resolve_for_request(
+                engine="dev",
+                task_kind=request.kind,
+                request_signature=f"{request.task_id}::{request.user_input}",
+                target=str(target_hint) if isinstance(target_hint, str) and target_hint.strip() else None,
+            )
+            meta_tool_strategies = [
+                hint
+                for hint in meta_resolution.get("tool_strategies", [])
+                if isinstance(hint, str) and hint.strip()
+            ]
+            if meta_tool_strategies:
+                effective_context["strategy_hints"] = list(dict.fromkeys(strategy_hints + meta_tool_strategies))
+            loop_trace = self._loop_controller.run(
+                goal=request.user_input,
+                context=effective_context,
+                repo_index=repo_index,
+                validation_builder=self._build_validation,
+            )
+            resolution_result = self._extract_resolution_from_loop(loop_trace) or self._file_resolver.resolve(
+                user_input=request.user_input,
+                context=effective_context,
+                repo_index=repo_index,
+            )
+            file_patch = self._extract_file_patch_from_loop(loop_trace) or self._patch_builder.build(
+                task=request.user_input,
+                resolution_result=resolution_result,
+                repo_index=repo_index,
+            )
+            validation = self._extract_validation_from_loop(loop_trace) or self._build_validation(
+                resolution_result=resolution_result,
+                repo_index=repo_index,
+            )
+            refinement = self._tools.dev_tools.suggest_refinement_loop(
+                request.user_input,
+                effective_context,
+            )
+            performance = self._performance_tracker.analyze(
+                experiences=self._experience_store.recent(
+                    engine="dev",
+                    task_kind=request.kind,
+                    target=str(target_hint) if isinstance(target_hint, str) and target_hint.strip() else None,
+                    limit=self._policy.self_improvement_sample_limit,
+                ),
+                task_kind=request.kind,
+            )
+            experience = self._experience_store.append(
+                engine="dev",
+                task_kind=request.kind,
+                task=request.user_input,
+                status=loop_trace.get("final_status", "partial"),
+                final_score=float(loop_trace.get("best_score", 0.0)),
+                tools_used=["dev_refinement", "code_validation", "repo_indexer"],
+                steps=[
+                    {
+                        "step": step.get("step"),
+                        "score": step.get("score"),
+                        "status": step.get("status"),
+                    }
+                    for step in loop_trace.get("steps", [])
+                    if isinstance(step, dict)
+                ],
+                metadata={
+                    "target": resolution_result.get("symbol") or resolution_result.get("file_path"),
+                    "validation_status": validation.get("status"),
+                    "stop_reason": loop_trace.get("stop_reason"),
+                },
+            )
+            recent_dev_experiences = self._experience_store.recent(
+                engine="dev",
+                task_kind=request.kind,
+                target=str(target_hint) if isinstance(target_hint, str) and target_hint.strip() else None,
+                limit=self._policy.self_improvement_sample_limit,
+            )
+            performance = self._performance_tracker.analyze(
+                experiences=recent_dev_experiences,
+                task_kind=request.kind,
+            )
+            new_strategy = self._improvement_engine.generate(
+                engine="dev",
+                task_kind=request.kind,
+                performance=performance,
+                experiences=recent_dev_experiences,
+                target=str(target_hint) if isinstance(target_hint, str) and target_hint.strip() else None,
+            )
+            if new_strategy is not None:
+                self._strategy_store.upsert(
+                    engine="dev",
+                    task_kind=request.kind,
+                    strategy=list(new_strategy.get("strategy", [])),
+                    confidence=float(new_strategy.get("confidence", 0.6)),
+                    reason=str(new_strategy.get("reason", "generated from recent dev performance")),
+                    target=str(target_hint) if isinstance(target_hint, str) and target_hint.strip() else None,
+                    strategy_type="behavior",
+                )
+            meta_update = self._meta_controller.update_from_performance(
+                engine="dev",
+                task_kind=request.kind,
+                performance=performance,
+                experiences=recent_dev_experiences,
+                target=str(target_hint) if isinstance(target_hint, str) and target_hint.strip() else None,
+            )
+            meta_outcome = self._meta_controller.record_outcome(
+                applied_entries=list(meta_resolution.get("applied_entries", [])),
+                final_score=float(loop_trace.get("best_score", 0.0)),
+            )
+            data = {
+                "task": request.user_input,
+                "plan": [step.get("step", "") for step in plan],
+                "loop": refinement.get("loop", []),
+                "context": refinement.get("context", {}),
+                "filePatch": file_patch,
+                "changeSummary": self._change_summary.build(
+                    task=request.user_input,
+                    resolution_result=resolution_result,
+                    file_patch=file_patch,
+                    validation=validation,
+                ),
+                "validation": validation,
+                "autonomousDebug": loop_trace,
+                "repoDebug": {
+                    "resolved_file": resolution_result.get("file_path"),
+                    "resolved_symbol": resolution_result.get("symbol"),
+                    "confidence": resolution_result.get("confidence"),
+                    "reason": resolution_result.get("reason"),
+                },
+                "selfImprovementDebug": {
+                    "performance": performance,
+                    "new_strategy_generated": new_strategy is not None,
+                    "strategy_applied": bool(strategy_hints),
+                    "strategy_source": (
+                        "stored"
+                        if strategy_hints
+                        else ("newly_generated" if new_strategy is not None else "none")
+                    ),
+                    "reason": (
+                        str(new_strategy.get("reason"))
+                        if isinstance(new_strategy, dict)
+                        else ("applied stored strategy hints" if strategy_hints else "recent performance stayed within threshold")
+                    ),
+                    "applied_strategies": strategy_hints[:4],
+                    "last_experience": {
+                        "status": experience.get("status"),
+                        "final_score": experience.get("final_score"),
+                    },
+                },
+                "metaDebug": {
+                    **meta_resolution.get("debug", {}),
+                    "generated": [
+                        {
+                            "id": entry.get("id"),
+                            "strategy_type": entry.get("strategy_type"),
+                            "confidence": entry.get("confidence"),
+                            "source": entry.get("source"),
+                            "version": entry.get("version"),
+                        }
+                        for entry in meta_update.get("generated_entries", [])
+                    ],
+                    "rolled_back": meta_outcome.get("rolled_back", []),
+                },
+            }
             return self._respond(
                 request=request,
                 message="Development refinement plan prepared.",
@@ -92,3 +317,87 @@ class DevAgentEngine:
             data=data or {},
             traces=traces or [],
         )
+
+    def _build_validation(
+        self,
+        *,
+        resolution_result: dict,
+        repo_index: dict,
+    ) -> dict:
+        file_path = resolution_result.get("file_path")
+        symbol = resolution_result.get("symbol")
+        files = repo_index.get("files", []) if isinstance(repo_index, dict) else []
+
+        checks: list[dict[str, object]] = []
+        matched_file = None
+        if file_path:
+            for item in files:
+                if item.get("path") == file_path:
+                    matched_file = item
+                    break
+
+        checks.append(
+            {
+                "name": "file_exists_in_index",
+                "passed": matched_file is not None,
+            }
+        )
+
+        if symbol:
+            symbol_found = any(
+                entry.get("name") == symbol for entry in (matched_file or {}).get("symbols", [])
+            )
+            checks.append(
+                {
+                    "name": "symbol_exists_in_index",
+                    "passed": symbol_found,
+                }
+            )
+        else:
+            checks.append(
+                {
+                    "name": "symbol_exists_in_index",
+                    "passed": matched_file is not None,
+                }
+            )
+
+        supported_language = bool((matched_file or {}).get("language"))
+        checks.append(
+            {
+                "name": "language_supported",
+                "passed": supported_language,
+            }
+        )
+
+        status = "pass" if all(check["passed"] for check in checks) else "review"
+        return {
+            "status": status,
+            "checks": checks,
+        }
+
+    def _extract_resolution_from_loop(self, loop_trace: dict) -> dict | None:
+        for step in loop_trace.get("steps", []):
+            if not isinstance(step, dict):
+                continue
+            result = step.get("result")
+            if isinstance(result, dict) and isinstance(result.get("resolution"), dict):
+                return result.get("resolution")
+        return None
+
+    def _extract_file_patch_from_loop(self, loop_trace: dict) -> dict | None:
+        for step in loop_trace.get("steps", []):
+            if not isinstance(step, dict):
+                continue
+            result = step.get("result")
+            if isinstance(result, dict) and isinstance(result.get("filePatch"), dict):
+                return result.get("filePatch")
+        return None
+
+    def _extract_validation_from_loop(self, loop_trace: dict) -> dict | None:
+        for step in loop_trace.get("steps", []):
+            if not isinstance(step, dict):
+                continue
+            result = step.get("result")
+            if isinstance(result, dict) and isinstance(result.get("validation"), dict):
+                return result.get("validation")
+        return None

@@ -1,170 +1,220 @@
 # Repository Structure
 
-CrawlerNest 目前採用「外層 workspace + 內層產品 workspace」的雙層 repo 佈局。  
-這份文件專注在 **檔案 / 目錄架構**，幫助快速理解專案放了哪些東西、主要開發該看哪裡。
+CrawlerNest 目前是「外層 repo + 內層產品 workspace」的雙層結構。
+這份文件只回答一件事：**檔案現在怎麼放、主要開發應該看哪裡**。
 
-如果你要看的是系統怎麼運作、資料怎麼流、推薦與 aggregation 引擎怎麼分層，請改看：
+如果你要理解系統怎麼運作、資料怎麼流、哪些服務彼此相依，請看：
 
 - `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
 
-若你要理解目前 ranking 專用資料生產鏈，請先建立這個心智模型：
-
-`crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh`
-
-## 1. Top-Level Repository Layout
+## 1. Top-Level Layout
 
 ```text
 repo-root/
-├── README.md / README.zh-TW.md        # 專案總覽與使用說明
+├── README.md / README.zh-TW.md        # 專案總覽、啟動方式、常用命令
 ├── docs/                              # 架構、部署、參考文件
-├── logs/                              # 本機或節點執行日誌
-├── lobster-01/                        # Lobster-01 節點 runtime / deployment 資產
-├── crawlernest/                       # 主產品與資料平台 workspace
-├── agent/                             # agent / evaluator 開發層程式
-├── mini_agent/                        # 輕量 agent 實驗或獨立介面
-├── cli/                               # CLI 側程式
-├── web/                               # 外層 web 程式
-└── .vscode/                           # IDE 設定
+├── crawlernest/                       # 主要產品 workspace（目前最重要）
+├── crawlernest-samples/               # 外層樣本 / artifact 輸出
+├── lobster-01/                        # 節點部署與 runtime 資產
+├── logs/                              # 執行日誌
+├── agent/                             # 外層舊版/簡化 agent 原型
+├── mini_agent/                        # 外層簡化 mini-agent 原型
+├── interfaces/                        # 外層介面殼層
+├── web/                               # 外層 web 殼層
+├── runtime/                           # 外層 runtime 設定
+├── scripts/                           # 外層腳本
+└── docker-compose.postgres.yml        # 本機 PostgreSQL 輔助配置
 ```
 
-## 2. Main Product Workspace
+## 2. Canonical Workspace
 
-CrawlerNest 目前的主要可執行系統與產品模組大多位於 `crawlernest/` 之下。
+目前實際上的主產品開發、資料管線、API、前端與新 agent 模組，都在 `crawlernest/` 之下。
 
 ```text
 crawlernest/
-├── run_pipeline.py                    # Python ingestion / crawl / ingest 主入口
-├── run_platform.py                    # 平台模組啟動與整合入口
-├── verify_db.py                       # PostgreSQL 驗證工具
-├── pipeline/                          # 分段 pipeline 輔助模組
-├── scripts/                           # 維運、migration、smoke test 腳本
+├── run_pipeline.py                    # Python pipeline 主入口
+├── run_platform.py                    # 模組化平台啟動入口
+├── verify_db.py                       # DB 驗證工具
+├── clawer.db / clawer.db.bak          # 本機 SQLite / 備份資料
 │
-├── crawlernest-crawler-core/          # 共享 crawler runtime 能力
-├── crawlernest-ranking-crawler/       # ranking crawler engine
-├── crawlernest-admission-crawler/     # admission crawler engine
-├── crawlernest-core/                  # 核心領域邏輯
-├── crawlernest-extractors/            # 共享 fetch / parse / extraction helpers
-├── crawlernest-jobs/                  # job orchestration / routing / batch control
-├── crawlernest-db-writer/             # DB 寫入邏輯
-├── crawlernest-schema/                # SQL schema / analytics / warehouse
-├── crawlernest-analytics/             # 分析與匯出工具
-├── crawlernest-tests/                 # Python 測試
-├── crawlernest-kb/                    # snapshots / caches / knowledge artifacts
+├── pipeline/                          # 高層命令路由與 pipeline stage 協調
+├── interfaces/                        # 內層 CLI / API 入口
+├── core/                              # service facade（ranking / recommendation / university）
+├── agent/                             # 現行 Python agent 系統
 │
-├── servise_for_java/                  # Spring Boot API
-├── crawlernest-web/                   # Next.js 前端產品
+├── crawlernest-crawler-core/          # 共用 crawler runtime
+├── crawlernest-extractors/            # 共用 fetch / extract helper
+├── crawlernest-ranking-crawler/       # ranking crawler 與 source adapters
+├── crawlernest-admission-crawler/     # admission crawler / site profiles
+├── crawlernest-jobs/                  # job routing、命令分派、批次控制
+├── crawlernest-db-writer/             # DB 寫入工具
+├── crawlernest-core/                  # 核心領域引擎
+├── crawlernest-schema/                # PostgreSQL / SQLite schema 與 query assets
+├── crawlernest-analytics/             # 匯出與分析工具
+├── crawlernest-kb/                    # crawl snapshots、cache、checkpoint、knowledge artifacts
+├── crawlernest-samples/               # 內層樣本資料
 │
-├── crawlernest-autoeval/              # AutoEval dataset / report / runner
-├── crawlernest-mini-agent/            # mini-agent 產品層 / 實驗層
+├── servise_for_java/                  # Spring Boot API（名稱為歷史拼字）
+├── crawlernest-web/                   # Next.js 前端
+├── crawlernest-mini-agent/            # 獨立 mini-agent 產品 / runtime / Rust crates
+├── crawlernest-autoeval/              # extractor / autoloop evaluation
 │
 ├── crawlernest-api/                   # 舊 API / 過渡材料
-├── crawlernest-recommendation/        # 舊推薦模組或 sidecar 材料
-├── crawlernest-normalization/         # 舊 normalization 實作
-├── crawlernest-normalization-py/      # Python normalization 側資料
-├── crawlernest-cli/                   # CLI UX 工具
+├── crawlernest-cli/                   # 舊 CLI UI 材料
 ├── crawlernest-docs/                  # 舊文件鏡像
-├── crawlernest-samples/               # 範例資料
-└── crawlernest-infra/                 # 基礎設施資產與備忘
+├── crawlernest-infra/                 # infra 備忘與配置
+├── crawlernest-normalization/         # normalization 實作（含 C engine）
+├── crawlernest-normalization-py/      # Python normalization 材料
+├── crawlernest-recommendation/        # 舊推薦模組材料
+└── crawlernest-tests/                 # Python 測試區
 ```
 
-其中與 ranking workflow 最直接相關的幾個區塊是：
+## 3. Most Important Paths
 
-- `run_pipeline.py`：高層 orchestration 與 command routing
-- `crawlernest-crawler-core/`：shared transport、retry、timeout、logging、checkpoint primitive
-- `pipeline/`：staging、validation、preview、landing 等協調層
-- `crawlernest-ranking-crawler/`：ranking 專用 crawl 與前段資料生產
-- `crawlernest-admission-crawler/`：admission / requirement 專用 crawl
-- `crawlernest-schema/`：warehouse / entity resolution / aggregation schema
-- `crawlernest-samples/`：raw、normalized、staging、preview 等 artifact 輸出
-
-## 3. Core Development Areas
-
-### 3.1 Runtime Entrypoints
+### 3.1 Entrypoints
 
 ```text
-crawlernest/run_pipeline.py            # 最重要的 Python pipeline 入口
-crawlernest/run_platform.py            # 平台層整合入口
-crawlernest/verify_db.py               # DB 驗證與檢查
+crawlernest/run_pipeline.py            # ranking / admission / ingest / resolve 相關主入口
+crawlernest/run_platform.py            # 模組化 path bootstrap + clawer_main 啟動
+crawlernest/verify_db.py               # DB 健檢
+crawlernest/interfaces/cli/agent_cli/  # 現行 agent CLI
+crawlernest/interfaces/api/agent_api/  # 現行 Python agent API server
 ```
 
-### 3.2 Python Core Modules
+### 3.2 Data Pipeline
+
+```text
+crawlernest/pipeline/
+├── bootstrap.py                       # repo/module path bootstrap
+├── cli.py                             # parser 建置
+├── router.py                          # 高層 command dispatch
+├── stages/crawl_stage.py              # crawl stage
+├── stages/write_stage.py              # write stage
+└── utils/normalization.py             # 共用 normalization helper
+```
+
+### 3.3 Crawlers And Shared Runtime
+
+```text
+crawlernest/crawlernest-crawler-core/  # logger / runtime primitive
+crawlernest/crawlernest-extractors/    # fetcher.py / extractor.py
+crawlernest/crawlernest-ranking-crawler/
+├── sources/                           # QS 等 source modules
+└── extractors/                        # ranking extraction helpers
+
+crawlernest/crawlernest-admission-crawler/
+├── crawlers/                          # admission crawlers
+├── extractors/                        # admission extraction helpers
+└── site_profiles/                     # site-specific profiles
+```
+
+### 3.4 Core Domain Engine
 
 ```text
 crawlernest/crawlernest-core/
 ├── entity_resolution/                 # canonical identity / alias linking
-├── multi_source/                      # QS/THE/ARWU 多來源整合
-├── ranking_aggregation/               # aggregated ranking truth
+├── multi_source/                      # QS / THE / ARWU 多來源整合
+├── ranking_aggregation/               # aggregated ranking engine
 ├── recommendation_engine/             # explainable recommendation engine
-├── comparison/                        # compare workflow 邏輯
-├── constants/                         # 國家、區域、主題等常數
-├── utils/                             # 共用工具
-└── src/                               # 其他核心程式碼整理區
+├── comparison/                        # compare workflow
+├── constants/                         # country / region / preset constants
+├── utils/                             # shared helpers
+└── src/                               # 補充實作與資產
 ```
 
-### 3.3 API Layer
+### 3.5 Service Facade And Interfaces
+
+```text
+crawlernest/core/services/
+├── ranking_service.py
+├── recommendation_service.py
+└── university_service.py
+
+crawlernest/interfaces/api/agent_api/
+├── dto.py
+├── handler.py
+└── server.py
+
+crawlernest/interfaces/cli/agent_cli/
+├── __main__.py
+└── main.py
+```
+
+這層的角色是把 `crawlernest-core/`、`agent/` 與資料來源包成較穩定的 CLI / API 邊界。
+
+### 3.6 Agent System
+
+```text
+crawlernest/agent/
+├── engine/                            # agent engine
+├── planner/                           # planning
+├── orchestration/                     # task orchestration
+├── tools/                             # ranking / university / recommendation tools
+├── web_agent/                         # 面向 web product 的 agent stack
+├── memory_long_term/                  # long-term memory
+├── service/ / services/               # service facade
+├── policies/                          # policy modules
+├── validation/                        # validation
+└── self_improvement/                  # self-improvement workflows
+```
+
+### 3.7 Product Surfaces
 
 ```text
 crawlernest/servise_for_java/src/main/java/clawer/
-├── api/                               # REST controllers
-├── service/                           # 業務邏輯
-├── repository/                        # DB query / repository
-├── dto/                               # request / response DTO
-├── model/                             # model
-├── domain/                            # domain objects
-├── domain/ranking/                    # ranking domain 子模組
-├── config/                            # Spring configuration
-└── util/                              # 共用工具
+├── api/
+├── service/
+├── repository/
+├── dto/
+├── model/
+├── domain/
+├── config/
+└── util/
+
+crawlernest/crawlernest-web/src/
+├── app/                               # App Router pages
+├── app/api/                           # API proxy / route handlers
+├── app/rankings/
+├── app/recommendations/
+├── app/compare/
+├── app/universities/
+├── app/agent/
+├── app/preview/
+├── components/
+├── hooks/
+├── lib/
+├── types/
+└── __tests__/
 ```
 
-### 3.4 Frontend Layer
+### 3.8 Data, Schema, Evaluation
 
 ```text
-crawlernest/crawlernest-web/src/
-├── app/                               # Next.js App Router pages
-├── app/api/                           # API proxy / route handlers
-├── app/rankings/                      # 排名頁
-├── app/recommendations/               # 推薦頁
-├── app/compare/                       # 比較頁
-├── app/universities/                  # 學校詳情頁
-├── components/                        # UI components
-├── hooks/                             # React hooks
-├── lib/                               # frontend utilities / data access
-├── types/                             # TS types
-└── __tests__/                         # frontend tests
+crawlernest/crawlernest-schema/        # SQL schema / queries / subject ranking ids
+crawlernest/crawlernest-kb/            # snapshot / resolution cache / checkpoint / local DB
+crawlernest/crawlernest-samples/       # examples / csv / demo artifacts
+crawlernest/crawlernest-autoeval/      # datasets / runners / reports / sandbox
+crawlernest/crawlernest-analytics/     # exporter / analytics helpers
 ```
 
-## 4. Suggested Reading Order
+## 4. Reading Order
 
-第一次進 repo 建議用這個順序看：
+第一次進 repo，建議用這個順序理解：
 
 1. `README.md`
 2. `docs/REPO_STRUCTURE.md`
 3. `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
 4. `crawlernest/run_pipeline.py`
-5. `crawlernest/crawlernest-core/`
-6. `crawlernest/servise_for_java/`
-7. `crawlernest/crawlernest-web/`
+5. `crawlernest/pipeline/`
+6. `crawlernest/crawlernest-core/`
+7. `crawlernest/core/services/`
+8. `crawlernest/interfaces/api/agent_api/`
+9. `crawlernest/servise_for_java/`
+10. `crawlernest/crawlernest-web/`
 
-## 5. Current Canonical Working Paths
+## 5. Practical Notes
 
-目前最常碰的主路徑如下：
-
-- Pipeline: `crawlernest/run_pipeline.py`
-- Ranking workflow helpers: `crawlernest/pipeline/`
-- Shared crawler core: `crawlernest/crawlernest-crawler-core/`
-- Python core: `crawlernest/crawlernest-core/`
-- Ranking crawler engine: `crawlernest/crawlernest-ranking-crawler/`
-- Admission crawler engine: `crawlernest/crawlernest-admission-crawler/`
-- Schema: `crawlernest/crawlernest-schema/`
-- API: `crawlernest/servise_for_java/`
-- Frontend: `crawlernest/crawlernest-web/`
-- Knowledge artifacts: `crawlernest/crawlernest-kb/`
-- Sample artifacts: `crawlernest/crawlernest-samples/`
-- Operations scripts: `crawlernest/scripts/`
-
-## 6. Structural Notes
-
-- repo 採雙層 workspace，功能上正常，但第一次看會有點混淆
-- `servise_for_java/` 是歷史拼字，若要改名應獨立 migration
-- `crawlernest/` 內同時存在 active modules 與 legacy / sidecar materials
-- `.next/`、`target/`、`__pycache__/` 這類 build/cache 產物不應視為核心架構
+- `crawlernest/` 是目前 canonical workspace；外層 `agent/`、`mini_agent/`、`interfaces/`、`web/` 比較像早期原型或兼容殼層。
+- `servise_for_java/` 是歷史拼字；若之後要改名，應視為獨立 migration，不建議在一般重構中順手調整。
+- `crawlernest-web/.next/`、`node_modules/`、`servise_for_java/target/`、各處 `__pycache__/` 都是 build/cache 產物，不應列入核心架構理解。
+- `crawlernest-kb/` 與 `crawlernest-samples/` 都會出現資料 artifact；前者偏 runtime snapshots / cache / checkpoint，後者偏範例與預覽輸出。

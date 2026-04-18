@@ -12,8 +12,13 @@ class WebContextBuilder:
         *,
         task_kind: str,
         user_input: str,
+        original_input: str | None = None,
+        rewritten_query: str | None = None,
+        resolved_reference: dict[str, Any] | None = None,
         raw_data: dict[str, Any],
         request_context: dict[str, Any],
+        long_term_memory: list[dict[str, Any]] | None = None,
+        strategy_hints: list[str] | None = None,
     ) -> RetrievedContext:
         metadata = (
             dict(raw_data.get("metadata", {}))
@@ -25,20 +30,33 @@ class WebContextBuilder:
         summary_facts = self._build_summary_facts(
             task_kind=task_kind,
             user_input=user_input,
+            original_input=original_input or user_input,
+            rewritten_query=rewritten_query,
+            resolved_reference=resolved_reference,
             raw_data=raw_data,
             metadata=metadata,
             focus_entity=focus_entity,
+            long_term_memory=long_term_memory or [],
         )
         source_hints = self._build_source_hints(task_kind, raw_data)
+        if long_term_memory:
+            source_hints = list(source_hints) + ["long-term memory"]
+        if strategy_hints:
+            source_hints = list(source_hints) + ["strategy hints"]
 
         return RetrievedContext(
             task_kind=task_kind,
             user_input=user_input,
+            original_input=original_input or user_input,
+            rewritten_query=rewritten_query,
+            resolved_reference=resolved_reference,
             focus_entity=focus_entity,
             summary_facts=summary_facts,
             records=records,
             metadata=metadata,
             source_hints=source_hints,
+            long_term_memory=list(long_term_memory or []),
+            strategy_hints=list(strategy_hints or []),
         )
 
     def _extract_focus_entity(
@@ -101,11 +119,33 @@ class WebContextBuilder:
         *,
         task_kind: str,
         user_input: str,
+        original_input: str,
+        rewritten_query: str | None,
+        resolved_reference: dict[str, Any] | None,
         raw_data: dict[str, Any],
         metadata: dict[str, Any],
         focus_entity: str | None,
+        long_term_memory: list[dict[str, Any]],
     ) -> list[str]:
         facts: list[str] = []
+
+        if rewritten_query and rewritten_query.strip() and rewritten_query.strip() != original_input.strip():
+            facts.append(f"Interpretation hint: rewritten query = {rewritten_query}")
+
+        if isinstance(resolved_reference, dict) and resolved_reference.get("detected"):
+            entities = resolved_reference.get("resolved_entities")
+            if isinstance(entities, list) and entities:
+                facts.append(
+                    "Resolved reference entities: "
+                    + ", ".join(str(entity) for entity in entities[:3])
+                )
+
+        if long_term_memory:
+            facts.append("Long-term memory signals:")
+            for entry in long_term_memory[:3]:
+                content = entry.get("content")
+                if content:
+                    facts.append(f"Memory: {content}")
 
         if focus_entity:
             facts.append(f"Focus entity: {focus_entity}")

@@ -2,6 +2,13 @@ from __future__ import annotations
 
 import dataclasses
 
+from crawlernest.agent.memory_long_term.memory_retriever import LongTermMemoryRetriever
+from crawlernest.agent.memory_long_term.memory_writer import LongTermMemoryWriter
+from crawlernest.agent.meta.meta_controller import MetaController
+from crawlernest.agent.self_improvement.experience_store import ExperienceStore
+from crawlernest.agent.self_improvement.improvement_engine import ImprovementEngine
+from crawlernest.agent.self_improvement.performance_tracker import PerformanceTracker
+from crawlernest.agent.self_improvement.strategy_store import StrategyStore
 from crawlernest.agent.shared.models.task_request import TaskRequest
 from crawlernest.agent.shared.models.task_response import TaskResponse
 from crawlernest.agent.shared.planner.shared_planner import SharedPlanner
@@ -9,8 +16,12 @@ from crawlernest.agent.web_agent.formatter.response_formatter import WebResponse
 from crawlernest.agent.web_agent.generation.context_builder import WebContextBuilder
 from crawlernest.agent.web_agent.generation.prompt_builder import WebPromptBuilder
 from crawlernest.agent.web_agent.generation.response_generator import WebResponseGenerator
+from crawlernest.agent.web_agent.grounding.grounding_analyzer import GroundingAnalyzer
+from crawlernest.agent.web_agent.interpretation.query_rewriter import QueryRewriter
+from crawlernest.agent.web_agent.interpretation.referential_resolver import ReferentialResolver
 from crawlernest.agent.web_agent.memory.conversation_store import ConversationStore
 from crawlernest.agent.web_agent.memory.memory_policy import MemoryPolicy
+from crawlernest.agent.web_agent.policy.generation_policy import GenerationPolicy
 from crawlernest.agent.web_agent.policy.web_agent_policy import WebAgentPolicy
 from crawlernest.agent.web_agent.tool_router.web_tool_router import WebToolRouter
 
@@ -18,6 +29,13 @@ from crawlernest.agent.web_agent.tool_router.web_tool_router import WebToolRoute
 # _apply_generation() to _respond() without exposing it to the formatter.
 # Must not collide with any real data field name.
 _MEMORY_DEBUG_KEY = "__memory_debug__"
+_REFERENCE_DEBUG_KEY = "__reference_debug__"
+_GROUNDING_DEBUG_KEY = "__grounding_debug__"
+_POLICY_DEBUG_KEY = "__policy_debug__"
+_ORCHESTRATION_DEBUG_KEY = "__orchestration_debug__"
+_LONG_TERM_MEMORY_DEBUG_KEY = "__long_term_memory_debug__"
+_SELF_IMPROVEMENT_DEBUG_KEY = "__self_improvement_debug__"
+_META_DEBUG_KEY = "__meta_debug__"
 
 
 class WebAgentEngine:
@@ -32,6 +50,17 @@ class WebAgentEngine:
         generator: WebResponseGenerator | None = None,
         memory_store: ConversationStore | None = None,
         memory_policy: MemoryPolicy | None = None,
+        referential_resolver: ReferentialResolver | None = None,
+        query_rewriter: QueryRewriter | None = None,
+        grounding_analyzer: GroundingAnalyzer | None = None,
+        generation_policy: GenerationPolicy | None = None,
+        long_term_memory_retriever: LongTermMemoryRetriever | None = None,
+        long_term_memory_writer: LongTermMemoryWriter | None = None,
+        experience_store: ExperienceStore | None = None,
+        strategy_store: StrategyStore | None = None,
+        performance_tracker: PerformanceTracker | None = None,
+        improvement_engine: ImprovementEngine | None = None,
+        meta_controller: MetaController | None = None,
     ) -> None:
         self._planner = planner or SharedPlanner()
         self._tools = tool_router or WebToolRouter()
@@ -42,9 +71,27 @@ class WebAgentEngine:
         self._generator = generator or WebResponseGenerator()
         self._memory = memory_store or ConversationStore()
         self._memory_policy = memory_policy or MemoryPolicy()
+        self._referential_resolver = referential_resolver or ReferentialResolver()
+        self._query_rewriter = query_rewriter or QueryRewriter()
+        self._grounding_analyzer = grounding_analyzer or GroundingAnalyzer()
+        self._generation_policy = generation_policy or GenerationPolicy()
+        self._long_term_retriever = long_term_memory_retriever or LongTermMemoryRetriever()
+        self._long_term_writer = long_term_memory_writer or LongTermMemoryWriter()
+        self._experience_store = experience_store or ExperienceStore()
+        self._strategy_store = strategy_store or StrategyStore()
+        self._performance_tracker = performance_tracker or PerformanceTracker()
+        self._improvement_engine = improvement_engine or ImprovementEngine()
+        self._meta_controller = meta_controller or MetaController(strategy_store=self._strategy_store)
 
     def execute(self, request: TaskRequest) -> TaskResponse:
         plan = self._planner.build_plan(request)
+        raw_history = self._memory.get_history(request.session_id) if request.session_id else []
+        reference_debug = self._build_reference_debug(request=request, history=raw_history)
+        effective_input = (
+            reference_debug.get("rewritten_query")
+            if reference_debug.get("rewrite_applied") and reference_debug.get("rewritten_query")
+            else request.user_input
+        )
         try:
             if request.kind == "university_lookup":
                 raw = TaskResponse(
@@ -53,11 +100,11 @@ class WebAgentEngine:
                     message="University detail preview loaded.",
                     data=self._tools.university_tools.get_detail_preview(
                         request.context,
-                        user_input=request.user_input,
+                        user_input=str(effective_input),
                     ),
                     traces=plan,
                 )
-                return self._respond(request=request, response=raw)
+                return self._respond(request=request, response=raw, reference_debug=reference_debug)
 
             if request.kind == "data_query":
                 raw = TaskResponse(
@@ -66,11 +113,11 @@ class WebAgentEngine:
                     message="Rankings query completed.",
                     data=self._tools.ranking_tools.list_rankings(
                         request.context,
-                        user_input=request.user_input,
+                        user_input=str(effective_input),
                     ),
                     traces=plan,
                 )
-                return self._respond(request=request, response=raw)
+                return self._respond(request=request, response=raw, reference_debug=reference_debug)
 
             if request.kind == "ranking_explain":
                 raw = TaskResponse(
@@ -79,11 +126,11 @@ class WebAgentEngine:
                     message="Ranking explanation prepared.",
                     data=self._tools.ranking_tools.explain_rankings(
                         request.context,
-                        user_input=request.user_input,
+                        user_input=str(effective_input),
                     ),
                     traces=plan,
                 )
-                return self._respond(request=request, response=raw)
+                return self._respond(request=request, response=raw, reference_debug=reference_debug)
 
             if request.kind == "recommendation":
                 raw = TaskResponse(
@@ -92,11 +139,11 @@ class WebAgentEngine:
                     message="Recommendation task completed.",
                     data=self._tools.recommendation_tools.recommend(
                         request.context,
-                        user_input=request.user_input,
+                        user_input=str(effective_input),
                     ),
                     traces=plan,
                 )
-                return self._respond(request=request, response=raw)
+                return self._respond(request=request, response=raw, reference_debug=reference_debug)
 
             raw = TaskResponse(
                 task_id=request.task_id,
@@ -104,7 +151,7 @@ class WebAgentEngine:
                 message=f"Unsupported web task kind: {request.kind}",
                 traces=plan,
             )
-            return self._respond(request=request, response=raw)
+            return self._respond(request=request, response=raw, reference_debug=reference_debug)
         except Exception as exc:
             raw = TaskResponse(
                 task_id=request.task_id,
@@ -112,7 +159,7 @@ class WebAgentEngine:
                 message=str(exc),
                 traces=plan,
             )
-            return self._respond(request=request, response=raw)
+            return self._respond(request=request, response=raw, reference_debug=reference_debug)
 
     def format_failure(
         self,
@@ -133,8 +180,13 @@ class WebAgentEngine:
         *,
         request: TaskRequest,
         response: TaskResponse,
+        reference_debug: dict[str, object] | None = None,
     ) -> TaskResponse:
-        response = self._apply_generation(request=request, response=response)
+        response = self._apply_generation(
+            request=request,
+            response=response,
+            reference_debug=reference_debug,
+        )
 
         # Lift the memory debug payload out BEFORE passing response to the
         # formatter.  Each formatter method builds a completely new dict and
@@ -143,10 +195,94 @@ class WebAgentEngine:
         # so that memory debug data reaches the caller without touching the
         # formatter contract at all.
         memory_debug_payload: dict | None = None
+        reference_debug_payload: dict | None = None
+        grounding_debug_payload: dict | None = None
+        policy_debug_payload: dict | None = None
+        orchestration_debug_payload: dict | None = None
+        long_term_memory_debug_payload: dict | None = None
+        self_improvement_debug_payload: dict | None = None
+        meta_debug_payload: dict | None = None
         if isinstance(response.data, dict) and _MEMORY_DEBUG_KEY in response.data:
             # Pop from a copy so we don't mutate the dataclass field in place.
             clean_data = {k: v for k, v in response.data.items() if k != _MEMORY_DEBUG_KEY}
             memory_debug_payload = response.data[_MEMORY_DEBUG_KEY]
+            response = TaskResponse(
+                task_id=response.task_id,
+                status=response.status,
+                message=response.message,
+                data=clean_data,
+                traces=response.traces,
+                warnings=response.warnings,
+            )
+        if isinstance(response.data, dict) and _REFERENCE_DEBUG_KEY in response.data:
+            clean_data = {k: v for k, v in response.data.items() if k != _REFERENCE_DEBUG_KEY}
+            reference_debug_payload = response.data[_REFERENCE_DEBUG_KEY]
+            response = TaskResponse(
+                task_id=response.task_id,
+                status=response.status,
+                message=response.message,
+                data=clean_data,
+                traces=response.traces,
+                warnings=response.warnings,
+            )
+        if isinstance(response.data, dict) and _GROUNDING_DEBUG_KEY in response.data:
+            clean_data = {k: v for k, v in response.data.items() if k != _GROUNDING_DEBUG_KEY}
+            grounding_debug_payload = response.data[_GROUNDING_DEBUG_KEY]
+            response = TaskResponse(
+                task_id=response.task_id,
+                status=response.status,
+                message=response.message,
+                data=clean_data,
+                traces=response.traces,
+                warnings=response.warnings,
+            )
+        if isinstance(response.data, dict) and _POLICY_DEBUG_KEY in response.data:
+            clean_data = {k: v for k, v in response.data.items() if k != _POLICY_DEBUG_KEY}
+            policy_debug_payload = response.data[_POLICY_DEBUG_KEY]
+            response = TaskResponse(
+                task_id=response.task_id,
+                status=response.status,
+                message=response.message,
+                data=clean_data,
+                traces=response.traces,
+                warnings=response.warnings,
+            )
+        if isinstance(response.data, dict) and _ORCHESTRATION_DEBUG_KEY in response.data:
+            clean_data = {k: v for k, v in response.data.items() if k != _ORCHESTRATION_DEBUG_KEY}
+            orchestration_debug_payload = response.data[_ORCHESTRATION_DEBUG_KEY]
+            response = TaskResponse(
+                task_id=response.task_id,
+                status=response.status,
+                message=response.message,
+                data=clean_data,
+                traces=response.traces,
+                warnings=response.warnings,
+            )
+        if isinstance(response.data, dict) and _LONG_TERM_MEMORY_DEBUG_KEY in response.data:
+            clean_data = {k: v for k, v in response.data.items() if k != _LONG_TERM_MEMORY_DEBUG_KEY}
+            long_term_memory_debug_payload = response.data[_LONG_TERM_MEMORY_DEBUG_KEY]
+            response = TaskResponse(
+                task_id=response.task_id,
+                status=response.status,
+                message=response.message,
+                data=clean_data,
+                traces=response.traces,
+                warnings=response.warnings,
+            )
+        if isinstance(response.data, dict) and _SELF_IMPROVEMENT_DEBUG_KEY in response.data:
+            clean_data = {k: v for k, v in response.data.items() if k != _SELF_IMPROVEMENT_DEBUG_KEY}
+            self_improvement_debug_payload = response.data[_SELF_IMPROVEMENT_DEBUG_KEY]
+            response = TaskResponse(
+                task_id=response.task_id,
+                status=response.status,
+                message=response.message,
+                data=clean_data,
+                traces=response.traces,
+                warnings=response.warnings,
+            )
+        if isinstance(response.data, dict) and _META_DEBUG_KEY in response.data:
+            clean_data = {k: v for k, v in response.data.items() if k != _META_DEBUG_KEY}
+            meta_debug_payload = response.data[_META_DEBUG_KEY]
             response = TaskResponse(
                 task_id=response.task_id,
                 status=response.status,
@@ -170,6 +306,26 @@ class WebAgentEngine:
         # This is only present when debug=true was set in request.constraints.
         if memory_debug_payload is not None and isinstance(formatted, dict):
             formatted["memoryDebug"] = memory_debug_payload
+        if reference_debug_payload is not None and isinstance(formatted, dict):
+            formatted["referenceDebug"] = reference_debug_payload
+        elif (
+            isinstance(formatted, dict)
+            and bool(request.constraints.get("debug"))
+            and reference_debug is not None
+        ):
+            formatted["referenceDebug"] = reference_debug
+        if grounding_debug_payload is not None and isinstance(formatted, dict):
+            formatted["groundingDebug"] = grounding_debug_payload
+        if policy_debug_payload is not None and isinstance(formatted, dict):
+            formatted["policyDebug"] = policy_debug_payload
+        if orchestration_debug_payload is not None and isinstance(formatted, dict):
+            formatted["orchestrationDebug"] = orchestration_debug_payload
+        if long_term_memory_debug_payload is not None and isinstance(formatted, dict):
+            formatted["longTermMemoryDebug"] = long_term_memory_debug_payload
+        if self_improvement_debug_payload is not None and isinstance(formatted, dict):
+            formatted["selfImprovementDebug"] = self_improvement_debug_payload
+        if meta_debug_payload is not None and isinstance(formatted, dict):
+            formatted["metaDebug"] = meta_debug_payload
 
         return TaskResponse(
             task_id=response.task_id,
@@ -185,6 +341,7 @@ class WebAgentEngine:
         *,
         request: TaskRequest,
         response: TaskResponse,
+        reference_debug: dict[str, object] | None = None,
     ) -> TaskResponse:
         if response.status != "success":
             return response
@@ -212,6 +369,45 @@ class WebAgentEngine:
             )
             memory_debug_report = None
 
+        resolved_reference_dict = (
+            reference_debug.get("resolved_reference")
+            if isinstance(reference_debug, dict)
+            and isinstance(reference_debug.get("resolved_reference"), dict)
+            else None
+        )
+        memory_identity = self._resolve_memory_identity(request)
+        meta_target = None
+        if isinstance(resolved_reference_dict, dict):
+            resolved_entities = resolved_reference_dict.get("resolved_entities")
+            if isinstance(resolved_entities, list) and resolved_entities:
+                meta_target = str(resolved_entities[0])
+        meta_resolution = self._meta_controller.resolve_for_request(
+            engine="web",
+            task_kind=request.kind,
+            request_signature=f"{request.session_id or 'no-session'}::{request.user_input}",
+            target=meta_target,
+        )
+        retrieved_long_term_memory = self._long_term_retriever.retrieve(
+            user_id=memory_identity,
+            session_id=session_id,
+            current_input=request.user_input,
+            task_kind=request.kind,
+            resolved_reference=resolved_reference_dict,
+        )
+        applied_strategies = self._strategy_store.query(
+            engine="web",
+            task_kind=request.kind,
+            strategy_type="behavior",
+            min_confidence=0.6,
+            limit=2,
+        )
+        strategy_hints = [
+            hint
+            for entry in applied_strategies
+            for hint in entry.get("strategy", [])
+            if isinstance(hint, str) and hint.strip()
+        ]
+
         # --- Store the user's current input BEFORE generation ---
         if session_id:
             self._memory.append_user(
@@ -222,45 +418,261 @@ class WebAgentEngine:
 
         retrieved = self._context_builder.build(
             task_kind=request.kind,
-            user_input=request.user_input,
+            user_input=(
+                str(reference_debug.get("rewritten_query"))
+                if isinstance(reference_debug, dict)
+                and reference_debug.get("rewrite_applied")
+                and reference_debug.get("rewritten_query")
+                else request.user_input
+            ),
+            original_input=request.user_input,
+            rewritten_query=(
+                str(reference_debug.get("rewritten_query"))
+                if isinstance(reference_debug, dict) and reference_debug.get("rewritten_query")
+                else None
+            ),
+            resolved_reference=(
+                resolved_reference_dict
+            ),
             raw_data=response.data,
             request_context=request.context,
+            long_term_memory=[
+                {
+                    "content": entry.content,
+                    "confidence": entry.confidence,
+                    "type": entry.type,
+                    "importance": entry.importance,
+                    "decay_score": entry.decay_score,
+                }
+                for entry in retrieved_long_term_memory.entries
+            ],
+            strategy_hints=strategy_hints,
         )
-        prompt = self._prompt_builder.build(
-            user_input=request.user_input,
+        memory_ambiguity_level = (
+            str(memory_debug_report.memory_summary.get("ambiguity_level"))
+            if memory_debug_report is not None
+            else ("medium" if selected_turns else "high")
+        )
+        resolved_reference = resolved_reference_dict
+        policy_decision = self._generation_policy.decide(
+            task_kind=request.kind,
+            original_input=request.user_input,
+            rewritten_query=(
+                str(reference_debug.get("rewritten_query"))
+                if isinstance(reference_debug, dict) and reference_debug.get("rewritten_query")
+                else None
+            ),
+            resolved_reference=self._referential_resolver.resolve(
+                current_input=request.user_input,
+                task_kind=request.kind,
+                history=raw_history,
+            ),
             retrieved=retrieved,
-            policy=self._policy,
-            conversation_history=selected_turns if selected_turns else None,
+            selected_memory_turns=selected_turns,
+            memory_ambiguity_level=memory_ambiguity_level,
         )
+
         fallback_text = self._resolve_fallback_text(response)
-        generation = self._generator.generate_response(
-            prompt=prompt,
-            fallback_text=fallback_text,
+        fallback_paragraphs = self._resolve_fallback_paragraphs(response, fallback_text)
+        generation_source = "deterministic"
+        model_name: str | None = None
+
+        if policy_decision.mode == "deterministic":
+            answer_text = fallback_text
+            answer_paragraphs = fallback_paragraphs
+        else:
+            prompt = self._prompt_builder.build(
+                user_input=(
+                    str(reference_debug.get("rewritten_query"))
+                    if isinstance(reference_debug, dict)
+                    and reference_debug.get("rewrite_applied")
+                    and reference_debug.get("rewritten_query")
+                    else request.user_input
+                ),
+                original_input=request.user_input,
+                rewritten_query=(
+                    str(reference_debug.get("rewritten_query"))
+                    if isinstance(reference_debug, dict) and reference_debug.get("rewritten_query")
+                    else None
+                ),
+                resolved_reference=resolved_reference,
+                retrieved=retrieved,
+                policy=self._policy,
+                generation_mode=policy_decision.mode,
+                conversation_history=selected_turns if selected_turns else None,
+                prompt_patches=list(meta_resolution.get("prompt_patches", [])),
+            )
+            generation = self._generator.generate_response(
+                prompt=prompt,
+                fallback_text=fallback_text,
+            )
+            answer_text = generation.reply_text
+            answer_paragraphs = generation.paragraphs
+            generation_source = generation.source
+            model_name = generation.model_name
+            if generation.warning:
+                response.warnings.append(generation.warning)
+
+        grounding_report = self._grounding_analyzer.analyze(
+            answer_text=answer_text,
+            retrieved=retrieved,
+            selected_memory_turns=selected_turns,
+            rewritten_query=(
+                str(reference_debug.get("rewritten_query"))
+                if isinstance(reference_debug, dict) and reference_debug.get("rewritten_query")
+                else None
+            ),
         )
 
         # --- Memory: persist the assistant's reply ---
-        if session_id and generation.reply_text:
+        if session_id and answer_text:
             self._memory.append_assistant(
                 session_id,
-                content=generation.reply_text,
+                content=answer_text,
                 task_kind=request.kind,
             )
 
+        self._long_term_writer.write_from_interaction(
+            user_id=memory_identity,
+            session_id=session_id,
+            task_kind=request.kind,
+            user_input=request.user_input,
+            response_data=response.data,
+            resolved_reference=resolved_reference_dict,
+        )
+        experience = self._experience_store.append(
+            engine="web",
+            task_kind=request.kind,
+            task=request.user_input,
+            status=response.status,
+            final_score=float(grounding_report.grounding_score.overall),
+            tools_used=[request.kind, "generation" if policy_decision.mode != "deterministic" else "deterministic"],
+            steps=[
+                {
+                    "step": "retrieval",
+                    "score": float(policy_decision.signals.get("retrieval_confidence", 0.0)),
+                },
+                {
+                    "step": "grounding",
+                    "score": float(grounding_report.grounding_score.overall),
+                },
+            ],
+            metadata={
+                "target": retrieved.focus_entity,
+                "generation_mode": policy_decision.mode,
+                "hallucination_risk": grounding_report.hallucination_risk.level,
+            },
+        )
+        performance = self._performance_tracker.analyze(
+            experiences=self._experience_store.recent(
+                engine="web",
+                task_kind=request.kind,
+                limit=12,
+            ),
+            task_kind=request.kind,
+        )
+        new_strategy = self._improvement_engine.generate(
+            engine="web",
+            task_kind=request.kind,
+            performance=performance,
+            experiences=self._experience_store.recent(
+                engine="web",
+                task_kind=request.kind,
+                limit=8,
+            ),
+            target=retrieved.focus_entity,
+        )
+        if new_strategy is not None:
+            self._strategy_store.upsert(
+                engine="web",
+                task_kind=request.kind,
+                strategy=list(new_strategy.get("strategy", [])),
+                confidence=float(new_strategy.get("confidence", 0.6)),
+                reason=str(new_strategy.get("reason", "generated from recent web performance")),
+                target=retrieved.focus_entity,
+                strategy_type="behavior",
+            )
+        meta_update = self._meta_controller.update_from_performance(
+            engine="web",
+            task_kind=request.kind,
+            performance=performance,
+            experiences=self._experience_store.recent(
+                engine="web",
+                task_kind=request.kind,
+                limit=8,
+            ),
+            target=retrieved.focus_entity,
+        )
+        meta_outcome = self._meta_controller.record_outcome(
+            applied_entries=list(meta_resolution.get("applied_entries", [])),
+            final_score=float(grounding_report.grounding_score.overall),
+        )
+
         next_data = dict(response.data)
-        next_data["assistantReply"] = generation.reply_text
-        next_data["assistantReplyParagraphs"] = generation.paragraphs
-        next_data["generationSource"] = generation.source
+        next_data["assistantReply"] = answer_text
+        next_data["assistantReplyParagraphs"] = answer_paragraphs
+        next_data["generationSource"] = generation_source
         next_data["sessionId"] = session_id  # echo back so frontend can persist it
-        if generation.model_name:
-            next_data["modelName"] = generation.model_name
-        if generation.warning:
-            response.warnings.append(generation.warning)
+        if model_name:
+            next_data["modelName"] = model_name
 
         # Stash memory debug report under a sentinel key so _respond() can lift
         # it out before the formatter runs (the formatter builds a fresh dict
         # and would silently discard any unrecognised fields).
         if memory_debug_report is not None:
             next_data[_MEMORY_DEBUG_KEY] = dataclasses.asdict(memory_debug_report)
+        if debug_mode and reference_debug is not None:
+            next_data[_REFERENCE_DEBUG_KEY] = reference_debug
+        if debug_mode:
+            next_data[_GROUNDING_DEBUG_KEY] = dataclasses.asdict(grounding_report)
+            next_data[_POLICY_DEBUG_KEY] = policy_decision.debug
+            next_data[_LONG_TERM_MEMORY_DEBUG_KEY] = {
+                "retrieved": [
+                    {
+                        "content": entry.content,
+                        "type": entry.type,
+                        "used": True,
+                        "confidence": entry.confidence,
+                        "importance": entry.importance,
+                        "decayScore": entry.decay_score,
+                    }
+                    for entry in retrieved_long_term_memory.entries
+                ]
+            }
+            next_data[_SELF_IMPROVEMENT_DEBUG_KEY] = {
+                "performance": performance,
+                "new_strategy_generated": new_strategy is not None,
+                "strategy_applied": bool(strategy_hints),
+                "strategy_source": (
+                    "stored"
+                    if strategy_hints
+                    else ("newly_generated" if new_strategy is not None else "none")
+                ),
+                "reason": (
+                    str(new_strategy.get("reason"))
+                    if isinstance(new_strategy, dict)
+                    else ("applied stored strategy hints" if strategy_hints else "recent performance stayed within threshold")
+                ),
+                "applied_strategies": strategy_hints[:4],
+                "last_experience": {
+                    "status": experience.get("status"),
+                    "final_score": experience.get("final_score"),
+                },
+            }
+            next_data[_META_DEBUG_KEY] = {
+                **meta_resolution.get("debug", {}),
+                "generated": [
+                    {
+                        "id": entry.get("id"),
+                        "strategy_type": entry.get("strategy_type"),
+                        "confidence": entry.get("confidence"),
+                        "source": entry.get("source"),
+                        "version": entry.get("version"),
+                    }
+                    for entry in meta_update.get("generated_entries", [])
+                ],
+                "rolled_back": meta_outcome.get("rolled_back", []),
+            }
 
         return TaskResponse(
             task_id=response.task_id,
@@ -271,9 +683,137 @@ class WebAgentEngine:
             warnings=response.warnings,
         )
 
+    def _resolve_memory_identity(self, request: TaskRequest) -> str | None:
+        for candidate in (
+            request.context.get("user_id"),
+            request.constraints.get("user_id"),
+            request.session_id,
+        ):
+            if isinstance(candidate, str) and candidate.strip():
+                return candidate.strip()
+        return None
+
     def _resolve_fallback_text(self, response: TaskResponse) -> str:
         data = response.data
         fallback = data.get("assistantReply") or data.get("summary") or response.message
         if isinstance(fallback, str):
             return fallback
         return response.message
+
+    def _resolve_fallback_paragraphs(
+        self,
+        response: TaskResponse,
+        fallback_text: str,
+    ) -> list[str]:
+        paragraphs = response.data.get("assistantReplyParagraphs")
+        if isinstance(paragraphs, list):
+            safe = [str(item) for item in paragraphs if str(item).strip()]
+            if safe:
+                return safe
+        return [fallback_text] if fallback_text else []
+
+    def _build_reference_debug(
+        self,
+        *,
+        request: TaskRequest,
+        history: list,
+    ) -> dict[str, object]:
+        resolved_reference = self._referential_resolver.resolve(
+            current_input=request.user_input,
+            task_kind=request.kind,
+            history=history,
+        )
+        rewrite = self._query_rewriter.rewrite(
+            original_input=request.user_input,
+            task_kind=request.kind,
+            resolved_reference=resolved_reference,
+        )
+        return {
+            "original_input": request.user_input,
+            "rewrite_applied": rewrite.rewrite_applied,
+            "rewritten_query": rewrite.rewritten_query,
+            "rewrite_reason": rewrite.rewrite_reason,
+            "resolved_reference": dataclasses.asdict(resolved_reference),
+        }
+
+    def format_dev_handoff_result(
+        self,
+        *,
+        request: TaskRequest,
+        dev_response: TaskResponse,
+        handoff: dict[str, object],
+    ) -> TaskResponse:
+        dev_data = dev_response.data if isinstance(dev_response.data, dict) else {}
+        file_patch = dev_data.get("filePatch", {}) if isinstance(dev_data.get("filePatch"), dict) else {}
+        change_summary = (
+            dev_data.get("changeSummary", {})
+            if isinstance(dev_data.get("changeSummary"), dict)
+            else {}
+        )
+        validation = dev_data.get("validation", {}) if isinstance(dev_data.get("validation"), dict) else {}
+        repo_debug = dev_data.get("repoDebug", {}) if isinstance(dev_data.get("repoDebug"), dict) else {}
+        handoff_context = handoff.get("context", {}) if isinstance(handoff.get("context"), dict) else {}
+
+        file_path = str(file_patch.get("file") or repo_debug.get("resolved_file") or "project files")
+        target = handoff_context.get("target")
+        title_subject = str(target or file_path.rsplit("/", 1)[-1])
+
+        explanation_parts = [
+            f"I routed this into the development path and prepared a file-aware change plan for {title_subject}."
+        ]
+        if isinstance(change_summary.get("points"), list) and change_summary.get("points"):
+            explanation_parts.append(str(change_summary["points"][0]))
+        if validation.get("status") == "review":
+            explanation_parts.append("The proposal still needs review before we should apply it.")
+        else:
+            explanation_parts.append("The current validation checks look consistent with the proposed change scope.")
+
+        items: list[dict[str, object]] = []
+        for change in (file_patch.get("changes", []) if isinstance(file_patch.get("changes"), list) else [])[:5]:
+            if not isinstance(change, dict):
+                continue
+            items.append(
+                {
+                    "label": str(change.get("description") or change.get("type") or "Suggested change"),
+                    "kind": str(change.get("type") or "change"),
+                    "description": (
+                        f"target: {change.get('target')}" if change.get("target") else str(change.get("patch_hint") or "")
+                    ),
+                }
+            )
+        if not items and file_path:
+            items.append(
+                {
+                    "label": file_path,
+                    "kind": "file",
+                    "description": str(repo_debug.get("resolved_symbol") or "file-aware target"),
+                }
+            )
+
+        raw = TaskResponse(
+            task_id=request.task_id,
+            status=dev_response.status,
+            message=f"Suggested fix for {title_subject}",
+            data={
+                "type": "dev_result",
+                "title": f"Suggested fix for {title_subject}",
+                "explanation": " ".join(explanation_parts),
+                "explanationParagraphs": explanation_parts,
+                "items": items,
+                "meta": {
+                    "file": file_path,
+                    "risk": change_summary.get("risk_level", "unknown"),
+                    "validationStatus": validation.get("status", "unknown"),
+                },
+            },
+            warnings=dev_response.warnings,
+        )
+        formatted = self._formatter.format_generic(raw)
+        return TaskResponse(
+            task_id=request.task_id,
+            status=dev_response.status,
+            message=raw.message,
+            data=formatted,
+            traces=[],
+            warnings=dev_response.warnings,
+        )
