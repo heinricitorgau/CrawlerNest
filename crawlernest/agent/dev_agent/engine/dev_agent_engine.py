@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from crawlernest.agent.autonomous.evaluator import AutonomousEvaluator
 from crawlernest.agent.autonomous.loop_controller import LoopController
 from crawlernest.agent.autonomous.step_executor import StepExecutor
@@ -11,6 +13,10 @@ from crawlernest.agent.dev_agent.repo.file_resolver import FileResolver
 from crawlernest.agent.dev_agent.repo.patch_builder import PatchBuilder
 from crawlernest.agent.dev_agent.repo.repo_indexer import RepoIndexer
 from crawlernest.agent.meta.meta_controller import MetaController
+from crawlernest.agent.self_rewrite.patch_executor import PatchExecutor
+from crawlernest.agent.self_rewrite.patch_generator import PatchGenerator
+from crawlernest.agent.self_rewrite.patch_store import PatchStore
+from crawlernest.agent.self_rewrite.patch_validator import PatchValidator
 from crawlernest.agent.self_improvement.experience_store import ExperienceStore
 from crawlernest.agent.self_improvement.improvement_engine import ImprovementEngine
 from crawlernest.agent.self_improvement.performance_tracker import PerformanceTracker
@@ -37,6 +43,10 @@ class DevAgentEngine:
         performance_tracker: PerformanceTracker | None = None,
         improvement_engine: ImprovementEngine | None = None,
         meta_controller: MetaController | None = None,
+        patch_generator: PatchGenerator | None = None,
+        patch_validator: PatchValidator | None = None,
+        patch_executor: PatchExecutor | None = None,
+        patch_store: PatchStore | None = None,
     ) -> None:
         self._planner = planner or SharedPlanner()
         self._tools = tool_router or DevToolRouter()
@@ -50,12 +60,20 @@ class DevAgentEngine:
         self._performance_tracker = performance_tracker or PerformanceTracker()
         self._improvement_engine = improvement_engine or ImprovementEngine()
         self._meta_controller = meta_controller or MetaController(strategy_store=self._strategy_store)
+        self._patch_generator = patch_generator or PatchGenerator(patch_builder=self._patch_builder)
+        self._patch_validator = patch_validator or PatchValidator()
+        self._patch_executor = patch_executor or PatchExecutor()
+        self._patch_store = patch_store or PatchStore()
         self._loop_controller = loop_controller or LoopController(
             task_graph=TaskGraphBuilder(),
             step_executor=StepExecutor(
                 dev_tools=self._tools.dev_tools,
                 file_resolver=self._file_resolver,
                 patch_builder=self._patch_builder,
+                patch_generator=self._patch_generator,
+                patch_validator=self._patch_validator,
+                patch_executor=self._patch_executor,
+                root_dir=str(Path(__file__).resolve().parents[4]),
             ),
             evaluator=AutonomousEvaluator(),
             stop_policy=StopPolicy(success_threshold=self._policy.autonomous_success_threshold),
@@ -87,9 +105,27 @@ class DevAgentEngine:
                 for hint in entry.get("strategy", [])
                 if isinstance(hint, str) and hint.strip()
             ]
+            anti_pattern_entries = self._strategy_store.query(
+                engine="dev",
+                task_kind=request.kind,
+                target=str(target_hint) if isinstance(target_hint, str) and target_hint.strip() else None,
+                min_confidence=0.6,
+                limit=2,
+                strategy_type="anti_pattern",
+            )
+            anti_pattern_hints = [
+                f"Avoid: {hint}"
+                for entry in anti_pattern_entries
+                for hint in entry.get("strategy", [])
+                if isinstance(hint, str) and hint.strip()
+            ]
             effective_context = dict(request.context)
             if strategy_hints:
                 effective_context["strategy_hints"] = strategy_hints
+            if anti_pattern_hints:
+                effective_context["strategy_hints"] = list(
+                    dict.fromkeys(list(effective_context.get("strategy_hints", [])) + anti_pattern_hints)
+                )
             meta_resolution = self._meta_controller.resolve_for_request(
                 engine="dev",
                 task_kind=request.kind,
@@ -102,7 +138,9 @@ class DevAgentEngine:
                 if isinstance(hint, str) and hint.strip()
             ]
             if meta_tool_strategies:
-                effective_context["strategy_hints"] = list(dict.fromkeys(strategy_hints + meta_tool_strategies))
+                effective_context["strategy_hints"] = list(
+                    dict.fromkeys(list(effective_context.get("strategy_hints", [])) + meta_tool_strategies)
+                )
             loop_trace = self._loop_controller.run(
                 goal=request.user_input,
                 context=effective_context,
@@ -119,10 +157,68 @@ class DevAgentEngine:
                 resolution_result=resolution_result,
                 repo_index=repo_index,
             )
+            patch_candidate = self._extract_patch_candidate_from_loop(loop_trace) or self._patch_generator.generate(
+                task=request.user_input,
+                resolution_result=resolution_result,
+                repo_index=repo_index,
+            )
             validation = self._extract_validation_from_loop(loop_trace) or self._build_validation(
                 resolution_result=resolution_result,
                 repo_index=repo_index,
             )
+            patch_validation = self._extract_patch_validation_from_loop(loop_trace) or self._patch_validator.validate(
+                patch_candidate=patch_candidate,
+                repo_index=repo_index,
+                root_dir=str(Path(__file__).resolve().parents[4]),
+            )
+            patch_execution = self._extract_patch_execution_from_loop(loop_trace) or self._patch_executor.execute_in_sandbox(
+                patch_candidate=patch_candidate,
+                patch_validation=patch_validation,
+                resolution_result=resolution_result,
+            )
+            patch_record = self._patch_store.append(
+                task=request.user_input,
+                patch_candidate=patch_candidate,
+                patch_validation=patch_validation,
+                patch_execution=patch_execution,
+            )
+            normalized_target = str(target_hint) if isinstance(target_hint, str) and target_hint.strip() else None
+            if patch_record.get("status") == "approved":
+                patch_hint = str(patch_candidate.get("patch") or "").strip()
+                if patch_hint:
+                    self._strategy_store.upsert(
+                        engine="dev",
+                        task_kind=request.kind,
+                        strategy=[
+                            patch_hint,
+                            "Prefer sandbox-approved semantic patches before broadening change scope.",
+                        ],
+                        confidence=0.82,
+                        reason="sandbox approved patch outcome",
+                        target=normalized_target,
+                        strategy_type="tool_strategy",
+                        source="patch_approval",
+                        rollout_percent=100,
+                        status="active",
+                    )
+            elif patch_record.get("status") in {"discarded", "rejected"}:
+                patch_hint = str(patch_candidate.get("patch") or patch_candidate.get("reason") or "").strip()
+                if patch_hint:
+                    self._strategy_store.upsert(
+                        engine="dev",
+                        task_kind=request.kind,
+                        strategy=[
+                            patch_hint,
+                            "Avoid broad or unsafe semantic patch scopes when sandbox validation is weak.",
+                        ],
+                        confidence=0.74,
+                        reason="sandbox rejected or discarded patch outcome",
+                        target=normalized_target,
+                        strategy_type="anti_pattern",
+                        source="patch_failure",
+                        rollout_percent=100,
+                        status="active",
+                    )
             refinement = self._tools.dev_tools.suggest_refinement_loop(
                 request.user_input,
                 effective_context,
@@ -156,6 +252,7 @@ class DevAgentEngine:
                     "target": resolution_result.get("symbol") or resolution_result.get("file_path"),
                     "validation_status": validation.get("status"),
                     "stop_reason": loop_trace.get("stop_reason"),
+                    "rewrite_status": patch_record.get("status"),
                 },
             )
             recent_dev_experiences = self._experience_store.recent(
@@ -209,6 +306,10 @@ class DevAgentEngine:
                     validation=validation,
                 ),
                 "validation": validation,
+                "patchCandidate": patch_candidate,
+                "patchValidation": patch_validation,
+                "patchExecution": patch_execution,
+                "patchRecord": patch_record,
                 "autonomousDebug": loop_trace,
                 "repoDebug": {
                     "resolved_file": resolution_result.get("file_path"),
@@ -231,10 +332,19 @@ class DevAgentEngine:
                         else ("applied stored strategy hints" if strategy_hints else "recent performance stayed within threshold")
                     ),
                     "applied_strategies": strategy_hints[:4],
+                    "anti_patterns": anti_pattern_hints[:4],
                     "last_experience": {
                         "status": experience.get("status"),
                         "final_score": experience.get("final_score"),
                     },
+                },
+                "rewriteDebug": {
+                    "patch_generated": bool(patch_candidate),
+                    "patch_valid": bool(patch_validation.get("valid")) if isinstance(patch_validation, dict) else False,
+                    "applied_in_sandbox": bool(patch_execution.get("applied_in_sandbox")) if isinstance(patch_execution, dict) else False,
+                    "improved": bool(patch_execution.get("improvement")) if isinstance(patch_execution, dict) else False,
+                    "score_delta": patch_execution.get("score_delta") if isinstance(patch_execution, dict) else 0.0,
+                    "status": patch_record.get("status"),
                 },
                 "metaDebug": {
                     **meta_resolution.get("debug", {}),
@@ -400,4 +510,31 @@ class DevAgentEngine:
             result = step.get("result")
             if isinstance(result, dict) and isinstance(result.get("validation"), dict):
                 return result.get("validation")
+        return None
+
+    def _extract_patch_candidate_from_loop(self, loop_trace: dict) -> dict | None:
+        for step in loop_trace.get("steps", []):
+            if not isinstance(step, dict):
+                continue
+            result = step.get("result")
+            if isinstance(result, dict) and isinstance(result.get("patchCandidate"), dict):
+                return result.get("patchCandidate")
+        return None
+
+    def _extract_patch_validation_from_loop(self, loop_trace: dict) -> dict | None:
+        for step in loop_trace.get("steps", []):
+            if not isinstance(step, dict):
+                continue
+            result = step.get("result")
+            if isinstance(result, dict) and isinstance(result.get("patchValidation"), dict):
+                return result.get("patchValidation")
+        return None
+
+    def _extract_patch_execution_from_loop(self, loop_trace: dict) -> dict | None:
+        for step in loop_trace.get("steps", []):
+            if not isinstance(step, dict):
+                continue
+            result = step.get("result")
+            if isinstance(result, dict) and isinstance(result.get("patchExecution"), dict):
+                return result.get("patchExecution")
         return None

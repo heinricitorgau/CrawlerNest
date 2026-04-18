@@ -39,6 +39,7 @@ class LoopController:
             "best_score": 0.0,
             "best_step": None,
             "resolution": None,
+            "patchCandidate": None,
         }
         final_status = "partial"
         stop_reason = "max_steps_reached"
@@ -58,6 +59,8 @@ class LoopController:
             )
             if step_result.get("resolution") is not None:
                 state["resolution"] = step_result.get("resolution")
+            if step_result.get("patchCandidate") is not None:
+                state["patchCandidate"] = step_result.get("patchCandidate")
 
             evaluation = self._evaluator.evaluate(
                 step_name=str(step.get("step", "unknown")),
