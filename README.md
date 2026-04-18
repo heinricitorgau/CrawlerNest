@@ -64,6 +64,20 @@ This path is intentionally isolated from the final production read model. Rankin
 
 For a deep dive into the engineering principles, see the [Whitepaper](docs/foundation/Whitepaper.md).
 
+The current mainline development guardrails are defined here:
+
+- [Architecture Scope](docs/foundation/ARCHITECTURE_SCOPE.md)
+- [Data Contracts](docs/foundation/DATA_CONTRACTS.md)
+- [Do Not Auto Modify](docs/foundation/DO_NOT_AUTO_MODIFY.md)
+
+These documents define the no-skip order for CrawlerNest:
+
+1. stabilize crawl and extraction
+2. stabilize normalization and canonical mapping
+3. formalize warehouse and API contracts
+4. build admission-aware recommendation
+5. only then expand agent autonomy
+
 ## AI-Assisted Development (Mini-Agent)
 
 - **Controlled by design:** the Mini-Agent layer is a bounded workflow, not a fully autonomous system

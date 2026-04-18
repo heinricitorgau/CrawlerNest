@@ -69,6 +69,20 @@ Mini-Agent Layer 遵循一個受限的循環：
 
 更完整的工程設計請參考 [Whitepaper](docs/foundation/Whitepaper.md)。
 
+目前主線開發與禁止跳級規範請參考：
+
+- [Architecture Scope](docs/foundation/ARCHITECTURE_SCOPE.md)
+- [Data Contracts](docs/foundation/DATA_CONTRACTS.md)
+- [Do Not Auto Modify](docs/foundation/DO_NOT_AUTO_MODIFY.md)
+
+這三份文件共同定義了 CrawlerNest 目前的主線順序：
+
+1. 先把 crawl 與 extraction 穩定下來
+2. 再把 normalization 與 canonical mapping 穩定下來
+3. 再正式化 warehouse 與 API 契約
+4. 再做 admission-aware recommendation
+5. 最後才逐步擴大 agent autonomy
+
 ## AI 輔助開發（Mini-Agent）
 
 - **從設計上即受控：** Mini-Agent layer 是一個有邊界的 workflow，不是 fully autonomous system
