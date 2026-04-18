@@ -38,14 +38,18 @@ CrawlerNest 是一套端到端的大學資料平台，能把分散的網頁資�
 
 ## 高層架構
 
-CrawlerNest 採用嚴格解耦的 6 層架構：
+CrawlerNest 現在有兩種明確分開的架構視角：
 
-1.  **Data Layer：** 從公開 ranking 與 university data providers 取得原始資料。
-2.  **Canonical Layer：** 負責 entity resolution、alias handling、normalization，以及 source-to-canonical mapping。
-3.  **Aggregation Layer：** 負責 PostgreSQL warehouse 與 universe-aware ranking truth。
-4.  **Decision Layer：** 負責 recommendation、trust scoring、evidence summaries 與 comparison logic。
-5.  **Mini-Agent Layer：** 一個輕量、受控的 AI-assisted development loop，用於有範圍的 task generation、evaluation、refinement 與 engineering validation。
-6.  **Product Layer：** Spring Boot API、Next.js website，以及建立在同一套受控 agent substrate 之上的 web-facing agent surface。
+- `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
+  代表目前可執行的 MVP / controlled system
+- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+  代表較完整的長期 vision 架構
+
+若以目前工程現況來看，最安全的摘要是：
+
+1. **Active Data Pipeline：** crawl、extract、normalize、write、warehouse、API、web
+2. **Controlled Expansion：** limited admission enrichment 與 basic rule-based recommendation
+3. **Development Support Only：** mini-agent、autoeval 與較大的 agent systems 不屬於 production data path
 
 在資料生產路徑內，crawler 系統現在刻意拆成三個程式邊界：
 
@@ -53,19 +57,25 @@ CrawlerNest 採用嚴格解耦的 6 層架構：
 - **`crawlernest-ranking-crawler/`**：專門處理 QS、THE、ARWU、ranking universe 與結構化 ranking rows
 - **`crawlernest-admission-crawler/`**：專門處理 university site crawling、admission page discovery，以及半結構 admission requirements extraction
 
-`run_pipeline.py` 仍然是高層 orchestration 入口，但長期方向是讓它呼叫這些 crawler engines，而不是繼續把 source-specific crawling logic 不斷堆進主入口裡。
+`run_pipeline.py` 目前仍是 active path 的高層 orchestration 入口。
 
 Mini-Agent Layer 遵循一個受限的循環：
 
 `Task -> Generate -> Evaluate -> Refine`
 
-它與 AutoEval 深度整合，目標是在不削弱 system reliability 的前提下提升開發速度。
+它與 AutoEval 深度整合，目標是在不削弱 system reliability 的前提下提升開發速度，但不屬於 production data path。
 
 目前 ranking 專用資料生產鏈如下：
 
 `crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh`
 
 這條路徑刻意與最終 production read model 保持隔離。ranking facts 會先經過 staging 與 warehouse landing 的穩定化，再透過 deterministic entity resolution 與 manual curation 補強，之後才適合進一步進入更高層的 aggregation 與 decision workflows。
+
+目前刻意的降級假設是：
+
+- recommendation 仍可接受作為 basic / optional 的 rule-based 能力
+- multi-source integration 與 ranking aggregation 仍屬於較大的擴張區，而不是 minimum executable core
+- agent systems 屬於 development-support capabilities，而不是 production truth generators
 
 更完整的工程設計請參考 [Whitepaper](docs/foundation/Whitepaper.md)。
 
@@ -104,11 +114,11 @@ CrawlerNest 被設計為一個雙層系統，結合資料 intelligence core 與 
 
 ### Core Intelligence Layer
 
-Core Intelligence Layer 負責平台的主要資料與決策流程。它涵蓋多來源 crawling、university 與 ranking records 的結構化 extraction、normalization 與 canonical identity resolution、以 PostgreSQL 為核心的資料儲存、aggregation 與 analytics pipelines，以及將 explainable outcomes 提供到產品層的 recommendation logic。這一層是整個系統的 operational backbone，並保持 deterministic、queryable 與 production-oriented 的特性。
+Core Intelligence Layer 負責平台的主要資料與決策流程。在目前 execution 階段，這一層主要聚焦在 crawl、extract、normalize、controlled write、warehouse 與 product-serving API path。它仍維持 deterministic、queryable 與 production-oriented 的特性。
 
 ### Agent Capability Layer
 
-Agent Capability Layer 位於 operational core 之上，作為一個受控的 improvement 與 assistance system。它現在有兩條顯式模式：
+Agent Capability Layer 位於 operational core 之上，作為一個受控的 improvement 與 assistance system。它刻意不在 production data path 之內，並且目前有兩條顯式模式：
 
 - **Dev Agent**：用於 extractor hardening、parser refinement、evaluation loops 與 engineering-facing validation
 - **Web Agent**：用於 conversational ranking explanation、university lookup、recommendation guidance，以及 web-facing agent interaction

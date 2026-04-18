@@ -17,7 +17,19 @@ This document is normative. When it conflicts with convenience, the document win
 
 ## System Layers
 
-CrawlerNest is organized as a layered system:
+CrawlerNest is organized as a layered system.
+For current execution priority, read this together with `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`.
+
+Current mainline emphasis:
+
+1. Data Production Layer
+2. Canonical Layer
+3. Warehouse / Read Layer
+4. Limited Decision Layer
+5. Product Layer
+6. Development Support Layer
+
+Longer-term architectural vocabulary still uses the broader layered model:
 
 1. Data Production Layer
 2. Canonical Layer
@@ -37,9 +49,11 @@ Each module must have a primary responsibility.
 
 - Crawlers produce raw data.
 - Canonical logic resolves identity and normalization truth.
-- Aggregation logic produces ranking truth.
-- Decision logic computes recommendation, trust, and comparison outputs.
+- Warehouse/read logic serves current executable truth.
+- Aggregation logic produces broader ranking truth when that layer is active.
+- Decision logic computes recommendation, trust, and comparison outputs when enabled in the execution stage.
 - API and frontend serve already-produced data.
+- Agent systems support development and evaluation, not production data generation.
 
 No module may silently absorb responsibilities from another layer.
 
@@ -49,7 +63,8 @@ For every important domain concern, one module owns authoritative truth.
 
 - Raw crawl payload structure: Data Production Layer
 - Canonical university identity: Canonical Layer
-- Ranking truth and aggregated results: Aggregation Layer
+- Current warehouse-backed read truth: Warehouse / Read Layer
+- Ranking truth and aggregated results beyond the execution core: Aggregation Layer
 - Recommendation policy and trust scoring formulas: Decision Layer
 - Public response contract: API layer
 - UI state and presentation: Frontend
@@ -67,6 +82,7 @@ Examples:
 - Frontend may read API responses, but must not recreate aggregation rules.
 - API may read aggregated rankings, but must not crawl source websites.
 - Pipeline may write canonical seeds only through canonical workflows, not by bypassing identity rules in ad hoc SQL.
+- Agent tooling may propose changes, but must not write itself into the production truth path without owned-layer review.
 
 ---
 
@@ -218,8 +234,9 @@ Primary code area:
 
 Responsibilities:
 
+- current warehouse-backed read truth
 - ranking truth storage
-- materialized or computed aggregated ranking outputs
+- materialized or computed aggregated ranking outputs when enabled
 - persistent source evidence
 - scope/universe-aware ranking storage
 - country and metadata joins used by read queries
@@ -251,6 +268,11 @@ Single source of truth owned here:
 Critical rule:
 
 - API code must not invent ranking truth outside the warehouse
+
+Execution note:
+
+- In the current stage, warehouse-backed truth is more important than broad aggregation completeness.
+- `multi_source` and `ranking_aggregation` remain valid owned modules, but they are not the only acceptable reading of "current production truth."
 
 ---
 

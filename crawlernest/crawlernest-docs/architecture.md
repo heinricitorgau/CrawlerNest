@@ -1,134 +1,48 @@
-# 🏗️ CrawlerNest Architecture
+# CrawlerNest Architecture
 
-The CrawlerNest platform is a modular data-processing engine designed for research and production-grade web crawling. This document describes the "startup / research-lab" style architecture implemented in the 2026 refactor.
+This file previously carried a longer architecture narrative for the inner workspace.
+It is now kept as a **compatibility document** so old links do not point to stale architecture text.
 
-The ranking path now includes a controlled data-production and resolution chain before any final product-facing truth is touched:
+## Canonical Sources
 
-```text
-crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh
-```
+- `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
+  current executable system
+- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+  long-term vision
+- `docs/REPO_STRUCTURE.md`
+  actual repo / module structure
 
-This makes ranking ingestion rerunnable, auditable, and safer to evolve.
+## Current Engineering Reality
 
-## 📌 System Topology
+The active system is intentionally narrower than the long-term platform vision.
 
-```mermaid
-graph TD
-    subgraph "Product Layer"
-        CLI[crawlernest-cli]
-        WEB[crawlernest-web]
-    end
+### Active now
 
-    subgraph "Pipeline Layer"
-        JOBS[crawlernest-jobs]
-        CORECRAWL[crawlernest-crawler-core]
-        RANKCRAWL[crawlernest-ranking-crawler]
-        ADMCRAWL[crawlernest-admission-crawler]
-        EXT[crawlernest-extractors]
-    end
+- ingestion and crawl
+- ranking crawler
+- limited admission crawler
+- shared extractors
+- basic normalization
+- controlled DB write path
+- minimal viable entity resolution
+- warehouse-backed API serving
+- Java REST API + web frontend
 
-    subgraph "Processing Layer"
-        NORM[crawlernest-normalization]
-        ANA[crawlernest-analytics]
-    end
+### Controlled / partial
 
-    subgraph "Data Layer"
-        SCHEMA[crawlernest-schema]
-        DBW[crawlernest-db-writer]
-        KB[crawlernest-kb]
-        SAMP[crawlernest-samples]
-    end
+- admission enrichment
+- basic rule-based recommendation
 
-    CORE[crawlernest-core]
+### Not part of production data path
 
-    CLI --> JOBS
-    JOBS --> CORECRAWL
-    CORECRAWL --> RANKCRAWL
-    CORECRAWL --> ADMCRAWL
-    RANKCRAWL --> EXT
-    ADMCRAWL --> EXT
-    EXT --> NORM
-    NORM --> DBW
-    DBW --> SCHEMA
-    DBW --> KB
-    ANA --> KB
-    
-    %% Shared Core
-    JOBS -.-> CORE
-    EXT -.-> CORE
-    DBW -.-> CORE
-    CLI -.-> CORE
-```
+- full multi-source aggregation
+- full ranking aggregation layer
+- agent auto-improvement loop
+- autoeval-driven patching
+- mini-agent runtime
 
-## 📂 Module Descriptions
+## Design Reminder
 
-### 1. [crawlernest-core](file:///Users/test/Desktop/crawlernest/crawlernest-core)
-Contains shared models (e.g., `University`, `AdmissionRequirements`), logging utilities, and the central `Config` system. This is the foundation upon which all other modules are built.
-
-### 2. `crawlernest-crawler-core`
-Shared crawler runtime building blocks.
-- `http_client.py`: Minimal HTTP wrapper.
-- `retry.py`: Retry helper.
-- `rate_limit.py`: Per-request delay control.
-- `logger.py`: Shared logger factory.
-- `base.py`: Thin base crawler with snapshot hooks.
-
-### 3. `crawlernest-ranking-crawler`
-Ranking-specific crawler engine.
-- `engine.py`: Ranking engine entrypoint and source dispatch.
-- `sources/qs.py`: Example QS crawler stub.
-- `sources/the.py`, `sources/arwu.py`: placeholder source crawlers.
-- `models.py`: `RankingRecord`.
-- downstream handoff now feeds a controlled ranking production workflow rather than writing directly into final product-serving truth
-
-### 4. `crawlernest-admission-crawler`
-Admission-specific crawler engine.
-- `engine.py`: Admission engine entrypoint.
-- `crawlers/university_site.py`: example university-site crawler stub.
-- `extractors/admission_requirements.py`: lightweight admission record builder.
-- `models.py`: `AdmissionRecord`.
-
-### 5. [crawlernest-extractors](file:///Users/test/Desktop/crawlernest/crawlernest-extractors)
-Reusable fetch / parse helpers used by crawler engines and legacy ingestion code.
-It is not the top-level crawler runtime and should not own ranking-vs-admission orchestration.
-
-### 6. [crawlernest-jobs](file:///Users/test/Desktop/crawlernest/crawlernest-jobs)
-The orchestration layer. It should own batch execution and pipeline routing, not low-level crawler transport concerns.
-
-### 7. [crawlernest-db-writer](file:///Users/test/Desktop/crawlernest/crawlernest-db-writer)
-The persistence layer.
-- `db_writer.py`: Implements the warehouse-style ingestion pipeline (dimensions vs. facts).
-- `db.py`: Legacy support for flat SQLite tables.
-
-For the ranking-specific workflow, persistence is now more explicitly staged:
-
-- validated staging persistence
-- warehouse preview mapping
-- warehouse landing writes
-- post-landing deterministic entity resolution
-
-This separation reduces the risk of pushing crawler-side uncertainty directly into final warehouse truth.
-
-### 8. [crawlernest-normalization](file:///Users/test/Desktop/crawlernest/crawlernest-normalization)
-Data cleaning and standardization.
-- **C Engine**: Located in `c_engine/`. High-performance score and country name normalizer written in C.
-
-### 9. [crawlernest-cli](file:///Users/test/Desktop/crawlernest/crawlernest-cli)
-Command-line interface for the platform.
-- `interactive.py`: Menu-driven interface for selecting regions and ranking years.
-
-### 10. [crawlernest-schema](file:///Users/test/Desktop/crawlernest/crawlernest-schema)
-Source of truth for the database structure (`schema.sql`) and metadata mappings.
-
-### 11. [crawlernest-kb](file:///Users/test/Desktop/crawlernest/crawlernest-kb)
-The Knowledge Base. Contains snapshots of validated data and reference databases.
-
----
-
-## ⚡ Technical Highlights
-
-- **Separated crawler runtime**: transport concerns now live in `crawlernest-crawler-core`, while ranking and admission engines evolve independently.
-- **Jobs stay orchestration-only**: `crawlernest-jobs` routes and batches work, but shared runtime stays in `crawlernest-crawler-core`.
-- **Controlled ranking production path**: ranking records move through staging, validation, warehouse landing, and deterministic entity resolution before downstream truth consumption.
-- **Robustness**: Extracted data is validated against known score boundaries (e.g., IELTS 0–9).
-- **Network Resilience**: External API calls are guarded by mocks in tests, and live calls use auto-skipping logic if endpoints are unreachable.
+- Agent is not part of production data path.
+- Admission crawler is still a controlled pilot.
+- Data correctness is more important than automation breadth.

@@ -34,13 +34,19 @@ Students and advisors do not just need more ranking rows. They need transparent 
 *   **Database Reliability:** PostgreSQL transaction handling, canonical repair paths, and operational snapshot fallback keep the product usable even when upstream sources are unstable.
 
 ## High-Level Architecture
-CrawlerNest is built on a strict, decoupled 6-layer architecture:
-1.  **Data Layer:** Source acquisition from public ranking and university data providers.
-2.  **Canonical Layer:** Entity resolution, alias handling, normalization, and source-to-canonical mapping.
-3.  **Aggregation Layer:** PostgreSQL warehouse and universe-aware ranking truth.
-4.  **Decision Layer:** Recommendation, trust scoring, evidence summaries, and comparison logic.
-5.  **Mini-Agent Layer:** A lightweight, controlled AI-assisted development loop for scoped task generation, evaluation, refinement, and engineering validation.
-6.  **Product Layer:** Spring Boot APIs, the Next.js website, and a web-facing agent surface built on top of the same controlled agent substrate.
+
+CrawlerNest now has two explicit architecture views:
+
+- `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
+  current executable architecture for the MVP / controlled system
+- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+  longer-term full-vision architecture
+
+For current engineering reality, the safest summary is:
+
+1. **Active Data Pipeline:** crawl, extract, normalize, write, warehouse, API, web
+2. **Controlled Expansion:** limited admission enrichment and basic rule-based recommendation
+3. **Development Support Only:** mini-agent, autoeval, and broader agent systems are not part of the production data path
 
 Inside the data-production path, the crawler system is now intentionally split into three code boundaries:
 
@@ -48,19 +54,25 @@ Inside the data-production path, the crawler system is now intentionally split i
 - **`crawlernest-ranking-crawler/`**: ranking-source crawling for QS, THE, ARWU, ranking universes, and structured ranking rows
 - **`crawlernest-admission-crawler/`**: university-site crawling, admission-page discovery, and extraction of semi-structured admission requirements
 
-`run_pipeline.py` remains the top-level orchestration entrypoint, but the long-term direction is for it to call into these crawler engines rather than continue accumulating source-specific crawling behavior directly.
+`run_pipeline.py` remains the top-level orchestration entrypoint for the active path.
 
 The Mini-Agent Layer follows a constrained loop:
 
 `Task -> Generate -> Evaluate -> Refine`
 
-It is integrated with AutoEval and designed to improve development speed without weakening system reliability.
+It is integrated with AutoEval and designed to improve development speed without weakening system reliability, but it is not part of the production data path.
 
 The ranking-specific data-production loop now follows this controlled path:
 
 `crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh`
 
 This path is intentionally isolated from the final production read model. Ranking facts are first stabilized in staging and warehouse landing layers, then enriched through deterministic entity resolution and manual curation before they are allowed to influence broader downstream truth.
+
+Current downgrade assumptions:
+
+- recommendation is still acceptable as a basic / optional rule-based capability
+- multi-source integration and ranking aggregation remain broader expansion areas rather than the minimum executable core
+- agent systems remain development-support capabilities, not production truth generators
 
 For a deep dive into the engineering principles, see the [Whitepaper](docs/foundation/Whitepaper.md).
 
@@ -99,11 +111,11 @@ CrawlerNest is designed as a dual-layer system combining a data intelligence cor
 
 ### Core Intelligence Layer
 
-The Core Intelligence Layer is responsible for the platform's primary data and decision workflow. It handles crawling across multiple upstream sources, structured extraction of university and ranking records, normalization and canonical identity resolution, PostgreSQL-backed storage, aggregation and analytics pipelines, and the recommendation logic that exposes explainable outcomes to product surfaces. This layer is the operational backbone of the system and remains deterministic, queryable, and production-oriented.
+The Core Intelligence Layer is responsible for the platform's primary data and decision workflow. In the current execution stage, that mostly means crawl, extract, normalize, controlled write, warehouse, and product-serving API paths. This layer remains deterministic, queryable, and production-oriented.
 
 ### Agent Capability Layer
 
-The Agent Capability Layer sits above the operational core as a controlled improvement and assistance system. It now has two explicit modes:
+The Agent Capability Layer sits above the operational core as a controlled improvement and assistance system. It is intentionally outside the production data path and now has two explicit modes:
 
 - a **Dev Agent** path for extractor hardening, parser refinement, evaluation loops, and engineering-facing validation
 - a **Web Agent** path for conversational ranking explanation, university lookup, recommendation guidance, and web-facing agent interaction

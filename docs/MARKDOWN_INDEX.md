@@ -24,10 +24,10 @@ If someone is new to the repo, this is the fastest path:
 1. `README.md`
 2. `README.zh-TW.md`
 3. `docs/REPO_STRUCTURE.md`
-4. `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
-5. `docs/foundation/MASTER_PROJECT_PLAN.md`
-6. `docs/foundation/Whitepaper.md`
-7. `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md`
+4. `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
+5. `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+6. `docs/foundation/MASTER_PROJECT_PLAN.md`
+7. `docs/foundation/Whitepaper.md`
 8. `docs/foundation/TESTING_GUIDE.md`
 
 ## 1. Root Entry Docs
@@ -42,7 +42,8 @@ If someone is new to the repo, this is the fastest path:
 | File | Purpose |
 | --- | --- |
 | `docs/REPO_STRUCTURE.md` | Explains the repo's two-level workspace layout and where major systems live. |
-| `docs/SYSTEM_ENGINE_ARCHITECTURE.md` | Canonical high-level system and engine architecture, including shared crawler core and dual crawler model. |
+| `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md` | Canonical current-execution architecture focused on the MVP / controlled production path. |
+| `docs/SYSTEM_ENGINE_ARCHITECTURE.md` | Full-vision system and engine architecture for the longer-term target state. |
 | `docs/foundation/MASTER_PROJECT_PLAN.md` | Master plan covering scope, phases, and project-level priorities. |
 | `docs/foundation/Whitepaper.md` | High-level architecture whitepaper in Traditional Chinese. |
 | `docs/foundation/DEV_WORKFLOW.md` | Expected engineering workflow for implementation and delivery. |
@@ -53,8 +54,8 @@ If someone is new to the repo, this is the fastest path:
 
 | File | Purpose |
 | --- | --- |
-| `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` | System-level architecture for the CrawlerNest platform. |
-| `crawlernest/crawlernest-docs/architecture.md` | Broader platform architecture narrative and processing model. |
+| `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` | Legacy mirror that now redirects readers to the canonical architecture docs in `docs/`. |
+| `crawlernest/crawlernest-docs/architecture.md` | Compatibility architecture note kept to avoid stale inner-workspace links. |
 | `docs/frontend_api_mapping.md` | Maps frontend pages to backend API endpoints for the website MVP. |
 
 ## 4. Deployment And Operations
@@ -97,8 +98,8 @@ If someone is new to the repo, this is the fastest path:
 
 | File | Purpose |
 | --- | --- |
-| `crawlernest/crawlernest-api/README.md` | Interactive API/TUI layer and validation entrypoints. |
-| `crawlernest/crawlernest-cli/README.md` | Command-line interface and interactive tooling. |
+| `crawlernest/crawlernest-api/README.md` | Legacy / transitional API-side material. |
+| `crawlernest/crawlernest-cli/README.md` | Legacy CLI-side material. |
 | `crawlernest/crawlernest-web/README.md` | Official Next.js website MVP entry document. |
 | `crawlernest/crawlernest-web/AGENTS.md` | Frontend-specific working conventions for agents and contributors. |
 | `crawlernest/crawlernest-web/CLAUDE.md` | Thin redirect doc that points back to `AGENTS.md`. |
@@ -146,8 +147,9 @@ These files are useful, but they are not top-level reference docs:
 
 If you want to reduce doc sprawl further, these are the easiest wins:
 
-1. Decide one canonical architecture doc between `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` and `crawlernest/crawlernest-docs/architecture.md`, then cross-link them clearly.
-2. Keep `docs/MARKDOWN_INDEX.md` updated whenever a new top-level module doc is added.
+1. Keep `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md` as the execution source of truth and `docs/SYSTEM_ENGINE_ARCHITECTURE.md` as the vision source of truth.
+2. Keep inner `crawlernest/crawlernest-docs/*` architecture docs as short redirects only.
+3. Keep `docs/MARKDOWN_INDEX.md` updated whenever a new top-level module doc is added.
 
 ## Recently Updated Narrative Areas
 
@@ -155,6 +157,7 @@ The following docs were recently synchronized to reflect the current ranking wor
 
 - root project overviews
 - repo structure and system-engine docs
+- execution-vs-vision architecture split
 - ranking crawler module overview
 - system architecture narratives
 - entity resolution overview
