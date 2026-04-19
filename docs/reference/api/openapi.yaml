@@ -1,0 +1,226 @@
+openapi: 3.0.3
+info:
+  title: CrawlerNest MVP API
+  description: MVP Backend API contract for the University Data Platform Web Product.
+  version: 1.0.0
+servers:
+  - url: /api/v1
+    description: Default local development server
+
+paths:
+  /rankings:
+    get:
+      summary: Get aggregated rankings
+      description: Returns paginated multi-source aggregated rankings.
+      operationId: getRankings
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 0
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: A list of rankings.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ranking'
+
+  /universities/{id}:
+    get:
+      summary: Get university details by ID
+      operationId: getUniversityById
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: University details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniversityDetail'
+        '404':
+          description: Not found.
+
+  /universities/by-slug/{slug}:
+    get:
+      summary: Get university details by URL slug
+      operationId: getUniversityBySlug
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: University details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniversityDetail'
+        '404':
+          description: Not found.
+
+  /recommendations:
+    get:
+      summary: Get structured recommendations
+      description: Returns a calibrated (Reach/Target/Safety) shortlist of recommended universities based on user profile.
+      operationId: getRecommendations
+      parameters:
+        - in: query
+          name: targetRank
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: ielts
+          schema:
+            type: number
+            format: float
+        - in: query
+          name: country
+          schema:
+            type: string
+        - in: query
+          name: countryPolicy
+          schema:
+            type: string
+            enum: [hard_filter, soft_preference]
+        - in: query
+          name: riskProfile
+          schema:
+            type: string
+            enum: [conservative, balanced, aggressive]
+        - in: query
+          name: preferenceWeights
+          schema:
+            type: string
+            description: JSON string of weights (e.g. '{"ranking":0.5,"ielts":0.2}')
+      responses:
+        '200':
+          description: Grouped recommendations payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendationResult'
+
+  /compare:
+    post:
+      summary: Compare universities
+      description: Compare 2 or more universities side-by-side.
+      operationId: compareUniversities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareRequest'
+      responses:
+        '200':
+          description: Side-by-side comparison result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompareResult'
+
+components:
+  schemas:
+    Ranking:
+      type: object
+      properties:
+        canonicalUniversityId:
+          type: integer
+        universityName:
+          type: string
+        country:
+          type: string
+        rankingYear:
+          type: integer
+        displayRank:
+          type: string
+        compositeScore:
+          type: number
+          format: float
+
+    UniversityDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        displayName:
+          type: string
+        country:
+          type: string
+        admissions:
+          type: object
+
+    CompareRequest:
+      type: object
+      required:
+        - identifiers
+      properties:
+        identifiers:
+          type: array
+          items:
+            type: string
+          minItems: 2
+          maxItems: 5
+        rankingYear:
+          type: integer
+
+    CompareResult:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+        dimensions:
+          type: array
+          items:
+            type: string
+
+    RecommendationResult:
+      type: object
+      properties:
+        reach:
+          $ref: '#/components/schemas/RecommendationList'
+        target:
+          $ref: '#/components/schemas/RecommendationList'
+        safety:
+          $ref: '#/components/schemas/RecommendationList'
+        metadata:
+          type: object
+
+    RecommendationList:
+      type: array
+      items:
+        type: object
+        properties:
+          universityName:
+            type: string
+          matchingScore:
+            type: number
+            format: float
+          category:
+            type: string
+          recommendationConfidence:
+            type: number
+            format: float
+          explanation:
+            type: string

@@ -1,11 +1,16 @@
 # System And Engine Architecture
 
-以圖為主；repo 目錄對照請看 `docs/REPO_STRUCTURE.md`。
+以圖為主；repo 目錄對照請看 `docs/architecture/REPO_STRUCTURE.md`。
 
-本文件描述的是 **長期完整藍圖（vision architecture）**。  
-它可以包含 multi-source aggregation、admission-aware recommendation、agent improvement loop、以及更完整的 intelligence tooling。
+本文件是 **CrawlerNest 唯一的 system / engine architecture 文件**。  
+它同時承擔兩個角色：
 
-但它不等於「現在的主開發順序」。
+1. 說明目前可執行的主線架構
+2. 說明較長期的 vision architecture
+
+也就是說，這份文件不再拆成 execution / vision 兩份，而是用同一份文件清楚區分：
+- 現在真正該跑、該維護、該驗證的是什麼
+- 長期要演進到哪裡
 
 目前 CrawlerNest 的主線仍應遵守 correctness-first 的 no-skip 順序：
 
@@ -15,7 +20,99 @@
 4. 建立 admission-aware recommendation
 5. 最後才逐步擴大 agent autonomy
 
-也就是說，這份文件提供的是方向與最終形態；真正的現行主路徑與限制，應以 `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md` 與 foundation 規範文件為準。
+foundation 規範文件仍然是主線執行邊界的重要補充，但 system / engine 的總敘事，以這一份文件為唯一來源。
+
+## 0. Current Executable Architecture
+
+目前真正應該被視為 production-oriented mainline 的，是這條路徑：
+
+`crawl -> extract -> normalize -> write -> warehouse -> API -> web`
+
+在 execution reality 中，CrawlerNest 應理解為三個區域：
+
+1. **Active Data Pipeline**
+2. **Controlled Expansion**
+3. **Development Support / Future Expansion**
+
+```mermaid
+flowchart TD
+    subgraph LAYER_A["Layer A: Active Data Pipeline (RUNNING)"]
+        direction LR
+
+        subgraph INGEST_ACTIVE["Ingestion"]
+            PIPE_A["[ACTIVE] run_pipeline.py / pipeline/"]
+            JOBS_A["[ACTIVE] crawlernest-jobs/"]
+            RCRAWL_A["[ACTIVE] crawlernest-ranking-crawler/"]
+            ACRAWL_A["[LIMITED] crawlernest-admission-crawler/"]
+            EXT_A["[ACTIVE] crawlernest-extractors/"]
+        end
+
+        subgraph CORE_ACTIVE["Core Domain"]
+            NORM_A["[ACTIVE] normalization"]
+            WRITE_A["[ACTIVE] crawlernest-db-writer/"]
+            ER_A["[ACTIVE] entity_resolution"]
+            WH_A["[ACTIVE] warehouse (ranking + admission)"]
+        end
+
+        subgraph INTERFACE_ACTIVE["Interface"]
+            JAVA_A["[ACTIVE] servise_for_java / REST API"]
+            WEB_A["[ACTIVE] crawlernest-web"]
+        end
+    end
+
+    subgraph LAYER_B["Layer B: Controlled Expansion (PARTIAL)"]
+        direction LR
+        ADM_ENRICH["[LIMITED] admission enrichment / pilot scope"]
+        BASIC_REC["[LIMITED] recommendation_engine (basic / rule-based / optional)"]
+    end
+
+    subgraph LAYER_C["Layer C: Development Support / Future Expansion"]
+        direction LR
+        AGG_F["[FUTURE] multi_source + ranking_aggregation"]
+        AGENT_F["[DEV-SUPPORT] crawlernest/agent/"]
+        MINI_F["[DEV-SUPPORT] crawlernest-mini-agent/"]
+        AUTOEVAL_F["[DEV-SUPPORT] crawlernest-autoeval/"]
+    end
+
+    PIPE_A --> JOBS_A
+    JOBS_A --> RCRAWL_A
+    JOBS_A --> ACRAWL_A
+    RCRAWL_A --> EXT_A
+    ACRAWL_A --> EXT_A
+    EXT_A --> NORM_A
+    NORM_A --> WRITE_A
+    WRITE_A --> ER_A
+    ER_A --> WH_A
+    WH_A --> JAVA_A
+    JAVA_A --> WEB_A
+
+    ACRAWL_A -. pilot feed .-> ADM_ENRICH
+    WH_A -. optional read .-> BASIC_REC
+    BASIC_REC -. optional API path .-> JAVA_A
+    ADM_ENRICH -. controlled write .-> WH_A
+
+    ER_A -. future expansion .-> AGG_F
+    WH_A -. future expansion .-> AGG_F
+
+    AUTOEVAL_F -. dev support only .-> AGENT_F
+    MINI_F -. dev support only .-> AGENT_F
+```
+
+### 0.1 Execution Principles
+
+- Agent is not part of production data path.
+- Admission crawler is in controlled pilot stage.
+- Data correctness > automation.
+- Correctness-first sequencing overrides capability breadth.
+- Development support layers may evolve, but must not outrun crawl / normalization / canonical / warehouse stability.
+
+### 0.2 Regression-Safe Admission Loop
+
+Admission extraction 的改進應理解為受控 improvement loop，而不是 production truth path 的替代品。
+
+- anomaly signals 必須可觀測
+- extractor pattern fix 必須先過 eval / regression / summary
+- pipeline output 必須能回溯到 anomaly breakdown
 
 ## 1. System Overview
 

@@ -5,11 +5,10 @@ It is now kept as a **compatibility document** so old links do not point to stal
 
 ## Canonical Sources
 
-- `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
   current executable system
-- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+- `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
   long-term vision
-- `docs/REPO_STRUCTURE.md`
+- `docs/architecture/REPO_STRUCTURE.md`
   actual repo / module structure
 
 ## Current Engineering Reality

@@ -23,9 +23,8 @@ If someone is new to the repo, this is the fastest path:
 
 1. `README.md`
 2. `README.zh-TW.md`
-3. `docs/REPO_STRUCTURE.md`
-4. `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
-5. `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+3. `docs/architecture/REPO_STRUCTURE.md`
+4. `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
 6. `docs/foundation/MASTER_PROJECT_PLAN.md`
 7. `docs/foundation/Whitepaper.md`
 8. `docs/foundation/TESTING_GUIDE.md`
@@ -41,9 +40,8 @@ If someone is new to the repo, this is the fastest path:
 
 | File | Purpose |
 | --- | --- |
-| `docs/REPO_STRUCTURE.md` | Explains the repo's two-level workspace layout and where major systems live. |
-| `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md` | Canonical current-execution architecture focused on the MVP / controlled production path. |
-| `docs/SYSTEM_ENGINE_ARCHITECTURE.md` | Full-vision system and engine architecture for the longer-term target state. |
+| `docs/architecture/REPO_STRUCTURE.md` | Explains the repo's two-level workspace layout and where major systems live. |
+| `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md` | Canonical system and engine architecture covering both current execution reality and longer-term target state. |
 | `docs/foundation/MASTER_PROJECT_PLAN.md` | Master plan covering scope, phases, and project-level priorities. |
 | `docs/foundation/Whitepaper.md` | High-level architecture whitepaper in Traditional Chinese. |
 | `docs/foundation/DEV_WORKFLOW.md` | Expected engineering workflow for implementation and delivery. |
@@ -56,7 +54,7 @@ If someone is new to the repo, this is the fastest path:
 | --- | --- |
 | `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` | Legacy mirror that now redirects readers to the canonical architecture docs in `docs/`. |
 | `crawlernest/crawlernest-docs/architecture.md` | Compatibility architecture note kept to avoid stale inner-workspace links. |
-| `docs/frontend_api_mapping.md` | Maps frontend pages to backend API endpoints for the website MVP. |
+| `docs/reference/frontend_api_mapping.md` | Maps frontend pages to backend API endpoints for the website MVP. |
 
 ## 4. Deployment And Operations
 
@@ -147,7 +145,7 @@ These files are useful, but they are not top-level reference docs:
 
 If you want to reduce doc sprawl further, these are the easiest wins:
 
-1. Keep `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md` as the execution source of truth and `docs/SYSTEM_ENGINE_ARCHITECTURE.md` as the vision source of truth.
+1. Keep `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md` as the single source of truth for both execution reality and longer-term architecture.
 2. Keep inner `crawlernest/crawlernest-docs/*` architecture docs as short redirects only.
 3. Keep `docs/MARKDOWN_INDEX.md` updated whenever a new top-level module doc is added.
 

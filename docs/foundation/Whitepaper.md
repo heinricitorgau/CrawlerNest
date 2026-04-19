@@ -2,13 +2,6 @@
 
 本文件為 CrawlerNest 專案的最高層級技術架構文件（Master Technical Architecture Document）。
 
-執行註記：
-
-- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
-  代表長期完整 vision
-- `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
-  代表目前可執行的 MVP / controlled system
-
 本白皮書偏向願景、分層原則與演進方向，不應被直接解讀為「所有層都已經是現在的主執行路徑」。
 
 CrawlerNest 的目標，不只是建立一套可以抓取大學資料的爬蟲，而是逐步演進成一個可持續擴展、可追溯、可分析、可推薦、可比較、可產品化的教育資料平台。
@@ -1323,7 +1316,6 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 - AutoEval 已建立 baseline，但仍需擴大 coverage 與 regression discipline
 - Mini-Agent Layer 已不只停留於概念定位，Web / Dev Agent 已建立顯式執行邊界；其中 Web Agent 已具備 formatter 邊界、safe fallback、provider-aware generation path 與 recommendation / ranking / lookup 的 task-specific context/prompt routing
 - `/agent` page 已由工程測試面板收斂為具 normal/debug mode 的 web agent 入口，且 memory debug 已補上 human-readable summary 與 recent-entity carry-over 可觀測性
-- 架構文件已拆分為 repo structure / system-engine / whitepaper 三層敘事，文件邊界更清楚
 - 主開發順序已正式規範化：在 admission crawler、normalization、canonical、formal warehouse 與 admission-aware recommendation 尚未完全穩定前，agent autonomy 與 self-rewrite 不再被視為當前主線
 
 換言之，CrawlerNest 已不是單純 crawler 專案，但也尚未進入 fully scaled platform 階段。它目前最核心的工作，已不再是持續堆疊 agent 能力，而是把 admission crawl、normalization、canonical identity、formal warehouse 與 recommendation 主路徑打磨成真正可靠的資料平台，再讓 agent 層以受控方式服務這條主線。

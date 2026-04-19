@@ -41,10 +41,8 @@ CrawlerNest 是一套端到端的大學資料平台，能把分散的網頁資�
 
 CrawlerNest 現在有兩種明確分開的架構視角：
 
-- `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
-  代表目前可執行的 MVP / controlled system
-- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
-  代表較完整的長期 vision 架構
+- `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
+  代表唯一的 system / engine architecture 文件，包含目前 execution reality 與較長期的 vision
 
 若以目前工程現況來看，最安全的摘要是：
 
@@ -455,7 +453,7 @@ THE universities 不會來自 `warehouse.universities`，因此光靠 `seed-cano
 ---
 
 工程維運、API invariants 與 testing logic 請參考 [Engineering Validation & Maintenance Guide](docs/foundation/TESTING_GUIDE.md)。  
-目前 repository map 與工作路徑請參考 [Repository Structure](docs/REPO_STRUCTURE.md)。
+目前 repository map 與工作路徑請參考 [Repository Structure](docs/architecture/REPO_STRUCTURE.md)。
 
 ## 目前系統狀態
 
