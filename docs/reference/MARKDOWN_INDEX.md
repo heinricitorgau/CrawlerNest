@@ -9,13 +9,13 @@ Included:
 - `docs/`
 - Module `README.md` and design docs under `crawlernest/`
 - `mini_agent/README.md`
-- `lobster-01/README_NODE.md`
+- `deployment-support/lobster-01/README_NODE.md`
 
 Excluded from this index:
 - `.venv/`, `.venv-1/`
 - `node_modules/`
 - `.claude/worktrees/`
-- mirrored module docs under `lobster-01/crawlernest/`
+- mirrored module docs under `deployment-support/lobster-01/crawlernest/`
 
 ## Reading Order
 
@@ -61,7 +61,7 @@ If someone is new to the repo, this is the fastest path:
 | File | Purpose |
 | --- | --- |
 | `docs/deployment/Lobster_01_Deployment_Guide.md` | Production node deployment and runbook for Lobster-01. |
-| `lobster-01/README_NODE.md` | Operational notes for the Lobster-01 crawler node environment. |
+| `deployment-support/lobster-01/README_NODE.md` | Operational notes for the Lobster-01 crawler node environment. |
 
 ## 5. Core Product Modules
 

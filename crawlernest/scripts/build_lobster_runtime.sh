@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 SOURCE_ROOT="${REPO_ROOT}/crawlernest"
-RUNTIME_ROOT="${REPO_ROOT}/lobster-01"
+RUNTIME_ROOT="${REPO_ROOT}/deployment-support/lobster-01"
 
 WITH_DATA=false
 MINIMAL=false
