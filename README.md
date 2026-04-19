@@ -38,10 +38,8 @@ Students and advisors do not just need more ranking rows. They need transparent 
 
 CrawlerNest now has two explicit architecture views:
 
-- `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
-  current executable architecture for the MVP / controlled system
-- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
-  longer-term full-vision architecture
+- `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
+  canonical system / engine architecture covering both current execution reality and longer-term vision
 
 For current engineering reality, the safest summary is:
 
@@ -442,7 +440,7 @@ Observed result from the current environment:
 ---
 
 For engineering operations, API invariants, and testing logic, see the [Engineering Validation & Maintenance Guide](docs/foundation/TESTING_GUIDE.md).
-For the current repository map and working paths, see [Repository Structure](docs/REPO_STRUCTURE.md).
+For the current repository map and working paths, see [Repository Structure](docs/architecture/REPO_STRUCTURE.md).
 
 ## Current System Status
 This reflects our actual engineering maturity:

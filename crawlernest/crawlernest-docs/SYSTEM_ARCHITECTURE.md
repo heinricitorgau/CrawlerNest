@@ -4,11 +4,10 @@ This document is now a **legacy mirror / redirect** for the architecture narrati
 
 For current canonical docs, use:
 
-- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+- `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
   v1 full-vision architecture
-- `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
   v2 current executable architecture
-- `docs/REPO_STRUCTURE.md`
+- `docs/architecture/REPO_STRUCTURE.md`
   repo and module layout
 
 ## Current Status
@@ -39,8 +38,7 @@ With these boundaries:
 ## Recommended Reading
 
 1. `README.md`
-2. `docs/REPO_STRUCTURE.md`
-3. `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
-4. `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+2. `docs/architecture/REPO_STRUCTURE.md`
+3. `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
 
 This file is intentionally kept short to avoid architecture drift.

@@ -5,7 +5,7 @@ CrawlerNest 目前是「外層 repo + 內層產品 workspace」的雙層結構�
 
 如果你要理解系統怎麼運作、資料怎麼流、哪些服務彼此相依，請看：
 
-- `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+- `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
 
 如果你要知道 **現在應該先開發哪一層**，請優先以這組標記理解本文件：
 
@@ -209,9 +209,8 @@ crawlernest/crawlernest-analytics/     # [CONTROLLED EXPANSION] exporter / analy
 第一次進 repo，建議用這個順序理解：
 
 1. `README.md`
-2. `docs/REPO_STRUCTURE.md`
-3. `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md`
-4. `docs/SYSTEM_ENGINE_ARCHITECTURE.md`
+2. `docs/architecture/REPO_STRUCTURE.md`
+3. `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
 5. `crawlernest/run_pipeline.py`
 6. `crawlernest/pipeline/`
 7. `crawlernest/crawlernest-admission-crawler/`
