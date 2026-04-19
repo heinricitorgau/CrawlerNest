@@ -2,6 +2,21 @@
 
 以圖為主；repo 目錄對照請看 `docs/REPO_STRUCTURE.md`。
 
+本文件描述的是 **長期完整藍圖（vision architecture）**。  
+它可以包含 multi-source aggregation、admission-aware recommendation、agent improvement loop、以及更完整的 intelligence tooling。
+
+但它不等於「現在的主開發順序」。
+
+目前 CrawlerNest 的主線仍應遵守 correctness-first 的 no-skip 順序：
+
+1. 穩定 crawl / extract
+2. 穩定 normalization / canonical mapping
+3. 正式化 warehouse / API contract
+4. 建立 admission-aware recommendation
+5. 最後才逐步擴大 agent autonomy
+
+也就是說，這份文件提供的是方向與最終形態；真正的現行主路徑與限制，應以 `docs/SYSTEM_ENGINE_ARCHITECTURE_EXECUTION.md` 與 foundation 規範文件為準。
+
 ## 1. System Overview
 
 ```mermaid
@@ -199,6 +214,9 @@ mindmap
 ```
 
 ## 8. Regression-Safe Pipeline & Eval Loop
+
+這一節描述的是 admission extraction 與 controlled improvement loop 的理想成熟形態。  
+它代表我們希望逐步抵達的工程安全基線，但不表示 agent / eval loop 已取代資料主線本身。
 
 - **Admission Extraction Pipeline** is now at Phase 4 "controlled improvement loop":
   - All anomaly signals (e.g., input_truncated, invalid_ielts, source_host_mismatch) are fully observable

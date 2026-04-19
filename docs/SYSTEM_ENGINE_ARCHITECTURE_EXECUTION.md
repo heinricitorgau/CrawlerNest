@@ -36,12 +36,12 @@ flowchart TD
         BASIC_REC["[LIMITED] recommendation_engine (basic / rule-based / optional)"]
     end
 
-    subgraph LAYER_C["Layer C: Future / Disabled (NOT ACTIVE)"]
+    subgraph LAYER_C["Layer C: Development Support / Future Expansion"]
         direction LR
         AGG["[FUTURE] multi_source + ranking_aggregation"]
-        AGENT["[DISABLED] crawlernest/agent/"]
-        MINI["[DISABLED] crawlernest-mini-agent/"]
-        AUTOEVAL["[DISABLED] crawlernest-autoeval/"]
+        AGENT["[DEV-SUPPORT] crawlernest/agent/"]
+        MINI["[DEV-SUPPORT] crawlernest-mini-agent/"]
+        AUTOEVAL["[DEV-SUPPORT] crawlernest-autoeval/"]
     end
 
     PIPE --> JOBS
@@ -73,17 +73,25 @@ flowchart TD
 v1 (`docs/SYSTEM_ENGINE_ARCHITECTURE.md`) 描述的是長期完整藍圖，包含更完整的 multi-source aggregation、recommendation、agent loop 與自動改進能力。  
 v2 只保留目前應該真的上線、維護、驗證的執行主鏈：`crawl -> extract -> normalize -> write -> warehouse -> API -> web`。
 
+這份文件的重點不是否認 agent / autoeval 的存在，而是明確指出：
+
+- 它們存在
+- 它們可以運作
+- 但它們不是現在的 mainline production truth path
+
 這份 v2 刻意降級或移出：
 
 - `recommendation_engine`：只作為 `[LIMITED]` 的 basic / rule-based / optional 能力
 - `multi_source`、`ranking_aggregation`：標為 `[FUTURE]`
-- `crawlernest/agent/`、`crawlernest-mini-agent/`、`crawlernest-autoeval/`：標為 `[DISABLED]`，只屬於 development support，不屬於 production pipeline
+- `crawlernest/agent/`、`crawlernest-mini-agent/`、`crawlernest-autoeval/`：標為 `[DEV-SUPPORT]`，代表它們屬於開發支援與受控 improvement path，不屬於 production pipeline，也不應先於 admission / canonical / warehouse 主線被擴張
 
 ## 3. Design Principle
 
 - Agent is not part of production data path.
 - Admission crawler is in controlled pilot stage.
 - Data correctness > automation.
+- Correctness-first sequencing overrides capability breadth.
+- Development support layers may evolve, but must not outrun crawl / normalization / canonical / warehouse stability.
 
 ## 4. Regression-Safe Pipeline & Eval Loop (Phase 4)
 

@@ -17,6 +17,7 @@ Students and advisors do not just need more ranking rows. They need transparent 
 *   **Split Crawler Foundation:** The crawling stack now has an explicit shared crawler core plus two independent engines: a **Ranking Crawler Engine** for ranking sources and an **Admission Crawler Engine** for university-site admissions data.
 *   **Ranking Production Workflow:** The ranking path now runs through a controlled production-oriented chain: raw artifact, normalized artifact, staging output, validation gate, controlled ingest, warehouse preview, warehouse landing, deterministic entity resolution, unresolved reporting, alias seeding, and refresh orchestration.
 *   **Admission Production Workflow:** The admission path now has its own controlled chain from crawl through staging, validation, warehouse preview, warehouse landing, deterministic entity resolution, unresolved reporting, and alias-driven refresh.
+*   **Correctness-First Hardening:** The admission path now includes host allowlisting, extractor input budgets, field-range validation, anomaly breakdowns, and richer suspicious-resolution visibility before broader scale-up.
 *   **Universe-Aware Aggregation:** Rankings are handled as distinct universes such as `global`, `region`, `subject`, and `special`, with aggregation isolated per universe.
 *   **Rank-Based Aggregation Truth:** Aggregated rank order is now driven by source ranks, not composite score sorting. Composite score remains a display signal only.
 *   **Ranking Evidence:** Product rows and university detail pages expose QS / THE / ARWU source ranks directly, including disagreement across sources.
@@ -481,6 +482,8 @@ CrawlerNest's engineering depth is built on a history of rigorous milestones:
 *   **2026-04-15:** Completed ranking + admission convergence preview, canonical university detail preview, Java preview API, and the preview university page.
 *   **2026-04-16:** Switched the rankings main API from demo-grade preview rows to the full ranking warehouse and aligned the frontend rankings browser semantics around total matches vs rows on the current page.
 *   **2026-04-17:** Completed the explicit Web / Dev Agent split, Web Agent formatter boundary, generation layer (context / prompt / response generator), `/agent` normal/debug mode split, and memory debug upgrades including summary reporting and recent-entity carry-over.
+*   **2026-04-18:** Formalized the mainline development order through architecture scope, data contracts, and do-not-auto-modify guardrails, recentering the project on admission crawl, normalization, canonical identity, warehouse, and recommendation correctness.
+*   **2026-04-19:** Added correctness-first hardening across the prototype path: admission crawler host guards, extractor truncation and field validation, agent prompt untrusted-source guardrails, API request size caps, and anomaly visibility in resolution summaries / unresolved reports.
 
 ## AutoEval Extractor Milestone
 
