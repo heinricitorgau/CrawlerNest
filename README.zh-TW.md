@@ -20,6 +20,7 @@ CrawlerNest 是一套端到端的大學資料平台，能把分散的網頁資�
 *   **拆分式 Crawler Foundation：** 爬蟲層現在已明確拆成共享 crawler core，以及兩套彼此獨立的 engine：負責排名來源的 **Ranking Crawler Engine**，以及負責學校官網 admissions 資料的 **Admission Crawler Engine**。
 *   **Ranking Production Workflow：** ranking path 已建立一條受控資料生產鏈：raw artifact、normalized artifact、staging output、validation gate、controlled ingest、warehouse preview、warehouse landing、deterministic entity resolution、unresolved reporting、alias seeding 與 refresh orchestration。
 *   **Admission Production Workflow：** admission path 也已建立自己的受控資料生產鏈，從 crawl 到 staging、validation、warehouse preview、warehouse landing、deterministic entity resolution、unresolved reporting 與 alias-driven refresh。
+*   **Correctness-First Hardening：** admission path 現在已補上 host allowlisting、extractor input budget、欄位範圍驗證、anomaly breakdown 與更清楚的 suspicious resolution visibility，才會進一步往更大規模擴展。
 *   **Universe-Aware Aggregation：** 排名已區分為 `global`、`region`、`subject`、`special` 等 universe，aggregation 會依 universe 隔離處理。
 *   **以 Rank 為主的 Aggregation Truth：** aggregated rank 由來源 rank 決定，而不是用 composite score 排序；`compositeScore` 僅保留為展示訊號。
 *   **Ranking Evidence：** 產品列與大學 detail page 可直接顯示 QS / THE / ARWU 的來源排名，以及來源間的差異。
@@ -501,6 +502,8 @@ CrawlerNest 的工程深度，建立在一系列明確的 milestones 之上：
 *   **2026-04-15：** 完成 ranking + admission convergence preview、canonical university detail preview、Java preview API 與 preview university page。
 *   **2026-04-16：** 完成 rankings 主 API 從 demo-grade preview rows 切換到正式 ranking warehouse，並對齊 frontend rankings browser 的 total matches / current-page rows 語義。
 *   **2026-04-17：** 完成 Web / Dev Agent 顯式分流、Web Agent formatter 邊界、generation layer（context / prompt / response generator）、`/agent` normal/debug mode 分流，以及 memory debug summary 與 recent-entity carry-over 強化。
+*   **2026-04-18：** 正式將主線開發順序規範化，寫入 architecture scope、data contracts 與 do-not-auto-modify guardrails，將專案主線重新收斂為 admission crawl、normalization、canonical identity、warehouse 與 recommendation correctness。
+*   **2026-04-19：** 補上 correctness-first hardening：admission crawler host guard、extractor 截斷與欄位驗證、agent prompt untrusted-source guardrail、API request size cap，以及 resolution summary / unresolved report 的 anomaly visibility。
 
 ## AutoEval Extractor Milestone
 
