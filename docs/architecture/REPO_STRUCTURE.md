@@ -22,13 +22,9 @@ repo-root/
 ├── docs/                              # 架構、部署、參考文件
 ├── crawlernest/                       # [MAINLINE] 主要產品 workspace（目前最重要）
 ├── crawlernest-samples/               # 外層樣本 / artifact 輸出
-├── lobster-01/                        # 節點部署與 runtime 資產
+├── deployment-support/                # 節點部署與 runtime 資產
 ├── logs/                              # 執行日誌
-├── agent/                             # [LEGACY / COMPAT] 外層舊版/簡化 agent 原型
-├── mini_agent/                        # [LEGACY / COMPAT] 外層簡化 mini-agent 原型
-├── interfaces/                        # [LEGACY / COMPAT] 外層介面殼層
-├── web/                               # [LEGACY / COMPAT] 外層 web 殼層
-├── runtime/                           # [LEGACY / COMPAT] 外層 runtime 設定
+├── legacy/                            # [LEGACY / COMPAT] 外層舊版/相容殼層與過渡材料
 └── docker-compose.postgres.yml        # 本機 PostgreSQL 輔助配置
 ```
 

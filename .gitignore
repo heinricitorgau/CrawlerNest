@@ -45,6 +45,6 @@ build/
 *.pyo
 
 # Lobster runtime build outputs
-lobster-01/crawlernest/
-lobster-01/logs/
-lobster-01/requirements.txt
+deployment-support/lobster-01/crawlernest/
+deployment-support/lobster-01/logs/
+deployment-support/lobster-01/requirements.txt
