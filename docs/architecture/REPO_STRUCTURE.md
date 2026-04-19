@@ -29,7 +29,6 @@ repo-root/
 ├── interfaces/                        # [LEGACY / COMPAT] 外層介面殼層
 ├── web/                               # [LEGACY / COMPAT] 外層 web 殼層
 ├── runtime/                           # [LEGACY / COMPAT] 外層 runtime 設定
-├── scripts/                           # [LEGACY / COMPAT] 外層腳本
 └── docker-compose.postgres.yml        # 本機 PostgreSQL 輔助配置
 ```
 
