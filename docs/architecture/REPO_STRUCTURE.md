@@ -44,7 +44,7 @@ crawlernest/
 ├── core/                              # [MAINLINE] service facade（ranking / recommendation / university）
 ├── agent/                             # [DEV-SUPPORT] 現行 Python agent 系統
 │
-├── crawlernest-crawler-core/          # [MAINLINE] 共用 crawler runtime
+├── crawlernest-crawler-core/          # [MAINLINE] 共用 crawler runtime，可獨立演進的子專案
 ├── crawlernest-extractors/            # [MAINLINE] 共用 fetch / extract helper
 ├── crawlernest-ranking-crawler/       # [MAINLINE] ranking crawler 與 source adapters
 ├── crawlernest-admission-crawler/     # [MAINLINE] admission crawler / site profiles
@@ -98,7 +98,7 @@ crawlernest/pipeline/                  # [MAINLINE]
 ### 3.3 Crawlers And Shared Runtime
 
 ```text
-crawlernest/crawlernest-crawler-core/  # [MAINLINE] logger / runtime primitive
+crawlernest/crawlernest-crawler-core/  # [MAINLINE] logger / runtime primitive / shared crawler subproject
 crawlernest/crawlernest-extractors/    # [MAINLINE] fetcher.py / extractor.py
 crawlernest/crawlernest-ranking-crawler/
 ├── sources/                           # QS 等 source modules
@@ -108,6 +108,11 @@ crawlernest/crawlernest-admission-crawler/  # [MAINLINE]
 ├── crawlers/                          # admission crawlers
 ├── extractors/                        # admission extraction helpers
 └── site_profiles/                     # site-specific profiles
+
+補充原則：
+
+- `crawlernest-crawler-core/` 可以單獨維護與版本化思考，但仍屬於目前主產品 workspace 的 shared dependency。
+- 它只承接 crawler runtime primitive，不承接 ranking-specific、admission-specific、或 recommendation-specific 邏輯。
 ```
 
 ### 3.4 Core Domain Engine

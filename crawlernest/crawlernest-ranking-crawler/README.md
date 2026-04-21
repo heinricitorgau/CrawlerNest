@@ -12,6 +12,8 @@ This module is responsible for:
 
 It should depend on `crawlernest-crawler-core/`, but it must not depend on the admission crawler engine.
 
+`crawlernest-crawler-core/` should be treated here as a shared runtime dependency that may evolve on a different cadence, but only for reusable crawler primitives rather than ranking-specific policy.
+
 ## Current Role In The Ranking Pipeline
 
 The ranking engine is no longer just a crawler entrypoint. It is now the front edge of a controlled ranking production workflow:

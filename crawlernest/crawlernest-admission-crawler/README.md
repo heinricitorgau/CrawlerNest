@@ -11,6 +11,8 @@ This module is responsible for:
 
 It should depend on `crawlernest-crawler-core/`, but it must not depend on the ranking crawler engine.
 
+`crawlernest-crawler-core/` should be treated here as a shared runtime dependency that may evolve on a different cadence, but only for reusable crawler primitives rather than admission-specific extraction policy.
+
 ## Files
 
 - `engine.py`: admission engine entrypoint

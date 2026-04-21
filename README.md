@@ -15,6 +15,7 @@ Students and advisors do not just need more ranking rows. They need transparent 
 ## Current Capabilities
 *   **Multi-Source Ranking Ingestion:** QS, THE, and ARWU can now feed the same ranking storage and aggregation path. THE world rankings prefer **structured JSON** (CDN blobs when published, else Next.js `__NEXT_DATA__`) rather than brittle HTML-first scraping.
 *   **Split Crawler Foundation:** The crawling stack now has an explicit shared crawler core plus two independent engines: a **Ranking Crawler Engine** for ranking sources and an **Admission Crawler Engine** for university-site admissions data.
+*   **Standalone Shared Crawler Subproject:** `crawlernest-crawler-core/` is now treated as a separately developable runtime subproject for shared transport, retry, rate limiting, logging, and snapshot primitives. Ranking and admission crawlers may depend on it, but business-specific extraction or recommendation logic must stay outside this boundary.
 *   **Ranking Production Workflow:** The ranking path now runs through a controlled production-oriented chain: raw artifact, normalized artifact, staging output, validation gate, controlled ingest, warehouse preview, warehouse landing, deterministic entity resolution, unresolved reporting, alias seeding, and refresh orchestration.
 *   **Admission Production Workflow:** The admission path now has its own controlled chain from crawl through staging, validation, warehouse preview, warehouse landing, deterministic entity resolution, unresolved reporting, and alias-driven refresh.
 *   **Correctness-First Hardening:** The admission path now includes host allowlisting, extractor input budgets, field-range validation, anomaly breakdowns, and richer suspicious-resolution visibility before broader scale-up.
@@ -52,6 +53,8 @@ Inside the data-production path, the crawler system is now intentionally split i
 - **`crawlernest-crawler-core/`**: shared transport/runtime concerns such as HTTP, retry, rate limiting, logging, and snapshot stubs
 - **`crawlernest-ranking-crawler/`**: ranking-source crawling for QS, THE, ARWU, ranking universes, and structured ranking rows
 - **`crawlernest-admission-crawler/`**: university-site crawling, admission-page discovery, and extraction of semi-structured admission requirements
+
+`crawlernest-crawler-core/` should be read as a thin shared runtime dependency that can evolve on a different cadence from crawler engines, as long as it preserves its non-business, reusable boundary.
 
 `run_pipeline.py` remains the top-level orchestration entrypoint for the active path.
 
