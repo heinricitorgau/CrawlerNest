@@ -18,6 +18,7 @@ CrawlerNest 是一套端到端的大學資料平台，能把分散的網頁資�
 
 *   **多來源排名 Ingestion：** QS、THE、ARWU 已可進入同一條 ranking storage / aggregation path。THE world rankings 優先使用**結構化 JSON**（已發布時使用 CDN blobs，否則退回 Next.js `__NEXT_DATA__`），而非脆弱的 HTML-first 抓法。
 *   **拆分式 Crawler Foundation：** 爬蟲層現在已明確拆成共享 crawler core，以及兩套彼此獨立的 engine：負責排名來源的 **Ranking Crawler Engine**，以及負責學校官網 admissions 資料的 **Admission Crawler Engine**。
+*   **可獨立演進的共享 Crawler 子專案：** `crawlernest-crawler-core/` 現在視為可分開開發的 runtime 子專案，專門承接共享 transport、retry、rate limiting、logging 與 snapshot primitives。ranking crawler 與 admission crawler 可以依賴它，但 business-specific extraction 與 recommendation logic 不應放進這個邊界。
 *   **Ranking Production Workflow：** ranking path 已建立一條受控資料生產鏈：raw artifact、normalized artifact、staging output、validation gate、controlled ingest、warehouse preview、warehouse landing、deterministic entity resolution、unresolved reporting、alias seeding 與 refresh orchestration。
 *   **Admission Production Workflow：** admission path 也已建立自己的受控資料生產鏈，從 crawl 到 staging、validation、warehouse preview、warehouse landing、deterministic entity resolution、unresolved reporting 與 alias-driven refresh。
 *   **Correctness-First Hardening：** admission path 現在已補上 host allowlisting、extractor input budget、欄位範圍驗證、anomaly breakdown 與更清楚的 suspicious resolution visibility，才會進一步往更大規模擴展。
@@ -55,6 +56,8 @@ CrawlerNest 現在有兩種明確分開的架構視角：
 - **`crawlernest-crawler-core/`**：只放共享 transport/runtime 能力，例如 HTTP、retry、rate limiting、logging 與 snapshot stub
 - **`crawlernest-ranking-crawler/`**：專門處理 QS、THE、ARWU、ranking universe 與結構化 ranking rows
 - **`crawlernest-admission-crawler/`**：專門處理 university site crawling、admission page discovery，以及半結構 admission requirements extraction
+
+`crawlernest-crawler-core/` 應被理解成一個很薄的共享 runtime 依賴層，可以與 crawler engines 分開演進，但必須維持「可重用、非 business logic」的邊界。
 
 `run_pipeline.py` 目前仍是 active path 的高層 orchestration 入口。
 

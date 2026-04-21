@@ -118,6 +118,21 @@ Frontend and product work must not block on backend completion when the contract
 
 Implementation begins only after spec and contract are stable enough to code against.
 
+### Shared Subproject Rule
+
+If a change touches `crawlernest/crawlernest-crawler-core/`, decide first whether it is:
+
+- a reusable crawler runtime concern
+- or engine-owned business logic
+
+Use this split:
+
+- put HTTP, retry, rate limiting, logging, snapshot, and other business-agnostic runtime primitives into `crawlernest-crawler-core/`
+- keep ranking-source parsing and ranking-specific crawl policy in `crawlernest-ranking-crawler/`
+- keep admission-page discovery, admission extraction, and admission-specific crawl policy in `crawlernest-admission-crawler/`
+
+Do not use `crawlernest-crawler-core/` as a convenience sink for cross-module logic. It is allowed to evolve as a separately developable shared subproject only if it stays generic.
+
 ### Expected Order
 
 #### Data-layer feature
@@ -128,6 +143,14 @@ Implementation begins only after spec and contract are stable enough to code aga
 4. validation query
 5. API mapping
 6. frontend wiring
+
+#### Shared crawler runtime feature
+
+1. confirm the logic is reusable across crawler engines
+2. implement in `crawlernest-crawler-core/`
+3. verify ranking crawler integration impact
+4. verify admission crawler integration impact
+5. update engine-facing docs if the shared boundary changed
 
 #### Read/API feature
 

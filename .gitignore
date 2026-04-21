@@ -48,3 +48,5 @@ build/
 deployment-support/lobster-01/crawlernest/
 deployment-support/lobster-01/logs/
 deployment-support/lobster-01/requirements.txt
+
+tmp/ai-dev/

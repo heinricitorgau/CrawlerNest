@@ -95,6 +95,7 @@ Primary code area:
 - `crawlernest/run_pipeline.py`
 - `crawlernest/pipeline/**`
 - crawler, fetcher, extractor, job modules
+- shared crawler runtime modules such as `crawlernest/crawlernest-crawler-core/**` only for reusable transport/runtime primitives
 
 Responsibilities:
 
@@ -131,6 +132,14 @@ Single source of truth owned here:
 - crawl execution state
 - source payload handling
 - pipeline recovery behavior
+- shared crawler transport/runtime primitives, as long as they remain business-agnostic
+
+Boundary note:
+
+- `crawlernest-crawler-core/` may be developed as a thin standalone subproject boundary, but it must stay generic.
+- ranking-specific rules belong in ranking crawler modules.
+- admission-specific rules belong in admission crawler modules.
+- recommendation or decision semantics must not move into crawler-core.
 
 ---
 

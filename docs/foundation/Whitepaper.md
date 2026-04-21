@@ -85,25 +85,25 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 - Admission crawler 仍處於 controlled pilot stage
 - Data correctness 優先於 automation breadth
 
-### 2.2 模組完成度地圖（截至 2026 年 3 月）
+### 2.2 模組完成度地圖（截至 2026 年 4 月）
 
 | 模組 | 說明 | 狀態 | 完成度 |
 | :--- | :--- | :---: | :---: |
 | 最小端到端流程 | `crawlernest/run_pipeline.py`（crawl → normalize → store → query） | 已運行 | ~90% |
 | 長時間持續爬蟲 | 無限循環、KeyboardInterrupt 優雅關機、資料不遺失 | 已完成 | 100% |
-| 採集 / 網路層 | 非同步請求、端點探測、分頁處理、保守抓取節流 | 已運行 | ~85% |
-| 多 universe 採集 | QS global / region / subject / special 統一路徑 | 已運行 | ~85% |
-| 解析 / 提取層 | 錄取要求、截止日、分數規則解析 | 已運行 | ~80% |
-| Python 正規化基線 | 國家標準化、數值安全轉換、驗證流程 | 進行中 | ~75% |
+| 採集 / 網路層 | 非同步請求、端點探測、分頁處理、保守抓取節流、shared crawler runtime boundary | 已運行 | ~88% |
+| 多 universe 採集 | QS global / region / subject / special 統一路徑 | 已運行 | ~88% |
+| 解析 / 提取層 | admission requirement、deadline、語言成績規則解析與 correctness-first guardrails | 已運行 | ~86% |
+| Python 正規化基線 | 國家標準化、數值安全轉換、驗證流程 | 進行中 | ~80% |
 | C 正規化引擎 | 名稱 / 國家 / 排名 / 分數高效處理 | 開發中 | ~25% |
-| 實體識別 | 別名映射、人工校正、模糊比對基礎 | 進行中 | ~40% |
+| 實體識別 | 別名映射、人工校正、模糊比對基礎、unresolved / suspicious visibility | 進行中 | ~50% |
 | 儲存 / 資料倉層 | PostgreSQL-only schema、DB writer、analytics views、Spring Data JPA、run traceability | 已完成 | ~95% |
 | API 讀取層（唯讀 + 決策） | Spring Boot `/universities`、`/rankings`、`/recommendations`、`/compare`、scope-aware / country-aware filtering，且 country filter 已在最終 read query 依 canonical metadata 落地 | 已完成 | ~95% |
-| Website Product Layer | Next.js Rankings Browser、University Detail、Ranking Evidence、Trust Layer、Recommendation UI、Compare Page、API Proxy、country-aware filter UI | 已運行 | ~95% |
-| 品質與驗證 | transaction rollback、early commit、AutoEval baseline | 已運行 | ~90% |
+| Website Product Layer | Next.js Rankings Browser、University Detail、Ranking Evidence、Trust Layer、Recommendation UI、Compare Page、API Proxy、country-aware filter UI、assistant-facing decision surfaces | 已運行 | ~96% |
+| 品質與驗證 | transaction rollback、early commit、AutoEval baseline、crawler guardrails、focused regression discipline | 已運行 | ~92% |
 | 低規節點運行策略 | `lobster-01` runtime workspace、optimized scripts | 已完成 | 100% |
-| 分析與推薦 | multi-universe aggregation、explainable comparison、scope-aware recommendation v3 | 已運作 | ~92% |
-| AutoEval 研究層 | extractor 評估、hard dataset、manual autoloop | 已運行 | ~70% |
+| 分析與推薦 | multi-universe aggregation、explainable comparison、scope-aware recommendation v3、admission signals、composite、decision output、decision strategy | 已運作 | ~95% |
+| AutoEval 研究層 | extractor 評估、hard dataset、manual autoloop | 已運行 | ~72% |
 
 ---
 
@@ -1298,8 +1298,11 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-04-17 | 完成 Web / Dev Agent 顯式分流、Web Agent formatter 邊界、generation layer（context / prompt / response generator）、`/agent` 頁 debug/normal mode 收斂，以及 memory debug summary / recent-entity carry-over 強化。 | 已完成 |
 | 2026-04-18 | 完成主開發順序規範化，正式寫入 architecture scope / data contracts / do-not-auto-modify 邊界，將專案主線重新收斂為 admission crawler、normalization、canonical、warehouse、recommendation 的 correctness-first 路徑。 | 已完成 |
 | 2026-04-19 | 完成 correctness-first hardening：admission crawler host guard、extractor input truncation 與欄位驗證、agent prompt untrusted-source guardrail、API request size cap，以及 resolution summary / unresolved report 的 anomaly visibility 補強。 | 已完成 |
+| 2026-04-20 | 目前在 repo 歷史中未見可單列的獨立功能提交；此日不另立獨立里程碑。 | 無獨立里程碑 |
+| 2026-04-21 | 目前在 repo 歷史中未見可單列的獨立功能提交；此日不另立獨立里程碑。 | 無獨立里程碑 |
+| 2026-04-22 | 完成 recommendation decision-support 主鏈的第一輪產品化：引入 structured concern vocabulary、surface-priority policy、admission composite、decision output 與 decision strategy，並同步打通 recommendation engine、service/API、assistant reply 與 recommendation UI。 | 已完成 |
 
-### 14.4 當前階段判讀（截至 2026-04-19）
+### 14.4 當前階段判讀（截至 2026-04-22）
 
 CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
@@ -1313,6 +1316,9 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 - rankings 主 read path 已不再依賴 demo-grade preview rows，而是建立在正式 ranking warehouse 與較清楚的前端 page-level / universe-level 語義之上
 - admission crawler 已進一步補上 host allowlist、extractor input budget、欄位硬驗證與 anomaly breakdown，資料正確性與可觀測性明顯高於早期 prototype
 - entity resolution / unresolved reporting 已開始補上 suspicious merge、country mismatch 與 manual review backlog 的可見性，讓 correctness 問題不再只停留在隱性 metadata
+- recommendation path 已從單純 match score 進一步擴展到 structured admission signals，包括 deadline intelligence、IELTS / TOEFL / GPA / Duolingo fit、admission composite、surface priority、decision output 與 decision strategy
+- user-facing recommendation surface 已不再只是列出學校，而是能在 API、assistant reply 與 website UI 中以 deterministic 方式暴露 readiness、risk、top concerns、suggested action 與 application strategy
+- `crawlernest-crawler-core/` 已被正式收斂為 shared crawler runtime boundary，並開始以可獨立演進的 shared subproject 方式來界定 crawler runtime 與 engine-owned business logic 的分工
 - AutoEval 已建立 baseline，但仍需擴大 coverage 與 regression discipline
 - Mini-Agent Layer 已不只停留於概念定位，Web / Dev Agent 已建立顯式執行邊界；其中 Web Agent 已具備 formatter 邊界、safe fallback、provider-aware generation path 與 recommendation / ranking / lookup 的 task-specific context/prompt routing
 - `/agent` page 已由工程測試面板收斂為具 normal/debug mode 的 web agent 入口，且 memory debug 已補上 human-readable summary 與 recent-entity carry-over 可觀測性
@@ -1324,17 +1330,17 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
 | 階段 | 目標 | 重點 |
 | :--- | :--- | :--- |
-| **2026** | 穩定資料平台與產品層 | 強化 multi-source ingestion、canonical visibility、API/read stability、AutoEval baseline 與 Mini-Agent controlled loop |
-| **2027** | 擴大評估與實體識別能力 | 強化 entity resolution、coverage validation、extractor benchmarking、recommendation calibration |
-| **2028** | 平台化資料服務與 intelligence tooling | 更清楚的 public interfaces、analytics expansion、system-integrated intelligence tooling |
-| **2029** | 形成可持續擴展的教育資料基礎設施 | 在可靠性、評估能力、產品服務面與 AI-assisted development workflow 之間建立長期穩定平衡 |
+| **2026（當前）** | 穩定資料平台主鏈，完成 admission-aware decision surfaces 的第一輪產品化 | shared crawler core + ranking/admission crawler 分工穩定、canonical visibility 持續補強、Website Product Layer 穩定化、admission signal chain（deadline / requirement fit / composite / decision / strategy）落地、AutoEval baseline 擴充 |
+| **2027** | 從校級 decision-support 走向更完整的 admission-readiness 平台 | 強化 entity resolution、coverage validation、recommendation calibration、program / degree-aware admission facts、更清楚的 decision contract 與 product read models |
+| **2028** | 平台化資料服務與 intelligence tooling | 更成熟的 analytics service、對外或對內更清楚的 public interfaces、觀測性與評估能力擴張、system-integrated intelligence tooling 深化 |
+| **2029** | 形成可持續擴展的教育資料基礎設施 | 在可靠性、資料契約、產品決策支援與 evaluation-driven AI-assisted development workflow 之間建立長期穩定平衡 |
 
 ### 14.6 未來階段規劃
 
-- **Phase 1（0-6 個月）**：建立 HTML 樣本庫、完善 extractor 單測、完成 C engine 邊界定義
-- **Phase 2（7-18 個月）**：強化 PostgreSQL analytics schema、實作去重引擎、整合 C engine
-- **Phase 3（19-30 個月）**：代理池、THE/ARWU、多來源韌性與監控預警
-- **Phase 4（31-48 個月）**：LLM 輔助校驗、decision intelligence 深化、趨勢分析報告
+- **Phase 1（接下來 0-6 個月）**：把 admission crawler、normalization、canonical visibility、warehouse read contract 與 recommendation decision surfaces 持續打磨成更穩定的 production baseline，並補齊 shared crawler runtime / engine boundary 的工程紀律
+- **Phase 2（7-18 個月）**：擴大 admission coverage、強化 entity resolution 與 unresolved handling、提升 AutoEval / regression discipline，讓 recommendation calibration 與 admission-readiness 語義更可信
+- **Phase 3（19-30 個月）**：逐步推進 program / degree-aware analytics、更多決策維度與更穩定的 intelligence tooling，同時補強多來源韌性、監控與資料服務介面
+- **Phase 4（31-48 個月）**：在不破壞 deterministic core 的前提下，逐步引入更成熟的 decision intelligence、趨勢分析與受控 AI-assisted research / validation workflow
 
 ---
 
@@ -1357,11 +1363,12 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 | 基礎層 | 知識庫儲存（PostgreSQL-only） | 已運作 | production-grade analytics / service baseline |
 | 基礎層 | 低規節點運行能力 | 已定義（待工程化） | 演進為多節點 crawler / writer / scheduler 原型 |
 | 擴展層 | 多榜單整合 | 已運作（QS 回填基線） | 完整支援 QS / THE / ARWU 與區域榜單 |
-| 擴展層 | Admission ingestion | 規劃中 | structured + raw 雙軌擴展 |
+| 擴展層 | Admission ingestion | 已運作（controlled expansion） | structured + raw 雙軌擴展 |
 | 擴展層 | Program taxonomy | 規劃中 | 部門級與課程級分析基礎 |
-| 智能層 | Admission probability estimation | 規劃中 | 可解釋推薦關鍵特徵 |
+| 智能層 | Admission probability estimation | 規劃中 | 建立在 deterministic admission signals 之上的下一階段能力 |
 | 智能層 | Explainable decision engine（compare + recommend v1/v2/v3） | 已運作（第三版，已校準） | Rule + Weight + ML |
-| 產品化層 | Website MVP（Rankings / Detail / Recommendations） | 已運作 | 演進為完整 decision-support product |
+| 智能層 | Admission decision surfaces（fit / composite / action / strategy） | 已運作（deterministic baseline） | 更完整的 decision-support contract 與 calibration |
+| 產品化層 | Website MVP（Rankings / Detail / Recommendations / Compare） | 已運作 | 演進為完整 decision-support product |
 | 產品化層 | Frontend API proxy 與瀏覽穩定性 | 已運作 | 擴展至更多 product APIs 與 caching 策略 |
 
 ### 15.3 決策引擎校準快照（2026-03-24）
@@ -1383,9 +1390,9 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
 | 能力層 | 能力項目 | 目前狀態 | 長期方向 |
 | :--- | :--- | :---: | :--- |
-| 研究層 | AutoEval / dataset evolution | 已運作 | 擴展至 normalization / recommendation |
+| 研究層 | AutoEval / dataset evolution | 已運作 | 擴展至 normalization / recommendation / admission decision regression |
 | 產品化層 | CLI explorer | 進行中 | 開發者與研究者主介面 |
-| 產品化層 | API / Web platform | 進行中（可運行） | 內部 decision API → 公開平台 / Web 平台 |
+| 產品化層 | API / Web platform | 已運作（持續擴展） | 內部 decision API → 公開平台 / Web 平台 |
 
 ---
 
