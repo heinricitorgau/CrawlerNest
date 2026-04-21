@@ -512,19 +512,36 @@ class DBWriter:
         self.cur.execute(
             f"""
             INSERT INTO {table} (
-                university_id, raw_id, gpa_min, ielts_min, toefl_min, gre_min, gmat_min
-            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p})
+                university_id, raw_id, gpa_min, ielts_min, toefl_min, gre_min, gmat_min,
+                application_deadline_text, raw_text, parsed_status
+            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})
             """,
             (
                 university_id, raw_id, self._safe_float(req.gpa),
                 self._safe_float(req.ielts), self._safe_float(req.toefl),
                 self._safe_float(req.gre), self._safe_float(req.gmat),
+                getattr(req, "application_deadline_text", None),
+                getattr(req, "raw_text", None),
+                getattr(req, "parsed_status", None),
             ),
         )
 
     def insert_admission_requirements_batch(
         self,
-        rows: list[tuple[int, Optional[int], Optional[float], Optional[float], Optional[float], Optional[float], Optional[float]]],
+        rows: list[
+            tuple[
+                int,
+                Optional[int],
+                Optional[float],
+                Optional[float],
+                Optional[float],
+                Optional[float],
+                Optional[float],
+                Optional[str],
+                Optional[str],
+                Optional[str],
+            ]
+        ],
     ) -> None:
         if not rows:
             return
@@ -533,7 +550,8 @@ class DBWriter:
             self.cur,
             f"""
             INSERT INTO {table} (
-                university_id, raw_id, gpa_min, ielts_min, toefl_min, gre_min, gmat_min
+                university_id, raw_id, gpa_min, ielts_min, toefl_min, gre_min, gmat_min,
+                application_deadline_text, raw_text, parsed_status
             ) VALUES %s
             """,
             rows,

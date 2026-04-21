@@ -87,6 +87,8 @@ _IELTS_RE = re.compile(
     r"[\s:=–\"'()\[\]{}-]*"  # separator
     r"(?:Overall|overall|Total|total)?"  # optional qualifier
     r"[\s:=–\"'()\[\]{}-]*"  # allow more separator after qualifier
+    r"(?:score\s+of\s+|of\s+)?"
+    r"(?:at\s+least\s+)?"
     r"([0-9](?:\.[05])?)"
     r"(?:\s*(?:overall|or above|minimum|band|score))?",
     re.IGNORECASE,
@@ -113,7 +115,8 @@ def extract_ielts(text: str) -> float | None:
 
 _TOEFL_RE = re.compile(
     r"TOEFL"
-    r"(?:\s+(?:iBT|ibt|score|minimum|requirement|of))*"
+    r"(?:\s+(?:iBT|ibt|score|minimum|required|requirement|of))*"
+    r"(?:\s+is)?"
     # Bug D fix: allow JSON-style quotes and other punctuation as separators
     r"""[\s:=–"'()\[\]{}-]*"""
     r"([0-9]{2,3})"
@@ -265,6 +268,29 @@ _DEADLINE_CONTEXT_RE = re.compile(
     r"|submit\s+by|close(?:s)?\s+on|due\s+by|last\s+date)",
     re.IGNORECASE,
 )
+_DEADLINE_EARLY_RE = re.compile(r"\bearly\b", re.IGNORECASE)
+_DEADLINE_FINAL_RE = re.compile(r"\bfinal\b", re.IGNORECASE)
+_DEADLINE_ROLLING_RE = re.compile(r"\brolling\b", re.IGNORECASE)
+_DEADLINE_ACCEPTED_UNTIL_RE = re.compile(r"\baccepted\s+until\b", re.IGNORECASE)
+_DEADLINE_INTERNATIONAL_RE = re.compile(r"\binternational\b", re.IGNORECASE)
+_DEADLINE_DOMESTIC_RE = re.compile(r"\bdomestic\b", re.IGNORECASE)
+_DEADLINE_PRIORITY = {
+    "early": 0,
+    "international": 1,
+    "general": 2,
+    "final": 3,
+    "rolling": 4,
+    "domestic": 5,
+}
+_DEADLINE_LABEL_SPECIFICITY = {
+    "early": 0,
+    "final": 0,
+    "rolling": 0,
+    "international": 0,
+    "domestic": 0,
+    "general": 1,
+}
+_DEADLINE_WINDOW_BACKTRACK = 32
 
 
 def _try_parse_iso(text: str) -> str | None:
@@ -295,14 +321,86 @@ def _try_parse_month_name(text: str) -> str | None:
     return None
 
 
+def _iter_named_month_dates(text: str) -> list[tuple[int, str]]:
+    results: list[tuple[int, str]] = []
+    for pattern in (_MONTH_DAY_YEAR_RE, _DAY_MONTH_YEAR_RE, _YEAR_MONTH_DAY_RE):
+        for m in pattern.finditer(text):
+            groups = m.groupdict()
+            month_name = groups["month"].lower()
+            month_num = _MONTH_MAP.get(month_name)
+            if month_num is None:
+                continue
+            try:
+                d = date(int(groups["year"]), month_num, int(groups["day"]))
+            except ValueError:
+                continue
+            results.append((m.start(), d.isoformat()))
+    results.sort(key=lambda item: item[0])
+    return results
+
+
+def _classify_deadline_label(prefix_text: str) -> str:
+    local_prefix = re.split(r"[;\n]", prefix_text)[-1]
+    if _DEADLINE_EARLY_RE.search(local_prefix):
+        return "early"
+    if _DEADLINE_FINAL_RE.search(local_prefix):
+        return "final"
+    if _DEADLINE_ROLLING_RE.search(local_prefix) or _DEADLINE_ACCEPTED_UNTIL_RE.search(local_prefix):
+        return "rolling"
+    if _DEADLINE_INTERNATIONAL_RE.search(local_prefix):
+        return "international"
+    if _DEADLINE_DOMESTIC_RE.search(local_prefix):
+        return "domestic"
+    return "general"
+
+
+def _extract_deadline_candidates(text: str) -> list[tuple[str, str]]:
+    candidates: list[tuple[str, str]] = []
+    best_by_date: dict[str, tuple[int, str, int]] = {}
+
+    for match in _DEADLINE_CONTEXT_RE.finditer(text):
+        window_start = max(0, match.start() - _DEADLINE_WINDOW_BACKTRACK)
+        window = text[window_start: match.start() + 120]
+        for date_start, iso_date in _iter_named_month_dates(window):
+            prefix = window[:date_start]
+            label = _classify_deadline_label(prefix)
+            rank = _DEADLINE_LABEL_SPECIFICITY.get(label, 99)
+            existing = best_by_date.get(iso_date)
+            if existing is None or rank < existing[0]:
+                best_by_date[iso_date] = (rank, label, date_start)
+
+        iso_result = _try_parse_iso(window)
+        if iso_result:
+            prefix = window.split(iso_result, 1)[0]
+            label = _classify_deadline_label(prefix)
+            rank = _DEADLINE_LABEL_SPECIFICITY.get(label, 99)
+            existing = best_by_date.get(iso_result)
+            iso_position = window.find(iso_result)
+            if existing is None or rank < existing[0]:
+                best_by_date[iso_result] = (rank, label, iso_position)
+
+    for iso_date, (_, label, position) in sorted(best_by_date.items(), key=lambda item: item[1][2]):
+        candidates.append((label, iso_date))
+
+    return candidates
+
+
+def _select_deadline(candidates: list[tuple[str, str]]) -> str | None:
+    if not candidates:
+        return None
+    ranked = sorted(
+        enumerate(candidates),
+        key=lambda item: (_DEADLINE_PRIORITY.get(item[1][0], 99), item[0]),
+    )
+    return ranked[0][1][1]
+
+
 def extract_deadline(text: str) -> str | None:
     """Return the first plausible application deadline as ISO-8601, or ``None``."""
-    # Prefer dates found near deadline context cues.
-    for match in _DEADLINE_CONTEXT_RE.finditer(text):
-        window = text[match.start(): match.start() + 120]
-        result = _try_parse_iso(window) or _try_parse_month_name(window)
-        if result:
-            return result
+    candidates = _extract_deadline_candidates(text)
+    result = _select_deadline(candidates)
+    if result:
+        return result
     # Fallback: any ISO date in the full text.
     return _try_parse_iso(text) or _try_parse_month_name(text)
 
@@ -357,14 +455,22 @@ def extract_with_diagnostics(raw_text: str) -> tuple[dict[str, Any], dict[str, A
     gpa          float | None   e.g. 3.5
     """
     clean, diagnostics = _prepare_text(raw_text)
+    deadline_candidates = _extract_deadline_candidates(clean)
     fields = {
         "ielts": extract_ielts(clean),
         "toefl": extract_toefl(clean),
         "duolingo": extract_duolingo(clean),
         "degree_level": extract_degree_level(clean),
-        "deadline": extract_deadline(clean),
+        "deadline": _select_deadline(deadline_candidates)
+        or _try_parse_iso(clean)
+        or _try_parse_month_name(clean),
         "gpa": extract_gpa(clean),
     }
+    if deadline_candidates and (len(deadline_candidates) > 1 or deadline_candidates[0][0] != "general"):
+        diagnostics["deadline_candidates"] = deadline_candidates
+    if len(deadline_candidates) > 1:
+        diagnostics["deadline_candidates"] = deadline_candidates
+        diagnostics["deadline_conflict"] = True
     return fields, diagnostics
 
 

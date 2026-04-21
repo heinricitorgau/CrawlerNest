@@ -19,8 +19,15 @@ class ExampleUniversityCrawler:
                 raw_payload={
                     "university": "MIT",
                     "country": "United States",
+                    "gpa_requirement": 3.5,
                     "ielts_requirement": 7.0,
                     "toefl_requirement": 100,
+                    "duolingo_requirement": 120,
+                    "deadline": "2025-12-01",
+                    "deadline_candidates": [
+                        ["early", "2025-12-01"],
+                        ["final", "2026-04-15"],
+                    ],
                     "source_url": "https://example.edu/admissions",
                 },
             )

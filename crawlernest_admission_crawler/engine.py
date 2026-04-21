@@ -19,7 +19,10 @@ class AdmissionCrawlerEngine:
         Logger.info(f"Collected {len(all_results)} admission records")
 
         # === Crawl Quality Summary Integration ===
-        from cli.crawl_quality_summary import print_crawl_quality_summary
+        try:
+            from crawlernest.interfaces.cli.crawl_quality_summary import print_crawl_quality_summary
+        except ModuleNotFoundError:
+            from legacy.cli.crawl_quality_summary import print_crawl_quality_summary
         # 假設這裡 all_results 已經有 anomaly/resolution 欄位，否則需 mock summary
         summary = {
             "total_records": len(all_results),

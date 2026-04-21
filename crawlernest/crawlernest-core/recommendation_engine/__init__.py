@@ -1,6 +1,9 @@
 from .config import RecommendationConfig, default_recommendation_config
 from .engine import (
+    CONCERN_DEFINITIONS,
     RuleBasedRecommender,
+    concern_definition,
+    concern_priority_level,
     grouped_recommendations_to_dict,
     recommend_universities,
     recommend_universities_v2,
@@ -23,7 +26,10 @@ __all__ = [
     "RecommendationRepository",
     "RecommendationResult",
     "RecommendationScoreBreakdown",
+    "CONCERN_DEFINITIONS",
     "RuleBasedRecommender",
+    "concern_definition",
+    "concern_priority_level",
     "default_recommendation_config",
     "grouped_recommendations_to_dict",
     "recommend_universities",

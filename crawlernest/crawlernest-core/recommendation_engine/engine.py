@@ -31,6 +31,33 @@ SOURCE_ORDER = ("QS", "THE", "ARWU")
 CATEGORY_ORDER = ("reach", "target", "safety")
 LOGGER = logging.getLogger(__name__)
 
+CONCERN_DEFINITIONS: dict[str, dict[str, object]] = {
+    "early_deadline": {"label": "Early deadline", "priority_level": 1},
+    "high_urgency_deadline": {"label": "High urgency deadline", "priority_level": 1},
+    "medium_urgency_deadline": {"label": "Medium urgency deadline", "priority_level": 2},
+    "ielts_well_below": {"label": "IELTS well below requirement", "priority_level": 0},
+    "ielts_slightly_below": {"label": "IELTS slightly below requirement", "priority_level": 0},
+    "ielts_meets_requirement": {"label": "IELTS just meets requirement", "priority_level": 2},
+    "ielts_comfortably_above": {"label": "IELTS comfortably above requirement", "priority_level": 3},
+    "toefl_well_below": {"label": "TOEFL well below requirement", "priority_level": 0},
+    "toefl_slightly_below": {"label": "TOEFL slightly below requirement", "priority_level": 0},
+    "toefl_meets_requirement": {"label": "TOEFL just meets requirement", "priority_level": 2},
+    "toefl_comfortably_above": {"label": "TOEFL comfortably above requirement", "priority_level": 3},
+    "gpa_well_below": {"label": "GPA well below requirement", "priority_level": 0},
+    "gpa_slightly_below": {"label": "GPA slightly below requirement", "priority_level": 0},
+    "gpa_meets_requirement": {"label": "GPA just meets requirement", "priority_level": 2},
+    "gpa_comfortably_above": {"label": "GPA comfortably above requirement", "priority_level": 3},
+    "duolingo_well_below": {"label": "Duolingo well below requirement", "priority_level": 0},
+    "duolingo_slightly_below": {"label": "Duolingo slightly below requirement", "priority_level": 0},
+    "duolingo_meets_requirement": {"label": "Duolingo just meets requirement", "priority_level": 2},
+    "duolingo_comfortably_above": {"label": "Duolingo comfortably above requirement", "priority_level": 3},
+}
+
+try:
+    from crawlernest_admission_crawler.deadline_interpretation import interpret_deadline_decision
+except ImportError:  # pragma: no cover - optional integration path
+    interpret_deadline_decision = None  # type: ignore[assignment]
+
 
 class RuleBasedRecommender:
     def __init__(self, config: Optional[RecommendationConfig] = None):
@@ -62,7 +89,10 @@ class RuleBasedRecommender:
                     university_name=row.university_name,
                     country=row.country,
                     aggregated_rank=row.aggregated_rank,
+                    gpa_min=row.gpa_min,
                     ielts_min=row.ielts_min,
+                    toefl_min=row.toefl_min,
+                    duolingo_min=row.duolingo_min,
                     matching_score=self._composite_from_breakdown(breakdown),
                     category=None,
                     preference_alignment=None,
@@ -74,6 +104,13 @@ class RuleBasedRecommender:
                     explanation=explanation,
                     score_breakdown=breakdown,
                     aggregation_method_version=row.aggregation_method_version,
+                    metadata={
+                        **dict(row.metadata or {}),
+                        "user_ielts": query.ielts_score,
+                        "user_toefl": query.toefl_score,
+                        "user_gpa": query.gpa_score,
+                        "user_duolingo": query.duolingo_score,
+                    },
                 )
             )
 
@@ -116,7 +153,10 @@ class RuleBasedRecommender:
                     university_name=row.university_name,
                     country=row.country,
                     aggregated_rank=row.aggregated_rank,
+                    gpa_min=row.gpa_min,
                     ielts_min=row.ielts_min,
+                    toefl_min=row.toefl_min,
+                    duolingo_min=row.duolingo_min,
                     matching_score=self._composite_from_breakdown(breakdown),
                     category=breakdown.category,
                     preference_alignment=breakdown.preference_alignment,
@@ -128,6 +168,13 @@ class RuleBasedRecommender:
                     explanation=explanation,
                     score_breakdown=breakdown,
                     aggregation_method_version=row.aggregation_method_version,
+                    metadata={
+                        **dict(row.metadata or {}),
+                        "user_ielts": query.ielts_score,
+                        "user_toefl": query.toefl_score,
+                        "user_gpa": query.gpa_score,
+                        "user_duolingo": query.duolingo_score,
+                    },
                 )
             )
 
@@ -179,7 +226,10 @@ class RuleBasedRecommender:
                     university_name=row.university_name,
                     country=row.country,
                     aggregated_rank=row.aggregated_rank,
+                    gpa_min=row.gpa_min,
                     ielts_min=row.ielts_min,
+                    toefl_min=row.toefl_min,
+                    duolingo_min=row.duolingo_min,
                     matching_score=self._composite_from_breakdown_v3(breakdown),
                     category=breakdown.category,
                     preference_alignment=breakdown.preference_alignment,
@@ -191,6 +241,13 @@ class RuleBasedRecommender:
                     explanation=explanation,
                     score_breakdown=breakdown,
                     aggregation_method_version=row.aggregation_method_version,
+                    metadata={
+                        **dict(row.metadata or {}),
+                        "user_ielts": query.ielts_score,
+                        "user_toefl": query.toefl_score,
+                        "user_gpa": query.gpa_score,
+                        "user_duolingo": query.duolingo_score,
+                    },
                 )
             )
 
@@ -1067,12 +1124,15 @@ def grouped_recommendations_to_dict(result: GroupedRecommendationResult) -> dict
 
 
 def _result_to_dict(row: RecommendationResult) -> dict[str, object]:
-    return {
+    payload = {
         "canonical_university_id": row.canonical_university_id,
         "university_name": row.university_name,
         "country": row.country,
         "aggregated_rank": row.aggregated_rank,
+        "gpa_requirement": row.gpa_min,
         "ielts_requirement": row.ielts_min,
+        "toefl_requirement": row.toefl_min,
+        "duolingo_requirement": row.duolingo_min,
         "score": row.matching_score,
         "category": row.category,
         "preference_alignment": row.preference_alignment,
@@ -1085,6 +1145,658 @@ def _result_to_dict(row: RecommendationResult) -> dict[str, object]:
         "score_breakdown": asdict(row.score_breakdown),
         "aggregation_method_version": row.aggregation_method_version,
     }
+    deadline_info = _build_deadline_info(row)
+    if deadline_info is not None:
+        payload["deadline_info"] = deadline_info
+    ielts_fit_info = _build_ielts_fit_info(row)
+    if ielts_fit_info is not None:
+        payload["ielts_fit_info"] = ielts_fit_info
+    toefl_fit_info = _build_toefl_fit_info(row)
+    if toefl_fit_info is not None:
+        payload["toefl_fit_info"] = toefl_fit_info
+    gpa_fit_info = _build_gpa_fit_info(row)
+    if gpa_fit_info is not None:
+        payload["gpa_fit_info"] = gpa_fit_info
+    duolingo_fit_info = _build_duolingo_fit_info(row)
+    if duolingo_fit_info is not None:
+        payload["duolingo_fit_info"] = duolingo_fit_info
+    admission_composite = _build_admission_composite(
+        deadline_info=deadline_info,
+        fit_signals={
+            "ielts": ielts_fit_info,
+            "toefl": toefl_fit_info,
+            "gpa": gpa_fit_info,
+            "duolingo": duolingo_fit_info,
+        },
+    )
+    if admission_composite is not None:
+        payload["admission_composite"] = admission_composite
+    decision_output = _build_decision_output(
+        deadline_info=deadline_info,
+        fit_signals={
+            "ielts": ielts_fit_info,
+            "toefl": toefl_fit_info,
+            "gpa": gpa_fit_info,
+            "duolingo": duolingo_fit_info,
+        },
+        admission_composite=admission_composite,
+    )
+    if decision_output is not None:
+        payload["decision_output"] = decision_output
+    decision_strategy = _build_decision_strategy(payload)
+    if decision_strategy is not None:
+        payload["decision_strategy"] = decision_strategy
+    return payload
+
+
+def _build_deadline_info(row: RecommendationResult) -> dict[str, object] | None:
+    if interpret_deadline_decision is None:
+        return None
+
+    metadata = row.metadata if isinstance(row.metadata, dict) else {}
+    deadline = metadata.get("deadline")
+    deadline_candidates = metadata.get("deadline_candidates")
+    if deadline is None and deadline_candidates is None:
+        return None
+
+    interpretation = interpret_deadline_decision(
+        deadline=deadline if isinstance(deadline, str) else None,
+        diagnostics={"deadline_candidates": deadline_candidates},
+    )
+    recommended_deadline = interpretation.get("recommended_deadline")
+    if not isinstance(recommended_deadline, str) or not recommended_deadline:
+        return None
+
+    return {
+        "recommended_deadline": recommended_deadline,
+        "deadline_type": interpretation.get("recommended_deadline_type"),
+        "urgency": interpretation.get("deadline_urgency"),
+        "reason": interpretation.get("deadline_reason"),
+    }
+
+
+def _build_ielts_fit_info(row: RecommendationResult) -> dict[str, object] | None:
+    metadata = row.metadata if isinstance(row.metadata, dict) else {}
+    return _build_requirement_fit_info(
+        subject="IELTS",
+        user_score=metadata.get("user_ielts"),
+        required_score=row.ielts_min,
+        comfortably_above_threshold=0.5,
+        slightly_below_threshold=-0.5,
+        require_four_point_scale=False,
+    )
+
+
+def _build_toefl_fit_info(row: RecommendationResult) -> dict[str, object] | None:
+    metadata = row.metadata if isinstance(row.metadata, dict) else {}
+    return _build_requirement_fit_info(
+        subject="TOEFL",
+        user_score=metadata.get("user_toefl"),
+        required_score=row.toefl_min,
+        comfortably_above_threshold=5.0,
+        slightly_below_threshold=-5.0,
+        require_four_point_scale=False,
+    )
+
+def _build_gpa_fit_info(row: RecommendationResult) -> dict[str, object] | None:
+    metadata = row.metadata if isinstance(row.metadata, dict) else {}
+    return _build_requirement_fit_info(
+        subject="GPA",
+        user_score=metadata.get("user_gpa"),
+        required_score=row.gpa_min,
+        comfortably_above_threshold=0.3,
+        slightly_below_threshold=-0.3,
+        require_four_point_scale=True,
+    )
+
+
+def _build_duolingo_fit_info(row: RecommendationResult) -> dict[str, object] | None:
+    metadata = row.metadata if isinstance(row.metadata, dict) else {}
+    return _build_requirement_fit_info(
+        subject="Duolingo",
+        user_score=metadata.get("user_duolingo"),
+        required_score=row.duolingo_min,
+        comfortably_above_threshold=10.0,
+        slightly_below_threshold=-10.0,
+        require_four_point_scale=False,
+    )
+
+
+def _build_requirement_fit_info(
+    *,
+    subject: str,
+    user_score: object,
+    required_score: object,
+    comfortably_above_threshold: float,
+    slightly_below_threshold: float,
+    require_four_point_scale: bool,
+) -> dict[str, object] | None:
+    if not isinstance(user_score, (int, float)) or not isinstance(required_score, (int, float)):
+        return None
+
+    user_value = float(user_score)
+    required_value = float(required_score)
+
+    if require_four_point_scale and not (
+        0.0 <= user_value <= 4.0 and 0.0 <= required_value <= 4.0
+    ):
+        return None
+
+    margin = round(user_value - required_value, 2)
+
+    if margin >= comfortably_above_threshold:
+        fit_band = "comfortably_above"
+        fit_urgency = "low"
+    elif margin >= 0.0:
+        fit_band = "meets_requirement"
+        fit_urgency = "medium"
+    elif margin >= slightly_below_threshold:
+        fit_band = "slightly_below"
+        fit_urgency = "high"
+    else:
+        fit_band = "well_below"
+        fit_urgency = "high"
+
+    reason = _build_requirement_fit_reason(
+        subject=subject,
+        user_value=user_value,
+        required_value=required_value,
+        margin=margin,
+    )
+
+    return {
+        "required_score": required_value,
+        "user_score": user_value,
+        "margin": margin,
+        "fit_band": fit_band,
+        "fit_urgency": fit_urgency,
+        "reason": reason,
+    }
+
+
+def _build_requirement_fit_reason(
+    *,
+    subject: str,
+    user_value: float,
+    required_value: float,
+    margin: float,
+) -> str:
+    if subject in {"IELTS", "GPA"}:
+        fmt = lambda value: f"{value:.1f}"
+    else:
+        fmt = lambda value: f"{int(value)}" if float(value).is_integer() else f"{value:.1f}"
+
+    if abs(margin) < 1e-9:
+        return f"{subject} {fmt(user_value)} exactly meets the required {fmt(required_value)}"
+    if margin > 0:
+        return f"{subject} {fmt(user_value)} is {fmt(margin)} above the required {fmt(required_value)}"
+    return f"{subject} {fmt(user_value)} is {fmt(abs(margin))} below the required {fmt(required_value)}"
+
+
+def _build_admission_composite(
+    *,
+    deadline_info: dict[str, object] | None,
+    fit_signals: dict[str, dict[str, object] | None],
+) -> dict[str, object] | None:
+    concern_tokens = _build_concern_tokens(deadline_info=deadline_info, fit_signals=fit_signals)
+    usable_fit_signals = [
+        signal
+        for signal in fit_signals.values()
+        if isinstance(signal, dict) and isinstance(signal.get("fit_band"), str)
+    ]
+
+    if not usable_fit_signals and deadline_info is None:
+        return None
+
+    readiness = _determine_admission_readiness(
+        deadline_info=deadline_info,
+        fit_signals=usable_fit_signals,
+    )
+    risk = _determine_admission_risk(
+        deadline_info=deadline_info,
+        fit_signals=usable_fit_signals,
+    )
+    top_concerns = _top_concerns(concern_tokens)
+    reason = _build_admission_composite_reason(
+        readiness=readiness,
+        risk=risk,
+        deadline_info=deadline_info,
+        fit_signals=usable_fit_signals,
+    )
+
+    return {
+        "admission_readiness": readiness,
+        "admission_risk": risk,
+        "top_concerns": top_concerns,
+        "top_concern_labels": [_concern_label(token) for token in top_concerns],
+        "reason": reason,
+    }
+
+
+def _build_concern_tokens(
+    *,
+    deadline_info: dict[str, object] | None,
+    fit_signals: dict[str, dict[str, object] | None],
+) -> list[str]:
+    tokens: list[str] = []
+
+    if isinstance(deadline_info, dict):
+        deadline_type = str(deadline_info.get("deadline_type") or "")
+        deadline_urgency = str(deadline_info.get("urgency") or "")
+        if deadline_type == "early":
+            tokens.append("early_deadline")
+        if deadline_urgency == "high":
+            tokens.append("high_urgency_deadline")
+        elif deadline_urgency == "medium":
+            tokens.append("medium_urgency_deadline")
+
+    for subject, signal in fit_signals.items():
+        if not isinstance(signal, dict):
+            continue
+        fit_band = str(signal.get("fit_band") or "")
+        if fit_band in {"well_below", "slightly_below", "meets_requirement", "comfortably_above"}:
+            tokens.append(f"{subject}_{fit_band}")
+
+    return tokens
+
+
+def _determine_admission_readiness(
+    *,
+    deadline_info: dict[str, object] | None,
+    fit_signals: list[dict[str, object]],
+) -> str:
+    if not fit_signals:
+        return "unknown"
+
+    fit_bands = [str(signal.get("fit_band") or "") for signal in fit_signals]
+    slightly_below_count = sum(1 for band in fit_bands if band == "slightly_below")
+
+    if "well_below" in fit_bands or slightly_below_count >= 2:
+        return "weak"
+
+    if all(band == "comfortably_above" for band in fit_bands):
+        return "strong"
+
+    has_early_high_deadline = (
+        isinstance(deadline_info, dict)
+        and str(deadline_info.get("deadline_type") or "") == "early"
+        and str(deadline_info.get("urgency") or "") == "high"
+    )
+
+    if (
+        "slightly_below" in fit_bands
+        or "meets_requirement" in fit_bands
+        or has_early_high_deadline
+    ):
+        return "moderate"
+
+    return "moderate"
+
+
+def _determine_admission_risk(
+    *,
+    deadline_info: dict[str, object] | None,
+    fit_signals: list[dict[str, object]],
+) -> str:
+    if not fit_signals and deadline_info is None:
+        return "unknown"
+    if not fit_signals:
+        return "unknown"
+
+    fit_bands = [str(signal.get("fit_band") or "") for signal in fit_signals]
+    slightly_below_count = sum(1 for band in fit_bands if band == "slightly_below")
+
+    if "well_below" in fit_bands or slightly_below_count >= 2:
+        return "high"
+
+    has_early_high_deadline = (
+        isinstance(deadline_info, dict)
+        and str(deadline_info.get("deadline_type") or "") == "early"
+        and str(deadline_info.get("urgency") or "") == "high"
+    )
+
+    if "slightly_below" in fit_bands or "meets_requirement" in fit_bands or has_early_high_deadline:
+        return "medium"
+
+    if all(band in {"comfortably_above", "meets_requirement"} for band in fit_bands):
+        return "low"
+
+    return "unknown"
+
+
+def _top_concerns(tokens: list[str]) -> list[str]:
+    unique_tokens: list[str] = []
+    for token in tokens:
+        if token not in unique_tokens:
+            unique_tokens.append(token)
+
+    ordered = sorted(
+        unique_tokens,
+        key=lambda token: (
+            concern_priority_level(token),
+            _concern_type_order(token),
+            token,
+        ),
+    )
+    return ordered[:3]
+
+
+def _concern_label(token: str) -> str:
+    definition = concern_definition(token)
+    return str(definition["label"])
+
+
+def concern_definition(token: str) -> dict[str, object]:
+    if token in CONCERN_DEFINITIONS:
+        return dict(CONCERN_DEFINITIONS[token])
+    return {
+        "label": token.replace("_", " ").capitalize(),
+        "priority_level": 3,
+    }
+
+
+def concern_priority_level(token: str) -> int:
+    definition = concern_definition(token)
+    priority_level = definition.get("priority_level", 3)
+    try:
+        return int(priority_level)
+    except (TypeError, ValueError):
+        return 3
+
+
+def _concern_type_order(token: str) -> int:
+    if token.startswith("ielts_"):
+        return 0
+    if token.startswith("toefl_"):
+        return 1
+    if token.startswith("gpa_"):
+        return 2
+    if token.startswith("duolingo_"):
+        return 3
+    if token.endswith("_deadline"):
+        return 4
+    return 5
+
+
+def _build_admission_composite_reason(
+    *,
+    readiness: str,
+    risk: str,
+    deadline_info: dict[str, object] | None,
+    fit_signals: list[dict[str, object]],
+) -> str:
+    if readiness == "unknown" and risk == "unknown":
+        return "Admission readiness could not be determined from available structured signals."
+
+    fit_bands = [str(signal.get("fit_band") or "") for signal in fit_signals]
+    has_early_deadline = (
+        isinstance(deadline_info, dict)
+        and str(deadline_info.get("deadline_type") or "") == "early"
+    )
+    has_below = any(band in {"slightly_below", "well_below"} for band in fit_bands)
+    has_meets = "meets_requirement" in fit_bands
+
+    if has_below:
+        return "This option appears higher risk because one or more requirement-fit signals are below requirement."
+    if has_early_deadline and has_meets:
+        return "This option has an early deadline and mixed requirement-fit signals."
+    if has_meets:
+        return "This option has mixed requirement-fit signals, with some scores only meeting the requirement."
+    if all(band == "comfortably_above" for band in fit_bands) and fit_bands:
+        return "This option looks strong because all visible requirement-fit signals meet or exceed requirements."
+    if has_early_deadline:
+        return "This option has an early deadline and otherwise stable requirement-fit signals."
+    return "This option shows a mixed admission-readiness picture across the available structured signals."
+
+
+def _build_decision_output(
+    *,
+    deadline_info: dict[str, object] | None,
+    fit_signals: dict[str, dict[str, object] | None],
+    admission_composite: dict[str, object] | None,
+) -> dict[str, object] | None:
+    usable_fit_signals = [
+        signal
+        for signal in fit_signals.values()
+        if isinstance(signal, dict) and isinstance(signal.get("fit_band"), str)
+    ]
+    fit_signal_count = len(usable_fit_signals)
+    if isinstance(admission_composite, dict):
+        readiness = str(admission_composite.get("admission_readiness") or "unknown")
+        risk = str(admission_composite.get("admission_risk") or "unknown")
+    else:
+        readiness = "unknown"
+        risk = "unknown"
+
+    if readiness == "weak" or risk == "high":
+        action = "improve_profile_first"
+    elif (
+        isinstance(deadline_info, dict)
+        and str(deadline_info.get("deadline_type") or "") == "early"
+        and str(deadline_info.get("urgency") or "") == "high"
+        and readiness in {"strong", "moderate"}
+        and risk != "high"
+    ):
+        action = "apply_early"
+    elif readiness == "moderate" or risk == "medium":
+        action = "apply_with_caution"
+    elif readiness == "strong" and risk == "low":
+        action = "apply"
+    elif readiness in {"strong", "moderate"} and risk in {"low", "medium"} and deadline_info is None and fit_signal_count <= 1:
+        action = "monitor"
+    elif readiness == "unknown" and risk == "unknown":
+        action = "insufficient_data"
+    else:
+        action = "monitor"
+
+    strength_map = {
+        "apply_early": "strong",
+        "apply": "strong",
+        "apply_with_caution": "moderate",
+        "improve_profile_first": "strong",
+        "monitor": "weak",
+        "insufficient_data": "unknown",
+    }
+    reason_map = {
+        "apply_early": "This option should be prioritized because it has an early deadline and the visible requirement-fit signals are still workable.",
+        "apply": "This option looks ready for application because visible requirement-fit signals meet or exceed requirements with no major risk signal.",
+        "apply_with_caution": "This option is still viable, but should be approached carefully because the admission profile shows moderate readiness or medium risk.",
+        "improve_profile_first": "This option currently looks risky because one or more visible requirement-fit signals fall below requirement or overall readiness is weak.",
+        "monitor": "This option may be worth tracking, but the current structured signals are not strong enough to prioritize immediate action.",
+        "insufficient_data": "There is not enough structured admission signal data to make a confident action recommendation.",
+    }
+    next_steps_map = {
+        "apply_early": [
+            "Prepare documents now",
+            "Submit before the early deadline",
+            "Double-check requirement-sensitive materials",
+        ],
+        "apply": [
+            "Prepare a normal application submission",
+            "Review deadlines and required documents",
+            "Proceed with application planning",
+        ],
+        "apply_with_caution": [
+            "Review the requirement gaps carefully",
+            "Decide whether this is still worth applying to",
+            "Prepare supporting materials early",
+        ],
+        "improve_profile_first": [
+            "Prioritize improving below-threshold requirement areas",
+            "Avoid treating this as a safe application right now",
+            "Reassess after profile improvement",
+        ],
+        "monitor": [
+            "Track this option while gathering more admission details",
+            "Compare it with stronger options first",
+        ],
+        "insufficient_data": [
+            "Collect more structured admission data",
+            "Do not rely on this option alone yet",
+        ],
+    }
+
+    return {
+        "decision_action": action,
+        "decision_strength": strength_map[action],
+        "decision_reason": reason_map[action],
+        "recommended_next_steps": next_steps_map[action][:3],
+    }
+
+
+def _build_decision_strategy(row_dict: dict[str, object]) -> dict[str, object] | None:
+    decision_output = row_dict.get("decision_output")
+    if not isinstance(decision_output, dict):
+        return None
+
+    action = str(decision_output.get("decision_action") or "")
+    reason = str(decision_output.get("decision_reason") or "").strip()
+    concern_tokens = _decision_strategy_concerns(row_dict)
+
+    if action == "apply_early":
+        primary_strategy = "Submit early while requirements are already acceptable"
+        supporting_actions = [
+            "Prepare documents immediately",
+            "Lock in recommendation letters",
+            "Review personal statement once more",
+        ]
+        risk_mitigation: list[str] = []
+        if any(token in {"high_urgency_deadline", "medium_urgency_deadline"} or token.endswith("_meets_requirement") or token.endswith("_slightly_below") or token.endswith("_well_below") for token in concern_tokens):
+            risk_mitigation.append("Double-check requirement-sensitive components")
+        timeline_hint = "Complete submission before early deadline"
+    elif action == "apply":
+        primary_strategy = "Proceed with application under current profile"
+        supporting_actions = [
+            "Finalize application materials",
+            "Ensure requirement alignment",
+        ]
+        risk_mitigation = []
+        if any(token.endswith("_meets_requirement") for token in concern_tokens):
+            risk_mitigation.append("Strengthen weaker components if possible")
+        timeline_hint = "Submit within standard deadline window"
+    elif action == "apply_with_caution":
+        primary_strategy = "Apply but expect some risk in current profile"
+        supporting_actions = [
+            "Prioritize strongest materials",
+            "Highlight strengths clearly",
+        ]
+        risk_mitigation = [
+            "Address weaker requirements proactively",
+            "Consider parallel safer options",
+        ]
+        timeline_hint = "Do not delay submission; allow buffer time"
+    elif action == "improve_profile_first":
+        primary_strategy = "Delay application and improve profile first"
+        supporting_actions = [
+            "Retake exams or improve academic metrics",
+            "Strengthen supporting materials",
+        ]
+        risk_mitigation = [
+            "Avoid applying under current profile",
+        ]
+        timeline_hint = "Target next available admission cycle"
+    elif action == "insufficient_data":
+        primary_strategy = "Collect missing requirement information first"
+        supporting_actions = [
+            "Verify admission requirements",
+            "Complete missing profile inputs",
+        ]
+        risk_mitigation = [
+            "Avoid making decisions on incomplete data",
+        ]
+        timeline_hint = "Re-evaluate after completing data"
+    else:
+        primary_strategy = "Track the option while clarifying the strongest application path"
+        supporting_actions = [
+            "Monitor updates to admission requirements",
+            "Compare this option with stronger alternatives",
+        ]
+        risk_mitigation = [
+            "Avoid overcommitting before more structured signals are available",
+        ]
+        timeline_hint = "Reassess once stronger timing or fit signals are available"
+
+    supporting_actions, risk_mitigation, timeline_hint = _apply_strategy_concern_adjustments(
+        concern_tokens=concern_tokens,
+        supporting_actions=supporting_actions,
+        risk_mitigation=risk_mitigation,
+        timeline_hint=timeline_hint,
+    )
+
+    return {
+        "primary_strategy": primary_strategy,
+        "supporting_actions": supporting_actions[:3],
+        "risk_mitigation": risk_mitigation[:3],
+        "timeline_hint": timeline_hint,
+        "reason": reason,
+    }
+
+
+def _decision_strategy_concerns(row_dict: dict[str, object]) -> list[str]:
+    surface_signals = row_dict.get("surfaceSignals")
+    if isinstance(surface_signals, list):
+        concerns: list[str] = []
+        for signal in surface_signals:
+            if not isinstance(signal, dict):
+                continue
+            concern = signal.get("concern")
+            if isinstance(concern, str) and concern and concern not in concerns:
+                concerns.append(concern)
+        if concerns:
+            return concerns
+
+    fit_signals = {
+        "ielts": row_dict.get("ielts_fit_info"),
+        "toefl": row_dict.get("toefl_fit_info"),
+        "gpa": row_dict.get("gpa_fit_info"),
+        "duolingo": row_dict.get("duolingo_fit_info"),
+    }
+    concerns = _build_concern_tokens(
+        deadline_info=row_dict.get("deadline_info") if isinstance(row_dict.get("deadline_info"), dict) else None,
+        fit_signals=fit_signals,
+    )
+    admission_composite = row_dict.get("admission_composite")
+    if isinstance(admission_composite, dict):
+        top_concerns = admission_composite.get("top_concerns")
+        if isinstance(top_concerns, list):
+            for token in top_concerns:
+                if isinstance(token, str) and token and token not in concerns:
+                    concerns.append(token)
+    return concerns
+
+
+def _apply_strategy_concern_adjustments(
+    *,
+    concern_tokens: list[str],
+    supporting_actions: list[str],
+    risk_mitigation: list[str],
+    timeline_hint: str,
+) -> tuple[list[str], list[str], str]:
+    extra_supporting: list[str] = []
+    extra_risk: list[str] = []
+
+    if "gpa_meets_requirement" in concern_tokens:
+        extra_supporting.append("Pay attention to GPA-sensitive evaluation")
+    if "ielts_slightly_below" in concern_tokens:
+        extra_risk.append("Consider retaking IELTS to reduce risk")
+    if "toefl_slightly_below" in concern_tokens:
+        extra_risk.append("Consider retaking TOEFL to reduce risk")
+    if "duolingo_slightly_below" in concern_tokens:
+        extra_risk.append("Consider retaking Duolingo to reduce risk")
+    if "early_deadline" in concern_tokens:
+        timeline_hint = "Move quickly so the application is ready before the early deadline"
+
+    merged_supporting: list[str] = []
+    for action in [*extra_supporting, *supporting_actions]:
+        if action not in merged_supporting:
+            merged_supporting.append(action)
+
+    merged_risk: list[str] = []
+    for action in [*risk_mitigation, *extra_risk]:
+        if action not in merged_risk:
+            merged_risk.append(action)
+
+    return merged_supporting, merged_risk, timeline_hint
 
 
 def _fmt_score(value: Optional[float]) -> str:

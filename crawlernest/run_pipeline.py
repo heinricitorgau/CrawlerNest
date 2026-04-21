@@ -14,11 +14,18 @@ import time
 from pathlib import Path
 from typing import Iterable, Optional, Any
 
-from pipeline.bootstrap import bootstrap_module_paths, resolve_repo_paths
-from pipeline.cli import build_parser as build_pipeline_parser
-from pipeline.router import dispatch as dispatch_basic_commands
-from pipeline.stages.crawl_stage import execute_run_crawl_stage
-from pipeline.stages.write_stage import execute_run_write_stage
+try:
+    from pipeline.bootstrap import bootstrap_module_paths, resolve_repo_paths
+    from pipeline.cli import build_parser as build_pipeline_parser
+    from pipeline.router import dispatch as dispatch_basic_commands
+    from pipeline.stages.crawl_stage import execute_run_crawl_stage
+    from pipeline.stages.write_stage import execute_run_write_stage
+except ModuleNotFoundError:  # pragma: no cover - package import compatibility
+    from .pipeline.bootstrap import bootstrap_module_paths, resolve_repo_paths
+    from .pipeline.cli import build_parser as build_pipeline_parser
+    from .pipeline.router import dispatch as dispatch_basic_commands
+    from .pipeline.stages.crawl_stage import execute_run_crawl_stage
+    from .pipeline.stages.write_stage import execute_run_write_stage
 
 
 REPO_ROOT, MODULE_ROOT = resolve_repo_paths(__file__)
@@ -63,7 +70,10 @@ from recommendation_engine import (  # noqa: E402
     recommend_universities_v3,
 )
 from ranking_aggregation.repository import RankingAggregationRepository  # noqa: E402
-from pipeline.utils.normalization import normalize_universities  # noqa: E402
+try:
+    from pipeline.utils.normalization import normalize_universities  # noqa: E402
+except ModuleNotFoundError:  # pragma: no cover - package import compatibility
+    from .pipeline.utils.normalization import normalize_universities  # noqa: E402
 
 try:  # noqa: E402
     import psycopg2
@@ -1005,7 +1015,20 @@ def write_universities(
 
             alias_rows: list[tuple[int, str, str, str, float]] = []
             ranking_rows: list[tuple[int, Optional[int], str, str, Optional[int], Optional[int], Optional[int], Optional[float], Optional[str]]] = []
-            admission_rows: list[tuple[int, Optional[int], Optional[float], Optional[float], Optional[float], Optional[float], Optional[float]]] = []
+            admission_rows: list[
+                tuple[
+                    int,
+                    Optional[int],
+                    Optional[float],
+                    Optional[float],
+                    Optional[float],
+                    Optional[float],
+                    Optional[float],
+                    Optional[str],
+                    Optional[str],
+                    Optional[str],
+                ]
+            ] = []
 
             for (slug, uni), raw_id in zip(to_write, raw_ids):
                 try:
@@ -1044,6 +1067,9 @@ def write_universities(
                             writer._safe_float(req.toefl),
                             writer._safe_float(req.gre),
                             writer._safe_float(req.gmat),
+                            getattr(req, "application_deadline_text", None),
+                            getattr(req, "raw_text", None),
+                            getattr(req, "parsed_status", None),
                         )
                     )
 
@@ -2584,10 +2610,16 @@ def _run_sample_crawl_export(
     if str(workspace_root) not in sys.path:
         sys.path.insert(0, str(workspace_root))
 
-    from pipeline.sample_crawl_exports import (  # noqa: E402
-        run_admission_sample_export,
-        run_ranking_sample_export,
-    )
+    try:
+        from pipeline.sample_crawl_exports import (  # noqa: E402
+            run_admission_sample_export,
+            run_ranking_sample_export,
+        )
+    except ModuleNotFoundError:  # pragma: no cover - package import compatibility
+        from .pipeline.sample_crawl_exports import (  # noqa: E402
+            run_admission_sample_export,
+            run_ranking_sample_export,
+        )
 
     output_path = Path(output_file)
     if command == "crawl-ranking":

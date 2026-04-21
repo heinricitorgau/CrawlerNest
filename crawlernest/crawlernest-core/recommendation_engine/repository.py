@@ -26,12 +26,17 @@ class RecommendationRepository:
                 aggregated_rank,
                 composite_score,
                 coverage_ratio,
+                gpa_min,
                 ielts_min,
+                toefl_min,
+                duolingo_min,
                 source_ranks_json,
                 source_scores_json,
                 aggregation_method_version,
                 admission_record_count,
-                ielts_observation_count
+                ielts_observation_count,
+                application_deadline_text,
+                deadline_candidates_json
             FROM analytics.v_recommendation_candidates_latest
             WHERE (%s IS NULL OR ranking_year = %s)
               AND (%s IS NULL OR country = %s)
@@ -49,12 +54,17 @@ class RecommendationRepository:
                     aggregated_rank,
                     composite_score,
                     coverage_ratio,
+                    gpa_min,
                     ielts_min,
+                    toefl_min,
+                    duolingo_min,
                     source_ranks_json,
                     source_scores_json,
                     aggregation_method_version,
                     admission_record_count,
                     ielts_observation_count,
+                    application_deadline_text,
+                    deadline_candidates_json,
                 ) = row
                 out.append(
                     RecommendationCandidate(
@@ -65,13 +75,26 @@ class RecommendationRepository:
                         aggregated_rank=int(aggregated_rank) if aggregated_rank is not None else None,
                         aggregated_score=float(composite_score) if composite_score is not None else None,
                         coverage_ratio=float(coverage_ratio or 0.0),
+                        gpa_min=float(gpa_min) if gpa_min is not None else None,
                         ielts_min=float(ielts_min) if ielts_min is not None else None,
+                        toefl_min=float(toefl_min) if toefl_min is not None else None,
+                        duolingo_min=float(duolingo_min) if duolingo_min is not None else None,
                         source_ranks=dict(source_ranks_json or {}),
                         source_scores=dict(source_scores_json or {}),
                         aggregation_method_version=aggregation_method_version,
                         metadata={
                             "admission_record_count": admission_record_count,
                             "ielts_observation_count": ielts_observation_count,
+                            **(
+                                {"deadline": str(application_deadline_text)}
+                                if application_deadline_text not in (None, "")
+                                else {}
+                            ),
+                            **(
+                                {"deadline_candidates": list(deadline_candidates_json)}
+                                if isinstance(deadline_candidates_json, list) and deadline_candidates_json
+                                else {}
+                            ),
                         },
                     )
                 )
@@ -110,6 +133,9 @@ class RecommendationRepository:
                             "country": query.country,
                             "country_policy": query.country_policy,
                             "ielts_score": query.ielts_score,
+                            "toefl_score": query.toefl_score,
+                            "gpa_score": query.gpa_score,
+                            "duolingo_score": query.duolingo_score,
                             "target_rank": query.target_rank,
                             "risk_profile": query.risk_profile,
                             "preference_weights": query.preference_weights,
