@@ -29,10 +29,90 @@ type RecommendationItem = {
   universityName: string;
   country: string;
   aggregatedRank: number;
+  gpaRequirement?: number;
   ieltsMin: number;
+  toeflRequirement?: number;
+  duolingoRequirement?: number;
   matchingScore: number;
   recommendationConfidence: number;
   explanation: string;
+  admissionComposite?: {
+    admissionReadiness: "strong" | "moderate" | "weak" | "unknown";
+    admissionRisk: "low" | "medium" | "high" | "unknown";
+    topConcerns: string[];
+    topConcernLabels?: string[];
+    reason?: string;
+  };
+  decisionOutput?: {
+    decisionAction:
+      | "apply_early"
+      | "apply"
+      | "apply_with_caution"
+      | "improve_profile_first"
+      | "monitor"
+      | "insufficient_data";
+    decisionStrength: "strong" | "moderate" | "weak" | "unknown";
+    decisionReason: string;
+    recommendedNextSteps: string[];
+  };
+  decisionStrategy?: {
+    primaryStrategy: string;
+    supportingActions: string[];
+    riskMitigation: string[];
+    timelineHint: string;
+    reason: string;
+  };
+  surfaceSignals?: Array<{
+    type: "ielts" | "toefl" | "gpa" | "duolingo" | "deadline";
+    message?: string;
+    urgency?: "high" | "medium" | "low" | "unknown";
+    priorityLevel?: number;
+    priorityScore?: number;
+    emphasized?: boolean;
+  }>;
+  toeflFitHighlight?: {
+    requiredScore: number;
+    userScore: number;
+    margin: number;
+    fitBand: "comfortably_above" | "meets_requirement" | "slightly_below" | "well_below" | "unknown";
+    fitUrgency: "high" | "medium" | "low" | "unknown";
+    message: string;
+    reason?: string;
+  };
+  gpaFitHighlight?: {
+    requiredScore: number;
+    userScore: number;
+    margin: number;
+    fitBand: "comfortably_above" | "meets_requirement" | "slightly_below" | "well_below" | "unknown";
+    fitUrgency: "high" | "medium" | "low" | "unknown";
+    message: string;
+    reason?: string;
+  };
+  duolingoFitHighlight?: {
+    requiredScore: number;
+    userScore: number;
+    margin: number;
+    fitBand: "comfortably_above" | "meets_requirement" | "slightly_below" | "well_below" | "unknown";
+    fitUrgency: "high" | "medium" | "low" | "unknown";
+    message: string;
+    reason?: string;
+  };
+  ieltsFitHighlight?: {
+    requiredScore: number;
+    userScore: number;
+    margin: number;
+    fitBand: "comfortably_above" | "meets_requirement" | "slightly_below" | "well_below" | "unknown";
+    fitUrgency: "high" | "medium" | "low" | "unknown";
+    message: string;
+    reason?: string;
+  };
+  deadlineHighlight?: {
+    date: string;
+    type: string;
+    urgency: "high" | "medium" | "low" | "unknown";
+    message: string;
+    reason?: string;
+  };
   recommendationExplain?: {
     fitScore: number;
     dimensions: {
@@ -80,6 +160,9 @@ function formatConfidence(value: number | null | undefined) {
 function RecommendationPageContent() {
   const [country, setCountry] = useState("United Kingdom");
   const [ielts, setIelts] = useState(6.5);
+  const [toefl, setToefl] = useState<number | "">( "");
+  const [gpa, setGpa] = useState<number | "">( "");
+  const [duolingo, setDuolingo] = useState<number | "">( "");
   const [targetRank, setTargetRank] = useState(100);
   const [riskProfile, setRiskProfile] = useState("balanced");
 
@@ -254,6 +337,15 @@ function RecommendationPageContent() {
         limit: "5",
         version: "v3",
       });
+      if (toefl !== "") {
+        params.set("toeflScore", String(toefl));
+      }
+      if (gpa !== "") {
+        params.set("gpaScore", String(gpa));
+      }
+      if (duolingo !== "") {
+        params.set("duolingoScore", String(duolingo));
+      }
 
       const json = await fetchAppJson<RecommendationResponse>(
         `/api/recommendations?${params.toString()}`
@@ -463,6 +555,40 @@ function RecommendationPageContent() {
                 <option value="aggressive">aggressive</option>
               </select>
             </label>
+
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-[#1a3d2e]">TOEFL Score (optional)</span>
+              <input
+                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                type="number"
+                value={toefl}
+                onChange={(e) => setToefl(e.target.value === "" ? "" : Number(e.target.value))}
+                placeholder="e.g. 100"
+              />
+            </label>
+
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-[#1a3d2e]">GPA (optional)</span>
+              <input
+                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                type="number"
+                step="0.1"
+                value={gpa}
+                onChange={(e) => setGpa(e.target.value === "" ? "" : Number(e.target.value))}
+                placeholder="e.g. 3.5"
+              />
+            </label>
+
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-[#1a3d2e]">Duolingo Score (optional)</span>
+              <input
+                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                type="number"
+                value={duolingo}
+                onChange={(e) => setDuolingo(e.target.value === "" ? "" : Number(e.target.value))}
+                placeholder="e.g. 120"
+              />
+            </label>
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -575,6 +701,258 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
   );
 }
 
+function AdmissionCompositeCard({
+  composite,
+}: {
+  composite?: RecommendationItem["admissionComposite"];
+}) {
+  if (!composite) {
+    return null;
+  }
+
+  const readinessTone =
+    composite.admissionReadiness === "strong"
+      ? "text-[#1a3d2e]"
+      : composite.admissionReadiness === "moderate"
+        ? "text-[#8a6116]"
+        : composite.admissionReadiness === "weak"
+          ? "text-[#8b3a2b]"
+          : "text-[#6b7068]";
+
+  const riskTone =
+    composite.admissionRisk === "low"
+      ? "text-[#1a3d2e]"
+      : composite.admissionRisk === "medium"
+        ? "text-[#8a6116]"
+        : composite.admissionRisk === "high"
+          ? "text-[#8b3a2b]"
+          : "text-[#6b7068]";
+
+  return (
+    <div
+      className="rounded-xl border border-[#e0ddd8] bg-[#fcfbf8] p-4"
+      title={composite.reason || ""}
+    >
+      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+        Admission Readiness
+      </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div>
+          <div className="text-xs text-[#6b7068]">Readiness</div>
+          <div className={`mt-1 font-semibold capitalize ${readinessTone}`}>
+            {composite.admissionReadiness}
+          </div>
+        </div>
+        <div>
+          <div className="text-xs text-[#6b7068]">Risk</div>
+          <div className={`mt-1 font-semibold capitalize ${riskTone}`}>
+            {composite.admissionRisk}
+          </div>
+        </div>
+      </div>
+      {(composite.topConcernLabels?.length || composite.topConcerns.length) > 0 ? (
+        <div className="mt-3 text-sm text-[#6b7068]">
+          Top concerns: {(composite.topConcernLabels && composite.topConcernLabels.length > 0
+            ? composite.topConcernLabels
+            : composite.topConcerns
+          ).join(", ")}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DecisionOutputCard({
+  decision,
+}: {
+  decision?: RecommendationItem["decisionOutput"];
+}) {
+  if (!decision) {
+    return null;
+  }
+
+  const strengthTone =
+    decision.decisionStrength === "strong"
+      ? "text-[#1a3d2e]"
+      : decision.decisionStrength === "moderate"
+        ? "text-[#8a6116]"
+        : decision.decisionStrength === "weak"
+          ? "text-[#8b3a2b]"
+          : "text-[#6b7068]";
+
+  const actionLabel = decision.decisionAction.replace(/_/g, " ");
+
+  return (
+    <div className="rounded-xl border border-[#e0ddd8] bg-[#fffdf8] p-4">
+      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+        Suggested Action
+      </div>
+      <div className="mt-3 text-sm text-[#6b7068]">Action</div>
+      <div className="mt-1 font-semibold capitalize text-[#1a1a1a]">{actionLabel}</div>
+      <div className="mt-3 text-sm text-[#6b7068]">Confidence</div>
+      <div className={`mt-1 font-semibold capitalize ${strengthTone}`}>
+        {decision.decisionStrength}
+      </div>
+      <div className="mt-3 text-sm leading-6 text-[#6b7068]">{decision.decisionReason}</div>
+      {decision.recommendedNextSteps.length > 0 ? (
+        <div className="mt-3 text-sm text-[#6b7068]">
+          {decision.recommendedNextSteps.slice(0, 3).map((step) => (
+            <div key={step}>- {step}</div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DecisionStrategyCard({
+  strategy,
+}: {
+  strategy?: RecommendationItem["decisionStrategy"];
+}) {
+  if (!strategy) {
+    return null;
+  }
+
+  return (
+    <div
+      className="rounded-xl border border-[#e0ddd8] bg-[#fcfbf8] p-4"
+      title={strategy.reason}
+    >
+      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+        Application Strategy
+      </div>
+      <div className="mt-3 text-sm text-[#6b7068]">Primary</div>
+      <div className="mt-1 font-semibold text-[#1a1a1a]">{strategy.primaryStrategy}</div>
+      {strategy.supportingActions.length > 0 ? (
+        <div className="mt-3 text-sm text-[#6b7068]">
+          <div className="mb-1">Actions</div>
+          {strategy.supportingActions.slice(0, 3).map((step) => (
+            <div key={step}>• {step}</div>
+          ))}
+        </div>
+      ) : null}
+      {strategy.riskMitigation.length > 0 ? (
+        <div className="mt-3 text-sm text-[#6b7068]">
+          <div className="mb-1">Risk Mitigation</div>
+          {strategy.riskMitigation.slice(0, 3).map((step) => (
+            <div key={step}>• {step}</div>
+          ))}
+        </div>
+      ) : null}
+      <div className="mt-3 text-sm text-[#6b7068]">Timeline</div>
+      <div className="mt-1 text-sm leading-6 text-[#6b7068]">{strategy.timelineHint}</div>
+    </div>
+  );
+}
+
+function DeadlineBadge({
+  highlight,
+  className,
+}: {
+  highlight?: RecommendationItem["deadlineHighlight"];
+  className?: string;
+}) {
+  if (!highlight) {
+    return null;
+  }
+
+  const urgencyStyle =
+    highlight.urgency === "high"
+      ? {
+          icon: "🔴",
+          tone: "border-[#f1c5bc] bg-[#fbefeb] text-[#8b3a2b]",
+        }
+      : highlight.urgency === "medium"
+        ? {
+            icon: "🟡",
+            tone: "border-[#ead9a7] bg-[#fbf5e4] text-[#8a6116]",
+          }
+        : highlight.urgency === "low"
+          ? {
+              icon: "🟢",
+              tone: "border-[#cfe5d7] bg-[#edf7f1] text-[#1a3d2e]",
+            }
+          : {
+              icon: "⚪",
+              tone: "border-[#d7d5d0] bg-[#f5f3ee] text-[#6b7068]",
+            };
+
+  const typeLabel =
+    highlight.type && highlight.type !== "unknown"
+      ? `${highlight.type.charAt(0).toUpperCase()}${highlight.type.slice(1)} Deadline`
+      : "Deadline";
+
+  return (
+    <div
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${urgencyStyle.tone} ${className ?? ""}`}
+      title={highlight.reason || highlight.message}
+    >
+      <span aria-hidden="true">{urgencyStyle.icon}</span>
+      <span>{typeLabel}</span>
+      <span className="text-current/70">·</span>
+      <span>{highlight.date}</span>
+    </div>
+  );
+}
+
+function IeltsFitBadge({
+  highlight,
+  className,
+}: {
+  highlight?: RecommendationItem["ieltsFitHighlight"];
+  className?: string;
+}) {
+  return <RequirementFitBadge highlight={highlight} className={className} />;
+}
+
+function RequirementFitBadge({
+  highlight,
+  className,
+}: {
+  highlight?:
+    | RecommendationItem["ieltsFitHighlight"]
+    | RecommendationItem["toeflFitHighlight"]
+    | RecommendationItem["gpaFitHighlight"]
+    | RecommendationItem["duolingoFitHighlight"];
+  className?: string;
+}) {
+  if (!highlight) {
+    return null;
+  }
+
+  const urgencyStyle =
+    highlight.fitUrgency === "high"
+      ? {
+          icon: "🔴",
+          tone: "border-[#f1c5bc] bg-[#fbefeb] text-[#8b3a2b]",
+        }
+      : highlight.fitUrgency === "medium"
+        ? {
+            icon: "🟡",
+            tone: "border-[#ead9a7] bg-[#fbf5e4] text-[#8a6116]",
+          }
+        : highlight.fitUrgency === "low"
+          ? {
+              icon: "🟢",
+              tone: "border-[#cfe5d7] bg-[#edf7f1] text-[#1a3d2e]",
+            }
+          : {
+              icon: "⚪",
+              tone: "border-[#d7d5d0] bg-[#f5f3ee] text-[#6b7068]",
+            };
+
+  return (
+    <div
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${urgencyStyle.tone} ${className ?? ""}`}
+      title={highlight.reason || highlight.message}
+    >
+      <span aria-hidden="true">{urgencyStyle.icon}</span>
+      <span>{highlight.message}</span>
+    </div>
+  );
+}
+
 function Section({
   title,
   description,
@@ -641,6 +1019,60 @@ function Section({
                   value={formatConfidence(item.recommendationConfidence)}
                 />
               </div>
+
+              {item.ieltsFitHighlight || item.toeflFitHighlight || item.gpaFitHighlight || item.duolingoFitHighlight || item.deadlineHighlight ? (
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  {(item.surfaceSignals && item.surfaceSignals.length > 0
+                    ? item.surfaceSignals
+                    : [
+                        { type: "ielts", emphasized: true },
+                        { type: "toefl", emphasized: true },
+                        { type: "gpa", emphasized: true },
+                        { type: "duolingo", emphasized: true },
+                        { type: "deadline", emphasized: true },
+                      ]
+                  ).map((signal) => {
+                    const isPrimary = signal.emphasized !== false;
+                    const badgeClass = isPrimary ? "" : "opacity-65";
+                    const key = `${item.canonicalUniversityId}-${signal.type}`;
+
+                    if (signal.type === "ielts" && item.ieltsFitHighlight) {
+                      return <IeltsFitBadge key={key} highlight={item.ieltsFitHighlight} className={badgeClass} />;
+                    }
+                    if (signal.type === "toefl" && item.toeflFitHighlight) {
+                      return <RequirementFitBadge key={key} highlight={item.toeflFitHighlight} className={badgeClass} />;
+                    }
+                    if (signal.type === "gpa" && item.gpaFitHighlight) {
+                      return <RequirementFitBadge key={key} highlight={item.gpaFitHighlight} className={badgeClass} />;
+                    }
+                    if (signal.type === "duolingo" && item.duolingoFitHighlight) {
+                      return <RequirementFitBadge key={key} highlight={item.duolingoFitHighlight} className={badgeClass} />;
+                    }
+                    if (signal.type === "deadline" && item.deadlineHighlight) {
+                      return <DeadlineBadge key={key} highlight={item.deadlineHighlight} className={badgeClass} />;
+                    }
+                    return null;
+                  })}
+                </div>
+              ) : null}
+
+              {item.admissionComposite ? (
+                <div className="mt-4">
+                  <AdmissionCompositeCard composite={item.admissionComposite} />
+                </div>
+              ) : null}
+
+              {item.decisionOutput ? (
+                <div className="mt-4">
+                  <DecisionOutputCard decision={item.decisionOutput} />
+                </div>
+              ) : null}
+
+              {item.decisionStrategy ? (
+                <div className="mt-4">
+                  <DecisionStrategyCard strategy={item.decisionStrategy} />
+                </div>
+              ) : null}
 
               <div className="mt-4 rounded-xl bg-[#f5f3ee] p-4 text-sm leading-6 text-[#6b7068]">
                 {item.explanation}

@@ -61,17 +61,49 @@ CREATE TABLE IF NOT EXISTS analytics.recommendation_results (
     UNIQUE (recommendation_run_id, result_position)
 );
 
+CREATE TABLE IF NOT EXISTS warehouse.admission_records_preview (
+    id BIGSERIAL PRIMARY KEY,
+    university_name TEXT NOT NULL,
+    normalized_university_name TEXT NOT NULL,
+    source_url TEXT NOT NULL,
+    country TEXT NULL,
+    ielts_requirement DOUBLE PRECISION NULL,
+    toefl_requirement INTEGER NULL,
+    extracted_at TIMESTAMPTZ NOT NULL,
+    canonical_university_id BIGINT NULL,
+    entity_resolution_status TEXT NOT NULL,
+    raw_payload JSONB NULL,
+    UNIQUE (normalized_university_name, source_url)
+);
+
 CREATE OR REPLACE VIEW analytics.v_recommendation_candidates_latest AS
 WITH admission_summary AS (
     SELECT
         cul.canonical_university_id,
+        MIN(ar.gpa_min) FILTER (WHERE ar.gpa_min IS NOT NULL) AS gpa_min,
         MIN(ar.ielts_min) FILTER (WHERE ar.ielts_min IS NOT NULL) AS ielts_min,
+        MIN(ar.toefl_min) FILTER (WHERE ar.toefl_min IS NOT NULL) AS toefl_min,
         COUNT(*) FILTER (WHERE ar.ielts_min IS NOT NULL) AS ielts_observation_count,
-        COUNT(*) AS admission_record_count
+        COUNT(*) AS admission_record_count,
+        (
+            ARRAY_AGG(ar.application_deadline_text ORDER BY ar.requirement_id DESC)
+            FILTER (WHERE ar.application_deadline_text IS NOT NULL AND ar.application_deadline_text <> '')
+        )[1] AS application_deadline_text
     FROM warehouse.canonical_university_link cul
     JOIN warehouse.admission_requirements ar
       ON ar.university_id = cul.university_id
     GROUP BY cul.canonical_university_id
+),
+admission_preview_summary AS (
+    SELECT
+        canonical_university_id,
+        (
+            ARRAY_AGG(raw_payload ORDER BY id DESC)
+            FILTER (WHERE raw_payload IS NOT NULL)
+        )[1] AS latest_raw_payload
+    FROM warehouse.admission_records_preview
+    WHERE canonical_university_id IS NOT NULL
+    GROUP BY canonical_university_id
 ),
 source_rank_summary AS (
     SELECT
@@ -100,7 +132,12 @@ SELECT
     ar.aggregation_method_version,
     COALESCE(srs.source_ranks_json, '{}'::jsonb) AS source_ranks_json,
     COALESCE(srs.source_scores_json, '{}'::jsonb) AS source_scores_json,
+    ads.gpa_min,
     ads.ielts_min,
+    ads.toefl_min,
+    NULLIF(COALESCE(aps.latest_raw_payload->>'duolingo_requirement', aps.latest_raw_payload->>'duolingo'), '')::numeric AS duolingo_min,
+    COALESCE(aps.latest_raw_payload->>'deadline', ads.application_deadline_text) AS application_deadline_text,
+    COALESCE(aps.latest_raw_payload->'deadline_candidates', '[]'::jsonb) AS deadline_candidates_json,
     COALESCE(ads.ielts_observation_count, 0) AS ielts_observation_count,
     COALESCE(ads.admission_record_count, 0) AS admission_record_count
 FROM analytics.v_aggregated_rankings_latest ar
@@ -110,6 +147,8 @@ LEFT JOIN warehouse.countries c
   ON c.country_id = cu.country_id
 LEFT JOIN admission_summary ads
   ON ads.canonical_university_id = ar.canonical_university_id
+LEFT JOIN admission_preview_summary aps
+  ON aps.canonical_university_id = ar.canonical_university_id
 LEFT JOIN source_rank_summary srs
   ON srs.canonical_university_id = ar.canonical_university_id
  AND srs.ranking_year = ar.ranking_year

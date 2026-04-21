@@ -9,6 +9,9 @@ class RecommendationQuery:
     country: Optional[str] = None
     country_policy: Optional[str] = None
     ielts_score: Optional[float] = None
+    toefl_score: Optional[float] = None
+    gpa_score: Optional[float] = None
+    duolingo_score: Optional[float] = None
     target_rank: Optional[int] = None
     risk_profile: Optional[str] = None
     preference_weights: dict[str, float] = field(default_factory=dict)
@@ -26,7 +29,10 @@ class RecommendationCandidate:
     aggregated_rank: Optional[int]
     aggregated_score: Optional[float]
     coverage_ratio: float = 0.0
+    gpa_min: Optional[float] = None
     ielts_min: Optional[float] = None
+    toefl_min: Optional[float] = None
+    duolingo_min: Optional[float] = None
     source_ranks: dict[str, Optional[int]] = field(default_factory=dict)
     source_scores: dict[str, Optional[float]] = field(default_factory=dict)
     aggregation_method_version: Optional[str] = None
@@ -67,7 +73,10 @@ class RecommendationResult:
     university_name: str
     country: Optional[str]
     aggregated_rank: Optional[int]
+    gpa_min: Optional[float]
     ielts_min: Optional[float]
+    toefl_min: Optional[float]
+    duolingo_min: Optional[float]
     matching_score: float
     category: Optional[str]
     preference_alignment: Optional[str]
@@ -79,6 +88,7 @@ class RecommendationResult:
     explanation: str
     score_breakdown: RecommendationScoreBreakdown
     aggregation_method_version: Optional[str] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
