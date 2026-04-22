@@ -1298,8 +1298,6 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-04-17 | 完成 Web / Dev Agent 顯式分流、Web Agent formatter 邊界、generation layer（context / prompt / response generator）、`/agent` 頁 debug/normal mode 收斂，以及 memory debug summary / recent-entity carry-over 強化。 | 已完成 |
 | 2026-04-18 | 完成主開發順序規範化，正式寫入 architecture scope / data contracts / do-not-auto-modify 邊界，將專案主線重新收斂為 admission crawler、normalization、canonical、warehouse、recommendation 的 correctness-first 路徑。 | 已完成 |
 | 2026-04-19 | 完成 correctness-first hardening：admission crawler host guard、extractor input truncation 與欄位驗證、agent prompt untrusted-source guardrail、API request size cap，以及 resolution summary / unresolved report 的 anomaly visibility 補強。 | 已完成 |
-| 2026-04-20 | 目前在 repo 歷史中未見可單列的獨立功能提交；此日不另立獨立里程碑。 | 無獨立里程碑 |
-| 2026-04-21 | 目前在 repo 歷史中未見可單列的獨立功能提交；此日不另立獨立里程碑。 | 無獨立里程碑 |
 | 2026-04-22 | 完成 recommendation decision-support 主鏈的第一輪產品化：引入 structured concern vocabulary、surface-priority policy、admission composite、decision output 與 decision strategy，並同步打通 recommendation engine、service/API、assistant reply 與 recommendation UI。 | 已完成 |
 
 ### 14.4 當前階段判讀（截至 2026-04-22）

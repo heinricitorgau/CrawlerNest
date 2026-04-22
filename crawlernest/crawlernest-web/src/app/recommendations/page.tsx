@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { fetchAppJson } from "@/lib/api";
+import { PlanComparisonMatrix } from "@/components/PlanComparisonMatrix";
 import {
   formatIelts,
   formatRank,
@@ -128,6 +129,81 @@ type RecommendationItem = {
 
 type RecommendationResponse = {
   success: boolean;
+  applicationPlan?: {
+    planName?: string;
+    reach: Array<{
+      universityName: string;
+      decision?: string;
+      strategy?: string;
+      risk?: string;
+      reason?: string;
+    }>;
+    target: Array<{
+      universityName: string;
+      decision?: string;
+      strategy?: string;
+      risk?: string;
+      reason?: string;
+    }>;
+    safety: Array<{
+      universityName: string;
+      decision?: string;
+      strategy?: string;
+      risk?: string;
+      reason?: string;
+    }>;
+    planSummary: string;
+    riskDistribution: string;
+    recommendedStrategy: string;
+    primaryChoice?: {
+      universityName: string;
+      bucket: "reach" | "target" | "safety";
+      reason: string;
+    };
+    planWarnings?: string[];
+    planConfidence?: "high" | "medium" | "low";
+    planConfidenceReason?: string;
+  };
+  applicationPlans?: Array<{
+    planName: "balanced" | "conservative" | "aggressive";
+    reach: Array<{
+      universityName: string;
+      decision?: string;
+      strategy?: string;
+      risk?: string;
+      reason?: string;
+    }>;
+    target: Array<{
+      universityName: string;
+      decision?: string;
+      strategy?: string;
+      risk?: string;
+      reason?: string;
+    }>;
+    safety: Array<{
+      universityName: string;
+      decision?: string;
+      strategy?: string;
+      risk?: string;
+      reason?: string;
+    }>;
+    planSummary: string;
+    riskDistribution: string;
+    recommendedStrategy: string;
+    primaryChoice?: {
+      universityName: string;
+      bucket: "reach" | "target" | "safety";
+      reason: string;
+    };
+    planWarnings?: string[];
+    planConfidence?: "high" | "medium" | "low";
+    planConfidenceReason?: string;
+  }>;
+  planComparison?: {
+    recommendedPlan: "balanced" | "conservative" | "aggressive";
+    reason: string;
+    tradeoffs: string[];
+  };
   data: {
     reach: RecommendationItem[];
     target: RecommendationItem[];
@@ -144,7 +220,6 @@ type RecommendationResponse = {
 };
 
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
-
 function formatConfidence(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return "Not available";
@@ -155,6 +230,15 @@ function formatConfidence(value: number | null | undefined) {
   }
 
   return `${Math.round(value)}%`;
+}
+function truncatePlanText(text: string | undefined, maxLength = 110) {
+  if (!text) {
+    return null;
+  }
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return `${text.slice(0, maxLength - 1).trimEnd()}...`;
 }
 
 function RecommendationPageContent() {
@@ -168,6 +252,9 @@ function RecommendationPageContent() {
 
   const [data, setData] = useState<RecommendationResponse["data"] | null>(null);
   const [metadata, setMetadata] = useState<RecommendationResponse["metadata"] | null>(null);
+  const [applicationPlan, setApplicationPlan] = useState<RecommendationResponse["applicationPlan"] | null>(null);
+  const [applicationPlans, setApplicationPlans] = useState<RecommendationResponse["applicationPlans"] | null>(null);
+  const [planComparison, setPlanComparison] = useState<RecommendationResponse["planComparison"] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shortlistContext, setShortlistContext] = useState<ShortlistItem[]>([]);
@@ -357,10 +444,16 @@ function RecommendationPageContent() {
 
       setData(json.data);
       setMetadata(json.metadata ?? null);
+      setApplicationPlan(json.applicationPlan ?? null);
+      setApplicationPlans(json.applicationPlans ?? null);
+      setPlanComparison(json.planComparison ?? null);
     } catch {
       setError("Unable to load recommendations. Please confirm the API server is running.");
       setData(null);
       setMetadata(null);
+      setApplicationPlan(null);
+      setApplicationPlans(null);
+      setPlanComparison(null);
     } finally {
       setLoading(false);
     }
@@ -639,6 +732,154 @@ function RecommendationPageContent() {
               </div>
             </section>
 
+            {applicationPlans && applicationPlans.length > 0 ? (
+              <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-[#1a3d2e]">Application Plans</h2>
+                <p className="mt-2 text-sm text-[#6b7068]">
+                  Three deterministic plan variants so we can compare balance, safety, and upside from the same recommendation set.
+                </p>
+                {planComparison ? (
+                  <div className="mt-5 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] p-4 text-sm leading-6 text-[#315343]">
+                    <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                      Recommended Plan
+                    </div>
+                    <div className="mt-2 font-semibold capitalize text-[#1a1a1a]">
+                      {planComparison.recommendedPlan}
+                    </div>
+                    <div className="mt-2">{planComparison.reason}</div>
+                    {planComparison.tradeoffs.length > 0 ? (
+                      <div className="mt-3 space-y-1 text-[#4b5b53]">
+                        {planComparison.tradeoffs.slice(0, 2).map((tradeoff) => (
+                          <div key={tradeoff}>{tradeoff}</div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+                <PlanComparisonMatrix plans={applicationPlans} planComparison={planComparison ?? undefined} />
+                <div className="mt-5 grid gap-4 xl:grid-cols-3">
+                  {applicationPlans.map((plan) => (
+                    <div
+                      key={plan.planName}
+                      className={`rounded-2xl border p-5 ${planComparison?.recommendedPlan === plan.planName ? "border-[#9db8a7] bg-[#f6fbf7]" : "border-[#e0ddd8] bg-[#fcfbf8]"}`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6b7068]">
+                            Plan
+                          </div>
+                          <div className="mt-1 text-lg font-semibold capitalize text-[#1a3d2e]">
+                            {plan.planName}
+                          </div>
+                        </div>
+                        {planComparison?.recommendedPlan === plan.planName ? (
+                          <div className="rounded-full bg-[#dceee2] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#315343]">
+                            Recommended
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="mt-4 grid gap-3">
+                        <ApplicationPlanGroup title="Reach" icon="🔥" items={plan.reach} compact />
+                        <ApplicationPlanGroup title="Target" icon="🎯" items={plan.target} compact />
+                        <ApplicationPlanGroup title="Safety" icon="🛡" items={plan.safety} compact />
+                      </div>
+                      <div className="mt-4 rounded-xl bg-white/70 p-4 text-sm leading-6 text-[#6b7068]">
+                        <div>{plan.planSummary}</div>
+                        <div className="mt-2">{plan.riskDistribution}</div>
+                        <div className="mt-2" title={plan.recommendedStrategy}>
+                          {truncatePlanText(plan.recommendedStrategy, 120)}
+                        </div>
+                        {plan.primaryChoice ? (
+                          <div className="mt-3">
+                            <span className="font-semibold text-[#1a1a1a]">Primary choice:</span>{" "}
+                            {plan.primaryChoice.universityName}
+                          </div>
+                        ) : null}
+                        {plan.planConfidence ? (
+                          <div className="mt-2">
+                            <span className="font-semibold text-[#1a1a1a]">Plan confidence:</span>{" "}
+                            <span>{plan.planConfidence.charAt(0).toUpperCase() + plan.planConfidence.slice(1)}</span>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ) : applicationPlan ? (
+              <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-[#1a3d2e]">Application Plan</h2>
+                <p className="mt-2 text-sm text-[#6b7068]">
+                  A structured view of reach, target, and safety options for execution planning.
+                </p>
+                <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                  <ApplicationPlanGroup title="Reach" icon="🔥" items={applicationPlan.reach} />
+                  <ApplicationPlanGroup title="Target" icon="🎯" items={applicationPlan.target} />
+                  <ApplicationPlanGroup title="Safety" icon="🛡" items={applicationPlan.safety} />
+                </div>
+                <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-xl bg-[#f5f3ee] p-4 text-sm leading-6 text-[#6b7068]">
+                    <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                      Summary
+                    </div>
+                    <div className="mt-2">{applicationPlan.planSummary}</div>
+                    <div className="mt-2">{applicationPlan.riskDistribution}</div>
+                  </div>
+                  <div className="rounded-xl bg-[#fcfbf8] p-4 text-sm leading-6 text-[#6b7068]">
+                    <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                      Strategy
+                    </div>
+                    <div className="mt-2">{applicationPlan.recommendedStrategy}</div>
+                  </div>
+                </div>
+                {applicationPlan.primaryChoice || applicationPlan.planConfidence || (applicationPlan.planWarnings && applicationPlan.planWarnings.length > 0) ? (
+                  <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                    {applicationPlan.primaryChoice ? (
+                      <div className="rounded-xl bg-[#fcfbf8] p-4 text-sm leading-6 text-[#6b7068]">
+                        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                          Primary Choice
+                        </div>
+                        <div className="mt-2 font-semibold text-[#1a1a1a]">
+                          {applicationPlan.primaryChoice.universityName}
+                        </div>
+                        <div className="mt-1 capitalize">{applicationPlan.primaryChoice.bucket}</div>
+                        <div className="mt-2">{applicationPlan.primaryChoice.reason}</div>
+                      </div>
+                    ) : null}
+                    {applicationPlan.planConfidence ? (
+                      <div className="rounded-xl bg-[#f5f3ee] p-4 text-sm leading-6 text-[#6b7068]">
+                        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                          Plan Confidence
+                        </div>
+                        <div className="mt-2 font-semibold capitalize text-[#1a1a1a]">
+                          {applicationPlan.planConfidence}
+                        </div>
+                        {applicationPlan.planConfidenceReason ? (
+                          <div className="mt-2">{applicationPlan.planConfidenceReason}</div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {applicationPlan.planWarnings ? (
+                      <div className="rounded-xl bg-[#fff7ef] p-4 text-sm leading-6 text-[#6b7068]">
+                        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a6116]">
+                          Warnings
+                        </div>
+                        {applicationPlan.planWarnings.length > 0 ? (
+                          <div className="mt-2 space-y-1">
+                            {applicationPlan.planWarnings.map((warning) => (
+                              <div key={warning}>- {warning}</div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="mt-2">No major warning signals in the current plan.</div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </section>
+            ) : null}
+
             <Section
               title="Reach"
               description="Ambitious options with stronger ranking upside relative to your target."
@@ -697,6 +938,57 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl bg-[#f5f3ee] px-4 py-3">
       <div className="text-sm text-[#6b7068]">{label}</div>
       <div className="mt-1 font-medium text-[#1a1a1a]">{value}</div>
+    </div>
+  );
+}
+
+function ApplicationPlanGroup({
+  title,
+  icon,
+  items,
+  compact = false,
+}: {
+  title: string;
+  icon: string;
+  items: Array<{
+    universityName: string;
+    decision?: string;
+    strategy?: string;
+    risk?: string;
+    reason?: string;
+  }>;
+  compact?: boolean;
+}) {
+  return (
+    <div className={`rounded-2xl border border-[#e0ddd8] ${compact ? "bg-white/80 p-3" : "bg-[#fcfbf8] p-4"}`}>
+      <div className="text-sm font-semibold text-[#1a3d2e]">
+        {icon} {title}
+      </div>
+      {items.length === 0 ? (
+        <div className="mt-3 text-sm text-[#6b7068]">No options in this group.</div>
+      ) : (
+        <div className={`mt-3 ${compact ? "space-y-2" : "space-y-3"}`}>
+          {items.map((item) => (
+            <div key={`${title}-${item.universityName}`} className={`rounded-xl bg-white ${compact ? "p-2.5" : "p-3"}`}>
+              <div className="font-semibold text-[#1a1a1a]">{item.universityName}</div>
+              {item.decision ? (
+                <div className="mt-1 text-sm capitalize text-[#6b7068]">
+                  Decision: {item.decision.replace(/_/g, " ")}
+                </div>
+              ) : null}
+              {item.strategy ? (
+                <div className="mt-1 text-sm text-[#6b7068]">{item.strategy}</div>
+              ) : null}
+              {item.risk ? (
+                <div className="mt-1 text-sm capitalize text-[#6b7068]">Risk: {item.risk}</div>
+              ) : null}
+              {item.reason ? (
+                <div className="mt-2 text-sm leading-6 text-[#6b7068]">{item.reason}</div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

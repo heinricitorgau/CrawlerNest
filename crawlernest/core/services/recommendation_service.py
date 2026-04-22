@@ -64,11 +64,17 @@ class RecommendationService:
             conn.close()
 
         items, counts = self._flatten_grouped_results(payload)
+        application_plan = self._build_application_plan(items)
+        application_plans = self._build_application_plans(items)
+        plan_comparison = self._build_plan_comparison(application_plans)
         summary = self._build_summary(query=query, counts=counts, total_items=len(items))
         assistant_reply, paragraphs = self._build_assistant_reply(
             query=query,
             counts=counts,
             items=items,
+            application_plan=application_plan,
+            application_plans=application_plans,
+            plan_comparison=plan_comparison,
         )
 
         metadata = payload.get("metadata", {}) if isinstance(payload.get("metadata"), dict) else {}
@@ -82,6 +88,9 @@ class RecommendationService:
             "assistantReply": assistant_reply,
             "assistantReplyParagraphs": paragraphs,
             "items": items,
+            **({"applicationPlan": application_plan} if application_plan is not None else {}),
+            **({"applicationPlans": application_plans} if application_plans else {}),
+            **({"planComparison": plan_comparison} if plan_comparison is not None else {}),
             "groups": {
                 "reach": payload.get("reach", []),
                 "target": payload.get("target", []),
@@ -242,6 +251,9 @@ class RecommendationService:
         query: RecommendationQuery,
         counts: dict[str, int],
         items: list[dict[str, Any]],
+        application_plan: dict[str, Any] | None = None,
+        application_plans: list[dict[str, Any]] | None = None,
+        plan_comparison: dict[str, Any] | None = None,
     ) -> tuple[str, list[str]]:
         if not items:
             paragraphs = [
@@ -305,6 +317,12 @@ class RecommendationService:
         strategy_note = self._build_decision_strategy_note(items[0]) if items else None
         if strategy_note:
             paragraphs.append(strategy_note)
+        application_plan_note = self._build_application_plan_note(application_plan)
+        if application_plan_note:
+            paragraphs.extend(application_plan_note)
+        multi_plan_note = self._build_multi_plan_note(application_plans, plan_comparison)
+        if multi_plan_note:
+            paragraphs.extend(multi_plan_note)
 
         return "\n\n".join(paragraphs), paragraphs
 
@@ -711,6 +729,619 @@ class RecommendationService:
             if usable_mitigation:
                 parts.append("Risk mitigation: " + usable_mitigation[0] + ".")
         return " ".join(parts)
+
+    def _build_application_plan(self, items: list[dict[str, Any]]) -> dict[str, Any] | None:
+        grouped = self._build_application_plan_groups(items)
+        return self._build_application_plan_from_grouped(grouped, plan_name="balanced")
+
+    def _build_application_plans(self, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        grouped = self._build_application_plan_groups(items)
+        plans: list[dict[str, Any]] = []
+
+        balanced = self._build_application_plan_from_grouped(grouped, plan_name="balanced")
+        if balanced is not None:
+            plans.append(balanced)
+
+        conservative_grouped = {
+            "reach": list(grouped["reach"][:1]),
+            "target": list(grouped["target"][:2]),
+            "safety": list(grouped["safety"][:2]),
+        }
+        conservative = self._build_application_plan_from_grouped(
+            conservative_grouped,
+            plan_name="conservative",
+        )
+        if conservative is not None and self._is_valid_application_plan_variant(conservative):
+            plans.append(conservative)
+
+        aggressive_grouped = {
+            "reach": list(grouped["reach"][:2]),
+            "target": list(grouped["target"][:2]),
+            "safety": list(grouped["safety"][:1]),
+        }
+        aggressive = self._build_application_plan_from_grouped(
+            aggressive_grouped,
+            plan_name="aggressive",
+        )
+        if aggressive is not None and self._is_valid_application_plan_variant(aggressive):
+            plans.append(aggressive)
+
+        return plans
+
+    def _build_application_plan_groups(
+        self,
+        items: list[dict[str, Any]],
+    ) -> dict[str, list[dict[str, Any]]]:
+        if not items:
+            return {"reach": [], "target": [], "safety": []}
+
+        grouped: dict[str, list[dict[str, Any]]] = {
+            "reach": [],
+            "target": [],
+            "safety": [],
+        }
+
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            category = self._application_plan_group(item)
+            if category is None:
+                continue
+            grouped[category].append(self._application_plan_item(item))
+
+        for category in grouped:
+            grouped[category] = sorted(
+                grouped[category],
+                key=lambda row: (
+                    -float(row.get("matchingScore", 0.0)),
+                    str(row.get("universityName") or ""),
+                ),
+            )[:2]
+
+        return grouped
+
+    def _build_application_plan_from_grouped(
+        self,
+        grouped: dict[str, list[dict[str, Any]]],
+        *,
+        plan_name: str,
+    ) -> dict[str, Any] | None:
+        if not any(grouped.values()):
+            return None
+
+        risk_counts = {"high": 0, "medium": 0, "low": 0}
+        for rows in grouped.values():
+            for row in rows:
+                risk = row.get("risk")
+                if isinstance(risk, str) and risk in risk_counts:
+                    risk_counts[risk] += 1
+
+        reach_count = len(grouped["reach"])
+        target_count = len(grouped["target"])
+        safety_count = len(grouped["safety"])
+        primary_choice = self._build_application_plan_primary_choice(grouped)
+        quality_adjustment = self._build_application_plan_quality_adjustment(
+            target=grouped["target"],
+            safety=grouped["safety"],
+        )
+        warnings = self._build_application_plan_warnings(
+            reach_count=reach_count,
+            target_count=target_count,
+            safety_count=safety_count,
+            total_count=reach_count + target_count + safety_count,
+            risk_distribution=self._build_application_plan_risk_label(
+                risk_counts=risk_counts,
+                safety_count=safety_count,
+            ),
+        )
+        confidence = self._build_application_plan_confidence(
+            reach_count=reach_count,
+            target_count=target_count,
+            safety_count=safety_count,
+            primary_choice=primary_choice,
+            quality_adjustment=quality_adjustment,
+        )
+
+        public_grouped = {
+            category: [self._application_plan_public_item(row) for row in rows]
+            for category, rows in grouped.items()
+        }
+
+        return {
+            "planName": plan_name,
+            "reach": public_grouped["reach"],
+            "target": public_grouped["target"],
+            "safety": public_grouped["safety"],
+            "planSummary": (
+                f"Balanced plan with {reach_count} reach, {target_count} target, "
+                f"and {safety_count} safety options."
+                if plan_name == "balanced"
+                else f"{plan_name.capitalize()} plan with {reach_count} reach, {target_count} target, "
+                f"and {safety_count} safety options."
+            ),
+            "riskDistribution": self._build_application_plan_risk_distribution(
+                risk_counts=risk_counts,
+                safety_count=safety_count,
+            ),
+            "recommendedStrategy": self._build_application_plan_strategy(
+                reach_count=reach_count,
+                target_count=target_count,
+                safety_count=safety_count,
+                risk_counts=risk_counts,
+            ),
+            **({"primaryChoice": primary_choice} if primary_choice is not None else {}),
+            "planWarnings": warnings,
+            "planConfidence": confidence,
+            "planConfidenceReason": self._build_application_plan_confidence_reason(
+                target_count=target_count,
+                safety_count=safety_count,
+                warnings=warnings,
+                quality_adjustment=quality_adjustment,
+                confidence=confidence,
+            ),
+        }
+
+    def _is_valid_application_plan_variant(self, plan: dict[str, Any]) -> bool:
+        plan_name = str(plan.get("planName") or "")
+        reach = plan.get("reach")
+        target = plan.get("target")
+        safety = plan.get("safety")
+        if not isinstance(reach, list) or not isinstance(target, list) or not isinstance(safety, list):
+            return False
+
+        if plan_name == "conservative":
+            return len(safety) >= 1 and len(reach) <= 1
+        if plan_name == "aggressive":
+            return len(reach) >= 1 and len(safety) <= 1
+        return True
+
+    def _build_plan_comparison(self, application_plans: list[dict[str, Any]]) -> dict[str, Any] | None:
+        if not application_plans:
+            return None
+
+        plan_map = {
+            str(plan.get("planName")): plan
+            for plan in application_plans
+            if isinstance(plan, dict) and isinstance(plan.get("planName"), str)
+        }
+        confidence_rank = {"high": 2, "medium": 1, "low": 0}
+
+        balanced = plan_map.get("balanced")
+        if (
+            isinstance(balanced, dict)
+            and confidence_rank.get(str(balanced.get("planConfidence")), -1) == 2
+        ):
+            recommended = balanced
+        else:
+            candidates = [
+                plan
+                for plan_name in ("conservative", "aggressive")
+                for plan in [plan_map.get(plan_name)]
+                if isinstance(plan, dict)
+            ]
+            recommended = balanced
+            if candidates:
+                recommended = candidates[0]
+                for candidate in candidates[1:]:
+                    recommended = self._prefer_application_plan(recommended, candidate, confidence_rank)
+        if not isinstance(recommended, dict):
+            recommended = next((plan for plan in application_plans if isinstance(plan, dict)), None)
+        if not isinstance(recommended, dict):
+            return None
+
+        recommended_name = str(recommended.get("planName") or "balanced")
+        reason = self._build_plan_comparison_reason(recommended)
+        tradeoffs = self._build_plan_tradeoffs(application_plans, recommended_name)
+        return {
+            "recommendedPlan": recommended_name,
+            "reason": reason,
+            "tradeoffs": tradeoffs,
+        }
+
+    def _prefer_application_plan(
+        self,
+        current: dict[str, Any],
+        candidate: dict[str, Any],
+        confidence_rank: dict[str, int],
+    ) -> dict[str, Any]:
+        current_confidence = confidence_rank.get(str(current.get("planConfidence")), -1)
+        candidate_confidence = confidence_rank.get(str(candidate.get("planConfidence")), -1)
+        if candidate_confidence > current_confidence:
+            return candidate
+        if candidate_confidence < current_confidence:
+            return current
+
+        current_reach = len(current.get("reach") or []) if isinstance(current.get("reach"), list) else 0
+        candidate_reach = len(candidate.get("reach") or []) if isinstance(candidate.get("reach"), list) else 0
+        current_safety = len(current.get("safety") or []) if isinstance(current.get("safety"), list) else 0
+        candidate_safety = len(candidate.get("safety") or []) if isinstance(candidate.get("safety"), list) else 0
+        current_target = len(current.get("target") or []) if isinstance(current.get("target"), list) else 0
+        candidate_target = len(candidate.get("target") or []) if isinstance(candidate.get("target"), list) else 0
+        current_name = str(current.get("planName") or "")
+        candidate_name = str(candidate.get("planName") or "")
+
+        if (
+            candidate_name == "aggressive"
+            and current_name == "conservative"
+            and candidate_reach > current_reach
+            and candidate_target >= current_target
+            and candidate_target > 0
+        ):
+            return candidate
+        if (
+            candidate_name == "conservative"
+            and current_name == "aggressive"
+            and (candidate_safety > current_safety or (candidate_target == 0 and current_target == 0))
+        ):
+            return candidate
+        if candidate_name == "conservative" and current_name != "conservative":
+            return candidate
+        return current
+
+    def _build_plan_comparison_reason(self, plan: dict[str, Any]) -> str:
+        plan_name = str(plan.get("planName") or "balanced")
+        confidence = str(plan.get("planConfidence") or "medium")
+        if plan_name == "balanced":
+            return "Balanced is recommended because it keeps the strongest overall mix with stable confidence."
+        if plan_name == "conservative":
+            return f"Conservative is recommended because it preserves safer coverage with {confidence} confidence."
+        return f"Aggressive is recommended because it keeps more upside options while still holding {confidence} confidence."
+
+    def _build_plan_tradeoffs(
+        self,
+        application_plans: list[dict[str, Any]],
+        recommended_plan: str,
+    ) -> list[str]:
+        tradeoffs: list[str] = []
+        for plan in application_plans:
+            if not isinstance(plan, dict):
+                continue
+            plan_name = str(plan.get("planName") or "")
+            if not plan_name or plan_name == recommended_plan:
+                continue
+            tradeoffs.append(
+                f"{plan_name.capitalize()}: {self._build_plan_tradeoff_line(plan)}"
+            )
+        return tradeoffs[:2]
+
+    def _build_plan_tradeoff_line(self, plan: dict[str, Any]) -> str:
+        confidence = str(plan.get("planConfidence") or "medium")
+        risk_distribution = str(plan.get("riskDistribution") or "")
+        risk_label = risk_distribution.removeprefix("Overall plan risk: ").split(" ", 1)[0] if risk_distribution else "moderate"
+        return f"{confidence} confidence with {risk_label} plan risk."
+
+    def _application_plan_group(self, item: dict[str, Any]) -> str | None:
+        matching_score = self._application_plan_score(item.get("matchingScore"))
+        decision = item.get("decisionOutput")
+        admission_composite = item.get("admissionComposite")
+        if matching_score is None:
+            return None
+        decision_action = (
+            str(decision.get("decisionAction") or "")
+            if isinstance(decision, dict)
+            else ""
+        )
+        admission_risk = (
+            str(admission_composite.get("admissionRisk") or "")
+            if isinstance(admission_composite, dict)
+            else ""
+        )
+        score = matching_score
+
+        if score < 0.75 or decision_action == "apply_with_caution":
+            return "reach"
+        if 0.75 <= score <= 0.9 and decision_action in {"apply", "apply_early"}:
+            return "target"
+        if score > 0.9 and admission_risk == "low":
+            return "safety"
+        return None
+
+    def _application_plan_score(self, value: Any) -> float | None:
+        if not isinstance(value, (int, float)):
+            return None
+        score = float(value)
+        if score > 1.0:
+            return score / 100.0
+        return score
+
+    def _application_plan_risk(self, item: dict[str, Any]) -> str | None:
+        composite = item.get("admissionComposite")
+        if not isinstance(composite, dict):
+            return None
+        risk = composite.get("admissionRisk")
+        if isinstance(risk, str) and risk in {"high", "medium", "low"}:
+            return risk
+        return None
+
+    def _application_plan_item(self, item: dict[str, Any]) -> dict[str, Any]:
+        decision = item.get("decisionOutput") if isinstance(item.get("decisionOutput"), dict) else {}
+        strategy = item.get("decisionStrategy") if isinstance(item.get("decisionStrategy"), dict) else {}
+        composite = item.get("admissionComposite") if isinstance(item.get("admissionComposite"), dict) else {}
+        return {
+            "universityName": item.get("universityName"),
+            "decision": decision.get("decisionAction"),
+            "strategy": strategy.get("primaryStrategy"),
+            "risk": composite.get("admissionRisk"),
+            "reason": decision.get("decisionReason"),
+            "matchingScore": float(item.get("matchingScore", 0.0) or 0.0),
+        }
+
+    def _application_plan_public_item(self, item: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "universityName": item.get("universityName"),
+            "decision": item.get("decision"),
+            "strategy": item.get("strategy"),
+            "risk": item.get("risk"),
+            "reason": item.get("reason"),
+        }
+
+    def _build_application_plan_risk_label(
+        self,
+        *,
+        risk_counts: dict[str, int],
+        safety_count: int,
+    ) -> str:
+        high_count = risk_counts.get("high", 0)
+        medium_count = risk_counts.get("medium", 0)
+        low_count = risk_counts.get("low", 0)
+
+        if high_count > 0 and safety_count == 0:
+            return "high"
+        elif low_count >= max(high_count, medium_count) and safety_count > 0 and low_count >= high_count + medium_count:
+            return "low"
+        return "moderate"
+
+    def _build_application_plan_risk_distribution(
+        self,
+        *,
+        risk_counts: dict[str, int],
+        safety_count: int,
+    ) -> str:
+        high_count = risk_counts.get("high", 0)
+        medium_count = risk_counts.get("medium", 0)
+        low_count = risk_counts.get("low", 0)
+        overall = self._build_application_plan_risk_label(
+            risk_counts=risk_counts,
+            safety_count=safety_count,
+        )
+        return (
+            f"Overall plan risk: {overall} "
+            f"(high={high_count}, medium={medium_count}, low={low_count})."
+        )
+
+    def _build_application_plan_strategy(
+        self,
+        *,
+        reach_count: int,
+        target_count: int,
+        safety_count: int,
+        risk_counts: dict[str, int],
+    ) -> str:
+        if risk_counts.get("high", 0) > 0 and safety_count == 0:
+            return "This plan leans risky. Consider adding 1–2 safer options."
+        if safety_count >= 2 and safety_count > max(reach_count, target_count):
+            return "You can proceed confidently with this plan. Focus on execution and timeline."
+        return "This is a balanced plan. Prioritize target schools while keeping reach as upside."
+
+    def _build_application_plan_primary_choice(
+        self,
+        grouped: dict[str, list[dict[str, Any]]],
+    ) -> dict[str, Any] | None:
+        target = grouped.get("target") or []
+        safety = grouped.get("safety") or []
+        reach = grouped.get("reach") or []
+
+        if target:
+            row = target[0]
+            return {
+                "universityName": row.get("universityName"),
+                "bucket": "target",
+                "reason": "Best balance of fit and manageable risk among target options.",
+            }
+        if safety:
+            row = safety[0]
+            return {
+                "universityName": row.get("universityName"),
+                "bucket": "safety",
+                "reason": "Most stable option available in the current plan.",
+            }
+        if reach:
+            row = reach[0]
+            return {
+                "universityName": row.get("universityName"),
+                "bucket": "reach",
+                "reason": "Highest-upside option available, but the plan is currently risk-heavy.",
+            }
+        return None
+
+    def _build_application_plan_warnings(
+        self,
+        *,
+        reach_count: int,
+        target_count: int,
+        safety_count: int,
+        total_count: int,
+        risk_distribution: str,
+    ) -> list[str]:
+        warnings: list[str] = []
+        if safety_count == 0:
+            warnings.append("No safety options included")
+        if target_count == 0:
+            warnings.append("Plan lacks stable target options")
+        if reach_count >= 2 or risk_distribution == "high":
+            warnings.append("Plan leans high-risk")
+        if total_count <= 2:
+            warnings.append("Plan is narrow and may need more coverage")
+        return warnings[:3]
+
+    def _build_application_plan_confidence(
+        self,
+        *,
+        reach_count: int,
+        target_count: int,
+        safety_count: int,
+        primary_choice: dict[str, Any] | None,
+        quality_adjustment: int = 0,
+    ) -> str:
+        total_count = reach_count + target_count + safety_count
+        if total_count == 0:
+            return "low"
+
+        score = 0
+        if target_count >= 1:
+            score += 1
+        if safety_count >= 1:
+            score += 1
+        if isinstance(primary_choice, dict) and primary_choice.get("bucket") == "target":
+            score += 1
+
+        if target_count == 0:
+            score -= 1
+        if safety_count == 0:
+            score -= 1
+        if reach_count >= 2:
+            score -= 1
+        if reach_count > 0 and target_count == 0 and safety_count == 0:
+            score -= 2
+        score += quality_adjustment
+
+        if score >= 2:
+            confidence = "high"
+        elif score >= 0:
+            confidence = "medium"
+        else:
+            confidence = "low"
+
+        if confidence == "high" and (target_count == 0 or safety_count == 0 or quality_adjustment < 0):
+            return "medium"
+        return confidence
+
+    def _build_application_plan_quality_adjustment(
+        self,
+        *,
+        target: list[dict[str, Any]],
+        safety: list[dict[str, Any]],
+    ) -> int:
+        positive = 0
+        negative = 0
+        first_target = target[0] if target else None
+        first_safety = safety[0] if safety else None
+
+        if isinstance(first_target, dict):
+            score = self._application_plan_score(first_target.get("matchingScore"))
+            if score is not None and score >= 0.82:
+                positive = 1
+            elif score is not None and score < 0.78:
+                negative = -1
+
+        if isinstance(first_safety, dict):
+            score = self._application_plan_score(first_safety.get("matchingScore"))
+            if score is not None and score >= 0.92:
+                positive = 1
+            elif score is not None and score < 0.90:
+                negative = -1
+
+        if positive > 0:
+            return 1
+        if negative < 0:
+            return -1
+        return 0
+
+    def _build_application_plan_confidence_reason(
+        self,
+        *,
+        target_count: int,
+        safety_count: int,
+        warnings: list[str],
+        quality_adjustment: int,
+        confidence: str,
+    ) -> str:
+        has_target = target_count > 0
+        has_safety = safety_count > 0
+        has_warnings = bool(warnings)
+
+        if confidence == "high":
+            if has_target and has_safety and quality_adjustment >= 0:
+                return "This plan has both target and safety coverage, and the strongest options look stable."
+            return "This plan looks well supported by both structure and fit quality."
+
+        if confidence == "medium":
+            if has_warnings or not has_target or not has_safety:
+                return "This plan has some stable structure, but at least one core bucket is weaker or less secure."
+            return "This plan is workable, but its overall coverage or option quality is mixed."
+
+        if has_warnings or not has_target or not has_safety:
+            return "This plan is missing stable coverage or leans too heavily on risky options."
+        return "This plan currently looks fragile because safer or stronger options are limited."
+
+    def _build_application_plan_note(self, application_plan: dict[str, Any] | None) -> list[str]:
+        if not isinstance(application_plan, dict):
+            return []
+
+        def render_group(name: str, rows: Any) -> str:
+            if not isinstance(rows, list) or not rows:
+                return f"{name}: none."
+            names = [
+                str(row.get("universityName"))
+                for row in rows
+                if isinstance(row, dict) and row.get("universityName")
+            ]
+            return f"{name}: {', '.join(names)}." if names else f"{name}: none."
+
+        paragraphs = ["I built a structured application plan."]
+        paragraphs.append(render_group("Reach", application_plan.get("reach")))
+        paragraphs.append(render_group("Target", application_plan.get("target")))
+        paragraphs.append(render_group("Safety", application_plan.get("safety")))
+
+        summary = application_plan.get("planSummary")
+        if isinstance(summary, str) and summary:
+            paragraphs.append(summary)
+        risk_distribution = application_plan.get("riskDistribution")
+        if isinstance(risk_distribution, str) and risk_distribution:
+            paragraphs.append(risk_distribution)
+        strategy = application_plan.get("recommendedStrategy")
+        if isinstance(strategy, str) and strategy:
+            paragraphs.append(strategy)
+        primary_choice = application_plan.get("primaryChoice")
+        plan_confidence = application_plan.get("planConfidence")
+        plan_confidence_reason = application_plan.get("planConfidenceReason")
+        plan_warnings = application_plan.get("planWarnings")
+        if isinstance(primary_choice, dict) and isinstance(plan_confidence, str):
+            paragraphs.append(
+                f"Primary choice: {primary_choice.get('universityName')}. Plan confidence: {plan_confidence}."
+            )
+            if isinstance(plan_confidence_reason, str) and plan_confidence_reason:
+                paragraphs.append(plan_confidence_reason)
+            if isinstance(plan_warnings, list):
+                warnings = [str(w) for w in plan_warnings if isinstance(w, str) and w]
+                if warnings:
+                    paragraphs.append("Warnings: " + "; ".join(warnings[:3]) + ".")
+                else:
+                    paragraphs.append("No major warning signals stand out in the current plan.")
+        return paragraphs
+
+    def _build_multi_plan_note(
+        self,
+        application_plans: list[dict[str, Any]] | None,
+        plan_comparison: dict[str, Any] | None,
+    ) -> list[str]:
+        if not application_plans or not isinstance(plan_comparison, dict):
+            return []
+
+        recommended_plan = plan_comparison.get("recommendedPlan")
+        reason = plan_comparison.get("reason")
+        tradeoffs = plan_comparison.get("tradeoffs")
+        if not isinstance(recommended_plan, str) or not recommended_plan:
+            return []
+
+        paragraphs = ["I built multiple application strategies for you."]
+        paragraphs.append(f"Recommended plan: {recommended_plan.capitalize()}.")
+        if isinstance(reason, str) and reason:
+            paragraphs.append(reason)
+        if isinstance(tradeoffs, list):
+            lines = [str(line) for line in tradeoffs if isinstance(line, str) and line]
+            paragraphs.extend(lines[:2])
+        return paragraphs
 
     def _as_optional_int(self, value: Any) -> int | None:
         if value in (None, ""):
