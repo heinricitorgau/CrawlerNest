@@ -1282,6 +1282,330 @@ class TestRecommendationEngine(unittest.TestCase):
         )
         self.assertNotIn("TOEFL note: TOEFL 100 is 10 above the required 90.", assistant_reply)
 
+    def test_application_plan_builds_with_only_target_items(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item(
+                    "University of Example",
+                    matching_score=0.87,
+                    action="apply",
+                    risk="medium",
+                    strategy="Proceed with application under current profile",
+                )
+            ]
+        )
+        self.assertIsNotNone(plan)
+        self.assertEqual(len(plan["reach"]), 0)
+        self.assertEqual(len(plan["target"]), 1)
+        self.assertEqual(len(plan["safety"]), 0)
+        self.assertEqual(
+            plan["planSummary"],
+            "Balanced plan with 0 reach, 1 target, and 0 safety options.",
+        )
+
+    def test_application_plan_without_safety_becomes_high_risk(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item(
+                    "Risky One",
+                    matching_score=0.72,
+                    action="apply_with_caution",
+                    risk="high",
+                    strategy="Apply but expect some risk in current profile",
+                ),
+                self._build_service_item(
+                    "Risky Two",
+                    matching_score=0.74,
+                    action="apply_with_caution",
+                    risk="medium",
+                    strategy="Apply but expect some risk in current profile",
+                ),
+            ]
+        )
+        self.assertEqual(plan["riskDistribution"], "Overall plan risk: high (high=1, medium=1, low=0).")
+        self.assertEqual(
+            plan["recommendedStrategy"],
+            "This plan leans risky. Consider adding 1–2 safer options.",
+        )
+
+    def test_application_plan_trims_reach_to_max_two(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Reach C", matching_score=0.70, action="apply_with_caution", risk="medium"),
+                self._build_service_item("Reach A", matching_score=0.74, action="apply_with_caution", risk="high"),
+                self._build_service_item("Reach B", matching_score=0.72, action="apply_with_caution", risk="medium"),
+            ]
+        )
+        self.assertEqual(
+            [item["universityName"] for item in plan["reach"]],
+            ["Reach A", "Reach B"],
+        )
+        self.assertEqual(len(plan["reach"]), 2)
+
+    def test_application_plan_ordering_is_deterministic(self):
+        items = [
+            self._build_service_item("Gamma", matching_score=0.88, action="apply", risk="medium"),
+            self._build_service_item("Alpha", matching_score=0.88, action="apply", risk="medium"),
+            self._build_service_item("Beta", matching_score=0.88, action="apply", risk="medium"),
+        ]
+        plan = self.service._build_application_plan(items)
+        plan_again = self.service._build_application_plan(list(reversed(items)))
+        self.assertEqual(
+            [item["universityName"] for item in plan["target"]],
+            ["Alpha", "Beta"],
+        )
+        self.assertEqual(plan["target"], plan_again["target"])
+
+    def test_application_plan_builds_balanced_case(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Reach Option", matching_score=0.72, action="apply_with_caution", risk="medium"),
+                self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium"),
+                self._build_service_item("Safety Option", matching_score=0.95, action="apply_early", risk="low"),
+            ]
+        )
+        self.assertEqual(
+            plan["primaryChoice"],
+            {
+                "universityName": "Target Option",
+                "bucket": "target",
+                "reason": "Best balance of fit and manageable risk among target options.",
+            },
+        )
+        self.assertEqual(plan["planConfidence"], "high")
+        self.assertEqual(
+            plan["planConfidenceReason"],
+            "This plan has both target and safety coverage, and the strongest options look stable.",
+        )
+        self.assertEqual(plan["planWarnings"], [])
+        self.assertEqual(plan["riskDistribution"], "Overall plan risk: moderate (high=0, medium=2, low=1).")
+        self.assertEqual(
+            plan["recommendedStrategy"],
+            "This is a balanced plan. Prioritize target schools while keeping reach as upside.",
+        )
+
+    def test_application_plan_builds_safe_heavy_case(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Safety One", matching_score=0.96, action="apply", risk="low"),
+                self._build_service_item("Safety Two", matching_score=0.94, action="apply_early", risk="low"),
+                self._build_service_item("Target One", matching_score=0.82, action="apply", risk="medium"),
+            ]
+        )
+        self.assertEqual(plan["riskDistribution"], "Overall plan risk: low (high=0, medium=1, low=2).")
+        self.assertEqual(
+            plan["recommendedStrategy"],
+            "You can proceed confidently with this plan. Focus on execution and timeline.",
+        )
+
+    def test_application_plan_mixed_quality_remains_medium(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Target One", matching_score=0.77, action="apply", risk="medium"),
+                self._build_service_item("Safety One", matching_score=0.89, action="apply", risk="low"),
+            ]
+        )
+        self.assertEqual(plan["planConfidence"], "medium")
+        self.assertEqual(
+            plan["planConfidenceReason"],
+            "This plan has some stable structure, but at least one core bucket is weaker or less secure.",
+        )
+
+    def test_application_plan_no_safety_warning_and_lower_confidence(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Target One", matching_score=0.84, action="apply", risk="medium"),
+                self._build_service_item("Reach One", matching_score=0.72, action="apply_with_caution", risk="high"),
+            ]
+        )
+        self.assertIn("No safety options included", plan["planWarnings"])
+        self.assertEqual(plan["planConfidence"], "medium")
+
+    def test_application_plan_no_target_warning_and_primary_choice_falls_back_to_safety(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Safety One", matching_score=0.95, action="apply", risk="low"),
+                self._build_service_item("Reach One", matching_score=0.72, action="apply_with_caution", risk="medium"),
+            ]
+        )
+        self.assertIn("Plan lacks stable target options", plan["planWarnings"])
+        self.assertEqual(
+            plan["primaryChoice"],
+            {
+                "universityName": "Safety One",
+                "bucket": "safety",
+                "reason": "Most stable option available in the current plan.",
+            },
+        )
+
+    def test_application_plan_only_reach_is_low_confidence(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Reach One", matching_score=0.72, action="apply_with_caution", risk="high"),
+                self._build_service_item("Reach Two", matching_score=0.70, action="apply_with_caution", risk="medium"),
+            ]
+        )
+        self.assertEqual(
+            plan["primaryChoice"],
+            {
+                "universityName": "Reach One",
+                "bucket": "reach",
+                "reason": "Highest-upside option available, but the plan is currently risk-heavy.",
+            },
+        )
+        self.assertEqual(
+            plan["planWarnings"],
+            [
+                "No safety options included",
+                "Plan lacks stable target options",
+                "Plan leans high-risk",
+            ],
+        )
+        self.assertEqual(plan["planConfidence"], "low")
+        self.assertEqual(
+            plan["planConfidenceReason"],
+            "This plan is missing stable coverage or leans too heavily on risky options.",
+        )
+
+    def test_application_plan_narrow_plan_warning(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Target One", matching_score=0.84, action="apply", risk="medium"),
+            ]
+        )
+        self.assertIn("Plan is narrow and may need more coverage", plan["planWarnings"])
+
+    def test_application_plan_warning_cap_and_order(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Reach One", matching_score=0.72, action="apply_with_caution", risk="high"),
+                self._build_service_item("Reach Two", matching_score=0.70, action="apply_with_caution", risk="medium"),
+            ]
+        )
+        self.assertEqual(
+            plan["planWarnings"],
+            [
+                "No safety options included",
+                "Plan lacks stable target options",
+                "Plan leans high-risk",
+            ],
+        )
+        self.assertEqual(len(plan["planWarnings"]), 3)
+
+    def test_application_plan_quality_adjustment_is_bounded_to_plus_one(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Target One", matching_score=0.85, action="apply", risk="medium"),
+                self._build_service_item("Safety One", matching_score=0.95, action="apply", risk="low"),
+            ]
+        )
+        self.assertEqual(plan["planConfidence"], "high")
+
+    def test_application_plan_quality_adjustment_is_bounded_to_minus_one(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Target One", matching_score=0.77, action="apply", risk="medium"),
+                self._build_service_item("Safety One", matching_score=0.89, action="apply", risk="low"),
+            ]
+        )
+        self.assertEqual(plan["planConfidence"], "medium")
+
+    def test_application_plan_note_is_appended_to_assistant_reply(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item("Reach Option", matching_score=0.72, action="apply_with_caution", risk="medium"),
+                self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium"),
+                self._build_service_item("Safety Option", matching_score=0.95, action="apply_early", risk="low"),
+            ]
+        )
+        assistant_reply, paragraphs = self.service._build_assistant_reply(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=3),
+            counts={"reach": 1, "target": 1, "safety": 1},
+            items=[self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium")],
+            application_plan=plan,
+        )
+        self.assertIn("I built a structured application plan.", paragraphs)
+        self.assertIn("Reach: Reach Option.", paragraphs)
+        self.assertIn("Target: Target Option.", paragraphs)
+        self.assertIn("Safety: Safety Option.", paragraphs)
+        self.assertIn(plan["recommendedStrategy"], assistant_reply)
+        self.assertIn("Primary choice: Target Option. Plan confidence: high.", assistant_reply)
+        self.assertIn(plan["planConfidenceReason"], assistant_reply)
+        self.assertIn("No major warning signals stand out in the current plan.", assistant_reply)
+
+    def test_application_plans_select_balanced_when_strong(self):
+        plans = self.service._build_application_plans(
+            [
+                self._build_service_item("Reach Option", matching_score=0.72, action="apply_with_caution", risk="medium"),
+                self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium"),
+                self._build_service_item("Safety Option", matching_score=0.95, action="apply_early", risk="low"),
+            ]
+        )
+        comparison = self.service._build_plan_comparison(plans)
+        self.assertEqual(comparison["recommendedPlan"], "balanced")
+
+    def test_application_plans_select_conservative_when_safer(self):
+        plans = self.service._build_application_plans(
+            [
+                self._build_service_item("Reach One", matching_score=0.73, action="apply_with_caution", risk="high"),
+                self._build_service_item("Reach Two", matching_score=0.71, action="apply_with_caution", risk="medium"),
+                self._build_service_item("Safety One", matching_score=0.95, action="apply", risk="low"),
+            ]
+        )
+        comparison = self.service._build_plan_comparison(plans)
+        self.assertEqual(comparison["recommendedPlan"], "conservative")
+
+    def test_application_plans_select_aggressive_when_stronger_upside(self):
+        plans = self.service._build_application_plans(
+            [
+                self._build_service_item("Reach One", matching_score=0.74, action="apply_with_caution", risk="medium"),
+                self._build_service_item("Reach Two", matching_score=0.73, action="apply_with_caution", risk="medium"),
+                self._build_service_item("Target One", matching_score=0.84, action="apply", risk="medium"),
+            ]
+        )
+        comparison = self.service._build_plan_comparison(plans)
+        self.assertEqual(comparison["recommendedPlan"], "aggressive")
+
+    def test_application_plan_invalid_variants_are_rejected(self):
+        plans = self.service._build_application_plans(
+            [
+                self._build_service_item("Target One", matching_score=0.84, action="apply", risk="medium"),
+            ]
+        )
+        self.assertEqual([plan["planName"] for plan in plans], ["balanced"])
+
+    def test_application_plans_are_deterministic(self):
+        items = [
+            self._build_service_item("Reach One", matching_score=0.74, action="apply_with_caution", risk="medium"),
+            self._build_service_item("Target One", matching_score=0.84, action="apply", risk="medium"),
+            self._build_service_item("Safety One", matching_score=0.95, action="apply", risk="low"),
+        ]
+        plans = self.service._build_application_plans(items)
+        reversed_plans = self.service._build_application_plans(list(reversed(items)))
+        self.assertEqual(plans, reversed_plans)
+
+    def test_multi_plan_note_is_appended_to_assistant_reply(self):
+        items = [
+            self._build_service_item("Reach Option", matching_score=0.72, action="apply_with_caution", risk="medium"),
+            self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium"),
+            self._build_service_item("Safety Option", matching_score=0.95, action="apply_early", risk="low"),
+        ]
+        plan = self.service._build_application_plan(items)
+        plans = self.service._build_application_plans(items)
+        comparison = self.service._build_plan_comparison(plans)
+        assistant_reply, paragraphs = self.service._build_assistant_reply(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=3),
+            counts={"reach": 1, "target": 1, "safety": 1},
+            items=[self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium")],
+            application_plan=plan,
+            application_plans=plans,
+            plan_comparison=comparison,
+        )
+        self.assertIn("I built multiple application strategies for you.", paragraphs)
+        self.assertIn("Recommended plan: Balanced.", paragraphs)
+        self.assertIn(comparison["reason"], assistant_reply)
+        self.assertEqual(len(comparison["tradeoffs"]), 2)
+
     def _build_result(
         self,
         university_name: str,
@@ -1322,6 +1646,31 @@ class TestRecommendationEngine(unittest.TestCase):
             aggregation_method_version="rank_agg_v1",
             metadata=metadata or {},
         )
+
+    def _build_service_item(
+        self,
+        university_name: str,
+        *,
+        matching_score: float,
+        action: str,
+        risk: str,
+        strategy: str | None = None,
+        reason: str | None = None,
+    ) -> dict:
+        return {
+            "universityName": university_name,
+            "matchingScore": matching_score,
+            "decisionOutput": {
+                "decisionAction": action,
+                "decisionReason": reason or f"{university_name} reason",
+            },
+            "decisionStrategy": {
+                "primaryStrategy": strategy or f"{university_name} strategy",
+            },
+            "admissionComposite": {
+                "admissionRisk": risk,
+            },
+        }
 
 class _FakeCursor:
     def __init__(self, rows):
