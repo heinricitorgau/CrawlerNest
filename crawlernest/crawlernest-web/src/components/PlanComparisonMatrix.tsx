@@ -16,6 +16,48 @@ type PlanComparison = {
   tradeoffs: string[];
 };
 
+type PlanDelta = {
+  recommendedPlan: "balanced" | "conservative" | "aggressive";
+  comparisonAgainstAlternatives: string[];
+};
+
+type SelectedPlanComparison = {
+  selectedPlan: "balanced" | "conservative" | "aggressive";
+  recommendedPlan: "balanced" | "conservative" | "aggressive";
+  summary: string;
+  differences: string[];
+};
+
+type ScenarioSimulation = {
+  scenarioInput: {
+    ielts_delta?: number;
+    toefl_delta?: number;
+    gpa_delta?: number;
+    target_rank_delta?: number;
+  };
+  recommendedPlanBefore: "balanced" | "conservative" | "aggressive";
+  recommendedPlanAfter: "balanced" | "conservative" | "aggressive";
+  changeSummary: string;
+  keyDifferences: string[];
+};
+
+type ScenarioComparison = {
+  baselineRecommendedPlan: "balanced" | "conservative" | "aggressive";
+  scenarios: Array<{
+    scenarioKey: string;
+    scenarioLabel: string;
+    recommendedPlanAfter: "balanced" | "conservative" | "aggressive";
+    changeSummary: string;
+    keyDifferences: string[];
+  }>;
+};
+
+type BestScenarioInsight = {
+  scenarioKey: string;
+  scenarioLabel: string;
+  reason: string;
+};
+
 function formatPlanConfidenceLabel(value: ApplicationPlan["planConfidence"] | undefined) {
   if (!value) {
     return null;
@@ -36,9 +78,19 @@ function truncatePlanText(text: string | undefined, maxLength = 110) {
 export function PlanComparisonMatrix({
   plans,
   planComparison,
+  planDelta,
+  selectedPlanComparison,
+  scenarioSimulation,
+  scenarioComparison,
+  bestScenarioInsight,
 }: {
   plans: ApplicationPlan[];
   planComparison?: PlanComparison;
+  planDelta?: PlanDelta;
+  selectedPlanComparison?: SelectedPlanComparison;
+  scenarioSimulation?: ScenarioSimulation;
+  scenarioComparison?: ScenarioComparison;
+  bestScenarioInsight?: BestScenarioInsight;
 }) {
   const orderedPlanNames: Array<"balanced" | "conservative" | "aggressive"> = [
     "balanced",
@@ -71,6 +123,85 @@ export function PlanComparisonMatrix({
               <span className="font-semibold text-[#1a1a1a]">Reason:</span> {planComparison.reason}
             </>
           ) : null}
+        </div>
+      ) : null}
+      {planDelta && planDelta.comparisonAgainstAlternatives.length > 0 ? (
+        <div className="mt-4 rounded-xl bg-[#f5f3ee] p-4">
+          <div className="text-sm font-semibold text-[#1a3d2e]">
+            Why this plan stands out
+          </div>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-[#6b7068]">
+            {planDelta.comparisonAgainstAlternatives.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {selectedPlanComparison ? (
+        <div className="mt-4 rounded-xl border border-[#e0ddd8] bg-white p-4">
+          <div className="text-sm font-semibold text-[#1a3d2e]">
+            Compared with the recommended plan
+          </div>
+          <div className="mt-2 text-sm leading-6 text-[#6b7068]">
+            {selectedPlanComparison.summary}
+          </div>
+          {selectedPlanComparison.differences.length > 0 ? (
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-[#6b7068]">
+              {selectedPlanComparison.differences.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+      {scenarioSimulation ? (
+        <div className="mt-4 rounded-xl border border-[#d8e6dd] bg-[#f6fbf7] p-4">
+          <div className="text-sm font-semibold text-[#1a3d2e]">
+            What changes if your profile improves
+          </div>
+          <div className="mt-2 text-sm leading-6 text-[#6b7068]">
+            {scenarioSimulation.changeSummary}
+          </div>
+          {scenarioSimulation.keyDifferences.length > 0 ? (
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-[#6b7068]">
+              {scenarioSimulation.keyDifferences.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+      {scenarioComparison && bestScenarioInsight ? (
+        <div className="mt-4 rounded-xl border border-[#e0ddd8] bg-white p-4">
+          <div className="text-sm font-semibold text-[#1a3d2e]">
+            Which improvement helps most
+          </div>
+          <div className="mt-2 text-sm leading-6 text-[#6b7068]">
+            <span className="font-semibold text-[#1a1a1a]">{bestScenarioInsight.scenarioLabel}</span>{" "}
+            {bestScenarioInsight.reason}
+          </div>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full border-collapse text-sm">
+              <thead className="bg-[#f5f3ee] text-left text-[#6b7068]">
+                <tr>
+                  <th className="px-3 py-2 font-semibold">Scenario</th>
+                  <th className="px-3 py-2 font-semibold">Result</th>
+                  <th className="px-3 py-2 font-semibold">Key change</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scenarioComparison.scenarios.map((scenario) => (
+                  <tr key={scenario.scenarioKey} className="border-t border-[#e0ddd8]">
+                    <td className="px-3 py-3 font-medium text-[#1a1a1a]">{scenario.scenarioLabel}</td>
+                    <td className="px-3 py-3 text-[#6b7068]">{scenario.changeSummary}</td>
+                    <td className="px-3 py-3 text-[#6b7068]">
+                      {scenario.keyDifferences.slice(0, 2).join(" ") || "No major change."}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
       <div className="mt-4 overflow-x-auto">

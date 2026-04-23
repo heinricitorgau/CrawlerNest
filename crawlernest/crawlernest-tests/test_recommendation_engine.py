@@ -1606,6 +1606,444 @@ class TestRecommendationEngine(unittest.TestCase):
         self.assertIn(comparison["reason"], assistant_reply)
         self.assertEqual(len(comparison["tradeoffs"]), 2)
 
+    def test_plan_delta_mentions_safety_coverage(self):
+        plans = [
+            self._build_plan_variant("balanced", safety_count=1, warning_count=0, confidence="high"),
+            self._build_plan_variant("aggressive", safety_count=0, warning_count=1, confidence="medium"),
+        ]
+        delta = self.service._build_plan_delta(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+        )
+
+        self.assertIsNotNone(delta)
+        self.assertIn(
+            "The balanced plan keeps safety coverage that the aggressive plan does not.",
+            delta["comparisonAgainstAlternatives"],
+        )
+
+    def test_plan_delta_mentions_fewer_warnings(self):
+        plans = [
+            self._build_plan_variant("balanced", warning_count=0, confidence="high"),
+            self._build_plan_variant("aggressive", warning_count=2, confidence="high"),
+        ]
+        delta = self.service._build_plan_delta(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+        )
+
+        self.assertIsNotNone(delta)
+        self.assertIn(
+            "The balanced plan carries fewer warning signals than the aggressive plan.",
+            delta["comparisonAgainstAlternatives"],
+        )
+
+    def test_plan_delta_mentions_higher_confidence(self):
+        plans = [
+            self._build_plan_variant("balanced", confidence="high"),
+            self._build_plan_variant("conservative", confidence="medium"),
+        ]
+        delta = self.service._build_plan_delta(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+        )
+
+        self.assertIsNotNone(delta)
+        self.assertIn(
+            "The balanced plan has higher overall confidence than the conservative plan.",
+            delta["comparisonAgainstAlternatives"],
+        )
+
+    def test_plan_delta_caps_lines_per_alternative_and_total(self):
+        plans = [
+            self._build_plan_variant("balanced", reach_count=1, safety_count=1, warning_count=0, confidence="high"),
+            self._build_plan_variant("conservative", reach_count=0, safety_count=0, warning_count=2, confidence="low"),
+            self._build_plan_variant("aggressive", reach_count=2, safety_count=0, warning_count=3, confidence="low"),
+        ]
+        delta = self.service._build_plan_delta(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+        )
+
+        self.assertIsNotNone(delta)
+        self.assertLessEqual(len(delta["comparisonAgainstAlternatives"]), 4)
+        conservative_lines = [
+            line for line in delta["comparisonAgainstAlternatives"] if "conservative plan" in line
+        ]
+        aggressive_lines = [
+            line for line in delta["comparisonAgainstAlternatives"] if "aggressive plan" in line
+        ]
+        self.assertLessEqual(len(conservative_lines), 2)
+        self.assertLessEqual(len(aggressive_lines), 2)
+
+    def test_plan_delta_handles_missing_alternative(self):
+        plans = [
+            self._build_plan_variant("balanced", confidence="high"),
+            self._build_plan_variant("aggressive", confidence="medium"),
+        ]
+        delta = self.service._build_plan_delta(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+        )
+
+        self.assertIsNotNone(delta)
+        self.assertEqual(delta["recommendedPlan"], "balanced")
+        self.assertTrue(delta["comparisonAgainstAlternatives"])
+
+    def test_plan_delta_note_is_appended_to_assistant_reply(self):
+        assistant_reply, paragraphs = self.service._build_assistant_reply(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=3),
+            counts={"reach": 1, "target": 1, "safety": 1},
+            items=[self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium")],
+            plan_delta={
+                "recommendedPlan": "balanced",
+                "comparisonAgainstAlternatives": [
+                    "The balanced plan keeps safety coverage that the aggressive plan does not.",
+                    "The balanced plan carries fewer warning signals than the aggressive plan.",
+                ],
+            },
+        )
+
+        self.assertIn("Why this plan stands out:", paragraphs)
+        self.assertIn(
+            "The balanced plan keeps safety coverage that the aggressive plan does not.",
+            assistant_reply,
+        )
+        self.assertIn(
+            "The balanced plan carries fewer warning signals than the aggressive plan.",
+            assistant_reply,
+        )
+
+    def test_selected_plan_comparison_conservative_vs_balanced(self):
+        plans = [
+            self._build_plan_variant("balanced", reach_count=1, safety_count=1, confidence="high"),
+            self._build_plan_variant("conservative", reach_count=0, safety_count=2, confidence="high"),
+        ]
+        comparison = self.service._build_selected_plan_comparison(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            "conservative",
+        )
+
+        self.assertIsNotNone(comparison)
+        self.assertEqual(comparison["summary"], "This plan trades upside for more safety.")
+        self.assertIn(
+            "The selected plan keeps more safety coverage than the recommended plan.",
+            comparison["differences"],
+        )
+
+    def test_selected_plan_comparison_aggressive_vs_balanced(self):
+        plans = [
+            self._build_plan_variant("balanced", reach_count=1, safety_count=1, confidence="high"),
+            self._build_plan_variant("aggressive", reach_count=2, safety_count=0, confidence="medium"),
+        ]
+        comparison = self.service._build_selected_plan_comparison(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            "aggressive",
+        )
+
+        self.assertIsNotNone(comparison)
+        self.assertEqual(comparison["summary"], "This plan trades safety for more upside.")
+        self.assertIn(
+            "The selected plan keeps less safety coverage than the recommended plan.",
+            comparison["differences"],
+        )
+        self.assertIn(
+            "The selected plan keeps more upside through reach options.",
+            comparison["differences"],
+        )
+
+    def test_selected_plan_comparison_includes_lower_confidence(self):
+        plans = [
+            self._build_plan_variant("balanced", confidence="high"),
+            self._build_plan_variant("aggressive", confidence="medium"),
+        ]
+        comparison = self.service._build_selected_plan_comparison(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            "aggressive",
+        )
+
+        self.assertIsNotNone(comparison)
+        self.assertIn(
+            "The selected plan has lower overall confidence than the recommended plan.",
+            comparison["differences"],
+        )
+
+    def test_selected_plan_comparison_includes_more_warnings(self):
+        plans = [
+            self._build_plan_variant("balanced", warning_count=0, confidence="high"),
+            self._build_plan_variant("aggressive", warning_count=2, confidence="high"),
+        ]
+        comparison = self.service._build_selected_plan_comparison(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            "aggressive",
+        )
+
+        self.assertIsNotNone(comparison)
+        self.assertIn(
+            "The selected plan carries more warning signals than the recommended plan.",
+            comparison["differences"],
+        )
+
+    def test_selected_plan_comparison_omits_when_selected_matches_recommended(self):
+        plans = [
+            self._build_plan_variant("balanced", confidence="high"),
+            self._build_plan_variant("aggressive", confidence="medium"),
+        ]
+        comparison = self.service._build_selected_plan_comparison(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            "balanced",
+        )
+
+        self.assertIsNone(comparison)
+
+    def test_selected_plan_comparison_omits_invalid_selected_plan(self):
+        plans = [
+            self._build_plan_variant("balanced", confidence="high"),
+            self._build_plan_variant("aggressive", confidence="medium"),
+        ]
+        comparison = self.service._build_selected_plan_comparison(
+            plans,
+            {"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            "invalid",
+        )
+
+        self.assertIsNone(comparison)
+
+    def test_selected_plan_comparison_note_is_appended_to_assistant_reply(self):
+        assistant_reply, paragraphs = self.service._build_assistant_reply(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=3),
+            counts={"reach": 1, "target": 1, "safety": 1},
+            items=[self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium")],
+            selected_plan_comparison={
+                "selectedPlan": "aggressive",
+                "recommendedPlan": "balanced",
+                "summary": "This plan trades safety for more upside.",
+                "differences": [
+                    "The selected plan keeps less safety coverage than the recommended plan.",
+                    "The selected plan carries more warning signals than the recommended plan.",
+                ],
+            },
+        )
+
+        self.assertIn("Selected plan comparison: This plan trades safety for more upside.", paragraphs)
+        self.assertIn(
+            "The selected plan keeps less safety coverage than the recommended plan.",
+            assistant_reply,
+        )
+        self.assertIn(
+            "The selected plan carries more warning signals than the recommended plan.",
+            assistant_reply,
+        )
+
+    def test_scenario_simulation_detects_confidence_improvement(self):
+        before_plan = self._build_plan_variant("balanced", confidence="medium", safety_count=1)
+        after_plan = self._build_plan_variant("balanced", confidence="high", safety_count=1)
+
+        differences = self.service._build_scenario_key_differences(
+            before_name="balanced",
+            after_name="balanced",
+            before_plan=before_plan,
+            after_plan=after_plan,
+        )
+
+        self.assertIn("Overall plan confidence improves under this scenario.", differences)
+
+    def test_scenario_simulation_detects_more_conservative_mix(self):
+        before_plan = self._build_plan_variant("balanced", reach_count=1, safety_count=1, confidence="high")
+        after_plan = self._build_plan_variant("conservative", reach_count=0, safety_count=2, confidence="high")
+
+        differences = self.service._build_scenario_key_differences(
+            before_name="balanced",
+            after_name="conservative",
+            before_plan=before_plan,
+            after_plan=after_plan,
+        )
+
+        self.assertIn("The plan mix becomes more conservative.", differences)
+
+    def test_scenario_simulation_detects_plan_change(self):
+        summary = self.service._build_scenario_change_summary("balanced", "aggressive")
+        self.assertEqual(
+            summary,
+            "The recommended plan shifts from balanced to aggressive under this scenario.",
+        )
+
+    def test_scenario_simulation_detects_stability(self):
+        summary = self.service._build_scenario_change_summary("balanced", "balanced")
+        self.assertEqual(summary, "The recommended plan remains stable under this scenario.")
+
+    def test_scenario_simulation_ignores_invalid_scenario(self):
+        self.assertIsNone(self.service._extract_scenario_input({"scenario": "not-json"}))
+        self.assertIsNone(self.service._extract_scenario_input({"scenario": {"ielts_delta": "bad"}}))
+
+    def test_scenario_simulation_builds_modified_query_without_mutating_original(self):
+        query = RecommendationQuery(
+            country="United Kingdom",
+            ielts_score=6.5,
+            toefl_score=95,
+            gpa_score=3.4,
+            target_rank=100,
+            limit=5,
+        )
+
+        simulated = self.service._build_simulated_query(
+            query,
+            {
+                "ielts_delta": 0.5,
+                "toefl_delta": 5,
+                "gpa_delta": 0.2,
+                "target_rank_delta": -20,
+            },
+        )
+
+        self.assertEqual(query.ielts_score, 6.5)
+        self.assertEqual(simulated.ielts_score, 7.0)
+        self.assertEqual(simulated.toefl_score, 100)
+        self.assertEqual(simulated.gpa_score, 3.6)
+        self.assertEqual(simulated.target_rank, 80)
+
+    def test_scenario_simulation_note_is_appended_to_assistant_reply(self):
+        assistant_reply, paragraphs = self.service._build_assistant_reply(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=3),
+            counts={"reach": 1, "target": 1, "safety": 1},
+            items=[self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium")],
+            scenario_simulation={
+                "scenarioInput": {"ielts_delta": 0.5},
+                "recommendedPlanBefore": "balanced",
+                "recommendedPlanAfter": "aggressive",
+                "changeSummary": "The recommended plan shifts from balanced to aggressive under this scenario.",
+                "keyDifferences": [
+                    "Overall plan confidence improves under this scenario.",
+                    "The plan mix becomes more aggressive.",
+                ],
+            },
+        )
+
+        self.assertIn("Under this scenario:", paragraphs)
+        self.assertIn(
+            "The recommended plan shifts from balanced to aggressive under this scenario.",
+            assistant_reply,
+        )
+        self.assertIn("Overall plan confidence improves under this scenario.", assistant_reply)
+
+    def test_multi_scenario_includes_ielts_when_present(self):
+        query = RecommendationQuery(ielts_score=6.5, target_rank=100, limit=5)
+        presets = self.service._valid_scenario_presets(query)
+
+        self.assertIn(("ielts_plus_0_5", {"ielts_delta": 0.5}), presets)
+
+    def test_multi_scenario_skips_gpa_when_missing(self):
+        query = RecommendationQuery(ielts_score=6.5, target_rank=100, limit=5)
+        preset_keys = [key for key, _ in self.service._valid_scenario_presets(query)]
+
+        self.assertNotIn("gpa_plus_0_2", preset_keys)
+
+    def test_multi_scenario_selects_best_by_confidence_improvement(self):
+        scenario_comparison = {
+            "baselineRecommendedPlan": "balanced",
+            "scenarios": [
+                {
+                    "scenarioKey": "ielts_plus_0_5",
+                    "scenarioLabel": "IELTS +0.5",
+                    "recommendedPlanAfter": "balanced",
+                    "changeSummary": "The recommended plan remains stable under this scenario.",
+                    "keyDifferences": ["Overall plan confidence improves under this scenario."],
+                },
+                {
+                    "scenarioKey": "toefl_plus_5",
+                    "scenarioLabel": "TOEFL +5",
+                    "recommendedPlanAfter": "balanced",
+                    "changeSummary": "The recommended plan remains stable under this scenario.",
+                    "keyDifferences": [],
+                },
+            ],
+        }
+
+        insight = self.service._build_best_scenario_insight(scenario_comparison)
+
+        self.assertIsNotNone(insight)
+        self.assertEqual(insight["scenarioKey"], "ielts_plus_0_5")
+
+    def test_multi_scenario_omits_outputs_when_no_valid_scenarios(self):
+        query = RecommendationQuery(country="United Kingdom", limit=5)
+
+        self.assertEqual(self.service._valid_scenario_presets(query), [])
+        self.assertIsNone(self.service._build_best_scenario_insight(None))
+
+    def test_multi_scenario_order_is_deterministic(self):
+        query = RecommendationQuery(ielts_score=6.5, toefl_score=95, gpa_score=3.4, target_rank=100, limit=5)
+        preset_keys = [key for key, _ in self.service._valid_scenario_presets(query)]
+
+        self.assertEqual(
+            preset_keys,
+            ["ielts_plus_0_5", "toefl_plus_5", "gpa_plus_0_2", "target_rank_tighter_20"],
+        )
+
+    def test_multi_scenario_best_fallback_uses_preset_order(self):
+        scenario_comparison = {
+            "baselineRecommendedPlan": "balanced",
+            "scenarios": [
+                {
+                    "scenarioKey": "toefl_plus_5",
+                    "scenarioLabel": "TOEFL +5",
+                    "recommendedPlanAfter": "balanced",
+                    "changeSummary": "The recommended plan remains stable under this scenario.",
+                    "keyDifferences": [],
+                },
+                {
+                    "scenarioKey": "gpa_plus_0_2",
+                    "scenarioLabel": "GPA +0.2",
+                    "recommendedPlanAfter": "balanced",
+                    "changeSummary": "The recommended plan remains stable under this scenario.",
+                    "keyDifferences": [],
+                },
+            ],
+        }
+
+        insight = self.service._build_best_scenario_insight(scenario_comparison)
+
+        self.assertIsNotNone(insight)
+        self.assertEqual(insight["scenarioKey"], "toefl_plus_5")
+
+    def test_multi_scenario_note_is_appended_to_assistant_reply(self):
+        assistant_reply, paragraphs = self.service._build_assistant_reply(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=3),
+            counts={"reach": 1, "target": 1, "safety": 1},
+            items=[self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium")],
+            scenario_comparison={
+                "baselineRecommendedPlan": "balanced",
+                "scenarios": [
+                    {
+                        "scenarioKey": "ielts_plus_0_5",
+                        "scenarioLabel": "IELTS +0.5",
+                        "recommendedPlanAfter": "balanced",
+                        "changeSummary": "The recommended plan remains stable under this scenario.",
+                        "keyDifferences": ["Overall plan confidence improves under this scenario."],
+                    },
+                    {
+                        "scenarioKey": "gpa_plus_0_2",
+                        "scenarioLabel": "GPA +0.2",
+                        "recommendedPlanAfter": "balanced",
+                        "changeSummary": "The recommended plan remains stable under this scenario.",
+                        "keyDifferences": [],
+                    },
+                ],
+            },
+            best_scenario_insight={
+                "scenarioKey": "ielts_plus_0_5",
+                "scenarioLabel": "IELTS +0.5",
+                "reason": "This scenario most improves plan confidence without increasing instability.",
+            },
+        )
+
+        self.assertIn("I tested several improvement scenarios.", paragraphs)
+        self.assertIn("Most helpful scenario: IELTS +0.5.", assistant_reply)
+
     def _build_result(
         self,
         university_name: str,
@@ -1646,6 +2084,27 @@ class TestRecommendationEngine(unittest.TestCase):
             aggregation_method_version="rank_agg_v1",
             metadata=metadata or {},
         )
+
+    def _build_plan_variant(
+        self,
+        plan_name: str,
+        *,
+        reach_count: int = 0,
+        target_count: int = 1,
+        safety_count: int = 0,
+        warning_count: int = 0,
+        confidence: str = "medium",
+    ) -> dict:
+        return {
+            "planName": plan_name,
+            "reach": [{"universityName": f"{plan_name.title()} Reach {index + 1}"} for index in range(reach_count)],
+            "target": [{"universityName": f"{plan_name.title()} Target {index + 1}"} for index in range(target_count)],
+            "safety": [{"universityName": f"{plan_name.title()} Safety {index + 1}"} for index in range(safety_count)],
+            "planWarnings": [f"warning {index + 1}" for index in range(warning_count)],
+            "planConfidence": confidence,
+            "riskDistribution": "",
+            "recommendedStrategy": "",
+        }
 
     def _build_service_item(
         self,

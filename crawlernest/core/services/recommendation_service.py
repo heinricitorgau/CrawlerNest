@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -30,6 +31,12 @@ except ImportError:  # pragma: no cover - environment-dependent
 
 class RecommendationService:
     MAX_SURFACED_SIGNALS = 2
+    SCENARIO_PRESET_ORDER = (
+        "ielts_plus_0_5",
+        "toefl_plus_5",
+        "gpa_plus_0_2",
+        "target_rank_tighter_20",
+    )
 
     def __init__(self, db_settings: DatabaseSettings | None = None) -> None:
         self._db_settings = db_settings or DatabaseSettings.from_env()
@@ -49,24 +56,30 @@ class RecommendationService:
         try:
             repo = RecommendationRepository(conn)
             config = default_recommendation_config()
-            effective_country = (
-                query.country
-                if query.country and (query.country_policy or config.country_match_policy) == "hard_filter"
-                else None
-            )
-            candidates = repo.fetch_candidates(
-                ranking_year=query.ranking_year,
-                country=effective_country,
-            )
-            grouped = recommend_universities_v3(candidates, query, config=config)
-            payload = grouped_recommendations_to_dict(grouped)
+            payload = self._run_recommendation_pipeline(repo, query, config=config)
         finally:
             conn.close()
 
+        selected_plan = self._normalize_plan_name(
+            profile.get("selectedPlan") or profile.get("selected_plan")
+        )
+        scenario_input = self._extract_scenario_input(profile)
         items, counts = self._flatten_grouped_results(payload)
         application_plan = self._build_application_plan(items)
         application_plans = self._build_application_plans(items)
         plan_comparison = self._build_plan_comparison(application_plans)
+        plan_delta = self._build_plan_delta(application_plans, plan_comparison)
+        selected_plan_comparison = self._build_selected_plan_comparison(
+            application_plans,
+            plan_comparison,
+            selected_plan,
+        )
+        scenario_simulation = self._build_scenario_simulation(
+            query=query,
+            scenario_input=scenario_input,
+        )
+        scenario_comparison = self._build_scenario_comparison(query=query)
+        best_scenario_insight = self._build_best_scenario_insight(scenario_comparison)
         summary = self._build_summary(query=query, counts=counts, total_items=len(items))
         assistant_reply, paragraphs = self._build_assistant_reply(
             query=query,
@@ -75,6 +88,11 @@ class RecommendationService:
             application_plan=application_plan,
             application_plans=application_plans,
             plan_comparison=plan_comparison,
+            plan_delta=plan_delta,
+            selected_plan_comparison=selected_plan_comparison,
+            scenario_simulation=scenario_simulation,
+            scenario_comparison=scenario_comparison,
+            best_scenario_insight=best_scenario_insight,
         )
 
         metadata = payload.get("metadata", {}) if isinstance(payload.get("metadata"), dict) else {}
@@ -91,13 +109,18 @@ class RecommendationService:
             **({"applicationPlan": application_plan} if application_plan is not None else {}),
             **({"applicationPlans": application_plans} if application_plans else {}),
             **({"planComparison": plan_comparison} if plan_comparison is not None else {}),
+            **({"planDelta": plan_delta} if plan_delta is not None else {}),
+            **({"selectedPlanComparison": selected_plan_comparison} if selected_plan_comparison is not None else {}),
+            **({"scenarioSimulation": scenario_simulation} if scenario_simulation is not None else {}),
+            **({"scenarioComparison": scenario_comparison} if scenario_comparison is not None else {}),
+            **({"bestScenarioInsight": best_scenario_insight} if best_scenario_insight is not None else {}),
             "groups": {
                 "reach": payload.get("reach", []),
                 "target": payload.get("target", []),
                 "safety": payload.get("safety", []),
             },
             "metadata": metadata,
-            "profile": self._query_to_profile(query),
+            "profile": self._query_to_profile(query, selected_plan=selected_plan, scenario_input=scenario_input),
         }
 
     def _build_query(self, profile: dict[str, Any]) -> RecommendationQuery:
@@ -152,6 +175,25 @@ class RecommendationService:
             limit=max(1, min(int(limit), 20)),
             ranking_year=ranking_year,
         )
+
+    def _run_recommendation_pipeline(
+        self,
+        repo: RecommendationRepository,
+        query: RecommendationQuery,
+        *,
+        config: Any,
+    ) -> dict[str, Any]:
+        effective_country = (
+            query.country
+            if query.country and (query.country_policy or config.country_match_policy) == "hard_filter"
+            else None
+        )
+        candidates = repo.fetch_candidates(
+            ranking_year=query.ranking_year,
+            country=effective_country,
+        )
+        grouped = recommend_universities_v3(candidates, query, config=config)
+        return grouped_recommendations_to_dict(grouped)
 
     def _flatten_grouped_results(
         self,
@@ -254,6 +296,11 @@ class RecommendationService:
         application_plan: dict[str, Any] | None = None,
         application_plans: list[dict[str, Any]] | None = None,
         plan_comparison: dict[str, Any] | None = None,
+        plan_delta: dict[str, Any] | None = None,
+        selected_plan_comparison: dict[str, Any] | None = None,
+        scenario_simulation: dict[str, Any] | None = None,
+        scenario_comparison: dict[str, Any] | None = None,
+        best_scenario_insight: dict[str, Any] | None = None,
     ) -> tuple[str, list[str]]:
         if not items:
             paragraphs = [
@@ -323,11 +370,32 @@ class RecommendationService:
         multi_plan_note = self._build_multi_plan_note(application_plans, plan_comparison)
         if multi_plan_note:
             paragraphs.extend(multi_plan_note)
+        plan_delta_note = self._build_plan_delta_note(plan_delta)
+        if plan_delta_note:
+            paragraphs.extend(plan_delta_note)
+        selected_plan_comparison_note = self._build_selected_plan_comparison_note(selected_plan_comparison)
+        if selected_plan_comparison_note:
+            paragraphs.extend(selected_plan_comparison_note)
+        scenario_simulation_note = self._build_scenario_simulation_note(scenario_simulation)
+        if scenario_simulation_note:
+            paragraphs.extend(scenario_simulation_note)
+        scenario_comparison_note = self._build_scenario_comparison_note(
+            scenario_comparison,
+            best_scenario_insight,
+        )
+        if scenario_comparison_note:
+            paragraphs.extend(scenario_comparison_note)
 
         return "\n\n".join(paragraphs), paragraphs
 
-    def _query_to_profile(self, query: RecommendationQuery) -> dict[str, Any]:
-        return {
+    def _query_to_profile(
+        self,
+        query: RecommendationQuery,
+        *,
+        selected_plan: str | None = None,
+        scenario_input: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        profile = {
             "country": query.country,
             "countryPolicy": query.country_policy,
             "ielts": query.ielts_score,
@@ -341,6 +409,11 @@ class RecommendationService:
             "rankingYear": query.ranking_year,
             "preferenceWeights": query.preference_weights,
         }
+        if selected_plan is not None:
+            profile["selectedPlan"] = selected_plan
+        if scenario_input is not None:
+            profile["scenario"] = scenario_input
+        return profile
 
     def _as_optional_str(self, value: Any) -> str | None:
         if value is None:
@@ -1010,6 +1083,571 @@ class RecommendationService:
         risk_label = risk_distribution.removeprefix("Overall plan risk: ").split(" ", 1)[0] if risk_distribution else "moderate"
         return f"{confidence} confidence with {risk_label} plan risk."
 
+    def _build_selected_plan_comparison(
+        self,
+        application_plans: list[dict[str, Any]] | None,
+        plan_comparison: dict[str, Any] | None,
+        selected_plan_name: str | None,
+    ) -> dict[str, Any] | None:
+        if not application_plans or not isinstance(plan_comparison, dict) or selected_plan_name is None:
+            return None
+
+        recommended_name = self._normalize_plan_name(plan_comparison.get("recommendedPlan"))
+        if recommended_name is None or selected_plan_name == recommended_name:
+            return None
+
+        plan_map = {
+            str(plan.get("planName")): plan
+            for plan in application_plans
+            if isinstance(plan, dict) and isinstance(plan.get("planName"), str)
+        }
+        recommended_plan = plan_map.get(recommended_name)
+        selected_plan = plan_map.get(selected_plan_name)
+        if not isinstance(recommended_plan, dict) or not isinstance(selected_plan, dict):
+            return None
+
+        differences = self._build_selected_plan_difference_lines(
+            selected_plan=selected_plan,
+            recommended_plan=recommended_plan,
+        )
+        summary = self._build_selected_plan_summary(
+            selected_plan=selected_plan,
+            recommended_plan=recommended_plan,
+        )
+        return {
+            "selectedPlan": selected_plan_name,
+            "recommendedPlan": recommended_name,
+            "summary": summary,
+            "differences": differences,
+        }
+
+    def _build_selected_plan_difference_lines(
+        self,
+        *,
+        selected_plan: dict[str, Any],
+        recommended_plan: dict[str, Any],
+    ) -> list[str]:
+        lines: list[str] = []
+
+        selected_safety = len(selected_plan.get("safety") or []) if isinstance(selected_plan.get("safety"), list) else 0
+        recommended_safety = len(recommended_plan.get("safety") or []) if isinstance(recommended_plan.get("safety"), list) else 0
+        if selected_safety < recommended_safety:
+            lines.append("The selected plan keeps less safety coverage than the recommended plan.")
+        elif selected_safety > recommended_safety:
+            lines.append("The selected plan keeps more safety coverage than the recommended plan.")
+
+        selected_confidence = self._plan_confidence_rank(selected_plan)
+        recommended_confidence = self._plan_confidence_rank(recommended_plan)
+        if selected_confidence < recommended_confidence:
+            lines.append("The selected plan has lower overall confidence than the recommended plan.")
+        elif selected_confidence > recommended_confidence:
+            lines.append("The selected plan has higher overall confidence than the recommended plan.")
+
+        selected_warnings = self._plan_warning_count(selected_plan)
+        recommended_warnings = self._plan_warning_count(recommended_plan)
+        if selected_warnings > recommended_warnings:
+            lines.append("The selected plan carries more warning signals than the recommended plan.")
+        elif selected_warnings < recommended_warnings:
+            lines.append("The selected plan carries fewer warning signals than the recommended plan.")
+
+        selected_reach = len(selected_plan.get("reach") or []) if isinstance(selected_plan.get("reach"), list) else 0
+        recommended_reach = len(recommended_plan.get("reach") or []) if isinstance(recommended_plan.get("reach"), list) else 0
+        if selected_reach > recommended_reach:
+            lines.append("The selected plan keeps more upside through reach options.")
+        elif selected_reach < recommended_reach:
+            lines.append("The selected plan reduces reach exposure compared with the recommended plan.")
+
+        return lines[:3]
+
+    def _build_selected_plan_summary(
+        self,
+        *,
+        selected_plan: dict[str, Any],
+        recommended_plan: dict[str, Any],
+    ) -> str:
+        selected_safety = len(selected_plan.get("safety") or []) if isinstance(selected_plan.get("safety"), list) else 0
+        recommended_safety = len(recommended_plan.get("safety") or []) if isinstance(recommended_plan.get("safety"), list) else 0
+        selected_reach = len(selected_plan.get("reach") or []) if isinstance(selected_plan.get("reach"), list) else 0
+        recommended_reach = len(recommended_plan.get("reach") or []) if isinstance(recommended_plan.get("reach"), list) else 0
+
+        more_conservative = selected_safety > recommended_safety or selected_reach < recommended_reach
+        more_aggressive = selected_safety < recommended_safety or selected_reach > recommended_reach
+
+        if more_conservative and not more_aggressive:
+            return "This plan trades upside for more safety."
+        if more_aggressive and not more_conservative:
+            return "This plan trades safety for more upside."
+        return "This plan changes the balance of safety, confidence, and upside compared with the recommended plan."
+
+    def _build_scenario_simulation(
+        self,
+        *,
+        query: RecommendationQuery,
+        scenario_input: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if scenario_input is None or psycopg2 is None:
+            return None
+
+        simulated_query = self._build_simulated_query(query, scenario_input)
+        conn = psycopg2.connect(
+            host=self._db_settings.host,
+            port=self._db_settings.port,
+            database=self._db_settings.database,
+            user=self._db_settings.user,
+            password=self._db_settings.password,
+        )
+        try:
+            repo = RecommendationRepository(conn)
+            config = default_recommendation_config()
+            original_payload = self._run_recommendation_pipeline(repo, query, config=config)
+            simulated_payload = self._run_recommendation_pipeline(repo, simulated_query, config=config)
+        finally:
+            conn.close()
+
+        original_items, _ = self._flatten_grouped_results(original_payload)
+        simulated_items, _ = self._flatten_grouped_results(simulated_payload)
+        original_plans = self._build_application_plans(original_items)
+        simulated_plans = self._build_application_plans(simulated_items)
+        original_comparison = self._build_plan_comparison(original_plans)
+        simulated_comparison = self._build_plan_comparison(simulated_plans)
+        before_name = self._normalize_plan_name(
+            original_comparison.get("recommendedPlan") if isinstance(original_comparison, dict) else None
+        )
+        after_name = self._normalize_plan_name(
+            simulated_comparison.get("recommendedPlan") if isinstance(simulated_comparison, dict) else None
+        )
+        if before_name is None or after_name is None:
+            return None
+
+        original_plan = self._find_plan_by_name(original_plans, before_name)
+        simulated_plan = self._find_plan_by_name(simulated_plans, after_name)
+        if not isinstance(original_plan, dict) or not isinstance(simulated_plan, dict):
+            return None
+
+        change_summary = self._build_scenario_change_summary(before_name, after_name)
+        key_differences = self._build_scenario_key_differences(
+            before_name=before_name,
+            after_name=after_name,
+            before_plan=original_plan,
+            after_plan=simulated_plan,
+        )
+        return {
+            "scenarioInput": scenario_input,
+            "recommendedPlanBefore": before_name,
+            "recommendedPlanAfter": after_name,
+            "changeSummary": change_summary,
+            "keyDifferences": key_differences,
+        }
+
+    def _build_scenario_comparison(
+        self,
+        *,
+        query: RecommendationQuery,
+    ) -> dict[str, Any] | None:
+        scenario_presets = self._valid_scenario_presets(query)
+        if not scenario_presets or psycopg2 is None:
+            return None
+
+        conn = psycopg2.connect(
+            host=self._db_settings.host,
+            port=self._db_settings.port,
+            database=self._db_settings.database,
+            user=self._db_settings.user,
+            password=self._db_settings.password,
+        )
+        try:
+            repo = RecommendationRepository(conn)
+            config = default_recommendation_config()
+            baseline_payload = self._run_recommendation_pipeline(repo, query, config=config)
+            baseline_items, _ = self._flatten_grouped_results(baseline_payload)
+            baseline_plans = self._build_application_plans(baseline_items)
+            baseline_comparison = self._build_plan_comparison(baseline_plans)
+            baseline_name = self._normalize_plan_name(
+                baseline_comparison.get("recommendedPlan") if isinstance(baseline_comparison, dict) else None
+            )
+            baseline_plan = self._find_plan_by_name(baseline_plans, baseline_name or "")
+            if baseline_name is None or not isinstance(baseline_plan, dict):
+                return None
+
+            scenarios: list[dict[str, Any]] = []
+            for scenario_key, scenario_input in scenario_presets:
+                simulated_query = self._build_simulated_query(query, scenario_input)
+                simulated_payload = self._run_recommendation_pipeline(repo, simulated_query, config=config)
+                simulated_items, _ = self._flatten_grouped_results(simulated_payload)
+                simulated_plans = self._build_application_plans(simulated_items)
+                simulated_comparison = self._build_plan_comparison(simulated_plans)
+                after_name = self._normalize_plan_name(
+                    simulated_comparison.get("recommendedPlan") if isinstance(simulated_comparison, dict) else None
+                )
+                after_plan = self._find_plan_by_name(simulated_plans, after_name or "")
+                if after_name is None or not isinstance(after_plan, dict):
+                    continue
+                scenarios.append(
+                    {
+                        "scenarioKey": scenario_key,
+                        "scenarioLabel": self._scenario_label(scenario_key),
+                        "recommendedPlanAfter": after_name,
+                        "changeSummary": self._build_scenario_change_summary(baseline_name, after_name),
+                        "keyDifferences": self._build_scenario_key_differences(
+                            before_name=baseline_name,
+                            after_name=after_name,
+                            before_plan=baseline_plan,
+                            after_plan=after_plan,
+                        ),
+                    }
+                )
+        finally:
+            conn.close()
+
+        if not scenarios:
+            return None
+        return {
+            "baselineRecommendedPlan": baseline_name,
+            "scenarios": [
+                {
+                    "scenarioKey": str(scenario.get("scenarioKey") or ""),
+                    "scenarioLabel": str(scenario.get("scenarioLabel") or ""),
+                    "recommendedPlanAfter": str(scenario.get("recommendedPlanAfter") or ""),
+                    "changeSummary": str(scenario.get("changeSummary") or ""),
+                    "keyDifferences": [
+                        str(line)
+                        for line in scenario.get("keyDifferences", [])
+                        if isinstance(line, str) and line
+                    ],
+                }
+                for scenario in scenarios[:4]
+            ],
+        }
+
+    def _build_best_scenario_insight(
+        self,
+        scenario_comparison: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not isinstance(scenario_comparison, dict):
+            return None
+        scenarios = scenario_comparison.get("scenarios")
+        if not isinstance(scenarios, list) or not scenarios:
+            return None
+
+        preset_rank = {key: index for index, key in enumerate(self.SCENARIO_PRESET_ORDER)}
+        candidates = [scenario for scenario in scenarios if isinstance(scenario, dict)]
+        if not candidates:
+            return None
+
+        best = min(
+            candidates,
+            key=lambda scenario: (
+                0 if self._scenario_changes_plan_favorably(
+                    str(scenario_comparison.get("baselineRecommendedPlan") or ""),
+                    str(scenario.get("recommendedPlanAfter") or ""),
+                ) else 1,
+                0 if self._scenario_improves_confidence(scenario) else 1,
+                0 if self._scenario_improves_safety(scenario) else 1,
+                preset_rank.get(str(scenario.get("scenarioKey") or ""), len(self.SCENARIO_PRESET_ORDER)),
+            ),
+        )
+
+        if self._scenario_changes_plan_favorably(
+            str(scenario_comparison.get("baselineRecommendedPlan") or ""),
+            str(best.get("recommendedPlanAfter") or ""),
+        ):
+            reason = "This scenario most improves the recommendation outcome."
+        elif self._scenario_improves_confidence(best) and not self._scenario_reduces_safety(best):
+            reason = "This scenario most improves plan confidence without increasing instability."
+        else:
+            reason = "This scenario gives the clearest improvement among the tested options."
+
+        return {
+            "scenarioKey": best.get("scenarioKey"),
+            "scenarioLabel": best.get("scenarioLabel"),
+            "reason": reason,
+        }
+
+    def _build_simulated_query(
+        self,
+        query: RecommendationQuery,
+        scenario_input: dict[str, Any],
+    ) -> RecommendationQuery:
+        ielts_delta = scenario_input.get("ielts_delta")
+        toefl_delta = scenario_input.get("toefl_delta")
+        gpa_delta = scenario_input.get("gpa_delta")
+        target_rank_delta = scenario_input.get("target_rank_delta")
+        return RecommendationQuery(
+            country=query.country,
+            country_policy=query.country_policy,
+            ielts_score=self._apply_delta(
+                query.ielts_score, ielts_delta, minimum=0.0, maximum=9.0
+            ),
+            toefl_score=self._apply_delta(
+                query.toefl_score, toefl_delta, minimum=0.0, maximum=120.0
+            ),
+            gpa_score=self._apply_delta(
+                query.gpa_score, gpa_delta, minimum=0.0, maximum=4.0
+            ),
+            duolingo_score=query.duolingo_score,
+            target_rank=self._apply_rank_delta(query.target_rank, target_rank_delta),
+            risk_profile=query.risk_profile,
+            preference_weights=dict(query.preference_weights),
+            preferred_ranking_source=query.preferred_ranking_source,
+            limit=query.limit,
+            ranking_year=query.ranking_year,
+        )
+
+    def _build_scenario_change_summary(self, before_name: str, after_name: str) -> str:
+        if before_name != after_name:
+            return f"The recommended plan shifts from {before_name} to {after_name} under this scenario."
+        return "The recommended plan remains stable under this scenario."
+
+    def _build_scenario_key_differences(
+        self,
+        *,
+        before_name: str,
+        after_name: str,
+        before_plan: dict[str, Any],
+        after_plan: dict[str, Any],
+    ) -> list[str]:
+        lines: list[str] = []
+
+        before_confidence = self._plan_confidence_rank(before_plan)
+        after_confidence = self._plan_confidence_rank(after_plan)
+        if after_confidence > before_confidence:
+            lines.append("Overall plan confidence improves under this scenario.")
+        elif after_confidence < before_confidence:
+            lines.append("Overall plan confidence decreases under this scenario.")
+
+        before_safety = len(before_plan.get("safety") or []) if isinstance(before_plan.get("safety"), list) else 0
+        after_safety = len(after_plan.get("safety") or []) if isinstance(after_plan.get("safety"), list) else 0
+        if after_safety > before_safety:
+            lines.append("Safety coverage improves under this scenario.")
+        elif after_safety < before_safety:
+            lines.append("Safety coverage becomes more limited.")
+
+        aggressiveness_shift = self._compare_plan_aggressiveness(
+            before_name=before_name,
+            after_name=after_name,
+            before_plan=before_plan,
+            after_plan=after_plan,
+        )
+        if aggressiveness_shift == "more_aggressive":
+            lines.append("The plan mix becomes more aggressive.")
+        elif aggressiveness_shift == "more_conservative":
+            lines.append("The plan mix becomes more conservative.")
+
+        return lines[:3]
+
+    def _compare_plan_aggressiveness(
+        self,
+        *,
+        before_name: str,
+        after_name: str,
+        before_plan: dict[str, Any],
+        after_plan: dict[str, Any],
+    ) -> str | None:
+        plan_rank = {"conservative": 0, "balanced": 1, "aggressive": 2}
+        before_rank = plan_rank.get(before_name)
+        after_rank = plan_rank.get(after_name)
+        if before_rank is not None and after_rank is not None and after_rank != before_rank:
+            return "more_aggressive" if after_rank > before_rank else "more_conservative"
+
+        before_reach = len(before_plan.get("reach") or []) if isinstance(before_plan.get("reach"), list) else 0
+        after_reach = len(after_plan.get("reach") or []) if isinstance(after_plan.get("reach"), list) else 0
+        before_safety = len(before_plan.get("safety") or []) if isinstance(before_plan.get("safety"), list) else 0
+        after_safety = len(after_plan.get("safety") or []) if isinstance(after_plan.get("safety"), list) else 0
+        if after_reach > before_reach or after_safety < before_safety:
+            return "more_aggressive"
+        if after_reach < before_reach or after_safety > before_safety:
+            return "more_conservative"
+        return None
+
+    def _valid_scenario_presets(self, query: RecommendationQuery) -> list[tuple[str, dict[str, Any]]]:
+        presets: list[tuple[str, dict[str, Any]]] = []
+        for scenario_key in self.SCENARIO_PRESET_ORDER:
+            scenario_input = self._scenario_preset_input(scenario_key)
+            if self._scenario_preset_is_valid(query, scenario_key):
+                presets.append((scenario_key, scenario_input))
+        return presets[:4]
+
+    def _scenario_preset_input(self, scenario_key: str) -> dict[str, Any]:
+        mapping = {
+            "ielts_plus_0_5": {"ielts_delta": 0.5},
+            "toefl_plus_5": {"toefl_delta": 5},
+            "gpa_plus_0_2": {"gpa_delta": 0.2},
+            "target_rank_tighter_20": {"target_rank_delta": -20},
+        }
+        return dict(mapping.get(scenario_key, {}))
+
+    def _scenario_preset_is_valid(self, query: RecommendationQuery, scenario_key: str) -> bool:
+        if scenario_key == "ielts_plus_0_5":
+            return query.ielts_score is not None
+        if scenario_key == "toefl_plus_5":
+            return query.toefl_score is not None
+        if scenario_key == "gpa_plus_0_2":
+            return query.gpa_score is not None
+        if scenario_key == "target_rank_tighter_20":
+            return query.target_rank is not None
+        return False
+
+    def _scenario_label(self, scenario_key: str) -> str:
+        labels = {
+            "ielts_plus_0_5": "IELTS +0.5",
+            "toefl_plus_5": "TOEFL +5",
+            "gpa_plus_0_2": "GPA +0.2",
+            "target_rank_tighter_20": "Target rank -20",
+        }
+        return labels.get(scenario_key, scenario_key)
+
+    def _is_favorable_plan_shift(self, before_name: str, after_name: str) -> bool:
+        plan_rank = {"conservative": 0, "balanced": 1, "aggressive": 2}
+        before_rank = plan_rank.get(before_name, -1)
+        after_rank = plan_rank.get(after_name, -1)
+        return after_rank > before_rank
+
+    def _plan_safety_count(self, plan: dict[str, Any]) -> int:
+        safety = plan.get("safety")
+        if not isinstance(safety, list):
+            return 0
+        return len(safety)
+
+    def _scenario_changes_plan_favorably(self, baseline_name: str, after_name: str) -> bool:
+        return self._is_favorable_plan_shift(baseline_name, after_name)
+
+    def _scenario_improves_confidence(self, scenario: dict[str, Any]) -> bool:
+        key_differences = scenario.get("keyDifferences")
+        if not isinstance(key_differences, list):
+            return False
+        return any(
+            isinstance(line, str) and line == "Overall plan confidence improves under this scenario."
+            for line in key_differences
+        )
+
+    def _scenario_improves_safety(self, scenario: dict[str, Any]) -> bool:
+        key_differences = scenario.get("keyDifferences")
+        if not isinstance(key_differences, list):
+            return False
+        return any(
+            isinstance(line, str) and line == "Safety coverage improves under this scenario."
+            for line in key_differences
+        )
+
+    def _scenario_reduces_safety(self, scenario: dict[str, Any]) -> bool:
+        key_differences = scenario.get("keyDifferences")
+        if not isinstance(key_differences, list):
+            return False
+        return any(
+            isinstance(line, str) and line == "Safety coverage becomes more limited."
+            for line in key_differences
+        )
+
+    def _build_plan_delta(
+        self,
+        application_plans: list[dict[str, Any]] | None,
+        plan_comparison: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not application_plans or not isinstance(plan_comparison, dict):
+            return None
+
+        recommended_name = plan_comparison.get("recommendedPlan")
+        if not isinstance(recommended_name, str) or not recommended_name:
+            return None
+
+        plan_map = {
+            str(plan.get("planName")): plan
+            for plan in application_plans
+            if isinstance(plan, dict) and isinstance(plan.get("planName"), str)
+        }
+        recommended_plan = plan_map.get(recommended_name)
+        if not isinstance(recommended_plan, dict):
+            return None
+
+        comparison_lines: list[str] = []
+        for alternative_name in ("balanced", "conservative", "aggressive"):
+            if alternative_name == recommended_name:
+                continue
+            alternative_plan = plan_map.get(alternative_name)
+            if not isinstance(alternative_plan, dict):
+                continue
+            comparison_lines.extend(
+                self._build_plan_delta_lines_for_alternative(
+                    recommended_name=recommended_name,
+                    recommended_plan=recommended_plan,
+                    alternative_name=alternative_name,
+                    alternative_plan=alternative_plan,
+                )
+            )
+            if len(comparison_lines) >= 4:
+                break
+
+        return {
+            "recommendedPlan": recommended_name,
+            "comparisonAgainstAlternatives": comparison_lines[:4],
+        }
+
+    def _build_plan_delta_lines_for_alternative(
+        self,
+        *,
+        recommended_name: str,
+        recommended_plan: dict[str, Any],
+        alternative_name: str,
+        alternative_plan: dict[str, Any],
+    ) -> list[str]:
+        lines: list[str] = []
+
+        recommended_safety = len(recommended_plan.get("safety") or []) if isinstance(recommended_plan.get("safety"), list) else 0
+        alternative_safety = len(alternative_plan.get("safety") or []) if isinstance(alternative_plan.get("safety"), list) else 0
+        if recommended_safety > 0 and alternative_safety == 0:
+            lines.append(
+                f"The {recommended_name} plan keeps safety coverage that the {alternative_name} plan does not."
+            )
+        elif recommended_safety == 0 and alternative_safety > 0:
+            lines.append(
+                f"The {alternative_name} plan keeps more safety coverage than the {recommended_name} plan."
+            )
+
+        recommended_confidence = self._plan_confidence_rank(recommended_plan)
+        alternative_confidence = self._plan_confidence_rank(alternative_plan)
+        if recommended_confidence > alternative_confidence:
+            lines.append(
+                f"The {recommended_name} plan has higher overall confidence than the {alternative_name} plan."
+            )
+        elif recommended_confidence < alternative_confidence:
+            lines.append(
+                f"The {alternative_name} plan has higher overall confidence than the {recommended_name} plan."
+            )
+
+        recommended_warnings = self._plan_warning_count(recommended_plan)
+        alternative_warnings = self._plan_warning_count(alternative_plan)
+        if recommended_warnings < alternative_warnings:
+            lines.append(
+                f"The {recommended_name} plan carries fewer warning signals than the {alternative_name} plan."
+            )
+        elif recommended_warnings > alternative_warnings:
+            lines.append(
+                f"The {recommended_name} plan carries more warning signals than the {alternative_name} plan."
+            )
+
+        recommended_reach = len(recommended_plan.get("reach") or []) if isinstance(recommended_plan.get("reach"), list) else 0
+        alternative_reach = len(alternative_plan.get("reach") or []) if isinstance(alternative_plan.get("reach"), list) else 0
+        if recommended_reach > alternative_reach:
+            lines.append(
+                f"The {recommended_name} plan keeps more upside through reach options than the {alternative_name} plan."
+            )
+        elif recommended_reach < alternative_reach:
+            lines.append(
+                f"The {recommended_name} plan reduces reach exposure compared with the {alternative_name} plan."
+            )
+
+        return lines[:2]
+
+    def _plan_confidence_rank(self, plan: dict[str, Any]) -> int:
+        confidence_rank = {"high": 2, "medium": 1, "low": 0}
+        return confidence_rank.get(str(plan.get("planConfidence") or ""), -1)
+
+    def _plan_warning_count(self, plan: dict[str, Any]) -> int:
+        warnings = plan.get("planWarnings")
+        if not isinstance(warnings, list):
+            return 0
+        return len([warning for warning in warnings if isinstance(warning, str) and warning])
+
     def _application_plan_group(self, item: dict[str, Any]) -> str | None:
         matching_score = self._application_plan_score(item.get("matchingScore"))
         decision = item.get("decisionOutput")
@@ -1342,6 +1980,170 @@ class RecommendationService:
             lines = [str(line) for line in tradeoffs if isinstance(line, str) and line]
             paragraphs.extend(lines[:2])
         return paragraphs
+
+    def _build_plan_delta_note(self, plan_delta: dict[str, Any] | None) -> list[str]:
+        if not isinstance(plan_delta, dict):
+            return []
+        lines = plan_delta.get("comparisonAgainstAlternatives")
+        if not isinstance(lines, list):
+            return []
+        usable_lines = [str(line) for line in lines if isinstance(line, str) and line]
+        if not usable_lines:
+            return []
+        return ["Why this plan stands out:"] + usable_lines[:4]
+
+    def _build_selected_plan_comparison_note(
+        self,
+        selected_plan_comparison: dict[str, Any] | None,
+    ) -> list[str]:
+        if not isinstance(selected_plan_comparison, dict):
+            return []
+        summary = selected_plan_comparison.get("summary")
+        differences = selected_plan_comparison.get("differences")
+        if not isinstance(summary, str) or not summary:
+            return []
+        usable_differences = []
+        if isinstance(differences, list):
+            usable_differences = [str(line) for line in differences if isinstance(line, str) and line]
+        return [f"Selected plan comparison: {summary}"] + usable_differences[:3]
+
+    def _build_scenario_simulation_note(
+        self,
+        scenario_simulation: dict[str, Any] | None,
+    ) -> list[str]:
+        if not isinstance(scenario_simulation, dict):
+            return []
+        summary = scenario_simulation.get("changeSummary")
+        key_differences = scenario_simulation.get("keyDifferences")
+        if not isinstance(summary, str) or not summary:
+            return []
+        usable_lines: list[str] = []
+        if isinstance(key_differences, list):
+            usable_lines = [str(line) for line in key_differences if isinstance(line, str) and line]
+        return ["Under this scenario:", summary] + usable_lines[:3]
+
+    def _build_scenario_comparison_note(
+        self,
+        scenario_comparison: dict[str, Any] | None,
+        best_scenario_insight: dict[str, Any] | None,
+    ) -> list[str]:
+        if not isinstance(scenario_comparison, dict) or not isinstance(best_scenario_insight, dict):
+            return []
+        scenario_label = best_scenario_insight.get("scenarioLabel")
+        reason = best_scenario_insight.get("reason")
+        scenarios = scenario_comparison.get("scenarios")
+        if not isinstance(scenario_label, str) or not scenario_label or not isinstance(reason, str) or not reason:
+            return []
+        if not isinstance(scenarios, list) or not scenarios:
+            return []
+
+        lines = [
+            "I tested several improvement scenarios.",
+            f"Most helpful scenario: {scenario_label}.",
+            f"Why: {reason}",
+        ]
+
+        scenario_summaries: list[str] = []
+        for scenario in scenarios[:2]:
+            if not isinstance(scenario, dict):
+                continue
+            label = scenario.get("scenarioLabel")
+            change_summary = scenario.get("changeSummary")
+            key_differences = scenario.get("keyDifferences")
+            if not isinstance(label, str) or not isinstance(change_summary, str):
+                continue
+            summary_text = change_summary.replace(" under this scenario.", "").replace("The recommended plan ", "")
+            detail = ""
+            if isinstance(key_differences, list) and key_differences:
+                first_difference = next((line for line in key_differences if isinstance(line, str) and line), None)
+                if isinstance(first_difference, str):
+                    detail = " " + first_difference.replace(" under this scenario.", "").replace("The plan mix becomes ", "").replace("Safety coverage ", "safety coverage ").replace("Overall plan confidence ", "confidence ")
+            scenario_summaries.append(f"{label}: {summary_text}.{detail}".strip())
+
+        if scenario_summaries:
+            lines.extend(scenario_summaries)
+        return lines
+
+    def _normalize_plan_name(self, value: Any) -> str | None:
+        text = self._as_optional_str(value)
+        if text in {"balanced", "conservative", "aggressive"}:
+            return text
+        return None
+
+    def _extract_scenario_input(self, profile: dict[str, Any]) -> dict[str, Any] | None:
+        raw_scenario = profile.get("scenario")
+        scenario: dict[str, Any] | None = None
+        if isinstance(raw_scenario, dict):
+            scenario = raw_scenario
+        elif isinstance(raw_scenario, str):
+            try:
+                parsed = json.loads(raw_scenario)
+            except json.JSONDecodeError:
+                parsed = None
+            if isinstance(parsed, dict):
+                scenario = parsed
+        if scenario is None:
+            return None
+
+        normalized: dict[str, Any] = {}
+        ielts_delta = self._clamp_optional_number(scenario.get("ielts_delta"), minimum=-2.0, maximum=2.0)
+        toefl_delta = self._clamp_optional_number(scenario.get("toefl_delta"), minimum=-20.0, maximum=20.0)
+        gpa_delta = self._clamp_optional_number(scenario.get("gpa_delta"), minimum=-1.0, maximum=1.0)
+        target_rank_delta = self._clamp_optional_int(scenario.get("target_rank_delta"), minimum=-100, maximum=100)
+
+        if ielts_delta not in (None, 0.0):
+            normalized["ielts_delta"] = ielts_delta
+        if toefl_delta not in (None, 0.0):
+            normalized["toefl_delta"] = int(toefl_delta) if float(toefl_delta).is_integer() else toefl_delta
+        if gpa_delta not in (None, 0.0):
+            normalized["gpa_delta"] = gpa_delta
+        if target_rank_delta not in (None, 0):
+            normalized["target_rank_delta"] = target_rank_delta
+
+        return normalized or None
+
+    def _clamp_optional_number(self, value: Any, *, minimum: float, maximum: float) -> float | None:
+        if not isinstance(value, (int, float)):
+            return None
+        return max(minimum, min(float(value), maximum))
+
+    def _clamp_optional_int(self, value: Any, *, minimum: int, maximum: int) -> int | None:
+        if not isinstance(value, (int, float)):
+            return None
+        return max(minimum, min(int(value), maximum))
+
+    def _apply_delta(
+        self,
+        value: float | None,
+        delta: Any,
+        *,
+        minimum: float,
+        maximum: float,
+    ) -> float | None:
+        if value is None or not isinstance(delta, (int, float)):
+            return value
+        return max(minimum, min(float(value) + float(delta), maximum))
+
+    def _apply_rank_delta(self, value: int | None, delta: Any) -> int | None:
+        if value is None or not isinstance(delta, (int, float)):
+            return value
+        return max(1, int(value + int(delta)))
+
+    def _find_plan_by_name(
+        self,
+        plans: list[dict[str, Any]] | None,
+        plan_name: str,
+    ) -> dict[str, Any] | None:
+        if not plans:
+            return None
+        return next(
+            (
+                plan
+                for plan in plans
+                if isinstance(plan, dict) and str(plan.get("planName") or "") == plan_name
+            ),
+            None,
+        )
 
     def _as_optional_int(self, value: Any) -> int | None:
         if value in (None, ""):
