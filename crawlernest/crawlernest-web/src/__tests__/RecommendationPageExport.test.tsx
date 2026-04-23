@@ -105,6 +105,9 @@ describe("RecommendationPageContent export summary", () => {
     await waitFor(() => {
       expect(screen.getByText("Export your decision summary")).toBeInTheDocument();
     });
+    expect(
+      screen.getByText("Copy your current decision state so you can save or share it.")
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId("copy-summary-json"));
 
@@ -115,7 +118,7 @@ describe("RecommendationPageContent export summary", () => {
     });
     await waitFor(() => {
       expect(screen.getByTestId("copy-summary-status")).toHaveTextContent(
-        "Copied JSON summary"
+        "Copied JSON summary."
       );
     });
   });
@@ -177,7 +180,7 @@ describe("RecommendationPageContent export summary", () => {
     );
     await waitFor(() => {
       expect(screen.getByTestId("copy-summary-status")).toHaveTextContent(
-        "Copied text summary"
+        "Copied text summary."
       );
     });
   });
@@ -232,7 +235,7 @@ describe("RecommendationPageContent export summary", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("copy-summary-status")).toHaveTextContent(
-        "Could not copy summary"
+        "Could not copy summary."
       );
     });
   });

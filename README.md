@@ -2,6 +2,10 @@
 
 Traditional Chinese version: [README.zh-TW.md](README.zh-TW.md)
 
+CrawlerNest is a deterministic decision-support system for university applications. It helps users compare plans, test improvements, and decide what to do next.
+
+CrawlerNest turns structured profile inputs into explainable recommendation layers. It compares application plans, shows how tested scenarios change outcomes, and helps users choose a practical next step. It does not guess, hallucinate, or rely on black-box AI reasoning for its core recommendation flow. The current product is built around deterministic comparison, bounded scenario evaluation, and explainable decision support.
+
 **CrawlerNest** is a **University Data Intelligence Infrastructure** enhanced by a **controlled, evaluation-driven AI-assisted development layer**. It bridges fragmented global education data with structured analytics, explainable recommendation, and production-minded system design.
 
 ## What is this system?
@@ -11,6 +15,91 @@ It is now also evolving with a **Mini-Agent Development Layer** and an early **W
 
 ## Why it exists
 Students and advisors do not just need more ranking rows. They need transparent evidence, comparable signals, and decision support they can trust. CrawlerNest exists to make ranking aggregation understandable rather than opaque, and useful rather than merely searchable.
+
+## How the System Works
+
+### Layer 1 — Input
+The user starts with a simple profile: country, language score, GPA, and target rank. These inputs define the decision context for the current session.
+
+### Layer 2 — Recommendation
+The system filters and scores candidate universities using the current profile. It then organizes the result into three familiar groups: reach, target, and safety.
+
+### Layer 3 — Plan Construction
+From those grouped candidates, the system builds three application plans: balanced, conservative, and aggressive. It compares those plans and identifies the one that currently stands out as the recommended plan.
+
+### Layer 4 — Scenario Simulation
+The system can test small profile changes, such as a higher IELTS score or a tighter target rank. It compares before-and-after outcomes and can also run a fixed set of scenarios side by side.
+
+### Layer 5 — Decision Support
+On top of the recommendation layers, the system highlights which tested scenario helps most, which improvement is most worthwhile after effort is considered, and what the next practical step should be.
+
+### Layer 6 — State & Continuity
+The current decision state can be kept locally in the browser, exported as a compact summary, and restored later through import. This makes the workflow easier to revisit, share, and continue.
+
+## Decision Flow
+
+```text
+User Profile
+   ↓
+Recommendation Engine
+   ↓
+Reach / Target / Safety
+   ↓
+Application Plans (Balanced / Conservative / Aggressive)
+   ↓
+Recommended Plan
+   ↓
+Scenario Simulation
+   ↓
+Best Scenario Insight
+   ↓
+Improvement Priority
+   ↓
+Next Action Guide
+
+Import Summary
+   ↘
+    Restore State
+```
+
+## Demo Walkthrough
+
+### Step 1 — Enter Profile
+Use a simple example such as Country: United Kingdom, IELTS: 6.5, Target Rank: 100. This gives the audience a clear starting point.
+
+### Step 2 — Show Recommendation
+Generate the recommendation and point out the reach, target, and safety groups. Then show the recommended plan banner as the current best plan.
+
+### Step 3 — Compare Plans
+Open the plan comparison matrix and explain the difference between balanced, conservative, and aggressive. Use the “Why this plan stands out” section to show why one plan currently comes out ahead.
+
+### Step 4 — Run Scenario
+Apply a simple scenario such as IELTS +0.5. Show how the recommendation changes, or stays stable, under that tested improvement.
+
+### Step 5 — Show Best Improvement
+Use the scenario comparison and improvement priority sections to explain which tested change helps most and which one is the most worthwhile first move.
+
+### Step 6 — Show Next Step
+Highlight the suggested next step at the bottom of the decision flow. This is the system’s clearest action recommendation for the current state.
+
+### Step 7 — Export
+Copy the decision summary as JSON or readable text. Explain that this captures the current decision state in a portable form.
+
+### Step 8 — Import
+Paste the exported JSON summary back into the import area and restore it. Show that the product returns to the same decision context without rebuilding it manually.
+
+## Current Capabilities vs Future Work
+
+### Current
+- plan comparison across balanced, conservative, and aggressive variants
+- deterministic scenario simulation and multi-scenario comparison
+- improvement prioritization based on tested impact and fixed effort mapping
+- next-step decision guidance
+- local persistence plus export and import of decision summaries
+
+### Future
+- broader data coverage across more schools and signals
+- more refined decision signals built on top of the same deterministic foundation
 
 ## Current Capabilities
 *   **Multi-Source Ranking Ingestion:** QS, THE, and ARWU can now feed the same ranking storage and aggregation path. THE world rankings prefer **structured JSON** (CDN blobs when published, else Next.js `__NEXT_DATA__`) rather than brittle HTML-first scraping.
