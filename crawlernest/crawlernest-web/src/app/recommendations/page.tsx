@@ -795,6 +795,32 @@ function parseImportedDecisionSummary(
   return summary;
 }
 
+function buildImportedSummaryPreview(
+  decisionSummary: RecommendationResponse["decisionSummary"] | null | undefined
+) {
+  if (!decisionSummary) {
+    return null;
+  }
+
+  const parts: string[] = [];
+  const plan = decisionSummary.selectedPlan?.plan ?? decisionSummary.recommendedPlan?.plan;
+  if (plan) {
+    parts.push(`${titleCaseWords(plan)} plan`);
+  }
+  if (decisionSummary.profileSnapshot?.country) {
+    parts.push(decisionSummary.profileSnapshot.country);
+  }
+  if (decisionSummary.profileSnapshot?.ielts !== undefined) {
+    parts.push(`IELTS ${decisionSummary.profileSnapshot.ielts}`);
+  }
+
+  if (parts.length === 0) {
+    return null;
+  }
+
+  return `Imported: ${parts.join(" / ")}`;
+}
+
 export function buildDecisionSummaryText(
   decisionSummary: RecommendationResponse["decisionSummary"] | null | undefined
 ) {
@@ -976,6 +1002,9 @@ export function RecommendationPageContent() {
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [importSummaryText, setImportSummaryText] = useState("");
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [importExpanded, setImportExpanded] = useState(false);
+  const [showImportedSummaryCue, setShowImportedSummaryCue] = useState(false);
+  const [importedSummaryPreview, setImportedSummaryPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shortlistContext, setShortlistContext] = useState<ShortlistItem[]>([]);
@@ -1366,7 +1395,21 @@ export function RecommendationPageContent() {
     }
   }
 
+  function clearImportedSummaryFeedback() {
+    setShowImportedSummaryCue(false);
+    setImportedSummaryPreview(null);
+    setImportStatus((current) =>
+      current === "Restored decision summary." ? null : current
+    );
+  }
+
+  async function handleGenerateRecommendations() {
+    clearImportedSummaryFeedback();
+    await fetchRecommendations();
+  }
+
   async function handlePlanSelection(planName: PlanName) {
+    clearImportedSummaryFeedback();
     setSelectedPlan(planName);
     setCurrentFocus("plan");
     await fetchRecommendations(planName);
@@ -1376,6 +1419,7 @@ export function RecommendationPageContent() {
     if (!target) {
       return;
     }
+    clearImportedSummaryFeedback();
     if (target.type === "plan" && isPlanName(target.key)) {
       setSelectedPlan(target.key);
       setCurrentFocus("plan");
@@ -1401,6 +1445,7 @@ export function RecommendationPageContent() {
   }
 
   async function handleResetExploration() {
+    clearImportedSummaryFeedback();
     setCountry(DEFAULT_COUNTRY);
     setIelts(DEFAULT_IELTS);
     setToefl("");
@@ -1414,6 +1459,9 @@ export function RecommendationPageContent() {
     setScenarioToeflDelta("");
     setScenarioGpaDelta("");
     setScenarioTargetRankDelta("");
+    setImportSummaryText("");
+    setImportExpanded(false);
+    setImportStatus(null);
     setShowRestoredStateCue(false);
 
     if (typeof window !== "undefined") {
@@ -1438,33 +1486,35 @@ export function RecommendationPageContent() {
 
   async function handleCopyDecisionSummaryJson() {
     if (!decisionSummary || !navigator?.clipboard?.writeText) {
-      setExportStatus("Could not copy summary");
+      setExportStatus("Could not copy summary.");
       return;
     }
     try {
       await navigator.clipboard.writeText(JSON.stringify(decisionSummary, null, 2));
-      setExportStatus("Copied JSON summary");
+      setExportStatus("Copied JSON summary.");
     } catch {
-      setExportStatus("Could not copy summary");
+      setExportStatus("Could not copy summary.");
     }
   }
 
   async function handleCopyDecisionSummaryText() {
     if (!decisionSummary || !navigator?.clipboard?.writeText) {
-      setExportStatus("Could not copy summary");
+      setExportStatus("Could not copy summary.");
       return;
     }
     try {
       await navigator.clipboard.writeText(buildDecisionSummaryText(decisionSummary));
-      setExportStatus("Copied text summary");
+      setExportStatus("Copied text summary.");
     } catch {
-      setExportStatus("Could not copy summary");
+      setExportStatus("Could not copy summary.");
     }
   }
 
   async function handleRestoreFromSummary() {
+    setImportStatus(null);
     const importedSummary = parseImportedDecisionSummary(importSummaryText);
     if (!importedSummary) {
+      setImportExpanded(true);
       setImportStatus("Could not restore summary.");
       return;
     }
@@ -1537,6 +1587,10 @@ export function RecommendationPageContent() {
     setCurrentFocus(restoredFocus);
     setShowRestoredStateCue(false);
     setImportStatus("Restored decision summary.");
+    setShowImportedSummaryCue(true);
+    setImportedSummaryPreview(buildImportedSummaryPreview(importedSummary));
+    setImportSummaryText("");
+    setImportExpanded(false);
 
     await fetchRecommendations(
       restoredSelectedPlan && isPlanName(restoredSelectedPlan) ? restoredSelectedPlan : null,
@@ -1780,7 +1834,7 @@ export function RecommendationPageContent() {
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <button
-              onClick={fetchRecommendations}
+              onClick={() => void handleGenerateRecommendations()}
               className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42] disabled:cursor-not-allowed disabled:bg-[#c0bdb8]"
               disabled={loading}
             >
@@ -1796,6 +1850,9 @@ export function RecommendationPageContent() {
             >
               Reset exploration
             </button>
+          </div>
+          <div className="mt-2 text-sm text-[#6b7068]">
+            Clears restored/imported exploration state from this browser.
           </div>
           {showRestoredStateCue ? (
             <div
@@ -1822,6 +1879,7 @@ export function RecommendationPageContent() {
                   step="0.5"
                   value={scenarioIeltsDelta}
                   onChange={(e) => {
+                    clearImportedSummaryFeedback();
                     setSelectedScenarioKey(null);
                     setCurrentFocus("scenario");
                     setScenarioIeltsDelta(e.target.value === "" ? "" : Number(e.target.value));
@@ -1836,6 +1894,7 @@ export function RecommendationPageContent() {
                   type="number"
                   value={scenarioToeflDelta}
                   onChange={(e) => {
+                    clearImportedSummaryFeedback();
                     setSelectedScenarioKey(null);
                     setCurrentFocus("scenario");
                     setScenarioToeflDelta(e.target.value === "" ? "" : Number(e.target.value));
@@ -1851,6 +1910,7 @@ export function RecommendationPageContent() {
                   step="0.1"
                   value={scenarioGpaDelta}
                   onChange={(e) => {
+                    clearImportedSummaryFeedback();
                     setSelectedScenarioKey(null);
                     setCurrentFocus("scenario");
                     setScenarioGpaDelta(e.target.value === "" ? "" : Number(e.target.value));
@@ -1865,6 +1925,7 @@ export function RecommendationPageContent() {
                   type="number"
                   value={scenarioTargetRankDelta}
                   onChange={(e) => {
+                    clearImportedSummaryFeedback();
                     setSelectedScenarioKey(null);
                     setCurrentFocus("scenario");
                     setScenarioTargetRankDelta(e.target.value === "" ? "" : Number(e.target.value));
@@ -1877,40 +1938,77 @@ export function RecommendationPageContent() {
         </section>
 
         <section className="mt-6 rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-[#1a3d2e]">
-            Import a decision summary
-          </h2>
+          <button
+            type="button"
+            data-testid="import-summary-toggle"
+            onClick={() => setImportExpanded((current) => !current)}
+            className="flex w-full items-center justify-between gap-3 text-left"
+          >
+            <h2 className="text-xl font-semibold text-[#1a3d2e]">
+              Import a decision summary
+            </h2>
+            <span className="text-sm font-medium text-[#6b7068]">
+              {importExpanded || importSummaryText ? "Hide" : "Show"}
+            </span>
+          </button>
           <p className="mt-2 text-sm text-[#6b7068]">
             Paste a previously exported JSON summary to restore the same decision context.
           </p>
-          <textarea
-            data-testid="import-summary-textarea"
-            className="mt-4 min-h-[180px] w-full rounded-2xl border border-[#e0ddd8] px-4 py-3 font-mono text-sm outline-none transition focus:border-[#1a3d2e]"
-            value={importSummaryText}
-            onChange={(e) => setImportSummaryText(e.target.value)}
-            placeholder="Paste exported JSON here"
-          />
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              data-testid="restore-summary-button"
-              onClick={() => void handleRestoreFromSummary()}
-              className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
-            >
-              Restore from summary
-            </button>
-            <button
-              type="button"
-              data-testid="clear-imported-summary-button"
-              onClick={() => {
-                setImportSummaryText("");
-                setImportStatus(null);
-              }}
-              className="inline-flex items-center justify-center rounded-full border border-[#d2d9d4] bg-white px-4 py-3 text-sm font-semibold text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
-            >
-              Clear imported text
-            </button>
+          <div className="mt-2 text-sm text-[#6b7068]">
+            JSON summaries only. Text summaries are not supported.
           </div>
+          {showImportedSummaryCue ? (
+            <div
+              data-testid="imported-summary-active-cue"
+              className="mt-3 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] px-4 py-3 text-sm text-[#315343]"
+            >
+              Imported summary is now active.
+            </div>
+          ) : null}
+          {importedSummaryPreview ? (
+            <div
+              data-testid="imported-summary-preview"
+              className="mt-2 text-sm text-[#6b7068]"
+            >
+              {importedSummaryPreview}
+            </div>
+          ) : null}
+          {importExpanded || importSummaryText ? (
+            <>
+              <textarea
+                data-testid="import-summary-textarea"
+                className="mt-4 min-h-[180px] w-full rounded-2xl border border-[#e0ddd8] px-4 py-3 font-mono text-sm outline-none transition focus:border-[#1a3d2e]"
+                value={importSummaryText}
+                onChange={(e) => {
+                  setImportExpanded(true);
+                  setImportSummaryText(e.target.value);
+                }}
+                placeholder="Paste exported decision summary JSON here..."
+              />
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  data-testid="restore-summary-button"
+                  onClick={() => void handleRestoreFromSummary()}
+                  className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+                >
+                  Restore from summary
+                </button>
+                <button
+                  type="button"
+                  data-testid="clear-imported-summary-button"
+                  onClick={() => {
+                    setImportSummaryText("");
+                    setImportStatus(null);
+                    setImportExpanded(false);
+                  }}
+                  className="inline-flex items-center justify-center rounded-full border border-[#d2d9d4] bg-white px-4 py-3 text-sm font-semibold text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+                >
+                  Clear imported text
+                </button>
+              </div>
+            </>
+          ) : null}
           {importStatus ? (
             <div
               data-testid="import-summary-status"
@@ -1935,7 +2033,7 @@ export function RecommendationPageContent() {
                   Export your decision summary
                 </h2>
                 <p className="mt-2 text-sm text-[#6b7068]">
-                  Copy a compact summary of your current decision state without re-running the recommendation flow.
+                  Copy your current decision state so you can save or share it.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <button

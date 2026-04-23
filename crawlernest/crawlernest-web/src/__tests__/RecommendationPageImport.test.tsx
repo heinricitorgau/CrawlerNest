@@ -80,8 +80,29 @@ describe("RecommendationPageContent import summary", () => {
     mockedFetchAppJson.mockResolvedValue(createRecommendationResponse());
   });
 
+  it("renders import helper text, placeholder, and reset helper copy", () => {
+    render(<RecommendationPageContent />);
+
+    expect(
+      screen.getByText("Paste a previously exported JSON summary to restore the same decision context.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("JSON summaries only. Text summaries are not supported.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Clears restored/imported exploration state from this browser.")
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("import-summary-textarea")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("import-summary-toggle"));
+
+    expect(screen.getByTestId("import-summary-textarea")).toHaveAttribute(
+      "placeholder",
+      "Paste exported decision summary JSON here..."
+    );
+  });
+
   it("restores profile fields and selected plan from valid imported JSON", async () => {
     render(<RecommendationPageContent />);
+    fireEvent.click(screen.getByTestId("import-summary-toggle"));
 
     fireEvent.change(screen.getByTestId("import-summary-textarea"), {
       target: {
@@ -115,6 +136,13 @@ describe("RecommendationPageContent import summary", () => {
     expect(screen.getByTestId("import-summary-status")).toHaveTextContent(
       "Restored decision summary."
     );
+    expect(screen.getByTestId("imported-summary-active-cue")).toHaveTextContent(
+      "Imported summary is now active."
+    );
+    expect(screen.getByTestId("imported-summary-preview")).toHaveTextContent(
+      "Imported: Conservative plan / Canada / IELTS 7"
+    );
+    expect(screen.queryByTestId("import-summary-textarea")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Country")).toHaveValue("Canada");
     expect(screen.getByLabelText("IELTS Score")).toHaveValue(7);
     await waitFor(() => {
@@ -126,6 +154,7 @@ describe("RecommendationPageContent import summary", () => {
 
   it("restores a known scenario label into the scenario preset controls", async () => {
     render(<RecommendationPageContent />);
+    fireEvent.click(screen.getByTestId("import-summary-toggle"));
 
     fireEvent.change(screen.getByTestId("import-summary-textarea"), {
       target: {
@@ -156,6 +185,7 @@ describe("RecommendationPageContent import summary", () => {
 
   it("shows safe failure for malformed JSON and changes nothing", async () => {
     render(<RecommendationPageContent />);
+    fireEvent.click(screen.getByTestId("import-summary-toggle"));
 
     fireEvent.change(screen.getByTestId("import-summary-textarea"), {
       target: {
@@ -169,12 +199,14 @@ describe("RecommendationPageContent import summary", () => {
     expect(screen.getByTestId("import-summary-status")).toHaveTextContent(
       "Could not restore summary."
     );
+    expect(screen.getByTestId("import-summary-textarea")).toHaveValue("{not valid json");
     expect(screen.getByLabelText("Country")).toHaveValue("United Kingdom");
     expect(screen.getByLabelText("IELTS Score")).toHaveValue(6.5);
   });
 
   it("ignores invalid fields in valid JSON without crashing", async () => {
     render(<RecommendationPageContent />);
+    fireEvent.click(screen.getByTestId("import-summary-toggle"));
 
     fireEvent.change(screen.getByTestId("import-summary-textarea"), {
       target: {
@@ -212,6 +244,7 @@ describe("RecommendationPageContent import summary", () => {
 
   it("updates local persistence after successful import", async () => {
     render(<RecommendationPageContent />);
+    fireEvent.click(screen.getByTestId("import-summary-toggle"));
 
     fireEvent.change(screen.getByTestId("import-summary-textarea"), {
       target: {
@@ -251,6 +284,7 @@ describe("RecommendationPageContent import summary", () => {
 
   it("reset exploration clears restored imported state", async () => {
     render(<RecommendationPageContent />);
+    fireEvent.click(screen.getByTestId("import-summary-toggle"));
 
     fireEvent.change(screen.getByTestId("import-summary-textarea"), {
       target: {
@@ -281,5 +315,53 @@ describe("RecommendationPageContent import summary", () => {
     });
     expect(screen.getByLabelText("Country")).toHaveValue("United Kingdom");
     expect(screen.getByLabelText("IELTS Score")).toHaveValue(6.5);
+  });
+
+  it("keeps local restore and imported restore cues distinct", async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        selectedPlan: "balanced",
+        selectedScenarioKey: null,
+        currentFocus: "plan",
+        profileDraft: {},
+      })
+    );
+
+    render(<RecommendationPageContent />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("restored-state-cue")).toHaveTextContent(
+        "Restored your last comparison state."
+      );
+    });
+
+    fireEvent.click(screen.getByTestId("import-summary-toggle"));
+    fireEvent.change(screen.getByTestId("import-summary-textarea"), {
+      target: {
+        value: JSON.stringify({
+          profileSnapshot: {
+            country: "Canada",
+            ielts: 7,
+            targetRank: 90,
+          },
+          recommendedPlan: {
+            plan: "balanced",
+          },
+        }),
+      },
+    });
+
+    fireEvent.click(screen.getByTestId("restore-summary-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("import-summary-status")).toHaveTextContent(
+        "Restored decision summary."
+      );
+    });
+    expect(screen.queryByTestId("restored-state-cue")).not.toBeInTheDocument();
+    expect(screen.getByTestId("imported-summary-active-cue")).toHaveTextContent(
+      "Imported summary is now active."
+    );
   });
 });
