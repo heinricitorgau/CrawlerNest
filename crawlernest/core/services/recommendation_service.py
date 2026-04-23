@@ -37,6 +37,14 @@ class RecommendationService:
         "gpa_plus_0_2",
         "target_rank_tighter_20",
     )
+    EFFORT_LEVELS = {
+        "ielts_plus_0_5": "high",
+        "toefl_plus_5": "medium",
+        "gpa_plus_0_2": "medium",
+        "target_rank_tighter_20": "low",
+    }
+    EFFORT_RANK = {"low": 0, "medium": 1, "high": 2}
+    IMPACT_RANK = {"low": 0, "medium": 1, "high": 2}
 
     def __init__(self, db_settings: DatabaseSettings | None = None) -> None:
         self._db_settings = db_settings or DatabaseSettings.from_env()
@@ -80,6 +88,29 @@ class RecommendationService:
         )
         scenario_comparison = self._build_scenario_comparison(query=query)
         best_scenario_insight = self._build_best_scenario_insight(scenario_comparison)
+        improvement_priority = self._build_improvement_priority(
+            scenario_comparison=scenario_comparison,
+            best_scenario_insight=best_scenario_insight,
+        )
+        next_action_guide = self._build_next_action_guide(
+            plan_comparison=plan_comparison,
+            selected_plan_comparison=selected_plan_comparison,
+            scenario_simulation=scenario_simulation,
+            scenario_comparison=scenario_comparison,
+            best_scenario_insight=best_scenario_insight,
+            improvement_priority=improvement_priority,
+        )
+        decision_summary = self._build_decision_summary(
+            query=query,
+            application_plans=application_plans,
+            plan_comparison=plan_comparison,
+            selected_plan_comparison=selected_plan_comparison,
+            best_scenario_insight=best_scenario_insight,
+            scenario_simulation=scenario_simulation,
+            scenario_comparison=scenario_comparison,
+            improvement_priority=improvement_priority,
+            next_action_guide=next_action_guide,
+        )
         summary = self._build_summary(query=query, counts=counts, total_items=len(items))
         assistant_reply, paragraphs = self._build_assistant_reply(
             query=query,
@@ -93,6 +124,8 @@ class RecommendationService:
             scenario_simulation=scenario_simulation,
             scenario_comparison=scenario_comparison,
             best_scenario_insight=best_scenario_insight,
+            improvement_priority=improvement_priority,
+            next_action_guide=next_action_guide,
         )
 
         metadata = payload.get("metadata", {}) if isinstance(payload.get("metadata"), dict) else {}
@@ -114,6 +147,9 @@ class RecommendationService:
             **({"scenarioSimulation": scenario_simulation} if scenario_simulation is not None else {}),
             **({"scenarioComparison": scenario_comparison} if scenario_comparison is not None else {}),
             **({"bestScenarioInsight": best_scenario_insight} if best_scenario_insight is not None else {}),
+            **({"improvementPriority": improvement_priority} if improvement_priority is not None else {}),
+            **({"nextActionGuide": next_action_guide} if next_action_guide is not None else {}),
+            **({"decisionSummary": decision_summary} if decision_summary is not None else {}),
             "groups": {
                 "reach": payload.get("reach", []),
                 "target": payload.get("target", []),
@@ -301,6 +337,8 @@ class RecommendationService:
         scenario_simulation: dict[str, Any] | None = None,
         scenario_comparison: dict[str, Any] | None = None,
         best_scenario_insight: dict[str, Any] | None = None,
+        improvement_priority: dict[str, Any] | None = None,
+        next_action_guide: dict[str, Any] | None = None,
     ) -> tuple[str, list[str]]:
         if not items:
             paragraphs = [
@@ -385,6 +423,12 @@ class RecommendationService:
         )
         if scenario_comparison_note:
             paragraphs.extend(scenario_comparison_note)
+        improvement_priority_note = self._build_improvement_priority_note(improvement_priority)
+        if improvement_priority_note:
+            paragraphs.extend(improvement_priority_note)
+        next_action_guide_note = self._build_next_action_guide_note(next_action_guide)
+        if next_action_guide_note:
+            paragraphs.extend(next_action_guide_note)
 
         return "\n\n".join(paragraphs), paragraphs
 
@@ -1363,6 +1407,365 @@ class RecommendationService:
             "reason": reason,
         }
 
+    def _build_improvement_priority(
+        self,
+        *,
+        scenario_comparison: dict[str, Any] | None,
+        best_scenario_insight: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not isinstance(scenario_comparison, dict):
+            return None
+        scenarios = scenario_comparison.get("scenarios")
+        if not isinstance(scenarios, list) or not scenarios:
+            return None
+
+        preset_rank = {key: index for index, key in enumerate(self.SCENARIO_PRESET_ORDER)}
+        candidates = [scenario for scenario in scenarios if isinstance(scenario, dict)]
+        if not candidates:
+            return None
+
+        best = min(
+            candidates,
+            key=lambda scenario: (
+                -self.IMPACT_RANK[self._scenario_impact_level(scenario, scenario_comparison)],
+                self.EFFORT_RANK[self._scenario_effort_level(str(scenario.get("scenarioKey") or ""))],
+                preset_rank.get(str(scenario.get("scenarioKey") or ""), len(self.SCENARIO_PRESET_ORDER)),
+            ),
+        )
+
+        scenario_key = str(best.get("scenarioKey") or "")
+        scenario_label = str(best.get("scenarioLabel") or "")
+        effort_level = self._scenario_effort_level(scenario_key)
+        impact_level = self._scenario_impact_level(best, scenario_comparison)
+        priority_tier = self._priority_tier(impact_level=impact_level, effort_level=effort_level)
+        priority_reason = self._priority_reason(impact_level=impact_level, effort_level=effort_level)
+
+        return {
+            "recommendedScenarioKey": scenario_key,
+            "recommendedScenarioLabel": scenario_label,
+            "priorityReason": priority_reason,
+            "effortLevel": effort_level,
+            "impactLevel": impact_level,
+            "priorityTier": priority_tier,
+        }
+
+    def _build_next_action_guide(
+        self,
+        *,
+        plan_comparison: dict[str, Any] | None,
+        selected_plan_comparison: dict[str, Any] | None,
+        scenario_simulation: dict[str, Any] | None,
+        scenario_comparison: dict[str, Any] | None,
+        best_scenario_insight: dict[str, Any] | None,
+        improvement_priority: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        current_focus = "plan"
+        if isinstance(selected_plan_comparison, dict):
+            current_focus = "plan"
+        elif isinstance(scenario_simulation, dict) or isinstance(scenario_comparison, dict):
+            current_focus = "scenario"
+
+        if isinstance(improvement_priority, dict):
+            scenario_key = improvement_priority.get("recommendedScenarioKey")
+            scenario_label = improvement_priority.get("recommendedScenarioLabel")
+            if isinstance(scenario_key, str) and scenario_key and isinstance(scenario_label, str) and scenario_label:
+                return {
+                    "currentFocus": current_focus,
+                    "suggestedNextAction": self._suggested_improvement_action_text(scenario_key, scenario_label),
+                    "actionType": "improve_profile",
+                    "reason": "This is the most practical improvement to strengthen your current plan.",
+                    "suggestedTarget": {
+                        "type": "scenario",
+                        "key": scenario_key,
+                        "label": scenario_label,
+                    },
+                }
+
+        if isinstance(best_scenario_insight, dict):
+            scenario_key = best_scenario_insight.get("scenarioKey")
+            scenario_label = best_scenario_insight.get("scenarioLabel")
+            if isinstance(scenario_key, str) and scenario_key and isinstance(scenario_label, str) and scenario_label:
+                return {
+                    "currentFocus": current_focus,
+                    "suggestedNextAction": f"Explore {scenario_label} scenario",
+                    "actionType": "explore_scenario",
+                    "reason": "This scenario has the strongest impact on your outcomes.",
+                    "suggestedTarget": {
+                        "type": "scenario",
+                        "key": scenario_key,
+                        "label": scenario_label,
+                    },
+                }
+
+        if isinstance(plan_comparison, dict):
+            recommended_plan = plan_comparison.get("recommendedPlan")
+            if isinstance(recommended_plan, str) and recommended_plan:
+                return {
+                    "currentFocus": current_focus,
+                    "suggestedNextAction": f"Focus on the {recommended_plan.capitalize()} plan",
+                    "actionType": "focus_plan",
+                    "reason": "This plan currently offers the best balance for your profile.",
+                    "suggestedTarget": {
+                        "type": "plan",
+                        "key": recommended_plan,
+                        "label": recommended_plan.capitalize(),
+                    },
+                }
+
+        return None
+
+    def _build_decision_summary(
+        self,
+        *,
+        query: RecommendationQuery,
+        application_plans: list[dict[str, Any]] | None,
+        plan_comparison: dict[str, Any] | None,
+        selected_plan_comparison: dict[str, Any] | None,
+        best_scenario_insight: dict[str, Any] | None,
+        scenario_simulation: dict[str, Any] | None,
+        scenario_comparison: dict[str, Any] | None,
+        improvement_priority: dict[str, Any] | None,
+        next_action_guide: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not isinstance(plan_comparison, dict) or not application_plans:
+            return None
+
+        recommended_plan_name = self._normalize_plan_name(plan_comparison.get("recommendedPlan"))
+        recommended_plan = self._find_plan_by_name(application_plans, recommended_plan_name or "")
+        if recommended_plan_name is None or not isinstance(recommended_plan, dict):
+            return None
+
+        decision_summary: dict[str, Any] = {
+            "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
+            "profileSnapshot": self._build_profile_snapshot(query),
+            "recommendedPlan": self._build_recommended_plan_summary(
+                recommended_plan_name=recommended_plan_name,
+                recommended_plan=recommended_plan,
+            ),
+        }
+        top_recommendation = self._build_top_recommendation_summary(recommended_plan)
+        if top_recommendation is not None:
+            decision_summary["topRecommendation"] = top_recommendation
+        next_action = self._build_next_action_summary(next_action_guide)
+        if next_action is not None:
+            decision_summary["nextAction"] = next_action
+
+        selected_plan_summary = self._build_selected_plan_summary_payload(
+            application_plans=application_plans,
+            selected_plan_comparison=selected_plan_comparison,
+        )
+        if selected_plan_summary is not None:
+            decision_summary["selectedPlan"] = selected_plan_summary
+
+        plan_comparison_summary = self._build_decision_plan_comparison_summary(
+            selected_plan_comparison
+        )
+        if plan_comparison_summary is not None:
+            decision_summary["planComparison"] = plan_comparison_summary
+
+        best_scenario_summary = self._build_best_scenario_summary(
+            best_scenario_insight=best_scenario_insight,
+            scenario_simulation=scenario_simulation,
+            scenario_comparison=scenario_comparison,
+        )
+        if best_scenario_summary is not None:
+            decision_summary["bestScenario"] = best_scenario_summary
+
+        improvement_priority_summary = self._build_improvement_priority_summary(
+            improvement_priority
+        )
+        if improvement_priority_summary is not None:
+            decision_summary["improvementPriority"] = improvement_priority_summary
+
+        return decision_summary
+
+    def _build_profile_snapshot(self, query: RecommendationQuery) -> dict[str, Any]:
+        snapshot: dict[str, Any] = {}
+        if query.country:
+            snapshot["country"] = query.country
+        if query.ielts_score is not None:
+            snapshot["ielts"] = query.ielts_score
+        if query.toefl_score is not None:
+            snapshot["toefl"] = query.toefl_score
+        if query.gpa_score is not None:
+            snapshot["gpa"] = query.gpa_score
+        if query.duolingo_score is not None:
+            snapshot["duolingo"] = query.duolingo_score
+        if query.target_rank is not None:
+            snapshot["targetRank"] = query.target_rank
+        return snapshot
+
+    def _build_recommended_plan_summary(
+        self,
+        *,
+        recommended_plan_name: str,
+        recommended_plan: dict[str, Any],
+    ) -> dict[str, Any]:
+        summary: dict[str, Any] = {
+            "plan": recommended_plan_name,
+        }
+        for key, source_key in (
+            ("summary", "planSummary"),
+            ("confidence", "planConfidence"),
+            ("confidenceReason", "planConfidenceReason"),
+        ):
+            value = recommended_plan.get(source_key)
+            if isinstance(value, str) and value:
+                summary[key] = value
+        return summary
+
+    def _build_selected_plan_summary_payload(
+        self,
+        *,
+        application_plans: list[dict[str, Any]] | None,
+        selected_plan_comparison: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not application_plans or not isinstance(selected_plan_comparison, dict):
+            return None
+        selected_plan_name = self._normalize_plan_name(selected_plan_comparison.get("selectedPlan"))
+        selected_plan = self._find_plan_by_name(application_plans, selected_plan_name or "")
+        if selected_plan_name is None or not isinstance(selected_plan, dict):
+            return None
+        summary: dict[str, Any] = {
+            "plan": selected_plan_name,
+        }
+        plan_summary = selected_plan.get("planSummary")
+        if isinstance(plan_summary, str) and plan_summary:
+            summary["summary"] = plan_summary
+        return summary
+
+    def _build_decision_plan_comparison_summary(
+        self,
+        selected_plan_comparison: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not isinstance(selected_plan_comparison, dict):
+            return None
+        summary_text = selected_plan_comparison.get("summary")
+        differences = selected_plan_comparison.get("differences")
+        payload: dict[str, Any] = {}
+        if isinstance(summary_text, str) and summary_text:
+            payload["summary"] = summary_text
+        if isinstance(differences, list):
+            clean_differences = [
+                str(line) for line in differences if isinstance(line, str) and line
+            ][:2]
+            if clean_differences:
+                payload["differences"] = clean_differences
+        return payload or None
+
+    def _build_top_recommendation_summary(
+        self,
+        recommended_plan: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        primary_choice = recommended_plan.get("primaryChoice")
+        if not isinstance(primary_choice, dict):
+            return None
+        bucket = primary_choice.get("bucket")
+        if not isinstance(bucket, str) or bucket not in {"reach", "target", "safety"}:
+            return None
+        bucket_items = recommended_plan.get(bucket)
+        if not isinstance(bucket_items, list) or not bucket_items:
+            return None
+        top_item = bucket_items[0]
+        if not isinstance(top_item, dict):
+            return None
+        payload: dict[str, Any] = {}
+        university = top_item.get("universityName")
+        decision = top_item.get("decision")
+        reason = top_item.get("reason")
+        if isinstance(university, str) and university:
+            payload["university"] = university
+        if isinstance(decision, str) and decision:
+            payload["decision"] = decision
+        if isinstance(reason, str) and reason:
+            payload["reason"] = reason
+        return payload or None
+
+    def _build_best_scenario_summary(
+        self,
+        *,
+        best_scenario_insight: dict[str, Any] | None,
+        scenario_simulation: dict[str, Any] | None,
+        scenario_comparison: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not isinstance(best_scenario_insight, dict):
+            return None
+        scenario_label = best_scenario_insight.get("scenarioLabel")
+        scenario_key = best_scenario_insight.get("scenarioKey")
+        if not isinstance(scenario_label, str) or not scenario_label:
+            return None
+
+        effect = None
+        if isinstance(scenario_comparison, dict) and isinstance(scenario_key, str):
+            scenarios = scenario_comparison.get("scenarios")
+            if isinstance(scenarios, list):
+                for scenario in scenarios:
+                    if (
+                        isinstance(scenario, dict)
+                        and str(scenario.get("scenarioKey") or "") == scenario_key
+                    ):
+                        change_summary = scenario.get("changeSummary")
+                        if isinstance(change_summary, str) and change_summary:
+                            effect = change_summary
+                        break
+        if effect is None and isinstance(scenario_simulation, dict):
+            change_summary = scenario_simulation.get("changeSummary")
+            if isinstance(change_summary, str) and change_summary:
+                effect = change_summary
+
+        payload: dict[str, Any] = {
+            "scenario": scenario_label,
+        }
+        if isinstance(effect, str) and effect:
+            payload["effect"] = effect
+        return payload
+
+    def _build_improvement_priority_summary(
+        self,
+        improvement_priority: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not isinstance(improvement_priority, dict):
+            return None
+        payload: dict[str, Any] = {}
+        action = improvement_priority.get("recommendedScenarioLabel")
+        impact = improvement_priority.get("impactLevel")
+        effort = improvement_priority.get("effortLevel")
+        reason = improvement_priority.get("priorityReason")
+        if isinstance(action, str) and action:
+            payload["action"] = action
+        if isinstance(impact, str) and impact:
+            payload["impact"] = impact
+        if isinstance(effort, str) and effort:
+            payload["effort"] = effort
+        if isinstance(reason, str) and reason:
+            payload["reason"] = reason
+        return payload or None
+
+    def _build_next_action_summary(
+        self,
+        next_action_guide: dict[str, Any] | None,
+    ) -> dict[str, Any] | None:
+        if not isinstance(next_action_guide, dict):
+            return None
+        suggested_target = (
+            next_action_guide.get("suggestedTarget")
+            if isinstance(next_action_guide.get("suggestedTarget"), dict)
+            else {}
+        )
+        action_type = suggested_target.get("type")
+        action = next_action_guide.get("suggestedNextAction")
+        reason = next_action_guide.get("reason")
+        payload: dict[str, Any] = {}
+        if next_action_guide.get("actionType") == "improve_profile":
+            payload["type"] = "improvement"
+        elif isinstance(action_type, str) and action_type in {"plan", "scenario"}:
+            payload["type"] = action_type
+        if isinstance(action, str) and action:
+            payload["action"] = action
+        if isinstance(reason, str) and reason:
+            payload["reason"] = reason
+        return payload or None
+
     def _build_simulated_query(
         self,
         query: RecommendationQuery,
@@ -1537,6 +1940,61 @@ class RecommendationService:
             isinstance(line, str) and line == "Safety coverage becomes more limited."
             for line in key_differences
         )
+
+    def _scenario_effort_level(self, scenario_key: str) -> str:
+        return self.EFFORT_LEVELS.get(scenario_key, "high")
+
+    def _scenario_impact_level(
+        self,
+        scenario: dict[str, Any],
+        scenario_comparison: dict[str, Any],
+    ) -> str:
+        baseline_name = str(scenario_comparison.get("baselineRecommendedPlan") or "")
+        after_name = str(scenario.get("recommendedPlanAfter") or "")
+        favorable_shift = self._scenario_changes_plan_favorably(baseline_name, after_name)
+        confidence_improves = self._scenario_improves_confidence(scenario)
+        safety_improves = self._scenario_improves_safety(scenario)
+        change_summary = str(scenario.get("changeSummary") or "")
+
+        if favorable_shift or (confidence_improves and safety_improves):
+            return "high"
+        if confidence_improves or safety_improves or (
+            change_summary and change_summary != "The recommended plan remains stable under this scenario."
+        ):
+            return "medium"
+        return "low"
+
+    def _priority_tier(self, *, impact_level: str, effort_level: str) -> str:
+        if (impact_level == "high" and effort_level in {"low", "medium"}) or (
+            impact_level == "medium" and effort_level == "low"
+        ):
+            return "high"
+        if (
+            (impact_level == "high" and effort_level == "high")
+            or (impact_level == "medium" and effort_level == "medium")
+            or (impact_level == "low" and effort_level == "low")
+        ):
+            return "medium"
+        return "low"
+
+    def _priority_reason(self, *, impact_level: str, effort_level: str) -> str:
+        if (impact_level == "high" and effort_level in {"low", "medium"}) or (
+            impact_level == "medium" and effort_level == "low"
+        ):
+            if impact_level == "high":
+                return "This scenario offers strong improvement potential with manageable effort."
+            return "This scenario gives meaningful plan improvement without requiring the highest effort."
+        if (
+            (impact_level == "high" and effort_level == "high")
+            or (impact_level == "medium" and effort_level == "medium")
+            or (impact_level == "low" and effort_level == "low")
+        ):
+            if impact_level == "high":
+                return "This scenario may help, but the expected gain and effort are more balanced."
+            return "This scenario is still useful, though it is not the clearest first improvement."
+        if impact_level == "medium" and effort_level == "high":
+            return "This scenario appears less efficient because the expected gain is limited relative to effort."
+        return "This scenario is not the strongest first improvement under the tested options."
 
     def _build_plan_delta(
         self,
@@ -1973,7 +2431,9 @@ class RecommendationService:
             return []
 
         paragraphs = ["I built multiple application strategies for you."]
-        paragraphs.append(f"Recommended plan: {recommended_plan.capitalize()}.")
+        paragraphs.append(
+            f"Recommended plan: {recommended_plan.capitalize()}. This is the plan the system currently prefers."
+        )
         if isinstance(reason, str) and reason:
             paragraphs.append(reason)
         if isinstance(tradeoffs, list):
@@ -1990,7 +2450,9 @@ class RecommendationService:
         usable_lines = [str(line) for line in lines if isinstance(line, str) and line]
         if not usable_lines:
             return []
-        return ["Why this plan stands out:"] + usable_lines[:4]
+        return [
+            "Why this plan stands out: How the recommended plan differs from the alternatives."
+        ] + usable_lines[:4]
 
     def _build_selected_plan_comparison_note(
         self,
@@ -2005,7 +2467,9 @@ class RecommendationService:
         usable_differences = []
         if isinstance(differences, list):
             usable_differences = [str(line) for line in differences if isinstance(line, str) and line]
-        return [f"Selected plan comparison: {summary}"] + usable_differences[:3]
+        return [
+            f"Compared with the recommended plan: {summary}"
+        ] + usable_differences[:3]
 
     def _build_scenario_simulation_note(
         self,
@@ -2039,7 +2503,8 @@ class RecommendationService:
 
         lines = [
             "I tested several improvement scenarios.",
-            f"Most helpful scenario: {scenario_label}.",
+            f"Most helpful tested scenario: {scenario_label}.",
+            "This changes the outcome the most among the tested scenarios.",
             f"Why: {reason}",
         ]
 
@@ -2063,6 +2528,75 @@ class RecommendationService:
         if scenario_summaries:
             lines.extend(scenario_summaries)
         return lines
+
+    def _build_improvement_priority_note(
+        self,
+        improvement_priority: dict[str, Any] | None,
+    ) -> list[str]:
+        if not isinstance(improvement_priority, dict):
+            return []
+        label = improvement_priority.get("recommendedScenarioLabel")
+        impact = improvement_priority.get("impactLevel")
+        effort = improvement_priority.get("effortLevel")
+        reason = improvement_priority.get("priorityReason")
+        if not all(isinstance(value, str) and value for value in (label, impact, effort, reason)):
+            return []
+        return [
+            f"Most worthwhile improvement: {label}.",
+            f"Impact: {impact}. Effort: {effort}.",
+            "This is the best first improvement after balancing impact and effort.",
+            reason,
+        ]
+
+    def _build_next_action_guide_note(
+        self,
+        next_action_guide: dict[str, Any] | None,
+    ) -> list[str]:
+        if not isinstance(next_action_guide, dict):
+            return []
+        suggested_next_action = next_action_guide.get("suggestedNextAction")
+        reason = next_action_guide.get("reason")
+        action_type = next_action_guide.get("actionType")
+        suggested_target = next_action_guide.get("suggestedTarget")
+        if not isinstance(suggested_next_action, str) or not suggested_next_action:
+            return []
+        if not isinstance(reason, str) or not reason:
+            return []
+        target_label = (
+            str(suggested_target.get("label") or "")
+            if isinstance(suggested_target, dict)
+            else ""
+        )
+        if action_type == "focus_plan" and target_label:
+            return [
+                f"Suggested next step: Focus on the {target_label} plan.",
+                "This is the clearest plan choice for your current profile.",
+            ]
+        if action_type == "explore_scenario" and target_label:
+            return [
+                f"Suggested next step: Explore {target_label}.",
+                "This is the strongest scenario to test next.",
+            ]
+        if action_type == "improve_profile" and target_label:
+            return [
+                f"Suggested next step: Prioritize {target_label}.",
+                "This is the most practical improvement to strengthen your current plan.",
+            ]
+        return [
+            f"Suggested next step: {suggested_next_action}.",
+            reason,
+        ]
+
+    def _suggested_improvement_action_text(self, scenario_key: str, scenario_label: str) -> str:
+        if scenario_key == "ielts_plus_0_5":
+            return "Improve IELTS by 0.5"
+        if scenario_key == "toefl_plus_5":
+            return "Improve TOEFL by 5"
+        if scenario_key == "gpa_plus_0_2":
+            return "Improve GPA by 0.2"
+        if scenario_key == "target_rank_tighter_20":
+            return "Tighten target rank by 20"
+        return f"Explore {scenario_label}"
 
     def _normalize_plan_name(self, value: Any) -> str | None:
         text = self._as_optional_str(value)

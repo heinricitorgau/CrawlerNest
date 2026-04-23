@@ -12,6 +12,28 @@ import {
   formatScore,
 } from "@/lib/format";
 
+type PlanName = "balanced" | "conservative" | "aggressive";
+type ScenarioKey =
+  | "ielts_plus_0_5"
+  | "toefl_plus_5"
+  | "gpa_plus_0_2"
+  | "target_rank_tighter_20";
+type CurrentFocus = "plan" | "scenario" | "improvement";
+type PersistedProfileDraft = {
+  country?: string;
+  ielts?: number | "";
+  toefl?: number | "";
+  gpa?: number | "";
+  duolingo?: number | "";
+  targetRank?: number | "";
+};
+type PersistedDecisionFlowState = {
+  selectedPlan: PlanName | null;
+  selectedScenarioKey: ScenarioKey | null;
+  currentFocus: CurrentFocus | null;
+  profileDraft: PersistedProfileDraft;
+};
+
 type ShortlistItem = {
   canonicalUniversityId: number;
   universityName: string;
@@ -165,7 +187,7 @@ type RecommendationResponse = {
     planConfidenceReason?: string;
   };
   applicationPlans?: Array<{
-    planName: "balanced" | "conservative" | "aggressive";
+    planName: PlanName;
     reach: Array<{
       universityName: string;
       decision?: string;
@@ -200,17 +222,17 @@ type RecommendationResponse = {
     planConfidenceReason?: string;
   }>;
   planComparison?: {
-    recommendedPlan: "balanced" | "conservative" | "aggressive";
+    recommendedPlan: PlanName;
     reason: string;
     tradeoffs: string[];
   };
   planDelta?: {
-    recommendedPlan: "balanced" | "conservative" | "aggressive";
+    recommendedPlan: PlanName;
     comparisonAgainstAlternatives: string[];
   };
   selectedPlanComparison?: {
-    selectedPlan: "balanced" | "conservative" | "aggressive";
-    recommendedPlan: "balanced" | "conservative" | "aggressive";
+    selectedPlan: PlanName;
+    recommendedPlan: PlanName;
     summary: string;
     differences: string[];
   };
@@ -221,17 +243,17 @@ type RecommendationResponse = {
       gpa_delta?: number;
       target_rank_delta?: number;
     };
-    recommendedPlanBefore: "balanced" | "conservative" | "aggressive";
-    recommendedPlanAfter: "balanced" | "conservative" | "aggressive";
+    recommendedPlanBefore: PlanName;
+    recommendedPlanAfter: PlanName;
     changeSummary: string;
     keyDifferences: string[];
   };
   scenarioComparison?: {
-    baselineRecommendedPlan: "balanced" | "conservative" | "aggressive";
+    baselineRecommendedPlan: PlanName;
     scenarios: Array<{
       scenarioKey: string;
       scenarioLabel: string;
-      recommendedPlanAfter: "balanced" | "conservative" | "aggressive";
+      recommendedPlanAfter: PlanName;
       changeSummary: string;
       keyDifferences: string[];
     }>;
@@ -240,6 +262,70 @@ type RecommendationResponse = {
     scenarioKey: string;
     scenarioLabel: string;
     reason: string;
+  };
+  improvementPriority?: {
+    recommendedScenarioKey: string;
+    recommendedScenarioLabel: string;
+    priorityReason: string;
+    effortLevel: "low" | "medium" | "high";
+    impactLevel: "low" | "medium" | "high";
+    priorityTier: "low" | "medium" | "high";
+  };
+  nextActionGuide?: {
+    currentFocus: CurrentFocus;
+    suggestedNextAction: string;
+    actionType: "explore_scenario" | "focus_plan" | "improve_profile";
+    reason: string;
+    suggestedTarget: {
+      type: "plan" | "scenario";
+      key: string;
+      label: string;
+    };
+  };
+  decisionSummary?: {
+    generatedAt: string;
+    profileSnapshot: {
+      country?: string;
+      ielts?: number;
+      toefl?: number;
+      gpa?: number;
+      duolingo?: number;
+      targetRank?: number;
+    };
+    recommendedPlan: {
+      plan: PlanName;
+      summary?: string;
+      confidence?: string;
+      confidenceReason?: string;
+    };
+    selectedPlan?: {
+      plan: PlanName;
+      summary?: string;
+    };
+    planComparison?: {
+      summary?: string;
+      differences?: string[];
+    };
+    topRecommendation?: {
+      university?: string;
+      decision?: string;
+      reason?: string;
+    };
+    bestScenario?: {
+      scenario: string;
+      effect?: string;
+    };
+    improvementPriority?: {
+      action?: string;
+      impact?: string;
+      effort?: string;
+      reason?: string;
+    };
+    nextAction?: {
+      type?: "plan" | "scenario" | "improvement";
+      action?: string;
+      reason?: string;
+    };
   };
   data: {
     reach: RecommendationItem[];
@@ -256,7 +342,585 @@ type RecommendationResponse = {
   };
 };
 
+type NextActionTarget = {
+  type: "plan" | "scenario";
+  key: string;
+  label: string;
+};
+
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
+const DECISION_FLOW_STORAGE_KEY = "crawlernest_recommendation_flow";
+const DEFAULT_COUNTRY = "United Kingdom";
+const DEFAULT_IELTS = 6.5;
+const DEFAULT_TARGET_RANK = 100;
+const VALID_PLAN_NAMES: PlanName[] = ["balanced", "conservative", "aggressive"];
+const VALID_SCENARIO_KEYS: ScenarioKey[] = [
+  "ielts_plus_0_5",
+  "toefl_plus_5",
+  "gpa_plus_0_2",
+  "target_rank_tighter_20",
+];
+const VALID_FOCUS_VALUES: CurrentFocus[] = ["plan", "scenario", "improvement"];
+const SCENARIO_TARGETS = {
+  ielts_plus_0_5: { ielts_delta: 0.5 },
+  toefl_plus_5: { toefl_delta: 5 },
+  gpa_plus_0_2: { gpa_delta: 0.2 },
+  target_rank_tighter_20: { target_rank_delta: -20 },
+} as const;
+const SCENARIO_LABEL_TO_KEY: Record<string, ScenarioKey> = {
+  "IELTS +0.5": "ielts_plus_0_5",
+  "TOEFL +5": "toefl_plus_5",
+  "GPA +0.2": "gpa_plus_0_2",
+  "Target rank -20": "target_rank_tighter_20",
+};
+
+function isPlanName(value: unknown): value is PlanName {
+  return typeof value === "string" && VALID_PLAN_NAMES.includes(value as PlanName);
+}
+
+function isScenarioKey(value: unknown): value is ScenarioKey {
+  return typeof value === "string" && VALID_SCENARIO_KEYS.includes(value as ScenarioKey);
+}
+
+function isCurrentFocus(value: unknown): value is CurrentFocus {
+  return typeof value === "string" && VALID_FOCUS_VALUES.includes(value as CurrentFocus);
+}
+
+function parsePersistedNumber(
+  value: unknown,
+  {
+    min,
+    max,
+  }: {
+    min: number;
+    max: number;
+  }
+) {
+  if (value === "" || value === undefined || value === null) {
+    return "";
+  }
+
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return undefined;
+  }
+
+  return Math.min(max, Math.max(min, value));
+}
+
+function sanitizePersistedDecisionFlowState(
+  value: unknown
+): PersistedDecisionFlowState | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const raw = value as {
+    selectedPlan?: unknown;
+    selectedScenarioKey?: unknown;
+    currentFocus?: unknown;
+    profileDraft?: Record<string, unknown>;
+  };
+
+  const profileDraft: PersistedProfileDraft = {};
+  const rawProfileDraft =
+    raw.profileDraft && typeof raw.profileDraft === "object" ? raw.profileDraft : null;
+
+  if (rawProfileDraft) {
+    if (typeof rawProfileDraft.country === "string" && rawProfileDraft.country.trim()) {
+      profileDraft.country = rawProfileDraft.country.trim();
+    }
+
+    const ieltsValue = parsePersistedNumber(rawProfileDraft.ielts, { min: 0, max: 9 });
+    if (ieltsValue !== undefined) {
+      profileDraft.ielts = ieltsValue;
+    }
+
+    const toeflValue = parsePersistedNumber(rawProfileDraft.toefl, { min: 0, max: 120 });
+    if (toeflValue !== undefined) {
+      profileDraft.toefl = toeflValue;
+    }
+
+    const gpaValue = parsePersistedNumber(rawProfileDraft.gpa, { min: 0, max: 4.3 });
+    if (gpaValue !== undefined) {
+      profileDraft.gpa = gpaValue;
+    }
+
+    const duolingoValue = parsePersistedNumber(rawProfileDraft.duolingo, { min: 0, max: 160 });
+    if (duolingoValue !== undefined) {
+      profileDraft.duolingo = duolingoValue;
+    }
+
+    const targetRankValue = parsePersistedNumber(rawProfileDraft.targetRank, {
+      min: 1,
+      max: 5000,
+    });
+    if (targetRankValue !== undefined) {
+      profileDraft.targetRank = targetRankValue;
+    }
+  }
+
+  const selectedPlan = isPlanName(raw.selectedPlan) ? raw.selectedPlan : null;
+  const selectedScenarioKey = isScenarioKey(raw.selectedScenarioKey) ? raw.selectedScenarioKey : null;
+  const currentFocus = isCurrentFocus(raw.currentFocus) ? raw.currentFocus : null;
+  const hasProfileDraft = Object.keys(profileDraft).length > 0;
+
+  if (!selectedPlan && !selectedScenarioKey && !currentFocus && !hasProfileDraft) {
+    return null;
+  }
+
+  return {
+    selectedPlan,
+    selectedScenarioKey,
+    currentFocus,
+    profileDraft,
+  };
+}
+
+function hasPersistedDecisionFlowState(state: PersistedDecisionFlowState) {
+  return Boolean(
+    state.selectedPlan ||
+      state.selectedScenarioKey ||
+      state.currentFocus ||
+      Object.keys(state.profileDraft).length > 0
+  );
+}
+
+function buildPersistedProfileDraft(profileDraft: {
+  country: string;
+  ielts: number;
+  toefl: number | "";
+  gpa: number | "";
+  duolingo: number | "";
+  targetRank: number;
+}): PersistedProfileDraft {
+  const persistedDraft: PersistedProfileDraft = {};
+
+  if (profileDraft.country !== DEFAULT_COUNTRY) {
+    persistedDraft.country = profileDraft.country;
+  }
+  if (profileDraft.ielts !== DEFAULT_IELTS) {
+    persistedDraft.ielts = profileDraft.ielts;
+  }
+  if (profileDraft.toefl !== "") {
+    persistedDraft.toefl = profileDraft.toefl;
+  }
+  if (profileDraft.gpa !== "") {
+    persistedDraft.gpa = profileDraft.gpa;
+  }
+  if (profileDraft.duolingo !== "") {
+    persistedDraft.duolingo = profileDraft.duolingo;
+  }
+  if (profileDraft.targetRank !== DEFAULT_TARGET_RANK) {
+    persistedDraft.targetRank = profileDraft.targetRank;
+  }
+
+  return persistedDraft;
+}
+
+function titleCaseWords(value: string) {
+  return value
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function formatSummaryFieldLabel(key: string) {
+  const labelMap: Record<string, string> = {
+    country: "Country",
+    ielts: "IELTS",
+    toefl: "TOEFL",
+    gpa: "GPA",
+    duolingo: "Duolingo",
+    targetRank: "Target Rank",
+    plan: "Plan",
+    confidence: "Confidence",
+    decision: "Decision",
+    scenario: "Scenario",
+    effect: "Effect",
+    action: "Action",
+    impact: "Impact",
+    effort: "Effort",
+    reason: "Reason",
+    university: "University",
+    summary: "Summary",
+  };
+  return labelMap[key] ?? titleCaseWords(key);
+}
+
+function formatSummaryValue(key: string, value: number | string) {
+  if (typeof value === "number") {
+    return String(value);
+  }
+
+  if (key === "plan") {
+    return titleCaseWords(value);
+  }
+
+  if (key === "confidence" || key === "impact" || key === "effort") {
+    return titleCaseWords(value);
+  }
+
+  if (key === "decision") {
+    const normalized = value.replaceAll("_", " ");
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  }
+
+  return value;
+}
+
+function pushSummarySection(
+  sections: string[][],
+  title: string,
+  rows: Array<string | null | undefined>
+) {
+  const cleanRows = rows.filter((row): row is string => Boolean(row && row.trim()));
+  if (cleanRows.length === 0) {
+    return;
+  }
+  sections.push([title, ...cleanRows]);
+}
+
+function parseImportedSummaryNumber(
+  value: unknown,
+  { min, max }: { min: number; max: number }
+) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return undefined;
+  }
+  return Math.min(max, Math.max(min, value));
+}
+
+function parseImportedDecisionSummary(
+  rawText: string
+): RecommendationResponse["decisionSummary"] | null {
+  if (!rawText.trim()) {
+    return null;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    return null;
+  }
+
+  const candidate =
+    parsed &&
+    typeof parsed === "object" &&
+    "decisionSummary" in (parsed as Record<string, unknown>) &&
+    (parsed as { decisionSummary?: unknown }).decisionSummary &&
+    typeof (parsed as { decisionSummary?: unknown }).decisionSummary === "object"
+      ? (parsed as { decisionSummary?: RecommendationResponse["decisionSummary"] }).decisionSummary
+      : parsed;
+
+  if (!candidate || typeof candidate !== "object") {
+    return null;
+  }
+
+  const raw = candidate as Record<string, unknown>;
+  if (
+    !raw.profileSnapshot &&
+    !raw.recommendedPlan &&
+    !raw.nextAction
+  ) {
+    return null;
+  }
+
+  const summary: NonNullable<RecommendationResponse["decisionSummary"]> = {
+    generatedAt:
+      typeof raw.generatedAt === "string" && raw.generatedAt ? raw.generatedAt : "",
+    profileSnapshot: {},
+    recommendedPlan: {
+      plan: "balanced",
+    },
+  };
+
+  const profileSnapshot =
+    raw.profileSnapshot && typeof raw.profileSnapshot === "object"
+      ? (raw.profileSnapshot as Record<string, unknown>)
+      : null;
+  if (profileSnapshot) {
+    if (typeof profileSnapshot.country === "string" && profileSnapshot.country.trim()) {
+      summary.profileSnapshot.country = profileSnapshot.country.trim();
+    }
+    const ielts = parseImportedSummaryNumber(profileSnapshot.ielts, { min: 0, max: 9 });
+    if (ielts !== undefined) {
+      summary.profileSnapshot.ielts = ielts;
+    }
+    const toefl = parseImportedSummaryNumber(profileSnapshot.toefl, { min: 0, max: 120 });
+    if (toefl !== undefined) {
+      summary.profileSnapshot.toefl = toefl;
+    }
+    const gpa = parseImportedSummaryNumber(profileSnapshot.gpa, { min: 0, max: 4.3 });
+    if (gpa !== undefined) {
+      summary.profileSnapshot.gpa = gpa;
+    }
+    const duolingo = parseImportedSummaryNumber(profileSnapshot.duolingo, { min: 0, max: 160 });
+    if (duolingo !== undefined) {
+      summary.profileSnapshot.duolingo = duolingo;
+    }
+    const targetRank = parseImportedSummaryNumber(profileSnapshot.targetRank, {
+      min: 1,
+      max: 5000,
+    });
+    if (targetRank !== undefined) {
+      summary.profileSnapshot.targetRank = targetRank;
+    }
+  }
+
+  const recommendedPlan =
+    raw.recommendedPlan && typeof raw.recommendedPlan === "object"
+      ? (raw.recommendedPlan as Record<string, unknown>)
+      : null;
+  if (recommendedPlan && isPlanName(recommendedPlan.plan)) {
+    summary.recommendedPlan.plan = recommendedPlan.plan;
+    if (typeof recommendedPlan.summary === "string" && recommendedPlan.summary) {
+      summary.recommendedPlan.summary = recommendedPlan.summary;
+    }
+    if (typeof recommendedPlan.confidence === "string" && recommendedPlan.confidence) {
+      summary.recommendedPlan.confidence = recommendedPlan.confidence;
+    }
+    if (
+      typeof recommendedPlan.confidenceReason === "string" &&
+      recommendedPlan.confidenceReason
+    ) {
+      summary.recommendedPlan.confidenceReason = recommendedPlan.confidenceReason;
+    }
+  } else if (raw.recommendedPlan) {
+    delete summary.recommendedPlan;
+  }
+
+  const selectedPlan =
+    raw.selectedPlan && typeof raw.selectedPlan === "object"
+      ? (raw.selectedPlan as Record<string, unknown>)
+      : null;
+  if (selectedPlan && isPlanName(selectedPlan.plan)) {
+    summary.selectedPlan = {
+      plan: selectedPlan.plan,
+      ...(typeof selectedPlan.summary === "string" && selectedPlan.summary
+        ? { summary: selectedPlan.summary }
+        : {}),
+    };
+  }
+
+  const bestScenario =
+    raw.bestScenario && typeof raw.bestScenario === "object"
+      ? (raw.bestScenario as Record<string, unknown>)
+      : null;
+  if (bestScenario && typeof bestScenario.scenario === "string" && bestScenario.scenario) {
+    summary.bestScenario = {
+      scenario: bestScenario.scenario,
+      ...(typeof bestScenario.effect === "string" && bestScenario.effect
+        ? { effect: bestScenario.effect }
+        : {}),
+    };
+  }
+
+  const improvementPriority =
+    raw.improvementPriority && typeof raw.improvementPriority === "object"
+      ? (raw.improvementPriority as Record<string, unknown>)
+      : null;
+  if (improvementPriority) {
+    const action =
+      typeof improvementPriority.action === "string" && improvementPriority.action
+        ? improvementPriority.action
+        : undefined;
+    const impact =
+      typeof improvementPriority.impact === "string" && improvementPriority.impact
+        ? improvementPriority.impact
+        : undefined;
+    const effort =
+      typeof improvementPriority.effort === "string" && improvementPriority.effort
+        ? improvementPriority.effort
+        : undefined;
+    const reason =
+      typeof improvementPriority.reason === "string" && improvementPriority.reason
+        ? improvementPriority.reason
+        : undefined;
+    if (action || impact || effort || reason) {
+      summary.improvementPriority = {
+        ...(action ? { action } : {}),
+        ...(impact ? { impact } : {}),
+        ...(effort ? { effort } : {}),
+        ...(reason ? { reason } : {}),
+      };
+    }
+  }
+
+  const nextAction =
+    raw.nextAction && typeof raw.nextAction === "object"
+      ? (raw.nextAction as Record<string, unknown>)
+      : null;
+  if (nextAction) {
+    const type =
+      typeof nextAction.type === "string" &&
+      ["plan", "scenario", "improvement"].includes(nextAction.type)
+        ? (nextAction.type as "plan" | "scenario" | "improvement")
+        : undefined;
+    const action =
+      typeof nextAction.action === "string" && nextAction.action ? nextAction.action : undefined;
+    const reason =
+      typeof nextAction.reason === "string" && nextAction.reason ? nextAction.reason : undefined;
+    if (type || action || reason) {
+      summary.nextAction = {
+        ...(type ? { type } : {}),
+        ...(action ? { action } : {}),
+        ...(reason ? { reason } : {}),
+      };
+    }
+  }
+
+  if (
+    !summary.profileSnapshot ||
+    Object.keys(summary.profileSnapshot).length === 0
+  ) {
+    summary.profileSnapshot = {};
+  }
+
+  if (
+    !summary.profileSnapshot ||
+    Object.keys(summary.profileSnapshot).length === 0
+  ) {
+    delete summary.profileSnapshot;
+  }
+  if (!summary.recommendedPlan) {
+    delete summary.recommendedPlan;
+  }
+
+  if (!summary.profileSnapshot && !summary.recommendedPlan && !summary.nextAction) {
+    return null;
+  }
+
+  return summary;
+}
+
+export function buildDecisionSummaryText(
+  decisionSummary: RecommendationResponse["decisionSummary"] | null | undefined
+) {
+  if (!decisionSummary) {
+    return "";
+  }
+
+  const sections: string[][] = [["Decision Summary"]];
+  const profileEntries = Object.entries(decisionSummary.profileSnapshot ?? {}).filter(
+    ([, value]) => value !== undefined && value !== null && value !== ""
+  );
+  if (profileEntries.length > 0) {
+    pushSummarySection(
+      sections,
+      "Profile",
+      profileEntries.map(
+        ([key, value]) =>
+          `- ${formatSummaryFieldLabel(key)}: ${formatSummaryValue(
+            key,
+            value as number | string
+          )}`
+      )
+    );
+  }
+
+  if (decisionSummary.recommendedPlan) {
+    pushSummarySection(sections, "Recommended Plan", [
+      `- Plan: ${formatSummaryValue("plan", decisionSummary.recommendedPlan.plan)}`,
+      decisionSummary.recommendedPlan.confidence
+        ? `- Confidence: ${formatSummaryValue(
+            "confidence",
+            decisionSummary.recommendedPlan.confidence
+          )}`
+        : null,
+      decisionSummary.recommendedPlan.summary
+        ? `- Summary: ${decisionSummary.recommendedPlan.summary}`
+        : null,
+      decisionSummary.recommendedPlan.confidenceReason
+        ? `- Reason: ${decisionSummary.recommendedPlan.confidenceReason}`
+        : null,
+    ]);
+  }
+
+  if (decisionSummary.selectedPlan) {
+    pushSummarySection(sections, "Selected Plan", [
+      `- Plan: ${formatSummaryValue("plan", decisionSummary.selectedPlan.plan)}`,
+      decisionSummary.selectedPlan.summary
+        ? `- Summary: ${decisionSummary.selectedPlan.summary}`
+        : null,
+    ]);
+  }
+
+  if (decisionSummary.planComparison) {
+    pushSummarySection(sections, "Plan Comparison", [
+      decisionSummary.planComparison.summary
+        ? `- Summary: ${decisionSummary.planComparison.summary}`
+        : null,
+      ...(decisionSummary.planComparison.differences ?? []).map(
+        (difference) => `- ${difference}`
+      ),
+    ]);
+  }
+
+  if (decisionSummary.topRecommendation) {
+    pushSummarySection(sections, "Top Recommendation", [
+      decisionSummary.topRecommendation.university
+        ? `- University: ${decisionSummary.topRecommendation.university}`
+        : null,
+      decisionSummary.topRecommendation.decision
+        ? `- Decision: ${formatSummaryValue(
+            "decision",
+            decisionSummary.topRecommendation.decision
+          )}`
+        : null,
+      decisionSummary.topRecommendation.reason
+        ? `- Reason: ${decisionSummary.topRecommendation.reason}`
+        : null,
+    ]);
+  }
+
+  if (decisionSummary.bestScenario) {
+    pushSummarySection(sections, "Most Helpful Scenario", [
+      `- Scenario: ${decisionSummary.bestScenario.scenario}`,
+      decisionSummary.bestScenario.effect
+        ? `- Effect: ${decisionSummary.bestScenario.effect}`
+        : null,
+    ]);
+  }
+
+  if (decisionSummary.improvementPriority) {
+    pushSummarySection(sections, "Most Worthwhile Improvement", [
+      decisionSummary.improvementPriority.action
+        ? `- Action: ${decisionSummary.improvementPriority.action}`
+        : null,
+      decisionSummary.improvementPriority.impact
+        ? `- Impact: ${formatSummaryValue(
+            "impact",
+            decisionSummary.improvementPriority.impact
+          )}`
+        : null,
+      decisionSummary.improvementPriority.effort
+        ? `- Effort: ${formatSummaryValue(
+            "effort",
+            decisionSummary.improvementPriority.effort
+          )}`
+        : null,
+      decisionSummary.improvementPriority.reason
+        ? `- Reason: ${decisionSummary.improvementPriority.reason}`
+        : null,
+    ]);
+  }
+
+  if (decisionSummary.nextAction) {
+    pushSummarySection(sections, "Next Step", [
+      decisionSummary.nextAction.action
+        ? `- Action: ${decisionSummary.nextAction.action}`
+        : null,
+      decisionSummary.nextAction.reason
+        ? `- Reason: ${decisionSummary.nextAction.reason}`
+        : null,
+    ]);
+  }
+
+  return sections.map((section) => section.join("\n")).join("\n\n").trim();
+}
+
 function formatConfidence(value: number | null | undefined) {
   if (value === null || value === undefined || Number.isNaN(value)) {
     return "Not available";
@@ -278,13 +942,13 @@ function truncatePlanText(text: string | undefined, maxLength = 110) {
   return `${text.slice(0, maxLength - 1).trimEnd()}...`;
 }
 
-function RecommendationPageContent() {
-  const [country, setCountry] = useState("United Kingdom");
-  const [ielts, setIelts] = useState(6.5);
-  const [toefl, setToefl] = useState<number | "">( "");
-  const [gpa, setGpa] = useState<number | "">( "");
-  const [duolingo, setDuolingo] = useState<number | "">( "");
-  const [targetRank, setTargetRank] = useState(100);
+export function RecommendationPageContent() {
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
+  const [ielts, setIelts] = useState(DEFAULT_IELTS);
+  const [toefl, setToefl] = useState<number | "">("");
+  const [gpa, setGpa] = useState<number | "">("");
+  const [duolingo, setDuolingo] = useState<number | "">("");
+  const [targetRank, setTargetRank] = useState(DEFAULT_TARGET_RANK);
   const [riskProfile, setRiskProfile] = useState("balanced");
   const [scenarioIeltsDelta, setScenarioIeltsDelta] = useState<number | "">("");
   const [scenarioToeflDelta, setScenarioToeflDelta] = useState<number | "">("");
@@ -297,11 +961,21 @@ function RecommendationPageContent() {
   const [applicationPlans, setApplicationPlans] = useState<RecommendationResponse["applicationPlans"] | null>(null);
   const [planComparison, setPlanComparison] = useState<RecommendationResponse["planComparison"] | null>(null);
   const [planDelta, setPlanDelta] = useState<RecommendationResponse["planDelta"] | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<"balanced" | "conservative" | "aggressive" | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<PlanName | null>(null);
+  const [selectedScenarioKey, setSelectedScenarioKey] = useState<ScenarioKey | null>(null);
+  const [currentFocus, setCurrentFocus] = useState<CurrentFocus | null>(null);
   const [selectedPlanComparison, setSelectedPlanComparison] = useState<RecommendationResponse["selectedPlanComparison"] | null>(null);
   const [scenarioSimulation, setScenarioSimulation] = useState<RecommendationResponse["scenarioSimulation"] | null>(null);
   const [scenarioComparison, setScenarioComparison] = useState<RecommendationResponse["scenarioComparison"] | null>(null);
   const [bestScenarioInsight, setBestScenarioInsight] = useState<RecommendationResponse["bestScenarioInsight"] | null>(null);
+  const [improvementPriority, setImprovementPriority] = useState<RecommendationResponse["improvementPriority"] | null>(null);
+  const [nextActionGuide, setNextActionGuide] = useState<RecommendationResponse["nextActionGuide"] | null>(null);
+  const [decisionSummary, setDecisionSummary] = useState<RecommendationResponse["decisionSummary"] | null>(null);
+  const [persistenceReady, setPersistenceReady] = useState(false);
+  const [showRestoredStateCue, setShowRestoredStateCue] = useState(false);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const [importSummaryText, setImportSummaryText] = useState("");
+  const [importStatus, setImportStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shortlistContext, setShortlistContext] = useState<ShortlistItem[]>([]);
@@ -339,6 +1013,118 @@ function RecommendationPageContent() {
       setShortlistContext([]);
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    let restoredState: PersistedDecisionFlowState | null = null;
+
+    try {
+      const storedValue = window.localStorage.getItem(DECISION_FLOW_STORAGE_KEY);
+      restoredState = storedValue
+        ? sanitizePersistedDecisionFlowState(JSON.parse(storedValue))
+        : null;
+    } catch {
+      restoredState = null;
+    }
+
+    if (!restoredState) {
+      setPersistenceReady(true);
+      return;
+    }
+
+    if (restoredState.profileDraft.country) {
+      setCountry(restoredState.profileDraft.country);
+    }
+    if (restoredState.profileDraft.ielts !== undefined && restoredState.profileDraft.ielts !== "") {
+      setIelts(restoredState.profileDraft.ielts);
+    }
+    if (restoredState.profileDraft.toefl !== undefined) {
+      setToefl(restoredState.profileDraft.toefl);
+    }
+    if (restoredState.profileDraft.gpa !== undefined) {
+      setGpa(restoredState.profileDraft.gpa);
+    }
+    if (restoredState.profileDraft.duolingo !== undefined) {
+      setDuolingo(restoredState.profileDraft.duolingo);
+    }
+    if (
+      restoredState.profileDraft.targetRank !== undefined &&
+      restoredState.profileDraft.targetRank !== ""
+    ) {
+      setTargetRank(restoredState.profileDraft.targetRank);
+    }
+    if (restoredState.selectedPlan) {
+      setSelectedPlan(restoredState.selectedPlan);
+    }
+    if (restoredState.selectedScenarioKey) {
+      setSelectedScenarioKey(restoredState.selectedScenarioKey);
+      const payload = SCENARIO_TARGETS[restoredState.selectedScenarioKey];
+      setScenarioIeltsDelta(payload.ielts_delta ?? "");
+      setScenarioToeflDelta(payload.toefl_delta ?? "");
+      setScenarioGpaDelta(payload.gpa_delta ?? "");
+      setScenarioTargetRankDelta(payload.target_rank_delta ?? "");
+    }
+    if (restoredState.currentFocus) {
+      setCurrentFocus(restoredState.currentFocus);
+    }
+
+    setShowRestoredStateCue(true);
+    setPersistenceReady(true);
+    void fetchRecommendations(
+      restoredState.selectedPlan ?? null,
+      restoredState.selectedScenarioKey
+        ? SCENARIO_TARGETS[restoredState.selectedScenarioKey]
+        : null,
+      restoredState.profileDraft
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!persistenceReady || typeof window === "undefined") {
+      return;
+    }
+
+    const stateToPersist: PersistedDecisionFlowState = {
+      selectedPlan,
+      selectedScenarioKey,
+      currentFocus,
+      profileDraft: buildPersistedProfileDraft({
+        country,
+        ielts,
+        toefl,
+        gpa,
+        duolingo,
+        targetRank,
+      }),
+    };
+
+    try {
+      if (hasPersistedDecisionFlowState(stateToPersist)) {
+        window.localStorage.setItem(
+          DECISION_FLOW_STORAGE_KEY,
+          JSON.stringify(stateToPersist)
+        );
+      } else {
+        window.localStorage.removeItem(DECISION_FLOW_STORAGE_KEY);
+      }
+    } catch {
+      // Ignore storage write failures so the page stays usable.
+    }
+  }, [
+    country,
+    currentFocus,
+    duolingo,
+    gpa,
+    ielts,
+    persistenceReady,
+    selectedPlan,
+    selectedScenarioKey,
+    targetRank,
+    toefl,
+  ]);
 
   const totalCount = useMemo(() => {
     if (metadata?.candidate_count !== undefined) {
@@ -482,16 +1268,41 @@ function RecommendationPageContent() {
   }, [scenarioGpaDelta, scenarioIeltsDelta, scenarioTargetRankDelta, scenarioToeflDelta]);
 
   async function fetchRecommendations(
-    selectedPlanOverride: "balanced" | "conservative" | "aggressive" | null = selectedPlan
+    selectedPlanOverride: PlanName | null = selectedPlan,
+    scenarioPayloadOverride: {
+      ielts_delta?: number;
+      toefl_delta?: number;
+      gpa_delta?: number;
+      target_rank_delta?: number;
+    } | null = scenarioPayload,
+    profileDraftOverride?: PersistedProfileDraft
   ) {
     setLoading(true);
     setError(null);
 
     try {
+      const effectiveCountry = profileDraftOverride?.country ?? country;
+      const effectiveIelts =
+        profileDraftOverride?.ielts !== undefined && profileDraftOverride.ielts !== ""
+          ? profileDraftOverride.ielts
+          : ielts;
+      const effectiveToefl =
+        profileDraftOverride?.toefl !== undefined ? profileDraftOverride.toefl : toefl;
+      const effectiveGpa =
+        profileDraftOverride?.gpa !== undefined ? profileDraftOverride.gpa : gpa;
+      const effectiveDuolingo =
+        profileDraftOverride?.duolingo !== undefined
+          ? profileDraftOverride.duolingo
+          : duolingo;
+      const effectiveTargetRank =
+        profileDraftOverride?.targetRank !== undefined &&
+        profileDraftOverride.targetRank !== ""
+          ? profileDraftOverride.targetRank
+          : targetRank;
       const params = new URLSearchParams({
-        targetRank: String(targetRank),
-        ieltsScore: String(ielts),
-        country,
+        targetRank: String(effectiveTargetRank),
+        ieltsScore: String(effectiveIelts),
+        country: effectiveCountry,
         riskProfile,
         countryPolicy: "hard_filter",
         limit: "5",
@@ -500,17 +1311,17 @@ function RecommendationPageContent() {
       if (selectedPlanOverride) {
         params.set("selectedPlan", selectedPlanOverride);
       }
-      if (scenarioPayload) {
-        params.set("scenario", JSON.stringify(scenarioPayload));
+      if (scenarioPayloadOverride) {
+        params.set("scenario", JSON.stringify(scenarioPayloadOverride));
       }
-      if (toefl !== "") {
-        params.set("toeflScore", String(toefl));
+      if (effectiveToefl !== "") {
+        params.set("toeflScore", String(effectiveToefl));
       }
-      if (gpa !== "") {
-        params.set("gpaScore", String(gpa));
+      if (effectiveGpa !== "") {
+        params.set("gpaScore", String(effectiveGpa));
       }
-      if (duolingo !== "") {
-        params.set("duolingoScore", String(duolingo));
+      if (effectiveDuolingo !== "") {
+        params.set("duolingoScore", String(effectiveDuolingo));
       }
 
       const json = await fetchAppJson<RecommendationResponse>(
@@ -531,6 +1342,10 @@ function RecommendationPageContent() {
       setScenarioSimulation(json.scenarioSimulation ?? null);
       setScenarioComparison(json.scenarioComparison ?? null);
       setBestScenarioInsight(json.bestScenarioInsight ?? null);
+      setImprovementPriority(json.improvementPriority ?? null);
+      setNextActionGuide(json.nextActionGuide ?? null);
+      setDecisionSummary(json.decisionSummary ?? null);
+      setCurrentFocus(json.nextActionGuide?.currentFocus ?? currentFocus);
     } catch {
       setError("Unable to load recommendations. Please confirm the API server is running.");
       setData(null);
@@ -543,14 +1358,199 @@ function RecommendationPageContent() {
       setScenarioSimulation(null);
       setScenarioComparison(null);
       setBestScenarioInsight(null);
+      setImprovementPriority(null);
+      setNextActionGuide(null);
+      setDecisionSummary(null);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handlePlanSelection(planName: "balanced" | "conservative" | "aggressive") {
+  async function handlePlanSelection(planName: PlanName) {
     setSelectedPlan(planName);
+    setCurrentFocus("plan");
     await fetchRecommendations(planName);
+  }
+
+  async function handleActivateTarget(target: NextActionTarget) {
+    if (!target) {
+      return;
+    }
+    if (target.type === "plan" && isPlanName(target.key)) {
+      setSelectedPlan(target.key);
+      setCurrentFocus("plan");
+      await fetchRecommendations(target.key);
+      return;
+    }
+    if (target.type === "scenario") {
+      const scenarioKey = target.key as keyof typeof SCENARIO_TARGETS;
+      const payload = SCENARIO_TARGETS[scenarioKey];
+      if (!payload) {
+        return;
+      }
+      setSelectedScenarioKey(scenarioKey);
+      setScenarioIeltsDelta(payload.ielts_delta ?? "");
+      setScenarioToeflDelta(payload.toefl_delta ?? "");
+      setScenarioGpaDelta(payload.gpa_delta ?? "");
+      setScenarioTargetRankDelta(payload.target_rank_delta ?? "");
+      setCurrentFocus(
+        nextActionGuide?.actionType === "improve_profile" ? "improvement" : "scenario"
+      );
+      await fetchRecommendations(selectedPlan, payload);
+    }
+  }
+
+  async function handleResetExploration() {
+    setCountry(DEFAULT_COUNTRY);
+    setIelts(DEFAULT_IELTS);
+    setToefl("");
+    setGpa("");
+    setDuolingo("");
+    setTargetRank(DEFAULT_TARGET_RANK);
+    setSelectedPlan(null);
+    setSelectedScenarioKey(null);
+    setCurrentFocus(null);
+    setScenarioIeltsDelta("");
+    setScenarioToeflDelta("");
+    setScenarioGpaDelta("");
+    setScenarioTargetRankDelta("");
+    setShowRestoredStateCue(false);
+
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.removeItem(DECISION_FLOW_STORAGE_KEY);
+      } catch {
+        // Ignore storage failures during reset.
+      }
+    }
+
+    if (data || applicationPlans || planComparison) {
+      await fetchRecommendations(null, null, {
+        country: DEFAULT_COUNTRY,
+        ielts: DEFAULT_IELTS,
+        toefl: "",
+        gpa: "",
+        duolingo: "",
+        targetRank: DEFAULT_TARGET_RANK,
+      });
+    }
+  }
+
+  async function handleCopyDecisionSummaryJson() {
+    if (!decisionSummary || !navigator?.clipboard?.writeText) {
+      setExportStatus("Could not copy summary");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(decisionSummary, null, 2));
+      setExportStatus("Copied JSON summary");
+    } catch {
+      setExportStatus("Could not copy summary");
+    }
+  }
+
+  async function handleCopyDecisionSummaryText() {
+    if (!decisionSummary || !navigator?.clipboard?.writeText) {
+      setExportStatus("Could not copy summary");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(buildDecisionSummaryText(decisionSummary));
+      setExportStatus("Copied text summary");
+    } catch {
+      setExportStatus("Could not copy summary");
+    }
+  }
+
+  async function handleRestoreFromSummary() {
+    const importedSummary = parseImportedDecisionSummary(importSummaryText);
+    if (!importedSummary) {
+      setImportStatus("Could not restore summary.");
+      return;
+    }
+
+    const importedProfile = importedSummary.profileSnapshot ?? {};
+    const restoredCountry =
+      typeof importedProfile.country === "string" && importedProfile.country
+        ? importedProfile.country
+        : country;
+    const restoredIelts =
+      typeof importedProfile.ielts === "number" ? importedProfile.ielts : ielts;
+    const restoredToefl =
+      typeof importedProfile.toefl === "number" ? importedProfile.toefl : "";
+    const restoredGpa =
+      typeof importedProfile.gpa === "number" ? importedProfile.gpa : "";
+    const restoredDuolingo =
+      typeof importedProfile.duolingo === "number" ? importedProfile.duolingo : "";
+    const restoredTargetRank =
+      typeof importedProfile.targetRank === "number"
+        ? importedProfile.targetRank
+        : targetRank;
+
+    const restoredSelectedPlan = importedSummary.selectedPlan?.plan;
+    const restoredScenarioKey =
+      importedSummary.bestScenario?.scenario &&
+      SCENARIO_LABEL_TO_KEY[importedSummary.bestScenario.scenario]
+        ? SCENARIO_LABEL_TO_KEY[importedSummary.bestScenario.scenario]
+        : null;
+
+    let restoredFocus: CurrentFocus = "plan";
+    if (restoredSelectedPlan && isPlanName(restoredSelectedPlan)) {
+      restoredFocus = "plan";
+    } else if (restoredScenarioKey) {
+      restoredFocus = "scenario";
+    } else if (
+      importedSummary.improvementPriority ||
+      importedSummary.nextAction?.type === "improvement"
+    ) {
+      restoredFocus = "improvement";
+    }
+
+    setCountry(restoredCountry);
+    setIelts(restoredIelts);
+    setToefl(restoredToefl);
+    setGpa(restoredGpa);
+    setDuolingo(restoredDuolingo);
+    setTargetRank(restoredTargetRank);
+
+    if (restoredSelectedPlan && isPlanName(restoredSelectedPlan)) {
+      setSelectedPlan(restoredSelectedPlan);
+    } else {
+      setSelectedPlan(null);
+    }
+
+    if (restoredScenarioKey) {
+      const payload = SCENARIO_TARGETS[restoredScenarioKey];
+      setSelectedScenarioKey(restoredScenarioKey);
+      setScenarioIeltsDelta(payload.ielts_delta ?? "");
+      setScenarioToeflDelta(payload.toefl_delta ?? "");
+      setScenarioGpaDelta(payload.gpa_delta ?? "");
+      setScenarioTargetRankDelta(payload.target_rank_delta ?? "");
+    } else {
+      setSelectedScenarioKey(null);
+      setScenarioIeltsDelta("");
+      setScenarioToeflDelta("");
+      setScenarioGpaDelta("");
+      setScenarioTargetRankDelta("");
+    }
+
+    setCurrentFocus(restoredFocus);
+    setShowRestoredStateCue(false);
+    setImportStatus("Restored decision summary.");
+
+    await fetchRecommendations(
+      restoredSelectedPlan && isPlanName(restoredSelectedPlan) ? restoredSelectedPlan : null,
+      restoredScenarioKey ? SCENARIO_TARGETS[restoredScenarioKey] : null,
+      {
+        country: restoredCountry,
+        ielts: restoredIelts,
+        toefl: restoredToefl,
+        gpa: restoredGpa,
+        duolingo: restoredDuolingo,
+        targetRank: restoredTargetRank,
+      }
+    );
+    setCurrentFocus(restoredFocus);
   }
 
   return (
@@ -789,7 +1789,22 @@ function RecommendationPageContent() {
             <span className="text-sm text-[#6b7068]">
               Results are fetched through the frontend recommendation service.
             </span>
+            <button
+              type="button"
+              onClick={() => void handleResetExploration()}
+              className="inline-flex items-center justify-center rounded-full border border-[#d2d9d4] bg-white px-4 py-3 text-sm font-semibold text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+            >
+              Reset exploration
+            </button>
           </div>
+          {showRestoredStateCue ? (
+            <div
+              data-testid="restored-state-cue"
+              className="mt-3 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] px-4 py-3 text-sm text-[#315343]"
+            >
+              Restored your last comparison state.
+            </div>
+          ) : null}
 
           <div className="mt-6 rounded-2xl border border-[#e0ddd8] bg-[#fcfbf8] p-4">
             <div className="text-sm font-semibold text-[#1a3d2e]">
@@ -806,7 +1821,11 @@ function RecommendationPageContent() {
                   type="number"
                   step="0.5"
                   value={scenarioIeltsDelta}
-                  onChange={(e) => setScenarioIeltsDelta(e.target.value === "" ? "" : Number(e.target.value))}
+                  onChange={(e) => {
+                    setSelectedScenarioKey(null);
+                    setCurrentFocus("scenario");
+                    setScenarioIeltsDelta(e.target.value === "" ? "" : Number(e.target.value));
+                  }}
                   placeholder="+0.5"
                 />
               </label>
@@ -816,7 +1835,11 @@ function RecommendationPageContent() {
                   className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
                   type="number"
                   value={scenarioToeflDelta}
-                  onChange={(e) => setScenarioToeflDelta(e.target.value === "" ? "" : Number(e.target.value))}
+                  onChange={(e) => {
+                    setSelectedScenarioKey(null);
+                    setCurrentFocus("scenario");
+                    setScenarioToeflDelta(e.target.value === "" ? "" : Number(e.target.value));
+                  }}
                   placeholder="+5"
                 />
               </label>
@@ -827,7 +1850,11 @@ function RecommendationPageContent() {
                   type="number"
                   step="0.1"
                   value={scenarioGpaDelta}
-                  onChange={(e) => setScenarioGpaDelta(e.target.value === "" ? "" : Number(e.target.value))}
+                  onChange={(e) => {
+                    setSelectedScenarioKey(null);
+                    setCurrentFocus("scenario");
+                    setScenarioGpaDelta(e.target.value === "" ? "" : Number(e.target.value));
+                  }}
                   placeholder="+0.2"
                 />
               </label>
@@ -837,12 +1864,61 @@ function RecommendationPageContent() {
                   className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
                   type="number"
                   value={scenarioTargetRankDelta}
-                  onChange={(e) => setScenarioTargetRankDelta(e.target.value === "" ? "" : Number(e.target.value))}
+                  onChange={(e) => {
+                    setSelectedScenarioKey(null);
+                    setCurrentFocus("scenario");
+                    setScenarioTargetRankDelta(e.target.value === "" ? "" : Number(e.target.value));
+                  }}
                   placeholder="-20"
                 />
               </label>
             </div>
           </div>
+        </section>
+
+        <section className="mt-6 rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-semibold text-[#1a3d2e]">
+            Import a decision summary
+          </h2>
+          <p className="mt-2 text-sm text-[#6b7068]">
+            Paste a previously exported JSON summary to restore the same decision context.
+          </p>
+          <textarea
+            data-testid="import-summary-textarea"
+            className="mt-4 min-h-[180px] w-full rounded-2xl border border-[#e0ddd8] px-4 py-3 font-mono text-sm outline-none transition focus:border-[#1a3d2e]"
+            value={importSummaryText}
+            onChange={(e) => setImportSummaryText(e.target.value)}
+            placeholder="Paste exported JSON here"
+          />
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              data-testid="restore-summary-button"
+              onClick={() => void handleRestoreFromSummary()}
+              className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+            >
+              Restore from summary
+            </button>
+            <button
+              type="button"
+              data-testid="clear-imported-summary-button"
+              onClick={() => {
+                setImportSummaryText("");
+                setImportStatus(null);
+              }}
+              className="inline-flex items-center justify-center rounded-full border border-[#d2d9d4] bg-white px-4 py-3 text-sm font-semibold text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+            >
+              Clear imported text
+            </button>
+          </div>
+          {importStatus ? (
+            <div
+              data-testid="import-summary-status"
+              className="mt-3 text-sm text-[#6b7068]"
+            >
+              {importStatus}
+            </div>
+          ) : null}
         </section>
 
         {error ? (
@@ -853,6 +1929,42 @@ function RecommendationPageContent() {
 
         {data ? (
           <div className="mt-8 space-y-8">
+            {decisionSummary ? (
+              <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-[#1a3d2e]">
+                  Export your decision summary
+                </h2>
+                <p className="mt-2 text-sm text-[#6b7068]">
+                  Copy a compact summary of your current decision state without re-running the recommendation flow.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    data-testid="copy-summary-json"
+                    onClick={() => void handleCopyDecisionSummaryJson()}
+                    className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+                  >
+                    Copy summary (JSON)
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="copy-summary-text"
+                    onClick={() => void handleCopyDecisionSummaryText()}
+                    className="inline-flex items-center justify-center rounded-full border border-[#d2d9d4] bg-white px-4 py-3 text-sm font-semibold text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+                  >
+                    Copy summary (text)
+                  </button>
+                </div>
+                {exportStatus ? (
+                  <div
+                    data-testid="copy-summary-status"
+                    className="mt-3 text-sm text-[#6b7068]"
+                  >
+                    {exportStatus}
+                  </div>
+                ) : null}
+              </section>
+            ) : null}
             <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-[#1a3d2e]">Summary</h2>
               <p className="mt-2 text-sm text-[#6b7068]">
@@ -893,6 +2005,9 @@ function RecommendationPageContent() {
                     <div className="mt-2 font-semibold capitalize text-[#1a1a1a]">
                       {planComparison.recommendedPlan}
                     </div>
+                    <div className="mt-1 text-sm text-[#4b5b53]">
+                      Best current plan based on your present profile.
+                    </div>
                     <div className="mt-2">{planComparison.reason}</div>
                     {planComparison.tradeoffs.length > 0 ? (
                       <div className="mt-3 space-y-1 text-[#4b5b53]">
@@ -911,12 +2026,26 @@ function RecommendationPageContent() {
                   scenarioSimulation={scenarioSimulation ?? undefined}
                   scenarioComparison={scenarioComparison ?? undefined}
                   bestScenarioInsight={bestScenarioInsight ?? undefined}
+                  improvementPriority={improvementPriority ?? undefined}
+                  nextActionGuide={nextActionGuide ?? undefined}
+                  onActivateTarget={handleActivateTarget}
                 />
                 <div className="mt-5 grid gap-4 xl:grid-cols-3">
                   {applicationPlans.map((plan) => (
                     <div
                       key={plan.planName}
-                      className={`rounded-2xl border p-5 transition ${selectedPlan === plan.planName ? "border-[#1a3d2e] bg-[#f2f7f4]" : planComparison?.recommendedPlan === plan.planName ? "border-[#9db8a7] bg-[#f6fbf7]" : "border-[#e0ddd8] bg-[#fcfbf8]"}`}
+                      data-testid={`plan-card-${plan.planName}`}
+                      className={`rounded-2xl border p-5 transition ${
+                        nextActionGuide?.actionType === "focus_plan" &&
+                        nextActionGuide?.suggestedTarget?.type === "plan" &&
+                        nextActionGuide?.suggestedTarget?.key === plan.planName
+                          ? "border-[#1a3d2e] bg-[#eef7f1]"
+                          : selectedPlan === plan.planName
+                            ? "border-[#1a3d2e] bg-[#f2f7f4]"
+                            : planComparison?.recommendedPlan === plan.planName
+                              ? "border-[#9db8a7] bg-[#f6fbf7]"
+                              : "border-[#e0ddd8] bg-[#fcfbf8]"
+                      }`}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
