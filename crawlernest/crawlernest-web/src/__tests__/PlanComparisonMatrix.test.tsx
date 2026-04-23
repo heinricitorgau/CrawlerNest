@@ -128,4 +128,147 @@ describe("PlanComparisonMatrix", () => {
 
     expect(screen.getByText("Plan Comparison")).toBeInTheDocument();
   });
+
+  it("renders deterministic delta lines when provided", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        planComparison={{
+          recommendedPlan: "balanced",
+          reason: "Balanced is recommended because it keeps the strongest overall mix with stable confidence.",
+          tradeoffs: [],
+        }}
+        planDelta={{
+          recommendedPlan: "balanced",
+          comparisonAgainstAlternatives: [
+            "The balanced plan keeps safety coverage that the aggressive plan does not.",
+            "The balanced plan carries fewer warning signals than the aggressive plan.",
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getByText("Why this plan stands out")).toBeInTheDocument();
+    expect(
+      screen.getByText("The balanced plan keeps safety coverage that the aggressive plan does not.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("The balanced plan carries fewer warning signals than the aggressive plan.")
+    ).toBeInTheDocument();
+  });
+
+  it("omits the delta section when there are no lines", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        planDelta={{
+          recommendedPlan: "balanced",
+          comparisonAgainstAlternatives: [],
+        }}
+      />
+    );
+
+    expect(screen.queryByText("Why this plan stands out")).not.toBeInTheDocument();
+  });
+
+  it("renders the selected-plan comparison section", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        selectedPlanComparison={{
+          selectedPlan: "aggressive",
+          recommendedPlan: "balanced",
+          summary: "This plan trades safety for more upside.",
+          differences: [
+            "The selected plan keeps less safety coverage than the recommended plan.",
+            "The selected plan carries more warning signals than the recommended plan.",
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getByText("Compared with the recommended plan")).toBeInTheDocument();
+    expect(screen.getByText("This plan trades safety for more upside.")).toBeInTheDocument();
+    expect(
+      screen.getByText("The selected plan keeps less safety coverage than the recommended plan.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("The selected plan carries more warning signals than the recommended plan.")
+    ).toBeInTheDocument();
+  });
+
+  it("omits the selected-plan comparison section when it is absent", () => {
+    render(<PlanComparisonMatrix plans={plans} />);
+
+    expect(screen.queryByText("Compared with the recommended plan")).not.toBeInTheDocument();
+  });
+
+  it("renders the scenario simulation section", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        scenarioSimulation={{
+          scenarioInput: {
+            ielts_delta: 0.5,
+          },
+          recommendedPlanBefore: "balanced",
+          recommendedPlanAfter: "aggressive",
+          changeSummary: "The recommended plan shifts from balanced to aggressive under this scenario.",
+          keyDifferences: [
+            "Overall plan confidence improves under this scenario.",
+            "The plan mix becomes more aggressive.",
+          ],
+        }}
+      />
+    );
+
+    expect(screen.getByText("What changes if your profile improves")).toBeInTheDocument();
+    expect(
+      screen.getByText("The recommended plan shifts from balanced to aggressive under this scenario.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Overall plan confidence improves under this scenario.")).toBeInTheDocument();
+  });
+
+  it("omits the scenario simulation section when it is absent", () => {
+    render(<PlanComparisonMatrix plans={plans} />);
+
+    expect(screen.queryByText("What changes if your profile improves")).not.toBeInTheDocument();
+  });
+
+  it("renders the multi-scenario comparison section", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        scenarioComparison={{
+          baselineRecommendedPlan: "balanced",
+          scenarios: [
+            {
+              scenarioKey: "ielts_plus_0_5",
+              scenarioLabel: "IELTS +0.5",
+              recommendedPlanAfter: "balanced",
+              changeSummary: "The recommended plan remains stable under this scenario.",
+              keyDifferences: ["Overall plan confidence improves under this scenario."],
+            },
+          ],
+        }}
+        bestScenarioInsight={{
+          scenarioKey: "ielts_plus_0_5",
+          scenarioLabel: "IELTS +0.5",
+          reason: "This scenario most improves plan confidence without increasing instability.",
+        }}
+      />
+    );
+
+    expect(screen.getByText("Which improvement helps most")).toBeInTheDocument();
+    expect(screen.getAllByText("IELTS +0.5").length).toBeGreaterThan(0);
+    expect(
+      screen.getByText("This scenario most improves plan confidence without increasing instability.")
+    ).toBeInTheDocument();
+  });
+
+  it("omits the multi-scenario comparison section when scenarios are absent", () => {
+    render(<PlanComparisonMatrix plans={plans} />);
+
+    expect(screen.queryByText("Which improvement helps most")).not.toBeInTheDocument();
+  });
 });

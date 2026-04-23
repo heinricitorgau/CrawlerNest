@@ -204,6 +204,43 @@ type RecommendationResponse = {
     reason: string;
     tradeoffs: string[];
   };
+  planDelta?: {
+    recommendedPlan: "balanced" | "conservative" | "aggressive";
+    comparisonAgainstAlternatives: string[];
+  };
+  selectedPlanComparison?: {
+    selectedPlan: "balanced" | "conservative" | "aggressive";
+    recommendedPlan: "balanced" | "conservative" | "aggressive";
+    summary: string;
+    differences: string[];
+  };
+  scenarioSimulation?: {
+    scenarioInput: {
+      ielts_delta?: number;
+      toefl_delta?: number;
+      gpa_delta?: number;
+      target_rank_delta?: number;
+    };
+    recommendedPlanBefore: "balanced" | "conservative" | "aggressive";
+    recommendedPlanAfter: "balanced" | "conservative" | "aggressive";
+    changeSummary: string;
+    keyDifferences: string[];
+  };
+  scenarioComparison?: {
+    baselineRecommendedPlan: "balanced" | "conservative" | "aggressive";
+    scenarios: Array<{
+      scenarioKey: string;
+      scenarioLabel: string;
+      recommendedPlanAfter: "balanced" | "conservative" | "aggressive";
+      changeSummary: string;
+      keyDifferences: string[];
+    }>;
+  };
+  bestScenarioInsight?: {
+    scenarioKey: string;
+    scenarioLabel: string;
+    reason: string;
+  };
   data: {
     reach: RecommendationItem[];
     target: RecommendationItem[];
@@ -249,12 +286,22 @@ function RecommendationPageContent() {
   const [duolingo, setDuolingo] = useState<number | "">( "");
   const [targetRank, setTargetRank] = useState(100);
   const [riskProfile, setRiskProfile] = useState("balanced");
+  const [scenarioIeltsDelta, setScenarioIeltsDelta] = useState<number | "">("");
+  const [scenarioToeflDelta, setScenarioToeflDelta] = useState<number | "">("");
+  const [scenarioGpaDelta, setScenarioGpaDelta] = useState<number | "">("");
+  const [scenarioTargetRankDelta, setScenarioTargetRankDelta] = useState<number | "">("");
 
   const [data, setData] = useState<RecommendationResponse["data"] | null>(null);
   const [metadata, setMetadata] = useState<RecommendationResponse["metadata"] | null>(null);
   const [applicationPlan, setApplicationPlan] = useState<RecommendationResponse["applicationPlan"] | null>(null);
   const [applicationPlans, setApplicationPlans] = useState<RecommendationResponse["applicationPlans"] | null>(null);
   const [planComparison, setPlanComparison] = useState<RecommendationResponse["planComparison"] | null>(null);
+  const [planDelta, setPlanDelta] = useState<RecommendationResponse["planDelta"] | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<"balanced" | "conservative" | "aggressive" | null>(null);
+  const [selectedPlanComparison, setSelectedPlanComparison] = useState<RecommendationResponse["selectedPlanComparison"] | null>(null);
+  const [scenarioSimulation, setScenarioSimulation] = useState<RecommendationResponse["scenarioSimulation"] | null>(null);
+  const [scenarioComparison, setScenarioComparison] = useState<RecommendationResponse["scenarioComparison"] | null>(null);
+  const [bestScenarioInsight, setBestScenarioInsight] = useState<RecommendationResponse["bestScenarioInsight"] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shortlistContext, setShortlistContext] = useState<ShortlistItem[]>([]);
@@ -410,7 +457,33 @@ function RecommendationPageContent() {
     return explanations;
   }, [comparisonItems]);
 
-  async function fetchRecommendations() {
+  const scenarioPayload = useMemo(() => {
+    const payload: {
+      ielts_delta?: number;
+      toefl_delta?: number;
+      gpa_delta?: number;
+      target_rank_delta?: number;
+    } = {};
+
+    if (scenarioIeltsDelta !== "" && scenarioIeltsDelta !== 0) {
+      payload.ielts_delta = scenarioIeltsDelta;
+    }
+    if (scenarioToeflDelta !== "" && scenarioToeflDelta !== 0) {
+      payload.toefl_delta = scenarioToeflDelta;
+    }
+    if (scenarioGpaDelta !== "" && scenarioGpaDelta !== 0) {
+      payload.gpa_delta = scenarioGpaDelta;
+    }
+    if (scenarioTargetRankDelta !== "" && scenarioTargetRankDelta !== 0) {
+      payload.target_rank_delta = scenarioTargetRankDelta;
+    }
+
+    return Object.keys(payload).length > 0 ? payload : null;
+  }, [scenarioGpaDelta, scenarioIeltsDelta, scenarioTargetRankDelta, scenarioToeflDelta]);
+
+  async function fetchRecommendations(
+    selectedPlanOverride: "balanced" | "conservative" | "aggressive" | null = selectedPlan
+  ) {
     setLoading(true);
     setError(null);
 
@@ -424,6 +497,12 @@ function RecommendationPageContent() {
         limit: "5",
         version: "v3",
       });
+      if (selectedPlanOverride) {
+        params.set("selectedPlan", selectedPlanOverride);
+      }
+      if (scenarioPayload) {
+        params.set("scenario", JSON.stringify(scenarioPayload));
+      }
       if (toefl !== "") {
         params.set("toeflScore", String(toefl));
       }
@@ -447,6 +526,11 @@ function RecommendationPageContent() {
       setApplicationPlan(json.applicationPlan ?? null);
       setApplicationPlans(json.applicationPlans ?? null);
       setPlanComparison(json.planComparison ?? null);
+      setPlanDelta(json.planDelta ?? null);
+      setSelectedPlanComparison(json.selectedPlanComparison ?? null);
+      setScenarioSimulation(json.scenarioSimulation ?? null);
+      setScenarioComparison(json.scenarioComparison ?? null);
+      setBestScenarioInsight(json.bestScenarioInsight ?? null);
     } catch {
       setError("Unable to load recommendations. Please confirm the API server is running.");
       setData(null);
@@ -454,9 +538,19 @@ function RecommendationPageContent() {
       setApplicationPlan(null);
       setApplicationPlans(null);
       setPlanComparison(null);
+      setPlanDelta(null);
+      setSelectedPlanComparison(null);
+      setScenarioSimulation(null);
+      setScenarioComparison(null);
+      setBestScenarioInsight(null);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handlePlanSelection(planName: "balanced" | "conservative" | "aggressive") {
+    setSelectedPlan(planName);
+    await fetchRecommendations(planName);
   }
 
   return (
@@ -696,6 +790,59 @@ function RecommendationPageContent() {
               Results are fetched through the frontend recommendation service.
             </span>
           </div>
+
+          <div className="mt-6 rounded-2xl border border-[#e0ddd8] bg-[#fcfbf8] p-4">
+            <div className="text-sm font-semibold text-[#1a3d2e]">
+              Scenario Simulation
+            </div>
+            <p className="mt-2 text-sm text-[#6b7068]">
+              Re-run the same pipeline with a small profile change to see what shifts.
+            </p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <label className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-[#1a3d2e]">IELTS Delta</span>
+                <input
+                  className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                  type="number"
+                  step="0.5"
+                  value={scenarioIeltsDelta}
+                  onChange={(e) => setScenarioIeltsDelta(e.target.value === "" ? "" : Number(e.target.value))}
+                  placeholder="+0.5"
+                />
+              </label>
+              <label className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-[#1a3d2e]">TOEFL Delta</span>
+                <input
+                  className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                  type="number"
+                  value={scenarioToeflDelta}
+                  onChange={(e) => setScenarioToeflDelta(e.target.value === "" ? "" : Number(e.target.value))}
+                  placeholder="+5"
+                />
+              </label>
+              <label className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-[#1a3d2e]">GPA Delta</span>
+                <input
+                  className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                  type="number"
+                  step="0.1"
+                  value={scenarioGpaDelta}
+                  onChange={(e) => setScenarioGpaDelta(e.target.value === "" ? "" : Number(e.target.value))}
+                  placeholder="+0.2"
+                />
+              </label>
+              <label className="flex flex-col gap-2">
+                <span className="text-sm font-medium text-[#1a3d2e]">Target Rank Delta</span>
+                <input
+                  className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                  type="number"
+                  value={scenarioTargetRankDelta}
+                  onChange={(e) => setScenarioTargetRankDelta(e.target.value === "" ? "" : Number(e.target.value))}
+                  placeholder="-20"
+                />
+              </label>
+            </div>
+          </div>
         </section>
 
         {error ? (
@@ -756,12 +903,20 @@ function RecommendationPageContent() {
                     ) : null}
                   </div>
                 ) : null}
-                <PlanComparisonMatrix plans={applicationPlans} planComparison={planComparison ?? undefined} />
+                <PlanComparisonMatrix
+                  plans={applicationPlans}
+                  planComparison={planComparison ?? undefined}
+                  planDelta={planDelta ?? undefined}
+                  selectedPlanComparison={selectedPlanComparison ?? undefined}
+                  scenarioSimulation={scenarioSimulation ?? undefined}
+                  scenarioComparison={scenarioComparison ?? undefined}
+                  bestScenarioInsight={bestScenarioInsight ?? undefined}
+                />
                 <div className="mt-5 grid gap-4 xl:grid-cols-3">
                   {applicationPlans.map((plan) => (
                     <div
                       key={plan.planName}
-                      className={`rounded-2xl border p-5 ${planComparison?.recommendedPlan === plan.planName ? "border-[#9db8a7] bg-[#f6fbf7]" : "border-[#e0ddd8] bg-[#fcfbf8]"}`}
+                      className={`rounded-2xl border p-5 transition ${selectedPlan === plan.planName ? "border-[#1a3d2e] bg-[#f2f7f4]" : planComparison?.recommendedPlan === plan.planName ? "border-[#9db8a7] bg-[#f6fbf7]" : "border-[#e0ddd8] bg-[#fcfbf8]"}`}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
@@ -777,6 +932,24 @@ function RecommendationPageContent() {
                             Recommended
                           </div>
                         ) : null}
+                      </div>
+                      <div className="mt-4 flex items-center justify-between gap-3">
+                        {selectedPlan === plan.planName ? (
+                          <div className="rounded-full bg-[#1a3d2e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+                            Selected
+                          </div>
+                        ) : (
+                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-[#6b7068]">
+                            Select a plan to compare
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => void handlePlanSelection(plan.planName)}
+                          className="rounded-full border border-[#d2d9d4] bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+                        >
+                          {selectedPlan === plan.planName ? "Refresh focus" : "Focus this plan"}
+                        </button>
                       </div>
                       <div className="mt-4 grid gap-3">
                         <ApplicationPlanGroup title="Reach" icon="🔥" items={plan.reach} compact />
