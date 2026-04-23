@@ -1602,7 +1602,10 @@ class TestRecommendationEngine(unittest.TestCase):
             plan_comparison=comparison,
         )
         self.assertIn("I built multiple application strategies for you.", paragraphs)
-        self.assertIn("Recommended plan: Balanced.", paragraphs)
+        self.assertIn(
+            "Recommended plan: Balanced. This is the plan the system currently prefers.",
+            paragraphs,
+        )
         self.assertIn(comparison["reason"], assistant_reply)
         self.assertEqual(len(comparison["tradeoffs"]), 2)
 
@@ -1704,7 +1707,10 @@ class TestRecommendationEngine(unittest.TestCase):
             },
         )
 
-        self.assertIn("Why this plan stands out:", paragraphs)
+        self.assertIn(
+            "Why this plan stands out: How the recommended plan differs from the alternatives.",
+            paragraphs,
+        )
         self.assertIn(
             "The balanced plan keeps safety coverage that the aggressive plan does not.",
             assistant_reply,
@@ -1830,7 +1836,10 @@ class TestRecommendationEngine(unittest.TestCase):
             },
         )
 
-        self.assertIn("Selected plan comparison: This plan trades safety for more upside.", paragraphs)
+        self.assertIn(
+            "Compared with the recommended plan: This plan trades safety for more upside.",
+            paragraphs,
+        )
         self.assertIn(
             "The selected plan keeps less safety coverage than the recommended plan.",
             assistant_reply,
@@ -2042,7 +2051,387 @@ class TestRecommendationEngine(unittest.TestCase):
         )
 
         self.assertIn("I tested several improvement scenarios.", paragraphs)
-        self.assertIn("Most helpful scenario: IELTS +0.5.", assistant_reply)
+        self.assertIn("Most helpful tested scenario: IELTS +0.5.", assistant_reply)
+        self.assertIn(
+            "This changes the outcome the most among the tested scenarios.",
+            assistant_reply,
+        )
+
+    def test_improvement_priority_prefers_higher_impact(self):
+        scenario_comparison = {
+            "baselineRecommendedPlan": "balanced",
+            "scenarios": [
+                {
+                    "scenarioKey": "gpa_plus_0_2",
+                    "scenarioLabel": "GPA +0.2",
+                    "recommendedPlanAfter": "aggressive",
+                    "changeSummary": "The recommended plan shifts from balanced to aggressive under this scenario.",
+                    "keyDifferences": ["Overall plan confidence improves under this scenario."],
+                },
+                {
+                    "scenarioKey": "target_rank_tighter_20",
+                    "scenarioLabel": "Target rank -20",
+                    "recommendedPlanAfter": "balanced",
+                    "changeSummary": "The recommended plan remains stable under this scenario.",
+                    "keyDifferences": ["Overall plan confidence improves under this scenario."],
+                },
+            ],
+        }
+
+        priority = self.service._build_improvement_priority(
+            scenario_comparison=scenario_comparison,
+            best_scenario_insight=None,
+        )
+
+        self.assertIsNotNone(priority)
+        self.assertEqual(priority["recommendedScenarioKey"], "gpa_plus_0_2")
+
+    def test_improvement_priority_uses_lower_effort_on_same_impact(self):
+        scenario_comparison = {
+            "baselineRecommendedPlan": "balanced",
+            "scenarios": [
+                {
+                    "scenarioKey": "toefl_plus_5",
+                    "scenarioLabel": "TOEFL +5",
+                    "recommendedPlanAfter": "balanced",
+                    "changeSummary": "The recommended plan remains stable under this scenario.",
+                    "keyDifferences": ["Overall plan confidence improves under this scenario."],
+                },
+                {
+                    "scenarioKey": "target_rank_tighter_20",
+                    "scenarioLabel": "Target rank -20",
+                    "recommendedPlanAfter": "balanced",
+                    "changeSummary": "The recommended plan remains stable under this scenario.",
+                    "keyDifferences": ["Overall plan confidence improves under this scenario."],
+                },
+            ],
+        }
+
+        priority = self.service._build_improvement_priority(
+            scenario_comparison=scenario_comparison,
+            best_scenario_insight=None,
+        )
+
+        self.assertIsNotNone(priority)
+        self.assertEqual(priority["recommendedScenarioKey"], "target_rank_tighter_20")
+
+    def test_improvement_priority_omits_without_scenario_comparison(self):
+        self.assertIsNone(
+            self.service._build_improvement_priority(
+                scenario_comparison=None,
+                best_scenario_insight=None,
+            )
+        )
+
+    def test_improvement_priority_tier_maps_correctly(self):
+        self.assertEqual(self.service._priority_tier(impact_level="high", effort_level="medium"), "high")
+        self.assertEqual(self.service._priority_tier(impact_level="medium", effort_level="medium"), "medium")
+        self.assertEqual(self.service._priority_tier(impact_level="low", effort_level="high"), "low")
+
+    def test_improvement_priority_reason_is_deterministic(self):
+        self.assertEqual(
+            self.service._priority_reason(impact_level="high", effort_level="medium"),
+            "This scenario offers strong improvement potential with manageable effort.",
+        )
+        self.assertEqual(
+            self.service._priority_reason(impact_level="medium", effort_level="medium"),
+            "This scenario is still useful, though it is not the clearest first improvement.",
+        )
+        self.assertEqual(
+            self.service._priority_reason(impact_level="low", effort_level="high"),
+            "This scenario is not the strongest first improvement under the tested options.",
+        )
+
+    def test_improvement_priority_note_is_appended_to_assistant_reply(self):
+        assistant_reply, paragraphs = self.service._build_assistant_reply(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=3),
+            counts={"reach": 1, "target": 1, "safety": 1},
+            items=[self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium")],
+            improvement_priority={
+                "recommendedScenarioKey": "gpa_plus_0_2",
+                "recommendedScenarioLabel": "GPA +0.2",
+                "priorityReason": "This scenario may help, but the expected gain and effort are more balanced.",
+                "effortLevel": "medium",
+                "impactLevel": "medium",
+                "priorityTier": "medium",
+            },
+        )
+
+        self.assertIn("Most worthwhile improvement: GPA +0.2.", paragraphs)
+        self.assertIn("Impact: medium. Effort: medium.", assistant_reply)
+
+    def test_next_action_guide_uses_improvement_priority_when_present(self):
+        guide = self.service._build_next_action_guide(
+            plan_comparison={"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            selected_plan_comparison=None,
+            scenario_simulation=None,
+            scenario_comparison=None,
+            best_scenario_insight={
+                "scenarioKey": "ielts_plus_0_5",
+                "scenarioLabel": "IELTS +0.5",
+                "reason": "",
+            },
+            improvement_priority={
+                "recommendedScenarioKey": "gpa_plus_0_2",
+                "recommendedScenarioLabel": "GPA +0.2",
+                "priorityReason": "",
+                "effortLevel": "medium",
+                "impactLevel": "medium",
+                "priorityTier": "medium",
+            },
+        )
+
+        self.assertIsNotNone(guide)
+        self.assertEqual(guide["actionType"], "improve_profile")
+        self.assertEqual(guide["suggestedNextAction"], "Improve GPA by 0.2")
+
+    def test_next_action_guide_uses_best_scenario_when_no_priority(self):
+        guide = self.service._build_next_action_guide(
+            plan_comparison={"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            selected_plan_comparison=None,
+            scenario_simulation={},
+            scenario_comparison={},
+            best_scenario_insight={
+                "scenarioKey": "ielts_plus_0_5",
+                "scenarioLabel": "IELTS +0.5",
+                "reason": "",
+            },
+            improvement_priority=None,
+        )
+
+        self.assertIsNotNone(guide)
+        self.assertEqual(guide["actionType"], "explore_scenario")
+        self.assertEqual(guide["suggestedNextAction"], "Explore IELTS +0.5 scenario")
+
+    def test_next_action_guide_uses_plan_comparison_when_only_plan_exists(self):
+        guide = self.service._build_next_action_guide(
+            plan_comparison={"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            selected_plan_comparison=None,
+            scenario_simulation=None,
+            scenario_comparison=None,
+            best_scenario_insight=None,
+            improvement_priority=None,
+        )
+
+        self.assertIsNotNone(guide)
+        self.assertEqual(guide["actionType"], "focus_plan")
+        self.assertEqual(guide["suggestedNextAction"], "Focus on the Balanced plan")
+
+    def test_next_action_guide_note_is_appended_to_assistant_reply(self):
+        assistant_reply, paragraphs = self.service._build_assistant_reply(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=3),
+            counts={"reach": 1, "target": 1, "safety": 1},
+            items=[self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium")],
+            next_action_guide={
+                "currentFocus": "scenario",
+                "suggestedNextAction": "Improve GPA by 0.2",
+                "actionType": "improve_profile",
+                "reason": "This is the most practical improvement to strengthen your current plan.",
+                "suggestedTarget": {
+                    "type": "scenario",
+                    "key": "gpa_plus_0_2",
+                    "label": "GPA +0.2",
+                },
+            },
+        )
+
+        self.assertEqual(paragraphs[-2], "Suggested next step: Prioritize GPA +0.2.")
+        self.assertEqual(
+            paragraphs[-1],
+            "This is the most practical improvement to strengthen your current plan.",
+        )
+        self.assertIn("Suggested next step: Prioritize GPA +0.2.", assistant_reply)
+
+    def test_decision_summary_builds_with_minimal_fields(self):
+        application_plans = [
+            {
+                "planName": "balanced",
+                "planSummary": "Balanced summary",
+                "planConfidence": "high",
+                "planConfidenceReason": "Stable confidence reason",
+                "primaryChoice": {
+                    "universityName": "Target Option",
+                    "bucket": "target",
+                    "reason": "Primary reason",
+                },
+                "target": [
+                    {
+                        "universityName": "Target Option",
+                        "decision": "apply",
+                        "reason": "Strong fit reason",
+                    }
+                ],
+                "reach": [],
+                "safety": [],
+            }
+        ]
+
+        summary = self.service._build_decision_summary(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=3),
+            application_plans=application_plans,
+            plan_comparison={"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            selected_plan_comparison=None,
+            best_scenario_insight=None,
+            scenario_simulation=None,
+            scenario_comparison=None,
+            improvement_priority=None,
+            next_action_guide={
+                "currentFocus": "plan",
+                "suggestedNextAction": "Focus on the Balanced plan",
+                "actionType": "focus_plan",
+                "reason": "This plan currently offers the best balance for your profile.",
+                "suggestedTarget": {
+                    "type": "plan",
+                    "key": "balanced",
+                    "label": "Balanced",
+                },
+            },
+        )
+
+        self.assertIsNotNone(summary)
+        self.assertIn("generatedAt", summary)
+        self.assertEqual(
+            summary["profileSnapshot"],
+            {"country": "United Kingdom", "ielts": 6.5, "targetRank": 100},
+        )
+        self.assertEqual(summary["recommendedPlan"]["plan"], "balanced")
+        self.assertEqual(summary["topRecommendation"]["university"], "Target Option")
+        self.assertEqual(summary["nextAction"]["type"], "plan")
+
+    def test_decision_summary_builds_with_full_fields(self):
+        application_plans = [
+            {
+                "planName": "balanced",
+                "planSummary": "Balanced summary",
+                "planConfidence": "high",
+                "planConfidenceReason": "Stable confidence reason",
+                "primaryChoice": {
+                    "universityName": "Balanced Target",
+                    "bucket": "target",
+                    "reason": "Primary reason",
+                },
+                "target": [
+                    {
+                        "universityName": "Balanced Target",
+                        "decision": "apply_early",
+                        "reason": "Target reason",
+                    }
+                ],
+                "reach": [],
+                "safety": [],
+            },
+            {
+                "planName": "aggressive",
+                "planSummary": "Aggressive summary",
+                "target": [],
+                "reach": [],
+                "safety": [],
+            },
+        ]
+
+        summary = self.service._build_decision_summary(
+            query=RecommendationQuery(
+                country="United Kingdom",
+                ielts_score=6.5,
+                toefl_score=100,
+                gpa_score=3.6,
+                duolingo_score=120,
+                target_rank=100,
+                limit=3,
+            ),
+            application_plans=application_plans,
+            plan_comparison={"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            selected_plan_comparison={
+                "selectedPlan": "aggressive",
+                "recommendedPlan": "balanced",
+                "summary": "This plan trades safety for more upside.",
+                "differences": [
+                    "The selected plan keeps less safety coverage than the recommended plan.",
+                    "The selected plan carries more warning signals than the recommended plan.",
+                    "Ignored extra line",
+                ],
+            },
+            best_scenario_insight={
+                "scenarioKey": "ielts_plus_0_5",
+                "scenarioLabel": "IELTS +0.5",
+                "reason": "This scenario most improves the recommendation outcome.",
+            },
+            scenario_simulation=None,
+            scenario_comparison={
+                "baselineRecommendedPlan": "balanced",
+                "scenarios": [
+                    {
+                        "scenarioKey": "ielts_plus_0_5",
+                        "scenarioLabel": "IELTS +0.5",
+                        "recommendedPlanAfter": "aggressive",
+                        "changeSummary": "The recommended plan shifts from balanced to aggressive under this scenario.",
+                        "keyDifferences": [],
+                    }
+                ],
+            },
+            improvement_priority={
+                "recommendedScenarioKey": "gpa_plus_0_2",
+                "recommendedScenarioLabel": "GPA +0.2",
+                "priorityReason": "This scenario may help, but the expected gain and effort are more balanced.",
+                "effortLevel": "medium",
+                "impactLevel": "medium",
+                "priorityTier": "medium",
+            },
+            next_action_guide={
+                "currentFocus": "improvement",
+                "suggestedNextAction": "Improve GPA by 0.2",
+                "actionType": "improve_profile",
+                "reason": "This is the most practical improvement to strengthen your current plan.",
+                "suggestedTarget": {
+                    "type": "scenario",
+                    "key": "gpa_plus_0_2",
+                    "label": "GPA +0.2",
+                },
+            },
+        )
+
+        self.assertEqual(summary["selectedPlan"]["plan"], "aggressive")
+        self.assertEqual(
+            summary["planComparison"]["differences"],
+            [
+                "The selected plan keeps less safety coverage than the recommended plan.",
+                "The selected plan carries more warning signals than the recommended plan.",
+            ],
+        )
+        self.assertEqual(summary["bestScenario"]["scenario"], "IELTS +0.5")
+        self.assertEqual(
+            summary["bestScenario"]["effect"],
+            "The recommended plan shifts from balanced to aggressive under this scenario.",
+        )
+        self.assertEqual(summary["improvementPriority"]["action"], "GPA +0.2")
+        self.assertEqual(summary["nextAction"]["type"], "improvement")
+
+    def test_decision_summary_omits_optional_sections_cleanly(self):
+        summary = self.service._build_decision_summary(
+            query=RecommendationQuery(target_rank=100, limit=3),
+            application_plans=[
+                {
+                    "planName": "balanced",
+                    "planSummary": "Balanced summary",
+                    "target": [],
+                    "reach": [],
+                    "safety": [],
+                }
+            ],
+            plan_comparison={"recommendedPlan": "balanced", "reason": "", "tradeoffs": []},
+            selected_plan_comparison=None,
+            best_scenario_insight=None,
+            scenario_simulation=None,
+            scenario_comparison=None,
+            improvement_priority=None,
+            next_action_guide=None,
+        )
+
+        self.assertNotIn("selectedPlan", summary)
+        self.assertNotIn("planComparison", summary)
+        self.assertNotIn("bestScenario", summary)
+        self.assertNotIn("improvementPriority", summary)
+        self.assertNotIn("nextAction", summary)
 
     def _build_result(
         self,

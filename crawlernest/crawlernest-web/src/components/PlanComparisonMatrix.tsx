@@ -58,6 +58,27 @@ type BestScenarioInsight = {
   reason: string;
 };
 
+type ImprovementPriority = {
+  recommendedScenarioKey: string;
+  recommendedScenarioLabel: string;
+  priorityReason: string;
+  effortLevel: "low" | "medium" | "high";
+  impactLevel: "low" | "medium" | "high";
+  priorityTier: "low" | "medium" | "high";
+};
+
+type NextActionGuide = {
+  currentFocus: "plan" | "scenario" | "improvement";
+  suggestedNextAction: string;
+  actionType: "explore_scenario" | "focus_plan" | "improve_profile";
+  reason: string;
+  suggestedTarget: {
+    type: "plan" | "scenario";
+    key: string;
+    label: string;
+  };
+};
+
 function formatPlanConfidenceLabel(value: ApplicationPlan["planConfidence"] | undefined) {
   if (!value) {
     return null;
@@ -75,6 +96,58 @@ function truncatePlanText(text: string | undefined, maxLength = 110) {
   return `${text.slice(0, maxLength - 1).trimEnd()}...`;
 }
 
+function nextActionButtonLabel(actionType: NextActionGuide["actionType"] | undefined) {
+  if (actionType === "focus_plan") {
+    return "Focus this plan";
+  }
+  if (actionType === "explore_scenario") {
+    return "Explore this scenario";
+  }
+  if (actionType === "improve_profile") {
+    return "Prioritize this improvement";
+  }
+  return "Apply this step";
+}
+
+function nextActionFocusLabel(currentFocus: NextActionGuide["currentFocus"] | undefined) {
+  if (currentFocus === "plan") {
+    return "Current focus: plan choice";
+  }
+  if (currentFocus === "scenario") {
+    return "Current focus: scenario exploration";
+  }
+  if (currentFocus === "improvement") {
+    return "Current focus: improvement planning";
+  }
+  return null;
+}
+
+function nextActionBadgeLabel(actionType: NextActionGuide["actionType"] | undefined) {
+  if (actionType === "focus_plan") {
+    return "Plan action";
+  }
+  if (actionType === "explore_scenario") {
+    return "Scenario action";
+  }
+  if (actionType === "improve_profile") {
+    return "Improvement action";
+  }
+  return null;
+}
+
+function nextActionHelperText(actionType: NextActionGuide["actionType"] | undefined) {
+  if (actionType === "focus_plan") {
+    return "This will switch the comparison focus to the suggested plan.";
+  }
+  if (actionType === "explore_scenario") {
+    return "This will apply the suggested scenario to the current comparison.";
+  }
+  if (actionType === "improve_profile") {
+    return "This will load the most worthwhile improvement into the current scenario view.";
+  }
+  return "This will apply the suggested next step in the current view.";
+}
+
 export function PlanComparisonMatrix({
   plans,
   planComparison,
@@ -83,6 +156,9 @@ export function PlanComparisonMatrix({
   scenarioSimulation,
   scenarioComparison,
   bestScenarioInsight,
+  improvementPriority,
+  nextActionGuide,
+  onActivateTarget,
 }: {
   plans: ApplicationPlan[];
   planComparison?: PlanComparison;
@@ -91,6 +167,9 @@ export function PlanComparisonMatrix({
   scenarioSimulation?: ScenarioSimulation;
   scenarioComparison?: ScenarioComparison;
   bestScenarioInsight?: BestScenarioInsight;
+  improvementPriority?: ImprovementPriority;
+  nextActionGuide?: NextActionGuide;
+  onActivateTarget?: (target: NextActionGuide["suggestedTarget"]) => void;
 }) {
   const orderedPlanNames: Array<"balanced" | "conservative" | "aggressive"> = [
     "balanced",
@@ -103,6 +182,11 @@ export function PlanComparisonMatrix({
   const orderedPlans = orderedPlanNames
     .map((name) => planMap.get(name))
     .filter((plan): plan is ApplicationPlan => Boolean(plan));
+  const highlightedActionType = nextActionGuide?.actionType;
+  const focusLabel = nextActionFocusLabel(nextActionGuide?.currentFocus);
+  const actionBadge = nextActionBadgeLabel(nextActionGuide?.actionType);
+  const buttonLabel = nextActionButtonLabel(nextActionGuide?.actionType);
+  const helperText = nextActionHelperText(nextActionGuide?.actionType);
 
   if (orderedPlans.length === 0) {
     return null;
@@ -123,12 +207,18 @@ export function PlanComparisonMatrix({
               <span className="font-semibold text-[#1a1a1a]">Reason:</span> {planComparison.reason}
             </>
           ) : null}
+          <div className="mt-1 text-sm text-[#6b7068]">
+            This is the plan the system currently prefers.
+          </div>
         </div>
       ) : null}
       {planDelta && planDelta.comparisonAgainstAlternatives.length > 0 ? (
         <div className="mt-4 rounded-xl bg-[#f5f3ee] p-4">
           <div className="text-sm font-semibold text-[#1a3d2e]">
             Why this plan stands out
+          </div>
+          <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+            How the recommended plan differs from the alternatives.
           </div>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-[#6b7068]">
             {planDelta.comparisonAgainstAlternatives.map((line) => (
@@ -141,6 +231,9 @@ export function PlanComparisonMatrix({
         <div className="mt-4 rounded-xl border border-[#e0ddd8] bg-white p-4">
           <div className="text-sm font-semibold text-[#1a3d2e]">
             Compared with the recommended plan
+          </div>
+          <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+            Tradeoffs of the plan you selected instead of the recommended one.
           </div>
           <div className="mt-2 text-sm leading-6 text-[#6b7068]">
             {selectedPlanComparison.summary}
@@ -155,7 +248,14 @@ export function PlanComparisonMatrix({
         </div>
       ) : null}
       {scenarioSimulation ? (
-        <div className="mt-4 rounded-xl border border-[#d8e6dd] bg-[#f6fbf7] p-4">
+        <div
+          data-testid="scenario-simulation-section"
+          className={`mt-4 rounded-xl border p-4 ${
+            highlightedActionType === "explore_scenario"
+              ? "border-[#9db8a7] bg-[#eef7f1]"
+              : "border-[#d8e6dd] bg-[#f6fbf7]"
+          }`}
+        >
           <div className="text-sm font-semibold text-[#1a3d2e]">
             What changes if your profile improves
           </div>
@@ -172,9 +272,19 @@ export function PlanComparisonMatrix({
         </div>
       ) : null}
       {scenarioComparison && bestScenarioInsight ? (
-        <div className="mt-4 rounded-xl border border-[#e0ddd8] bg-white p-4">
+        <div
+          data-testid="scenario-comparison-section"
+          className={`mt-4 rounded-xl border p-4 ${
+            highlightedActionType === "explore_scenario"
+              ? "border-[#9db8a7] bg-[#f6fbf7]"
+              : "border-[#e0ddd8] bg-white"
+          }`}
+        >
           <div className="text-sm font-semibold text-[#1a3d2e]">
             Which improvement helps most
+          </div>
+          <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+            Among the tested scenarios, this one changes the outcome the most.
           </div>
           <div className="mt-2 text-sm leading-6 text-[#6b7068]">
             <span className="font-semibold text-[#1a1a1a]">{bestScenarioInsight.scenarioLabel}</span>{" "}
@@ -201,6 +311,78 @@ export function PlanComparisonMatrix({
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      ) : null}
+      {improvementPriority ? (
+        <div
+          data-testid="improvement-priority-section"
+          className={`mt-4 rounded-xl border p-4 ${
+            highlightedActionType === "improve_profile"
+              ? "border-[#9db8a7] bg-[#eef7f1]"
+              : "border-[#d8e6dd] bg-[#f6fbf7]"
+          }`}
+        >
+          <div className="text-sm font-semibold text-[#1a3d2e]">
+            Most worthwhile improvement
+          </div>
+          <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+            Best next improvement after balancing likely impact and effort.
+          </div>
+          <div className="mt-2 text-sm leading-6 text-[#6b7068]">
+            <span className="font-semibold text-[#1a1a1a]">{improvementPriority.recommendedScenarioLabel}</span>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-lg bg-white px-3 py-2 text-sm text-[#6b7068]">
+              <span className="font-semibold text-[#1a1a1a]">Impact:</span> {improvementPriority.impactLevel}
+            </div>
+            <div className="rounded-lg bg-white px-3 py-2 text-sm text-[#6b7068]">
+              <span className="font-semibold text-[#1a1a1a]">Effort:</span> {improvementPriority.effortLevel}
+            </div>
+            <div className="rounded-lg bg-white px-3 py-2 text-sm text-[#6b7068]">
+              <span className="font-semibold text-[#1a1a1a]">Priority:</span> {improvementPriority.priorityTier}
+            </div>
+          </div>
+          <div className="mt-3 text-sm leading-6 text-[#6b7068]">
+            {improvementPriority.priorityReason}
+          </div>
+        </div>
+      ) : null}
+      {nextActionGuide ? (
+        <div className="mt-4 rounded-xl border border-[#e0ddd8] bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-semibold text-[#1a3d2e]">
+              Suggested next step
+            </div>
+            {actionBadge ? (
+              <div className="rounded-full bg-[#f5f3ee] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#315343]">
+                {actionBadge}
+              </div>
+            ) : null}
+          </div>
+          {focusLabel ? (
+            <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+              {focusLabel}
+            </div>
+          ) : null}
+          <div className="mt-2 text-sm font-semibold leading-6 text-[#1a1a1a]">
+            {nextActionGuide.suggestedNextAction}
+          </div>
+          <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+            {nextActionGuide.reason}
+          </div>
+          {onActivateTarget ? (
+            <button
+              type="button"
+              onClick={() => onActivateTarget(nextActionGuide.suggestedTarget)}
+              data-testid="next-action-button"
+              className="mt-3 rounded-full border border-[#d2d9d4] bg-[#f6fbf7] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+            >
+              {buttonLabel}
+            </button>
+          ) : null}
+          <div className="mt-2 text-sm leading-6 text-[#6b7068]">
+            {helperText}
           </div>
         </div>
       ) : null}

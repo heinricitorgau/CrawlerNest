@@ -150,6 +150,9 @@ describe("PlanComparisonMatrix", () => {
 
     expect(screen.getByText("Why this plan stands out")).toBeInTheDocument();
     expect(
+      screen.getByText("How the recommended plan differs from the alternatives.")
+    ).toBeInTheDocument();
+    expect(
       screen.getByText("The balanced plan keeps safety coverage that the aggressive plan does not.")
     ).toBeInTheDocument();
     expect(
@@ -188,6 +191,9 @@ describe("PlanComparisonMatrix", () => {
     );
 
     expect(screen.getByText("Compared with the recommended plan")).toBeInTheDocument();
+    expect(
+      screen.getByText("Tradeoffs of the plan you selected instead of the recommended one.")
+    ).toBeInTheDocument();
     expect(screen.getByText("This plan trades safety for more upside.")).toBeInTheDocument();
     expect(
       screen.getByText("The selected plan keeps less safety coverage than the recommended plan.")
@@ -260,6 +266,9 @@ describe("PlanComparisonMatrix", () => {
     );
 
     expect(screen.getByText("Which improvement helps most")).toBeInTheDocument();
+    expect(
+      screen.getByText("Among the tested scenarios, this one changes the outcome the most.")
+    ).toBeInTheDocument();
     expect(screen.getAllByText("IELTS +0.5").length).toBeGreaterThan(0);
     expect(
       screen.getByText("This scenario most improves plan confidence without increasing instability.")
@@ -270,5 +279,213 @@ describe("PlanComparisonMatrix", () => {
     render(<PlanComparisonMatrix plans={plans} />);
 
     expect(screen.queryByText("Which improvement helps most")).not.toBeInTheDocument();
+  });
+
+  it("renders the improvement priority section", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        improvementPriority={{
+          recommendedScenarioKey: "gpa_plus_0_2",
+          recommendedScenarioLabel: "GPA +0.2",
+          priorityReason: "This scenario may help, but the expected gain and effort are more balanced.",
+          effortLevel: "medium",
+          impactLevel: "medium",
+          priorityTier: "medium",
+        }}
+      />
+    );
+
+    expect(screen.getByText("Most worthwhile improvement")).toBeInTheDocument();
+    expect(
+      screen.getByText("Best next improvement after balancing likely impact and effort.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("GPA +0.2")).toBeInTheDocument();
+    expect(screen.getByText("Impact:")).toBeInTheDocument();
+    expect(screen.getByText("Effort:")).toBeInTheDocument();
+    expect(
+      screen.getByText("This scenario may help, but the expected gain and effort are more balanced.")
+    ).toBeInTheDocument();
+  });
+
+  it("omits the improvement priority section when it is absent", () => {
+    render(<PlanComparisonMatrix plans={plans} />);
+
+    expect(screen.queryByText("Most worthwhile improvement")).not.toBeInTheDocument();
+  });
+
+  it("renders the suggested next step section", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        onActivateTarget={jest.fn()}
+        nextActionGuide={{
+          currentFocus: "scenario",
+          suggestedNextAction: "Improve GPA by 0.2",
+          actionType: "improve_profile",
+          reason: "This is the most practical improvement to strengthen your current plan.",
+          suggestedTarget: {
+            type: "scenario",
+            key: "gpa_plus_0_2",
+            label: "GPA +0.2",
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByText("Suggested next step")).toBeInTheDocument();
+    expect(screen.getByText("Improve GPA by 0.2")).toBeInTheDocument();
+    expect(screen.getByText("Current focus: scenario exploration")).toBeInTheDocument();
+    expect(screen.getByText("Improvement action")).toBeInTheDocument();
+    expect(
+      screen.getByText("This is the most practical improvement to strengthen your current plan.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("This will load the most worthwhile improvement into the current scenario view.")
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("next-action-button")).toHaveTextContent("Prioritize this improvement");
+  });
+
+  it("omits the suggested next step section when it is absent", () => {
+    render(<PlanComparisonMatrix plans={plans} />);
+
+    expect(screen.queryByText("Suggested next step")).not.toBeInTheDocument();
+  });
+
+  it("uses plan-specific CTA wording and helper text", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        onActivateTarget={jest.fn()}
+        nextActionGuide={{
+          currentFocus: "plan",
+          suggestedNextAction: "Focus on the Balanced plan",
+          actionType: "focus_plan",
+          reason: "This plan currently offers the best balance for your profile.",
+          suggestedTarget: {
+            type: "plan",
+            key: "balanced",
+            label: "Balanced",
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByText("Current focus: plan choice")).toBeInTheDocument();
+    expect(screen.getByText("Plan action")).toBeInTheDocument();
+    expect(screen.getByTestId("next-action-button")).toHaveTextContent("Focus this plan");
+    expect(
+      screen.getByText("This will switch the comparison focus to the suggested plan.")
+    ).toBeInTheDocument();
+  });
+
+  it("uses scenario-specific CTA wording and helper text", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        onActivateTarget={jest.fn()}
+        nextActionGuide={{
+          currentFocus: "scenario",
+          suggestedNextAction: "Explore IELTS +0.5 scenario",
+          actionType: "explore_scenario",
+          reason: "This scenario has the strongest impact on your outcomes.",
+          suggestedTarget: {
+            type: "scenario",
+            key: "ielts_plus_0_5",
+            label: "IELTS +0.5",
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByText("Current focus: scenario exploration")).toBeInTheDocument();
+    expect(screen.getByText("Scenario action")).toBeInTheDocument();
+    expect(screen.getByTestId("next-action-button")).toHaveTextContent("Explore this scenario");
+    expect(
+      screen.getByText("This will apply the suggested scenario to the current comparison.")
+    ).toBeInTheDocument();
+  });
+
+  it("highlights the scenario section for scenario actions", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        scenarioComparison={{
+          baselineRecommendedPlan: "balanced",
+          scenarios: [
+            {
+              scenarioKey: "ielts_plus_0_5",
+              scenarioLabel: "IELTS +0.5",
+              recommendedPlanAfter: "balanced",
+              changeSummary: "The recommended plan remains stable under this scenario.",
+              keyDifferences: ["Overall plan confidence improves under this scenario."],
+            },
+          ],
+        }}
+        bestScenarioInsight={{
+          scenarioKey: "ielts_plus_0_5",
+          scenarioLabel: "IELTS +0.5",
+          reason: "This scenario most improves plan confidence without increasing instability.",
+        }}
+        nextActionGuide={{
+          currentFocus: "scenario",
+          suggestedNextAction: "Explore IELTS +0.5 scenario",
+          actionType: "explore_scenario",
+          reason: "This scenario has the strongest impact on your outcomes.",
+          suggestedTarget: {
+            type: "scenario",
+            key: "ielts_plus_0_5",
+            label: "IELTS +0.5",
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByTestId("scenario-comparison-section").className).toContain("border-[#9db8a7]");
+  });
+
+  it("highlights the improvement section for improvement actions", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        improvementPriority={{
+          recommendedScenarioKey: "gpa_plus_0_2",
+          recommendedScenarioLabel: "GPA +0.2",
+          priorityReason: "This scenario may help, but the expected gain and effort are more balanced.",
+          effortLevel: "medium",
+          impactLevel: "medium",
+          priorityTier: "medium",
+        }}
+        nextActionGuide={{
+          currentFocus: "improvement",
+          suggestedNextAction: "Improve GPA by 0.2",
+          actionType: "improve_profile",
+          reason: "This is the most practical improvement to strengthen your current plan.",
+          suggestedTarget: {
+            type: "scenario",
+            key: "gpa_plus_0_2",
+            label: "GPA +0.2",
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByText("Current focus: improvement planning")).toBeInTheDocument();
+    expect(screen.getByTestId("improvement-priority-section").className).toContain("border-[#9db8a7]");
+  });
+
+  it("renders the recommended-plan helper text", () => {
+    render(
+      <PlanComparisonMatrix
+        plans={plans}
+        planComparison={{
+          recommendedPlan: "balanced",
+          reason: "Balanced is recommended because it keeps the strongest overall mix with stable confidence.",
+          tradeoffs: [],
+        }}
+      />
+    );
+
+    expect(screen.getByText("This is the plan the system currently prefers.")).toBeInTheDocument();
   });
 });
