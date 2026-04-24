@@ -73,6 +73,7 @@ flowchart TD
         AGENT_F["[DEV-SUPPORT] crawlernest/agent/"]
         MINI_F["[DEV-SUPPORT] crawlernest-mini-agent/"]
         AUTOEVAL_F["[DEV-SUPPORT] crawlernest-autoeval/"]
+        CAGENTS_F["[DEV-SUPPORT] ../crawlernest-agents"]
     end
 
     PIPE_A --> JOBS_A
@@ -99,6 +100,7 @@ flowchart TD
 
     AUTOEVAL_F -. dev support only .-> AGENT_F
     MINI_F -. dev support only .-> AGENT_F
+    CAGENTS_F -. engineering companion .-> AGENT_F
 ```
 
 ### 0.1 Execution Principles
@@ -110,6 +112,7 @@ flowchart TD
 - Development support layers may evolve, but must not outrun crawl / normalization / canonical / warehouse stability.
 - Admission trust signals are metadata for explanation, not scoring inputs.
 - Decision summaries, assistant replies, UI badges, and exports must stay aligned to the same deterministic recommendation result.
+- `../crawlernest-agents` may support engineering workflows, review, debugging, and documentation, but it is not part of production runtime or production truth.
 
 ### 0.2 Regression-Safe Admission Loop
 

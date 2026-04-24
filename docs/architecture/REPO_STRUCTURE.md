@@ -32,6 +32,14 @@ repo-root/
 └── docker-compose.postgres.yml        # 本機 PostgreSQL 輔助配置
 ```
 
+Sibling development-support repo：
+
+```text
+../crawlernest-agents                  # [DEV-SUPPORT] CrawlerNest-specific AI-assisted development agents
+```
+
+`crawlernest-agents` 不是本 repo 的 production dependency。它提供 curated engineering agents、workflow templates、debug prompts、review prompts 與 docs helpers，未來會與 CrawlerNest 一起開發，但仍應被視為 development companion，而不是資料管線、API、推薦或 web runtime 的一部分。
+
 ## 2. Canonical Workspace
 
 目前實際上的主產品開發、資料管線、API、前端與新 agent 模組，都在 `crawlernest/` 之下。

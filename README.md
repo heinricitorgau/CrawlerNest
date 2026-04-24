@@ -20,6 +20,14 @@ As of April 2026, CrawlerNest is best understood as a three-zone system:
 - **Controlled expansion:** admission enrichment, multi-universe aggregation, comparison, and basic explainable recommendation.
 - **Development support:** Python agent runtime, Web Agent / Dev Agent split, mini-agent runtime, and AutoEval-assisted extractor improvement.
 
+CrawlerNest is also expected to evolve alongside a sibling development-support repository:
+
+```text
+../crawlernest-agents
+```
+
+That repository contains a small CrawlerNest-specific AI-assisted development system: repo onboarding, code review, data pipeline engineering, PostgreSQL tuning, workflow architecture, debugging/reliability, and technical writing agents. It is a companion engineering workflow repo, not a production runtime and not a source of production truth.
+
 The engineering order is intentionally strict:
 
 1. stabilize crawl and extraction

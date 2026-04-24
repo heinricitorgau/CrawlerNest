@@ -20,6 +20,14 @@ Agent 與 AutoEval 能力已存在，但它們屬於開發輔助系統，不擁�
 - **Controlled expansion：** admission enrichment、multi-universe aggregation、comparison，以及基本 explainable recommendation。
 - **Development support：** Python agent runtime、Web Agent / Dev Agent split、mini-agent runtime，以及 AutoEval-assisted extractor improvement。
 
+CrawlerNest 之後也會與一個 sibling development-support repo 一起演進：
+
+```text
+../crawlernest-agents
+```
+
+該 repo 是 CrawlerNest 專用的小型 AI-assisted development system，包含 repo onboarding、code review、data pipeline engineering、PostgreSQL tuning、workflow architecture、debugging/reliability 與 technical writing agents。它是工程協作輔助 repo，不是 production runtime，也不是 production truth source。
+
 工程順序刻意維持嚴格：
 
 1. 先穩定 crawl 與 extraction
