@@ -57,6 +57,13 @@ function createResponseWithSummary(overrides?: Record<string, unknown>) {
       reason: "Balanced fits best right now.",
       tradeoffs: [],
     },
+    decisionSummaryCompact: {
+      plan: "Balanced",
+      confidence: "High",
+      risk: "Moderate",
+      topReason: "Strong coverage with stable requirements",
+      nextStep: "GPA +0.2",
+    },
     decisionSummary: {
       generatedAt: "2026-04-24T00:00:00+00:00",
       profileSnapshot: {
@@ -151,10 +158,15 @@ describe("RecommendationPageContent export summary", () => {
     await waitFor(() => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
         expect.stringContaining(
-          "Decision Summary\n\nProfile\n- Country: United Kingdom\n- IELTS: 6.5\n- Target Rank: 100"
+          "Decision Snapshot\n- Plan: Balanced\n- Confidence: High\n- Risk: Moderate\n- Next Step: GPA +0.2"
         )
       );
     });
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "Decision Summary\n\nProfile\n- Country: United Kingdom\n- IELTS: 6.5\n- Target Rank: 100"
+      )
+    );
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       expect.stringContaining(
         "Recommended Plan\n- Plan: Balanced\n- Confidence: High\n- Summary: Balanced summary\n- Reason: Stable confidence reason"
@@ -183,6 +195,41 @@ describe("RecommendationPageContent export summary", () => {
         "Copied text summary."
       );
     });
+  });
+
+  it("renders the compact decision banner", async () => {
+    mockedFetchAppJson.mockResolvedValue(createResponseWithSummary());
+
+    render(<RecommendationPageContent />);
+    fireEvent.click(screen.getByText("Generate Recommendations"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Balanced Plan")).toBeInTheDocument();
+    });
+    expect(screen.getByText("High Confidence")).toBeInTheDocument();
+    expect(screen.getByText("Next: GPA +0.2")).toBeInTheDocument();
+    expect(screen.getByText("Strong coverage with stable requirements")).toBeInTheDocument();
+  });
+
+  it("can build text export without compact snapshot for backward compatibility", () => {
+    const text = buildDecisionSummaryText(createResponseWithSummary().decisionSummary);
+
+    expect(text).toContain(
+      "Decision Summary\n\nProfile\n- Country: United Kingdom\n- IELTS: 6.5\n- Target Rank: 100"
+    );
+    expect(text).not.toContain("Decision Snapshot");
+  });
+
+  it("adds compact snapshot to text export helper", () => {
+    const response = createResponseWithSummary();
+    const text = buildDecisionSummaryText(response.decisionSummary, response.decisionSummaryCompact);
+
+    expect(text).toContain(
+      "Decision Snapshot\n- Plan: Balanced\n- Confidence: High\n- Risk: Moderate\n- Next Step: GPA +0.2"
+    );
+    expect(text).toContain(
+      "Decision Summary\n\nProfile\n- Country: United Kingdom\n- IELTS: 6.5\n- Target Rank: 100"
+    );
   });
 
   it("skips missing optional sections in text export without broken output", async () => {

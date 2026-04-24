@@ -63,7 +63,8 @@ flowchart TD
     subgraph LAYER_B["Layer B: Controlled Expansion (PARTIAL)"]
         direction LR
         ADM_ENRICH["[LIMITED] admission enrichment / pilot scope"]
-        BASIC_REC["[LIMITED] recommendation_engine (basic / rule-based / optional)"]
+        BASIC_REC["[ACTIVE] recommendation_engine / decision product metadata"]
+        ADM_TRUST["[ACTIVE] admission trust signals / resolver"]
     end
 
     subgraph LAYER_C["Layer C: Development Support / Future Expansion"]
@@ -87,6 +88,8 @@ flowchart TD
     JAVA_A --> WEB_A
 
     ACRAWL_A -. pilot feed .-> ADM_ENRICH
+    ADM_ENRICH -. signal layer .-> ADM_TRUST
+    ADM_TRUST -. metadata only .-> BASIC_REC
     WH_A -. optional read .-> BASIC_REC
     BASIC_REC -. optional API path .-> JAVA_A
     ADM_ENRICH -. controlled write .-> WH_A
@@ -105,6 +108,8 @@ flowchart TD
 - Data correctness > automation.
 - Correctness-first sequencing overrides capability breadth.
 - Development support layers may evolve, but must not outrun crawl / normalization / canonical / warehouse stability.
+- Admission trust signals are metadata for explanation, not scoring inputs.
+- Decision summaries, assistant replies, UI badges, and exports must stay aligned to the same deterministic recommendation result.
 
 ### 0.2 Regression-Safe Admission Loop
 
@@ -113,6 +118,8 @@ Admission extraction 的改進應理解為受控 improvement loop，而不是 pr
 - anomaly signals 必須可觀測
 - extractor pattern fix 必須先過 eval / regression / summary
 - pipeline output 必須能回溯到 anomaly breakdown
+- extracted admission values must first become `AdmissionSignal`
+- resolved admission values enter recommendation output as `admissionResolved` metadata only
 
 ## 1. System Overview
 
@@ -136,6 +143,7 @@ flowchart TD
         ER["entity_resolution"]
         MS["multi_source"]
         AGG["ranking_aggregation"]
+        ASIG["admission signals / resolver"]
         REC["recommendation_engine"]
         CMP["comparison"]
         SCHEMA["crawlernest-schema/"]
@@ -177,6 +185,8 @@ flowchart TD
     SCHEMA --> MS
     MS --> AGG
     SCHEMA --> AGG
+    ACRAWL --> ASIG
+    ASIG --> REC
     AGG --> REC
     AGG --> CMP
     AGG --> FACADE
@@ -214,6 +224,24 @@ flowchart LR
     N --> O["web product"]
 ```
 
+Admission values have a stricter trust path before they appear in recommendation UI:
+
+```mermaid
+flowchart LR
+    A["raw admission extraction"] --> B["AdmissionSignal"]
+    B --> C["validate signal"]
+    C --> D["ResolvedAdmissionField"]
+    D --> E["admissionResolved metadata"]
+    E --> F["decision messaging"]
+    E --> G["UI badges"]
+    E --> H["assistant reply"]
+    E --> I["export snapshot"]
+
+    D -. no scoring impact .-> J["recommendation item metadata only"]
+```
+
+This branch is deliberately read-only from the recommendation engine's perspective. It may append deterministic explanation text for conflict, low confidence, or consistent high-confidence requirements, but it must not change candidate filtering, scoring, grouping, or ranking.
+
 ## 3. Runtime Surfaces
 
 ```mermaid
@@ -250,7 +278,38 @@ flowchart LR
     CONST --> CMP
 ```
 
-## 5. Agent And Improvement View
+## 5. Admission Trust And Decision Product View
+
+```mermaid
+flowchart TD
+    RAW["Extractor output<br/>ielts / toefl / gpa / deadline"] --> SIG["AdmissionSignal<br/>field / value / source / confidence / evidence / status"]
+    SIG --> VAL["Signal validation<br/>allowed fields / ranges / dates / status"]
+    VAL --> RES["ResolvedAdmissionField<br/>deterministic merge per field"]
+    RES --> META["admissionResolved<br/>value / confidence / sourceCount / status"]
+
+    META --> ITEM["Recommendation item extension"]
+    ITEM --> DEC["decisionOutput messaging"]
+    ITEM --> PLAN["applicationPlans / planConfidenceReason"]
+    ITEM --> ASSIST["assistant reply"]
+    ITEM --> UI["AdmissionSignalBadge + summary banner"]
+    ITEM --> EXPORT["Decision Snapshot export"]
+
+    DEC -. messaging only .-> PRODUCT["Decision product"]
+    PLAN -. messaging only .-> PRODUCT
+    ASSIST -. aligned copy .-> PRODUCT
+    UI -. aligned display .-> PRODUCT
+    EXPORT -. aligned record .-> PRODUCT
+```
+
+Design constraints:
+
+- `admissionResolved` is explainability metadata.
+- Conflict and low-confidence states stay visible instead of being hidden.
+- `decisionSummaryCompact` is the shared compact source for UI banner, assistant top line, and text export.
+- No admission trust signal changes recommendation scoring, filtering, grouping, or ranking.
+- The resolver is deterministic and conservative; it does not perform probabilistic inference.
+
+## 6. Agent And Improvement View
 
 ```mermaid
 flowchart LR
@@ -261,7 +320,7 @@ flowchart LR
     EVAL -. evaluate / improve .-> EXT["crawlernest-extractors/"]
 ```
 
-## 6. Data Assets And Persistence
+## 7. Data Assets And Persistence
 
 ```mermaid
 flowchart LR
@@ -272,7 +331,7 @@ flowchart LR
     PG --> FACADE["core/services/"]
 ```
 
-## 7. Canonical Module Map
+## 8. Canonical Module Map
 
 ```mermaid
 mindmap
@@ -293,6 +352,7 @@ mindmap
       multi_source
       ranking_aggregation
       recommendation_engine
+      admission signals / resolver
       comparison
     Interfaces
       core/services/
@@ -310,7 +370,7 @@ mindmap
       clawer.db
 ```
 
-## 8. Regression-Safe Pipeline & Eval Loop
+## 9. Regression-Safe Pipeline & Eval Loop
 
 這一節描述的是 admission extraction 與 controlled improvement loop 的理想成熟形態。  
 它代表我們希望逐步抵達的工程安全基線，但不表示 agent / eval loop 已取代資料主線本身。

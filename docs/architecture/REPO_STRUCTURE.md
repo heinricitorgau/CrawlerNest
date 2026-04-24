@@ -21,9 +21,13 @@ repo-root/
 ├── README.md / README.zh-TW.md        # 專案總覽、啟動方式、常用命令
 ├── docs/                              # 架構、部署、參考文件
 ├── crawlernest/                       # [MAINLINE] 主要產品 workspace（目前最重要）
+├── crawlernest_admission_crawler/     # [MAINLINE] importable admission pipeline/trust package
+├── crawlernest_ranking_crawler/       # [MAINLINE] importable ranking pipeline package
+├── crawlernest_crawler_core/          # [MAINLINE] importable shared crawler runtime package
 ├── crawlernest-samples/               # 外層樣本 / artifact 輸出
 ├── deployment-support/                # 節點部署與 runtime 資產
 ├── logs/                              # 執行日誌
+├── test_*.py                          # focused Python regression tests
 ├── legacy/                            # [LEGACY / COMPAT] 外層舊版/相容殼層與過渡材料
 └── docker-compose.postgres.yml        # 本機 PostgreSQL 輔助配置
 ```
@@ -71,6 +75,42 @@ crawlernest/
 └── crawlernest-tests/                 # [MAINLINE] Python 測試區
 ```
 
+## 2.1 Outer Importable Packages
+
+外層 root 也保留幾個可直接 import 的 Python packages。這些不是 legacy；它們是目前 pipeline / tests 會直接引用的主線模組，命名上使用 underscore 以符合 Python import convention。
+
+```text
+crawlernest_admission_crawler/         # [MAINLINE] admission pipeline + trust layer
+├── models.py                          # admission records / normalized rows
+├── validator.py                       # admission staging validation
+├── resolver.py                        # deterministic resolved admission fields
+├── signals.py                         # AdmissionSignal schema / confidence / validation
+├── deadline_interpretation.py         # deadline priority interpretation
+├── normalize.py
+├── entity_resolver.py
+├── warehouse_mapper.py
+├── warehouse_writer.py
+├── writer.py
+└── crawlers/
+
+crawlernest_ranking_crawler/           # [MAINLINE] ranking pipeline package
+├── engine.py
+├── models.py
+├── validator.py
+├── trust_layer.py
+├── aggregator.py
+├── entity_resolver.py
+├── warehouse_mapper.py
+├── warehouse_writer.py
+└── sources/
+
+crawlernest_crawler_core/              # [MAINLINE] importable shared crawler runtime
+├── __init__.py
+└── logger.py
+```
+
+注意：內層 `crawlernest/crawlernest-admission-crawler/` 與外層 `crawlernest_admission_crawler/` 目前並存。前者偏 crawler workspace / historical subproject layout；後者是 Python import path 與 focused tests 使用的 package。新增 admission trust schema、resolver、validation tests 時，優先確認 import path 是 `crawlernest_admission_crawler`。
+
 ## 3. Most Important Paths
 
 ### 3.1 Entrypoints
@@ -113,6 +153,7 @@ crawlernest/crawlernest-admission-crawler/  # [MAINLINE]
 
 - `crawlernest-crawler-core/` 可以單獨維護與版本化思考，但仍屬於目前主產品 workspace 的 shared dependency。
 - 它只承接 crawler runtime primitive，不承接 ranking-specific、admission-specific、或 recommendation-specific 邏輯。
+- admission trust schema / resolver 的 importable implementation 目前位於外層 `crawlernest_admission_crawler/`。
 ```
 
 ### 3.4 Core Domain Engine
@@ -134,7 +175,7 @@ crawlernest/crawlernest-core/          # [MAINLINE]
 ```text
 crawlernest/core/services/             # [MAINLINE]
 ├── ranking_service.py
-├── recommendation_service.py
+├── recommendation_service.py          # recommendation facade + admissionResolved metadata + compact decision summary
 └── university_service.py
 
 crawlernest/interfaces/api/agent_api/  # [DEV-SUPPORT]
@@ -182,16 +223,16 @@ crawlernest/crawlernest-web/src/       # [MAINLINE]
 ├── app/                               # App Router pages
 ├── app/api/                           # API proxy / route handlers
 ├── app/rankings/
-├── app/recommendations/
+├── app/recommendations/               # recommendation flow, decision banner, export text
 ├── app/compare/
 ├── app/universities/
 ├── app/agent/
 ├── app/preview/
-├── components/
+├── components/                        # shared UI, including AdmissionSignalBadge
 ├── hooks/
 ├── lib/
 ├── types/
-└── __tests__/
+└── __tests__/                         # page/component tests, including recommendation export and admission signal badge
 ```
 
 ### 3.8 Data, Schema, Evaluation
@@ -204,6 +245,19 @@ crawlernest/crawlernest-autoeval/      # [DEV-SUPPORT] datasets / runners / repo
 crawlernest/crawlernest-analytics/     # [CONTROLLED EXPANSION] exporter / analytics helpers
 ```
 
+### 3.9 Focused Test Files
+
+```text
+test_admission_signals.py              # [MAINLINE] AdmissionSignal schema / confidence / validation tests
+test_admission_resolver.py             # [MAINLINE] deterministic admission resolver tests
+crawlernest/crawlernest-tests/test_recommendation_engine.py
+                                        # [MAINLINE] recommendation service, decision messaging, compact summary tests
+crawlernest/crawlernest-web/src/__tests__/AdmissionSignalBadge.test.tsx
+                                        # [MAINLINE] admission trust UI badge tests
+crawlernest/crawlernest-web/src/__tests__/RecommendationPageExport.test.tsx
+                                        # [MAINLINE] decision summary export / banner tests
+```
+
 ## 4. Reading Order
 
 第一次進 repo，建議用這個順序理解：
@@ -214,12 +268,13 @@ crawlernest/crawlernest-analytics/     # [CONTROLLED EXPANSION] exporter / analy
 5. `crawlernest/run_pipeline.py`
 6. `crawlernest/pipeline/`
 7. `crawlernest/crawlernest-admission-crawler/`
-8. `crawlernest/crawlernest-normalization-py/` / `crawlernest/crawlernest-normalization/`
-9. `crawlernest/crawlernest-core/`
-10. `crawlernest/core/services/`
-11. `crawlernest/servise_for_java/`
-12. `crawlernest/crawlernest-web/`
-13. `crawlernest/agent/`（確認主線後再看）
+8. `crawlernest_admission_crawler/`
+9. `crawlernest/crawlernest-normalization-py/` / `crawlernest/crawlernest-normalization/`
+10. `crawlernest/crawlernest-core/`
+11. `crawlernest/core/services/`
+12. `crawlernest/servise_for_java/`
+13. `crawlernest/crawlernest-web/`
+14. `crawlernest/agent/`（確認主線後再看）
 
 ## 5. Practical Notes
 
@@ -228,3 +283,5 @@ crawlernest/crawlernest-analytics/     # [CONTROLLED EXPANSION] exporter / analy
 - `servise_for_java/` 是歷史拼字；若之後要改名，應視為獨立 migration，不建議在一般重構中順手調整。
 - `crawlernest-web/.next/`、`node_modules/`、`servise_for_java/target/`、各處 `__pycache__/` 都是 build/cache 產物，不應列入核心架構理解。
 - `crawlernest-kb/` 與 `crawlernest-samples/` 都會出現資料 artifact；前者偏 runtime snapshots / cache / checkpoint，後者偏範例與預覽輸出。
+- `admissionResolved`、`decisionSummaryCompact`、AdmissionSignalBadge 與 Decision Snapshot export 屬於 decision product / explainability layer；它們的主要實作散落在 outer admission package、`crawlernest/core/services/recommendation_service.py` 與 `crawlernest/crawlernest-web/src/`。
+- 文件與測試中若同時看到 hyphenated subproject path 與 underscored Python package path，請以實際 import path 為準。
