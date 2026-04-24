@@ -67,6 +67,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 7. **產品層逐步落地**：在不破壞資料平台與 API 穩定性的前提下，逐步交付 Rankings Browser、University Detail、Compare、Recommendation Engine 等網站能力
 8. **可見性閉環優先**：爬到的資料若尚未 canonical 化或尚未回填至 `warehouse.ranking_record`，必須提供補種與回填路徑，避免資料永久停留在不可見層
 9. **評估驅動的 AI 輔助開發**：Mini-Agent Layer 僅作為受控開發加速層，必須經過 AutoEval 與人工判斷後才可影響主系統路徑
+10. **Admission trust 優先於 admission certainty**：admission extraction 不被直接視為絕對事實，而是先轉成可驗證、可合併、可降級、可解釋的 signals，再以 metadata 形式進入 recommendation 與 decision product
 
 ### 2.1.1 當前執行現實（Execution Reality）
 
@@ -102,7 +103,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 | Website Product Layer | Next.js Rankings Browser、University Detail、Ranking Evidence、Trust Layer、Recommendation UI、Compare Page、API Proxy、country-aware filter UI、assistant-facing decision surfaces | 已運行 | ~96% |
 | 品質與驗證 | transaction rollback、early commit、AutoEval baseline、crawler guardrails、focused regression discipline | 已運行 | ~92% |
 | 低規節點運行策略 | `lobster-01` runtime workspace、optimized scripts | 已完成 | 100% |
-| 分析與推薦 | multi-universe aggregation、explainable comparison、scope-aware recommendation v3、admission signals、composite、decision output、decision strategy | 已運作 | ~95% |
+| 分析與推薦 | multi-universe aggregation、explainable comparison、scope-aware recommendation v3、admission signals、resolved admission metadata、composite、decision output、decision strategy、compact decision summary | 已運作 | ~96% |
 | AutoEval 研究層 | extractor 評估、hard dataset、manual autoloop | 已運行 | ~72% |
 
 ---
@@ -619,6 +620,8 @@ CrawlerNest 採用五層解耦架構，確保各模組獨立演進：
 
 核心決策大腦，整合「分析」與「推薦」功能。包含排名聚合邏輯、可解釋的學校對比與基於信心模型 (Confidence Model) 的 Reach/Target/Safety 推薦。
 
+目前決策層已進一步補上 admission trust chain。Admission extraction 不直接進入 scoring truth，而是先被轉為 `AdmissionSignal`，經 validation 與 resolver 合併成 `ResolvedAdmissionField` 後，才以 `admissionResolved` metadata 形式進入 recommendation item。這些 metadata 只影響 explanation、assistant reply、decision summary、UI badges 與 export，不改變排序、過濾或計分。
+
 ### Layer 5：API 與產品層 (API Layer - Product)
 
 將決策層的能力透過嚴格型別化 (Typed JSON Envelope) 的 API 暴露給前端產品 (如 Next.js Website Product Layer)，將複雜的工程數據轉化為使用者決策。
@@ -670,6 +673,8 @@ CrawlerNest 的競爭優勢與市場定位如下：
 - **Ranking Evidence 與 Trust Layer**：產品層可顯示 QS / THE / ARWU 原始來源 rank、source agreement/disagreement、trust score 與 trust explain，避免把聚合結果包裝成不可解釋的單一數字。
 - **Canonical Country Filtering**：`/rankings` 的 `country` filter 不改 aggregation layer；它在最終 read query 上 join `canonical_university` / `countries` metadata 後套用，並在 validation、SQL filter、`metadata.countryOptions` 三處共用同一套 canonical country normalization，避免 `China` / `China (mainland)` / `USA` 這類 alias 造成空結果或重複選項。
 - **推薦決策系統 (v3) 與信心模型 (Confidence Model)**：最新推薦器將學校嚴格分類為 Reach、Target 與 Safety。動態信心模型會根據底層數據品質 (如是否缺失錄取分數要求) 調整預測準確度。
+- **Admission Signal Schema / Resolver**：admission requirement 不直接被視為最終事實。系統會先建立帶有 `source_type`、`extraction_method`、`confidence`、`evidence_text` 與 `status` 的 admission signals，再透過 deterministic resolver 合併成 field-level resolved values。衝突與低信心狀態保留到產品層，避免把不確定資料包裝成確定結論。
+- **Decision Summary Compact**：recommendation service 產生 `decisionSummaryCompact`，作為 UI banner、assistant reply 與 text export 的共用一行摘要來源。這讓「推薦方案、信心、風險、下一步」在產品介面與匯出內容中保持一致。
 - **Compare 作為產品決策層**：Compare Page 讓 shortlist 中的 2–4 所學校能 side-by-side 比較 aggregated rank、source evidence、trust、IELTS 與 warnings，讓產品從瀏覽工具進一步變成 decision-support surface。
 - **Lobster-01 基礎設施節點**：專用的低規控制節點，利用 systemd timers 與批次 I/O 執行長時間背景 pipeline，確保在受限硬體上的高韌性運作。
 - **可見性修復路徑 (Visibility Recovery Path)**：若 crawler 已將學校寫入 `warehouse.universities`，但尚未 canonical 化或尚未回填為 `warehouse.ranking_record`，系統可透過 `seed-canonical` 與 `backfill-ranking-records` 讓資料重新進入可見聚合真相。對於 THE 這類不經過 `warehouse.universities` 的來源，則可透過 `seed-canonical-from-missing` 直接從 `analytics.missing_entity_log` 補種 canonical entities 後再重跑 ingestion。
@@ -1162,15 +1167,27 @@ Raw School Name
 → 候選集合
 → 校 / 系 / 學位推薦
 → 權重計分
+→ admission resolved metadata 附加（不改分數）
+→ decision output / application plan / compact summary
 → ML 精煉（未來）
 → 最終排序
 ```
+
+需要特別注意的是，`admissionResolved` 是 recommendation item 的 explainability metadata，而不是新的 ranking factor。它用來回答：
+
+- 目前採用哪個 requirement value
+- 這個 value 的 confidence 是高、中或低
+- 有多少來源支持
+- 是否存在 conflict 或 needs_review
+
+當 signal conflict 出現時，系統只會在 `decisionOutput.decisionReason` 補上不一致提醒；當 signal confidence 偏低時，只會在 plan confidence reason 補上低信心提醒；當 relevant signals 一致且高信心時，只會補上資料一致性說明。這些都是 messaging-level integration，不會改變候選集合、排序、分桶或計分。
 
 ### 12.3 推薦架構核心價值
 
 - **可解釋性**：每個推薦結果可回溯到具體特徵與訊號
 - **可擴展性**：可逐層引入 ML，不破壞既有流程
 - **多層級支援**：University / Program / Degree 三層
+- **決策一致性**：UI、assistant reply 與 export 使用同一份 compact decision summary，避免不同介面說出彼此不一致的結論
 
 ### 12.4 推薦演進路線
 
@@ -1299,8 +1316,9 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-04-18 | 完成主開發順序規範化，正式寫入 architecture scope / data contracts / do-not-auto-modify 邊界，將專案主線重新收斂為 admission crawler、normalization、canonical、warehouse、recommendation 的 correctness-first 路徑。 | 已完成 |
 | 2026-04-19 | 完成 correctness-first hardening：admission crawler host guard、extractor input truncation 與欄位驗證、agent prompt untrusted-source guardrail、API request size cap，以及 resolution summary / unresolved report 的 anomaly visibility 補強。 | 已完成 |
 | 2026-04-22 | 完成 recommendation decision-support 主鏈的第一輪產品化：引入 structured concern vocabulary、surface-priority policy、admission composite、decision output 與 decision strategy，並同步打通 recommendation engine、service/API、assistant reply 與 recommendation UI。 | 已完成 |
+| 2026-04-24 | 完成 admission signal schema、deterministic resolver、resolved admission metadata、AdmissionSignalBadge、decisionSummaryCompact、assistant summary line 與 export Decision Snapshot，將 admission trust signals 以 messaging-only 方式整合進決策產品層。 | 已完成 |
 
-### 14.4 當前階段判讀（截至 2026-04-22）
+### 14.4 當前階段判讀（截至 2026-04-24）
 
 CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
@@ -1314,7 +1332,7 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 - rankings 主 read path 已不再依賴 demo-grade preview rows，而是建立在正式 ranking warehouse 與較清楚的前端 page-level / universe-level 語義之上
 - admission crawler 已進一步補上 host allowlist、extractor input budget、欄位硬驗證與 anomaly breakdown，資料正確性與可觀測性明顯高於早期 prototype
 - entity resolution / unresolved reporting 已開始補上 suspicious merge、country mismatch 與 manual review backlog 的可見性，讓 correctness 問題不再只停留在隱性 metadata
-- recommendation path 已從單純 match score 進一步擴展到 structured admission signals，包括 deadline intelligence、IELTS / TOEFL / GPA / Duolingo fit、admission composite、surface priority、decision output 與 decision strategy
+- recommendation path 已從單純 match score 進一步擴展到 structured admission signals，包括 deadline intelligence、IELTS / TOEFL / GPA / Duolingo fit、admission composite、surface priority、decision output、decision strategy、resolved admission metadata 與 compact decision summary
 - user-facing recommendation surface 已不再只是列出學校，而是能在 API、assistant reply 與 website UI 中以 deterministic 方式暴露 readiness、risk、top concerns、suggested action 與 application strategy
 - `crawlernest-crawler-core/` 已被正式收斂為 shared crawler runtime boundary，並開始以可獨立演進的 shared subproject 方式來界定 crawler runtime 與 engine-owned business logic 的分工
 - AutoEval 已建立 baseline，但仍需擴大 coverage 與 regression discipline
@@ -1328,7 +1346,7 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
 | 階段 | 目標 | 重點 |
 | :--- | :--- | :--- |
-| **2026（當前）** | 穩定資料平台主鏈，完成 admission-aware decision surfaces 的第一輪產品化 | shared crawler core + ranking/admission crawler 分工穩定、canonical visibility 持續補強、Website Product Layer 穩定化、admission signal chain（deadline / requirement fit / composite / decision / strategy）落地、AutoEval baseline 擴充 |
+| **2026（當前）** | 穩定資料平台主鏈，完成 admission-aware decision surfaces 的第一輪產品化 | shared crawler core + ranking/admission crawler 分工穩定、canonical visibility 持續補強、Website Product Layer 穩定化、admission signal chain（signal schema / resolver / resolved metadata / requirement fit / composite / decision / strategy / compact summary）落地、AutoEval baseline 擴充 |
 | **2027** | 從校級 decision-support 走向更完整的 admission-readiness 平台 | 強化 entity resolution、coverage validation、recommendation calibration、program / degree-aware admission facts、更清楚的 decision contract 與 product read models |
 | **2028** | 平台化資料服務與 intelligence tooling | 更成熟的 analytics service、對外或對內更清楚的 public interfaces、觀測性與評估能力擴張、system-integrated intelligence tooling 深化 |
 | **2029** | 形成可持續擴展的教育資料基礎設施 | 在可靠性、資料契約、產品決策支援與 evaluation-driven AI-assisted development workflow 之間建立長期穩定平衡 |

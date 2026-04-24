@@ -22,6 +22,7 @@ from recommendation_engine import (  # noqa: E402
 )
 from recommendation_engine.engine import _build_decision_strategy  # noqa: E402
 from crawlernest.core.services.recommendation_service import RecommendationService  # noqa: E402
+from crawlernest_admission_crawler.resolver import ResolvedAdmissionField  # noqa: E402
 
 
 class TestRecommendationEngine(unittest.TestCase):
@@ -785,6 +786,249 @@ class TestRecommendationEngine(unittest.TestCase):
         items, _counts = self.service._flatten_grouped_results(payload)
         self.assertNotIn("deadlineInfo", items[0])
         self.assertNotIn("deadlineHighlight", items[0])
+
+    def test_resolved_field_appears_in_output(self):
+        items, _counts = self.service._flatten_grouped_results(
+            {
+                "target": [
+                    self._build_service_row(
+                        admission_resolved={
+                            "ielts": ResolvedAdmissionField(
+                                field="ielts",
+                                resolved_value=6.5,
+                                confidence=0.85,
+                                source_count=2,
+                                sources=["https://a.example", "https://b.example"],
+                                resolution_reason="all usable signals agree",
+                                status="accepted",
+                            )
+                        }
+                    )
+                ]
+            }
+        )
+
+        self.assertEqual(
+            items[0]["admissionResolved"]["ielts"],
+            {
+                "value": 6.5,
+                "confidence": 0.85,
+                "sourceCount": 2,
+                "status": "accepted",
+            },
+        )
+
+    def test_missing_resolved_field_not_included(self):
+        items, _counts = self.service._flatten_grouped_results(
+            {
+                "target": [
+                    self._build_service_row(
+                        admission_resolved={
+                            "ielts": {
+                                "resolved_value": 6.5,
+                                "confidence": 0.85,
+                                "source_count": 2,
+                                "status": "accepted",
+                            }
+                        }
+                    )
+                ]
+            }
+        )
+
+        self.assertIn("ielts", items[0]["admissionResolved"])
+        self.assertNotIn("deadline", items[0]["admissionResolved"])
+        self.assertNotIn("sat", items[0]["admissionResolved"])
+
+    def test_conflict_resolved_field_preserved(self):
+        items, _counts = self.service._flatten_grouped_results(
+            {
+                "target": [
+                    self._build_service_row(
+                        admission_resolved={
+                            "ielts": {
+                                "value": "6.0-6.5",
+                                "confidence": 0.8,
+                                "sourceCount": 2,
+                                "status": "conflict",
+                            }
+                        }
+                    )
+                ]
+            }
+        )
+
+        self.assertEqual(items[0]["admissionResolved"]["ielts"]["value"], "6.0-6.5")
+        self.assertEqual(items[0]["admissionResolved"]["ielts"]["status"], "conflict")
+
+    def test_needs_review_resolved_field_preserved(self):
+        items, _counts = self.service._flatten_grouped_results(
+            {
+                "target": [
+                    self._build_service_row(
+                        admission_resolved={
+                            "ielts": {
+                                "resolved_value": 6.5,
+                                "confidence": 0.55,
+                                "source_count": 1,
+                                "status": "needs_review",
+                            }
+                        }
+                    )
+                ]
+            }
+        )
+
+        self.assertEqual(items[0]["admissionResolved"]["ielts"]["status"], "needs_review")
+        self.assertIn("IELTS requirement: 6.5 (needs verification)", items[0]["admissionResolvedLines"])
+
+    def test_multiple_resolved_fields_mapping_correct(self):
+        items, _counts = self.service._flatten_grouped_results(
+            {
+                "target": [
+                    self._build_service_row(
+                        admission_resolved={
+                            "ielts": {
+                                "resolved_value": 6.5,
+                                "confidence": 0.85,
+                                "source_count": 2,
+                                "status": "accepted",
+                            },
+                            "deadline": {
+                                "resolved_value": {
+                                    "early": "2025-12-01",
+                                    "final": "2026-04-15",
+                                },
+                                "confidence": 0.8,
+                                "source_count": 2,
+                                "status": "accepted",
+                            },
+                            "country": {
+                                "resolved_value": "United Kingdom",
+                                "confidence": 0.9,
+                                "source_count": 2,
+                                "status": "accepted",
+                            },
+                        }
+                    )
+                ]
+            }
+        )
+
+        self.assertEqual(items[0]["admissionResolved"]["ielts"]["sourceCount"], 2)
+        self.assertEqual(
+            items[0]["admissionResolved"]["deadline"]["value"],
+            {"early": "2025-12-01", "final": "2026-04-15"},
+        )
+        self.assertNotIn("country", items[0]["admissionResolved"])
+
+    def test_assistant_line_formatting_for_resolved_admission(self):
+        items, counts = self.service._flatten_grouped_results(
+            {
+                "target": [
+                    self._build_service_row(
+                        admission_resolved={
+                            "ielts": {
+                                "resolved_value": 6.5,
+                                "confidence": 0.85,
+                                "source_count": 2,
+                                "status": "accepted",
+                            }
+                        }
+                    )
+                ]
+            }
+        )
+        assistant_reply, paragraphs = self.service._build_assistant_reply(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100),
+            counts=counts,
+            items=items,
+        )
+
+        expected = "IELTS requirement: 6.5 (based on 2 sources, high confidence)"
+        self.assertIn(expected, paragraphs)
+        self.assertIn(expected, assistant_reply)
+
+    def test_conflict_signal_appends_decision_reason_message(self):
+        items, _counts = self.service._flatten_grouped_results(
+            {
+                "target": [
+                    self._build_service_row(
+                        admission_resolved={
+                            "ielts": {
+                                "value": "6.0-6.5",
+                                "confidence": 0.8,
+                                "sourceCount": 2,
+                                "status": "conflict",
+                            }
+                        },
+                        decision_output={
+                            "decision_action": "apply",
+                            "decision_strength": "moderate",
+                            "decision_reason": "This is a workable option.",
+                            "recommended_next_steps": [],
+                        },
+                    )
+                ]
+            }
+        )
+
+        self.assertIn(
+            "Some requirement signals are inconsistent across sources.",
+            items[0]["decisionOutput"]["decisionReason"],
+        )
+
+    def test_low_confidence_signal_appends_plan_confidence_reason(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item(
+                    "Target Option",
+                    matching_score=0.84,
+                    action="apply",
+                    risk="medium",
+                    admission_resolved={
+                        "ielts": {
+                            "value": 6.5,
+                            "confidence": 0.55,
+                            "sourceCount": 1,
+                            "status": "accepted",
+                        }
+                    },
+                ),
+                self._build_service_item("Safety Option", matching_score=0.94, action="apply", risk="low"),
+            ]
+        )
+
+        self.assertIn(
+            "Some requirement signals have low confidence.",
+            plan["planConfidenceReason"],
+        )
+
+    def test_high_confidence_signals_append_consistency_reason(self):
+        plan = self.service._build_application_plan(
+            [
+                self._build_service_item(
+                    "Target Option",
+                    matching_score=0.84,
+                    action="apply",
+                    risk="medium",
+                    admission_resolved={
+                        "ielts": {
+                            "value": 6.5,
+                            "confidence": 0.85,
+                            "sourceCount": 2,
+                            "status": "accepted",
+                        }
+                    },
+                ),
+                self._build_service_item("Safety Option", matching_score=0.94, action="apply", risk="low"),
+            ]
+        )
+
+        self.assertIn(
+            "Requirement signals are consistent across sources.",
+            plan["planConfidenceReason"],
+        )
 
     def test_service_exposes_ielts_fit_highlight_when_ielts_fit_info_exists(self):
         payload = grouped_recommendations_to_dict(
@@ -2298,6 +2542,85 @@ class TestRecommendationEngine(unittest.TestCase):
         self.assertEqual(summary["topRecommendation"]["university"], "Target Option")
         self.assertEqual(summary["nextAction"]["type"], "plan")
 
+    def test_decision_summary_compact_always_exists_when_recommendation_exists(self):
+        application_plans = [
+            {
+                "planName": "balanced",
+                "planSummary": "Balanced summary",
+                "planConfidence": "high",
+                "riskDistribution": "Overall plan risk: moderate (high=0, medium=1, low=1).",
+                "target": [],
+                "reach": [],
+                "safety": [],
+            }
+        ]
+
+        compact = self.service._build_decision_summary_compact(
+            application_plans=application_plans,
+            plan_comparison={"recommendedPlan": "balanced", "reason": "Balanced reason.", "tradeoffs": []},
+            plan_delta=None,
+            best_scenario_insight=None,
+            improvement_priority=None,
+            next_action_guide=None,
+        )
+
+        self.assertEqual(
+            compact,
+            {
+                "plan": "Balanced",
+                "confidence": "High",
+                "risk": "Moderate",
+                "topReason": "Balanced reason.",
+                "nextStep": "Review application plan",
+            },
+        )
+
+    def test_decision_summary_compact_fields_are_deterministic(self):
+        compact = self.service._build_decision_summary_compact(
+            application_plans=[
+                {
+                    "planName": "balanced",
+                    "planConfidence": "medium",
+                    "riskDistribution": "Overall plan risk: low (high=0, medium=0, low=2).",
+                    "target": [],
+                    "reach": [],
+                    "safety": [],
+                }
+            ],
+            plan_comparison={"recommendedPlan": "balanced", "reason": "Comparison reason.", "tradeoffs": []},
+            plan_delta={
+                "recommendedPlan": "balanced",
+                "comparisonAgainstAlternatives": ["First delta line.", "Second delta line."],
+            },
+            best_scenario_insight={"scenarioLabel": "IELTS +0.5"},
+            improvement_priority={"recommendedScenarioLabel": "GPA +0.2"},
+            next_action_guide={"suggestedNextAction": "Focus on the Balanced plan"},
+        )
+
+        self.assertEqual(compact["plan"], "Balanced")
+        self.assertEqual(compact["confidence"], "Medium")
+        self.assertEqual(compact["risk"], "Low")
+        self.assertEqual(compact["topReason"], "First delta line.")
+        self.assertEqual(compact["nextStep"], "GPA +0.2")
+
+    def test_assistant_reply_includes_summary_line_at_top(self):
+        assistant_reply, paragraphs = self.service._build_assistant_reply(
+            query=RecommendationQuery(country="United Kingdom", ielts_score=6.5, target_rank=100, limit=3),
+            counts={"target": 1},
+            items=[self._build_service_item("Target Option", matching_score=0.84, action="apply", risk="medium")],
+            decision_summary_compact={
+                "plan": "Balanced",
+                "confidence": "High",
+                "risk": "Moderate",
+                "topReason": "Strong coverage with stable requirements",
+                "nextStep": "GPA +0.2",
+            },
+        )
+
+        expected = "Recommended plan: Balanced. Confidence: High. Next step: GPA +0.2."
+        self.assertEqual(paragraphs[0], expected)
+        self.assertTrue(assistant_reply.startswith(expected))
+
     def test_decision_summary_builds_with_full_fields(self):
         application_plans = [
             {
@@ -2474,6 +2797,43 @@ class TestRecommendationEngine(unittest.TestCase):
             metadata=metadata or {},
         )
 
+    def _build_service_row(
+        self,
+        admission_resolved: dict | None = None,
+        decision_output: dict | None = None,
+    ) -> dict:
+        row = {
+            "canonical_university_id": 99,
+            "university_name": "University of Example",
+            "country": "United Kingdom",
+            "aggregated_rank": 42,
+            "gpa_requirement": 3.5,
+            "ielts_requirement": 6.5,
+            "toefl_requirement": 90.0,
+            "duolingo_requirement": 120.0,
+            "score": 0.87,
+            "category": "target",
+            "preference_alignment": "strong",
+            "recommendation_confidence": 82.0,
+            "confidence_reason": "Confidence is stable",
+            "explanation": "Recommended because test fixture",
+            "decision_output": decision_output,
+            "score_breakdown": {
+                "ranking_score": 0.8,
+                "ielts_fit_score": 1.0,
+                "completeness_score": 0.9,
+                "weights_used": {"ranking": 0.5},
+                "contributions": {"ranking": 0.4},
+                "effective_rank_used": 42,
+                "effective_rank_source": "AGGREGATED",
+                "rules_passed": ["country=United Kingdom"],
+            },
+            "aggregation_method_version": "rank_agg_v1",
+        }
+        if admission_resolved is not None:
+            row["admission_resolved"] = admission_resolved
+        return row
+
     def _build_plan_variant(
         self,
         plan_name: str,
@@ -2504,8 +2864,9 @@ class TestRecommendationEngine(unittest.TestCase):
         risk: str,
         strategy: str | None = None,
         reason: str | None = None,
+        admission_resolved: dict | None = None,
     ) -> dict:
-        return {
+        item = {
             "universityName": university_name,
             "matchingScore": matching_score,
             "decisionOutput": {
@@ -2519,6 +2880,9 @@ class TestRecommendationEngine(unittest.TestCase):
                 "admissionRisk": risk,
             },
         }
+        if admission_resolved is not None:
+            item["admissionResolved"] = admission_resolved
+        return item
 
 class _FakeCursor:
     def __init__(self, rows):

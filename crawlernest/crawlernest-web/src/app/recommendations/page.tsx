@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { fetchAppJson } from "@/lib/api";
+import { AdmissionSignalBadge } from "@/components/AdmissionSignalBadge";
 import { PlanComparisonMatrix } from "@/components/PlanComparisonMatrix";
 import {
   formatIelts,
@@ -45,6 +46,13 @@ type ShortlistItem = {
 type ComparisonItem = ShortlistItem & {
   ieltsMin?: number;
   matchingScore?: number;
+};
+
+type AdmissionResolvedField = {
+  value: number | string | Record<string, string>;
+  confidence: number;
+  sourceCount: number;
+  status: "accepted" | "needs_review" | "conflict" | "missing" | string;
 };
 
 type RecommendationItem = {
@@ -93,6 +101,10 @@ type RecommendationItem = {
     priorityScore?: number;
     emphasized?: boolean;
   }>;
+  admissionResolved?: Partial<
+    Record<"ielts" | "toefl" | "gpa" | "duolingo" | "deadline", AdmissionResolvedField>
+  >;
+  admissionResolvedLines?: string[];
   toeflFitHighlight?: {
     requiredScore: number;
     userScore: number;
@@ -282,9 +294,16 @@ type RecommendationResponse = {
       label: string;
     };
   };
+  decisionSummaryCompact?: {
+    plan: string;
+    confidence: string;
+    risk: string;
+    topReason: string;
+    nextStep: string;
+  };
   decisionSummary?: {
     generatedAt: string;
-    profileSnapshot: {
+    profileSnapshot?: {
       country?: string;
       ielts?: number;
       toefl?: number;
@@ -292,7 +311,7 @@ type RecommendationResponse = {
       duolingo?: number;
       targetRank?: number;
     };
-    recommendedPlan: {
+    recommendedPlan?: {
       plan: PlanName;
       summary?: string;
       confidence?: string;
@@ -360,13 +379,19 @@ const VALID_SCENARIO_KEYS: ScenarioKey[] = [
   "gpa_plus_0_2",
   "target_rank_tighter_20",
 ];
+type ScenarioTargetPayload = {
+  ielts_delta?: number;
+  toefl_delta?: number;
+  gpa_delta?: number;
+  target_rank_delta?: number;
+};
 const VALID_FOCUS_VALUES: CurrentFocus[] = ["plan", "scenario", "improvement"];
-const SCENARIO_TARGETS = {
+const SCENARIO_TARGETS: Record<ScenarioKey, ScenarioTargetPayload> = {
   ielts_plus_0_5: { ielts_delta: 0.5 },
   toefl_plus_5: { toefl_delta: 5 },
   gpa_plus_0_2: { gpa_delta: 0.2 },
   target_rank_tighter_20: { target_rank_delta: -20 },
-} as const;
+};
 const SCENARIO_LABEL_TO_KEY: Record<string, ScenarioKey> = {
   "IELTS +0.5": "ielts_plus_0_5",
   "TOEFL +5": "toefl_plus_5",
@@ -641,32 +666,34 @@ function parseImportedDecisionSummary(
       ? (raw.profileSnapshot as Record<string, unknown>)
       : null;
   if (profileSnapshot) {
+    const normalizedProfile = summary.profileSnapshot ?? {};
     if (typeof profileSnapshot.country === "string" && profileSnapshot.country.trim()) {
-      summary.profileSnapshot.country = profileSnapshot.country.trim();
+      normalizedProfile.country = profileSnapshot.country.trim();
     }
     const ielts = parseImportedSummaryNumber(profileSnapshot.ielts, { min: 0, max: 9 });
     if (ielts !== undefined) {
-      summary.profileSnapshot.ielts = ielts;
+      normalizedProfile.ielts = ielts;
     }
     const toefl = parseImportedSummaryNumber(profileSnapshot.toefl, { min: 0, max: 120 });
     if (toefl !== undefined) {
-      summary.profileSnapshot.toefl = toefl;
+      normalizedProfile.toefl = toefl;
     }
     const gpa = parseImportedSummaryNumber(profileSnapshot.gpa, { min: 0, max: 4.3 });
     if (gpa !== undefined) {
-      summary.profileSnapshot.gpa = gpa;
+      normalizedProfile.gpa = gpa;
     }
     const duolingo = parseImportedSummaryNumber(profileSnapshot.duolingo, { min: 0, max: 160 });
     if (duolingo !== undefined) {
-      summary.profileSnapshot.duolingo = duolingo;
+      normalizedProfile.duolingo = duolingo;
     }
     const targetRank = parseImportedSummaryNumber(profileSnapshot.targetRank, {
       min: 1,
       max: 5000,
     });
     if (targetRank !== undefined) {
-      summary.profileSnapshot.targetRank = targetRank;
+      normalizedProfile.targetRank = targetRank;
     }
+    summary.profileSnapshot = normalizedProfile;
   }
 
   const recommendedPlan =
@@ -674,7 +701,7 @@ function parseImportedDecisionSummary(
       ? (raw.recommendedPlan as Record<string, unknown>)
       : null;
   if (recommendedPlan && isPlanName(recommendedPlan.plan)) {
-    summary.recommendedPlan.plan = recommendedPlan.plan;
+    summary.recommendedPlan = { plan: recommendedPlan.plan };
     if (typeof recommendedPlan.summary === "string" && recommendedPlan.summary) {
       summary.recommendedPlan.summary = recommendedPlan.summary;
     }
@@ -822,13 +849,23 @@ function buildImportedSummaryPreview(
 }
 
 export function buildDecisionSummaryText(
-  decisionSummary: RecommendationResponse["decisionSummary"] | null | undefined
+  decisionSummary: RecommendationResponse["decisionSummary"] | null | undefined,
+  decisionSummaryCompact?: RecommendationResponse["decisionSummaryCompact"] | null
 ) {
   if (!decisionSummary) {
     return "";
   }
 
-  const sections: string[][] = [["Decision Summary"]];
+  const sections: string[][] = [];
+  if (decisionSummaryCompact) {
+    pushSummarySection(sections, "Decision Snapshot", [
+      decisionSummaryCompact.plan ? `- Plan: ${decisionSummaryCompact.plan}` : null,
+      decisionSummaryCompact.confidence ? `- Confidence: ${decisionSummaryCompact.confidence}` : null,
+      decisionSummaryCompact.risk ? `- Risk: ${decisionSummaryCompact.risk}` : null,
+      decisionSummaryCompact.nextStep ? `- Next Step: ${decisionSummaryCompact.nextStep}` : null,
+    ]);
+  }
+  sections.push(["Decision Summary"]);
   const profileEntries = Object.entries(decisionSummary.profileSnapshot ?? {}).filter(
     ([, value]) => value !== undefined && value !== null && value !== ""
   );
@@ -958,6 +995,17 @@ function formatConfidence(value: number | null | undefined) {
 
   return `${Math.round(value)}%`;
 }
+
+function resolvedFieldLabel(field: string) {
+  const labels: Record<string, string> = {
+    ielts: "IELTS",
+    toefl: "TOEFL",
+    gpa: "GPA",
+    duolingo: "Duolingo",
+    deadline: "Deadline",
+  };
+  return labels[field] ?? titleCaseWords(field);
+}
 function truncatePlanText(text: string | undefined, maxLength = 110) {
   if (!text) {
     return null;
@@ -996,6 +1044,7 @@ export function RecommendationPageContent() {
   const [bestScenarioInsight, setBestScenarioInsight] = useState<RecommendationResponse["bestScenarioInsight"] | null>(null);
   const [improvementPriority, setImprovementPriority] = useState<RecommendationResponse["improvementPriority"] | null>(null);
   const [nextActionGuide, setNextActionGuide] = useState<RecommendationResponse["nextActionGuide"] | null>(null);
+  const [decisionSummaryCompact, setDecisionSummaryCompact] = useState<RecommendationResponse["decisionSummaryCompact"] | null>(null);
   const [decisionSummary, setDecisionSummary] = useState<RecommendationResponse["decisionSummary"] | null>(null);
   const [persistenceReady, setPersistenceReady] = useState(false);
   const [showRestoredStateCue, setShowRestoredStateCue] = useState(false);
@@ -1373,6 +1422,7 @@ export function RecommendationPageContent() {
       setBestScenarioInsight(json.bestScenarioInsight ?? null);
       setImprovementPriority(json.improvementPriority ?? null);
       setNextActionGuide(json.nextActionGuide ?? null);
+      setDecisionSummaryCompact(json.decisionSummaryCompact ?? null);
       setDecisionSummary(json.decisionSummary ?? null);
       setCurrentFocus(json.nextActionGuide?.currentFocus ?? currentFocus);
     } catch {
@@ -1389,6 +1439,7 @@ export function RecommendationPageContent() {
       setBestScenarioInsight(null);
       setImprovementPriority(null);
       setNextActionGuide(null);
+      setDecisionSummaryCompact(null);
       setDecisionSummary(null);
     } finally {
       setLoading(false);
@@ -1503,7 +1554,7 @@ export function RecommendationPageContent() {
       return;
     }
     try {
-      await navigator.clipboard.writeText(buildDecisionSummaryText(decisionSummary));
+      await navigator.clipboard.writeText(buildDecisionSummaryText(decisionSummary, decisionSummaryCompact));
       setExportStatus("Copied text summary.");
     } catch {
       setExportStatus("Could not copy summary.");
@@ -2095,6 +2146,20 @@ export function RecommendationPageContent() {
                 <p className="mt-2 text-sm text-[#6b7068]">
                   Three deterministic plan variants so we can compare balance, safety, and upside from the same recommendation set.
                 </p>
+                {decisionSummaryCompact ? (
+                  <div className="mt-5 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] p-4">
+                    <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#1a3d2e]">
+                      <span>{decisionSummaryCompact.plan} Plan</span>
+                      <span className="text-[#9aa59d]">|</span>
+                      <span>{decisionSummaryCompact.confidence} Confidence</span>
+                      <span className="text-[#9aa59d]">|</span>
+                      <span>Next: {decisionSummaryCompact.nextStep}</span>
+                    </div>
+                    <div className="mt-2 text-sm text-[#4b5b53]">
+                      {decisionSummaryCompact.topReason}
+                    </div>
+                  </div>
+                ) : null}
                 {planComparison ? (
                   <div className="mt-5 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] p-4 text-sm leading-6 text-[#315343]">
                     <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
@@ -2757,6 +2822,32 @@ function Section({
               {item.decisionOutput ? (
                 <div className="mt-4">
                   <DecisionOutputCard decision={item.decisionOutput} />
+                </div>
+              ) : null}
+
+              {item.admissionResolved && Object.keys(item.admissionResolved).length > 0 ? (
+                <div className="mt-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                    Admission Signals
+                  </div>
+                  <div className="mt-2 grid gap-2">
+                    {(["ielts", "toefl", "gpa", "deadline"] as const).map((field) => {
+                      const resolved = item.admissionResolved?.[field];
+                      if (!resolved) {
+                        return null;
+                      }
+                      return (
+                        <AdmissionSignalBadge
+                          key={`${item.canonicalUniversityId}-resolved-${field}`}
+                          label={resolvedFieldLabel(field)}
+                          value={resolved.value}
+                          confidence={resolved.confidence}
+                          sourceCount={resolved.sourceCount}
+                          status={resolved.status}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               ) : null}
 

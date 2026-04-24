@@ -23,6 +23,8 @@ from recommendation_engine import (  # type: ignore[import-not-found]
     recommend_universities_v3,
 )
 
+ADMISSION_RESOLVED_FIELDS = frozenset({"ielts", "toefl", "gpa", "duolingo", "deadline"})
+
 try:
     import psycopg2
 except ImportError:  # pragma: no cover - environment-dependent
@@ -111,11 +113,20 @@ class RecommendationService:
             improvement_priority=improvement_priority,
             next_action_guide=next_action_guide,
         )
+        decision_summary_compact = self._build_decision_summary_compact(
+            application_plans=application_plans,
+            plan_comparison=plan_comparison,
+            plan_delta=plan_delta,
+            best_scenario_insight=best_scenario_insight,
+            improvement_priority=improvement_priority,
+            next_action_guide=next_action_guide,
+        )
         summary = self._build_summary(query=query, counts=counts, total_items=len(items))
         assistant_reply, paragraphs = self._build_assistant_reply(
             query=query,
             counts=counts,
             items=items,
+            decision_summary_compact=decision_summary_compact,
             application_plan=application_plan,
             application_plans=application_plans,
             plan_comparison=plan_comparison,
@@ -150,6 +161,7 @@ class RecommendationService:
             **({"improvementPriority": improvement_priority} if improvement_priority is not None else {}),
             **({"nextActionGuide": next_action_guide} if next_action_guide is not None else {}),
             **({"decisionSummary": decision_summary} if decision_summary is not None else {}),
+            **({"decisionSummaryCompact": decision_summary_compact} if decision_summary_compact is not None else {}),
             "groups": {
                 "reach": payload.get("reach", []),
                 "target": payload.get("target", []),
@@ -253,7 +265,13 @@ class RecommendationService:
                 gpa_highlight = self._build_requirement_fit_highlight("GPA", row.get("gpa_fit_info"))
                 duolingo_highlight = self._build_requirement_fit_highlight("Duolingo", row.get("duolingo_fit_info"))
                 admission_composite = self._build_admission_composite(row.get("admission_composite"))
+                admission_resolved = self._build_admission_resolved(row)
+                admission_resolved_lines = self._build_admission_resolved_lines(admission_resolved)
                 decision_output = self._build_decision_output(row.get("decision_output"))
+                decision_output = self._append_admission_trust_to_decision_output(
+                    decision_output,
+                    admission_resolved,
+                )
                 decision_strategy = self._build_decision_strategy(row.get("decision_strategy"))
 
                 item = {
@@ -291,6 +309,8 @@ class RecommendationService:
                     **({"admissionComposite": admission_composite} if admission_composite is not None else {}),
                     **({"decisionOutput": decision_output} if decision_output is not None else {}),
                     **({"decisionStrategy": decision_strategy} if decision_strategy is not None else {}),
+                    **({"admissionResolved": admission_resolved} if admission_resolved else {}),
+                    **({"admissionResolvedLines": admission_resolved_lines} if admission_resolved_lines else {}),
                 }
 
                 surface_signals = self._rank_signals_for_surface(item)
@@ -339,6 +359,7 @@ class RecommendationService:
         best_scenario_insight: dict[str, Any] | None = None,
         improvement_priority: dict[str, Any] | None = None,
         next_action_guide: dict[str, Any] | None = None,
+        decision_summary_compact: dict[str, Any] | None = None,
     ) -> tuple[str, list[str]]:
         if not items:
             paragraphs = [
@@ -347,13 +368,17 @@ class RecommendationService:
             ]
             return "\n\n".join(paragraphs), paragraphs
 
+        summary_line = self._build_compact_summary_line(decision_summary_compact)
         top_names = [str(item.get("universityName")) for item in items[:3] if item.get("universityName")]
         first = top_names[0] if top_names else "the top result"
         country_text = f" in {query.country}" if query.country else ""
 
-        paragraphs = [
+        paragraphs = []
+        if summary_line:
+            paragraphs.append(summary_line)
+        paragraphs.append(
             f"I built a recommendation slice{country_text} and {first} currently looks like the strongest fit in the retrieved results."
-        ]
+        )
 
         if top_names:
             paragraphs.append(
@@ -394,6 +419,9 @@ class RecommendationService:
             paragraphs.extend(surfaced_notes[: self.MAX_SURFACED_SIGNALS])
 
         composite_note = self._build_admission_composite_note(items[0]) if items else None
+        resolved_note = self._build_admission_resolved_note(items[0]) if items else None
+        if resolved_note:
+            paragraphs.append(resolved_note)
         if composite_note:
             paragraphs.append(composite_note)
         decision_note = self._build_decision_output_note(items[0]) if items else None
@@ -715,6 +743,136 @@ class RecommendationService:
             return f"{label} note: {reason}, so this option is higher risk."
         return f"{label} note: {reason}."
 
+    def _append_admission_trust_to_decision_output(
+        self,
+        decision_output: dict[str, Any] | None,
+        admission_resolved: dict[str, dict[str, Any]],
+    ) -> dict[str, Any] | None:
+        if not isinstance(decision_output, dict):
+            return decision_output
+        if not self._has_conflicting_admission_signal(admission_resolved):
+            return decision_output
+
+        reason = decision_output.get("decisionReason")
+        if not isinstance(reason, str) or not reason:
+            return decision_output
+
+        message = "Some requirement signals are inconsistent across sources."
+        if message in reason:
+            return decision_output
+
+        return {
+            **decision_output,
+            "decisionReason": self._append_sentence(reason, message),
+        }
+
+    def _build_admission_resolved(self, row: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        raw = row.get("admission_resolved") or row.get("admissionResolved")
+        if not isinstance(raw, dict):
+            return {}
+
+        resolved: dict[str, dict[str, Any]] = {}
+        for field in sorted(ADMISSION_RESOLVED_FIELDS):
+            source = raw.get(field)
+            if source is None:
+                continue
+            mapped = self._map_resolved_admission_field(source)
+            if mapped is not None:
+                resolved[field] = mapped
+        return resolved
+
+    def _map_resolved_admission_field(self, source: Any) -> dict[str, Any] | None:
+        if isinstance(source, dict):
+            value = source.get("resolved_value", source.get("value"))
+            confidence = source.get("confidence")
+            source_count = source.get("source_count", source.get("sourceCount"))
+            status = source.get("status")
+        else:
+            value = getattr(source, "resolved_value", getattr(source, "value", None))
+            confidence = getattr(source, "confidence", None)
+            source_count = getattr(source, "source_count", getattr(source, "sourceCount", None))
+            status = getattr(source, "status", None)
+
+        if confidence is None or source_count is None or not isinstance(status, str):
+            return None
+
+        payload: dict[str, Any] = {
+            "value": value,
+            "confidence": confidence,
+            "sourceCount": source_count,
+            "status": status,
+        }
+        return payload
+
+    def _build_admission_resolved_lines(self, resolved: dict[str, dict[str, Any]]) -> list[str]:
+        lines: list[str] = []
+        for field in ("ielts", "toefl", "gpa", "duolingo", "deadline"):
+            info = resolved.get(field)
+            if not isinstance(info, dict):
+                continue
+            line = self._format_admission_resolved_line(field, info)
+            if line is not None:
+                lines.append(line)
+        return lines
+
+    def _build_admission_resolved_note(self, item: dict[str, Any]) -> str | None:
+        lines = item.get("admissionResolvedLines")
+        if not isinstance(lines, list):
+            return None
+        return next((line for line in lines if isinstance(line, str) and line), None)
+
+    def _format_admission_resolved_line(self, field: str, info: dict[str, Any]) -> str | None:
+        value = info.get("value")
+        confidence = info.get("confidence")
+        source_count = info.get("sourceCount")
+        status = str(info.get("status") or "")
+        if value is None or not isinstance(source_count, int):
+            return None
+
+        label = {
+            "ielts": "IELTS",
+            "toefl": "TOEFL",
+            "gpa": "GPA",
+            "duolingo": "Duolingo",
+            "deadline": "Deadline",
+        }.get(field, field.capitalize())
+        value_text = self._format_admission_resolved_value(value)
+
+        if status == "conflict":
+            return f"{label} requirement: {value_text} (conflicting sources)"
+        if status == "needs_review":
+            return f"{label} requirement: {value_text} (needs verification)"
+
+        confidence_label = self._admission_resolved_confidence_label(confidence)
+        source_label = "source" if source_count == 1 else "sources"
+        return (
+            f"{label} requirement: {value_text} "
+            f"(based on {source_count} {source_label}, {confidence_label} confidence)"
+        )
+
+    def _format_admission_resolved_value(self, value: Any) -> str:
+        if isinstance(value, dict):
+            parts = [
+                f"{key} {value[key]}"
+                for key in ("early", "final", "rolling")
+                if key in value and value[key] is not None
+            ]
+            if parts:
+                return ", ".join(parts)
+            return json.dumps(value, sort_keys=True)
+        if isinstance(value, float) and value.is_integer():
+            return str(int(value))
+        return str(value)
+
+    def _admission_resolved_confidence_label(self, confidence: Any) -> str:
+        if not isinstance(confidence, (int, float)):
+            return "unknown"
+        if confidence >= 0.8:
+            return "high"
+        if confidence >= 0.6:
+            return "medium"
+        return "low"
+
     def _build_admission_composite(self, composite: Any) -> dict[str, Any] | None:
         if not isinstance(composite, dict):
             return None
@@ -932,6 +1090,12 @@ class RecommendationService:
                 risk = row.get("risk")
                 if isinstance(risk, str) and risk in risk_counts:
                     risk_counts[risk] += 1
+        plan_items = [
+            row
+            for rows in grouped.values()
+            for row in rows
+            if isinstance(row, dict)
+        ]
 
         reach_count = len(grouped["reach"])
         target_count = len(grouped["target"])
@@ -964,6 +1128,17 @@ class RecommendationService:
             for category, rows in grouped.items()
         }
 
+        confidence_reason = self._append_admission_trust_to_plan_confidence_reason(
+            self._build_application_plan_confidence_reason(
+                target_count=target_count,
+                safety_count=safety_count,
+                warnings=warnings,
+                quality_adjustment=quality_adjustment,
+                confidence=confidence,
+            ),
+            plan_items,
+        )
+
         return {
             "planName": plan_name,
             "reach": public_grouped["reach"],
@@ -989,13 +1164,7 @@ class RecommendationService:
             **({"primaryChoice": primary_choice} if primary_choice is not None else {}),
             "planWarnings": warnings,
             "planConfidence": confidence,
-            "planConfidenceReason": self._build_application_plan_confidence_reason(
-                target_count=target_count,
-                safety_count=safety_count,
-                warnings=warnings,
-                quality_adjustment=quality_adjustment,
-                confidence=confidence,
-            ),
+            "planConfidenceReason": confidence_reason,
         }
 
     def _is_valid_application_plan_variant(self, plan: dict[str, Any]) -> bool:
@@ -1579,6 +1748,97 @@ class RecommendationService:
 
         return decision_summary
 
+    def _build_decision_summary_compact(
+        self,
+        *,
+        application_plans: list[dict[str, Any]] | None,
+        plan_comparison: dict[str, Any] | None,
+        plan_delta: dict[str, Any] | None,
+        best_scenario_insight: dict[str, Any] | None,
+        improvement_priority: dict[str, Any] | None,
+        next_action_guide: dict[str, Any] | None,
+    ) -> dict[str, str] | None:
+        if not application_plans or not isinstance(plan_comparison, dict):
+            return None
+
+        recommended_plan_name = self._normalize_plan_name(plan_comparison.get("recommendedPlan"))
+        recommended_plan = self._find_plan_by_name(application_plans, recommended_plan_name or "")
+        if recommended_plan_name is None or not isinstance(recommended_plan, dict):
+            return None
+
+        return {
+            "plan": recommended_plan_name.capitalize(),
+            "confidence": self._compact_confidence(recommended_plan.get("planConfidence")),
+            "risk": self._compact_risk(recommended_plan.get("riskDistribution")),
+            "topReason": self._compact_top_reason(plan_delta, plan_comparison),
+            "nextStep": self._compact_next_step(
+                improvement_priority=improvement_priority,
+                best_scenario_insight=best_scenario_insight,
+                next_action_guide=next_action_guide,
+            ),
+        }
+
+    def _compact_confidence(self, value: Any) -> str:
+        if isinstance(value, str) and value:
+            return value.capitalize()
+        return "Unknown"
+
+    def _compact_risk(self, risk_distribution: Any) -> str:
+        if not isinstance(risk_distribution, str) or not risk_distribution:
+            return "Unknown"
+        prefix = "Overall plan risk:"
+        if risk_distribution.startswith(prefix):
+            raw = risk_distribution.removeprefix(prefix).strip().split(" ", 1)[0]
+            return raw.strip(" .").capitalize() if raw else "Unknown"
+        return risk_distribution.strip().split(" ", 1)[0].strip(" .").capitalize()
+
+    def _compact_top_reason(
+        self,
+        plan_delta: dict[str, Any] | None,
+        plan_comparison: dict[str, Any],
+    ) -> str:
+        if isinstance(plan_delta, dict):
+            lines = plan_delta.get("comparisonAgainstAlternatives")
+            if isinstance(lines, list):
+                first_line = next((line for line in lines if isinstance(line, str) and line), None)
+                if first_line:
+                    return first_line
+        reason = plan_comparison.get("reason")
+        if isinstance(reason, str) and reason:
+            return reason
+        return "Strong coverage with stable requirements"
+
+    def _compact_next_step(
+        self,
+        *,
+        improvement_priority: dict[str, Any] | None,
+        best_scenario_insight: dict[str, Any] | None,
+        next_action_guide: dict[str, Any] | None,
+    ) -> str:
+        if isinstance(improvement_priority, dict):
+            label = improvement_priority.get("recommendedScenarioLabel") or improvement_priority.get("label")
+            if isinstance(label, str) and label:
+                return label
+        if isinstance(best_scenario_insight, dict):
+            label = best_scenario_insight.get("scenarioLabel") or best_scenario_insight.get("label")
+            if isinstance(label, str) and label:
+                return label
+        if isinstance(next_action_guide, dict):
+            action = next_action_guide.get("suggestedNextAction") or next_action_guide.get("action")
+            if isinstance(action, str) and action:
+                return action
+        return "Review application plan"
+
+    def _build_compact_summary_line(self, decision_summary_compact: dict[str, Any] | None) -> str | None:
+        if not isinstance(decision_summary_compact, dict):
+            return None
+        plan = decision_summary_compact.get("plan")
+        confidence = decision_summary_compact.get("confidence")
+        next_step = decision_summary_compact.get("nextStep")
+        if not all(isinstance(value, str) and value for value in (plan, confidence, next_step)):
+            return None
+        return f"Recommended plan: {plan}. Confidence: {confidence}. Next step: {next_step}."
+
     def _build_profile_snapshot(self, query: RecommendationQuery) -> dict[str, Any]:
         snapshot: dict[str, Any] = {}
         if query.country:
@@ -2160,6 +2420,7 @@ class RecommendationService:
             "risk": composite.get("admissionRisk"),
             "reason": decision.get("decisionReason"),
             "matchingScore": float(item.get("matchingScore", 0.0) or 0.0),
+            "admissionResolved": item.get("admissionResolved") if isinstance(item.get("admissionResolved"), dict) else {},
         }
 
     def _application_plan_public_item(self, item: dict[str, Any]) -> dict[str, Any]:
@@ -2369,6 +2630,63 @@ class RecommendationService:
         if has_warnings or not has_target or not has_safety:
             return "This plan is missing stable coverage or leans too heavily on risky options."
         return "This plan currently looks fragile because safer or stronger options are limited."
+
+    def _append_admission_trust_to_plan_confidence_reason(
+        self,
+        reason: str,
+        plan_items: list[dict[str, Any]],
+    ) -> str:
+        signals = self._admission_resolved_signals_from_items(plan_items)
+        if not signals:
+            return reason
+
+        low_confidence_message = "Some requirement signals have low confidence."
+        consistent_message = "Requirement signals are consistent across sources."
+
+        if any(self._admission_signal_confidence(signal) < 0.6 for signal in signals):
+            return self._append_sentence(reason, low_confidence_message)
+
+        if all(
+            str(signal.get("status") or "") == "accepted"
+            and self._admission_signal_confidence(signal) >= 0.8
+            for signal in signals
+        ):
+            return self._append_sentence(reason, consistent_message)
+
+        return reason
+
+    def _admission_resolved_signals_from_items(
+        self,
+        items: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        signals: list[dict[str, Any]] = []
+        for item in items:
+            resolved = item.get("admissionResolved")
+            if not isinstance(resolved, dict):
+                continue
+            for field in ("ielts", "toefl", "gpa", "duolingo", "deadline"):
+                signal = resolved.get(field)
+                if isinstance(signal, dict):
+                    signals.append(signal)
+        return signals
+
+    def _has_conflicting_admission_signal(self, admission_resolved: dict[str, dict[str, Any]]) -> bool:
+        return any(
+            isinstance(signal, dict) and str(signal.get("status") or "") == "conflict"
+            for signal in admission_resolved.values()
+        )
+
+    def _admission_signal_confidence(self, signal: dict[str, Any]) -> float:
+        confidence = signal.get("confidence")
+        if isinstance(confidence, (int, float)):
+            return float(confidence)
+        return 0.0
+
+    def _append_sentence(self, text: str, sentence: str) -> str:
+        if sentence in text:
+            return text
+        separator = " " if text.endswith((".", "!", "?")) else ". "
+        return f"{text}{separator}{sentence}"
 
     def _build_application_plan_note(self, application_plan: dict[str, Any] | None) -> list[str]:
         if not isinstance(application_plan, dict):
