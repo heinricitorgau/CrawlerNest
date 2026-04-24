@@ -8,6 +8,8 @@ CrawlerNest 的目標，不只是建立一套可以抓取大學資料的爬蟲�
 
 在此基礎上，CrawlerNest 也正在引入一層 **Mini-Agent Development Layer**，作為受控、可評估、且必須有人類監督的 AI-assisted development workflow。這一層並不是自治型 AI 系統，而是用來加速開發、強化評估閉環、並提升系統韌性的輕量化架構層。
 
+此外，CrawlerNest 未來也會與 sibling repository `crawlernest-agents` 一起演進。該 repo 是 CrawlerNest 專用的 AI-assisted development companion，提供 repo onboarding、code review、data pipeline、PostgreSQL、workflow architecture、debugging / reliability 與 technical writing agents。它屬於 development-support layer，不屬於 production data path，也不是 production truth source。
+
 CrawlerNest 的產品定位也不是「官方排名發布者」，而是：
 
 - 多來源排名整合平台
