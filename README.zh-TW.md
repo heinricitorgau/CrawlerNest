@@ -163,6 +163,21 @@ API 可見的排名資料會經過 warehouse 與 canonical identity chain：
 
 只存在 raw 或 staging tables 的資料不會自動出現在產品。API 缺資料時，通常需要 canonical linking、backfill，或 aggregation refresh。
 
+QS legacy path 仍會先由 `run_pipeline.py run` 寫入 backward-compatible 的 `warehouse.rankings`。該寫入 commit 後，pipeline 會自動執行 native analytics bridge：
+
+```text
+warehouse.rankings
+  -> warehouse.ranking_source
+  -> warehouse.canonical_university
+  -> warehouse.canonical_university_link
+  -> warehouse.ranking_record
+  -> analytics.aggregation_runs
+  -> analytics.aggregated_rankings
+  -> analytics.v_aggregated_rankings_latest
+```
+
+這個 bridge 可重跑且 idempotent。QS live HTTP 403 不會直接視為 pipeline failure；只要 fallback snapshot 成功，fallback rows 會繼續走 legacy write 與 analytics sync。
+
 ## Setup
 
 ### Python
@@ -263,6 +278,8 @@ production-safe runner 會優先使用 `.venv`、採用保守 request pacing、�
 ./.venv/bin/python crawlernest/run_pipeline.py run --limit 2500 --ranking-year 2026 --pg-user test --pg-database clawer
 ```
 
+這個 command 會寫入 legacy `warehouse.rankings`、同步 analytics-native ranking tables、驗證 `analytics.v_aggregated_rankings_latest`，且只有在產品 rankings view 有資料後才會印出 `Done`。
+
 執行所有 configured QS universes：
 
 ```bash
@@ -313,6 +330,14 @@ production-safe runner 會優先使用 `.venv`、採用保守 request pacing、�
 ./.venv/bin/python crawlernest/scripts/validate_aggregation.py --year 2026 --universe-type global --universe-key global
 ```
 
+Smoke test legacy-to-analytics bridge 與產品 API：
+
+```bash
+./.venv/bin/python crawlernest/scripts/smoke_analytics_bridge.py --year 2026
+```
+
+這個 smoke test 會連續重跑 bridge 兩次、驗證 `warehouse.ranking_record`、驗證 `analytics.v_aggregated_rankings_latest`，並檢查 `/api/v1/rankings` 有回傳 items。若要讓 API 檢查通過，請先啟動 Spring Boot API。
+
 從既有 warehouse universities 修復 canonical visibility：
 
 ```bash
@@ -336,6 +361,13 @@ Refresh admission resolution：
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py refresh-admission-resolution --pg-user test --pg-database clawer
+```
+
+舊手動 bridge flow 的 legacy/dev SQL fallback：
+
+```bash
+psql -U test -d clawer -f scripts/bridge_legacy_rankings_to_analytics.sql
+psql -U test -d clawer -f scripts/ai-dev/bridge_legacy_rankings_to_analytics.sql
 ```
 
 ## Testing

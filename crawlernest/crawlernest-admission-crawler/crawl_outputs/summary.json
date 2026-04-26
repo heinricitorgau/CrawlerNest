@@ -8,8 +8,9 @@
     "failure_breakdown": {
       "blocked": 1
     },
-    "elapsed_s": 2.026,
-    "output": "crawl_outputs/ucl.json"
+    "anomaly_breakdown": {},
+    "elapsed_s": 2.02,
+    "output": "crawlernest-admission-crawler/crawl_outputs/ucl.json"
   },
   {
     "key": "melbourne",
@@ -20,8 +21,9 @@
     "failure_breakdown": {
       "blocked": 1
     },
-    "elapsed_s": 2.03,
-    "output": "crawl_outputs/melbourne.json"
+    "anomaly_breakdown": {},
+    "elapsed_s": 2.023,
+    "output": "crawlernest-admission-crawler/crawl_outputs/melbourne.json"
   },
   {
     "key": "toronto",
@@ -32,8 +34,9 @@
     "failure_breakdown": {
       "blocked": 1
     },
-    "elapsed_s": 2.034,
-    "output": "crawl_outputs/toronto.json"
+    "anomaly_breakdown": {},
+    "elapsed_s": 2.02,
+    "output": "crawlernest-admission-crawler/crawl_outputs/toronto.json"
   },
   {
     "key": "nus",
@@ -44,8 +47,9 @@
     "failure_breakdown": {
       "blocked": 1
     },
-    "elapsed_s": 2.028,
-    "output": "crawl_outputs/nus.json"
+    "anomaly_breakdown": {},
+    "elapsed_s": 2.023,
+    "output": "crawlernest-admission-crawler/crawl_outputs/nus.json"
   },
   {
     "key": "manchester",
@@ -56,8 +60,9 @@
     "failure_breakdown": {
       "blocked": 1
     },
-    "elapsed_s": 2.033,
-    "output": "crawl_outputs/manchester.json"
+    "anomaly_breakdown": {},
+    "elapsed_s": 2.02,
+    "output": "crawlernest-admission-crawler/crawl_outputs/manchester.json"
   },
   {
     "key": "oxford",
@@ -68,8 +73,9 @@
     "failure_breakdown": {
       "blocked": 1
     },
-    "elapsed_s": 2.03,
-    "output": "crawl_outputs/oxford.json"
+    "anomaly_breakdown": {},
+    "elapsed_s": 2.02,
+    "output": "crawlernest-admission-crawler/crawl_outputs/oxford.json"
   },
   {
     "key": "imperial",
@@ -78,8 +84,9 @@
     "success_count": 1,
     "usable_count": 1,
     "failure_breakdown": {},
+    "anomaly_breakdown": {},
     "elapsed_s": 0.002,
-    "output": "crawl_outputs/imperial.json"
+    "output": "crawlernest-admission-crawler/crawl_outputs/imperial.json"
   },
   {
     "key": "mit",
@@ -90,7 +97,8 @@
     "failure_breakdown": {
       "blocked": 1
     },
-    "elapsed_s": 2.026,
-    "output": "crawl_outputs/mit.json"
+    "anomaly_breakdown": {},
+    "elapsed_s": 2.024,
+    "output": "crawlernest-admission-crawler/crawl_outputs/mit.json"
   }
 ]

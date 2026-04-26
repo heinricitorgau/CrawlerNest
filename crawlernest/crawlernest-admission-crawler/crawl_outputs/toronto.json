@@ -7,28 +7,33 @@
   "failure_breakdown": {
     "blocked": 1
   },
+  "anomaly_breakdown": {},
   "url_results": [
     {
       "url": "https://www.sgs.utoronto.ca/applicants/english-language-requirements/",
       "crawl_status": "success",
       "extracted_fields": [
-        "ielts",
-        "toefl",
+        "IELTS",
+        "TOEFL",
+        "Duolingo",
         "deadline",
-        "gpa",
+        "GPA",
         "degree_level"
       ],
-      "extracted_fields_count": 5,
+      "extracted_fields_count": 6,
       "missing_required_fields": [],
       "has_language_score": true,
       "confidence_flags": {
-        "ielts": true,
-        "toefl": true,
+        "IELTS": true,
+        "TOEFL": true,
+        "Duolingo": true,
         "deadline": true,
-        "gpa": true,
+        "GPA": true,
         "degree_level": true
       },
-      "is_usable": true
+      "is_usable": true,
+      "flagged_fields": [],
+      "input_truncated": false
     },
     {
       "url": "https://www.sgs.utoronto.ca/applicants/how-to-apply/",
@@ -43,7 +48,9 @@
       ],
       "has_language_score": false,
       "confidence_flags": {},
-      "is_usable": false
+      "is_usable": false,
+      "flagged_fields": [],
+      "input_truncated": false
     }
   ],
   "warnings": []

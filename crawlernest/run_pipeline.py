@@ -70,6 +70,11 @@ from recommendation_engine import (  # noqa: E402
     recommend_universities_v3,
 )
 from ranking_aggregation.repository import RankingAggregationRepository  # noqa: E402
+from crawlernest.db.analytics_bridge import ( # noqa: E402
+    AnalyticsBridgeSummary,
+    count_analytics_latest_view as count_analytics_latest_view_conn,
+    sync_legacy_rankings_to_analytics as sync_legacy_rankings_to_analytics_conn,
+)
 try:
     from pipeline.utils.normalization import normalize_universities  # noqa: E402
 except ModuleNotFoundError:  # pragma: no cover - package import compatibility
@@ -1185,6 +1190,54 @@ def sync_qs_multi_source_rankings(
             run_label_prefix="qs_pipeline_sync",
             ranking_type=ranking_type,
             enable_aggregation=enable_aggregation,
+        )
+    finally:
+        conn.close()
+
+
+def sync_legacy_rankings_to_analytics(
+    *,
+    ranking_year: int,
+    source_code: str = "QS",
+    universe_type: str = "global",
+    universe_key: str = "global",
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> AnalyticsBridgeSummary:
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    try:
+        return sync_legacy_rankings_to_analytics_conn(
+            conn,
+            ranking_year=ranking_year,
+            source_code=source_code,
+            universe_type=universe_type,
+            universe_key=universe_key,
+        )
+    finally:
+        conn.close()
+
+
+def count_analytics_latest_view(
+    *,
+    ranking_year: int,
+    universe_type: str = "global",
+    universe_key: str = "global",
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> int:
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    try:
+        return count_analytics_latest_view_conn(
+            conn,
+            ranking_year=ranking_year,
+            universe_type=universe_type,
+            universe_key=universe_key,
         )
     finally:
         conn.close()
@@ -2493,6 +2546,8 @@ def _handle_run_command(args: argparse.Namespace) -> int:
         normalize_universities=normalize_universities,
         write_universities=write_universities,
         sync_qs_multi_source_rankings=sync_qs_multi_source_rankings,
+        sync_legacy_rankings_to_analytics=sync_legacy_rankings_to_analytics,
+        count_analytics_latest_view=count_analytics_latest_view,
     )
 
     if getattr(args, "with_the_rankings", False):
