@@ -1319,8 +1319,9 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 | 2026-04-19 | 完成 correctness-first hardening：admission crawler host guard、extractor input truncation 與欄位驗證、agent prompt untrusted-source guardrail、API request size cap，以及 resolution summary / unresolved report 的 anomaly visibility 補強。 | 已完成 |
 | 2026-04-22 | 完成 recommendation decision-support 主鏈的第一輪產品化：引入 structured concern vocabulary、surface-priority policy、admission composite、decision output 與 decision strategy，並同步打通 recommendation engine、service/API、assistant reply 與 recommendation UI。 | 已完成 |
 | 2026-04-24 | 完成 admission signal schema、deterministic resolver、resolved admission metadata、AdmissionSignalBadge、decisionSummaryCompact、assistant summary line 與 export Decision Snapshot，將 admission trust signals 以 messaging-only 方式整合進決策產品層。 | 已完成 |
+| 2026-04-26 | 完成將 QS legacy rankings 自動橋接至 analytics 原生流程（含去重、canonical/source seed、aggregation），pipeline 現在可從抓取一路到 API 正常輸出 1499 筆資料。 | 已完成 |
 
-### 14.4 當前階段判讀（截至 2026-04-24）
+### 14.4 當前階段判讀（截至 2026-04-26）
 
 CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
