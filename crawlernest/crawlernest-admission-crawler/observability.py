@@ -121,8 +121,8 @@ class CrawlReport:
     success_count: int
     extraction_success_count: int
     failure_breakdown: dict[str, int]   # CrawlStatus value → count
-    anomaly_breakdown: dict[str, int] = field(default_factory=dict)
     url_results: list[ExtractionSummary]
+    anomaly_breakdown: dict[str, int] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:

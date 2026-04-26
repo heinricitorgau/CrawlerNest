@@ -333,7 +333,15 @@ class UniversityAdmissionCrawler(BaseCrawler):
         candidate_host = (urlparse(url).hostname or "").lower().strip()
         if not candidate_host:
             return False
-        return candidate_host == base_host or candidate_host.endswith(f".{base_host}")
+        # Strip leading "www." so that subdomains of the root domain are allowed.
+        # Example: base "www.utoronto.ca" → root "utoronto.ca" allows "sgs.utoronto.ca".
+        root_host = base_host.removeprefix("www.")
+        return (
+            candidate_host == base_host
+            or candidate_host == root_host
+            or candidate_host.endswith(f".{base_host}")
+            or candidate_host.endswith(f".{root_host}")
+        )
 
     def _validate_extracted_fields(self, fields: dict[str, Any]) -> tuple[dict[str, Any], list[str]]:
         sanitized = dict(fields)

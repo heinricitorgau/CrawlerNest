@@ -163,6 +163,21 @@ API-visible ranking rows come through the warehouse and canonical identity chain
 
 Data that exists only in raw or staging tables is not automatically product-visible. Missing API rows usually require canonical linking, backfill, or aggregation refresh.
 
+For the QS legacy path, `run_pipeline.py run` still writes the backward-compatible `warehouse.rankings` table first. After that write commits, the pipeline automatically runs the native analytics bridge:
+
+```text
+warehouse.rankings
+  -> warehouse.ranking_source
+  -> warehouse.canonical_university
+  -> warehouse.canonical_university_link
+  -> warehouse.ranking_record
+  -> analytics.aggregation_runs
+  -> analytics.aggregated_rankings
+  -> analytics.v_aggregated_rankings_latest
+```
+
+The bridge is idempotent and safe to rerun. A QS live HTTP 403 is not treated as a pipeline failure when the fallback snapshot succeeds; the fallback rows continue through the same legacy write and analytics sync path.
+
 ## Setup
 
 ### Python
@@ -263,6 +278,8 @@ Run QS global crawl and write:
 ./.venv/bin/python crawlernest/run_pipeline.py run --limit 2500 --ranking-year 2026 --pg-user test --pg-database clawer
 ```
 
+This command writes legacy `warehouse.rankings`, syncs analytics-native ranking tables, verifies `analytics.v_aggregated_rankings_latest`, and only prints `Done` after the product rankings view has rows.
+
 Run all QS configured universes:
 
 ```bash
@@ -313,6 +330,14 @@ Validate aggregation output:
 ./.venv/bin/python crawlernest/scripts/validate_aggregation.py --year 2026 --universe-type global --universe-key global
 ```
 
+Smoke test the legacy-to-analytics bridge and product API:
+
+```bash
+./.venv/bin/python crawlernest/scripts/smoke_analytics_bridge.py --year 2026
+```
+
+The smoke test reruns the bridge twice, verifies `warehouse.ranking_record`, verifies `analytics.v_aggregated_rankings_latest`, and checks `/api/v1/rankings` returns items. Start the Spring Boot API first if you want the API check to pass.
+
 Recover canonical universities from existing warehouse universities:
 
 ```bash
@@ -336,6 +361,13 @@ Refresh admission resolution:
 
 ```bash
 ./.venv/bin/python crawlernest/run_pipeline.py refresh-admission-resolution --pg-user test --pg-database clawer
+```
+
+Legacy/dev SQL fallback for the old manual bridge flow:
+
+```bash
+psql -U test -d clawer -f scripts/bridge_legacy_rankings_to_analytics.sql
+psql -U test -d clawer -f scripts/ai-dev/bridge_legacy_rankings_to_analytics.sql
 ```
 
 ## Testing

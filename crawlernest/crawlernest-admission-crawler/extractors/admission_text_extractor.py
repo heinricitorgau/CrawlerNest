@@ -116,11 +116,21 @@ def extract_ielts(text: str) -> float | None:
 _TOEFL_RE = re.compile(
     r"TOEFL"
     r"(?:\s+(?:iBT|ibt|score|minimum|required|requirement|of))*"
-    r"(?:\s+is)?"
     # Bug D fix: allow JSON-style quotes and other punctuation as separators
     r"""[\s:=–"'()\[\]{}-]*"""
+    r"(?:Overall|overall|Total|total)?"  # Pattern 1 fix: handles "TOEFL iBT: Overall 90"
+    r"""[\s:=–"'()\[\]{}-]*"""          # allow separator after qualifier
+    r"(?:score\s+of\s+|of\s+|is\s+)?"   # "score of", "of", "is"
+    r"(?:at\s+least\s+)?"
     r"([0-9]{2,3})"
-    r"(?:\s*(?:or above|minimum|score|iBT|ibt))?",
+    r"(?:\s*(?:or above|minimum|score|iBT|ibt|overall))?",
+    re.IGNORECASE,
+)
+
+# Pattern 2 fix: handles "TOEFL iBT score for [institution name] is N"
+# (UCL-style where a long noun phrase separates "score" from the number)
+_TOEFL_SECONDARY_RE = re.compile(
+    r"TOEFL(?:\s+iBT)?\s+score\s+for\s+\S+(?:\s+\S+){1,8}\s+is\s+([0-9]{2,3})\b",
     re.IGNORECASE,
 )
 
@@ -130,6 +140,9 @@ _TOEFL_RANGE = (50, 120)
 def extract_toefl(text: str) -> int | None:
     """Return first plausible TOEFL iBT score found in *text*, or ``None``."""
     m = _TOEFL_RE.search(text)
+    if not m:
+        # Fallback: "TOEFL iBT score for [institution] is N" pattern
+        m = _TOEFL_SECONDARY_RE.search(text)
     if not m:
         return None
     try:
@@ -145,8 +158,9 @@ def extract_toefl(text: str) -> int | None:
 
 _DUOLINGO_RE = re.compile(
     r"Duolingo"
-    r"(?:\s+(?:English\s+Test|DET|score|minimum|of|:|-|–))*"
-    r"[\s:=–-]*"
+    r"(?:\s+(?:English\s+Test|DET))?"   # optional qualifier
+    r"[^0-9\n]{0,50}"                   # permissive single-line gap; handles
+                                        # ": minimum score of" and other phrases
     r"(\d{2,3})"
     r"(?:\s*(?:or above|minimum|score))?",
     re.IGNORECASE,

@@ -216,5 +216,30 @@
       "gpa": 3.0,
       "deadline": "2026-05-15"
     }
+  },
+  {
+    "id": "adm-019",
+    "description": "TOEFL 'iBT: Overall N' format — Manchester style, colon+Overall before score",
+    "required_fields": ["ielts", "toefl", "degree_level"],
+    "input": "Standard Requirement\nFor the majority of postgraduate programmes, the minimum requirement is:\nIELTS: Overall 6.5, with no component below 6.0\nTOEFL iBT: Overall 90, with minimum scores: Reading 22, Listening 21, Speaking 23, Writing 21\nDuolingo English Test: minimum score of 120",
+    "expected": {
+      "ielts": 6.5,
+      "toefl": 90,
+      "duolingo": 120,
+      "degree_level": "postgraduate",
+      "deadline": null
+    }
+  },
+  {
+    "id": "adm-020",
+    "description": "TOEFL 'score for institution programmes is N' — UCL style, long noun phrase between score and value",
+    "required_fields": ["toefl", "degree_level"],
+    "input": "TOEFL iBT\n\nThe minimum TOEFL iBT score for UCL graduate programmes is 92 overall. We do not accept TOEFL MyBest scores or scores from the TOEFL PBT.\n\nIELTS\n\nWe require a minimum IELTS score of 6.5 overall with no component below 6.0.",
+    "expected": {
+      "ielts": 6.5,
+      "toefl": 92,
+      "degree_level": "postgraduate",
+      "deadline": null
+    }
   }
 ]
