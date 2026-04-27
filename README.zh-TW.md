@@ -157,7 +157,7 @@ API 可見的排名資料會經過 warehouse 與 canonical identity chain：
 3. staging validators 擋下 invalid 或 suspicious rows
 4. `warehouse.ranking_record` 儲存 universe-aware ranking truth
 5. canonical identity 將 raw entities 連到 `canonical_university`
-6. aggregation refresh 產品 read models，例如 `analytics.v_aggregated_rankings_latest`
+6. aggregation run produces product read models，例如 `analytics.v_aggregated_rankings_latest`
 7. Spring Boot 把 ranking truth 與 canonical metadata join 起來
 8. Next.js 透過 same-origin API routes 讀取資料
 
@@ -188,11 +188,12 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-多數 pipeline commands 建議用：
+多數 pipeline commands 建議用 module mode：
 
 ```bash
-./.venv/bin/python crawlernest/run_pipeline.py <command>
+./.venv/bin/python -m crawlernest.run_pipeline <command>
 ```
+這可確保 Python package import path 正確。
 
 ### PostgreSQL
 

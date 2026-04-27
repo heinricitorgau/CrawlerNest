@@ -157,7 +157,7 @@ API-visible ranking rows come through the warehouse and canonical identity chain
 3. staging validators reject invalid or suspicious rows
 4. `warehouse.ranking_record` stores universe-aware ranking truth
 5. canonical identity links raw entities to `canonical_university`
-6. aggregation refreshes product read models such as `analytics.v_aggregated_rankings_latest`
+6. aggregation runs produce product read models such as `analytics.v_aggregated_rankings_latest`
 7. Spring Boot joins ranking truth with canonical metadata
 8. Next.js reads through same-origin API routes
 
@@ -188,11 +188,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Most pipeline commands should be run through:
+Most pipeline commands should be run in module mode:
 
 ```bash
-./.venv/bin/python crawlernest/run_pipeline.py <command>
+./.venv/bin/python -m crawlernest.run_pipeline <command>
 ```
+
+This ensures the Python package import path is correct.
 
 ### PostgreSQL
 
