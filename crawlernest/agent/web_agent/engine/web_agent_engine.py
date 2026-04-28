@@ -38,6 +38,14 @@ _SELF_IMPROVEMENT_DEBUG_KEY = "__self_improvement_debug__"
 _META_DEBUG_KEY = "__meta_debug__"
 
 
+def _signal_get(signals: object, key: str, default: object = None) -> object:
+    if signals is None:
+        return default
+    if isinstance(signals, dict):
+        return signals.get(key, default)
+    return getattr(signals, key, default)
+
+
 class WebAgentEngine:
     def __init__(
         self,
@@ -550,7 +558,7 @@ class WebAgentEngine:
             steps=[
                 {
                     "step": "retrieval",
-                    "score": float(policy_decision.signals.get("retrieval_confidence", 0.0)),
+                    "score": float(_signal_get(policy_decision.signals, "retrieval_confidence", 0.0)),
                 },
                 {
                     "step": "grounding",

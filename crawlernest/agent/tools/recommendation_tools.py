@@ -17,8 +17,9 @@ class RecommendationTools:
     def _merge_prompt_context(self, context: dict[str, Any], user_input: str) -> dict[str, Any]:
         merged = dict(context)
 
+        country = self._extract_country(user_input)
         extracted = {
-            "country": self._extract_country(user_input),
+            "country": country,
             "ielts": self._extract_float(user_input, [r"ielts\s*([0-9]+(?:\.[0-9])?)", r"雅思\s*([0-9]+(?:\.[0-9])?)"]),
             "toefl": self._extract_int(user_input, [r"toefl\s*([0-9]+)", r"托福\s*([0-9]+)"]),
             "targetRank": self._extract_int(
@@ -46,11 +47,22 @@ class RecommendationTools:
             if value not in (None, "", [], {}):
                 merged[key] = value
 
+        if country:
+            merged["countryPolicy"] = "hard_filter"
+            merged["country_policy"] = "hard_filter"
+            merged["country_preference_mode"] = "hard_filter"
+
         return merged
 
     def _extract_country(self, user_input: str) -> str | None:
         lowered = user_input.lower()
         country_aliases = {
+            "taiwanese universities": "Taiwan",
+            "taiwan universities": "Taiwan",
+            "universities in taiwan": "Taiwan",
+            "taiwan schools": "Taiwan",
+            "national taiwan": "Taiwan",
+            "taiwan": "Taiwan",
             "united kingdom": "United Kingdom",
             "uk": "United Kingdom",
             "britain": "United Kingdom",
@@ -67,6 +79,9 @@ class RecommendationTools:
             "germany": "Germany",
             "netherlands": "Netherlands",
             "china": "China",
+            "國立台灣": "Taiwan",
+            "國立臺灣": "Taiwan",
+            "臺灣": "Taiwan",
             "台灣": "Taiwan",
             "台湾": "Taiwan",
             "英國": "United Kingdom",

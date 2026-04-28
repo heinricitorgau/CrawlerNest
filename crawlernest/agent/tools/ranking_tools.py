@@ -338,6 +338,64 @@ class RankingTools:
 
         return "", []
 
+    def _extract_country(self, user_input: str) -> str | None:
+        """Extract a canonical country name from *user_input*.
+
+        Uses the same alias map as RecommendationTools so country filtering
+        is consistent across both ranking and recommendation queries.
+        """
+        lowered = user_input.lower()
+        country_aliases = {
+            "taiwanese universities": "Taiwan",
+            "taiwan universities": "Taiwan",
+            "universities in taiwan": "Taiwan",
+            "taiwan schools": "Taiwan",
+            "national taiwan": "Taiwan",
+            "taiwan rankings": "Taiwan",
+            "taiwan": "Taiwan",
+            "united kingdom": "United Kingdom",
+            "uk": "United Kingdom",
+            "britain": "United Kingdom",
+            "england": "United Kingdom",
+            "united states": "United States",
+            "us": "United States",
+            "usa": "United States",
+            "america": "United States",
+            "canada": "Canada",
+            "australia": "Australia",
+            "singapore": "Singapore",
+            "hong kong": "Hong Kong",
+            "japan": "Japan",
+            "germany": "Germany",
+            "netherlands": "Netherlands",
+            "china": "China",
+            "國立台灣": "Taiwan",
+            "國立臺灣": "Taiwan",
+            "臺灣": "Taiwan",
+            "台灣": "Taiwan",
+            "台湾": "Taiwan",
+            "英國": "United Kingdom",
+            "英国": "United Kingdom",
+            "美國": "United States",
+            "美国": "United States",
+            "加拿大": "Canada",
+            "澳洲": "Australia",
+            "澳大利亚": "Australia",
+            "新加坡": "Singapore",
+            "香港": "Hong Kong",
+            "日本": "Japan",
+            "德國": "Germany",
+            "德国": "Germany",
+            "荷蘭": "Netherlands",
+            "荷兰": "Netherlands",
+            "中國": "China",
+            "中国": "China",
+        }
+        for alias, canonical in country_aliases.items():
+            if alias in lowered or alias in user_input:
+                return canonical
+        return None
+
     def _build_query_context(
         self,
         user_input: str,
@@ -347,6 +405,16 @@ class RankingTools:
     ) -> dict[str, Any]:
         next_context = dict(context)
         entity = self._extract_focus_entity(user_input)
+
+        # Extract country from the prompt; when found, apply hard_filter so
+        # ranking queries are scoped to that country and never fall back to
+        # global results.
+        country = self._extract_country(user_input)
+        if country:
+            next_context["country"] = country
+            next_context["country_policy"] = "hard_filter"
+            next_context["countryPolicy"] = "hard_filter"
+            next_context["country_preference_mode"] = "hard_filter"
 
         if prefer_prompt_entity and entity:
             next_context["search"] = entity
@@ -367,7 +435,7 @@ class RankingTools:
             page=int(resolved_context.get("page", 1)),
             page_size=int(resolved_context.get("page_size", 20)),
             search=str(resolved_context.get("search", "")),
-            country=str(resolved_context.get("country", "")),
+            country=resolved_context.get("country") or "",
             region=str(resolved_context.get("region", "")),
         )
         return self._service.list_rankings(query)
