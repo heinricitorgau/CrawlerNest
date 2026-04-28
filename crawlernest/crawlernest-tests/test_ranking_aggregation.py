@@ -11,7 +11,7 @@ from ranking_aggregation import RankingAggregator, RankingRecordInput  # noqa: E
 
 
 class RankingAggregationTest(unittest.TestCase):
-    def test_display_rank_uses_weighted_average_rank_not_composite_score(self):
+    def test_display_rank_uses_weighted_normalized_composite_score(self):
         records = [
             RankingRecordInput(
                 canonical_university_id=1,
@@ -46,12 +46,12 @@ class RankingAggregationTest(unittest.TestCase):
         outputs = RankingAggregator().aggregate_rankings(records)
         by_id = {row.canonical_university_id: row for row in outputs}
 
-        self.assertAlmostEqual(by_id[1].metadata["aggregated_rank_value"], 47.2, places=6)
-        self.assertAlmostEqual(by_id[2].metadata["aggregated_rank_value"], 10.0, places=6)
-        self.assertEqual(2, by_id[1].display_rank)
-        self.assertEqual(1, by_id[2].display_rank)
-        self.assertEqual(20.0, by_id[1].composite_score)
-        self.assertEqual(95.0, by_id[2].composite_score)
+        self.assertAlmostEqual(by_id[1].composite_score or 0.0, 0.505, places=6)
+        self.assertAlmostEqual(by_id[2].composite_score or 0.0, 0.1, places=6)
+        self.assertEqual(1, by_id[1].display_rank)
+        self.assertEqual(2, by_id[2].display_rank)
+        self.assertEqual({"QS": 1.0, "THE": 100.0, "ARWU": None}, by_id[1].source_ranks)
+        self.assertEqual({"QS": 0.4, "THE": 0.4, "ARWU": None}, by_id[1].source_weights_used)
 
     def test_aggregation_is_universe_isolated_and_one_row_per_university(self):
         records = [

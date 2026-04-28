@@ -76,7 +76,9 @@ CREATE TABLE IF NOT EXISTS warehouse.admission_records_preview (
     UNIQUE (normalized_university_name, source_url)
 );
 
-CREATE OR REPLACE VIEW analytics.v_recommendation_candidates_latest AS
+DROP VIEW IF EXISTS analytics.v_recommendation_candidates_latest;
+
+CREATE VIEW analytics.v_recommendation_candidates_latest AS
 WITH admission_summary AS (
     SELECT
         cul.canonical_university_id,

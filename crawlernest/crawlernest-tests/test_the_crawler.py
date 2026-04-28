@@ -206,6 +206,16 @@ class TestNormalizeRow(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertAlmostEqual(result["score"], 65.3)
 
+    def test_score_in_scores_overall_field(self):
+        row = {
+            "name": "University of Oxford",
+            "rank": 1,
+            "scores_overall": "98.2",
+        }
+        result = _normalize_row(row, 2026)
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(result["score"], 98.2)
+
     def test_rank_range_string_is_accepted(self):
         row = {"name": "Some Uni", "rank": "51-100", "country": "Germany"}
         result = _normalize_row(row, 2026)

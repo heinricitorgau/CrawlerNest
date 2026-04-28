@@ -228,7 +228,7 @@ public class RankingController {
                     CASE WHEN ? = 'region' THEN scope_rank ELSE global_rank END AS aggregated_rank,
                     global_rank,
                     CASE WHEN ? = 'region' THEN scope_rank ELSE global_rank END AS scope_rank,
-                    GREATEST(0, 100 - ((CASE WHEN ? = 'region' THEN scope_rank ELSE global_rank END) * 2))::double precision AS composite_score,
+                    composite_score::double precision AS composite_score,
                     primary_source,
                     source_count,
                     ranking_year,
@@ -243,7 +243,6 @@ public class RankingController {
 
         List<Object> args = new ArrayList<>();
         addPreviewQueryArgs(args, year, scope, region, country, search);
-        args.add(scope);
         args.add(scope);
         args.add(scope);
         args.add(scope);
@@ -303,55 +302,52 @@ public class RankingController {
                     FROM warehouse.admission_records_preview
                     GROUP BY canonical_university_id
                 ),
-                per_university AS (
+                latest_global AS (
                     SELECT
-                        rr.canonical_university_id,
-                        MIN(cu.display_name) AS university_name,
-                        MIN(cu.canonical_slug) AS slug,
-                        COALESCE(ac.country, MIN(c.country_name), 'Unknown') AS country,
-                        MIN(COALESCE(c.region_name, '')) AS region_name,
-                        MIN(rr.rank_position) AS best_rank,
-                        MIN(rr.ranking_year) AS ranking_year,
-                        COUNT(DISTINCT COALESCE(rs.source_code, CAST(rr.ranking_source_id AS text))) AS source_count,
-                        (
-                            ARRAY_AGG(
-                                COALESCE(rs.source_code, CAST(rr.ranking_source_id AS text))
-                                ORDER BY rr.rank_position ASC,
-                                         COALESCE(rs.source_code, CAST(rr.ranking_source_id AS text)) ASC
-                            )
-                        )[1] AS primary_source
-                    FROM warehouse.ranking_record rr
+                        ar.canonical_university_id,
+                        cu.display_name AS university_name,
+                        cu.canonical_slug AS slug,
+                        COALESCE(ac.country, c.country_name, 'Unknown') AS country,
+                        COALESCE(c.region_name, '') AS region_name,
+                        ar.display_rank AS global_rank,
+                        ar.composite_score,
+                        ar.ranking_year,
+                        ar.source_ranks_json,
+                        COALESCE(source_counts.source_count, 0) AS source_count,
+                        primary_source.primary_source
+                    FROM analytics.v_aggregated_rankings_latest ar
                     JOIN warehouse.canonical_university cu
-                      ON cu.canonical_university_id = rr.canonical_university_id
+                      ON cu.canonical_university_id = ar.canonical_university_id
                     LEFT JOIN warehouse.countries c
                       ON c.country_id = cu.country_id
-                    LEFT JOIN warehouse.ranking_source rs
-                      ON rs.ranking_source_id = rr.ranking_source_id
                     LEFT JOIN admission_country ac
-                      ON ac.canonical_university_id = rr.canonical_university_id
-                    WHERE rr.rank_position IS NOT NULL
-                      AND rr.canonical_university_id IS NOT NULL
-                      AND rr.universe_type = 'global'
-                      AND (?::integer IS NULL OR rr.ranking_year = ?::integer)
-                    GROUP BY rr.canonical_university_id, ac.country
-                ),
-                globally_ranked AS (
-                    SELECT
-                        pu.*,
-                        ROW_NUMBER() OVER (
-                            ORDER BY pu.best_rank ASC, pu.university_name ASC, pu.canonical_university_id ASC
-                        ) AS global_rank
-                    FROM per_university pu
+                      ON ac.canonical_university_id = ar.canonical_university_id
+                    LEFT JOIN LATERAL (
+                        SELECT COUNT(*)::integer AS source_count
+                        FROM jsonb_each(ar.source_ranks_json) source_rank(source_code, rank_value)
+                        WHERE source_rank.rank_value <> 'null'::jsonb
+                    ) source_counts ON TRUE
+                    LEFT JOIN LATERAL (
+                        SELECT source_rank.source_code AS primary_source
+                        FROM jsonb_each(ar.source_ranks_json) source_rank(source_code, rank_value)
+                        WHERE source_rank.rank_value <> 'null'::jsonb
+                        ORDER BY (source_rank.rank_value #>> '{}')::numeric ASC, source_rank.source_code ASC
+                        LIMIT 1
+                    ) primary_source ON TRUE
+                    WHERE ar.display_rank IS NOT NULL
+                      AND ar.universe_type = 'global'
+                      AND ar.universe_key = 'global'
+                      AND (?::integer IS NULL OR ar.ranking_year = ?::integer)
                 ),
                 scope_ranked AS (
                     SELECT
-                        gr.*,
+                        lg.*,
                         ROW_NUMBER() OVER (
-                            PARTITION BY gr.region_name
-                            ORDER BY gr.best_rank ASC, gr.university_name ASC, gr.canonical_university_id ASC
+                            PARTITION BY lg.region_name
+                            ORDER BY lg.global_rank ASC, lg.university_name ASC, lg.canonical_university_id ASC
                         ) AS scope_rank
-                    FROM globally_ranked gr
-                    WHERE (?::text IS NULL OR gr.region_name = ?::text)
+                    FROM latest_global lg
+                    WHERE (?::text IS NULL OR lg.region_name = ?::text)
                 ),
                 filtered AS (
                     SELECT *
