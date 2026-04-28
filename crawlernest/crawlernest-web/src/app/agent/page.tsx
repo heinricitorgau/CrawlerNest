@@ -1573,7 +1573,9 @@ export default function AgentPage() {
   const searchParams = useSearchParams();
   const debugFromQuery = searchParams.get("debug") === "1";
   const promptRef = useRef<HTMLTextAreaElement | null>(null);
-  const historyRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const shouldAutoScrollRef = useRef(true);
   const [mode, setMode] = useState<AgentMode>("web");
   const [kind, setKind] = useState<TaskKind>("ranking_explain");
   const [prompt, setPrompt] = useState("Explain why Oxford ranks highly");
@@ -1653,16 +1655,23 @@ export default function AgentPage() {
   }, []);
 
   useEffect(() => {
-    if (history.length === 0) {
+    if (!shouldAutoScrollRef.current) {
       return;
     }
 
-    historyRef.current?.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     promptRef.current?.focus();
-  }, [history.length]);
+  }, [history.length, loading]);
+
+  function handleHistoryScroll() {
+    const el = scrollContainerRef.current;
+    if (!el) {
+      return;
+    }
+
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    shouldAutoScrollRef.current = distanceFromBottom < 120;
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -1682,6 +1691,18 @@ export default function AgentPage() {
 
     setLoading(true);
     setError(null);
+    shouldAutoScrollRef.current = true;
+
+    const entryId = crypto.randomUUID();
+    const pendingEntry: RunEntry = {
+      id: entryId,
+      mode,
+      kind,
+      prompt: trimmedPrompt,
+      response: null,
+      error: null,
+    };
+    setHistory((current) => [...current, pendingEntry]);
 
     try {
       const res = await fetch("/api/agent/tasks", {
@@ -1707,7 +1728,7 @@ export default function AgentPage() {
         json.error ??
         "Agent request failed.";
       const nextEntry: RunEntry = {
-        id: crypto.randomUUID(),
+        id: entryId,
         mode,
         kind,
         prompt: trimmedPrompt,
@@ -1715,7 +1736,9 @@ export default function AgentPage() {
         error: !res.ok || !json.success ? formattedError : null,
       };
 
-      setHistory((current) => [nextEntry, ...current]);
+      setHistory((current) =>
+        current.map((entry) => (entry.id === entryId ? nextEntry : entry))
+      );
       if (!res.ok || !json.success) {
         setError(nextEntry.error);
         if ((json.error ?? "").includes("Failed to reach agent API")) {
@@ -1726,14 +1749,16 @@ export default function AgentPage() {
       }
     } catch {
       const nextEntry: RunEntry = {
-        id: crypto.randomUUID(),
+        id: entryId,
         mode,
         kind,
         prompt: trimmedPrompt,
         response: null,
         error: "Failed to reach /api/agent/tasks",
       };
-      setHistory((current) => [nextEntry, ...current]);
+      setHistory((current) =>
+        current.map((entry) => (entry.id === entryId ? nextEntry : entry))
+      );
       setError(nextEntry.error);
       setAgentStatus("offline");
     } finally {
@@ -1742,6 +1767,7 @@ export default function AgentPage() {
   }
 
   function resetSession() {
+    shouldAutoScrollRef.current = true;
     setHistory([]);
     setError(null);
     setSessionId(crypto.randomUUID());
@@ -1774,7 +1800,7 @@ export default function AgentPage() {
     void handleSubmit(event as unknown as React.FormEvent);
   }
 
-  const latest = history[0] ?? null;
+  const latest = history.length > 0 ? history[history.length - 1] : null;
   const friendlyError = getFriendlyError(error);
   const visibleQuickTasks = useMemo(
     () => QUICK_TASKS.filter((task) => showDebug || task.mode === "web"),
@@ -1899,7 +1925,11 @@ export default function AgentPage() {
 
           <div className="grid min-h-[520px] lg:grid-cols-[minmax(0,1fr)_360px]">
             <div className="flex min-h-[520px] flex-col">
-              <div ref={historyRef} className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+              <div
+                ref={scrollContainerRef}
+                onScroll={handleHistoryScroll}
+                className="flex-1 space-y-4 overflow-y-auto px-6 py-6"
+              >
                 {history.length === 0 ? (
                   <div className="rounded-[1.5rem] border border-dashed border-[#d8d3cb] bg-[#faf8f4] px-5 py-6 text-sm text-[#6b7068]">
                     Start with a quick task above, or type your own request below.
@@ -1918,7 +1948,7 @@ export default function AgentPage() {
                         ) : null}
                         {history.length > 1 ? (
                           <div className="ml-auto text-[10px] text-white/50">
-                            turn {history.length - historyIndex}
+                            turn {historyIndex + 1}
                           </div>
                         ) : null}
                       </div>
@@ -1926,6 +1956,23 @@ export default function AgentPage() {
                     </div>
 
                     {(() => {
+                      if (entry.response === null && !entry.error) {
+                        return (
+                          <div
+                            className={`max-w-4xl rounded-[1.5rem] border bg-[#faf8f4] px-5 py-4 transition ${
+                              entry.id === latest?.id
+                                ? "border-[#cfe5d7] shadow-[0_0_0_2px_rgba(26,61,46,0.06)]"
+                                : "border-[#e0ddd8]"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 text-sm text-[#1a3d2e]">
+                              <span className="h-2 w-2 animate-pulse rounded-full bg-[#1a3d2e]" />
+                              <span>Agent is generating...</span>
+                            </div>
+                          </div>
+                        );
+                      }
+
                       const isDevMode = entry.mode === "dev";
                       const formatted = entry.response?.data?.data;
                       // Web branch: these are only meaningful when isDevMode is false (formatter shape)
@@ -2263,6 +2310,7 @@ export default function AgentPage() {
                     })()}
                   </div>
                 ))}
+                <div ref={bottomRef} />
               </div>
 
               <div className="border-t border-[#e0ddd8] bg-white px-6 py-5">
