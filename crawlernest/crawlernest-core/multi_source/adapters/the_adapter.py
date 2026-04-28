@@ -56,7 +56,7 @@ class THEAdapter(BaseSourceAdapter):
         return [r for r in out if r.source_entity_id and r.university_name]
 
     def _extract_score(self, row: dict[str, Any]) -> float | None:
-        direct = row.get("score") or row.get("overall_score")
+        direct = row.get("score") or row.get("overall_score") or row.get("scores_overall")
         if direct is not None:
             return self._safe_float(direct)
         scores = row.get("scores")

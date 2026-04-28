@@ -112,6 +112,22 @@ class TestMultiSourcePipeline(unittest.TestCase):
         self.assertEqual(arwu_rows[0].rank, 7)
         self.assertIsNone(arwu_rows[0].score)
 
+    def test_the_adapter_reads_scores_overall_field(self):
+        the_rows = THEAdapter(default_year=2026).adapt(
+            [
+                {
+                    "id": "the:oxford",
+                    "name": "University of Oxford",
+                    "country": "United Kingdom",
+                    "rank": "1",
+                    "scores_overall": "98.2",
+                }
+            ]
+        )
+
+        self.assertEqual(1, len(the_rows))
+        self.assertAlmostEqual(the_rows[0].score or 0.0, 98.2)
+
     def test_pipeline_aggregates_qs_the_arwu_without_overwrite(self):
         resolver = EntityResolver(
             [
@@ -156,10 +172,10 @@ class TestMultiSourcePipeline(unittest.TestCase):
         oxford = by_canonical[1]
 
         self.assertEqual(oxford.source_ranks, {"QS": 3.0, "THE": 1.0, "ARWU": 7.0})
-        self.assertAlmostEqual(oxford.source_normalized_scores["QS"] or 0.0, 99.866667, places=6)
-        self.assertAlmostEqual(oxford.source_normalized_scores["THE"] or 0.0, 100.0, places=6)
-        self.assertAlmostEqual(oxford.source_normalized_scores["ARWU"] or 0.0, 99.4, places=6)
-        self.assertAlmostEqual(oxford.composite_score or 0.0, 99.796667, places=6)
+        self.assertAlmostEqual(oxford.source_normalized_scores["QS"] or 0.0, 0.333333, places=6)
+        self.assertAlmostEqual(oxford.source_normalized_scores["THE"] or 0.0, 1.0, places=6)
+        self.assertAlmostEqual(oxford.source_normalized_scores["ARWU"] or 0.0, 0.142857, places=6)
+        self.assertAlmostEqual(oxford.composite_score or 0.0, 0.561905, places=6)
         self.assertEqual(oxford.display_rank, 1)
 
         cambridge = by_canonical[2]
@@ -234,7 +250,9 @@ class TestMultiSourcePipeline(unittest.TestCase):
         self.assertEqual(1, len(outputs))
         lmu = outputs[0]
         self.assertEqual(10, lmu.canonical_university_id)
-        self.assertEqual({"QS": 59.0, "THE": 34.0}, lmu.source_ranks)
+        self.assertEqual({"QS": 59.0, "THE": 34.0, "ARWU": None}, lmu.source_ranks)
+        self.assertEqual({"QS": 0.4, "THE": 0.4, "ARWU": None}, lmu.source_weights_used)
+        self.assertAlmostEqual(lmu.composite_score or 0.0, 0.02318, places=6)
         self.assertEqual(2, lmu.metadata["available_rank_count"])
 
 

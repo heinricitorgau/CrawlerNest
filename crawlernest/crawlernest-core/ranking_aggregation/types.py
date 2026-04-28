@@ -24,7 +24,7 @@ class AggregatedRankingOutput:
     universe_key: str
     source_ranks: dict[str, Optional[float]]
     source_normalized_scores: dict[str, Optional[float]]
-    source_weights_used: dict[str, float]
+    source_weights_used: dict[str, Optional[float]]
     composite_score: Optional[float]
     display_rank: Optional[int]
     coverage_ratio: float

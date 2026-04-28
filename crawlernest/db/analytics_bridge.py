@@ -11,7 +11,13 @@ SOURCE_NAME_MAP = {
     "ARWU": "Academic Ranking of World Universities",
 }
 
-AGGREGATION_METHOD_VERSION = "legacy_single_source_v1"
+WEIGHTS = {
+    "QS": 0.4,
+    "THE": 0.4,
+    "ARWU": 0.2,
+}
+
+AGGREGATION_METHOD_VERSION = "multi_source_weighted_v1"
 
 
 @dataclass(frozen=True)
@@ -41,10 +47,17 @@ def sync_legacy_rankings_to_analytics(
     universe_type = _normalize_scope(universe_type, default="global")
     universe_key = _normalize_scope(universe_key, default="global")
     source_name = SOURCE_NAME_MAP.get(source_code, source_code)
-    run_label = f"legacy_bridge_{ranking_year}_{source_code.lower()}_{universe_type}_{universe_key}"
+    run_label = (
+        f"legacy_bridge_{AGGREGATION_METHOD_VERSION}_{ranking_year}_"
+        f"{source_code.lower()}_{universe_type}_{universe_key}"
+    )
     config_json = {
         "source": source_code,
-        "method": "single_source_passthrough",
+        "sources": list(WEIGHTS),
+        "weights": WEIGHTS,
+        "method": AGGREGATION_METHOD_VERSION,
+        "normalization": "1.0 / rank_position",
+        "missing_source_handling": "renormalize_by_available_weight",
         "seeded_from": "warehouse.rankings",
     }
 
@@ -80,7 +93,6 @@ def sync_legacy_rankings_to_analytics(
             aggregated_rankings_count = _sync_aggregated_rankings(
                 cur,
                 ranking_year=ranking_year,
-                source_code=source_code,
                 universe_type=universe_type,
                 universe_key=universe_key,
                 aggregation_run_id=aggregation_run_id,
@@ -347,9 +359,10 @@ def _sync_ranking_records(
 def _ensure_aggregation_run_conflict_target(cur: Any) -> None:
     cur.execute(
         """
-        CREATE UNIQUE INDEX IF NOT EXISTS uq_aggregation_runs_run_label
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_aggregation_runs_multi_source_bridge_run_label
             ON analytics.aggregation_runs(run_label)
             WHERE run_label IS NOT NULL
+              AND aggregation_method_version = 'multi_source_weighted_v1'
         """
     )
 
@@ -396,6 +409,7 @@ def _upsert_aggregation_run(
             'Auto bridge from warehouse.rankings'
         )
         ON CONFLICT (run_label) WHERE run_label IS NOT NULL
+          AND aggregation_method_version = 'multi_source_weighted_v1'
         DO UPDATE SET
             ranking_year = EXCLUDED.ranking_year,
             universe_type = EXCLUDED.universe_type,
@@ -427,32 +441,116 @@ def _sync_aggregated_rankings(
     cur: Any,
     *,
     ranking_year: int,
-    source_code: str,
     universe_type: str,
     universe_key: str,
     aggregation_run_id: int,
 ) -> int:
     cur.execute(
         """
-        WITH source_rows AS (
+        WITH ranked_source_rows AS (
             SELECT
                 rr.canonical_university_id,
                 rr.ranking_year,
                 rr.universe_type,
                 rr.universe_key,
-                rr.rank_position,
-                rr.score,
+                upper(rs.source_code) AS source_code,
+                rr.rank_position::numeric AS rank_position,
                 ROW_NUMBER() OVER (
-                    ORDER BY rr.rank_position ASC NULLS LAST, rr.canonical_university_id ASC
-                )::integer AS display_rank
+                    PARTITION BY rr.canonical_university_id, upper(rs.source_code)
+                    ORDER BY
+                        CASE WHEN lower(COALESCE(rr.ranking_type, '')) = 'world' THEN 0 ELSE 1 END,
+                        rr.rank_position ASC NULLS LAST,
+                        rr.updated_at DESC NULLS LAST,
+                        rr.ranking_record_id DESC
+                ) AS source_order
             FROM warehouse.ranking_record rr
             JOIN warehouse.ranking_source rs
               ON rs.ranking_source_id = rr.ranking_source_id
             WHERE rr.ranking_year = %s
               AND rr.universe_type = %s
               AND rr.universe_key = %s
-              AND rs.source_code = %s
+              AND upper(rs.source_code) IN ('QS', 'THE', 'ARWU')
               AND rr.rank_position IS NOT NULL
+        ),
+        source_rows AS (
+            SELECT *
+            FROM ranked_source_rows
+            WHERE source_order = 1
+        ),
+        pivoted AS (
+            SELECT
+                canonical_university_id,
+                ranking_year,
+                universe_type,
+                universe_key,
+                MAX(rank_position) FILTER (WHERE source_code = 'QS') AS qs_rank,
+                MAX(rank_position) FILTER (WHERE source_code = 'THE') AS the_rank,
+                MAX(rank_position) FILTER (WHERE source_code = 'ARWU') AS arwu_rank
+            FROM source_rows
+            GROUP BY
+                canonical_university_id,
+                ranking_year,
+                universe_type,
+                universe_key
+        ),
+        scored AS (
+            SELECT
+                canonical_university_id,
+                ranking_year,
+                universe_type,
+                universe_key,
+                qs_rank,
+                the_rank,
+                arwu_rank,
+                CASE WHEN qs_rank IS NOT NULL THEN 1.0 / qs_rank ELSE NULL END AS qs_norm,
+                CASE WHEN the_rank IS NOT NULL THEN 1.0 / the_rank ELSE NULL END AS the_norm,
+                CASE WHEN arwu_rank IS NOT NULL THEN 1.0 / arwu_rank ELSE NULL END AS arwu_norm,
+                (
+                    CASE WHEN qs_rank IS NOT NULL THEN 0.4 ELSE 0 END
+                    + CASE WHEN the_rank IS NOT NULL THEN 0.4 ELSE 0 END
+                    + CASE WHEN arwu_rank IS NOT NULL THEN 0.2 ELSE 0 END
+                )::numeric AS available_weight
+            FROM pivoted
+        ),
+        aggregated AS (
+            SELECT
+                canonical_university_id,
+                ranking_year,
+                universe_type,
+                universe_key,
+                (
+                    (
+                        COALESCE(0.4 * qs_norm, 0)
+                        + COALESCE(0.4 * the_norm, 0)
+                        + COALESCE(0.2 * arwu_norm, 0)
+                    ) / NULLIF(available_weight, 0)
+                )::numeric(10,6) AS composite_score,
+                available_weight::numeric(8,6) AS coverage_ratio,
+                jsonb_build_object(
+                    'QS', qs_rank,
+                    'THE', the_rank,
+                    'ARWU', arwu_rank
+                ) AS source_ranks_json,
+                jsonb_build_object(
+                    'QS', qs_norm,
+                    'THE', the_norm,
+                    'ARWU', arwu_norm
+                ) AS source_normalized_scores_json,
+                jsonb_build_object(
+                    'QS', CASE WHEN qs_rank IS NOT NULL THEN 0.4 ELSE NULL END,
+                    'THE', CASE WHEN the_rank IS NOT NULL THEN 0.4 ELSE NULL END,
+                    'ARWU', CASE WHEN arwu_rank IS NOT NULL THEN 0.2 ELSE NULL END
+                ) AS source_weights_used_json
+            FROM scored
+            WHERE available_weight > 0
+        ),
+        ranked AS (
+            SELECT
+                *,
+                ROW_NUMBER() OVER (
+                    ORDER BY composite_score DESC NULLS LAST, canonical_university_id ASC
+                )::integer AS display_rank
+            FROM aggregated
         ),
         upserted AS (
             INSERT INTO analytics.aggregated_rankings (
@@ -477,14 +575,14 @@ def _sync_aggregated_rankings(
                 universe_type,
                 universe_key,
                 display_rank,
-                COALESCE(score, GREATEST(0, 100 - (rank_position * 2)))::numeric,
-                1.0,
-                jsonb_build_object(%s, rank_position),
-                jsonb_build_object(%s, COALESCE(score, GREATEST(0, 100 - (rank_position * 2)))),
-                jsonb_build_object(%s, 1.0),
+                composite_score,
+                coverage_ratio,
+                source_ranks_json,
+                source_normalized_scores_json,
+                source_weights_used_json,
                 %s,
                 CURRENT_TIMESTAMP
-            FROM source_rows
+            FROM ranked
             ON CONFLICT (
                 canonical_university_id,
                 ranking_year,
@@ -509,11 +607,7 @@ def _sync_aggregated_rankings(
             ranking_year,
             universe_type,
             universe_key,
-            source_code,
             aggregation_run_id,
-            source_code,
-            source_code,
-            source_code,
             AGGREGATION_METHOD_VERSION,
         ),
     )

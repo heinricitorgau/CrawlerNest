@@ -317,7 +317,7 @@ def _normalize_row(row: dict[str, Any], year: int) -> dict[str, Any] | None:
         or str(name).strip()
     )
     country = _pick_first(row, "country", "location", "country_name")
-    score = _to_float(_pick_first(row, "score", "overall_score", "scores"))
+    score = _to_float(_pick_first(row, "score", "overall_score", "scores_overall", "scores"))
     if score is None and isinstance(row.get("scores"), dict):
         score = _to_float(
             _pick_first(
