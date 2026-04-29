@@ -20,11 +20,15 @@
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/SourceRankingDTO.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/AdmissionPreviewSummaryDTO.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/domain/ranking/RankingContext.java
+/Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/repository/SubjectRankingRepository.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/service/AdmissionService.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/model/RecommendationExplain.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/repository/AdmissionRequirementRepository.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/service/ComparisonService.java
+/Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/repository/JdbcSubjectRankingRepository.java
+/Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/service/SubjectRankingService.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/UniversityDTO.java
+/Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/SubjectOptionDTO.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/AggregationExplainDTO.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/model/UniversityComparisonResult.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/repository/JdbcScopedRankingReadAdapter.java
@@ -43,6 +47,7 @@
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/model/Program.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/domain/ranking/ScopedRankedUniversity.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/RankingCountryOptionDTO.java
+/Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/SubjectRankingDTO.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/RankingPreviewSummaryDTO.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/model/AdmissionRequirement.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/model/RecommendationResult.java
@@ -54,6 +59,7 @@
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/repository/UniversityRepository.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/model/University.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/service/AggregationExplainability.java
+/Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/api/SubjectRankingController.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/repository/AggregatedRankingReadRepository.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/service/AnalyticsService.java
 /Users/test/Desktop/crawlernest/crawlernest/servise_for_java/src/main/java/clawer/dto/RankingTrustDTO.java

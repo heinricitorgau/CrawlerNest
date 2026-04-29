@@ -26,6 +26,7 @@ public class RecommendationResult {
     private Map<String, Object> scoreBreakdown;
     private List<String> rulesPassed;
     private RecommendationExplain recommendationExplain;
+    private Map<String, Object> subjectFit;
 
     public RecommendationResult() {
     }
@@ -242,5 +243,13 @@ public class RecommendationResult {
 
     public void setRecommendationExplain(RecommendationExplain recommendationExplain) {
         this.recommendationExplain = recommendationExplain;
+    }
+
+    public Map<String, Object> getSubjectFit() {
+        return subjectFit;
+    }
+
+    public void setSubjectFit(Map<String, Object> subjectFit) {
+        this.subjectFit = subjectFit;
     }
 }

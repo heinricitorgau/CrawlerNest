@@ -17,9 +17,32 @@ SCHEMA_ORDER = [
     SCHEMA_DIR / "postgresql_schema.sql",
     SCHEMA_DIR / "entity_resolution_postgresql.sql",
     SCHEMA_DIR / "multi_source_postgresql.sql",
+    SCHEMA_DIR / "subject_ranking_postgresql.sql",
     SCHEMA_DIR / "ranking_aggregation_postgresql.sql",
     SCHEMA_DIR / "recommendation_postgresql.sql",
 ]
+
+
+def _subject_registry_summary(cur) -> dict[str, object]:
+    cur.execute(
+        """
+        SELECT subject_key, display_name, is_active
+        FROM warehouse.ranking_subject
+        ORDER BY subject_key
+        """
+    )
+    rows = cur.fetchall()
+    return {
+        "ranking_subject_count": len(rows),
+        "subjects": [
+            {
+                "subject_key": subject_key,
+                "display_name": display_name,
+                "is_active": bool(is_active),
+            }
+            for subject_key, display_name, is_active in rows
+        ],
+    }
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -69,19 +92,27 @@ def _reset_schemas(cur) -> None:
     cur.execute("DROP SCHEMA IF EXISTS warehouse CASCADE")
 
 
-def main() -> int:
-    args = build_parser().parse_args()
+def bootstrap_postgres(
+    *,
+    host: str,
+    port: int,
+    database: str,
+    user: str,
+    password: str,
+    reset: bool = False,
+) -> dict[str, object]:
     conn = psycopg2.connect(
-        host=args.host,
-        port=args.port,
-        database=args.database,
-        user=args.user,
-        password=args.password,
+        host=host,
+        port=port,
+        database=database,
+        user=user,
+        password=password,
     )
+    applied_schemas: list[dict[str, object]] = []
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
-            if args.reset:
+            if reset:
                 _reset_schemas(cur)
                 conn.commit()
                 print("[ok] reset analytics/staging/warehouse schemas")
@@ -101,8 +132,40 @@ def main() -> int:
                             continue
                         raise
                 print(f"[ok] applied {path.name} (executed={applied}, skipped_existing={skipped})")
+                applied_schemas.append(
+                    {
+                        "schema": path.name,
+                        "executed": applied,
+                        "skipped_existing": skipped,
+                    }
+                )
+            subject_summary = _subject_registry_summary(cur)
     finally:
         conn.close()
+    return {
+        "database": database,
+        "user": user,
+        "reset": reset,
+        "schemas": applied_schemas,
+        **subject_summary,
+    }
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+    summary = bootstrap_postgres(
+        host=args.host,
+        port=args.port,
+        database=args.database,
+        user=args.user,
+        password=args.password,
+        reset=args.reset,
+    )
+    print(
+        "[ok] ranking_subject_count="
+        f"{summary['ranking_subject_count']} subjects="
+        f"{', '.join(item['subject_key'] for item in summary['subjects'])}"
+    )
     return 0
 
 

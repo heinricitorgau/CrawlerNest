@@ -1,186 +1,14 @@
 # CrawlerNest
 
-English version: [README.md](README.md)
+CrawlerNest 是一個端到端的大學資料基礎設施與網站平台，涵蓋全球排名、學科排名、申請訊號與本機探索流程。
 
-CrawlerNest 是一套端到端的大學資料基礎設施與網站平台。它把分散的排名與 admissions 資料，轉成結構化 warehouse records、canonical university identity、可解釋 ranking evidence，以及面向產品的 decision support。
+這是一個 data-first 系統：UI 讀取 warehouse 與 analytics view，crawler 與 pipeline 負責把資料整理成 canonical records 並寫入 PostgreSQL。
 
-目前主線採取 correctness-first：
+## 快速啟動
 
-```text
-crawl -> extract -> normalize -> write -> warehouse -> API -> web
-```
+建議用這個流程完整啟動本機環境。
 
-Agent 與 AutoEval 能力已存在，但它們屬於開發輔助系統，不擁有 production truth。
-
-## 目前狀態
-
-截至 2026 年 4 月，CrawlerNest 最適合被理解成三個區域：
-
-- **Active data pipeline：** QS / THE / ARWU ranking ingestion、admission pilot ingestion、normalization、warehouse writes、deterministic entity resolution、API 與 web product。
-- **Controlled expansion：** admission enrichment、multi-universe aggregation、comparison，以及基本 explainable recommendation。
-- **Development support：** Python agent runtime、Web Agent / Dev Agent split、mini-agent runtime，以及 AutoEval-assisted extractor improvement。
-
-CrawlerNest 之後也會與一個 sibling development-support repo 一起演進：
-
-```text
-../crawlernest-agents
-```
-
-該 repo 是 CrawlerNest 專用的小型 AI-assisted development system，包含 repo onboarding、code review、data pipeline engineering、PostgreSQL tuning、workflow architecture、debugging/reliability 與 technical writing agents。它是工程協作輔助 repo，不是 production runtime，也不是 production truth source。
-
-工程順序刻意維持嚴格：
-
-1. 先穩定 crawl 與 extraction
-2. 再穩定 normalization 與 canonical mapping
-3. 再正式化 warehouse 與 API contracts
-4. 再建立 admission-aware recommendation
-5. 最後才在資料路徑可靠後擴大 agent autonomy
-
-## 產品介面
-
-網站目前包含：
-
-- rankings browser
-- university detail pages
-- recommendation flow
-- compare page
-- preview university page
-- web-facing `/agent` page，並具備 deterministic fallback behavior
-
-後端 API 目前提供：
-
-- rankings 與 ranking evidence
-- university detail
-- admissions context
-- recommendations
-- comparison data
-- canonical university preview data
-
-## 決策產品層
-
-CrawlerNest 的 recommendation surface 現在更接近一個決策產品，而不是單純的分數清單。Recommendation engine 仍然維持 deterministic scoring、filtering 與 ranking，但產品層會在結果外加上簡潔、可解釋的 decision surfaces：
-
-- `decisionOutput` 說明單一大學的建議動作。
-- `applicationPlans` 比較 balanced、conservative、aggressive 三種申請策略。
-- `decisionSummary` 匯出結構化決策紀錄。
-- `decisionSummaryCompact` 提供 UI、assistant reply 與 text export 共用的一行產品摘要。
-- `admissionResolved` 只暴露 admission requirement 的 trust metadata，不改變推薦邏輯。
-
-Admission data 會被視為 signal，而不是絕對事實。目前 trust path 是：
-
-```text
-raw extraction
-  -> AdmissionSignal
-  -> validation
-  -> resolved admission field
-  -> recommendation metadata
-  -> decision messaging / UI / export
-```
-
-這一層刻意採取保守設計：
-
-- conflicting requirement signals 會保留並顯示
-- low-confidence requirement signals 會出現在 decision messaging
-- consistent high-confidence signals 會提升解釋清楚度
-- admission trust metadata 不會改變 scoring、ranking 或 filtering
-
-在 web product 中，這會呈現為 compact admission signal badges、decision summary banner、assistant summary text，以及可匯出的 decision snapshot。
-
-## Repository Layout
-
-CrawlerNest 採用外層 repo 加內層產品 workspace 的結構。
-
-```text
-repo-root/
-├── README.md / README.zh-TW.md
-├── docs/
-├── crawlernest/                       # canonical product workspace
-├── crawlernest-samples/               # outer sample artifacts
-├── deployment-support/
-├── legacy/
-└── docker-compose.postgres.yml
-```
-
-`crawlernest/` 內的重要路徑：
-
-```text
-crawlernest/run_pipeline.py            # Python pipeline 主入口
-crawlernest/run_platform.py            # modular platform bootstrap
-crawlernest/pipeline/                  # command routing 與 pipeline stages
-crawlernest/crawlernest-ranking-crawler/
-crawlernest/crawlernest-admission-crawler/
-crawlernest/crawlernest-crawler-core/  # shared crawler runtime primitives
-crawlernest/crawlernest-core/          # domain engines
-crawlernest/crawlernest-schema/        # PostgreSQL / SQLite schema assets
-crawlernest/servise_for_java/          # Spring Boot API；名稱是歷史拼字
-crawlernest/crawlernest-web/           # Next.js frontend
-crawlernest/agent/                     # development-support agent runtime
-crawlernest/crawlernest-mini-agent/    # standalone mini-agent runtime
-crawlernest/crawlernest-autoeval/      # extractor evaluation workflow
-```
-
-完整目錄地圖請看 [Repository Structure](docs/architecture/REPO_STRUCTURE.md)。
-
-## 架構
-
-Canonical architecture 文件是：
-
-- [System And Engine Architecture](docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md)
-
-目前 production-oriented path 是：
-
-```text
-External Sources
-  -> ranking / admission crawlers
-  -> extraction
-  -> normalization
-  -> staging validation
-  -> warehouse landing
-  -> deterministic entity resolution
-  -> aggregation / read models
-  -> Spring Boot API
-  -> Next.js web product
-```
-
-Crawler 邊界是刻意切開的：
-
-- `crawlernest-crawler-core/` 只放可重用 runtime primitives，例如 HTTP、retry、rate limiting、logging 與 snapshot helpers。
-- `crawlernest-ranking-crawler/` 負責 QS / THE / ARWU ranking-source extraction 與 ranking-specific crawl policy。
-- `crawlernest-admission-crawler/` 負責 university-site discovery、admission extraction、site profiles 與 admission-specific crawl policy。
-
-## Data Visibility Model
-
-API 可見的排名資料會經過 warehouse 與 canonical identity chain：
-
-1. crawlers 收集 raw university、ranking 與 admission facts
-2. normalization 準備 source records
-3. staging validators 擋下 invalid 或 suspicious rows
-4. `warehouse.ranking_record` 儲存 universe-aware ranking truth
-5. canonical identity 將 raw entities 連到 `canonical_university`
-6. aggregation run produces product read models，例如 `analytics.v_aggregated_rankings_latest`
-7. Spring Boot 把 ranking truth 與 canonical metadata join 起來
-8. Next.js 透過 same-origin API routes 讀取資料
-
-只存在 raw 或 staging tables 的資料不會自動出現在產品。API 缺資料時，通常需要 canonical linking、backfill，或 aggregation refresh。
-
-QS legacy path 仍會先由 `run_pipeline.py run` 寫入 backward-compatible 的 `warehouse.rankings`。該寫入 commit 後，pipeline 會自動執行 native analytics bridge：
-
-```text
-warehouse.rankings
-  -> warehouse.ranking_source
-  -> warehouse.canonical_university
-  -> warehouse.canonical_university_link
-  -> warehouse.ranking_record
-  -> analytics.aggregation_runs
-  -> analytics.aggregated_rankings
-  -> analytics.v_aggregated_rankings_latest
-```
-
-這個 bridge 可重跑且 idempotent。QS live HTTP 403 不會直接視為 pipeline failure；只要 fallback snapshot 成功，fallback rows 會繼續走 legacy write 與 analytics sync。
-
-## Setup
-
-### Python
+### 1. 建立 Python 環境
 
 ```bash
 python3 -m venv .venv
@@ -188,16 +16,21 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-多數 pipeline commands 建議用 module mode：
+### 2. 啟動 PostgreSQL
+
+推薦使用 Docker：
 
 ```bash
-./.venv/bin/python -m crawlernest.run_pipeline <command>
+docker compose -f docker-compose.postgres.yml up -d
 ```
-這可確保 Python package import path 正確。
 
-### PostgreSQL
+如果尚未安裝 Docker：
 
-pipeline 與 Java API 預設的本機資料庫是：
+```bash
+brew install --cask docker
+```
+
+也可以使用本機 PostgreSQL：
 
 ```text
 database: clawer
@@ -206,40 +39,126 @@ host: localhost
 port: 5432
 ```
 
-需要時可啟動本機 helper service：
+### 3. Bootstrap schemas 與 seed data
+
+新環境先執行一次；這個指令可以安全重跑。
 
 ```bash
-docker compose -f docker-compose.postgres.yml up -d
+python3 -m crawlernest.run_pipeline bootstrap-postgres \
+  --pg-user test \
+  --pg-database clawer
 ```
 
-## 啟動 Web Platform
+### 4. 初始化排名資料
 
-請使用兩個 terminal。
+沒有資料時，網站會顯示空結果。
 
-### 1. 啟動 Spring Boot API
+```bash
+./.venv/bin/python -m crawlernest.run_pipeline run \
+  --limit 20 \
+  --ranking-year 2026 \
+  --pg-user test \
+  --pg-database clawer
+```
+
+### 5. 啟動本機服務
+
+```bash
+./scripts/start_localhost.sh
+```
+
+這個 script 會用專案預設值啟動本機 API 與 Web。
+
+## 服務位置
+
+```text
+Web: http://localhost:3000
+API: http://localhost:8080
+Agent API: http://localhost:8090
+```
+
+主要頁面：
+
+```text
+全球排名: http://localhost:3000/rankings
+學科排名: http://localhost:3000/subject-rankings
+Agent: http://localhost:3000/agent
+```
+
+## Subject Rankings MVP
+
+學科排名是獨立的 read path，不是 global ranking aggregation 的延伸。
+
+目前 MVP 支援：
+
+```text
+source: QS
+year: 2026
+subjects:
+  - computer-science
+  - electrical-engineering
+```
+
+載入 QS 學科排名資料：
+
+```bash
+./.venv/bin/python -m crawlernest.run_pipeline run-qs-subject \
+  --subject computer-science \
+  --year 2026 \
+  --pg-user test \
+  --pg-database clawer
+```
+
+```bash
+./.venv/bin/python -m crawlernest.run_pipeline run-qs-subject \
+  --subject electrical-engineering \
+  --year 2026 \
+  --pg-user test \
+  --pg-database clawer
+```
+
+Subject Ranking API 範例：
+
+```bash
+curl "http://localhost:8080/api/v1/subject-rankings/subjects"
+curl "http://localhost:8080/api/v1/subject-rankings?subject=computer-science&year=2026&page=1&pageSize=20"
+```
+
+Web proxy 範例：
+
+```bash
+curl "http://localhost:3000/api/subject-rankings/subjects"
+curl "http://localhost:3000/api/subject-rankings?subject=computer-science&year=2026&page=1&pageSize=20"
+```
+
+## 資料可見性
+
+全球排名 UI 讀取：
+
+```text
+warehouse.ranking_record
+analytics.v_aggregated_rankings_latest
+```
+
+學科排名 UI 讀取：
+
+```text
+warehouse.subject_ranking_record
+analytics.v_subject_rankings_latest
+```
+
+Raw 與 staging tables 是 pipeline 輸入，不會直接顯示在產品 UI。
+
+## 手動開發模式
+
+啟動 Spring Boot API：
 
 ```bash
 cd crawlernest/servise_for_java
-./mvnw -q -DskipTests compile
 ./mvnw spring-boot:run
 ```
 
-API 會跑在：
-
-```text
-http://localhost:8080
-```
-
-常用 focused backend tests：
-
-```bash
-cd crawlernest/servise_for_java
-./mvnw -q -Dtest=CountryNormalizationTest test
-./mvnw -q -Dtest=RankingApiIntegrationTest test
-./mvnw -q -Dtest=RecommendationControllerTest test
-```
-
-### 2. 啟動 Next.js Frontend
+啟動 Next.js Web：
 
 ```bash
 cd crawlernest/crawlernest-web
@@ -247,188 +166,62 @@ npm install
 npm run dev
 ```
 
-網站會跑在：
+執行常用檢查：
+
+```bash
+python3 crawlernest/scripts/smoke_subject_rankings.py
+cd crawlernest/crawlernest-web && npm run build
+cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegrationTest test
+```
+
+## 常見問題
+
+### Port 8080 被佔用
+
+```bash
+lsof -i :8080
+kill -9 <PID>
+```
+
+### UI 沒有資料
+
+先執行 pipeline，再重新整理頁面：
+
+```bash
+./.venv/bin/python -m crawlernest.run_pipeline run \
+  --limit 20 \
+  --ranking-year 2026 \
+  --pg-user test \
+  --pg-database clawer
+```
+
+如果是學科排名頁，也需要針對想看的 subject 執行 subject loader。
+
+### 學科排名頁能開，但表格是空的
+
+確認 subject pipeline 有寫入資料，而且 Java API 正在執行：
+
+```bash
+python3 crawlernest/scripts/smoke_subject_rankings.py
+curl "http://localhost:8080/api/v1/subject-rankings?subject=computer-science&year=2026"
+```
+
+### 找不到 Docker
+
+安裝 Docker Desktop：
+
+```bash
+brew install --cask docker
+```
+
+## 建議開發流程
 
 ```text
-http://localhost:3000
+1. 啟動 PostgreSQL
+2. 執行資料 pipeline
+3. 啟動 API 與 Web
+4. 打開 /rankings 或 /subject-rankings
+5. 先從 warehouse/analytics views 查資料，再 debug UI
 ```
 
-Frontend 透過 same-origin Next.js routes proxy 產品 API，例如 `/api/rankings`、`/api/recommendations`、`/api/compare`、`/api/university-preview`。
-
-## 執行 Data Pipeline
-
-### Production-Safe Daily Run
-
-```bash
-bash crawlernest/scripts/run_production_safe.sh
-```
-
-中斷後 resume：
-
-```bash
-bash crawlernest/scripts/run_production_safe.sh 2500 --resume
-```
-
-production-safe runner 會優先使用 `.venv`、採用保守 request pacing、把已完成 pass 寫進 PostgreSQL，並在安全時跳過非關鍵 stage failure 繼續執行。
-
-### 常用 Manual Commands
-
-執行 QS global crawl 並寫入：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py run --limit 2500 --ranking-year 2026 --pg-user test --pg-database clawer
-```
-
-這個 command 會寫入 legacy `warehouse.rankings`、同步 analytics-native ranking tables、驗證 `analytics.v_aggregated_rankings_latest`，且只有在產品 rankings view 有資料後才會印出 `Done`。
-
-執行所有 configured QS universes：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py run-qs-universes --ranking-year 2026 --limit 2500 --pg-user test --pg-database clawer
-```
-
-執行單一 QS region：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py run-qs-region --region europe --ranking-year 2026 --limit 2500 --pg-user test --pg-database clawer
-```
-
-執行 THE rankings：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py run-the-rankings --pg-user test --pg-database clawer
-```
-
-執行 ARWU rankings：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py run-arwu-rankings --pg-user test --pg-database clawer
-```
-
-產生 v3 recommendation output：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py recommend-v3 --country "United Kingdom" --ielts 6.5 --target-rank 100
-```
-
-比較大學：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py compare --a "University of Oxford" --b "University of Cambridge"
-```
-
-查看完整 command list：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py --help
-```
-
-## Validation And Repair
-
-驗證 aggregation output：
-
-```bash
-./.venv/bin/python crawlernest/scripts/validate_aggregation.py --year 2026 --universe-type global --universe-key global
-```
-
-Smoke test legacy-to-analytics bridge 與產品 API：
-
-```bash
-./.venv/bin/python crawlernest/scripts/smoke_analytics_bridge.py --year 2026
-```
-
-這個 smoke test 會連續重跑 bridge 兩次、驗證 `warehouse.ranking_record`、驗證 `analytics.v_aggregated_rankings_latest`，並檢查 `/api/v1/rankings` 有回傳 items。若要讓 API 檢查通過，請先啟動 Spring Boot API。
-
-從既有 warehouse universities 修復 canonical visibility：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py seed-canonical --pg-user test --pg-database clawer
-./.venv/bin/python crawlernest/run_pipeline.py backfill-ranking-records --pg-user test --pg-database clawer
-```
-
-修復 source-only unresolved entities，例如 THE rows：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py seed-canonical-from-missing --pg-user test --pg-database clawer
-```
-
-Refresh ranking resolution：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py refresh-ranking-resolution --pg-user test --pg-database clawer
-```
-
-Refresh admission resolution：
-
-```bash
-./.venv/bin/python crawlernest/run_pipeline.py refresh-admission-resolution --pg-user test --pg-database clawer
-```
-
-舊手動 bridge flow 的 legacy/dev SQL fallback：
-
-```bash
-psql -U test -d clawer -f scripts/bridge_legacy_rankings_to_analytics.sql
-psql -U test -d clawer -f scripts/ai-dev/bridge_legacy_rankings_to_analytics.sql
-```
-
-## Testing
-
-Python focused tests：
-
-```bash
-python -m pytest crawlernest/crawlernest-tests
-```
-
-Admission trust 與 decision-product focused tests：
-
-```bash
-python -m pytest test_admission_signals.py test_admission_resolver.py crawlernest/crawlernest-tests/test_recommendation_engine.py
-```
-
-Frontend tests：
-
-```bash
-cd crawlernest/crawlernest-web
-npm test
-```
-
-Recommendation UI / export focused tests：
-
-```bash
-cd crawlernest/crawlernest-web
-npm test -- AdmissionSignalBadge.test.tsx RecommendationPageExport.test.tsx
-```
-
-Frontend build：
-
-```bash
-cd crawlernest/crawlernest-web
-npm run build
-```
-
-AutoEval extractor evaluation：
-
-```bash
-./.venv/bin/python crawlernest/crawlernest-autoeval/runners/run_extractor_eval.py --no-log
-```
-
-## Engineering Guardrails
-
-修改主線行為前，請先看：
-
-- [Architecture Scope](docs/foundation/ARCHITECTURE_SCOPE.md)
-- [Data Contracts](docs/foundation/DATA_CONTRACTS.md)
-- [Module Ownership](docs/foundation/MODULE_OWNERSHIP.md)
-- [Development Workflow](docs/foundation/DEV_WORKFLOW.md)
-- [Do Not Auto Modify](docs/foundation/DO_NOT_AUTO_MODIFY.md)
-- [Testing Guide](docs/foundation/TESTING_GUIDE.md)
-- [Whitepaper](docs/foundation/Whitepaper.md)
-
-短版原則：
-
-- production truth 必須維持 deterministic
-- frontend wiring 前，先把 contract 說清楚
-- 不要把 business logic 放進 `crawlernest-crawler-core/`
-- agent output 是 assistance，不是 authority
-- ingestion 通過 validation 後才進 product visibility
-- 不要跳過 canonical identity 與 warehouse contracts
+CrawlerNest 以 correctness-first 為原則。當畫面看起來不對時，先確認 data pipeline 與 warehouse views，再修改產品層。

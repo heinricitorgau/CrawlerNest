@@ -116,8 +116,115 @@ def ensure_postgres_schema(
         MODULE_ROOT / "crawlernest-schema" / "postgresql_schema.sql",
         MODULE_ROOT / "crawlernest-schema" / "entity_resolution_postgresql.sql",
         MODULE_ROOT / "crawlernest-schema" / "multi_source_postgresql.sql",
+        MODULE_ROOT / "crawlernest-schema" / "subject_ranking_postgresql.sql",
         MODULE_ROOT / "crawlernest-schema" / "ranking_aggregation_postgresql.sql",
         MODULE_ROOT / "crawlernest-schema" / "recommendation_postgresql.sql",
+    ]
+    try:
+        with conn.cursor() as cur:
+            for path in schema_paths:
+                if not path.exists():
+                    continue
+                for stmt in _split_sql_statements(path.read_text(encoding="utf-8")):
+                    try:
+                        cur.execute(stmt)
+                        conn.commit()
+                    except Exception as exc:
+                        conn.rollback()
+                        if _is_postgres_duplicate_error(exc):
+                            continue
+                        raise
+    finally:
+        conn.close()
+
+
+def bootstrap_postgres_layer(
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+    *,
+    reset: bool = False,
+) -> dict[str, Any]:
+    if psycopg2 is None:
+        raise RuntimeError("psycopg2 is required for PostgreSQL mode")
+    if reset:
+        conn = psycopg2.connect(
+            host=pg_host,
+            port=pg_port,
+            database=pg_database,
+            user=pg_user,
+            password=pg_password,
+        )
+        try:
+            with conn.cursor() as cur:
+                cur.execute("DROP SCHEMA IF EXISTS analytics CASCADE")
+                cur.execute("DROP SCHEMA IF EXISTS staging CASCADE")
+                cur.execute("DROP SCHEMA IF EXISTS warehouse CASCADE")
+                conn.commit()
+        finally:
+            conn.close()
+
+    ensure_postgres_schema(pg_host, pg_port, pg_database, pg_user, pg_password)
+
+    conn = psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        database=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT subject_key, display_name, is_active
+                FROM warehouse.ranking_subject
+                ORDER BY subject_key
+                """
+            )
+            subjects = [
+                {
+                    "subject_key": subject_key,
+                    "display_name": display_name,
+                    "is_active": bool(is_active),
+                }
+                for subject_key, display_name, is_active in cur.fetchall()
+            ]
+    finally:
+        conn.close()
+
+    return {
+        "database": pg_database,
+        "user": pg_user,
+        "reset": reset,
+        "ranking_subject_count": len(subjects),
+        "subjects": subjects,
+    }
+
+
+def ensure_subject_ranking_postgres_schema(
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> None:
+    if psycopg2 is None:
+        raise RuntimeError("psycopg2 is required for PostgreSQL mode")
+    conn = psycopg2.connect(
+        host=pg_host,
+        port=pg_port,
+        database=pg_database,
+        user=pg_user,
+        password=pg_password,
+    )
+    schema_paths = [
+        MODULE_ROOT / "crawlernest-schema" / "postgresql_schema.sql",
+        MODULE_ROOT / "crawlernest-schema" / "entity_resolution_postgresql.sql",
+        MODULE_ROOT / "crawlernest-schema" / "multi_source_postgresql.sql",
+        MODULE_ROOT / "crawlernest-schema" / "subject_ranking_postgresql.sql",
     ]
     try:
         with conn.cursor() as cur:
@@ -3680,9 +3787,101 @@ def _seed_university_alias(
     return alias_seed_summary_to_dict(summary)
 
 
+def run_qs_subject_ranking_phase2(
+    *,
+    subject_key: str | None,
+    ranking_year: int,
+    limit: int,
+    snapshot_root: Path | None,
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+) -> dict[str, Any]:
+    from crawlernest_ranking_crawler.subjects.qs_subject import (  # noqa: E402
+        run_qs_subject_ingestion,
+        run_qs_subject_rankings_ingestion,
+        summary_to_dict,
+    )
+
+    if subject_key:
+        summary = run_qs_subject_ingestion(
+            subject_key=subject_key,
+            year=ranking_year,
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+            snapshot_root=snapshot_root,
+            limit=limit,
+        )
+        return summary_to_dict(summary)
+
+    summaries = run_qs_subject_rankings_ingestion(
+        year=ranking_year,
+        pg_host=pg_host,
+        pg_port=pg_port,
+        pg_database=pg_database,
+        pg_user=pg_user,
+        pg_password=pg_password,
+        snapshot_root=snapshot_root,
+        limit=limit,
+    )
+    payload = [summary_to_dict(summary) for summary in summaries]
+    return {
+        "source": "QS",
+        "ranking_year": ranking_year,
+        "subject_count": len(payload),
+        "raw_count": sum(int(item["raw_count"]) for item in payload),
+        "resolved_count": sum(int(item["resolved_count"]) for item in payload),
+        "unresolved_count": sum(int(item["unresolved_count"]) for item in payload),
+        "inserted_row_count": sum(int(item["inserted_row_count"]) for item in payload),
+        "updated_row_count": sum(int(item["updated_row_count"]) for item in payload),
+        "subjects": payload,
+    }
+
+
 
 
 def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
+    if args.command == "bootstrap-postgres":
+        summary = bootstrap_postgres_layer(
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+            reset=bool(getattr(args, "reset", False)),
+        )
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        if int(summary["ranking_subject_count"]) <= 0:
+            raise SystemExit("bootstrap failed: warehouse.ranking_subject is empty")
+        return 0
+
+    if args.command in {"run-qs-subject", "run-qs-subject-rankings"}:
+        ensure_subject_ranking_postgres_schema(
+            args.pg_host,
+            args.pg_port,
+            args.pg_database,
+            args.pg_user,
+            args.pg_password,
+        )
+        summary = run_qs_subject_ranking_phase2(
+            subject_key=(args.subject if args.command == "run-qs-subject" else None),
+            ranking_year=args.ranking_year,
+            limit=max(0, int(getattr(args, "limit", 0) or 0)),
+            snapshot_root=(None if not getattr(args, "snapshot_dir", None) else Path(args.snapshot_dir)),
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+        )
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0
+
     if args.command == "crawl-ranking":
         output_path, count, normalized_path, staging_path = _run_sample_crawl_export(
             args.command,

@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -78,10 +79,12 @@ public class RecommendationService {
     private static final double AGGRESSIVE_SAFETY_PENALTY = -1.0;
     private static final int MAX_LIMIT = 50;
     private final ScopedRankingReadAdapter scopedRankingReadAdapter;
+    private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
 
-    public RecommendationService(ScopedRankingReadAdapter scopedRankingReadAdapter, ObjectMapper objectMapper) {
+    public RecommendationService(ScopedRankingReadAdapter scopedRankingReadAdapter, JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
         this.scopedRankingReadAdapter = scopedRankingReadAdapter;
+        this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
     }
 
@@ -215,6 +218,7 @@ public class RecommendationService {
             String riskProfile,
             String preferenceWeights,
             String preferredRankingSource,
+            String subjectKey,
             Integer rankingYear,
             Integer limit
     ) {
@@ -230,6 +234,8 @@ public class RecommendationService {
                 scopeContext
         );
         Map<String, Double> resolvedWeights = resolvePreferenceWeights(preferenceWeights);
+        String normalizedSubjectKey = normalizeSubjectKey(subjectKey);
+        SubjectScoringContext subjectContext = loadSubjectScoringContext(normalizedSubjectKey, rankingYear);
         Map<String, List<RecommendationResult>> grouped = new LinkedHashMap<>();
         grouped.put("reach", new ArrayList<>());
         grouped.put("target", new ArrayList<>());
@@ -250,6 +256,7 @@ public class RecommendationService {
                     riskProfile,
                     resolvedWeights,
                     preferredRankingSource,
+                    subjectContext,
                     poolContexts.get(candidate.canonicalUniversityId),
                     scopeContext
             );
@@ -293,6 +300,13 @@ public class RecommendationService {
         metadata.put("ielts_score", ieltsScore);
         metadata.put("candidate_count", candidateCount);
         metadata.put("preference_weights", resolvedWeights);
+        metadata.put("subject", normalizedSubjectKey);
+        metadata.put("subject_scoring", Map.of(
+                "enabled", normalizedSubjectKey != null,
+                "subject_key", normalizedSubjectKey == null ? "" : normalizedSubjectKey,
+                "rows_loaded", subjectContext.records().size(),
+                "neutral_fallback", "No subject ranking row produces subjectSignal=0.5 and adjustment=0."
+        ));
         metadata.put("counts", Map.of(
                 "reach", grouped.get("reach").size(),
                 "target", grouped.get("target").size(),
@@ -347,6 +361,152 @@ public class RecommendationService {
                 .map(this::toCandidate)
                 .toList();
         return dedupeCandidates(candidates, scopeContext);
+    }
+
+    private SubjectScoringContext loadSubjectScoringContext(String subjectKey, Integer rankingYear) {
+        if (subjectKey == null) {
+            return SubjectScoringContext.disabled();
+        }
+
+        String sql = """
+                WITH filtered AS (
+                    SELECT
+                        srr.canonical_university_id,
+                        subj.subject_key,
+                        subj.display_name AS subject_name,
+                        srr.ranking_year,
+                        srr.rank_position,
+                        srr.rank_display,
+                        srr.score,
+                        rs.source_code
+                    FROM warehouse.subject_ranking_record srr
+                    JOIN warehouse.ranking_subject subj
+                      ON subj.subject_id = srr.subject_id
+                    JOIN warehouse.ranking_source rs
+                      ON rs.ranking_source_id = srr.ranking_source_id
+                    WHERE subj.subject_key = ?
+                      AND rs.source_code = 'QS'
+                      AND (? IS NULL OR srr.ranking_year = ?)
+                )
+                SELECT DISTINCT ON (canonical_university_id)
+                    canonical_university_id,
+                    subject_key,
+                    subject_name,
+                    ranking_year,
+                    rank_position,
+                    rank_display,
+                    score,
+                    source_code
+                FROM filtered
+                ORDER BY canonical_university_id, ranking_year DESC, rank_position ASC NULLS LAST
+                """;
+
+        Map<Long, SubjectRankingSignalRecord> records = new LinkedHashMap<>();
+        jdbcTemplate.query(
+                sql,
+                rs -> {
+                    records.put(
+                            rs.getLong("canonical_university_id"),
+                            new SubjectRankingSignalRecord(
+                                    rs.getString("subject_key"),
+                                    rs.getString("subject_name"),
+                                    (Integer) rs.getObject("ranking_year"),
+                                    (Integer) rs.getObject("rank_position"),
+                                    rs.getString("rank_display"),
+                                    rs.getObject("score") == null ? null : ((Number) rs.getObject("score")).doubleValue(),
+                                    rs.getString("source_code")
+                            )
+                    );
+                },
+                subjectKey,
+                rankingYear,
+                rankingYear
+        );
+        String subjectName = records.values().stream()
+                .findFirst()
+                .map(SubjectRankingSignalRecord::subjectName)
+                .orElse(subjectKey);
+        return new SubjectScoringContext(subjectKey, subjectName, records);
+    }
+
+    private SubjectSignal subjectSignalForCandidate(SubjectScoringContext context, Long canonicalUniversityId) {
+        if (!context.enabled()) {
+            return SubjectSignal.disabled();
+        }
+        SubjectRankingSignalRecord record = context.records().get(canonicalUniversityId);
+        if (record == null) {
+            return new SubjectSignal(
+                    context.subjectKey(),
+                    context.subjectName(),
+                    null,
+                    null,
+                    null,
+                    "QS",
+                    50.0,
+                    0.0,
+                    false,
+                    "No " + context.subjectName() + " subject ranking row found; neutral fallback applied."
+            );
+        }
+        double signalRatio = subjectSignalRatio(record.rankPosition());
+        double signalScore = signalRatio * 100.0;
+        double adjustment = (signalRatio - 0.5) * 10.0;
+        String displayRank = record.rankDisplay() == null || record.rankDisplay().isBlank()
+                ? (record.rankPosition() == null ? "unranked" : "#" + record.rankPosition())
+                : record.rankDisplay();
+        return new SubjectSignal(
+                record.subjectKey(),
+                record.subjectName(),
+                record.rankPosition(),
+                displayRank,
+                record.score(),
+                record.sourceCode(),
+                signalScore,
+                adjustment,
+                true,
+                record.subjectName() + " rank " + displayRank
+                        + " contributes " + (adjustment >= 0 ? "+" : "")
+                        + String.format(Locale.ROOT, "%.1f", adjustment)
+                        + " to the final fit score."
+        );
+    }
+
+    private double subjectSignalRatio(Integer rankPosition) {
+        if (rankPosition == null || rankPosition <= 0) {
+            return 0.5;
+        }
+        return Math.max(0.0, Math.min(1.0, 1.0 - (rankPosition - 1) / 499.0));
+    }
+
+    private Map<String, Object> subjectFitPayload(SubjectSignal signal) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("subjectKey", signal.subjectKey());
+        payload.put("subjectName", signal.subjectName());
+        payload.put("rankPosition", signal.rankPosition());
+        payload.put("rankDisplay", signal.rankDisplay());
+        payload.put("score", signal.score());
+        payload.put("sourceCode", signal.sourceCode());
+        payload.put("signalScore", round(signal.signalScore()));
+        payload.put("adjustment", round(signal.adjustment()));
+        payload.put("hasData", signal.hasData());
+        payload.put("reason", signal.reason());
+        return payload;
+    }
+
+    private void appendSubjectExplain(RecommendationExplain explain, SubjectSignal signal) {
+        if (explain == null) {
+            return;
+        }
+        explain.setFitScore(clampScore((explain.getFitScore() == null ? 0.0 : explain.getFitScore()) + signal.adjustment()));
+        if (signal.hasData()) {
+            List<String> reasons = new ArrayList<>(explain.getReasons() == null ? List.of() : explain.getReasons());
+            reasons.add(signal.reason());
+            explain.setReasons(reasons);
+        } else {
+            List<String> warnings = new ArrayList<>(explain.getWarnings() == null ? List.of() : explain.getWarnings());
+            warnings.add(signal.reason());
+            explain.setWarnings(warnings);
+        }
     }
 
     private Candidate toCandidate(ScopedRankedUniversity row) {
@@ -600,6 +760,7 @@ public class RecommendationService {
             String riskProfile,
             Map<String, Double> resolvedWeights,
             String preferredRankingSource,
+            SubjectScoringContext subjectContext,
             PoolContext poolContext,
             RankingContext scopeContext
     ) {
@@ -628,7 +789,9 @@ public class RecommendationService {
         scoreMap.put("confidence", confidenceScore);
         scoreMap.put("country_match", countryMatchScore);
         double baseScore = weightedAverage(resolvedWeights, scoreMap);
-        double finalScore = Math.max(0.0, Math.min(100.0, baseScore + riskAdjustment));
+        SubjectSignal subjectSignal = subjectSignalForCandidate(subjectContext, candidate.canonicalUniversityId);
+        double preSubjectScore = clampScore(baseScore + riskAdjustment);
+        double finalScore = clampScore(preSubjectScore + subjectSignal.adjustment());
 
         Map<String, Object> scoreBreakdown = new LinkedHashMap<>();
         scoreBreakdown.put("ranking_score", rankingScore);
@@ -654,6 +817,11 @@ public class RecommendationService {
         scoreBreakdown.put("explanation_version", EXPLANATION_VERSION);
         scoreBreakdown.put("base_score", round(baseScore));
         scoreBreakdown.put("risk_adjustment", round(riskAdjustment));
+        scoreBreakdown.put("pre_subject_score", round(preSubjectScore));
+        scoreBreakdown.put("subject_signal_score", round(subjectSignal.signalScore()));
+        scoreBreakdown.put("subject_adjustment", round(subjectSignal.adjustment()));
+        scoreBreakdown.put("subject_has_data", subjectSignal.hasData());
+        scoreBreakdown.put("subject_key", subjectContext.subjectKey());
 
         List<String> rulesPassed = new ArrayList<>();
         rulesPassed.add("version=v3");
@@ -665,6 +833,9 @@ public class RecommendationService {
         }
         if (ieltsMargin != null) {
             rulesPassed.add("ielts_margin=" + formatNumber(ieltsMargin));
+        }
+        if (subjectContext.enabled()) {
+            rulesPassed.add(subjectSignal.hasData() ? "subject_rank_signal" : "subject_neutral_fallback");
         }
 
         RecommendationResult result = new RecommendationResult(
@@ -714,6 +885,11 @@ public class RecommendationService {
                         scopeContext
                 )
         );
+        if (subjectContext.enabled()) {
+            result.setSubjectFit(subjectFitPayload(subjectSignal));
+            appendSubjectExplain(result.getRecommendationExplain(), subjectSignal);
+            result.setExplanation(result.getExplanation() + " Subject signal: " + subjectSignal.reason());
+        }
         applyScopeContext(result, candidate, scopeContext);
         return result;
     }
@@ -1092,6 +1268,13 @@ public class RecommendationService {
             case "conservative", "aggressive", "balanced" -> cleaned;
             default -> DEFAULT_RISK_PROFILE;
         };
+    }
+
+    private String normalizeSubjectKey(String subjectKey) {
+        if (subjectKey == null || subjectKey.isBlank()) {
+            return null;
+        }
+        return subjectKey.trim().toLowerCase(Locale.ROOT);
     }
 
     private String normalizeCountryPolicy(String countryPolicy) {
@@ -1580,6 +1763,10 @@ public class RecommendationService {
         return Math.max(1, Math.min(limit == null ? defaultValue : limit, MAX_LIMIT));
     }
 
+    private double clampScore(double value) {
+        return Math.max(0.0, Math.min(100.0, value));
+    }
+
     private Double round(double value) {
         return Math.round(value * 10000.0) / 10000.0;
     }
@@ -1639,5 +1826,47 @@ public class RecommendationService {
     }
 
     private record PoolContext(int position, int poolSize, boolean elitePool) {
+    }
+
+    private record SubjectRankingSignalRecord(
+            String subjectKey,
+            String subjectName,
+            Integer rankingYear,
+            Integer rankPosition,
+            String rankDisplay,
+            Double score,
+            String sourceCode
+    ) {
+    }
+
+    private record SubjectScoringContext(
+            String subjectKey,
+            String subjectName,
+            Map<Long, SubjectRankingSignalRecord> records
+    ) {
+        private static SubjectScoringContext disabled() {
+            return new SubjectScoringContext(null, null, Map.of());
+        }
+
+        private boolean enabled() {
+            return subjectKey != null && !subjectKey.isBlank();
+        }
+    }
+
+    private record SubjectSignal(
+            String subjectKey,
+            String subjectName,
+            Integer rankPosition,
+            String rankDisplay,
+            Double score,
+            String sourceCode,
+            double signalScore,
+            double adjustment,
+            boolean hasData,
+            String reason
+    ) {
+        private static SubjectSignal disabled() {
+            return new SubjectSignal(null, null, null, null, null, null, 50.0, 0.0, false, "");
+        }
     }
 }
