@@ -6,6 +6,10 @@ import type {
   UniversityDetail,
   UniversityDetailResponse,
 } from "@/types/university";
+import type {
+  SubjectRankingRow,
+  SubjectRankingsApiResponse,
+} from "@/types/subjectRanking";
 import ShortlistButton from "@/components/ShortlistButton";
 
 export const dynamic = "force-dynamic";
@@ -123,6 +127,111 @@ async function fetchUniversityDetail(slug: string): Promise<UniversityDetailResp
   return fetchJson<UniversityDetailResponse>(`/api/v1/universities/by-slug/${encodeURIComponent(slug)}`);
 }
 
+async function fetchUniversitySubjectRankings(canonicalUniversityId: number): Promise<SubjectRankingRow[]> {
+  try {
+    const response = await fetchJson<SubjectRankingsApiResponse>(
+      `/api/v1/universities/${canonicalUniversityId}/subject-rankings`
+    );
+
+    if (!response.success || !Array.isArray(response.data?.items)) {
+      return [];
+    }
+
+    return response.data.items;
+  } catch (error) {
+    console.error("Subject ranking fetch failed", error);
+    return [];
+  }
+}
+
+function formatSubjectScore(score?: number | null) {
+  if (typeof score !== "number" || !Number.isFinite(score)) {
+    return "—";
+  }
+
+  return score.toFixed(1);
+}
+
+function SubjectRankingsBlock({ items }: { items: SubjectRankingRow[] }) {
+  const strongSubjects = items.filter((item) => item.rankPosition != null && item.rankPosition <= 10);
+  const midSubjects = items.filter(
+    (item) => item.rankPosition != null && item.rankPosition > 10 && item.rankPosition <= 50
+  );
+  const weakSubjects = items.filter((item) => item.rankPosition == null || item.rankPosition > 50);
+
+  if (items.length === 0) {
+    return (
+      <div className="rounded border border-slate-100 bg-slate-50 p-6 text-sm text-slate-500">
+        No subject ranking data is available for this university yet.
+      </div>
+    );
+  }
+
+  const groups = [
+    {
+      title: "Strong subjects",
+      description: "Top 10 subject positions.",
+      items: strongSubjects,
+      tone: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    },
+    {
+      title: "Mid subjects",
+      description: "Ranks 11-50. Strong enough to support a subject-led shortlist.",
+      items: midSubjects,
+      tone: "border-amber-200 bg-amber-50 text-amber-900",
+    },
+    {
+      title: "Weak / missing",
+      description: "Ranks below 50 or records with no rank position.",
+      items: weakSubjects,
+      tone: "border-slate-200 bg-slate-50 text-slate-700",
+    },
+  ];
+
+  return (
+    <div className="grid gap-4">
+      {groups.map((group) => (
+        <div key={group.title} className={`rounded border p-4 ${group.tone}`}>
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="text-sm font-bold">{group.title}</div>
+              <div className="mt-1 text-xs opacity-80">{group.description}</div>
+            </div>
+            <div className="text-xs font-bold uppercase tracking-[0.12em]">
+              {group.items.length} subject{group.items.length === 1 ? "" : "s"}
+            </div>
+          </div>
+
+          {group.items.length > 0 ? (
+            <div className="mt-3 grid gap-2">
+              {group.items.map((item) => (
+                <div
+                  key={`${group.title}-${item.subjectKey}-${item.rankingYear}-${item.sourceCode}`}
+                  className="grid gap-2 rounded bg-white/80 p-3 text-sm text-slate-800 sm:grid-cols-[1fr_auto_auto_auto]"
+                >
+                  <div>
+                    <div className="font-semibold">{item.subjectName}</div>
+                    <div className="mt-1 text-xs text-slate-500">{item.rankingYear}</div>
+                  </div>
+                  <div className="font-mono">
+                    {item.rankDisplay || formatRank(item.rankPosition)}
+                  </div>
+                  <div className="font-mono">{formatSubjectScore(item.score)}</div>
+                  <div className="font-semibold">{item.sourceCode}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-3 rounded bg-white/70 p-3 text-sm opacity-80">
+              No subjects in this band.
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default async function UniversityDetailPage({ params }: UniversityDetailPageProps) {
   const { slug } = await params;
   let detail: UniversityDetail | null = null;
@@ -163,6 +272,7 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
       : evidenceSummary.agreementLevel === "moderate"
         ? "bg-amber-50 text-amber-800 border-amber-200"
         : "bg-rose-50 text-rose-800 border-rose-200";
+  const subjectRankings = await fetchUniversitySubjectRankings(detail.canonicalUniversityId);
 
   return (
     <main className="min-h-screen bg-slate-50 pb-20">
@@ -304,6 +414,10 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
                   </tbody>
                 </table>
               </div>
+            </Section>
+
+            <Section title="Subject Rankings">
+              <SubjectRankingsBlock items={subjectRankings} />
             </Section>
 
             <Section title="Admission Requirements">

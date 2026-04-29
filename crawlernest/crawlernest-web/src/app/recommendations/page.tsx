@@ -159,6 +159,18 @@ type RecommendationItem = {
     reasons: string[];
     warnings: string[];
   };
+  subjectFit?: {
+    subjectKey: string;
+    subjectName: string;
+    rankPosition?: number | null;
+    rankDisplay?: string | null;
+    score?: number | null;
+    sourceCode?: string | null;
+    signalScore: number;
+    adjustment: number;
+    hasData: boolean;
+    reason: string;
+  };
 };
 
 type RecommendationResponse = {
@@ -372,6 +384,11 @@ const DECISION_FLOW_STORAGE_KEY = "crawlernest_recommendation_flow";
 const DEFAULT_COUNTRY = "United Kingdom";
 const DEFAULT_IELTS = 6.5;
 const DEFAULT_TARGET_RANK = 100;
+const SUBJECT_OPTIONS = [
+  { subjectKey: "", subjectName: "Any subject" },
+  { subjectKey: "computer-science", subjectName: "Computer Science" },
+  { subjectKey: "electrical-engineering", subjectName: "Electrical Engineering" },
+] as const;
 const VALID_PLAN_NAMES: PlanName[] = ["balanced", "conservative", "aggressive"];
 const VALID_SCENARIO_KEYS: ScenarioKey[] = [
   "ielts_plus_0_5",
@@ -1024,6 +1041,7 @@ export function RecommendationPageContent() {
   const [duolingo, setDuolingo] = useState<number | "">("");
   const [targetRank, setTargetRank] = useState(DEFAULT_TARGET_RANK);
   const [riskProfile, setRiskProfile] = useState("balanced");
+  const [selectedSubject, setSelectedSubject] = useState("");
   const [scenarioIeltsDelta, setScenarioIeltsDelta] = useState<number | "">("");
   const [scenarioToeflDelta, setScenarioToeflDelta] = useState<number | "">("");
   const [scenarioGpaDelta, setScenarioGpaDelta] = useState<number | "">("");
@@ -1401,6 +1419,9 @@ export function RecommendationPageContent() {
       if (effectiveDuolingo !== "") {
         params.set("duolingoScore", String(effectiveDuolingo));
       }
+      if (selectedSubject) {
+        params.set("subject", selectedSubject);
+      }
 
       const json = await fetchAppJson<RecommendationResponse>(
         `/api/recommendations?${params.toString()}`
@@ -1503,6 +1524,7 @@ export function RecommendationPageContent() {
     setGpa("");
     setDuolingo("");
     setTargetRank(DEFAULT_TARGET_RANK);
+    setSelectedSubject("");
     setSelectedPlan(null);
     setSelectedScenarioKey(null);
     setCurrentFocus(null);
@@ -1849,6 +1871,21 @@ export function RecommendationPageContent() {
             </label>
 
             <label className="flex flex-col gap-2">
+              <span className="text-sm font-medium text-[#1a3d2e]">Subject Focus (optional)</span>
+              <select
+                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+              >
+                {SUBJECT_OPTIONS.map((item) => (
+                  <option key={item.subjectKey || "any"} value={item.subjectKey}>
+                    {item.subjectName}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-2">
               <span className="text-sm font-medium text-[#1a3d2e]">TOEFL Score (optional)</span>
               <input
                 className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
@@ -2124,6 +2161,13 @@ export function RecommendationPageContent() {
                 <SummaryItem label="IELTS Score" value={formatIelts(ielts)} />
                 <SummaryItem label="Target Rank" value={`#${formatRank(targetRank)}`} />
                 <SummaryItem label="Risk Profile" value={riskProfile} />
+                <SummaryItem
+                  label="Subject Focus"
+                  value={
+                    SUBJECT_OPTIONS.find((item) => item.subjectKey === selectedSubject)
+                      ?.subjectName ?? "Any subject"
+                  }
+                />
                 <SummaryItem label="Candidates" value={String(totalCount)} />
                 <SummaryItem
                   label="Reach"
@@ -2776,6 +2820,39 @@ function Section({
                   value={formatConfidence(item.recommendationConfidence)}
                 />
               </div>
+
+              {item.subjectFit ? (
+                <div className="mt-4 rounded-xl border border-[#d8e6dd] bg-[#f6fbf7] p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                    Subject Signal
+                  </div>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-4">
+                    <SummaryItem label="Subject" value={item.subjectFit.subjectName} />
+                    <SummaryItem
+                      label="Subject Rank"
+                      value={
+                        item.subjectFit.hasData
+                          ? item.subjectFit.rankDisplay ||
+                            `#${formatRank(item.subjectFit.rankPosition ?? null)}`
+                          : "Neutral"
+                      }
+                    />
+                    <SummaryItem
+                      label="Subject Score"
+                      value={
+                        typeof item.subjectFit.score === "number"
+                          ? formatScore(item.subjectFit.score)
+                          : "—"
+                      }
+                    />
+                    <SummaryItem
+                      label="Fit Adjustment"
+                      value={`${item.subjectFit.adjustment >= 0 ? "+" : ""}${item.subjectFit.adjustment.toFixed(1)}`}
+                    />
+                  </div>
+                  <p className="mt-3 text-sm text-[#415046]">{item.subjectFit.reason}</p>
+                </div>
+              ) : null}
 
               {item.ieltsFitHighlight || item.toeflFitHighlight || item.gpaFitHighlight || item.duolingoFitHighlight || item.deadlineHighlight ? (
                 <div className="mt-4 flex flex-wrap items-center gap-2">

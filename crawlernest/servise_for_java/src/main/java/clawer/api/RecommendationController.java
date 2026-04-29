@@ -40,6 +40,8 @@ public class RecommendationController {
             @RequestParam(name = "preferred_ranking_source", required = false) String preferredRankingSourceSnakeCase,
             @RequestParam(name = "rankingYear", required = false) Integer rankingYear,
             @RequestParam(name = "ranking_year", required = false) Integer rankingYearSnakeCase,
+            @RequestParam(name = "subject", required = false) String subject,
+            @RequestParam(name = "subject_key", required = false) String subjectSnakeCase,
             @RequestParam(defaultValue = "10") Integer limit,
             @RequestParam(defaultValue = "v3") String version
     ) {
@@ -51,6 +53,7 @@ public class RecommendationController {
             String resolvedPreferenceWeights = firstNonBlank(preferenceWeights, preferenceWeightsSnakeCase);
             String resolvedPreferredRankingSource = firstNonBlank(preferredRankingSource, preferredRankingSourceSnakeCase);
             Integer resolvedRankingYear = firstNonNull(rankingYear, rankingYearSnakeCase);
+            String resolvedSubject = firstNonBlank(subject, subjectSnakeCase);
 
             if ("v1".equalsIgnoreCase(version)) {
                 return clawer.dto.ApiResponse.success(recommendationService.getRecommendations(
@@ -80,6 +83,7 @@ public class RecommendationController {
                         resolvedRiskProfile,
                         resolvedPreferenceWeights,
                         resolvedPreferredRankingSource,
+                        resolvedSubject,
                         resolvedRankingYear,
                         limit
                 );

@@ -36,6 +36,21 @@ def build_parser(
     parser = argparse.ArgumentParser(description="CrawlerNest ranking ingestion and recommendation pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    bootstrap_parser = subparsers.add_parser(
+        "bootstrap-postgres",
+        help="Create PostgreSQL schemas and seed required registry data",
+    )
+    bootstrap_parser.add_argument("--pg-host", default="localhost")
+    bootstrap_parser.add_argument("--pg-port", type=int, default=5432)
+    bootstrap_parser.add_argument("--pg-database", default="clawer")
+    bootstrap_parser.add_argument("--pg-user", default="test")
+    bootstrap_parser.add_argument("--pg-password", default="")
+    bootstrap_parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Drop analytics/staging/warehouse schemas before bootstrap",
+    )
+
     run_parser = subparsers.add_parser("run", help="Crawl QS -> normalize -> write to DB")
     run_parser.add_argument("--ranking-id", default="3990755")
     run_parser.add_argument("--ranking-year", type=int, default=default_ranking_year)
@@ -874,26 +889,34 @@ def build_parser(
 
     qs_subject_parser = subparsers.add_parser(
         "run-qs-subject",
-        help="Run one QS subject ranking universe ingestion",
+        help="Run one QS subject ranking ingestion into the subject-ranking store",
     )
     qs_subject_parser.add_argument(
         "--subject",
         required=True,
-        choices=["engineering-technology", "computer-science", "business-management"],
+        choices=["computer-science", "electrical-engineering"],
     )
-    qs_subject_parser.add_argument("--ranking-year", type=int, default=default_ranking_year)
+    qs_subject_parser.add_argument("--ranking-year", "--year", dest="ranking_year", type=int, default=default_ranking_year)
     qs_subject_parser.add_argument("--limit", type=int, default=0)
-    qs_subject_parser.add_argument("--workers", type=int, default=1)
-    qs_subject_parser.add_argument("--request-delay", type=float, default=10.0)
-    qs_subject_parser.add_argument("--local-parse-workers", type=int, default=4)
-    qs_subject_parser.add_argument("--use-async", action="store_true")
-    qs_subject_parser.add_argument("--resume", action="store_true", help="Resume from the last saved raw snapshot for this universe")
-    qs_subject_parser.add_argument("--output-dir", default=str(module_root / "crawlernest-kb" / "qs_universes"))
+    qs_subject_parser.add_argument("--snapshot-dir", default=str(module_root / "crawlernest-kb" / "qs_subject_rankings"))
     qs_subject_parser.add_argument("--pg-host", default="localhost")
     qs_subject_parser.add_argument("--pg-port", type=int, default=5432)
     qs_subject_parser.add_argument("--pg-database", default="clawer")
     qs_subject_parser.add_argument("--pg-user", default="test")
     qs_subject_parser.add_argument("--pg-password", default="")
+
+    qs_subject_rankings_parser = subparsers.add_parser(
+        "run-qs-subject-rankings",
+        help="Run all Phase 2 QS subject rankings into the subject-ranking store",
+    )
+    qs_subject_rankings_parser.add_argument("--ranking-year", "--year", dest="ranking_year", type=int, default=default_ranking_year)
+    qs_subject_rankings_parser.add_argument("--limit", type=int, default=0)
+    qs_subject_rankings_parser.add_argument("--snapshot-dir", default=str(module_root / "crawlernest-kb" / "qs_subject_rankings"))
+    qs_subject_rankings_parser.add_argument("--pg-host", default="localhost")
+    qs_subject_rankings_parser.add_argument("--pg-port", type=int, default=5432)
+    qs_subject_rankings_parser.add_argument("--pg-database", default="clawer")
+    qs_subject_rankings_parser.add_argument("--pg-user", default="test")
+    qs_subject_rankings_parser.add_argument("--pg-password", default="")
 
     qs_special_parser = subparsers.add_parser(
         "run-qs-special",
