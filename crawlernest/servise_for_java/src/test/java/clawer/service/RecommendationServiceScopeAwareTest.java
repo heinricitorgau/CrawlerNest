@@ -6,6 +6,7 @@ import clawer.domain.ranking.ScopedRankingReadAdapter;
 import clawer.model.RecommendationGroupResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -17,12 +18,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 class RecommendationServiceScopeAwareTest {
 
     @Test
     void regionModeUsesScopeRankAsPrimarySignal() throws Exception {
-        RecommendationService service = new RecommendationService(new NoopScopedRankingReadAdapter(), new ObjectMapper());
+        RecommendationService service = service(new NoopScopedRankingReadAdapter());
         Object candidate = candidate(1L, "ETH Zurich", "Switzerland", 15, 80, 6.0);
 
         Object globalContext = scopeContext("global", null);
@@ -40,7 +42,7 @@ class RecommendationServiceScopeAwareTest {
 
     @Test
     void regionExplanationIncludesRegionalAndGlobalLanguage() throws Exception {
-        RecommendationService service = new RecommendationService(new NoopScopedRankingReadAdapter(), new ObjectMapper());
+        RecommendationService service = service(new NoopScopedRankingReadAdapter());
         Object candidate = candidate(2L, "University of Oxford", "United Kingdom", 15, 7, 6.5);
         Object regionContext = scopeContext("region", "Europe");
 
@@ -53,7 +55,7 @@ class RecommendationServiceScopeAwareTest {
 
     @Test
     void sameInputsProduceDeterministicRegionScore() throws Exception {
-        RecommendationService service = new RecommendationService(new NoopScopedRankingReadAdapter(), new ObjectMapper());
+        RecommendationService service = service(new NoopScopedRankingReadAdapter());
         Object candidate = candidate(3L, "TU Delft", "Netherlands", 40, 12, 6.5);
         Object regionContext = scopeContext("region", "Europe");
 
@@ -66,7 +68,7 @@ class RecommendationServiceScopeAwareTest {
 
     @Test
     void recommendationExplainShowsReasonsAndWarnings() throws Exception {
-        RecommendationService service = new RecommendationService(new NoopScopedRankingReadAdapter(), new ObjectMapper());
+        RecommendationService service = service(new NoopScopedRankingReadAdapter());
         Object candidate = candidate(4L, "Imperial College London", "United Kingdom", 42, 42, 7.5, Map.of("QS", 6, "THE", 9, "ARWU", 11));
         Object globalContext = scopeContext("global", null);
 
@@ -81,7 +83,7 @@ class RecommendationServiceScopeAwareTest {
 
     @Test
     void recommendationResultsAreDeduplicatedByCanonicalUniversityId() {
-        RecommendationService service = new RecommendationService(new DuplicateScopedRankingReadAdapter(), new ObjectMapper());
+        RecommendationService service = service(new DuplicateScopedRankingReadAdapter());
         RecommendationGroupResponse response = service.getRecommendationsV3(
                 "United Kingdom",
                 "global",
@@ -91,6 +93,7 @@ class RecommendationServiceScopeAwareTest {
                 6.5,
                 50,
                 "balanced",
+                null,
                 null,
                 null,
                 2026,
@@ -121,6 +124,7 @@ class RecommendationServiceScopeAwareTest {
                 String.class,
                 Map.class,
                 String.class,
+                Class.forName("clawer.service.RecommendationService$SubjectScoringContext"),
                 Class.forName("clawer.service.RecommendationService$PoolContext"),
                 scopeContext.getClass()
         );
@@ -135,9 +139,22 @@ class RecommendationServiceScopeAwareTest {
                 riskProfile,
                 Map.of("ranking", 0.5, "ielts", 0.2, "confidence", 0.2, "country_match", 0.1),
                 null,
+                disabledSubjectScoringContext(),
                 null,
                 scopeContext
         );
+    }
+
+    private Object disabledSubjectScoringContext() throws Exception {
+        Class<?> subjectContextClass = Class.forName("clawer.service.RecommendationService$SubjectScoringContext");
+        Constructor<?> constructor = subjectContextClass.getDeclaredConstructor(String.class, String.class, Map.class);
+        constructor.setAccessible(true);
+        return constructor.newInstance(null, null, Map.of());
+    }
+
+    private RecommendationService service(ScopedRankingReadAdapter adapter) {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        return new RecommendationService(adapter, jdbcTemplate, new ObjectMapper());
     }
 
     private Object candidate(Long id, String name, String country, Integer globalRank, Integer scopeRank, Double ieltsMin) throws Exception {

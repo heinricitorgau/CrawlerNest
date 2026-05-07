@@ -9,12 +9,14 @@ import clawer.model.RecommendationResult;
 import clawer.repository.JdbcAggregatedRankingReadRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 class ScopedRankingReadAdapterUsageTest {
 
@@ -43,7 +45,7 @@ class ScopedRankingReadAdapterUsageTest {
         row.setSourceRanks(Map.of("QS", 15));
 
         FakeScopedRankingReadAdapter adapter = new FakeScopedRankingReadAdapter(List.of(row));
-        RecommendationService service = new RecommendationService(adapter, new ObjectMapper());
+        RecommendationService service = new RecommendationService(adapter, mock(JdbcTemplate.class), new ObjectMapper());
 
         RecommendationGroupResponse response = service.getRecommendationsV3(
                 null,
@@ -54,6 +56,7 @@ class ScopedRankingReadAdapterUsageTest {
                 7.0,
                 50,
                 "balanced",
+                null,
                 null,
                 null,
                 2026,
@@ -81,7 +84,7 @@ class ScopedRankingReadAdapterUsageTest {
         row.setSourceRanks(Map.of("QS", 45));
 
         FakeScopedRankingReadAdapter adapter = new FakeScopedRankingReadAdapter(List.of(row));
-        RecommendationService service = new RecommendationService(adapter, new ObjectMapper());
+        RecommendationService service = new RecommendationService(adapter, mock(JdbcTemplate.class), new ObjectMapper());
 
         RecommendationGroupResponse response = service.getRecommendationsV3(
                 null,
@@ -92,6 +95,7 @@ class ScopedRankingReadAdapterUsageTest {
                 7.0,
                 30,
                 "balanced",
+                null,
                 null,
                 null,
                 2026,
