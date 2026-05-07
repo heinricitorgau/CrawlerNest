@@ -16,25 +16,29 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Start PostgreSQL
+### 2. Install and start PostgreSQL
 
-Recommended with Docker:
-
-```bash
-docker compose -f docker-compose.postgres.yml up -d
-```
-
-If Docker is not installed:
+On WSL/Ubuntu, use the local PostgreSQL package:
 
 ```bash
-brew install --cask docker
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+sudo service postgresql start
 ```
 
-Local PostgreSQL also works with:
+Create the local development role and database:
+
+```bash
+sudo -u postgres psql -c "CREATE ROLE test WITH LOGIN PASSWORD 'test';"
+sudo -u postgres createdb -O test clawer
+```
+
+If the role or database already exists, keep using the same credentials:
 
 ```text
 database: clawer
 user: test
+password: test
 host: localhost
 port: 5432
 ```
@@ -46,6 +50,7 @@ Run this once in a new environment. It is safe to rerun.
 ```bash
 python3 -m crawlernest.run_pipeline bootstrap-postgres \
   --pg-user test \
+  --pg-password test \
   --pg-database clawer
 ```
 
@@ -58,16 +63,57 @@ The web app will be empty until pipeline data exists.
   --limit 20 \
   --ranking-year 2026 \
   --pg-user test \
+  --pg-password test \
   --pg-database clawer
 ```
 
-### 5. Start local services
+You can confirm the analytics view has data:
+
+```bash
+PGPASSWORD=test psql -h localhost -U test -d clawer \
+  -c "SELECT count(*) FROM analytics.v_aggregated_rankings_latest;"
+```
+
+### 5. Confirm Spring Boot datasource credentials
+
+`crawlernest/servise_for_java/src/main/resources/application.properties` must use:
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/clawer
+spring.datasource.username=test
+spring.datasource.password=test
+```
+
+### 6. Start local services
 
 ```bash
 ./scripts/start_localhost.sh
 ```
 
-The script starts the local API and web app using the project defaults.
+The script checks PostgreSQL, verifies the API port, starts Spring Boot with
+`-Dmaven.test.skip=true`, then starts the Next.js frontend.
+
+You can also run services manually:
+
+```bash
+cd crawlernest/servise_for_java
+./mvnw -Dmaven.test.skip=true spring-boot:run
+```
+
+```bash
+cd crawlernest/crawlernest-web
+npm install
+npm run dev
+```
+
+### 7. Smoke check
+
+```bash
+curl -i "http://localhost:8080/api/v1/rankings?page=1&pageSize=5"
+curl -i "http://localhost:3000/api/rankings?page=1&pageSize=5"
+curl -I "http://localhost:3000/rankings"
+./scripts/smoke_local_stack.sh
+```
 
 ## Service URLs
 
@@ -106,6 +152,7 @@ Load QS subject ranking data:
   --subject computer-science \
   --year 2026 \
   --pg-user test \
+  --pg-password test \
   --pg-database clawer
 ```
 
@@ -114,6 +161,7 @@ Load QS subject ranking data:
   --subject electrical-engineering \
   --year 2026 \
   --pg-user test \
+  --pg-password test \
   --pg-database clawer
 ```
 
@@ -155,7 +203,7 @@ Start the Spring Boot API:
 
 ```bash
 cd crawlernest/servise_for_java
-./mvnw spring-boot:run
+./mvnw -Dmaven.test.skip=true spring-boot:run
 ```
 
 Start the Next.js web app:
@@ -192,6 +240,7 @@ Run the pipeline first, then reload the page:
   --limit 20 \
   --ranking-year 2026 \
   --pg-user test \
+  --pg-password test \
   --pg-database clawer
 ```
 
@@ -208,11 +257,8 @@ curl "http://localhost:8080/api/v1/subject-rankings?subject=computer-science&yea
 
 ### Docker is not available
 
-Install Docker Desktop:
-
-```bash
-brew install --cask docker
-```
+Docker is optional for the WSL/local flow. Use the local PostgreSQL service
+shown in Quick Start step 2.
 
 ## Recommended Workflow
 

@@ -9,6 +9,7 @@ import clawer.model.RecommendationResult;
 import clawer.service.RecommendationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 
 class RecommendationControllerTest {
 
@@ -54,7 +56,8 @@ class RecommendationControllerTest {
                 "United Kingdom", null, null, null,
                 6.5, null, 100, null,
                 "balanced", null, null, null,
-                null, null, null, null, null, null, 10, "v2"
+                null, null, null, null, null, null,
+                null, null, 10, "v2"
         );
 
         ApiResponse<?> apiResponse = assertInstanceOf(ApiResponse.class, response);
@@ -81,7 +84,8 @@ class RecommendationControllerTest {
                 "United Kingdom", "region", "Europe", "1,2",
                 6.5, null, 100, null,
                 "balanced", null, null, null,
-                null, null, null, null, null, null, 5, "v3"
+                null, null, null, null, null, null,
+                null, null, 5, "v3"
         );
 
         ApiResponse<?> apiResponse = assertInstanceOf(ApiResponse.class, response);
@@ -126,7 +130,8 @@ class RecommendationControllerTest {
                 "United Kingdom", null, null, null,
                 null, 6.5, null, 100,
                 null, "conservative", null, "hard_filter",
-                null, null, null, null, null, null, 3, "v3"
+                null, null, null, null, null, null,
+                null, null, 3, "v3"
         );
 
         ApiResponse<?> apiResponse = assertInstanceOf(ApiResponse.class, response);
@@ -146,7 +151,8 @@ class RecommendationControllerTest {
                 "United Kingdom", null, null, null,
                 6.5, null, null, null,
                 "balanced", null, null, null,
-                null, null, null, null, null, null, 10, null
+                null, null, null, null, null, null,
+                null, null, 10, null
         ));
     }
 
@@ -159,7 +165,7 @@ class RecommendationControllerTest {
         private String lastShortlist;
 
         private FakeRecommendationService() {
-            super(new NoopScopedRankingReadAdapter(), new ObjectMapper());
+            super(new NoopScopedRankingReadAdapter(), mock(JdbcTemplate.class), new ObjectMapper());
         }
 
         @Override
@@ -194,6 +200,7 @@ class RecommendationControllerTest {
                 String riskProfile,
                 String preferenceWeights,
                 String preferredRankingSource,
+                String subjectKey,
                 Integer rankingYear,
                 Integer limit
         ) {
