@@ -14,8 +14,10 @@ Core rule:
 
 Reference docs:
 
-- `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
-  canonical system / engine architecture, including current executable architecture and longer-term vision
+- `docs/ARCHITECTURE_OVERVIEW.md`
+  current executable system architecture and high-level system maps
+- `docs/foundation/Whitepaper.md`
+  longer-term architecture vision and project narrative
 
 ## Mainline System
 

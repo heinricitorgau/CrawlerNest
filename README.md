@@ -174,6 +174,7 @@ Current system components:
 
 Start with these docs when changing architecture or onboarding:
 
+- [Documentation Hub](docs/README.md)
 - [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md)
 - [Repository Map](docs/REPOSITORY_MAP.md)
 - [Data Flow](docs/DATA_FLOW.md)
@@ -318,6 +319,7 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 
 ## Documentation
 
+- [Documentation Hub](docs/README.md) - current docs entrypoint and duplicate-content policy
 - [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md) - high-level system map and ASCII diagrams
 - [Repository Map](docs/REPOSITORY_MAP.md) - directory ownership and onboarding map
 - [Data Flow](docs/DATA_FLOW.md) - ranking and subject ranking data flow

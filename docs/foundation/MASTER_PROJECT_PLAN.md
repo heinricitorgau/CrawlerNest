@@ -8,8 +8,10 @@ Our core evolution path:
 
 Execution note:
 
-- `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
-  canonical system / engine architecture, combining current executable architecture with the longer-term target
+- `docs/ARCHITECTURE_OVERVIEW.md`
+  current executable system architecture and high-level system maps
+- `docs/foundation/Whitepaper.md`
+  longer-term architecture vision and project narrative
 
 This project plan should be read with the execution architecture as the current mainline and the vision architecture as the target horizon.
 

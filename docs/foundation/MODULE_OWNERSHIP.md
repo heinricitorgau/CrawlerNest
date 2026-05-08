@@ -18,7 +18,7 @@ This document is normative. When it conflicts with convenience, the document win
 ## System Layers
 
 CrawlerNest is organized as a layered system.
-For current execution priority, read this together with `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`.
+For current execution priority, read this together with `docs/ARCHITECTURE_OVERVIEW.md`.
 
 Current mainline emphasis:
 
