@@ -1,0 +1,62 @@
+[
+  {
+    "id": "reg-001",
+    "university_name_pattern": "Massachusetts Institute of Technology",
+    "description": "MIT — consistently top-5 in all major global rankings",
+    "assertions": {
+      "year": 2026,
+      "display_rank_max": 5,
+      "source_presence_required": ["QS"],
+      "source_count_min": 1,
+      "country": "United States"
+    }
+  },
+  {
+    "id": "reg-002",
+    "university_name_pattern": "University of Oxford",
+    "description": "Oxford — top-5 globally, United Kingdom",
+    "assertions": {
+      "year": 2026,
+      "display_rank_max": 5,
+      "source_presence_required": ["QS"],
+      "source_count_min": 1,
+      "country": "United Kingdom"
+    }
+  },
+  {
+    "id": "reg-003",
+    "university_name_pattern": "University of Cambridge",
+    "description": "Cambridge — top-10 globally, United Kingdom",
+    "assertions": {
+      "year": 2026,
+      "display_rank_max": 10,
+      "source_presence_required": ["QS"],
+      "source_count_min": 1,
+      "country": "United Kingdom"
+    }
+  },
+  {
+    "id": "reg-004",
+    "university_name_pattern": "Harvard University",
+    "description": "Harvard — top-10 globally, United States",
+    "assertions": {
+      "year": 2026,
+      "display_rank_max": 10,
+      "source_presence_required": ["QS"],
+      "source_count_min": 1,
+      "country": "United States"
+    }
+  },
+  {
+    "id": "reg-005",
+    "university_name_pattern": "Imperial College London",
+    "description": "Imperial — top-15 globally, United Kingdom",
+    "assertions": {
+      "year": 2026,
+      "display_rank_max": 15,
+      "source_presence_required": ["QS"],
+      "source_count_min": 1,
+      "country": "United Kingdom"
+    }
+  }
+]

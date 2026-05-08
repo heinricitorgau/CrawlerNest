@@ -1,0 +1,28 @@
+[
+  {
+    "id": "subj-001",
+    "subject_key": "computer-science",
+    "year": 2026,
+    "description": "QS Computer Science — structural quality checks",
+    "assertions": {
+      "min_universities": 1,
+      "rank_position_all_positive": true,
+      "score_range": [0, 100],
+      "no_duplicate_universities": true,
+      "subject_key_stored_normalized": true
+    }
+  },
+  {
+    "id": "subj-002",
+    "subject_key": "electrical-engineering",
+    "year": 2026,
+    "description": "QS Electrical Engineering — structural quality checks",
+    "assertions": {
+      "min_universities": 1,
+      "rank_position_all_positive": true,
+      "score_range": [0, 100],
+      "no_duplicate_universities": true,
+      "subject_key_stored_normalized": true
+    }
+  }
+]

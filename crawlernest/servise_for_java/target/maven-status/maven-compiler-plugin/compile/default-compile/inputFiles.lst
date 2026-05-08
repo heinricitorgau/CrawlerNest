@@ -28,6 +28,7 @@
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/model/RecommendationGroupResponse.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/AggregationExplainability.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/SubjectRankingService.java
+/home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/DataQualityService.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/SourceRankingDTO.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/HealthService.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/UniversityDTO.java
@@ -40,6 +41,7 @@
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/model/Ranking.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/RankingCountryOptionDTO.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/repository/AggregatedRankingReadRepository.java
+/home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/DataQualityController.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/ApiResponse.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/ComparisonService.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/UniversityPreviewController.java
@@ -58,11 +60,13 @@
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/repository/UniversityPreviewRepository.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/SubjectOptionDTO.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/RecommendationService.java
+/home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/OperationalStatusService.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/CompareRequest.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/model/RecommendationExplain.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/UniversityService.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/CountryNormalization.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/repository/SourceRankParser.java
+/home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/OperationalStatusController.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/FreshnessController.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/SubjectRankingController.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/RecommendationController.java

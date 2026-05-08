@@ -226,6 +226,51 @@ function formatAge(hours: number | null | undefined): string {
   return `${days}d ${hours % 24}h ago`;
 }
 
+// ── Operational context types ─────────────────────────────────────────────────
+
+interface LastPipelineRun {
+  run_id: number | null;
+  ranking_year: number | null;
+  status: string | null;
+  finished_at: string | null;
+  age_hours: number | null;
+  output_count: number;
+}
+
+interface LastIngestion {
+  source_code: string | null;
+  batch_id: string | null;
+  started_at: string | null;
+  age_hours: number | null;
+  records_in: number;
+  unresolved_count: number;
+}
+
+interface UnresolvedTrend {
+  total: number;
+  last_7d: number;
+  prior_7d: number;
+  trend_pct: number | null;
+  trend_direction: "increasing" | "decreasing" | "stable";
+}
+
+interface OperationalStatusData {
+  last_pipeline_run: LastPipelineRun;
+  last_ingestion: LastIngestion;
+  unresolved_trend: UnresolvedTrend;
+}
+
+interface SnapshotInfo {
+  has_snapshot: boolean;
+  snapshot_timestamp: string | null;
+  snapshot_file: string | null;
+  drift_warning_count: number | null;
+  unresolved_total: number | null;
+  unresolved_last_7d: number | null;
+  unresolved_trend_pct: number | null;
+  last_aggregation_at: string | null;
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function SystemStatusPage() {
@@ -233,11 +278,15 @@ export default function SystemStatusPage() {
   const rankingsDiagState = useJsonFetch<RankingsDiagData>("/api/diagnostics/rankings");
   const subjectsDiagState = useJsonFetch<SubjectsDiagData>("/api/diagnostics/subjects");
   const freshnessState = useJsonFetch<FreshnessData>("/api/freshness");
+  const opsState = useJsonFetch<OperationalStatusData>("/api/diagnostics/operational-status");
+  const snapshotState = useJsonFetch<SnapshotInfo>("/api/snapshot-info");
 
   const health = healthState.status === "ok" ? healthState.data : null;
   const rankingsDiag = rankingsDiagState.status === "ok" ? rankingsDiagState.data : null;
   const subjectsDiag = subjectsDiagState.status === "ok" ? subjectsDiagState.data : null;
   const freshness = freshnessState.status === "ok" ? freshnessState.data : null;
+  const ops = opsState.status === "ok" ? opsState.data : null;
+  const snapshot = snapshotState.status === "ok" ? snapshotState.data : null;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-950">
@@ -256,6 +305,98 @@ export default function SystemStatusPage() {
       </div>
 
       <div className="mx-auto max-w-7xl space-y-10 px-6 py-8 lg:px-8">
+
+        {/* ── Operational Context ─────────────────────────── */}
+        <section>
+          <SectionHeader
+            title="Operational Context"
+            sub="Last pipeline run, ingestion batch, unresolved trend, and latest snapshot."
+          />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Last pipeline run */}
+            <StatCard
+              label="Last Pipeline Run"
+              value={
+                ops?.last_pipeline_run?.run_id != null
+                  ? `Run #${ops.last_pipeline_run.run_id}`
+                  : opsState.status === "loading" ? "…" : "—"
+              }
+              sub={
+                ops?.last_pipeline_run?.finished_at
+                  ? `${formatTs(ops.last_pipeline_run.finished_at)} · ${formatAge(ops.last_pipeline_run.age_hours)}`
+                  : ops?.last_pipeline_run?.status === "never_run"
+                  ? "No pipeline run recorded yet"
+                  : opsState.status === "error"
+                  ? "API unavailable"
+                  : undefined
+              }
+            />
+
+            {/* Last ingestion */}
+            <StatCard
+              label="Last Ingestion"
+              value={
+                ops?.last_ingestion?.source_code
+                  ? ops.last_ingestion.source_code
+                  : opsState.status === "loading" ? "…" : "—"
+              }
+              sub={
+                ops?.last_ingestion?.started_at
+                  ? `${formatTs(ops.last_ingestion.started_at)} · ${ops.last_ingestion.records_in} records`
+                  : undefined
+              }
+            />
+
+            {/* Unresolved trend */}
+            <StatCard
+              label="Unresolved (7d trend)"
+              value={
+                ops?.unresolved_trend != null
+                  ? ops.unresolved_trend.total.toLocaleString()
+                  : opsState.status === "loading" ? "…" : "—"
+              }
+              sub={
+                ops?.unresolved_trend
+                  ? (() => {
+                      const t = ops.unresolved_trend;
+                      const arrow =
+                        t.trend_direction === "increasing" ? "▲"
+                        : t.trend_direction === "decreasing" ? "▼"
+                        : "→";
+                      const pct = t.trend_pct != null ? ` ${Math.abs(t.trend_pct).toFixed(1)}%` : "";
+                      return `${arrow}${pct} vs prior 7 days · ${t.last_7d} new`;
+                    })()
+                  : undefined
+              }
+            />
+
+            {/* Latest snapshot */}
+            <StatCard
+              label="Latest Snapshot"
+              value={
+                snapshot?.has_snapshot
+                  ? "Available"
+                  : snapshotState.status === "loading" ? "…" : "No snapshot"
+              }
+              sub={
+                snapshot?.has_snapshot && snapshot.snapshot_timestamp
+                  ? formatTs(snapshot.snapshot_timestamp)
+                  : snapshot?.has_snapshot === false
+                  ? "Run export_system_snapshot.py to generate"
+                  : undefined
+              }
+            />
+          </div>
+
+          {/* Snapshot drift banner */}
+          {snapshot?.has_snapshot && (snapshot.drift_warning_count ?? 0) > 0 && (
+            <div className="mt-3 border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              {snapshot.drift_warning_count} drift warning
+              {snapshot.drift_warning_count !== 1 ? "s" : ""} in latest snapshot — see{" "}
+              <a href="/data-quality" className="underline">Data Quality</a> for details.
+            </div>
+          )}
+        </section>
 
         {/* ── Data Freshness ──────────────────────────────── */}
         <section>
