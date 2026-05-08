@@ -1,0 +1,42 @@
+[
+  {
+    "display_name": "Massachusetts Institute of Technology",
+    "canonical_slug": "massachusetts-institute-of-technology",
+    "country_name": "United States",
+    "display_rank": 1,
+    "composite_score": 100.0,
+    "source_ranks_json": {"QS": 1}
+  },
+  {
+    "display_name": "University of Oxford",
+    "canonical_slug": "university-of-oxford",
+    "country_name": "United Kingdom",
+    "display_rank": 3,
+    "composite_score": 96.8,
+    "source_ranks_json": {"QS": 3}
+  },
+  {
+    "display_name": "University of Cambridge",
+    "canonical_slug": "university-of-cambridge",
+    "country_name": "United Kingdom",
+    "display_rank": 5,
+    "composite_score": 95.1,
+    "source_ranks_json": {"QS": 5}
+  },
+  {
+    "display_name": "Harvard University",
+    "canonical_slug": "harvard-university",
+    "country_name": "United States",
+    "display_rank": 4,
+    "composite_score": 95.9,
+    "source_ranks_json": {"QS": 4}
+  },
+  {
+    "display_name": "Imperial College London",
+    "canonical_slug": "imperial-college-london",
+    "country_name": "United Kingdom",
+    "display_rank": 8,
+    "composite_score": 91.3,
+    "source_ranks_json": {"QS": 8}
+  }
+]

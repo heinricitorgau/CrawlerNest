@@ -20,16 +20,16 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
 AUTOEVAL_ROOT = REPO_ROOT / "crawlernest" / "crawlernest-autoeval"
-SNAPSHOT_FILE = REPO_ROOT / "snapshots" / "latest_status.json"
+DEFAULT_SNAPSHOT_FILE = REPO_ROOT / "snapshots" / "latest_status.json"
 REPORTS_DIR = REPO_ROOT / "reports"
 
 
-def load_snapshot() -> dict:
-    if not SNAPSHOT_FILE.exists():
-        print(f"[summary] snapshot not found at {SNAPSHOT_FILE}")
+def load_snapshot(snapshot_path: Path) -> dict:
+    if not snapshot_path.exists():
+        print(f"[summary] snapshot not found at {snapshot_path}")
         print("[summary] run: python scripts/export_system_snapshot.py --pg-password test")
         return {}
-    return json.loads(SNAPSHOT_FILE.read_text(encoding="utf-8"))
+    return json.loads(snapshot_path.read_text(encoding="utf-8"))
 
 
 def run_json_script(script_path: Path, extra_args: list[str]) -> dict:
@@ -196,11 +196,18 @@ def main() -> int:
     parser.add_argument("--run-live-checks", action="store_true",
                         help="Run regression and drift scripts for fresh data")
     parser.add_argument("--output", default=str(REPORTS_DIR / "latest_failure_summary.md"))
+    parser.add_argument(
+        "--snapshot-file",
+        metavar="PATH",
+        default=str(DEFAULT_SNAPSHOT_FILE),
+        help="Path to snapshot JSON file (default: snapshots/latest_status.json). "
+             "Use a fixture path for CI / no-database mode.",
+    )
     args = parser.parse_args()
 
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    snapshot = load_snapshot()
+    snapshot = load_snapshot(Path(args.snapshot_file))
     pg_args = [
         "--pg-host", args.pg_host,
         "--pg-port", str(args.pg_port),

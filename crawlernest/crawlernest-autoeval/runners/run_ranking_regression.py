@@ -31,6 +31,35 @@ DATASETS_DIR = Path(__file__).parent.parent / "datasets" / "ranking_regression"
 GOLDEN_FILE = DATASETS_DIR / "golden.json"
 
 
+def load_fixture(fixture_path: str) -> list[dict[str, Any]]:
+    p = Path(fixture_path)
+    if not p.exists():
+        print(f"ERROR fixture file not found: {p}")
+        sys.exit(2)
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+def query_university_from_fixture(
+    fixture_unis: list[dict[str, Any]], name_pattern: str, year: int
+) -> dict[str, Any] | None:
+    """Search fixture list using LIKE-style matching on display_name."""
+    pattern = name_pattern.lower()
+    for uni in fixture_unis:
+        if pattern in uni.get("display_name", "").lower():
+            source_ranks = uni.get("source_ranks_json", {})
+            if isinstance(source_ranks, str):
+                source_ranks = json.loads(source_ranks)
+            return {
+                "display_name": uni.get("display_name"),
+                "canonical_slug": uni.get("canonical_slug"),
+                "country_name": uni.get("country_name"),
+                "display_rank": uni.get("display_rank"),
+                "composite_score": uni.get("composite_score"),
+                "source_ranks_json": source_ranks,
+            }
+    return None
+
+
 def connect(host: str, port: int, database: str, user: str, password: str):
     try:
         import psycopg2  # type: ignore
@@ -156,10 +185,24 @@ def main() -> int:
     parser.add_argument("--pg-user", default="test")
     parser.add_argument("--pg-password", default="")
     parser.add_argument("--json", action="store_true", help="Output JSON summary")
+    parser.add_argument(
+        "--fixture-file",
+        metavar="PATH",
+        help="Path to a JSON fixture file (list of university records). "
+             "Skips PostgreSQL connection entirely — for CI / no-database mode.",
+    )
     args = parser.parse_args()
 
     golden = load_golden()
-    conn = connect(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
+
+    use_fixture = bool(args.fixture_file)
+    fixture_unis: list[dict[str, Any]] = []
+    conn = None
+
+    if use_fixture:
+        fixture_unis = load_fixture(args.fixture_file)
+    else:
+        conn = connect(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
 
     total_pass = 0
     total_fail = 0
@@ -170,7 +213,11 @@ def main() -> int:
         for entry in golden:
             year = entry["assertions"].get("year", 2026)
             name = entry["university_name_pattern"]
-            row = query_university(conn, name, year)
+
+            if use_fixture:
+                row = query_university_from_fixture(fixture_unis, name, year)
+            else:
+                row = query_university(conn, name, year)
 
             assertion_results = run_assertions(entry, row)
             entry_pass = all(r["passed"] for r in assertion_results)
@@ -198,7 +245,8 @@ def main() -> int:
                     print(f"{icon} {r['assertion']}: {r['detail']}")
 
     finally:
-        conn.close()
+        if conn is not None:
+            conn.close()
 
     summary = {
         "total_assertions": total_pass + total_fail,

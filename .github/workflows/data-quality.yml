@@ -1,0 +1,100 @@
+name: Data Quality
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    # Weekly on Sunday at 04:00 UTC
+    - cron: "0 4 * * 0"
+
+jobs:
+  data-quality:
+    name: Data quality (fixture mode — no live DB)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ── Python syntax check ────────────────────────────────────────────────
+      - name: Python syntax check — autoeval runners
+        run: |
+          python3 -m py_compile crawlernest/crawlernest-autoeval/runners/run_ranking_regression.py
+          python3 -m py_compile crawlernest/crawlernest-autoeval/runners/run_subject_eval.py
+          python3 -m py_compile crawlernest/crawlernest-autoeval/runners/run_canonical_diagnostics.py
+          python3 -m py_compile crawlernest/crawlernest-autoeval/runners/run_source_drift.py
+          python3 -m py_compile scripts/export_system_snapshot.py
+          python3 -m py_compile scripts/build_failure_summary.py
+          echo "Python syntax: OK"
+
+      # ── Validate golden datasets ───────────────────────────────────────────
+      - name: Validate golden regression dataset
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          from pathlib import Path
+          golden = json.loads(Path("crawlernest/crawlernest-autoeval/datasets/ranking_regression/golden.json").read_text())
+          assert isinstance(golden, list) and len(golden) > 0, "golden.json must be a non-empty list"
+          required_keys = {"id", "university_name_pattern", "assertions"}
+          for entry in golden:
+              missing = required_keys - entry.keys()
+              assert not missing, f"Entry {entry.get('id')} missing keys: {missing}"
+          print(f"golden.json: {len(golden)} entries validated OK")
+          EOF
+
+      - name: Validate CI fixture files
+        run: |
+          python3 - <<'EOF'
+          import json, sys
+          from pathlib import Path
+          db = json.loads(Path("crawlernest/crawlernest-autoeval/datasets/ci_fixtures/db_state.json").read_text())
+          assert isinstance(db, list) and len(db) > 0, "db_state.json must be a non-empty list"
+          snap = json.loads(Path("crawlernest/crawlernest-autoeval/datasets/ci_fixtures/snapshot_fixture.json").read_text())
+          assert "aggregated_count" in snap, "snapshot_fixture.json missing aggregated_count"
+          print(f"db_state.json: {len(db)} universities OK")
+          print(f"snapshot_fixture.json: aggregated_count={snap['aggregated_count']} OK")
+          EOF
+
+      # ── Regression runner (fixture mode) ──────────────────────────────────
+      - name: Run ranking regression (fixture mode)
+        id: regression
+        run: |
+          python3 crawlernest/crawlernest-autoeval/runners/run_ranking_regression.py \
+            --fixture-file crawlernest/crawlernest-autoeval/datasets/ci_fixtures/db_state.json \
+            --json | tee /tmp/regression_result.json
+          python3 - <<'EOF'
+          import json, sys
+          r = json.load(open("/tmp/regression_result.json"))
+          if r["result"] != "PASS":
+              print(f"REGRESSION FAILED: {r['failed']} assertion(s) failed", file=sys.stderr)
+              sys.exit(1)
+          print(f"Regression: PASS ({r['passed']} assertions)")
+          EOF
+
+      # ── Failure summary (snapshot fixture mode) ───────────────────────────
+      - name: Build failure summary (snapshot fixture mode)
+        run: |
+          mkdir -p reports
+          python3 scripts/build_failure_summary.py \
+            --snapshot-file crawlernest/crawlernest-autoeval/datasets/ci_fixtures/snapshot_fixture.json \
+            --output /tmp/ci_failure_summary.md
+          echo "--- failure summary ---"
+          cat /tmp/ci_failure_summary.md
+
+      # ── Upload artifacts ───────────────────────────────────────────────────
+      - name: Upload CI artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: data-quality-report
+          path: |
+            /tmp/regression_result.json
+            /tmp/ci_failure_summary.md
+          retention-days: 14
