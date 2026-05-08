@@ -23,11 +23,16 @@ If someone is new to the repo, this is the fastest path:
 
 1. `README.md`
 2. `README.zh-TW.md`
-3. `docs/architecture/REPO_STRUCTURE.md`
-4. `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
-6. `docs/foundation/MASTER_PROJECT_PLAN.md`
-7. `docs/foundation/Whitepaper.md`
-8. `docs/foundation/TESTING_GUIDE.md`
+3. `docs/ARCHITECTURE_OVERVIEW.md`
+4. `docs/REPOSITORY_MAP.md`
+5. `docs/DATA_FLOW.md`
+6. `docs/OPERATIONAL_RUNBOOK.md`
+7. `docs/API_SURFACE.md`
+8. `docs/architecture/REPO_STRUCTURE.md`
+9. `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
+10. `docs/foundation/MASTER_PROJECT_PLAN.md`
+11. `docs/foundation/Whitepaper.md`
+12. `docs/foundation/TESTING_GUIDE.md`
 
 ## 1. Root Entry Docs
 
@@ -52,9 +57,13 @@ If someone is new to the repo, this is the fastest path:
 
 | File | Purpose |
 | --- | --- |
+| `docs/ARCHITECTURE_OVERVIEW.md` | Current high-level architecture, system maps, and ASCII diagrams. |
+| `docs/REPOSITORY_MAP.md` | Current repository structure map and onboarding guide. |
+| `docs/DATA_FLOW.md` | QS/THE/ARWU and subject ranking data flow from source to frontend. |
+| `docs/OPERATIONAL_RUNBOOK.md` | Startup, smoke checks, daily pipeline, snapshots, diagnostics, CI troubleshooting, and rollback guidance. |
+| `docs/API_SURFACE.md` | Current API endpoint catalog for rankings, subjects, diagnostics, explainability, health, and freshness. |
 | `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` | Legacy mirror that now redirects readers to the canonical architecture docs in `docs/`. |
 | `crawlernest/crawlernest-docs/architecture.md` | Compatibility architecture note kept to avoid stale inner-workspace links. |
-| `docs/reference/frontend_api_mapping.md` | Maps frontend pages to backend API endpoints for the website MVP. |
 
 ## 4. Deployment And Operations
 

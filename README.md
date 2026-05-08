@@ -147,6 +147,39 @@ Subject rankings: http://localhost:3000/subject-rankings
 Agent: http://localhost:3000/agent
 ```
 
+## Architecture
+
+CrawlerNest is organized as a data pipeline plus product read layer:
+
+```text
+QS/THE/ARWU sources
+  -> Python crawlers and normalization
+  -> canonical university resolution
+  -> PostgreSQL warehouse tables
+  -> analytics aggregation/views
+  -> Spring Boot API
+  -> Next.js frontend
+```
+
+Current system components:
+
+- Ranking ingestion for QS and THE, with ARWU adapter support when source data exists.
+- Aggregation into `analytics.v_aggregated_rankings_latest`.
+- Subject rankings as a parallel QS subject read path.
+- Recommendation layer reading aggregated ranking candidates.
+- Diagnostics for health, freshness, data quality, ranking readiness, subject readiness, and source agreement.
+- Cross-source intelligence and explainability APIs for source comparison, disagreement, confidence, and aggregation inputs.
+- Operational automation through daily pipeline, snapshots, metadata bundles, and smoke checks.
+- CI/CD through release smoke and fixture-mode data quality workflows.
+
+Start with these docs when changing architecture or onboarding:
+
+- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md)
+- [Repository Map](docs/REPOSITORY_MAP.md)
+- [Data Flow](docs/DATA_FLOW.md)
+- [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md)
+- [API Surface](docs/API_SURFACE.md)
+
 ## Subject Rankings MVP
 
 Subject rankings are implemented as a parallel read path, not as an extension of global ranking aggregation.
@@ -213,6 +246,51 @@ analytics.v_subject_rankings_latest
 
 Raw and staging tables are pipeline inputs. They are not shown directly in the product UI.
 
+## Diagnostics And Explainability
+
+Operational and data quality surfaces:
+
+```text
+Health:              /api/v1/health
+Freshness:           /api/v1/freshness
+Ranking diagnostics: /api/v1/diagnostics/rankings
+Subject diagnostics: /api/v1/diagnostics/subjects
+Data quality:        /api/v1/diagnostics/data-quality
+Source agreement:    /api/v1/diagnostics/source-agreement
+```
+
+Explainability surfaces:
+
+```text
+Source comparison:   /api/v1/universities/{id}/source-comparison
+Ranking explain:     /api/v1/rankings/{id}/explain
+University sources:  /universities/[slug]/sources
+```
+
+These endpoints read stored ranking evidence and aggregation output. They do not modify aggregation, canonical matching, recommendation scoring, or schema.
+
+## CI/CD And Operations
+
+CI workflows:
+
+```text
+.github/workflows/release-smoke.yml
+.github/workflows/data-quality.yml
+```
+
+Operational scripts:
+
+```text
+scripts/smoke_release.sh
+scripts/smoke_local_stack.sh
+scripts/run_daily_pipeline.sh
+scripts/export_system_snapshot.py
+scripts/export_metadata_bundle.sh
+scripts/build_failure_summary.py
+```
+
+Generated operational evidence is written to `snapshots/`, `reports/`, and daily logs.
+
 ## Manual Development
 
 Start the Spring Boot API:
@@ -240,6 +318,11 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 
 ## Documentation
 
+- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md) - high-level system map and ASCII diagrams
+- [Repository Map](docs/REPOSITORY_MAP.md) - directory ownership and onboarding map
+- [Data Flow](docs/DATA_FLOW.md) - ranking and subject ranking data flow
+- [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md) - startup, smoke checks, snapshots, diagnostics, and rollback
+- [API Surface](docs/API_SURFACE.md) - current endpoint catalog
 - [Demo Checklist](docs/DEMO_CHECKLIST.md) — step-by-step checklist before any demo or handover
 - [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — known issues and fixes for the local development environment
 
