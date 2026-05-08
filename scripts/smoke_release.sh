@@ -28,9 +28,25 @@ fail() { echo "FAIL $*"; (( FAIL++ )) || true; }
 skip() { echo "SKIP $*"; }
 
 # ---------------------------------------------------------------------------
-# 1. Spring Boot compile
+# 1. Local environment verification
 # ---------------------------------------------------------------------------
-echo "[1/4] Spring Boot compile (no tests)..."
+echo "[1/6] Local environment verification (readonly)..."
+if [[ ! -x "${ROOT_DIR}/scripts/verify_local_environment.sh" ]]; then
+  fail "verify_local_environment.sh not found or not executable"
+else
+  env_out="$("${ROOT_DIR}/scripts/verify_local_environment.sh" 2>&1)" && rc=0 || rc=$?
+  echo "${env_out}"
+  if [[ ${rc} -eq 0 ]]; then
+    ok "Local environment verification completed"
+  else
+    fail "Local environment verification crashed"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 2. Spring Boot compile
+# ---------------------------------------------------------------------------
+echo "[2/6] Spring Boot compile (no tests)..."
 if [[ ! -f "${JAVA_DIR}/mvnw" ]]; then
   fail "mvnw not found at ${JAVA_DIR}/mvnw"
 else
@@ -44,9 +60,9 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 2. Next.js build
+# 3. Next.js build
 # ---------------------------------------------------------------------------
-echo "[2/4] Next.js build..."
+echo "[3/6] Next.js build..."
 if [[ ! -d "${WEB_DIR}/node_modules" ]]; then
   fail "node_modules not found — run: cd crawlernest/crawlernest-web && npm install"
 else
@@ -70,9 +86,9 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 3. Python syntax check
+# 4. Python syntax check
 # ---------------------------------------------------------------------------
-echo "[3/4] Python syntax check..."
+echo "[4/6] Python syntax check..."
 if ! command -v python3 >/dev/null 2>&1; then
   fail "python3 not found"
 else
@@ -88,6 +104,7 @@ else
 
   check_py "${CRAWLERNEST_DIR}/run_pipeline.py"
   check_py "${CRAWLERNEST_DIR}/pipeline/cli.py"
+  check_py "${ROOT_DIR}/scripts/check_pipeline_health.py"
 
   # Check all .py files under pipeline/ and subjects/
   while IFS= read -r -d '' pyfile; do
@@ -100,9 +117,25 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 4. API endpoint checks (skipped if Spring Boot is not running)
+# 5. Pipeline health diagnostics
 # ---------------------------------------------------------------------------
-echo "[4/4] API endpoint checks (optional — requires Spring Boot on ${API_BASE})..."
+echo "[5/6] Pipeline health diagnostics (readonly)..."
+if [[ ! -f "${ROOT_DIR}/scripts/check_pipeline_health.py" ]]; then
+  fail "check_pipeline_health.py not found"
+else
+  health_out="$(python3 "${ROOT_DIR}/scripts/check_pipeline_health.py" 2>&1)" && rc=0 || rc=$?
+  echo "${health_out}"
+  if [[ ${rc} -eq 0 ]]; then
+    ok "Pipeline health diagnostics completed"
+  else
+    fail "Pipeline health diagnostics crashed"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# 6. API endpoint checks (skipped if Spring Boot is not running)
+# ---------------------------------------------------------------------------
+echo "[6/6] API endpoint checks (optional — requires Spring Boot on ${API_BASE})..."
 
 api_reachable=false
 reach_status="$(curl -sS -o /dev/null -w "%{http_code}" \
