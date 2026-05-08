@@ -4,6 +4,7 @@ import clawer.dto.RankingDTO;
 import clawer.dto.ApiResponse;
 import clawer.dto.RankingCountryOptionDTO;
 import clawer.service.RankingService;
+import clawer.service.SourceIntelligenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -29,10 +30,16 @@ public class RankingController {
     private static final Logger LOGGER = LoggerFactory.getLogger(RankingController.class);
 
     private final RankingService rankingService;
+    private final SourceIntelligenceService sourceIntelligenceService;
     private final JdbcTemplate jdbcTemplate;
 
-    public RankingController(RankingService rankingService, JdbcTemplate jdbcTemplate) {
+    public RankingController(
+            RankingService rankingService,
+            SourceIntelligenceService sourceIntelligenceService,
+            JdbcTemplate jdbcTemplate
+    ) {
         this.rankingService = rankingService;
+        this.sourceIntelligenceService = sourceIntelligenceService;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -171,6 +178,11 @@ public class RankingController {
                 Map.of("items", items),
                 metadata
         ));
+    }
+
+    @GetMapping("/{id}/explain")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> explainRanking(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(sourceIntelligenceService.explainRanking(id)));
     }
 
     private ResponseEntity<ApiResponse<Map<String, Object>>> validateScopeAndRegion(String scope, String region) {

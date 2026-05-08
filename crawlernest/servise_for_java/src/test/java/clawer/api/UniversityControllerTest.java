@@ -1,6 +1,7 @@
 package clawer.api;
 
 import clawer.dto.UniversityDTO;
+import clawer.service.SourceIntelligenceService;
 import clawer.service.UniversityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ class UniversityControllerTest {
 
     @MockBean
     private UniversityService universityService;
+
+    @MockBean
+    private SourceIntelligenceService sourceIntelligenceService;
 
     @Test
     void testGetAllUniversities_ReturnsJsonList() throws Exception {

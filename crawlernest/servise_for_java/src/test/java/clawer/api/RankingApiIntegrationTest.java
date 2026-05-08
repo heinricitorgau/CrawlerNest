@@ -65,7 +65,7 @@ class RankingApiIntegrationTest {
                 .andExpect(jsonPath("$.data.items.length()").value(20))
                 .andExpect(jsonPath("$.data.items[0].aggregatedRank").value(1))
                 .andExpect(jsonPath("$.data.items[0].primarySource").value("QS"))
-                .andExpect(jsonPath("$.data.items[0].sourceCount").value(1))
+                .andExpect(jsonPath("$.data.items[0].sourceCount").value(2))
                 .andExpect(jsonPath("$.data.items[19].aggregatedRank").value(20));
     }
 
@@ -107,7 +107,7 @@ class RankingApiIntegrationTest {
                 .andExpect(jsonPath("$.data.items[2].universityName").value("Delft University of Technology"))
                 .andExpect(jsonPath("$.data.items[3].universityName").value("Integration Test University 04"))
                 .andExpect(jsonPath("$.data.items[4].universityName").value("Integration Test University 05"))
-                .andExpect(jsonPath("$.data.items[0].sourceCount").value(1))
+                .andExpect(jsonPath("$.data.items[0].sourceCount").value(2))
                 .andExpect(jsonPath("$.data.metadata.totalCount").value(29));
     }
 
@@ -207,6 +207,44 @@ class RankingApiIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void sourceComparisonEndpointReturnsConfidenceAndDisagreement() throws Exception {
+        mockMvc.perform(get("/api/v1/universities/990001/source-comparison")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.sources.length()").value(2))
+                .andExpect(jsonPath("$.data.sources[0].source_code").value("QS"))
+                .andExpect(jsonPath("$.data.rank_spread").value(1))
+                .andExpect(jsonPath("$.data.confidence").value("high"))
+                .andExpect(jsonPath("$.data.source_disagreement_metrics.qs_the_rank_difference").value(1));
+    }
+
+    @Test
+    void rankingExplainEndpointReturnsWeightedInputsWithoutChangingAggregation() throws Exception {
+        mockMvc.perform(get("/api/v1/rankings/990001/explain")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.why_this_rank_exists").isString())
+                .andExpect(jsonPath("$.data.weighted_aggregation_inputs.length()").value(3))
+                .andExpect(jsonPath("$.data.normalized_scores.QS").exists())
+                .andExpect(jsonPath("$.data.missing_source_penalties[0].source_code").value("ARWU"))
+                .andExpect(jsonPath("$.data.confidence").value("high"));
+    }
+
+    @Test
+    void sourceAgreementDiagnosticsEndpointProducesOverlapAndOutliers() throws Exception {
+        mockMvc.perform(get("/api/v1/diagnostics/source-agreement")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.qs_the_average_rank_difference").exists())
+                .andExpect(jsonPath("$.data.source_overlap.multi_source_overlap_pct").value(100.0))
+                .andExpect(jsonPath("$.data.confidence_buckets.high").value(29))
+                .andExpect(jsonPath("$.data.universities_with_largest_disagreement.length()").isNumber());
     }
 
     @Test
