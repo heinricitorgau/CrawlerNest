@@ -174,6 +174,7 @@ QS/THE/ARWU sources
 
 架構與 onboarding 文件：
 
+- [Documentation Hub](docs/README.md)
 - [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md)
 - [Repository Map](docs/REPOSITORY_MAP.md)
 - [Data Flow](docs/DATA_FLOW.md)
@@ -318,6 +319,7 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 
 ## 文件
 
+- [Documentation Hub](docs/README.md) - 文件入口與重複內容整理原則
 - [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md) - high-level system map and ASCII diagrams
 - [Repository Map](docs/REPOSITORY_MAP.md) - directory ownership and onboarding map
 - [Data Flow](docs/DATA_FLOW.md) - ranking and subject ranking data flow

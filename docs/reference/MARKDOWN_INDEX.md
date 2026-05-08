@@ -1,6 +1,7 @@
 # Markdown Index
 
-This file is a curated index of the project-owned Markdown documents under `/Users/test/Desktop/crawlernest`.
+This file is a curated index of the project-owned Markdown documents in this
+repository.
 
 ## Scope
 
@@ -23,16 +24,14 @@ If someone is new to the repo, this is the fastest path:
 
 1. `README.md`
 2. `README.zh-TW.md`
-3. `docs/ARCHITECTURE_OVERVIEW.md`
-4. `docs/REPOSITORY_MAP.md`
-5. `docs/DATA_FLOW.md`
-6. `docs/OPERATIONAL_RUNBOOK.md`
-7. `docs/API_SURFACE.md`
-8. `docs/architecture/REPO_STRUCTURE.md`
-9. `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md`
-10. `docs/foundation/MASTER_PROJECT_PLAN.md`
-11. `docs/foundation/Whitepaper.md`
-12. `docs/foundation/TESTING_GUIDE.md`
+3. `docs/README.md`
+4. `docs/ARCHITECTURE_OVERVIEW.md`
+5. `docs/REPOSITORY_MAP.md`
+6. `docs/DATA_FLOW.md`
+7. `docs/OPERATIONAL_RUNBOOK.md`
+8. `docs/API_SURFACE.md`
+9. `docs/CI_PIPELINES.md`
+10. `docs/foundation/TESTING_GUIDE.md`
 
 ## 1. Root Entry Docs
 
@@ -40,18 +39,21 @@ If someone is new to the repo, this is the fastest path:
 | --- | --- |
 | `README.md` | Main English project entrypoint and overall repo introduction. |
 | `README.zh-TW.md` | Traditional Chinese version of the main project overview. |
+| `docs/README.md` | Documentation hub, canonical reading order, and duplicate-content policy. |
 
 ## 2. Foundation And Repo Governance
 
 | File | Purpose |
 | --- | --- |
-| `docs/architecture/REPO_STRUCTURE.md` | Explains the repo's two-level workspace layout and where major systems live. |
-| `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md` | Canonical system and engine architecture covering both current execution reality and longer-term target state. |
-| `docs/foundation/MASTER_PROJECT_PLAN.md` | Master plan covering scope, phases, and project-level priorities. |
-| `docs/foundation/Whitepaper.md` | High-level architecture whitepaper in Traditional Chinese. |
+| `docs/foundation/MASTER_PROJECT_PLAN.md` | Historical and planning context for scope, phases, and project-level priorities. |
+| `docs/foundation/Whitepaper.md` | Long-form architecture and product vision in Traditional Chinese. |
+| `docs/foundation/ARCHITECTURE_SCOPE.md` | Scope guardrails and architectural boundaries. |
+| `docs/foundation/DATA_CONTRACTS.md` | Data-layer contract definitions. |
 | `docs/foundation/DEV_WORKFLOW.md` | Expected engineering workflow for implementation and delivery. |
 | `docs/foundation/MODULE_OWNERSHIP.md` | Ownership boundaries across the system. |
+| `docs/foundation/DO_NOT_AUTO_MODIFY.md` | Areas that agents and automated patch loops must not rewrite. |
 | `docs/foundation/TESTING_GUIDE.md` | Testing, validation, and maintenance guidance. |
+| `docs/AI_DEV_WORKFLOW.md` | AI-assisted development workflow and crawlernest-agents integration notes. |
 
 ## 3. Architecture And Platform Design
 
@@ -62,6 +64,8 @@ If someone is new to the repo, this is the fastest path:
 | `docs/DATA_FLOW.md` | QS/THE/ARWU and subject ranking data flow from source to frontend. |
 | `docs/OPERATIONAL_RUNBOOK.md` | Startup, smoke checks, daily pipeline, snapshots, diagnostics, CI troubleshooting, and rollback guidance. |
 | `docs/API_SURFACE.md` | Current API endpoint catalog for rankings, subjects, diagnostics, explainability, health, and freshness. |
+| `docs/architecture/REPO_STRUCTURE.md` | Compatibility wrapper that points to `docs/REPOSITORY_MAP.md`. |
+| `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md` | Compatibility wrapper that points to current architecture docs. |
 | `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` | Legacy mirror that now redirects readers to the canonical architecture docs in `docs/`. |
 | `crawlernest/crawlernest-docs/architecture.md` | Compatibility architecture note kept to avoid stale inner-workspace links. |
 
@@ -69,6 +73,10 @@ If someone is new to the repo, this is the fastest path:
 
 | File | Purpose |
 | --- | --- |
+| `docs/CI_PIPELINES.md` | GitHub Actions workflow summary and troubleshooting notes. |
+| `docs/SCHEDULED_OPERATIONS.md` | Cron and scheduled pipeline automation details. |
+| `docs/DEMO_CHECKLIST.md` | Pre-demo and handover checklist. |
+| `docs/LOCAL_TROUBLESHOOTING.md` | Local environment issues and fixes. |
 | `docs/deployment/Lobster_01_Deployment_Guide.md` | Production node deployment and runbook for Lobster-01. |
 | `deployment-support/lobster-01/README_NODE.md` | Operational notes for the Lobster-01 crawler node environment. |
 
@@ -142,21 +150,26 @@ There are two mini-agent areas in this repo:
 | `crawlernest/crawlernest-mini-agent/rust/MOCK_PARITY_HARNESS.md` | Deterministic mock LLM parity harness notes. |
 | `crawlernest/crawlernest-mini-agent/rust/TUI-ENHANCEMENT-PLAN.md` | TUI enhancement plan for the Rust implementation. |
 
-## 10. Generated, Repeated, Or Lower-Priority Docs
+## 10. Legacy And Compatibility Docs
 
-These files are useful, but they are not top-level reference docs:
+These files preserve older narratives or compatibility paths. They are useful
+for archaeology, but they are not the current source of truth.
 
 | File | Note |
 | --- | --- |
+| `docs/legacy/REPO_STRUCTURE_legacy.md` | Previous long-form repository structure narrative. Current entrypoint: `docs/REPOSITORY_MAP.md`. |
+| `docs/legacy/SYSTEM_ENGINE_ARCHITECTURE_legacy.md` | Previous long-form system/engine architecture narrative. Current entrypoint: `docs/ARCHITECTURE_OVERVIEW.md`. |
 | `crawlernest/crawlernest-web/CLAUDE.md` | Redirect-style file kept as a tool-facing entrypoint to `AGENTS.md`. |
 
 ## Suggested Cleanup
 
-If you want to reduce doc sprawl further, these are the easiest wins:
+To keep doc sprawl under control:
 
-1. Keep `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md` as the single source of truth for both execution reality and longer-term architecture.
-2. Keep inner `crawlernest/crawlernest-docs/*` architecture docs as short redirects only.
-3. Keep `docs/MARKDOWN_INDEX.md` updated whenever a new top-level module doc is added.
+1. Keep `docs/README.md` as the human-facing docs hub.
+2. Keep the five current docs in `docs/` as the canonical operational truth.
+3. Keep older long-form architecture material in `docs/legacy/`.
+4. Keep compatibility wrappers short.
+5. Update this index whenever a new top-level module doc is added.
 
 ## Recently Updated Narrative Areas
 
