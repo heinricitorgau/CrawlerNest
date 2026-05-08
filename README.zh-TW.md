@@ -238,6 +238,11 @@ cd crawlernest/crawlernest-web && npm run build
 cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegrationTest test
 ```
 
+## 文件
+
+- [Demo Checklist](docs/DEMO_CHECKLIST.md) — demo 或交接前的逐步確認清單
+- [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — 本機開發環境已知問題與解法
+
 ## 常見問題
 
 ### Port 8080 被佔用

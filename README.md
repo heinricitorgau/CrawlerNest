@@ -238,6 +238,11 @@ cd crawlernest/crawlernest-web && npm run build
 cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegrationTest test
 ```
 
+## Documentation
+
+- [Demo Checklist](docs/DEMO_CHECKLIST.md) — step-by-step checklist before any demo or handover
+- [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — known issues and fixes for the local development environment
+
 ## Common Issues
 
 ### Port 8080 is already in use
