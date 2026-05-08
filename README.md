@@ -84,14 +84,31 @@ spring.datasource.username=test
 spring.datasource.password=test
 ```
 
-### 6. Start local services
+### 6. Install frontend dependencies
+
+Node.js **>=20.9** is required. Check your version:
+
+```bash
+node --version
+```
+
+Install Node.js dependencies (run once, or after pulling changes):
+
+```bash
+cd crawlernest/crawlernest-web
+npm install
+cd ../..
+```
+
+### 7. Start local services
 
 ```bash
 ./scripts/start_localhost.sh
 ```
 
-The script checks PostgreSQL, verifies the API port, starts Spring Boot with
-`-Dmaven.test.skip=true`, then starts the Next.js frontend.
+The script checks PostgreSQL, verifies Node.js version, confirms `node_modules`
+exists, verifies the API port, starts Spring Boot with `-Dmaven.test.skip=true`,
+then starts the Next.js frontend. Press `Ctrl+C` to stop both services.
 
 You can also run services manually:
 
@@ -102,11 +119,10 @@ cd crawlernest/servise_for_java
 
 ```bash
 cd crawlernest/crawlernest-web
-npm install
 npm run dev
 ```
 
-### 7. Smoke check
+### 8. Smoke check
 
 ```bash
 curl -i "http://localhost:8080/api/v1/rankings?page=1&pageSize=5"

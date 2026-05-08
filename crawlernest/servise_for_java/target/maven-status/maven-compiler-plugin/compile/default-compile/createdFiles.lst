@@ -1,6 +1,7 @@
 clawer/repository/UniversityRepository.class
 clawer/dto/SubjectOptionDTO.class
 clawer/api/UniversityController.class
+clawer/service/FreshnessService.class
 clawer/service/RecommendationService$PoolContext.class
 clawer/dto/RankingPreviewSummaryDTO.class
 clawer/dto/RankingTrustDTO.class
@@ -18,6 +19,7 @@ clawer/repository/JdbcScopedRankingReadAdapter$ScopedSql.class
 clawer/repository/AggregatedRankingReadRepository.class
 clawer/api/SubjectRankingController.class
 clawer/dto/AggregationExplainDTO.class
+clawer/api/FreshnessController.class
 clawer/service/RecommendationService$SubjectSignal.class
 clawer/service/AnalyticsService.class
 clawer/dto/TrustExplainDTO.class
@@ -28,6 +30,7 @@ clawer/service/RecommendationService$SubjectScoringContext.class
 clawer/model/Country.class
 clawer/dto/UniversityDTO.class
 clawer/service/RecommendationService$CategoryDecision.class
+clawer/api/HealthController.class
 clawer/service/RecommendationService$1.class
 clawer/domain/ranking/RankingScope.class
 clawer/service/ComparisonService.class
@@ -36,6 +39,7 @@ clawer/model/University.class
 clawer/repository/SourceRankParser.class
 clawer/dto/DataAvailabilityDTO.class
 clawer/dto/DataQualityDTO.class
+clawer/service/DiagnosticsService.class
 clawer/model/AdmissionRequirement.class
 clawer/api/ComparisonController.class
 clawer/dto/CanonicalUniversityDetailPreviewDTO.class
@@ -73,10 +77,12 @@ clawer/dto/SourceRankingDTO.class
 clawer/api/RecommendationController.class
 clawer/service/RankingTrustLayer.class
 clawer/service/ComparisonService$2.class
+clawer/service/HealthService.class
 clawer/repository/SourceRankParser$1.class
 clawer/service/RecommendationService$Candidate.class
 clawer/repository/CountryRepository.class
 clawer/dto/AdmissionDTO.class
+clawer/api/DiagnosticsController.class
 clawer/repository/JdbcScopedRankingReadAdapter.class
 clawer/model/RecommendationExplain.class
 clawer/service/RecommendationService$SubjectRankingSignalRecord.class

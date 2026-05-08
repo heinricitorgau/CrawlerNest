@@ -2612,6 +2612,76 @@ def rebuild_universe_records_diagnostic(
 
 
 
+def _count_qs_existing_records(
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+    ranking_year: int,
+) -> int:
+    """Return how many ranking_record rows exist for QS sources and this year."""
+    if psycopg2 is None:
+        return 0
+    conn = psycopg2.connect(
+        host=pg_host, port=pg_port, database=pg_database,
+        user=pg_user, password=pg_password,
+    )
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT COUNT(*)
+                FROM warehouse.ranking_record rr
+                JOIN warehouse.ranking_source rs ON rs.ranking_source_id = rr.ranking_source_id
+                WHERE rr.ranking_year = %s
+                  AND rs.source_code LIKE 'QS%%'
+                """,
+                (ranking_year,),
+            )
+            return int(cur.fetchone()[0] or 0)
+    finally:
+        conn.close()
+
+
+def _count_subject_existing(
+    pg_host: str,
+    pg_port: int,
+    pg_database: str,
+    pg_user: str,
+    pg_password: str,
+    ranking_year: int,
+    subject_key: str | None,
+) -> int:
+    """Return rows in subject_ranking_record for this year (and optionally one subject)."""
+    if psycopg2 is None:
+        return 0
+    conn = psycopg2.connect(
+        host=pg_host, port=pg_port, database=pg_database,
+        user=pg_user, password=pg_password,
+    )
+    try:
+        with conn.cursor() as cur:
+            if subject_key:
+                cur.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM warehouse.subject_ranking_record srr
+                    JOIN warehouse.ranking_subject rs ON rs.subject_id = srr.subject_id
+                    WHERE srr.ranking_year = %s AND rs.subject_key = %s
+                    """,
+                    (ranking_year, subject_key),
+                )
+            else:
+                cur.execute(
+                    "SELECT COUNT(*) FROM warehouse.subject_ranking_record WHERE ranking_year = %s",
+                    (ranking_year,),
+                )
+            return int(cur.fetchone()[0] or 0)
+    finally:
+        conn.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
     return build_pipeline_parser(
         MODULE_ROOT,
@@ -2621,6 +2691,18 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _handle_run_command(args: argparse.Namespace) -> int:
+    if getattr(args, "skip_existing_source", False):
+        existing = _count_qs_existing_records(
+            args.pg_host, args.pg_port, args.pg_database,
+            args.pg_user, args.pg_password, args.ranking_year,
+        )
+        if existing > 0:
+            print(
+                f"[skip] QS ranking_record already has {existing} rows for year "
+                f"{args.ranking_year} — skipping crawl+ingest (--skip-existing-source)"
+            )
+            return 0
+
     crawl_result = execute_run_crawl_stage(
         args,
         ensure_postgres_schema=ensure_postgres_schema,
@@ -3861,6 +3943,20 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
         return 0
 
     if args.command in {"run-qs-subject", "run-qs-subject-rankings"}:
+        if getattr(args, "skip_existing_year", False):
+            subject_key = args.subject if args.command == "run-qs-subject" else None
+            existing = _count_subject_existing(
+                args.pg_host, args.pg_port, args.pg_database,
+                args.pg_user, args.pg_password, args.ranking_year, subject_key,
+            )
+            if existing > 0:
+                label = subject_key or "all subjects"
+                print(
+                    f"[skip] subject_ranking_record already has {existing} rows for "
+                    f"{label} year {args.ranking_year} — skipping (--skip-existing-year)"
+                )
+                return 0
+
         ensure_subject_ranking_postgres_schema(
             args.pg_host,
             args.pg_port,

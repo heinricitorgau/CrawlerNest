@@ -21,6 +21,7 @@ const NAV_LINKS = [
   { label: "Rankings", href: "/" },
   { label: "Agent", href: "/agent" },
   { label: "About", href: "/about" },
+  { label: "Status", href: "/system-status" },
 ];
 
 export default function NavBar() {
