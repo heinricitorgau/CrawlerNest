@@ -26,6 +26,7 @@ layout, data movement, operations, and endpoint coverage.
 | [DATA_FLOW.md](DATA_FLOW.md) | Ranking and subject ranking flow from source to frontend. |
 | [OPERATIONAL_RUNBOOK.md](OPERATIONAL_RUNBOOK.md) | Startup, smoke checks, daily jobs, snapshots, diagnostics, rollback. |
 | [API_SURFACE.md](API_SURFACE.md) | Product, diagnostics, health, freshness, and explainability endpoint catalog. |
+| [PROJECT_STATE_REVIEW.md](PROJECT_STATE_REVIEW.md) | Current maturity, inventory, risks, readiness, and next-phase priorities. |
 | [CI_PIPELINES.md](CI_PIPELINES.md) | GitHub Actions workflow summary and troubleshooting notes. |
 | [SCHEDULED_OPERATIONS.md](SCHEDULED_OPERATIONS.md) | Cron and scheduled pipeline automation details. |
 | [DEMO_CHECKLIST.md](DEMO_CHECKLIST.md) | Pre-demo and handover checklist. |

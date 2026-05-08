@@ -292,6 +292,17 @@ scripts/build_failure_summary.py
 
 營運證據會輸出到 `snapshots/`、`reports/` 與 daily logs。
 
+## 目前成熟度
+
+CrawlerNest 目前是 operational MVP：end-to-end ranking path、subject ranking
+path、diagnostics、smoke checks、snapshots 與 recovery docs 已可支援本機開發與
+evidence-driven iteration。現階段重點是 operational reliability、
+reproducibility、observability 與保守 recovery，而不是 autonomous automation。
+
+同層的 `crawlernest-agents` repository 仍是 readonly development companion。
+它不是 runtime dependency、CI requirement、submodule、symlink 或 production
+truth source。
+
 ## 選用 Agents 工作流程
 
 CrawlerNest 可以搭配同層的 `crawlernest-agents` repository 做 readonly
@@ -347,6 +358,7 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 - [Data Flow](docs/DATA_FLOW.md) - ranking and subject ranking data flow
 - [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md) - startup, smoke checks, snapshots, diagnostics, rollback
 - [API Surface](docs/API_SURFACE.md) - current endpoint catalog
+- [Project State Review](docs/PROJECT_STATE_REVIEW.md) - maturity、risk、readiness 與 next-phase assessment
 - [Demo Checklist](docs/DEMO_CHECKLIST.md) — demo 或交接前的逐步確認清單
 - [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — 本機開發環境已知問題與解法
 
