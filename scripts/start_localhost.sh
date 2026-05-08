@@ -34,7 +34,7 @@ port_in_use() {
   return 1
 }
 
-echo "[1/4] Checking local PostgreSQL..."
+echo "[1/5] Checking local PostgreSQL..."
 require_command pg_isready
 require_command psql
 
@@ -56,16 +56,47 @@ if ! PGPASSWORD="${PGPASSWORD}" psql \
   exit 1
 fi
 
-echo "[2/4] Checking localhost ports..."
+echo "[2/4] Checking Node.js and frontend dependencies..."
+if ! command -v node >/dev/null 2>&1; then
+  echo "node is not installed. Install Node.js >= 20.9 first."
+  echo "  https://nodejs.org  or: nvm install 20"
+  exit 1
+fi
+_node_major="$(node --version 2>/dev/null | cut -d. -f1 | tr -d 'v')"
+if (( _node_major < 20 )); then
+  echo "Node.js >= 20.9 required, found: $(node --version)"
+  exit 1
+fi
+if [[ ! -d "${ROOT_DIR}/crawlernest/crawlernest-web/node_modules" ]]; then
+  echo "node_modules not found. Run 'npm install' in crawlernest/crawlernest-web first."
+  echo "  cd ${ROOT_DIR}/crawlernest/crawlernest-web && npm install"
+  exit 1
+fi
+
+echo "[3/4] Checking localhost ports..."
+show_port_owner() {
+  local port="$1"
+  local pid=""
+  if command -v lsof >/dev/null 2>&1; then
+    pid="$(lsof -t -iTCP:"${port}" -sTCP:LISTEN 2>/dev/null | head -1 || true)"
+  fi
+  if [[ -n "${pid}" ]]; then
+    echo "  PID occupying port ${port}: ${pid}"
+    echo "  To stop it: kill ${pid}"
+  else
+    echo "  Run: lsof -i :${port}  (or: ss -ltnp | grep :${port})"
+  fi
+}
+
 if port_in_use "${API_PORT}"; then
-  echo "Port ${API_PORT} is already in use. Stop the existing API process first."
-  echo "Helpful check: lsof -i :${API_PORT}"
+  echo "Port ${API_PORT} is already in use."
+  show_port_owner "${API_PORT}"
   exit 1
 fi
 
 if port_in_use "${WEB_PORT}"; then
-  echo "Port ${WEB_PORT} is already in use. Stop the existing web process first."
-  echo "Helpful check: lsof -i :${WEB_PORT}"
+  echo "Port ${WEB_PORT} is already in use."
+  show_port_owner "${WEB_PORT}"
   exit 1
 fi
 
@@ -83,12 +114,12 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-echo "[3/4] Starting Spring Boot API..."
+echo "[4/5] Starting Spring Boot API..."
 cd "${ROOT_DIR}/crawlernest/servise_for_java"
 ./mvnw -Dmaven.test.skip=true spring-boot:run &
 API_PID=$!
 
-echo "[4/4] Starting Next.js frontend..."
+echo "[5/5] Starting Next.js frontend..."
 cd "${ROOT_DIR}/crawlernest/crawlernest-web"
 npm run dev -- --port "${WEB_PORT}" &
 WEB_PID=$!

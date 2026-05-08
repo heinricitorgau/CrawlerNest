@@ -84,14 +84,31 @@ spring.datasource.username=test
 spring.datasource.password=test
 ```
 
-### 6. 啟動本機服務
+### 6. 安裝前端相依套件
+
+需要 Node.js **>=20.9**。確認版本：
+
+```bash
+node --version
+```
+
+安裝 Node.js 相依套件（初次執行，或 pull 新版後執行）：
+
+```bash
+cd crawlernest/crawlernest-web
+npm install
+cd ../..
+```
+
+### 7. 啟動本機服務
 
 ```bash
 ./scripts/start_localhost.sh
 ```
 
-這個 script 會檢查 PostgreSQL、確認 API port、用
-`-Dmaven.test.skip=true` 啟動 Spring Boot，接著啟動 Next.js frontend。
+這個 script 會依序：檢查 PostgreSQL、確認 Node.js 版本、確認 `node_modules`
+存在、確認 API port 未被占用、用 `-Dmaven.test.skip=true` 啟動 Spring Boot，
+再啟動 Next.js frontend。按 `Ctrl+C` 可同時停止兩個服務。
 
 也可以手動啟動服務：
 
@@ -102,11 +119,10 @@ cd crawlernest/servise_for_java
 
 ```bash
 cd crawlernest/crawlernest-web
-npm install
 npm run dev
 ```
 
-### 7. Smoke check
+### 8. Smoke check
 
 ```bash
 curl -i "http://localhost:8080/api/v1/rankings?page=1&pageSize=5"

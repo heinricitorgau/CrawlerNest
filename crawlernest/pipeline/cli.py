@@ -123,6 +123,11 @@ def build_parser(
         action="store_true",
         help="With --with-the-rankings, skip canonical seed/backfill after THE ingest",
     )
+    run_parser.add_argument(
+        "--skip-existing-source",
+        action="store_true",
+        help="Skip crawl+ingest if warehouse.ranking_record already has rows for this source and year",
+    )
 
     query_parser = subparsers.add_parser("query", help="Query stored QS rankings from DB")
     query_parser.add_argument("keyword")
@@ -904,6 +909,11 @@ def build_parser(
     qs_subject_parser.add_argument("--pg-database", default="clawer")
     qs_subject_parser.add_argument("--pg-user", default="test")
     qs_subject_parser.add_argument("--pg-password", default="")
+    qs_subject_parser.add_argument(
+        "--skip-existing-year",
+        action="store_true",
+        help="Skip ingestion if subject_ranking_record already has rows for this subject and year",
+    )
 
     qs_subject_rankings_parser = subparsers.add_parser(
         "run-qs-subject-rankings",
@@ -917,6 +927,11 @@ def build_parser(
     qs_subject_rankings_parser.add_argument("--pg-database", default="clawer")
     qs_subject_rankings_parser.add_argument("--pg-user", default="test")
     qs_subject_rankings_parser.add_argument("--pg-password", default="")
+    qs_subject_rankings_parser.add_argument(
+        "--skip-existing-year",
+        action="store_true",
+        help="Skip subjects that already have rows in subject_ranking_record for this year",
+    )
 
     qs_special_parser = subparsers.add_parser(
         "run-qs-special",
