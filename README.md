@@ -292,6 +292,30 @@ scripts/build_failure_summary.py
 
 Generated operational evidence is written to `snapshots/`, `reports/`, and daily logs.
 
+## Optional Agents Workflows
+
+CrawlerNest can work with a sibling `crawlernest-agents` repository for readonly
+development analysis:
+
+```text
+dev/
+  University-Data-Infrastructure-Web-Platform/
+  crawlernest-agents/
+```
+
+Use `./scripts/agent_debug.sh` for the optional debug workflow and
+`./scripts/agent_pipeline_analysis.sh <log_file>` for readonly pipeline log
+analysis. These wrappers do not make `crawlernest-agents` a dependency, symlink,
+submodule, CI step, or production runtime component. Generated analysis output is
+limited to `tmp/agent-debug/`, `tmp/agent-analysis/`, or the agents repo's own
+`tmp/` directory.
+
+Repo-aware prompt context is available through
+`./scripts/agent_context_snapshot.sh` and `./scripts/agent_repo_prompt.sh`.
+The snapshot flow collects readonly repository state and operational evidence,
+then injects `tmp/agent-context/context_snapshot.md` into prompt generation.
+Context artifacts stay in `tmp/agent-context/`.
+
 ## Manual Development
 
 Start the Spring Boot API:

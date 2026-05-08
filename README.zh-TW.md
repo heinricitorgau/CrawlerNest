@@ -292,6 +292,28 @@ scripts/build_failure_summary.py
 
 營運證據會輸出到 `snapshots/`、`reports/` 與 daily logs。
 
+## 選用 Agents 工作流程
+
+CrawlerNest 可以搭配同層的 `crawlernest-agents` repository 做 readonly
+development analysis：
+
+```text
+dev/
+  University-Data-Infrastructure-Web-Platform/
+  crawlernest-agents/
+```
+
+使用 `./scripts/agent_debug.sh` 執行選用 debug workflow，使用
+`./scripts/agent_pipeline_analysis.sh <log_file>` 做 readonly pipeline log
+analysis。這些 wrapper 不會把 `crawlernest-agents` 變成 dependency、symlink、
+submodule、CI step 或 production runtime component。產生的分析輸出只允許放在
+`tmp/agent-debug/`、`tmp/agent-analysis/`，或 agents repo 自己的 `tmp/`。
+
+Repo-aware prompt context 可透過 `./scripts/agent_context_snapshot.sh` 與
+`./scripts/agent_repo_prompt.sh` 使用。snapshot flow 會收集 readonly repository
+state 與 operational evidence，並把 `tmp/agent-context/context_snapshot.md` 注入
+prompt generation。context artifacts 只會放在 `tmp/agent-context/`。
+
 ## 手動開發模式
 
 啟動 Spring Boot API：
