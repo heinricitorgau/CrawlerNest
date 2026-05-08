@@ -118,7 +118,7 @@ diff -u /tmp/rec_conservative.json /tmp/rec_aggressive.json
 curl "http://localhost:8080/api/v1/recommendations?version=v3&targetRank=100&ielts=6.5&country=United%20Kingdom&countryPolicy=hard_filter&riskProfile=balanced"
 curl -X POST "http://localhost:8080/api/v1/compare" \
      -H "Content-Type: application/json" \
-     -d '{"leftUniversityId": 3, "rightUniversityId": 52}' 
+     -d '{"leftUniversityId": 3, "rightUniversityId": 52}'
 ```
 *(Both must return HTTP 200 with `{"success": true}` envelopes).*
 
@@ -126,4 +126,4 @@ curl -X POST "http://localhost:8080/api/v1/compare" \
 
 ## 5. Maintenance Operations
 
-For details on maintaining and deploying the actual crawler pipeline on the production node (Lobster-01), please refer to the [Production Node Runbook](docs/deployment/Lobster_01_Deployment_Guide.md).
+For details on maintaining and deploying the actual crawler pipeline on the production node (Lobster-01), please refer to the [Production Node Runbook](../deployment/Lobster_01_Deployment_Guide.md).

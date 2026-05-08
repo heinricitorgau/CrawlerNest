@@ -147,6 +147,39 @@ Agent API: http://localhost:8090
 Agent: http://localhost:3000/agent
 ```
 
+## 系統架構
+
+CrawlerNest 目前是 data pipeline 加 product read layer 的組合：
+
+```text
+QS/THE/ARWU sources
+  -> Python crawlers and normalization
+  -> canonical university resolution
+  -> PostgreSQL warehouse tables
+  -> analytics aggregation/views
+  -> Spring Boot API
+  -> Next.js frontend
+```
+
+目前系統元件：
+
+- QS 與 THE ranking ingestion；有 ARWU adapter，可在有來源資料時使用。
+- Aggregation 寫入並讀取 `analytics.v_aggregated_rankings_latest`。
+- 學科排名是獨立的 QS subject read path，不改 global aggregation。
+- Recommendation layer 讀取 aggregated ranking candidates。
+- Diagnostics 涵蓋 health、freshness、data quality、ranking readiness、subject readiness、source agreement。
+- Cross-source intelligence 與 explainability APIs 支援 source comparison、disagreement、confidence、aggregation inputs。
+- Operational automation 包含 daily pipeline、snapshots、metadata bundles、smoke checks。
+- CI/CD 包含 release smoke 與 fixture-mode data quality workflows。
+
+架構與 onboarding 文件：
+
+- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md)
+- [Repository Map](docs/REPOSITORY_MAP.md)
+- [Data Flow](docs/DATA_FLOW.md)
+- [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md)
+- [API Surface](docs/API_SURFACE.md)
+
 ## Subject Rankings MVP
 
 學科排名是獨立的 read path，不是 global ranking aggregation 的延伸。
@@ -213,6 +246,51 @@ analytics.v_subject_rankings_latest
 
 Raw 與 staging tables 是 pipeline 輸入，不會直接顯示在產品 UI。
 
+## Diagnostics 與 Explainability
+
+Operational 與 data quality surfaces：
+
+```text
+Health:              /api/v1/health
+Freshness:           /api/v1/freshness
+Ranking diagnostics: /api/v1/diagnostics/rankings
+Subject diagnostics: /api/v1/diagnostics/subjects
+Data quality:        /api/v1/diagnostics/data-quality
+Source agreement:    /api/v1/diagnostics/source-agreement
+```
+
+Explainability surfaces：
+
+```text
+Source comparison:   /api/v1/universities/{id}/source-comparison
+Ranking explain:     /api/v1/rankings/{id}/explain
+University sources:  /universities/[slug]/sources
+```
+
+這些 endpoint 讀取既有 ranking evidence 與 aggregation output，不會修改 aggregation、canonical matching、recommendation scoring 或 schema。
+
+## CI/CD 與營運自動化
+
+CI workflows：
+
+```text
+.github/workflows/release-smoke.yml
+.github/workflows/data-quality.yml
+```
+
+Operational scripts：
+
+```text
+scripts/smoke_release.sh
+scripts/smoke_local_stack.sh
+scripts/run_daily_pipeline.sh
+scripts/export_system_snapshot.py
+scripts/export_metadata_bundle.sh
+scripts/build_failure_summary.py
+```
+
+營運證據會輸出到 `snapshots/`、`reports/` 與 daily logs。
+
 ## 手動開發模式
 
 啟動 Spring Boot API：
@@ -240,6 +318,11 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 
 ## 文件
 
+- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md) - high-level system map and ASCII diagrams
+- [Repository Map](docs/REPOSITORY_MAP.md) - directory ownership and onboarding map
+- [Data Flow](docs/DATA_FLOW.md) - ranking and subject ranking data flow
+- [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md) - startup, smoke checks, snapshots, diagnostics, rollback
+- [API Surface](docs/API_SURFACE.md) - current endpoint catalog
 - [Demo Checklist](docs/DEMO_CHECKLIST.md) — demo 或交接前的逐步確認清單
 - [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — 本機開發環境已知問題與解法
 

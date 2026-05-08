@@ -2,7 +2,7 @@
 
 以圖為主；repo 目錄對照請看 `docs/architecture/REPO_STRUCTURE.md`。
 
-本文件是 **CrawlerNest 唯一的 system / engine architecture 文件**。  
+本文件是 **CrawlerNest 唯一的 system / engine architecture 文件**。
 它同時承擔兩個角色：
 
 1. 說明目前可執行的主線架構
@@ -375,7 +375,7 @@ mindmap
 
 ## 9. Regression-Safe Pipeline & Eval Loop
 
-這一節描述的是 admission extraction 與 controlled improvement loop 的理想成熟形態。  
+這一節描述的是 admission extraction 與 controlled improvement loop 的理想成熟形態。
 它代表我們希望逐步抵達的工程安全基線，但不表示 agent / eval loop 已取代資料主線本身。
 
 - **Admission Extraction Pipeline** is now at Phase 4 "controlled improvement loop":
