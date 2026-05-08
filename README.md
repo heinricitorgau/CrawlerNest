@@ -292,6 +292,18 @@ scripts/build_failure_summary.py
 
 Generated operational evidence is written to `snapshots/`, `reports/`, and daily logs.
 
+## Current Maturity
+
+CrawlerNest is currently an operational MVP: the end-to-end ranking path,
+subject ranking path, diagnostics, smoke checks, snapshots, and recovery docs are
+usable for local development and evidence-driven iteration. The current focus is
+operational reliability, reproducibility, observability, and conservative
+recovery rather than autonomous automation.
+
+The sibling `crawlernest-agents` repository remains a readonly development
+companion. It is not a runtime dependency, CI requirement, submodule, symlink, or
+production truth source.
+
 ## Optional Agents Workflows
 
 CrawlerNest can work with a sibling `crawlernest-agents` repository for readonly
@@ -349,6 +361,7 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 - [Data Flow](docs/DATA_FLOW.md) - ranking and subject ranking data flow
 - [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md) - startup, smoke checks, snapshots, diagnostics, and rollback
 - [API Surface](docs/API_SURFACE.md) - current endpoint catalog
+- [Project State Review](docs/PROJECT_STATE_REVIEW.md) - maturity, risk, readiness, and next-phase assessment
 - [Demo Checklist](docs/DEMO_CHECKLIST.md) — step-by-step checklist before any demo or handover
 - [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — known issues and fixes for the local development environment
 

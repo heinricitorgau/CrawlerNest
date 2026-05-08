@@ -30,8 +30,9 @@ If someone is new to the repo, this is the fastest path:
 6. `docs/DATA_FLOW.md`
 7. `docs/OPERATIONAL_RUNBOOK.md`
 8. `docs/API_SURFACE.md`
-9. `docs/CI_PIPELINES.md`
-10. `docs/foundation/TESTING_GUIDE.md`
+9. `docs/PROJECT_STATE_REVIEW.md`
+10. `docs/CI_PIPELINES.md`
+11. `docs/foundation/TESTING_GUIDE.md`
 
 ## 1. Root Entry Docs
 
@@ -64,6 +65,7 @@ If someone is new to the repo, this is the fastest path:
 | `docs/DATA_FLOW.md` | QS/THE/ARWU and subject ranking data flow from source to frontend. |
 | `docs/OPERATIONAL_RUNBOOK.md` | Startup, smoke checks, daily pipeline, snapshots, diagnostics, CI troubleshooting, and rollback guidance. |
 | `docs/API_SURFACE.md` | Current API endpoint catalog for rankings, subjects, diagnostics, explainability, health, and freshness. |
+| `docs/PROJECT_STATE_REVIEW.md` | Current project maturity, inventory, operational risks, technical debt, scaling risks, and next-phase priorities. |
 | `docs/architecture/REPO_STRUCTURE.md` | Compatibility wrapper that points to `docs/REPOSITORY_MAP.md`. |
 | `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md` | Compatibility wrapper that points to current architecture docs. |
 | `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` | Legacy mirror that now redirects readers to the canonical architecture docs in `docs/`. |
@@ -77,6 +79,8 @@ If someone is new to the repo, this is the fastest path:
 | `docs/SCHEDULED_OPERATIONS.md` | Cron and scheduled pipeline automation details. |
 | `docs/DEMO_CHECKLIST.md` | Pre-demo and handover checklist. |
 | `docs/LOCAL_TROUBLESHOOTING.md` | Local environment issues and fixes. |
+| `docs/OPERATIONAL_RECOVERY.md` | Recovery guidance for PostgreSQL, analytics views, datasource issues, snapshots, and rollback. |
+| `docs/PIPELINE_HEALTH_MODEL.md` | Health states, thresholds, freshness expectations, and source coverage model. |
 | `docs/deployment/Lobster_01_Deployment_Guide.md` | Production node deployment and runbook for Lobster-01. |
 | `deployment-support/lobster-01/README_NODE.md` | Operational notes for the Lobster-01 crawler node environment. |
 
