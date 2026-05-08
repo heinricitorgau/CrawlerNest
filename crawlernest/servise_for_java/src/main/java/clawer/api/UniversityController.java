@@ -1,12 +1,14 @@
 package clawer.api;
 
 import clawer.dto.UniversityDTO;
+import clawer.service.SourceIntelligenceService;
 import clawer.service.UniversityService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import clawer.dto.ApiResponse;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST Controller for accessing University data.
@@ -16,9 +18,14 @@ import java.util.List;
 public class UniversityController {
 
     private final UniversityService universityService;
+    private final SourceIntelligenceService sourceIntelligenceService;
 
-    public UniversityController(UniversityService universityService) {
+    public UniversityController(
+            UniversityService universityService,
+            SourceIntelligenceService sourceIntelligenceService
+    ) {
         this.universityService = universityService;
+        this.sourceIntelligenceService = sourceIntelligenceService;
     }
 
     /**
@@ -48,6 +55,11 @@ public class UniversityController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/{id}/source-comparison")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getSourceComparison(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(sourceIntelligenceService.getSourceComparison(id)));
     }
 
     /**

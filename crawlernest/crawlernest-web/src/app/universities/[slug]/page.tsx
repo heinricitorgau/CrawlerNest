@@ -293,6 +293,12 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
               slug: detail.slug,
             }}
           />
+          <Link
+            href={`/universities/${slug}/sources`}
+            className="rounded border border-slate-200 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-slate-700 hover:border-blue-300 hover:text-blue-700"
+          >
+            Sources
+          </Link>
         </div>
       </div>
 
