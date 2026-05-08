@@ -1,0 +1,26 @@
+{
+  "snapshot_timestamp": "2026-01-01T00:00:00+00:00",
+  "aggregated_count": 5,
+  "source_counts": {"QS": 5},
+  "unresolved_total": 0,
+  "unresolved_last_7d": 0,
+  "unresolved_trend_pct": 0.0,
+  "drift_warning_count": 0,
+  "drift_warnings": [],
+  "regression_summary": {
+    "aggregated_count": 5,
+    "score_min": 91.3,
+    "score_max": 100.0,
+    "score_avg": 95.82,
+    "low_coverage_count": 0
+  },
+  "last_aggregation_run_id": 1,
+  "last_aggregation_at": "2026-01-01T00:00:00+00:00",
+  "last_aggregation_status": "finished",
+  "last_ingestion": {
+    "source_code": "QS",
+    "started_at": "2026-01-01T00:00:00+00:00",
+    "records_in": 5
+  },
+  "overall_stale": false
+}
