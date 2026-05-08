@@ -21,6 +21,11 @@ target/
 logs/
 *.log
 
+# Operational automation outputs (generated at runtime)
+snapshots/
+reports/
+backups/
+
 # Runtime crawler artifacts
 crawlernest/crawlernest-kb/databases/the_rankings_*.json
 crawlernest/crawlernest-kb/qs_universe_resolution_cache.json
