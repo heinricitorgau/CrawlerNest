@@ -9,14 +9,17 @@ frontend behavior, or agent wrappers.
 
 CrawlerNest is a data-first university intelligence platform. Its core shape is:
 
-```text
-external ranking sources
-  -> Python ingestion and normalization
-  -> canonical university resolution
-  -> PostgreSQL warehouse tables
-  -> analytics aggregation/views
-  -> Spring Boot API
-  -> Next.js frontend
+```mermaid
+flowchart LR
+    sources["External ranking sources"]
+    ingestion["Python ingestion<br/>and normalization"]
+    canonical["Canonical university<br/>resolution"]
+    warehouse[("PostgreSQL<br/>warehouse tables")]
+    analytics[("Analytics<br/>aggregation / views")]
+    api["Spring Boot API"]
+    frontend["Next.js frontend"]
+
+    sources --> ingestion --> canonical --> warehouse --> analytics --> api --> frontend
 ```
 
 The system has moved beyond a simple prototype. It now has multi-source ranking

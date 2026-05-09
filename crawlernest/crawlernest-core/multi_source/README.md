@@ -2,8 +2,16 @@
 
 ## Architecture
 
-```
-crawler -> extractor -> normalize -> entity_resolution -> multi_source_merge -> db
+```mermaid
+flowchart LR
+    crawler["Crawler"]
+    extractor["Extractor"]
+    normalize["Normalize"]
+    resolution["Entity resolution"]
+    merge["Multi-source merge"]
+    db[("Database")]
+
+    crawler --> extractor --> normalize --> resolution --> merge --> db
 ```
 
 ### Source abstraction

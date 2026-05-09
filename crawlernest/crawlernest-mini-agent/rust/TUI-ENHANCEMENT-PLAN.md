@@ -179,23 +179,40 @@ This plan covers a comprehensive analysis of the current terminal user interface
 
 ### Module Structure After Phase 0
 
-```
-crates/rusty-claude-cli/src/
-├── main.rs              # Entrypoint, arg dispatch only (~100 lines)
-├── args.rs              # CLI argument parsing (consolidate existing two parsers)
-├── app.rs               # LiveCli struct, REPL loop, turn execution
-├── format.rs            # All report formatting (status, cost, model, permissions, etc.)
-├── session_mgr.rs       # Session CRUD: create, resume, list, switch, persist
-├── init.rs              # Repo initialization (unchanged)
-├── input.rs             # Line editor (unchanged, minor extensions)
-├── render.rs            # TerminalRenderer, Spinner (extended)
-└── tui/
-    ├── mod.rs           # TUI module root
-    ├── status_bar.rs    # Persistent bottom status line
-    ├── tool_panel.rs    # Tool call visualization (boxes, timelines, collapsible)
-    ├── diff_view.rs     # Colored diff rendering
-    ├── pager.rs         # Internal pager for long outputs
-    └── theme.rs         # Color theme definitions and selection
+```mermaid
+flowchart TB
+    root["crates/rusty-claude-cli/src/"]
+    main["main.rs<br/>Entrypoint, arg dispatch only"]
+    args["args.rs<br/>CLI argument parsing"]
+    app["app.rs<br/>LiveCli, REPL loop, turn execution"]
+    format["format.rs<br/>Report formatting"]
+    session["session_mgr.rs<br/>Session CRUD"]
+    init["init.rs<br/>Repo initialization"]
+    input["input.rs<br/>Line editor"]
+    render["render.rs<br/>TerminalRenderer, Spinner"]
+    tui["tui/"]
+    mod["mod.rs<br/>TUI module root"]
+    status["status_bar.rs<br/>Persistent bottom status line"]
+    tools["tool_panel.rs<br/>Tool call visualization"]
+    diff["diff_view.rs<br/>Colored diff rendering"]
+    pager["pager.rs<br/>Internal pager"]
+    theme["theme.rs<br/>Color theme definitions"]
+
+    root --> main
+    root --> args
+    root --> app
+    root --> format
+    root --> session
+    root --> init
+    root --> input
+    root --> render
+    root --> tui
+    tui --> mod
+    tui --> status
+    tui --> tools
+    tui --> diff
+    tui --> pager
+    tui --> theme
 ```
 
 ### Key Design Principles

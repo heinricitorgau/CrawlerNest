@@ -8,9 +8,17 @@ This is **not ML**. It is deterministic analytics.
 
 ## Pipeline Position
 
-```
-crawler -> extractor -> normalize -> entity resolution
--> multi-source integration -> ranking aggregation -> analytics/API
+```mermaid
+flowchart LR
+    crawler["Crawler"]
+    extractor["Extractor"]
+    normalize["Normalize"]
+    resolution["Entity resolution"]
+    integration["Multi-source integration"]
+    aggregation["Ranking aggregation"]
+    analytics["Analytics / API"]
+
+    crawler --> extractor --> normalize --> resolution --> integration --> aggregation --> analytics
 ```
 
 ## Deterministic Stages

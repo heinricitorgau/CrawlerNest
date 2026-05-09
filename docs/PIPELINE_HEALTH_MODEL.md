@@ -99,11 +99,11 @@ should be no older than 36 hours.
 
 Freshness state:
 
-```text
-<= 36 hours: fresh
-> 36 hours: stale
-missing timestamp: failed
-```
+| Signal | State |
+| --- | --- |
+| `<= 36 hours` | fresh |
+| `> 36 hours` | stale |
+| missing timestamp | failed |
 
 Subject rankings are tracked separately by latest subject year. Missing subject
 data may be degraded or failed depending on the workflow being validated, but it

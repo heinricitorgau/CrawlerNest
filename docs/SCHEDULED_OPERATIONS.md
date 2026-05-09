@@ -17,7 +17,7 @@ Operational automation guide for CrawlerNest. Covers crontab setup, pipeline sch
 
 | Script | Purpose |
 |--------|---------|
-| `scripts/run_daily_pipeline.sh` | Full daily pipeline: bootstrap → global rankings → subject rankings → smoke → eval → snapshot → summary → bundle |
+| `scripts/run_daily_pipeline.sh` | Full daily pipeline from bootstrap through bundle export. |
 | `scripts/export_system_snapshot.py` | Export system state to `snapshots/system_snapshot_YYYYMMDD_HHMMSS.json` |
 | `scripts/build_failure_summary.py` | Build `reports/latest_failure_summary.md` from latest snapshot |
 | `scripts/export_metadata_bundle.sh` | Bundle snapshots, reports, logs into `backups/metadata_bundle_YYYYMMDD.tar.gz` |
@@ -65,6 +65,20 @@ Add these to `crontab -e`. Adjust paths to your repo root.
 ## Daily Pipeline
 
 The `run_daily_pipeline.sh` script runs the complete data refresh cycle:
+
+```mermaid
+flowchart LR
+    bootstrap["Bootstrap"]
+    global["Global rankings"]
+    subject["Subject rankings"]
+    smoke["Smoke"]
+    eval["Eval"]
+    snapshot["Snapshot"]
+    summary["Summary"]
+    bundle["Bundle"]
+
+    bootstrap --> global --> subject --> smoke --> eval --> snapshot --> summary --> bundle
+```
 
 ```bash
 # Standard daily run

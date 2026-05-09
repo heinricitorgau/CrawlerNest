@@ -23,13 +23,18 @@ Reference docs:
 
 CrawlerNest mainline architecture is the following data path:
 
-1. `crawl`
-2. `extract`
-3. `normalize`
-4. `canonicalize`
-5. `write`
-6. `warehouse`
-7. `query`
+```mermaid
+flowchart LR
+    crawl["crawl"]
+    extract["extract"]
+    normalize["normalize"]
+    canonicalize["canonicalize"]
+    write["write"]
+    warehouse[("warehouse")]
+    query["query"]
+
+    crawl --> extract --> normalize --> canonicalize --> write --> warehouse --> query
+```
 
 This path is the primary delivery path for:
 

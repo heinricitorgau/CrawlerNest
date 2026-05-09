@@ -151,14 +151,17 @@ Agent: http://localhost:3000/agent
 
 CrawlerNest is organized as a data pipeline plus product read layer:
 
-```text
-QS/THE/ARWU sources
-  -> Python crawlers and normalization
-  -> canonical university resolution
-  -> PostgreSQL warehouse tables
-  -> analytics aggregation/views
-  -> Spring Boot API
-  -> Next.js frontend
+```mermaid
+flowchart LR
+    sources["QS / THE / ARWU<br/>ranking sources"]
+    ingestion["Python crawlers<br/>and normalization"]
+    matching["Canonical university<br/>resolution"]
+    warehouse[("PostgreSQL<br/>warehouse tables")]
+    analytics[("Analytics<br/>aggregations / views")]
+    api["Spring Boot API"]
+    frontend["Next.js frontend"]
+
+    sources --> ingestion --> matching --> warehouse --> analytics --> api --> frontend
 ```
 
 Current system components:
@@ -356,7 +359,7 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 ## Documentation
 
 - [Documentation Hub](docs/README.md) - current docs entrypoint and duplicate-content policy
-- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md) - high-level system map and ASCII diagrams
+- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md) - high-level system map and rendered diagrams
 - [Repository Map](docs/REPOSITORY_MAP.md) - directory ownership and onboarding map
 - [Data Flow](docs/DATA_FLOW.md) - ranking and subject ranking data flow
 - [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md) - startup, smoke checks, snapshots, diagnostics, and rollback

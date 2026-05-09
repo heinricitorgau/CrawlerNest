@@ -33,7 +33,18 @@ foundation 規範文件仍然是主線執行邊界的重要補充，但 system /
 
 目前真正應該被視為 production-oriented mainline 的，是這條路徑：
 
-`crawl -> extract -> normalize -> write -> warehouse -> API -> web`
+```mermaid
+flowchart LR
+    crawl["crawl"]
+    extract["extract"]
+    normalize["normalize"]
+    write["write"]
+    warehouse[("warehouse")]
+    api["API"]
+    web["web"]
+
+    crawl --> extract --> normalize --> write --> warehouse --> api --> web
+```
 
 在 execution reality 中，CrawlerNest 應理解為三個區域：
 

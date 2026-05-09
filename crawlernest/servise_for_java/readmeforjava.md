@@ -42,48 +42,15 @@ While the core Clawer pipeline focuses on **data ingestion and processing**, thi
 
 Clawer follows a **multi-language layered architecture**, where each language is used according to its strengths.
 
-```
+```mermaid
+flowchart TB
+    client["Client Layer<br/>Web apps / dashboards<br/>External API consumers"]
+    java["Java Service Layer<br/>REST APIs<br/>Recommendation engine<br/>Analytics services"]
+    postgres[("Knowledge Base<br/>PostgreSQL")]
+    python["Python Data Pipeline<br/>Crawlers<br/>Data extraction<br/>Validation<br/>Pipeline orchestration"]
+    cengine["C Normalization Engine<br/>High-performance cleaning<br/>String normalization<br/>Ranking parsing"]
 
-                +----------------------------+
-                |        Client Layer        |
-                |  Web Apps / Dashboards    |
-                |  External API Consumers   |
-                +-------------+--------------+
-                              |
-                              v
-                +----------------------------+
-                |      Java Service Layer    |
-                |----------------------------|
-                | REST APIs                  |
-                | Recommendation Engine      |
-                | Analytics Services        |
-                +-------------+--------------+
-                              |
-                              v
-                +----------------------------+
-                |       Knowledge Base       |
-                |       PostgreSQL          |
-                +-------------+--------------+
-                              |
-                              v
-                +----------------------------+
-                |     Python Data Pipeline   |
-                |----------------------------|
-                | Crawlers                  |
-                | Data Extraction           |
-                | Validation                |
-                | Pipeline Orchestration    |
-                +-------------+--------------+
-                              |
-                              v
-                +----------------------------+
-                |     C Normalization Engine |
-                |----------------------------|
-                | High-performance cleaning |
-                | String normalization      |
-                | Ranking parsing           |
-                +----------------------------+
-
+    client --> java --> postgres --> python --> cengine
 ```
 
 ### Language Responsibilities
@@ -196,29 +163,36 @@ This makes the Clawer ecosystem capable of becoming a **complete education data 
 
 # Example Project Structure
 
-```
-clawer-java-service
-│
-├── src
-│   └── main
-│       └── java
-│           ├── api
-│           │   ├── UniversityController.java
-│           │   └── RankingController.java
-│           │
-│           ├── service
-│           │   ├── RecommendationService.java
-│           │   └── AnalyticsService.java
-│           │
-│           ├── model
-│           │   └── University.java
-│           │
-│           └── repository
-│               └── UniversityRepository.java
-│
-├── config
-├── docs
-└── README.md
+```mermaid
+flowchart TB
+    root["clawer-java-service"]
+    src["src/main/java"]
+    api["api/"]
+    universityController["UniversityController.java"]
+    rankingController["RankingController.java"]
+    service["service/"]
+    recommendationService["RecommendationService.java"]
+    analyticsService["AnalyticsService.java"]
+    model["model/"]
+    university["University.java"]
+    repository["repository/"]
+    universityRepository["UniversityRepository.java"]
+    config["config/"]
+    docs["docs/"]
+    readme["README.md"]
+
+    root --> src
+    src --> api
+    api --> universityController
+    api --> rankingController
+    src --> service
+    service --> recommendationService
+    service --> analyticsService
+    src --> model --> university
+    src --> repository --> universityRepository
+    root --> config
+    root --> docs
+    root --> readme
 ```
 
 ---

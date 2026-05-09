@@ -18,7 +18,16 @@ CrawlerNest 的產品定位也不是「官方排名發布者」，而是：
 
 其核心演進路線如下：
 
-**資料採集 → 資料平台 → 分析能力 → AI 推薦 → 產品化**
+```mermaid
+flowchart LR
+    acquisition["資料採集"]
+    platform["資料平台"]
+    analytics["分析能力"]
+    recommendation["AI 推薦"]
+    product["產品化"]
+
+    acquisition --> platform --> analytics --> recommendation --> product
+```
 
 在新的架構敘事下，CrawlerNest 的定位可進一步描述為：
 
@@ -76,7 +85,7 @@ CrawlerNest 目前採用 **Data-first（資料優先）** 的系統設計原則�
 若以目前工程主線來看，系統應優先理解為三個區域：
 
 1. **Active Data Pipeline**
-   `crawl -> extract -> normalize -> write -> warehouse -> API -> web`
+   `crawl`, `extract`, `normalize`, `write`, `warehouse`, `API`, `web`
 2. **Controlled Expansion**
    admission enrichment 與 basic rule-based recommendation
 3. **Development Support**
@@ -182,11 +191,28 @@ graph TD
 
 核心演進原則：
 
-**爬蟲採集 → 資料平台 → 分析能力 → AI 智能 → 產品化**
+```mermaid
+flowchart LR
+    crawling["爬蟲採集"]
+    platform["資料平台"]
+    analytics["分析能力"]
+    intelligence["AI 智能"]
+    product["產品化"]
+
+    crawling --> platform --> analytics --> intelligence --> product
+```
 
 在新的系統敘事中，這條主路徑之外還補上一條受控的開發輔助側路：
 
-**Task → Generate → Evaluate → Refine**
+```mermaid
+flowchart LR
+    task["Task"]
+    generate["Generate"]
+    evaluate["Evaluate"]
+    refine["Refine"]
+
+    task --> generate --> evaluate --> refine --> generate
+```
 
 它不替代主資料管線，而是作為與 AutoEval 緊密耦合的 Mini-Agent Development Layer，服務於 extractor、workflow 與系統 refinement。
 
@@ -222,7 +248,15 @@ Mini-Agent Layer 主要解決的是「development speed vs reliability」之間�
 
 Mini-Agent Layer 採用的是概念上清楚、責任邊界明確的循環：
 
-**Task → Generate → Evaluate → Refine**
+```mermaid
+flowchart LR
+    task["Task"]
+    generate["Generate"]
+    evaluate["Evaluate"]
+    refine["Refine"]
+
+    task --> generate --> evaluate --> refine --> generate
+```
 
 其含義如下：
 
@@ -270,18 +304,16 @@ Human-in-the-loop 並不是過渡方案，而是架構本身的一部分。人�
 
 ### 4.3 統一演進視圖（Unified View）
 
-```text
-全球來源（QS / THE / ARWU / 校方網站 / 未來第三方來源）
-        ↓
-採集與匯入層（async jobs / fetch / parse）
-        ↓
-正規化與實體識別（Python 基線 + C 引擎 + alias/fuzzy/embedding）
-        ↓
-大學知識庫（rankings / admission / programs / degrees / tuition）
-        ↓
-分析層 + 推薦引擎 + API 層
-        ↓
-B2C / B2B 產品化
+```mermaid
+flowchart TB
+    sources["全球來源<br/>QS / THE / ARWU / 校方網站 / 未來第三方來源"]
+    ingest["採集與匯入層<br/>async jobs / fetch / parse"]
+    normalize["正規化與實體識別<br/>Python 基線 + C 引擎 + alias / fuzzy / embedding"]
+    knowledge[("大學知識庫<br/>rankings / admission / programs / degrees / tuition")]
+    intelligence["分析層 + 推薦引擎 + API 層"]
+    product["B2C / B2B 產品化"]
+
+    sources --> ingest --> normalize --> knowledge --> intelligence --> product
 ```
 
 對應分期：
@@ -951,8 +983,22 @@ CrawlerNest 已明確區分：
 
 目前 ranking workflow 可概括如下：
 
-```text
-crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh
+```mermaid
+flowchart LR
+    crawl["crawl"]
+    raw["raw"]
+    normalized["normalized"]
+    staging["staging"]
+    validate["validate"]
+    ingest["ingest"]
+    preview["warehouse preview"]
+    landing["warehouse landing"]
+    resolve["resolve"]
+    report["report"]
+    seed["seed"]
+    refresh["refresh"]
+
+    crawl --> raw --> normalized --> staging --> validate --> ingest --> preview --> landing --> resolve --> report --> seed --> refresh
 ```
 
 每一層都有清楚的角色：
@@ -1030,8 +1076,13 @@ warehouse landing table 也不是被當成最終 production model。它的角色
 
 這個架構中的一個關鍵閉環是：
 
-```text
-seed alias -> refresh -> unresolved report
+```mermaid
+flowchart LR
+    seed["seed alias"]
+    refresh["refresh"]
+    report["unresolved report"]
+
+    seed --> refresh --> report
 ```
 
 這個 loop 讓平台能以低風險、增量式的方式提升 entity resolution coverage。當 unresolved universities 出現在報表中時，操作人員可以手動補入 deterministic alias mapping。alias seed 完成後，系統就能立即重新執行 resolution，並重新產出 unresolved report。
@@ -1144,12 +1195,15 @@ AutoEval 是一個位於 extractor / normalization 與資料平台之上的評�
 
 ### 12.1 實體識別流程（Entity Resolution）
 
-```text
-Raw School Name
-  → Canonical Exact Match
-  → Alias Exact Match
-  → Unresolved Queue
-  → Resolved school_id
+```mermaid
+flowchart TB
+    raw["Raw School Name"]
+    canonical["Canonical Exact Match"]
+    alias["Alias Exact Match"]
+    unresolved["Unresolved Queue"]
+    resolved["Resolved school_id"]
+
+    raw --> canonical --> alias --> unresolved --> resolved
 ```
 
 優先序：
@@ -1163,16 +1217,19 @@ Raw School Name
 
 ### 12.2 推薦決策流程
 
-```text
-使用者檔案
-→ 規則過濾（硬條件）
-→ 候選集合
-→ 校 / 系 / 學位推薦
-→ 權重計分
-→ admission resolved metadata 附加（不改分數）
-→ decision output / application plan / compact summary
-→ ML 精煉（未來）
-→ 最終排序
+```mermaid
+flowchart TB
+    profile["使用者檔案"]
+    rules["規則過濾<br/>硬條件"]
+    candidates["候選集合"]
+    recommendation["校 / 系 / 學位推薦"]
+    scoring["權重計分"]
+    metadata["admission resolved metadata<br/>附加，不改分數"]
+    decision["decision output / application plan / compact summary"]
+    ml["ML 精煉<br/>未來"]
+    ranking["最終排序"]
+
+    profile --> rules --> candidates --> recommendation --> scoring --> metadata --> decision --> ml --> ranking
 ```
 
 需要特別注意的是，`admissionResolved` 是 recommendation item 的 explainability metadata，而不是新的 ranking factor。它用來回答：
@@ -1257,8 +1314,13 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 
 ### 13.4 優先原則
 
-```text
-當前（V1.5） → 下一階段（V2） → 未來（V3）
+```mermaid
+flowchart LR
+    current["當前<br/>V1.5"]
+    next["下一階段<br/>V2"]
+    future["未來<br/>V3"]
+
+    current --> next --> future
 ```
 
 任何新功能若會破壞當前穩定性，應延後至 V2 或 V3。
@@ -1278,7 +1340,15 @@ RecommendationScore = CompositeRanking + AdmissionProb + BudgetFit + LocationPre
 
 ### 14.2 四年路線原則
 
-**資料平台 → 分析能力 → 評估驅動的 AI 輔助開發 → 產品化**
+```mermaid
+flowchart LR
+    platform["資料平台"]
+    analytics["分析能力"]
+    aiDev["評估驅動的 AI 輔助開發"]
+    product["產品化"]
+
+    platform --> analytics --> aiDev --> product
+```
 
 ### 14.3 已完成時間線（每日一行）
 

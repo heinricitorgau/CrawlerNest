@@ -21,11 +21,16 @@ This module is inspired by autonomous research workflows, but adapted for **data
 
 CrawlerNest consists of multiple layers:
 
-- Crawler → Data collection
-- Extractor → Structured data parsing
-- Normalization → Data cleaning
-- DB Writer → Storage
-- Analytics / Recommendation → Downstream usage
+```mermaid
+flowchart LR
+    crawler["Crawler<br/>Data collection"]
+    extractor["Extractor<br/>Structured data parsing"]
+    normalization["Normalization<br/>Data cleaning"]
+    writer["DB Writer<br/>Storage"]
+    analytics["Analytics / Recommendation<br/>Downstream usage"]
+
+    crawler --> extractor --> normalization --> writer --> analytics
+```
 
 AutoEval sits **above these layers** and acts as a:
 
@@ -79,18 +84,30 @@ This creates a reproducible and trackable improvement process.
 
 ## Project Structure
 
-```
-crawlernest-autoeval/
-├── README.md
-├── program.md          # Rules for experiment execution
-├── eval_spec.md        # Metric definitions
-├── results.tsv         # Experiment log
-├── datasets/           # Ground truth datasets
-├── baselines/          # Baseline outputs
-├── adapters/           # Bridge to CrawlerNest modules
-├── runners/            # Evaluation runners
-├── reports/            # Output summaries
-└── sandbox/            # Temporary experiment space
+```mermaid
+flowchart TB
+    root["crawlernest-autoeval/"]
+    readme["README.md"]
+    program["program.md<br/>Rules for experiment execution"]
+    spec["eval_spec.md<br/>Metric definitions"]
+    results["results.tsv<br/>Experiment log"]
+    datasets["datasets/<br/>Ground truth datasets"]
+    baselines["baselines/<br/>Baseline outputs"]
+    adapters["adapters/<br/>Bridge to CrawlerNest modules"]
+    runners["runners/<br/>Evaluation runners"]
+    reports["reports/<br/>Output summaries"]
+    sandbox["sandbox/<br/>Temporary experiment space"]
+
+    root --> readme
+    root --> program
+    root --> spec
+    root --> results
+    root --> datasets
+    root --> baselines
+    root --> adapters
+    root --> runners
+    root --> reports
+    root --> sandbox
 ```
 
 ---

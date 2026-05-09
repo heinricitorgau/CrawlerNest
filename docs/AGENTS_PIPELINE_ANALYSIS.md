@@ -11,10 +11,14 @@ production truth source.
 
 Expected local layout:
 
-```text
-dev/
-  University-Data-Infrastructure-Web-Platform/
-  crawlernest-agents/
+```mermaid
+flowchart TB
+    dev["dev/"]
+    main["University-Data-Infrastructure-Web-Platform/"]
+    agents["crawlernest-agents/"]
+
+    dev --> main
+    dev --> agents
 ```
 
 Run the wrapper from the main CrawlerNest repository:
@@ -25,14 +29,18 @@ Run the wrapper from the main CrawlerNest repository:
 
 The wrapper:
 
-1. Locates the main CrawlerNest repository.
-2. Checks for `../crawlernest-agents`.
-3. Checks for `../crawlernest-agents/scripts/generate-pipeline-analysis.py`.
-4. Exports `CRAWLERNEST_REPO_ROOT`.
-5. Exports `CRAWLERNEST_AGENT_MODE=readonly`.
-6. Calls the agents pipeline analysis tool.
-7. Writes the generated prompt to `tmp/agent-analysis/pipeline-analysis-prompt.md`
-   unless an explicit output file is provided.
+```mermaid
+flowchart TB
+    locate["Locate main CrawlerNest repository"]
+    repo["Check ../crawlernest-agents"]
+    tool["Check generate-pipeline-analysis.py"]
+    envRoot["Export CRAWLERNEST_REPO_ROOT"]
+    envMode["Export CRAWLERNEST_AGENT_MODE=readonly"]
+    call["Call agents pipeline analysis tool"]
+    output["Write tmp/agent-analysis/pipeline-analysis-prompt.md"]
+
+    locate --> repo --> tool --> envRoot --> envMode --> call --> output
+```
 
 You can pass a custom output file:
 

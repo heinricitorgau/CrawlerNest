@@ -21,7 +21,7 @@ layout, data movement, operations, and endpoint coverage.
 
 | File | Purpose |
 | --- | --- |
-| [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md) | Current high-level system architecture and ASCII maps. |
+| [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md) | Current high-level system architecture and rendered diagrams. |
 | [REPOSITORY_MAP.md](REPOSITORY_MAP.md) | Current repository and major directory map. |
 | [DATA_FLOW.md](DATA_FLOW.md) | Ranking and subject ranking flow from source to frontend. |
 | [OPERATIONAL_RUNBOOK.md](OPERATIONAL_RUNBOOK.md) | Startup, smoke checks, daily jobs, snapshots, diagnostics, rollback. |

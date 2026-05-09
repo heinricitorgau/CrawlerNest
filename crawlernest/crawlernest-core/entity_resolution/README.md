@@ -2,14 +2,17 @@
 
 ## Pipeline Position
 
-```text
-ranking crawl
--> normalization
--> warehouse preview / landing
--> deterministic entity resolution
--> unresolved reporting
--> manual alias seeding
--> refresh loop
+```mermaid
+flowchart LR
+    crawl["Ranking crawl"]
+    normalization["Normalization"]
+    landing["Warehouse preview / landing"]
+    resolution["Deterministic entity resolution"]
+    report["Unresolved reporting"]
+    seeding["Manual alias seeding"]
+    refresh["Refresh loop"]
+
+    crawl --> normalization --> landing --> resolution --> report --> seeding --> refresh
 ```
 
 Entity resolution is the identity-control layer that maps normalized university names onto canonical university entities without mutating the original ranking facts.
@@ -61,8 +64,13 @@ Typical examples of aliases include:
 
 The intended operating loop is:
 
-```text
-seed alias -> refresh resolution -> review unresolved report
+```mermaid
+flowchart LR
+    seed["Seed alias"]
+    refresh["Refresh resolution"]
+    review["Review unresolved report"]
+
+    seed --> refresh --> review
 ```
 
 This loop allows operators to reduce unresolved entities incrementally without changing crawler behavior or rewriting upstream pipeline stages.
