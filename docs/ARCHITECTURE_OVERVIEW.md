@@ -4,49 +4,21 @@ This document maps the current CrawlerNest system as implemented in the reposito
 
 ## High-Level Architecture
 
-```text
-              +---------------------+
-              | External sources    |
-              | QS, THE, ARWU       |
-              +----------+----------+
-                         |
-                         v
-              +---------------------+
-              | Python ingestion    |
-              | crawlers + adapters |
-              +----------+----------+
-                         |
-                         v
-              +---------------------+
-              | Normalization and   |
-              | canonical matching  |
-              +----------+----------+
-                         |
-                         v
-              +---------------------+
-              | PostgreSQL          |
-              | warehouse schema    |
-              +----------+----------+
-                         |
-                         v
-              +---------------------+
-              | Analytics schema    |
-              | aggregations/views  |
-              +----------+----------+
-                         |
-            +------------+-------------+
-            |                          |
-            v                          v
-+----------------------+     +----------------------+
-| Spring Boot API      |     | Autoeval/diagnostics |
-| servise_for_java     |     | scripts + reports    |
-+----------+-----------+     +----------+-----------+
-           |                            |
-           v                            v
-+----------------------+     +----------------------+
-| Next.js frontend     |     | snapshots/bundles    |
-| crawlernest-web      |     | operations evidence  |
-+----------------------+     +----------------------+
+```mermaid
+flowchart TB
+    sources["External sources<br/>QS / THE / ARWU"]
+    ingestion["Python ingestion<br/>crawlers + adapters"]
+    matching["Normalization<br/>canonical matching"]
+    warehouse[("PostgreSQL<br/>warehouse schema")]
+    analytics[("Analytics schema<br/>aggregations / views")]
+    api["Spring Boot API<br/>servise_for_java"]
+    frontend["Next.js frontend<br/>crawlernest-web"]
+    diagnostics["Autoeval / diagnostics<br/>scripts + reports"]
+    evidence["Snapshots / bundles<br/>operations evidence"]
+
+    sources --> ingestion --> matching --> warehouse --> analytics
+    analytics --> api --> frontend
+    analytics --> diagnostics --> evidence
 ```
 
 Core runtime split:
@@ -59,26 +31,17 @@ Core runtime split:
 
 ## Ingestion Pipeline
 
-```text
-QS/THE/ARWU crawler
-      |
-      v
-source adapter
-      |
-      v
-standardized ranking records
-      |
-      v
-canonical university resolution
-      |
-      v
-warehouse.ranking_record
-      |
-      v
-analytics.aggregated_rankings
-      |
-      v
-analytics.v_aggregated_rankings_latest
+```mermaid
+flowchart TB
+    crawler["QS / THE / ARWU crawler"]
+    adapter["Source adapter"]
+    standardized["Standardized ranking records"]
+    canonical["Canonical university resolution"]
+    rankingRecord[("warehouse.ranking_record")]
+    aggregated[("analytics.aggregated_rankings")]
+    latest[("analytics.v_aggregated_rankings_latest")]
+
+    crawler --> adapter --> standardized --> canonical --> rankingRecord --> aggregated --> latest
 ```
 
 Main code paths:
@@ -93,22 +56,22 @@ The aggregation formula is owned by the ranking aggregation layer. API explainab
 
 ## Analytics Flow
 
-```text
-warehouse.ranking_record
-      |
-      v
-RankingAggregator
-      |
-      v
-analytics.aggregated_rankings
-      |
-      v
-analytics.v_aggregated_rankings_latest
-      |
-      +--> rankings API
-      +--> recommendation candidates
-      +--> data quality diagnostics
-      +--> cross-source explainability
+```mermaid
+flowchart TB
+    rankingRecord[("warehouse.ranking_record")]
+    aggregator["RankingAggregator"]
+    aggregated[("analytics.aggregated_rankings")]
+    latest[("analytics.v_aggregated_rankings_latest")]
+    rankingsApi["Rankings API"]
+    recommendations["Recommendation candidates"]
+    quality["Data quality diagnostics"]
+    explainability["Cross-source explainability"]
+
+    rankingRecord --> aggregator --> aggregated --> latest
+    latest --> rankingsApi
+    latest --> recommendations
+    latest --> quality
+    latest --> explainability
 ```
 
 Important analytics fields include:
@@ -125,26 +88,17 @@ These support rankings, confidence visibility, source comparison, and explainabi
 
 ## Subject Ranking Flow
 
-```text
-QS subject source
-      |
-      v
-subject crawler
-      |
-      v
-subject normalization
-      |
-      v
-canonical university resolution
-      |
-      v
-warehouse.subject_ranking_record
-      |
-      v
-analytics.v_subject_rankings_latest
-      |
-      v
-subject ranking API and UI
+```mermaid
+flowchart TB
+    source["QS subject source"]
+    crawler["Subject crawler"]
+    normalization["Subject normalization"]
+    canonical["Canonical university resolution"]
+    record[("warehouse.subject_ranking_record")]
+    latest[("analytics.v_subject_rankings_latest")]
+    product["Subject ranking API and UI"]
+
+    source --> crawler --> normalization --> canonical --> record --> latest --> product
 ```
 
 Subject rankings are a parallel read path. They do not feed the global ranking aggregation formula.
@@ -157,21 +111,26 @@ Key entry points:
 
 ## Diagnostics Flow
 
-```text
-warehouse + analytics tables
-        |
-        v
-Spring Boot diagnostic services
-        |
-        +--> /api/v1/health
-        +--> /api/v1/freshness
-        +--> /api/v1/diagnostics/rankings
-        +--> /api/v1/diagnostics/subjects
-        +--> /api/v1/diagnostics/data-quality
-        +--> /api/v1/diagnostics/source-agreement
-        |
-        v
-Next.js status/data-quality pages
+```mermaid
+flowchart TB
+    tables[("Warehouse + analytics tables")]
+    services["Spring Boot diagnostic services"]
+    health["/api/v1/health"]
+    freshness["/api/v1/freshness"]
+    rankings["/api/v1/diagnostics/rankings"]
+    subjects["/api/v1/diagnostics/subjects"]
+    quality["/api/v1/diagnostics/data-quality"]
+    agreement["/api/v1/diagnostics/source-agreement"]
+    pages["Next.js status / data-quality pages"]
+
+    tables --> services
+    services --> health
+    services --> freshness
+    services --> rankings
+    services --> subjects
+    services --> quality
+    services --> agreement
+    services --> pages
 ```
 
 Diagnostics cover:
@@ -185,21 +144,25 @@ Diagnostics cover:
 
 ## Operational Automation Flow
 
-```text
-operator or cron
-      |
-      v
-scripts/run_daily_pipeline.sh
-      |
-      +--> ranking pipeline
-      +--> subject ranking pipeline
-      +--> smoke checks
-      +--> autoeval diagnostics
-      +--> scripts/export_system_snapshot.py
-      +--> scripts/export_metadata_bundle.sh
-      |
-      v
-logs/ + snapshots/ + reports/
+```mermaid
+flowchart TB
+    trigger["Operator or cron"]
+    daily["scripts/run_daily_pipeline.sh"]
+    ranking["Ranking pipeline"]
+    subject["Subject ranking pipeline"]
+    smoke["Smoke checks"]
+    autoeval["Autoeval diagnostics"]
+    snapshot["scripts/export_system_snapshot.py"]
+    bundle["scripts/export_metadata_bundle.sh"]
+    evidence["logs/ + snapshots/ + reports/"]
+
+    trigger --> daily
+    daily --> ranking --> evidence
+    daily --> subject --> evidence
+    daily --> smoke --> evidence
+    daily --> autoeval --> evidence
+    daily --> snapshot --> evidence
+    daily --> bundle --> evidence
 ```
 
 The operational scripts create evidence that can be inspected without rerunning the full system:
@@ -211,21 +174,32 @@ The operational scripts create evidence that can be inspected without rerunning 
 
 ## CI/CD Flow
 
-```text
-push or pull request
-      |
-      +---------------------------+
-      |                           |
-      v                           v
-release-smoke.yml          data-quality.yml
-      |                           |
-      v                           v
-scripts/smoke_release.sh   fixture-mode data quality
-      |                           |
-      +--> Spring compile         +--> golden dataset checks
-      +--> Next.js build          +--> ranking regression
-      +--> Python syntax          +--> failure summary artifact
-      +--> optional API curl
+```mermaid
+flowchart TB
+    change["Push or pull request"]
+    release["release-smoke.yml"]
+    quality["data-quality.yml"]
+    smoke["scripts/smoke_release.sh"]
+    fixture["Fixture-mode data quality"]
+    spring["Spring compile"]
+    next["Next.js build"]
+    python["Python syntax"]
+    curl["Optional API curl"]
+    golden["Golden dataset checks"]
+    regression["Ranking regression"]
+    artifact["Failure summary artifact"]
+
+    change --> release
+    change --> quality
+    release --> smoke
+    smoke --> spring
+    smoke --> next
+    smoke --> python
+    smoke --> curl
+    quality --> fixture
+    fixture --> golden
+    fixture --> regression
+    fixture --> artifact
 ```
 
 CI is intentionally split:

@@ -18,8 +18,22 @@ It should depend on `crawlernest-crawler-core/`, but it must not depend on the a
 
 The ranking engine is no longer just a crawler entrypoint. It is now the front edge of a controlled ranking production workflow:
 
-```text
-crawl -> raw -> normalized -> staging -> validate -> ingest -> warehouse preview -> warehouse landing -> resolve -> report -> seed -> refresh
+```mermaid
+flowchart LR
+    crawl["crawl"]
+    raw["raw"]
+    normalized["normalized"]
+    staging["staging"]
+    validate["validate"]
+    ingest["ingest"]
+    preview["warehouse preview"]
+    landing["warehouse landing"]
+    resolve["resolve"]
+    report["report"]
+    seed["seed"]
+    refresh["refresh"]
+
+    crawl --> raw --> normalized --> staging --> validate --> ingest --> preview --> landing --> resolve --> report --> seed --> refresh
 ```
 
 Within that chain, this module owns the source-facing side:

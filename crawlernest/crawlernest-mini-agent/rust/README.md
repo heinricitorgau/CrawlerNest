@@ -176,20 +176,34 @@ See [`../USAGE.md`](../USAGE.md) for usage examples and run `cargo run -p rusty-
 
 ## Workspace Layout
 
-```text
-rust/
-├── Cargo.toml              # Workspace root
-├── Cargo.lock
-└── crates/
-    ├── api/                # Provider clients + streaming + request preflight
-    ├── commands/           # Shared slash-command registry + help rendering
-    ├── compat-harness/     # TS manifest extraction harness
-    ├── mock-anthropic-service/ # Deterministic local Anthropic-compatible mock
-    ├── plugins/            # Plugin metadata, manager, install/enable/disable surfaces
-    ├── runtime/            # Session, config, permissions, MCP, prompts, auth/runtime loop
-    ├── rusty-claude-cli/   # Main CLI binary (`claw`)
-    ├── telemetry/          # Session tracing and usage telemetry types
-    └── tools/              # Built-in tools, skill resolution, tool search, agent runtime surfaces
+```mermaid
+flowchart TB
+    rust["rust/"]
+    cargoToml["Cargo.toml<br/>Workspace root"]
+    cargoLock["Cargo.lock"]
+    crates["crates/"]
+    api["api/<br/>Provider clients + streaming + request preflight"]
+    commands["commands/<br/>Slash-command registry + help rendering"]
+    harness["compat-harness/<br/>TS manifest extraction harness"]
+    mock["mock-anthropic-service/<br/>Deterministic local Anthropic-compatible mock"]
+    plugins["plugins/<br/>Plugin manager and install / enable / disable surfaces"]
+    runtime["runtime/<br/>Session, config, permissions, MCP, prompts, auth/runtime loop"]
+    cli["rusty-claude-cli/<br/>Main CLI binary"]
+    telemetry["telemetry/<br/>Session tracing and usage telemetry types"]
+    tools["tools/<br/>Built-in tools, skill resolution, tool search, agent runtime surfaces"]
+
+    rust --> cargoToml
+    rust --> cargoLock
+    rust --> crates
+    crates --> api
+    crates --> commands
+    crates --> harness
+    crates --> mock
+    crates --> plugins
+    crates --> runtime
+    crates --> cli
+    crates --> telemetry
+    crates --> tools
 ```
 
 ### Crate Responsibilities

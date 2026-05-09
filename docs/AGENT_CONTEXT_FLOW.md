@@ -14,6 +14,15 @@ Run:
 ./scripts/agent_context_snapshot.sh
 ```
 
+```mermaid
+flowchart TB
+    run["agent_context_snapshot.sh"]
+    evidence["Repository and operational evidence"]
+    snapshot["tmp/agent-context/context_snapshot.md"]
+
+    evidence --> run --> snapshot
+```
+
 The script reads repository and operational evidence, then writes:
 
 ```text
@@ -27,6 +36,17 @@ The repo-aware prompt wrapper runs the snapshot step first:
 
 ```bash
 ./scripts/agent_repo_prompt.sh [log_or_note_file]
+```
+
+```mermaid
+flowchart TB
+    wrapper["agent_repo_prompt.sh"]
+    snapshot["context_snapshot.md"]
+    input["repo_prompt_input.md"]
+    prompt["repo-aware-prompt.md"]
+    agents["Sibling agents prompt generator"]
+
+    wrapper --> snapshot --> input --> agents --> prompt
 ```
 
 It then creates:

@@ -4,18 +4,30 @@ This document explains the major directories in the repository and what to inspe
 
 ## Top-Level Map
 
-```text
-.
-+-- crawlernest/
-+-- crawlernest-samples/
-+-- docs/
-+-- scripts/
-+-- snapshots/
-+-- reports/
-+-- backups/
-+-- .github/workflows/
-+-- deployment-support/
-+-- legacy/
+```mermaid
+flowchart TB
+    root["Repository root"]
+    crawlernest["crawlernest/"]
+    samples["crawlernest-samples/"]
+    docs["docs/"]
+    scripts["scripts/"]
+    snapshots["snapshots/"]
+    reports["reports/"]
+    backups["backups/"]
+    workflows[".github/workflows/"]
+    deployment["deployment-support/"]
+    legacy["legacy/"]
+
+    root --> crawlernest
+    root --> samples
+    root --> docs
+    root --> scripts
+    root --> snapshots
+    root --> reports
+    root --> backups
+    root --> workflows
+    root --> deployment
+    root --> legacy
 ```
 
 ## Core Directories
@@ -131,15 +143,15 @@ Historical code retained for reference. Prefer current paths under `crawlernest/
 
 ## Where To Start
 
-```text
-Need to ingest data?       -> crawlernest/run_pipeline.py
-Need API behavior?         -> crawlernest/servise_for_java/src/main/java/clawer/api/
-Need web behavior?         -> crawlernest/crawlernest-web/src/app/
-Need ranking formula?      -> crawlernest/crawlernest-core/ranking_aggregation/
-Need schema/view details?  -> crawlernest/crawlernest-schema/
-Need diagnostics?          -> scripts/ and crawlernest/crawlernest-autoeval/
-Need CI status?            -> .github/workflows/
-```
+| Need | Start Here |
+| --- | --- |
+| Ingest data | `crawlernest/run_pipeline.py` |
+| API behavior | `crawlernest/servise_for_java/src/main/java/clawer/api/` |
+| Web behavior | `crawlernest/crawlernest-web/src/app/` |
+| Ranking formula | `crawlernest/crawlernest-core/ranking_aggregation/` |
+| Schema/view details | `crawlernest/crawlernest-schema/` |
+| Diagnostics | `scripts/` and `crawlernest/crawlernest-autoeval/` |
+| CI status | `.github/workflows/` |
 
 ## Related Documents
 

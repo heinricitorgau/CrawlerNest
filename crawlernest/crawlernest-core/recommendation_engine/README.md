@@ -8,8 +8,16 @@ This is **not ML**.
 
 ## Pipeline Position
 
-```text
-aggregated_rankings + admission_requirements -> recommendation_engine -> analytics/API
+```mermaid
+flowchart LR
+    rankings[("aggregated_rankings")]
+    admissions[("admission_requirements")]
+    engine["recommendation_engine"]
+    output["analytics / API"]
+
+    rankings --> engine
+    admissions --> engine
+    engine --> output
 ```
 
 ## Module Structure

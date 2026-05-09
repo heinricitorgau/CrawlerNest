@@ -13,14 +13,21 @@ This guide covers deploying CrawlerNest as a stable, long-running, low-spec craw
 **User:** A dedicated unprivileged system user named `crawler`
 
 ### Directory Structure
-```text
-/opt/crawlernest/
-├── venv/                   # Python virtual environment
-├── .env                    # Systemd environment file (credentials)
-├── crawlernest/            # Clone of the repository
-│   └── scripts/
-│       └── run_production_safe.sh
-└── logs/                   # Log directory (mounted via script)
+```mermaid
+flowchart TB
+    root["/opt/crawlernest/"]
+    venv["venv/<br/>Python virtual environment"]
+    env[".env<br/>Systemd environment file"]
+    repo["crawlernest/<br/>Clone of the repository"]
+    scripts["scripts/"]
+    runner["run_production_safe.sh"]
+    logs["logs/<br/>Log directory"]
+
+    root --> venv
+    root --> env
+    root --> repo
+    repo --> scripts --> runner
+    root --> logs
 ```
 
 **Why this approach?**

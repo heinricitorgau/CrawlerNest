@@ -4,7 +4,17 @@
 CrawlerNest is an end-to-end university data infrastructure and web platform. It transforms fragmented global education data into structured knowledge, powering a deterministic decision engine for students and advisors.
 
 Our core evolution path:
-**Data Acquisition → Data Platform → Analytical Capability → AI Recommendation → Productization**
+
+```mermaid
+flowchart LR
+    acquisition["Data Acquisition"]
+    platform["Data Platform"]
+    analytics["Analytical Capability"]
+    recommendation["AI Recommendation"]
+    product["Productization"]
+
+    acquisition --> platform --> analytics --> recommendation --> product
+```
 
 Execution note:
 

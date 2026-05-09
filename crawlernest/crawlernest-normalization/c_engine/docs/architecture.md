@@ -6,7 +6,16 @@ The Clawer C Data Normalization Engine is a modular C-based data processing pipe
 
 Pipeline:
 
-Raw CSV → CSV Reader → Normalization Modules → CSV Writer → Normalized CSV
+```mermaid
+flowchart LR
+    raw["Raw CSV"]
+    reader["CSV Reader"]
+    modules["Normalization Modules"]
+    writer["CSV Writer"]
+    normalized["Normalized CSV"]
+
+    raw --> reader --> modules --> writer --> normalized
+```
 
 
 ## Input Dataset Format
@@ -197,34 +206,49 @@ make clean
 
 ## Directory Structure
 
-```
-clawer_c_data_normalization_engine
-│
-├── src
-│   ├── main.c
-│   ├── csv_reader.c
-│   ├── csv_writer.c
-│   ├── normalizer.c
-│   ├── name_normalizer.c
-│   ├── country_normalizer.c
-│   ├── rank_parser.c
-│   ├── score_parser.c
-│   └── utils.c
-│
-├── include
-│   ├── record.h
-│   ├── csv_reader.h
-│   ├── csv_writer.h
-│   └── normalizer.h
-│
-├── src/tests
-│   └── test_normalizer.c
-│
-├── docs
-│   └── architecture.md
-│
-└── data
-    └── samples
+```mermaid
+flowchart TB
+    root["clawer_c_data_normalization_engine"]
+    src["src/"]
+    main["main.c"]
+    csvReader["csv_reader.c"]
+    csvWriter["csv_writer.c"]
+    normalizer["normalizer.c"]
+    nameNormalizer["name_normalizer.c"]
+    countryNormalizer["country_normalizer.c"]
+    rankParser["rank_parser.c"]
+    scoreParser["score_parser.c"]
+    utils["utils.c"]
+    include["include/"]
+    record["record.h"]
+    csvReaderH["csv_reader.h"]
+    csvWriterH["csv_writer.h"]
+    normalizerH["normalizer.h"]
+    tests["src/tests/"]
+    testNormalizer["test_normalizer.c"]
+    docs["docs/"]
+    architecture["architecture.md"]
+    data["data/"]
+    samples["samples/"]
+
+    root --> src
+    src --> main
+    src --> csvReader
+    src --> csvWriter
+    src --> normalizer
+    src --> nameNormalizer
+    src --> countryNormalizer
+    src --> rankParser
+    src --> scoreParser
+    src --> utils
+    root --> include
+    include --> record
+    include --> csvReaderH
+    include --> csvWriterH
+    include --> normalizerH
+    root --> tests --> testNormalizer
+    root --> docs --> architecture
+    root --> data --> samples
 ```
 
 

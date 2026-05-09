@@ -16,7 +16,18 @@ The older version of this file described a broader platform architecture with mo
 
 Today, the safest mental model is:
 
-`crawl -> extract -> normalize -> write -> warehouse -> API -> web`
+```mermaid
+flowchart LR
+    crawl["crawl"]
+    extract["extract"]
+    normalize["normalize"]
+    write["write"]
+    warehouse[("warehouse")]
+    api["API"]
+    web["web"]
+
+    crawl --> extract --> normalize --> write --> warehouse --> api --> web
+```
 
 With these boundaries:
 

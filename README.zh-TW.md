@@ -151,14 +151,17 @@ Agent: http://localhost:3000/agent
 
 CrawlerNest 目前是 data pipeline 加 product read layer 的組合：
 
-```text
-QS/THE/ARWU sources
-  -> Python crawlers and normalization
-  -> canonical university resolution
-  -> PostgreSQL warehouse tables
-  -> analytics aggregation/views
-  -> Spring Boot API
-  -> Next.js frontend
+```mermaid
+flowchart LR
+    sources["QS / THE / ARWU<br/>排名來源"]
+    ingestion["Python 爬蟲<br/>與標準化"]
+    matching["Canonical university<br/>解析"]
+    warehouse[("PostgreSQL<br/>warehouse tables")]
+    analytics[("Analytics<br/>aggregation / views")]
+    api["Spring Boot API"]
+    frontend["Next.js 前端"]
+
+    sources --> ingestion --> matching --> warehouse --> analytics --> api --> frontend
 ```
 
 目前系統元件：
@@ -353,7 +356,7 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 ## 文件
 
 - [Documentation Hub](docs/README.md) - 文件入口與重複內容整理原則
-- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md) - high-level system map and ASCII diagrams
+- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md) - high-level system map and rendered diagrams
 - [Repository Map](docs/REPOSITORY_MAP.md) - directory ownership and onboarding map
 - [Data Flow](docs/DATA_FLOW.md) - ranking and subject ranking data flow
 - [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md) - startup, smoke checks, snapshots, diagnostics, rollback

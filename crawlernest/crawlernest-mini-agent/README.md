@@ -37,8 +37,16 @@ It is a controlled subsystem integrated into CrawlerNest.
 
 High-level pipeline:
 
-```text
-Crawler -> Extractor -> Normalizer -> Database -> Analytics -> Recommendation
+```mermaid
+flowchart LR
+    crawler["Crawler"]
+    extractor["Extractor"]
+    normalizer["Normalizer"]
+    database[("Database")]
+    analytics["Analytics"]
+    recommendation["Recommendation"]
+
+    crawler --> extractor --> normalizer --> database --> analytics --> recommendation
 ```
 
 Core system responsibilities:
@@ -65,8 +73,13 @@ Core system responsibilities:
 
 CrawlerNest uses a **mini-agent development loop**:
 
-```text
-Generate -> Evaluate -> Refine
+```mermaid
+flowchart LR
+    generate["Generate"]
+    evaluate["Evaluate"]
+    refine["Refine"]
+
+    generate --> evaluate --> refine --> generate
 ```
 
 This loop is intentionally lightweight and controlled.

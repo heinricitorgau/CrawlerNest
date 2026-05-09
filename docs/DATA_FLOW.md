@@ -4,38 +4,21 @@ This document traces global ranking and subject ranking data from source acquisi
 
 ## Global Ranking Flow
 
-```text
-QS/THE/ARWU source
-      |
-      v
-crawler
-      |
-      v
-source adapter
-      |
-      v
-normalization
-      |
-      v
-canonical resolution
-      |
-      v
-warehouse.ranking_record
-      |
-      v
-aggregation
-      |
-      v
-analytics.aggregated_rankings
-      |
-      v
-analytics.v_aggregated_rankings_latest
-      |
-      v
-Spring Boot API
-      |
-      v
-Next.js frontend
+```mermaid
+flowchart TB
+    source["QS / THE / ARWU source"]
+    crawler["Crawler"]
+    adapter["Source adapter"]
+    normalization["Normalization"]
+    canonical["Canonical resolution"]
+    rankingRecord[("warehouse.ranking_record")]
+    aggregation["Aggregation"]
+    aggregated[("analytics.aggregated_rankings")]
+    latest[("analytics.v_aggregated_rankings_latest")]
+    api["Spring Boot API"]
+    frontend["Next.js frontend"]
+
+    source --> crawler --> adapter --> normalization --> canonical --> rankingRecord --> aggregation --> aggregated --> latest --> api --> frontend
 ```
 
 ### 1. Source Acquisition
@@ -97,14 +80,13 @@ These tables preserve source-level evidence. They are the input evidence for agg
 
 Aggregation reads source ranking records and writes stored outputs.
 
-```text
-warehouse.ranking_record
-      |
-      v
-RankingAggregator
-      |
-      v
-analytics.aggregated_rankings
+```mermaid
+flowchart TB
+    rankingRecord[("warehouse.ranking_record")]
+    aggregator["RankingAggregator"]
+    aggregated[("analytics.aggregated_rankings")]
+
+    rankingRecord --> aggregator --> aggregated
 ```
 
 Stored aggregation output includes:
@@ -154,29 +136,18 @@ Global ranking UI paths:
 
 ## Subject Ranking Flow
 
-```text
-QS subject source
-      |
-      v
-subject crawler
-      |
-      v
-subject normalization
-      |
-      v
-canonical resolution
-      |
-      v
-warehouse.subject_ranking_record
-      |
-      v
-analytics.v_subject_rankings_latest
-      |
-      v
-subject ranking API
-      |
-      v
-Next.js subject ranking UI
+```mermaid
+flowchart TB
+    source["QS subject source"]
+    crawler["Subject crawler"]
+    normalization["Subject normalization"]
+    canonical["Canonical resolution"]
+    record[("warehouse.subject_ranking_record")]
+    latest[("analytics.v_subject_rankings_latest")]
+    api["Subject ranking API"]
+    ui["Next.js subject ranking UI"]
+
+    source --> crawler --> normalization --> canonical --> record --> latest --> api --> ui
 ```
 
 Subject rankings are intentionally separate from global aggregation. They provide discipline-specific evidence without modifying global composite ranks.
@@ -190,42 +161,43 @@ Important paths:
 
 ## Diagnostics Data Flow
 
-```text
-warehouse + analytics state
-        |
-        +--> HealthService
-        +--> FreshnessService
-        +--> DiagnosticsService
-        +--> DataQualityService
-        +--> SourceIntelligenceService
-        |
-        v
-/api/v1/health
-/api/v1/freshness
-/api/v1/diagnostics/*
-        |
-        v
-/system-status and /data-quality
+```mermaid
+flowchart TB
+    state[("Warehouse + analytics state")]
+    health["HealthService"]
+    freshness["FreshnessService"]
+    diagnostics["DiagnosticsService"]
+    quality["DataQualityService"]
+    intelligence["SourceIntelligenceService"]
+    healthApi["/api/v1/health"]
+    freshnessApi["/api/v1/freshness"]
+    diagnosticsApi["/api/v1/diagnostics/*"]
+    pages["/system-status and /data-quality"]
+
+    state --> health --> healthApi --> pages
+    state --> freshness --> freshnessApi --> pages
+    state --> diagnostics --> diagnosticsApi --> pages
+    state --> quality --> diagnosticsApi
+    state --> intelligence --> diagnosticsApi
 ```
 
 Diagnostics use the same database state as product reads, which keeps operational signals aligned with user-visible data.
 
 ## Snapshot and Report Flow
 
-```text
-live database
-      |
-      v
-scripts/export_system_snapshot.py
-      |
-      +--> snapshots/system_snapshot_*.json
-      +--> snapshots/latest_status.json
-      |
-      v
-scripts/build_failure_summary.py
-      |
-      v
-reports or CI artifact
+```mermaid
+flowchart TB
+    database[("Live database")]
+    export["scripts/export_system_snapshot.py"]
+    snapshot["snapshots/system_snapshot_*.json"]
+    latest["snapshots/latest_status.json"]
+    summary["scripts/build_failure_summary.py"]
+    report["Reports or CI artifact"]
+
+    database --> export
+    export --> snapshot
+    export --> latest
+    latest --> summary --> report
 ```
 
 Snapshots are useful for handoff, CI summaries, and incident analysis when live services are not available.

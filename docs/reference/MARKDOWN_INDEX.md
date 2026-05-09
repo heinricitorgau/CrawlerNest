@@ -60,7 +60,7 @@ If someone is new to the repo, this is the fastest path:
 
 | File | Purpose |
 | --- | --- |
-| `docs/ARCHITECTURE_OVERVIEW.md` | Current high-level architecture, system maps, and ASCII diagrams. |
+| `docs/ARCHITECTURE_OVERVIEW.md` | Current high-level architecture, system maps, and rendered diagrams. |
 | `docs/REPOSITORY_MAP.md` | Current repository structure map and onboarding guide. |
 | `docs/DATA_FLOW.md` | QS/THE/ARWU and subject ranking data flow from source to frontend. |
 | `docs/OPERATIONAL_RUNBOOK.md` | Startup, smoke checks, daily pipeline, snapshots, diagnostics, CI troubleshooting, and rollback guidance. |
