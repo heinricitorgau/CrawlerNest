@@ -18,7 +18,10 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 from typing import Any
+
+EXPECTED_SOURCES = ("QS", "THE", "ARWU")
 
 
 def connect(host: str, port: int, database: str, user: str, password: str):
@@ -228,6 +231,90 @@ def detect_country_disappearance(conn) -> list[dict[str, Any]]:
     return warnings
 
 
+def _source_counts_from_fixture(snapshot: dict[str, Any]) -> dict[str, int]:
+    counts = snapshot.get("source_counts", {})
+    if isinstance(counts, dict):
+        return {str(k): int(v or 0) for k, v in counts.items()}
+    if isinstance(counts, list):
+        result: dict[str, int] = {}
+        for item in counts:
+            if isinstance(item, dict):
+                source = item.get("source_code")
+                if source:
+                    result[str(source)] = int(item.get("count") or item.get("records_in") or 0)
+        return result
+    return {}
+
+
+def detect_fixture_drift(snapshot: dict[str, Any]) -> list[dict[str, Any]]:
+    """Classify no-database failure-state fixtures as drift warnings."""
+    warnings: list[dict[str, Any]] = []
+
+    for warning in snapshot.get("drift_warnings", []) or []:
+        if isinstance(warning, dict):
+            warnings.append(warning)
+
+    existing = {
+        (w.get("source_code"), w.get("warning_type"))
+        for w in warnings
+    }
+
+    def add_once(warning: dict[str, Any]) -> None:
+        key = (warning.get("source_code"), warning.get("warning_type"))
+        if key not in existing:
+            warnings.append(warning)
+            existing.add(key)
+
+    source_counts = _source_counts_from_fixture(snapshot)
+    for source in snapshot.get("expected_sources", EXPECTED_SOURCES):
+        if source_counts.get(source, 0) == 0:
+            add_once({
+                "source_code": source,
+                "warning_type": "missing_source",
+                "message": f"{source} has no records in fixture source coverage",
+            })
+
+    aggregated_count = int(snapshot.get("aggregated_count") or 0)
+    if aggregated_count == 0:
+        add_once({
+            "source_code": "ALL",
+            "warning_type": "empty_aggregation",
+            "message": "aggregated_count is zero",
+        })
+
+    unresolved_total = int(snapshot.get("unresolved_total") or 0)
+    unresolved_trend = snapshot.get("unresolved_trend_pct")
+    if unresolved_total > 0 and unresolved_trend is not None and float(unresolved_trend) >= 50:
+        add_once({
+            "source_code": "ALL",
+            "warning_type": "unresolved_spike",
+            "message": f"unresolved_total={unresolved_total} trend={unresolved_trend}%",
+            "current_unresolved": unresolved_total,
+            "trend_pct": unresolved_trend,
+        })
+
+    if snapshot.get("overall_stale"):
+        add_once({
+            "source_code": "ALL",
+            "warning_type": "stale_snapshot",
+            "message": "snapshot is marked overall_stale=true",
+        })
+
+    return warnings
+
+
+def load_fixture_snapshot(path: str) -> dict[str, Any]:
+    fixture_path = Path(path)
+    if not fixture_path.exists():
+        print(f"ERROR fixture file not found: {fixture_path}")
+        sys.exit(2)
+    payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        print(f"ERROR source drift fixture must be a snapshot object: {fixture_path}")
+        sys.exit(2)
+    return payload
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Source drift detector")
     parser.add_argument("--pg-host", default="localhost")
@@ -237,20 +324,41 @@ def main() -> int:
     parser.add_argument("--pg-password", default="")
     parser.add_argument("--drop-threshold", type=float, default=0.20,
                         help="Flag count drops above this ratio (default 0.20 = 20%%)")
+    parser.add_argument(
+        "--fixture-file",
+        metavar="PATH",
+        help="Snapshot-style JSON fixture. Skips PostgreSQL connection entirely.",
+    )
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    conn = connect(args.pg_host, args.pg_port, args.pg_database,
-                   args.pg_user, args.pg_password)
-    try:
-        count_drops = detect_count_drops(conn, args.drop_threshold)
-        rank_gaps = detect_rank_range_gaps(conn)
-        score_shifts = detect_score_distribution_shift(conn)
-        country_loss = detect_country_disappearance(conn)
-    finally:
-        conn.close()
+    if args.fixture_file:
+        snapshot = load_fixture_snapshot(args.fixture_file)
+        fixture_warnings = detect_fixture_drift(snapshot)
+        count_drops = [
+            w for w in fixture_warnings
+            if w.get("warning_type") in {"count_drop", "missing_source", "empty_aggregation"}
+        ]
+        rank_gaps: list[dict[str, Any]] = []
+        score_shifts: list[dict[str, Any]] = []
+        country_loss: list[dict[str, Any]] = []
+        fixture_only = [
+            w for w in fixture_warnings
+            if w.get("warning_type") not in {"count_drop", "missing_source", "empty_aggregation"}
+        ]
+    else:
+        conn = connect(args.pg_host, args.pg_port, args.pg_database,
+                       args.pg_user, args.pg_password)
+        try:
+            count_drops = detect_count_drops(conn, args.drop_threshold)
+            rank_gaps = detect_rank_range_gaps(conn)
+            score_shifts = detect_score_distribution_shift(conn)
+            country_loss = detect_country_disappearance(conn)
+            fixture_only = []
+        finally:
+            conn.close()
 
-    all_warnings = count_drops + rank_gaps + score_shifts + country_loss
+    all_warnings = count_drops + rank_gaps + score_shifts + country_loss + fixture_only
 
     report = {
         "total_warnings": len(all_warnings),
@@ -258,6 +366,7 @@ def main() -> int:
         "rank_range_gaps": rank_gaps,
         "score_distribution_shifts": score_shifts,
         "country_disappearances": country_loss,
+        "fixture_warnings": fixture_only,
     }
 
     if args.json:

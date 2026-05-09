@@ -133,6 +133,28 @@ def build_markdown(
         lines.append("_No drift warnings detected._")
     lines.append("")
 
+    # ── Source coverage ──
+    source_counts = snapshot.get("source_counts", {})
+    if source_counts:
+        lines.append("## Source Coverage")
+        lines.append("")
+        if isinstance(source_counts, dict):
+            iterable = sorted(source_counts.items())
+        else:
+            iterable = [
+                (item.get("source_code", "?"), item.get("count", item.get("records_in", 0)))
+                for item in source_counts
+                if isinstance(item, dict)
+            ]
+        for source, count in iterable:
+            lines.append(f"- `{source}`: {count}")
+        expected = snapshot.get("expected_sources", ["QS", "THE", "ARWU"])
+        counts_map = {str(source): int(count or 0) for source, count in iterable}
+        missing_sources = [source for source in expected if counts_map.get(source, 0) == 0]
+        if missing_sources:
+            lines.append(f"- **Missing sources**: {', '.join(missing_sources)}")
+        lines.append("")
+
     # ── Unresolved universities ──
     unresolved = snapshot.get("unresolved_total", 0) or snapshot.get("unresolved", {}).get("total", 0)
     last_7d = snapshot.get("unresolved_last_7d", 0)

@@ -1,0 +1,33 @@
+{
+  "fixture_name": "empty_aggregation_state",
+  "snapshot_timestamp": "2026-01-04T00:00:00+00:00",
+  "aggregated_count": 0,
+  "source_counts": {
+    "QS": 5,
+    "THE": 5,
+    "ARWU": 5
+  },
+  "expected_sources": ["QS", "THE", "ARWU"],
+  "unresolved_total": 0,
+  "unresolved_last_7d": 0,
+  "unresolved_trend_pct": 0.0,
+  "drift_warning_count": 1,
+  "drift_warnings": [
+    {
+      "source_code": "ALL",
+      "warning_type": "empty_aggregation",
+      "message": "aggregation latest view produced no rows"
+    }
+  ],
+  "regression_summary": {
+    "aggregated_count": 0,
+    "score_min": null,
+    "score_max": null,
+    "score_avg": null,
+    "low_coverage_count": 0
+  },
+  "last_aggregation_at": null,
+  "last_aggregation_status": "failed",
+  "overall_stale": true,
+  "aggregated_rankings": []
+}

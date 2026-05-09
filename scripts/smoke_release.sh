@@ -30,7 +30,7 @@ skip() { echo "SKIP $*"; }
 # ---------------------------------------------------------------------------
 # 1. Local environment verification
 # ---------------------------------------------------------------------------
-echo "[1/6] Local environment verification (readonly)..."
+echo "[1/8] Local environment verification (readonly)..."
 if [[ ! -x "${ROOT_DIR}/scripts/verify_local_environment.sh" ]]; then
   fail "verify_local_environment.sh not found or not executable"
 else
@@ -46,7 +46,7 @@ fi
 # ---------------------------------------------------------------------------
 # 2. Spring Boot compile
 # ---------------------------------------------------------------------------
-echo "[2/6] Spring Boot compile (no tests)..."
+echo "[2/8] Spring Boot compile (no tests)..."
 if [[ ! -f "${JAVA_DIR}/mvnw" ]]; then
   fail "mvnw not found at ${JAVA_DIR}/mvnw"
 else
@@ -62,7 +62,7 @@ fi
 # ---------------------------------------------------------------------------
 # 3. Next.js build
 # ---------------------------------------------------------------------------
-echo "[3/6] Next.js build..."
+echo "[3/8] Next.js build..."
 if [[ ! -d "${WEB_DIR}/node_modules" ]]; then
   fail "node_modules not found — run: cd crawlernest/crawlernest-web && npm install"
 else
@@ -88,7 +88,7 @@ fi
 # ---------------------------------------------------------------------------
 # 4. Python syntax check
 # ---------------------------------------------------------------------------
-echo "[4/6] Python syntax check..."
+echo "[4/8] Python syntax check..."
 if ! command -v python3 >/dev/null 2>&1; then
   fail "python3 not found"
 else
@@ -105,6 +105,7 @@ else
   check_py "${CRAWLERNEST_DIR}/run_pipeline.py"
   check_py "${CRAWLERNEST_DIR}/pipeline/cli.py"
   check_py "${ROOT_DIR}/scripts/check_pipeline_health.py"
+  check_py "${ROOT_DIR}/scripts/compare_snapshots.py"
 
   # Check all .py files under pipeline/ and subjects/
   while IFS= read -r -d '' pyfile; do
@@ -119,7 +120,7 @@ fi
 # ---------------------------------------------------------------------------
 # 5. Pipeline health diagnostics
 # ---------------------------------------------------------------------------
-echo "[5/6] Pipeline health diagnostics (readonly)..."
+echo "[5/8] Pipeline health diagnostics (readonly)..."
 if [[ ! -f "${ROOT_DIR}/scripts/check_pipeline_health.py" ]]; then
   fail "check_pipeline_health.py not found"
 else
@@ -133,9 +134,63 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 6. API endpoint checks (skipped if Spring Boot is not running)
+# 6. Snapshot comparison validation
 # ---------------------------------------------------------------------------
-echo "[6/6] API endpoint checks (optional — requires Spring Boot on ${API_BASE})..."
+echo "[6/8] Snapshot comparison validation (readonly fixtures)..."
+FIXTURE_DIR="${ROOT_DIR}/crawlernest/crawlernest-autoeval/datasets/ci_fixtures"
+compare_out="$(python3 "${ROOT_DIR}/scripts/compare_snapshots.py" \
+  "${FIXTURE_DIR}/snapshot_fixture.json" \
+  "${FIXTURE_DIR}/missing_source_state.json" \
+  --json 2>&1)" && rc=0 || rc=$?
+if [[ ${rc} -eq 0 ]]; then
+  ok "Snapshot comparison fixture validation completed"
+else
+  fail "Snapshot comparison fixture validation crashed"
+  echo "${compare_out}" | tail -20
+fi
+
+# ---------------------------------------------------------------------------
+# 7. Failure-state fixture validation
+# ---------------------------------------------------------------------------
+echo "[7/8] Failure-state fixture validation (readonly fixtures)..."
+fixture_errors=0
+
+run_fixture_check() {
+  local label="$1"
+  local expected_codes="$2"
+  shift 2
+  local out rc
+  out="$("$@" 2>&1)" && rc=0 || rc=$?
+  if [[ " ${expected_codes} " == *" ${rc} "* ]]; then
+    ok "${label}: completed (exit ${rc})"
+  else
+    fail "${label}: unexpected exit ${rc}"
+    echo "${out}" | tail -20
+    (( fixture_errors++ )) || true
+  fi
+}
+
+run_fixture_check "ranking regression empty aggregation fixture" "0 1" \
+  python3 "${ROOT_DIR}/crawlernest/crawlernest-autoeval/runners/run_ranking_regression.py" \
+    --fixture-file "${FIXTURE_DIR}/empty_aggregation_state.json" --json
+
+run_fixture_check "source drift missing source fixture" "0" \
+  python3 "${ROOT_DIR}/crawlernest/crawlernest-autoeval/runners/run_source_drift.py" \
+    --fixture-file "${FIXTURE_DIR}/missing_source_state.json" --json
+
+run_fixture_check "failure summary stale fixture" "0" \
+  python3 "${ROOT_DIR}/scripts/build_failure_summary.py" \
+    --snapshot-file "${FIXTURE_DIR}/stale_state.json" \
+    --output "/tmp/crawlernest_smoke_failure_summary.md"
+
+if [[ ${fixture_errors} -eq 0 ]]; then
+  ok "Failure-state fixture validation completed"
+fi
+
+# ---------------------------------------------------------------------------
+# 8. API endpoint checks (skipped if Spring Boot is not running)
+# ---------------------------------------------------------------------------
+echo "[8/8] API endpoint checks (optional — requires Spring Boot on ${API_BASE})..."
 
 api_reachable=false
 reach_status="$(curl -sS -o /dev/null -w "%{http_code}" \

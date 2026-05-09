@@ -36,7 +36,15 @@ def load_fixture(fixture_path: str) -> list[dict[str, Any]]:
     if not p.exists():
         print(f"ERROR fixture file not found: {p}")
         sys.exit(2)
-    return json.loads(p.read_text(encoding="utf-8"))
+    payload = json.loads(p.read_text(encoding="utf-8"))
+    if isinstance(payload, list):
+        return payload
+    if isinstance(payload, dict):
+        rows = payload.get("aggregated_rankings", [])
+        if isinstance(rows, list):
+            return rows
+    print(f"ERROR unsupported fixture format: {p}")
+    sys.exit(2)
 
 
 def query_university_from_fixture(
