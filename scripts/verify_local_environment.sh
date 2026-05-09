@@ -10,6 +10,7 @@ PGHOST="${CRAWLERNEST_PG_HOST:-127.0.0.1}"
 PGPORT="${CRAWLERNEST_PG_PORT:-5432}"
 PGDATABASE="${CRAWLERNEST_PG_DATABASE:-clawer}"
 PGUSER="${CRAWLERNEST_PG_USER:-test}"
+VENV_PYTHON="${ROOT_DIR}/.venv/bin/python"
 STRICT=false
 
 PASS=0
@@ -56,6 +57,13 @@ raise SystemExit(0 if result == 0 else 1)
 PY
 }
 
+python_importable() {
+  local python_bin="$1"
+  local module="$2"
+  [[ -x "${python_bin}" ]] || return 2
+  "${python_bin}" -c "import ${module}" >/dev/null 2>&1
+}
+
 echo "[environment] readonly local verification"
 
 if [[ -d "${ROOT_DIR}/.venv" ]]; then
@@ -64,15 +72,47 @@ else
   warn "Python venv missing: .venv"
 fi
 
+CURRENT_PYTHON=""
 if command -v python3 >/dev/null 2>&1; then
-  pass "python3 found: $(python3 --version 2>/dev/null)"
-  if python3 -c "import psycopg2" >/dev/null 2>&1; then
+  CURRENT_PYTHON="$(command -v python3)"
+  pass "python3 found: $(python3 --version 2>/dev/null) (${CURRENT_PYTHON})"
+  if python_importable "${CURRENT_PYTHON}" "psycopg2"; then
     pass "psycopg2 importable"
   else
     fail "psycopg2 is not importable in current python3"
   fi
 else
   fail "python3 not found"
+fi
+
+if [[ -x "${VENV_PYTHON}" ]]; then
+  pass ".venv python found: $("${VENV_PYTHON}" --version 2>/dev/null) (${VENV_PYTHON})"
+else
+  warn ".venv python missing or not executable: ${VENV_PYTHON}"
+fi
+
+current_has_psycopg2=false
+venv_has_psycopg2=false
+
+if [[ -n "${CURRENT_PYTHON}" ]] && python_importable "${CURRENT_PYTHON}" "psycopg2"; then
+  current_has_psycopg2=true
+fi
+if [[ -x "${VENV_PYTHON}" ]] && python_importable "${VENV_PYTHON}" "psycopg2"; then
+  venv_has_psycopg2=true
+fi
+
+if [[ -n "${CURRENT_PYTHON}" && -x "${VENV_PYTHON}" && "${CURRENT_PYTHON}" != "${VENV_PYTHON}" ]]; then
+  warn "current python differs from .venv python"
+fi
+
+if "${venv_has_psycopg2}" && ! "${current_has_psycopg2}"; then
+  warn "psycopg2 exists in .venv but not current python3; activate .venv for DB scripts"
+elif "${current_has_psycopg2}" && ! "${venv_has_psycopg2}"; then
+  warn "psycopg2 exists in current python3 but not .venv; install dependencies into .venv"
+elif "${venv_has_psycopg2}" && "${current_has_psycopg2}"; then
+  pass "psycopg2 consistency: current python and .venv both import it"
+else
+  fail "psycopg2 missing from both current python3 and .venv"
 fi
 
 if command -v pg_isready >/dev/null 2>&1; then

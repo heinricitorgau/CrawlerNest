@@ -1,0 +1,74 @@
+{
+  "fixture_name": "unresolved_spike_state",
+  "snapshot_timestamp": "2026-01-03T00:00:00+00:00",
+  "aggregated_count": 5,
+  "source_counts": {
+    "QS": 5,
+    "THE": 5,
+    "ARWU": 5
+  },
+  "expected_sources": ["QS", "THE", "ARWU"],
+  "unresolved_total": 75,
+  "unresolved_last_7d": 50,
+  "unresolved_trend_pct": 150.0,
+  "drift_warning_count": 1,
+  "drift_warnings": [
+    {
+      "source_code": "ALL",
+      "warning_type": "unresolved_spike",
+      "message": "unresolved entities increased sharply in fixture state"
+    }
+  ],
+  "regression_summary": {
+    "aggregated_count": 5,
+    "score_min": 91.3,
+    "score_max": 100.0,
+    "score_avg": 95.82,
+    "low_coverage_count": 0
+  },
+  "last_aggregation_at": "2026-01-03T00:00:00+00:00",
+  "last_aggregation_status": "finished",
+  "overall_stale": false,
+  "aggregated_rankings": [
+    {
+      "display_name": "Massachusetts Institute of Technology",
+      "canonical_slug": "massachusetts-institute-of-technology",
+      "country_name": "United States",
+      "display_rank": 1,
+      "composite_score": 100.0,
+      "source_ranks_json": {"QS": 1, "THE": 2, "ARWU": 3}
+    },
+    {
+      "display_name": "University of Oxford",
+      "canonical_slug": "university-of-oxford",
+      "country_name": "United Kingdom",
+      "display_rank": 3,
+      "composite_score": 96.8,
+      "source_ranks_json": {"QS": 3, "THE": 1, "ARWU": 7}
+    },
+    {
+      "display_name": "University of Cambridge",
+      "canonical_slug": "university-of-cambridge",
+      "country_name": "United Kingdom",
+      "display_rank": 5,
+      "composite_score": 95.1,
+      "source_ranks_json": {"QS": 5, "THE": 4, "ARWU": 8}
+    },
+    {
+      "display_name": "Harvard University",
+      "canonical_slug": "harvard-university",
+      "country_name": "United States",
+      "display_rank": 4,
+      "composite_score": 95.9,
+      "source_ranks_json": {"QS": 4, "THE": 3, "ARWU": 1}
+    },
+    {
+      "display_name": "Imperial College London",
+      "canonical_slug": "imperial-college-london",
+      "country_name": "United Kingdom",
+      "display_rank": 8,
+      "composite_score": 91.3,
+      "source_ranks_json": {"QS": 8, "THE": 9, "ARWU": 20}
+    }
+  ]
+}

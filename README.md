@@ -362,6 +362,9 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 - [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md) - startup, smoke checks, snapshots, diagnostics, and rollback
 - [API Surface](docs/API_SURFACE.md) - current endpoint catalog
 - [Project State Review](docs/PROJECT_STATE_REVIEW.md) - maturity, risk, readiness, and next-phase assessment
+- [Python Environment](docs/PYTHON_ENVIRONMENT.md) - venv, psycopg2, and local runtime consistency
+- [Backup Restore Drill](docs/BACKUP_RESTORE_DRILL.md) - readonly-safe backup and restore rehearsal
+- [Snapshot Comparison](docs/SNAPSHOT_COMPARISON.md) - compare operational snapshots and failure-state fixtures
 - [Demo Checklist](docs/DEMO_CHECKLIST.md) — step-by-step checklist before any demo or handover
 - [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — known issues and fixes for the local development environment
 

@@ -29,6 +29,9 @@ layout, data movement, operations, and endpoint coverage.
 | [PROJECT_STATE_REVIEW.md](PROJECT_STATE_REVIEW.md) | Current maturity, inventory, risks, readiness, and next-phase priorities. |
 | [CI_PIPELINES.md](CI_PIPELINES.md) | GitHub Actions workflow summary and troubleshooting notes. |
 | [SCHEDULED_OPERATIONS.md](SCHEDULED_OPERATIONS.md) | Cron and scheduled pipeline automation details. |
+| [PYTHON_ENVIRONMENT.md](PYTHON_ENVIRONMENT.md) | Python venv, psycopg2, PEP 668, and runtime consistency notes. |
+| [BACKUP_RESTORE_DRILL.md](BACKUP_RESTORE_DRILL.md) | Readonly-safe backup and restore drill procedure. |
+| [SNAPSHOT_COMPARISON.md](SNAPSHOT_COMPARISON.md) | Compare operational snapshots for drift and coverage changes. |
 | [DEMO_CHECKLIST.md](DEMO_CHECKLIST.md) | Pre-demo and handover checklist. |
 | [LOCAL_TROUBLESHOOTING.md](LOCAL_TROUBLESHOOTING.md) | Local environment issues and fixes. |
 | [AI_DEV_WORKFLOW.md](AI_DEV_WORKFLOW.md) | AI-assisted development workflow and crawlernest-agents integration notes. |

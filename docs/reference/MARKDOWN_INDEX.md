@@ -81,6 +81,9 @@ If someone is new to the repo, this is the fastest path:
 | `docs/LOCAL_TROUBLESHOOTING.md` | Local environment issues and fixes. |
 | `docs/OPERATIONAL_RECOVERY.md` | Recovery guidance for PostgreSQL, analytics views, datasource issues, snapshots, and rollback. |
 | `docs/PIPELINE_HEALTH_MODEL.md` | Health states, thresholds, freshness expectations, and source coverage model. |
+| `docs/PYTHON_ENVIRONMENT.md` | Python venv, psycopg2, PEP 668, and runtime consistency notes. |
+| `docs/BACKUP_RESTORE_DRILL.md` | Readonly-safe backup, restore, rollback, and disaster-recovery drill guidance. |
+| `docs/SNAPSHOT_COMPARISON.md` | Snapshot comparison workflow for coverage, freshness, drift, and failure-state fixtures. |
 | `docs/deployment/Lobster_01_Deployment_Guide.md` | Production node deployment and runbook for Lobster-01. |
 | `deployment-support/lobster-01/README_NODE.md` | Operational notes for the Lobster-01 crawler node environment. |
 
