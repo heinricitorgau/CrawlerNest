@@ -1391,7 +1391,11 @@ flowchart LR
 | 2026-04-24 | 完成 admission signal schema、deterministic resolver、resolved admission metadata、AdmissionSignalBadge、decisionSummaryCompact、assistant summary line 與 export Decision Snapshot，將 admission trust signals 以 messaging-only 方式整合進決策產品層。 | 已完成 |
 | 2026-04-26 | 完成將 QS legacy rankings 自動橋接至 analytics 原生流程（含去重、canonical/source seed、aggregation），pipeline 現在可從抓取一路到 API 正常輸出 1499 筆資料。 | 已完成 |
 | 2026-04-28 | 修復 THE Overall score 欄位 mapping，將 raw `scores_overall` 正確寫入 normalized `score` 與 `warehouse.ranking_record.score`；THE 2026 已驗證 Oxford score=98.2，整體 2189 筆 THE records 成功寫入分數。 | 已完成 |
-### 14.4 當前階段判讀（截至 2026-04-26）
+| 2026-04-29 | 完成 subject rankings 主鏈：QS subject ingestion、bootstrap support、Spring Boot subject ranking API、Next.js subject ranking UI 與 smoke 驗證路徑，將學科排名收斂為獨立於 global aggregation 的 read path。 | 已完成 |
+| 2026-05-08 | 完成本機 stack 穩定化與 operational MVP 補強：WSL localhost pipeline、PostgreSQL integration、health/freshness/diagnostics、daily pipeline、snapshots、data-quality dashboards、CI workflows、cross-source intelligence、architecture/runbook/API docs、readonly crawlernest-agents wrappers、pipeline health model、recovery docs 與 project state review。 | 已完成 |
+| 2026-05-09 | 完成 operational risk hardening 與文件圖像化升級：補上 Python environment、backup/restore drill、snapshot comparison、fixture failure states、source drift checks，並將 current architecture、data flow、repo map、package README、agent workflow、deployment guide 與 whitepaper 中的架構圖 / 示意圖全面升級為 Mermaid rendered diagrams。 | 已完成 |
+
+### 14.4 當前階段判讀（截至 2026-05-09）
 
 CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 
@@ -1403,10 +1407,15 @@ CrawlerNest 目前位於 **V1.5+ 到 V2 之間的過渡階段**。
 - admission path 已具備獨立 staging / preview / landing / deterministic resolution 能力，並可透過 canonical identity layer 與 ranking path 匯流
 - preview integration layer 已能組裝 canonical university detail，並提供 Java / Next.js preview read path 作為 school detail productization 前置模型
 - rankings 主 read path 已不再依賴 demo-grade preview rows，而是建立在正式 ranking warehouse 與較清楚的前端 page-level / universe-level 語義之上
+- subject rankings 已成為獨立 read path，支援 QS subject ingestion、subject ranking API、Next.js subject ranking UI 與 smoke checks，且不改動 global aggregation truth
 - admission crawler 已進一步補上 host allowlist、extractor input budget、欄位硬驗證與 anomaly breakdown，資料正確性與可觀測性明顯高於早期 prototype
 - entity resolution / unresolved reporting 已開始補上 suspicious merge、country mismatch 與 manual review backlog 的可見性，讓 correctness 問題不再只停留在隱性 metadata
 - recommendation path 已從單純 match score 進一步擴展到 structured admission signals，包括 deadline intelligence、IELTS / TOEFL / GPA / Duolingo fit、admission composite、surface priority、decision output、decision strategy、resolved admission metadata 與 compact decision summary
 - user-facing recommendation surface 已不再只是列出學校，而是能在 API、assistant reply 與 website UI 中以 deterministic 方式暴露 readiness、risk、top concerns、suggested action 與 application strategy
+- health、freshness、ranking diagnostics、subject diagnostics、data quality、source agreement、operational status 與 snapshot/export tooling 已形成 operational MVP 的 observability layer
+- release smoke、fixture-mode data quality、ranking regression、source drift、pipeline health、backup/restore drill 與 snapshot comparison 已開始提供不依賴 live database 的回歸與交接證據
+- `crawlernest-agents` integration 已收斂為 readonly development companion：debug、repo-aware context snapshot 與 pipeline analysis wrappers 只產生 temporary prompt artifacts，不進入 production data path、CI gate 或 runtime dependency
+- current architecture docs、data flow、repository map、package README、deployment runbook 與 whitepaper 已從 ASCII / inline-arrow diagrams 升級為 Mermaid rendered diagrams，讓 onboarding 與系統邊界更容易被閱讀與維護
 - `crawlernest-crawler-core/` 已被正式收斂為 shared crawler runtime boundary，並開始以可獨立演進的 shared subproject 方式來界定 crawler runtime 與 engine-owned business logic 的分工
 - AutoEval 已建立 baseline，但仍需擴大 coverage 與 regression discipline
 - Mini-Agent Layer 已不只停留於概念定位，Web / Dev Agent 已建立顯式執行邊界；其中 Web Agent 已具備 formatter 邊界、safe fallback、provider-aware generation path 與 recommendation / ranking / lookup 的 task-specific context/prompt routing
