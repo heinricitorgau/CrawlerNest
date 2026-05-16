@@ -1,0 +1,79 @@
+# CrawlerNest v0.1 Release Smoke Output
+# Generated: 2026-05-16T09:55:39Z
+
+[1/8] Local environment verification (readonly)...
+[environment] readonly local verification
+PASS Python venv exists: .venv
+PASS python3 found: Python 3.12.3 (/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.venv/bin/python3)
+PASS psycopg2 importable
+PASS .venv python found: Python 3.12.3 (/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.venv/bin/python)
+WARN current python differs from .venv python
+PASS psycopg2 consistency: current python and .venv both import it
+PASS PostgreSQL reachable at 127.0.0.1:5432/clawer
+PASS Java found: openjdk version "17.0.18" 2026-01-20
+PASS JAVA_HOME set: /usr/lib/jvm/java-17-openjdk-amd64
+PASS Node.js version 20.20.2 >= 20.9
+PASS npm found: 10.8.2
+PASS crawlernest-web/node_modules exists
+PASS Spring Boot port 8080 is available
+PASS Next.js port 3000 is available
+
+Summary: PASS=13 WARN=1 FAIL=0
+OK   Local environment verification completed
+[2/8] Spring Boot compile (no tests)...
+OK   Spring Boot compile: BUILD SUCCESS
+[3/8] Next.js build...
+OK   Next.js build: success (Node v20.20.2)
+[4/8] Python syntax check...
+OK   Python syntax: all files OK
+[5/8] Pipeline health diagnostics (readonly)...
+CrawlerNest Pipeline Health
+Status: FAILED
+Checked at: 2026-05-16T09:55:52.273001+00:00
+
+aggregated_rankings_count: None
+ranking_record_count: None
+unresolved_count: None
+duplicate_resolution_count: None
+latest_aggregation_finished_at: None
+latest_aggregation_age_hours: None
+latest_subject_year: None
+source_coverage: {}
+missing_sources: []
+
+Reasons:
+- connection to server at "127.0.0.1", port 5432 failed: fe_sendauth: no password supplied
+
+
+{
+  "checked_at": "2026-05-16T09:55:52.273001+00:00",
+  "thresholds": {
+    "stale_after_hours": 36,
+    "min_aggregated_rows": 100,
+    "max_unresolved_ratio": 0.05,
+    "expected_sources": [
+      "QS",
+      "THE",
+      "ARWU"
+    ]
+  },
+  "connection_error": "connection to server at \"127.0.0.1\", port 5432 failed: fe_sendauth: no password supplied\n",
+  "status": "failed",
+  "reasons": [
+    "connection to server at \"127.0.0.1\", port 5432 failed: fe_sendauth: no password supplied\n"
+  ]
+}
+OK   Pipeline health diagnostics completed
+[6/8] Snapshot comparison validation (readonly fixtures)...
+OK   Snapshot comparison fixture validation completed
+[7/8] Failure-state fixture validation (readonly fixtures)...
+OK   ranking regression empty aggregation fixture: completed (exit 1)
+OK   source drift missing source fixture: completed (exit 0)
+OK   failure summary stale fixture: completed (exit 0)
+OK   Failure-state fixture validation completed
+[8/8] API endpoint checks (optional — requires Spring Boot on http://localhost:8080)...
+SKIP Spring Boot not reachable at http://localhost:8080 — start it to run endpoint checks
+
+Results: 10 passed, 0 failed
+
+Release smoke passed.

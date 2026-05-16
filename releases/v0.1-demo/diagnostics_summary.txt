@@ -1,0 +1,39 @@
+# CrawlerNest v0.1 Diagnostics Summary
+# Generated: 2026-05-16T09:55:39Z
+
+CrawlerNest Pipeline Health
+Status: FAILED
+Checked at: 2026-05-16T09:55:39.833712+00:00
+
+aggregated_rankings_count: None
+ranking_record_count: None
+unresolved_count: None
+duplicate_resolution_count: None
+latest_aggregation_finished_at: None
+latest_aggregation_age_hours: None
+latest_subject_year: None
+source_coverage: {}
+missing_sources: []
+
+Reasons:
+- connection to server at "127.0.0.1", port 5432 failed: fe_sendauth: no password supplied
+
+
+{
+  "checked_at": "2026-05-16T09:55:39.833712+00:00",
+  "thresholds": {
+    "stale_after_hours": 36,
+    "min_aggregated_rows": 100,
+    "max_unresolved_ratio": 0.05,
+    "expected_sources": [
+      "QS",
+      "THE",
+      "ARWU"
+    ]
+  },
+  "connection_error": "connection to server at \"127.0.0.1\", port 5432 failed: fe_sendauth: no password supplied\n",
+  "status": "failed",
+  "reasons": [
+    "connection to server at \"127.0.0.1\", port 5432 failed: fe_sendauth: no password supplied\n"
+  ]
+}

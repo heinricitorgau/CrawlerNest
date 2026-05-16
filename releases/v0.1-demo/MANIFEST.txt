@@ -1,0 +1,16 @@
+CrawlerNest v0.1 Demo Bundle
+Built: 2026-05-16T09:55:39Z
+
+Contents:
+DEMO_SCRIPT_v0.1.md
+MANIFEST.txt
+RELEASE_NOTES_v0.1.md
+RELEASE_STRUCTURE.md
+SCREENSHOT_CHECKLIST_v0.1.md
+VERSION_SCOPE_v0.1.md
+diagnostics_summary.txt
+latest_failure_summary.md
+latest_status.json
+screenshots/README.md
+smoke_release_output.txt
+system_snapshot_20260508_072113.json
