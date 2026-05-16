@@ -82,6 +82,10 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("success", false, "error", "Title is required."));
         }
+        if (request.getTitle().length() > 200) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("success", false, "error", "Title must be 200 characters or fewer."));
+        }
         if (request.getRequestJson() == null || request.getResultJson() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("success", false, "error", "Request and result are required."));
