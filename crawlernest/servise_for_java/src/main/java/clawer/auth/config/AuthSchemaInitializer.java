@@ -35,5 +35,15 @@ public class AuthSchemaInitializer {
                     UNIQUE (user_id, canonical_university_id)
                 )
                 """);
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS warehouse.saved_recommendation (
+                    id           BIGSERIAL    PRIMARY KEY,
+                    user_id      BIGINT       NOT NULL REFERENCES warehouse.app_user(id),
+                    title        VARCHAR(255) NOT NULL,
+                    request_json JSONB        NOT NULL,
+                    result_json  JSONB        NOT NULL,
+                    created_at   TIMESTAMPTZ  NOT NULL DEFAULT now()
+                )
+                """);
     }
 }

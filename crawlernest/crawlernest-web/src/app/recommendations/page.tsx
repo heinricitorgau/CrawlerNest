@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { fetchAppJson } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuthPlaceholder";
 import { AdmissionSignalBadge } from "@/components/AdmissionSignalBadge";
 import { PlanComparisonMatrix } from "@/components/PlanComparisonMatrix";
 import {
@@ -1074,6 +1075,11 @@ export function RecommendationPageContent() {
   const [importedSummaryPreview, setImportedSummaryPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { authenticated } = useAuth();
+  const [lastResponse, setLastResponse] = useState<RecommendationResponse | null>(null);
+  const [saveTitle, setSaveTitle] = useState("");
+  const [savePhase, setSavePhase] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [shortlistContext, setShortlistContext] = useState<ShortlistItem[]>([]);
 
   useEffect(() => {
@@ -1431,6 +1437,9 @@ export function RecommendationPageContent() {
         throw new Error("Recommendation request did not succeed.");
       }
 
+      setLastResponse(json);
+      setSavePhase("idle");
+      setSaveTitle("");
       setData(json.data);
       setMetadata(json.metadata ?? null);
       setApplicationPlan(json.applicationPlan ?? null);
@@ -1678,6 +1687,46 @@ export function RecommendationPageContent() {
       }
     );
     setCurrentFocus(restoredFocus);
+  }
+
+  const autoTitle = useMemo(() => {
+    const parts: string[] = [country, `IELTS ${ielts}`, `Rank #${targetRank}`];
+    if (riskProfile && riskProfile !== "balanced") {
+      parts.push(titleCaseWords(riskProfile));
+    }
+    return parts.join(", ");
+  }, [country, ielts, targetRank, riskProfile]);
+
+  async function handleSavePlan() {
+    if (!lastResponse) return;
+    setSavePhase("saving");
+    const effectiveTitle = saveTitle.trim() || autoTitle;
+    try {
+      const requestPayload = {
+        country,
+        ielts,
+        toefl: toefl !== "" ? toefl : null,
+        gpa: gpa !== "" ? gpa : null,
+        duolingo: duolingo !== "" ? duolingo : null,
+        targetRank,
+        riskProfile,
+        subject: selectedSubject || null,
+        selectedPlan: selectedPlan || null,
+      };
+      const res = await fetch("/api/user/saved-recommendations", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: effectiveTitle,
+          request: requestPayload,
+          result: lastResponse,
+        }),
+      });
+      setSavePhase(res.ok ? "saved" : "error");
+    } catch {
+      setSavePhase("error");
+    }
   }
 
   return (
@@ -2181,6 +2230,72 @@ export function RecommendationPageContent() {
                   label="Safety"
                   value={String(metadata?.counts?.safety ?? data.safety.length)}
                 />
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-[#1a3d2e]">Save This Plan</h2>
+              <p className="mt-2 text-sm text-[#6b7068]">
+                Save a snapshot of this recommendation result to your account.
+              </p>
+              <div className="mt-5">
+                {!authenticated ? (
+                  <p className="text-sm text-[#6b7068]">
+                    <Link
+                      href="/signin"
+                      className="font-medium text-[#3d7a5a] underline-offset-4 hover:underline"
+                    >
+                      Sign in
+                    </Link>
+                    {" "}to save plans across sessions.
+                  </p>
+                ) : savePhase === "saved" ? (
+                  <div className="flex flex-wrap items-center gap-4">
+                    <span className="text-sm font-semibold text-[#1a3d2e]">Saved ✓</span>
+                    <Link
+                      href="/saved-recommendations"
+                      className="text-sm font-medium text-[#3d7a5a] underline-offset-4 hover:underline"
+                    >
+                      View saved plans →
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setSavePhase("idle")}
+                      className="text-xs text-[#6b7068] underline-offset-4 hover:underline"
+                    >
+                      Save again
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-end gap-3">
+                    <div className="flex-1 min-w-[220px]">
+                      <label className="block text-sm font-medium text-[#1a3d2e] mb-1.5">
+                        Plan title
+                      </label>
+                      <input
+                        type="text"
+                        value={saveTitle}
+                        onChange={(e) => setSaveTitle(e.target.value)}
+                        placeholder={autoTitle}
+                        disabled={savePhase === "saving"}
+                        className="w-full rounded-xl border border-[#e0ddd8] px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-[#aaa] outline-none transition focus:border-[#1a3d2e] disabled:opacity-50"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void handleSavePlan()}
+                      disabled={savePhase === "saving"}
+                      className="rounded-full bg-[#1a3d2e] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {savePhase === "saving" ? "Saving…" : "Save plan"}
+                    </button>
+                    {savePhase === "error" && (
+                      <p className="w-full text-xs text-red-600">
+                        Could not save. Please try again.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </section>
 
