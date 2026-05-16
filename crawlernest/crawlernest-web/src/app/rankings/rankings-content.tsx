@@ -16,6 +16,8 @@ import {
 
 import { formatRank, formatScore } from "@/lib/format";
 import { countryBelongsToRegion, normalizeCountryName } from "@/lib/regionMap";
+import { useAuth } from "@/hooks/useAuthPlaceholder";
+import { useSavedUniversities } from "@/hooks/useSavedUniversities";
 
 type RankingItem = {
   canonicalUniversityId: number;
@@ -265,6 +267,7 @@ function RankingsTable({
   loading,
   pagedItems,
   shortlistIds,
+  savedIds,
   isRegionScope,
   search,
   region,
@@ -272,11 +275,13 @@ function RankingsTable({
   onRowClick,
   onRowKeyDown,
   onToggleShortlist,
+  onToggleSave,
 }: Readonly<{
   error: string | null;
   loading: boolean;
   pagedItems: RankingItem[];
   shortlistIds: Set<number>;
+  savedIds: Set<number>;
   isRegionScope: boolean;
   search: string;
   region: string;
@@ -284,6 +289,7 @@ function RankingsTable({
   onRowClick: (event: ReactMouseEvent<HTMLTableRowElement>, slug: string) => void;
   onRowKeyDown: (event: ReactKeyboardEvent<HTMLTableRowElement>, slug: string) => void;
   onToggleShortlist: (item: RankingItem) => void;
+  onToggleSave: (item: RankingItem) => void;
 }>) {
   if (pagedItems.length > 0) {
     return (
@@ -305,6 +311,7 @@ function RankingsTable({
                 const globalRank = item.globalRank ?? item.aggregatedRank;
                 const context = getDecisionContext(displayRank);
                 const isShortlisted = shortlistIds.has(item.canonicalUniversityId);
+                const isSaved = savedIds.has(item.canonicalUniversityId);
                 const rowKey = [
                   item.canonicalUniversityId,
                   item.slug,
@@ -382,17 +389,30 @@ function RankingsTable({
                     </td>
 
                     <td className="px-6 py-5 align-top">
-                      <button
-                        type="button"
-                        onClick={() => onToggleShortlist(item)}
-                        className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                          isShortlisted
-                            ? "border border-[#3d7a5a] bg-[#e8f2ec] text-[#1a3d2e]"
-                            : "border border-[#e0ddd8] bg-white text-[#1a3d2e] hover:border-[#3d7a5a] hover:bg-[#e8f2ec]"
-                        }`}
-                      >
-                        {isShortlisted ? "Added" : "+ Shortlist"}
-                      </button>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onToggleShortlist(item)}
+                          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                            isShortlisted
+                              ? "border border-[#3d7a5a] bg-[#e8f2ec] text-[#1a3d2e]"
+                              : "border border-[#e0ddd8] bg-white text-[#1a3d2e] hover:border-[#3d7a5a] hover:bg-[#e8f2ec]"
+                          }`}
+                        >
+                          {isShortlisted ? "Added" : "+ Shortlist"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onToggleSave(item)}
+                          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                            isSaved
+                              ? "border border-[#3d7a5a] bg-[#e8f2ec] text-[#1a3d2e]"
+                              : "border border-[#e0ddd8] bg-white text-[#6b7068] hover:border-[#3d7a5a] hover:bg-[#e8f2ec] hover:text-[#1a3d2e]"
+                          }`}
+                        >
+                          {isSaved ? "Saved ✓" : "+ Save"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -598,6 +618,9 @@ function RankingsHomeContent() {
     timestamp: undefined,
   });
   const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
+
+  const { authenticated } = useAuth();
+  const { savedIds, toggleSave } = useSavedUniversities(authenticated);
 
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const REFRESH_INTERVAL_MS = 5000;
@@ -959,6 +982,14 @@ function RankingsHomeContent() {
     );
   }
 
+  function handleToggleSave(item: RankingItem) {
+    if (!authenticated) {
+      router.push("/signin");
+      return;
+    }
+    toggleSave(item);
+  }
+
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
       <div className="mx-auto max-w-6xl px-6 py-10">
@@ -1217,6 +1248,7 @@ function RankingsHomeContent() {
                 loading={loading}
                 pagedItems={pagedItems}
                 shortlistIds={shortlistIds}
+                savedIds={savedIds}
                 isRegionScope={isRegionScope}
                 search={search}
                 region={region}
@@ -1224,6 +1256,7 @@ function RankingsHomeContent() {
                 onRowClick={handleRowClick}
                 onRowKeyDown={handleRowKeyDown}
                 onToggleShortlist={toggleShortlist}
+                onToggleSave={handleToggleSave}
               />
             </section>
           </div>
