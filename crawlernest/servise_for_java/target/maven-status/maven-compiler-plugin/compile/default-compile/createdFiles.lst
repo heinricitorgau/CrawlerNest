@@ -51,6 +51,7 @@ clawer/config/DatabaseConfig.class
 clawer/service/UniversityPreviewService.class
 clawer/service/AdmissionService.class
 clawer/repository/RankingRowMapper$2.class
+clawer/user/dto/SaveRecommendationRequest.class
 clawer/repository/JdbcSubjectRankingRepository.class
 clawer/api/RankingController.class
 clawer/repository/JdbcScopedRankingReadAdapter$ScopedSql.class
@@ -62,6 +63,7 @@ clawer/service/AnalyticsService.class
 clawer/model/Program.class
 clawer/repository/RankingRowMapper.class
 clawer/repository/JdbcAggregatedRankingReadRepository.class
+clawer/user/dto/SavedRecommendationDetail.class
 clawer/api/HealthController.class
 clawer/service/RecommendationService$1.class
 clawer/service/ComparisonService.class
@@ -95,6 +97,7 @@ clawer/dto/ApiResponse.class
 clawer/service/OperationalStatusService.class
 clawer/util/CountryNormalization.class
 clawer/repository/AdmissionRequirementRepository.class
+clawer/user/service/SavedRecommendationService.class
 clawer/service/RankingTrustLayer.class
 clawer/auth/repository/AppUserRepository.class
 clawer/service/HealthService.class
@@ -107,5 +110,6 @@ clawer/model/RecommendationExplain.class
 clawer/service/RecommendationService$SubjectRankingSignalRecord.class
 clawer/repository/UniversityPreviewRepository.class
 clawer/api/OperationalStatusController.class
+clawer/user/dto/SavedRecommendationSummary.class
 clawer/domain/ranking/ScopedRankingReadAdapter.class
 clawer/service/RecommendationService$PoolRank.class

@@ -19,6 +19,7 @@
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/domain/ranking/RankingContext.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/user/controller/UserController.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/HealthController.java
+/home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/user/dto/SavedRecommendationSummary.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/model/Country.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/repository/CountryRepository.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/AggregatedRankingDTO.java
@@ -47,6 +48,7 @@
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/model/Ranking.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/RankingCountryOptionDTO.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/repository/AggregatedRankingReadRepository.java
+/home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/user/service/SavedRecommendationService.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/DataQualityController.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/ApiResponse.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/ComparisonService.java
@@ -54,6 +56,7 @@
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/AggregationExplainDTO.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/TrustExplainDTO.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/dto/CanonicalUniversityDetailPreviewDTO.java
+/home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/user/dto/SaveRecommendationRequest.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/user/service/SavedUniversityService.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/auth/dto/AuthUserResponse.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/service/RankingService.java
@@ -82,6 +85,7 @@
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/OperationalStatusController.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/auth/service/AuthService.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/FreshnessController.java
+/home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/user/dto/SavedRecommendationDetail.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/SubjectRankingController.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/api/RecommendationController.java
 /home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/servise_for_java/src/main/java/clawer/model/University.java
