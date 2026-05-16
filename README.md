@@ -295,6 +295,36 @@ scripts/build_failure_summary.py
 
 Generated operational evidence is written to `snapshots/`, `reports/`, and daily logs.
 
+## v0.1 Demo Milestone
+
+CrawlerNest v0.1 is the first formally scoped engineering milestone. It is a **reproducible, demonstrable, operational MVP** — not a production deployment.
+
+**Current release state:**
+
+- 1,499 aggregated universities (QS 2026 full ingestion)
+- Subject rankings MVP operational (Computer Science, Electrical Engineering)
+- Full diagnostics and explainability API coverage
+- CI passing (release-smoke + data-quality) without a live database
+- Readonly agent integration for development support
+
+**Release bundle:** `releases/v0.1-demo/` — built by `scripts/build_demo_bundle.sh`
+
+**Release documentation:**
+
+| Document | Purpose |
+|----------|---------|
+| [docs/RELEASE_NOTES_v0.1.md](docs/RELEASE_NOTES_v0.1.md) | Executive summary, capabilities, known limitations, maturity assessment |
+| [docs/DEMO_SCRIPT_v0.1.md](docs/DEMO_SCRIPT_v0.1.md) | 3-min, 5-min, and 10-min demo flows with commands and expected output |
+| [docs/VERSION_SCOPE_v0.1.md](docs/VERSION_SCOPE_v0.1.md) | Included / not included / explicitly avoided scope definition |
+| [docs/SCREENSHOT_CHECKLIST_v0.1.md](docs/SCREENSHOT_CHECKLIST_v0.1.md) | Screenshot requirements, routes, viewports, filenames |
+| [docs/RELEASE_STRUCTURE.md](docs/RELEASE_STRUCTURE.md) | Bundle structure, artifact meanings, reproducibility assumptions |
+
+To build the demo bundle:
+
+```bash
+./scripts/build_demo_bundle.sh
+```
+
 ## Current Maturity
 
 CrawlerNest is currently an operational MVP: the end-to-end ranking path,

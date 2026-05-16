@@ -1,0 +1,38 @@
+{
+  "snapshot_timestamp": "2026-05-08T07:21:13.439979+00:00",
+  "snapshot_file": "system_snapshot_20260508_072113.json",
+  "aggregated_count": 1499,
+  "source_counts": [
+    {
+      "source_code": "QS",
+      "year": 2026,
+      "count": 1499
+    }
+  ],
+  "unresolved_total": 4,
+  "unresolved_last_7d": 4,
+  "unresolved_trend_pct": null,
+  "drift_warning_count": 0,
+  "drift_warnings": [],
+  "regression_summary": {
+    "aggregated_count": 1499,
+    "score_min": 0.000665,
+    "score_max": 1.0,
+    "score_avg": 0.0053,
+    "low_coverage_count": 1499
+  },
+  "last_aggregation_run_id": 2,
+  "last_aggregation_at": "2026-05-08T06:24:35.935171+08:00",
+  "last_aggregation_status": "finished",
+  "last_ingestion": {
+    "source_code": "QS",
+    "batch_id": "qs-run-2026",
+    "started_at": "2026-05-08T06:24:35.661430+08:00",
+    "finished_at": "2026-05-08T06:24:35.661430+08:00",
+    "records_in": 1503,
+    "matched_count": 1499,
+    "unresolved_count": 4,
+    "inserted_count": 1499
+  },
+  "overall_stale": false
+}

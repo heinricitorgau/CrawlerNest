@@ -295,6 +295,36 @@ scripts/build_failure_summary.py
 
 營運證據會輸出到 `snapshots/`、`reports/` 與 daily logs。
 
+## v0.1 Demo Milestone
+
+CrawlerNest v0.1 是第一個正式範圍界定的 engineering milestone，是一個 **可重現、可展示、可操作的 MVP**，而非生產環境部署。
+
+**目前 Release 狀態：**
+
+- 1,499 所大學已完成 aggregation（QS 2026 完整匯入）
+- Subject rankings MVP 可運作（Computer Science、Electrical Engineering）
+- 完整 diagnostics 與 explainability API 覆蓋
+- CI 通過（release-smoke + data-quality），不需要 live database
+- Readonly agent integration，僅供開發支援使用
+
+**Release bundle：** `releases/v0.1-demo/` — 由 `scripts/build_demo_bundle.sh` 建立
+
+**Release 文件：**
+
+| 文件 | 用途 |
+|------|------|
+| [docs/RELEASE_NOTES_v0.1.md](docs/RELEASE_NOTES_v0.1.md) | 執行摘要、功能說明、已知限制、成熟度評估 |
+| [docs/DEMO_SCRIPT_v0.1.md](docs/DEMO_SCRIPT_v0.1.md) | 3 分鐘、5 分鐘、10 分鐘 demo 流程，含指令與預期輸出 |
+| [docs/VERSION_SCOPE_v0.1.md](docs/VERSION_SCOPE_v0.1.md) | 包含 / 不包含 / 明確排除的範圍定義 |
+| [docs/SCREENSHOT_CHECKLIST_v0.1.md](docs/SCREENSHOT_CHECKLIST_v0.1.md) | Screenshot 需求、路徑、viewport、建議檔名 |
+| [docs/RELEASE_STRUCTURE.md](docs/RELEASE_STRUCTURE.md) | Bundle 結構、artifact 意義、重現性假設說明 |
+
+建立 demo bundle：
+
+```bash
+./scripts/build_demo_bundle.sh
+```
+
 ## 目前成熟度
 
 CrawlerNest 目前是 operational MVP：end-to-end ranking path、subject ranking
