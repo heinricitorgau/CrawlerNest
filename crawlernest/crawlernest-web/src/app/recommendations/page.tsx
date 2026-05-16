@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { fetchAppJson } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
+import { AUTH_MESSAGES } from "@/lib/authMessages";
 import { AdmissionSignalBadge } from "@/components/AdmissionSignalBadge";
 import { PlanComparisonMatrix } from "@/components/PlanComparisonMatrix";
 import {
@@ -1076,10 +1077,11 @@ export function RecommendationPageContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { authenticated } = useAuth();
+  const { authenticated, refresh: refreshAuth } = useAuth();
   const [lastResponse, setLastResponse] = useState<RecommendationResponse | null>(null);
   const [saveTitle, setSaveTitle] = useState("");
   const [savePhase, setSavePhase] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
   const [shortlistContext, setShortlistContext] = useState<ShortlistItem[]>([]);
 
   useEffect(() => {
@@ -1700,6 +1702,7 @@ export function RecommendationPageContent() {
   async function handleSavePlan() {
     if (!lastResponse) return;
     setSavePhase("saving");
+    setSaveErrorMsg(null);
     const effectiveTitle = saveTitle.trim() || autoTitle;
     try {
       const requestPayload = {
@@ -1723,8 +1726,18 @@ export function RecommendationPageContent() {
           result: lastResponse,
         }),
       });
-      setSavePhase(res.ok ? "saved" : "error");
+      if (res.ok) {
+        setSavePhase("saved");
+      } else if (res.status === 401) {
+        setSaveErrorMsg("Your session has expired. Please sign in again.");
+        setSavePhase("error");
+        void refreshAuth();
+      } else {
+        setSaveErrorMsg("Could not save. Please try again.");
+        setSavePhase("error");
+      }
     } catch {
+      setSaveErrorMsg("Could not connect. Please check your connection.");
       setSavePhase("error");
     }
   }
@@ -2287,11 +2300,11 @@ export function RecommendationPageContent() {
                       disabled={savePhase === "saving"}
                       className="rounded-full bg-[#1a3d2e] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42] disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {savePhase === "saving" ? "Saving…" : "Save plan"}
+                      {savePhase === "saving" ? AUTH_MESSAGES.saving : "Save plan"}
                     </button>
-                    {savePhase === "error" && (
+                    {savePhase === "error" && saveErrorMsg && (
                       <p className="w-full text-xs text-red-600">
-                        Could not save. Please try again.
+                        {saveErrorMsg}
                       </p>
                     )}
                   </div>

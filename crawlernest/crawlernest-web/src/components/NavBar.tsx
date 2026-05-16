@@ -46,9 +46,9 @@ export default function NavBar() {
     <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
 
-        {/* Left: Branding */}
+        {/* Left: Branding + nav links */}
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2">
             <div className="h-6 w-6 bg-slate-900 flex items-center justify-center rounded-sm">
               <span className="text-[10px] font-bold text-white">CN</span>
             </div>
@@ -57,7 +57,6 @@ export default function NavBar() {
             </span>
           </Link>
 
-          {/* Navigation links */}
           <div className="hidden items-center gap-1 md:flex">
             {NAV_LINKS.map((link) => {
               const isActive = pathname === link.href;
@@ -79,7 +78,7 @@ export default function NavBar() {
         </div>
 
         {/* Right: Auth actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <a
             href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform"
             target="_blank"
@@ -90,21 +89,24 @@ export default function NavBar() {
             <GitHubIcon />
           </a>
 
-          {!loading && authenticated && currentUser ? (
-            /* ── Authenticated state ── */
+          {/* Suppress auth area entirely during initial load to avoid flicker */}
+          {loading ? (
+            <div className="hidden h-8 w-20 animate-pulse rounded-lg bg-slate-100 sm:block" aria-hidden="true" />
+          ) : authenticated && currentUser ? (
+            /* Authenticated state */
             <>
-              <span className="hidden max-w-[160px] truncate text-xs text-slate-600 sm:block">
+              <span className="hidden max-w-[140px] truncate text-xs text-slate-600 sm:block">
                 {currentUser.email}
               </span>
               <button
                 onClick={handleSignOut}
-                className="hidden text-xs font-semibold px-4 py-2 rounded border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white transition-colors sm:block"
+                className="text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white transition-colors sm:px-4 sm:py-2"
               >
                 Sign out
               </button>
             </>
           ) : (
-            /* ── Unauthenticated (or loading) state ── */
+            /* Unauthenticated state */
             <>
               <Link
                 href="/signup"
@@ -114,7 +116,7 @@ export default function NavBar() {
               </Link>
               <Link
                 href="/signin"
-                className="hidden text-xs font-semibold px-4 py-2 rounded border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white transition-colors sm:block"
+                className="text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white transition-colors sm:px-4 sm:py-2"
               >
                 Sign in
               </Link>

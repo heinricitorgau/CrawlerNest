@@ -2,18 +2,12 @@
 
 This directory is the one official Next.js frontend for the CrawlerNest Website MVP.
 
-## App root
-
-Run frontend commands from:
-
-```bash
-/Users/test/Desktop/crawlernest/crawlernest-web
-```
-
 ## Development
 
+From the repo root:
+
 ```bash
-cd /Users/test/Desktop/crawlernest/crawlernest-web
+cd crawlernest/crawlernest-web
 npm install
 npm run dev
 ```

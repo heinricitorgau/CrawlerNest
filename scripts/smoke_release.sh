@@ -9,6 +9,11 @@ JAVA_DIR="${ROOT_DIR}/crawlernest/servise_for_java"
 WEB_DIR="${ROOT_DIR}/crawlernest/crawlernest-web"
 CRAWLERNEST_DIR="${ROOT_DIR}/crawlernest"
 API_BASE="${API_BASE:-http://localhost:8080}"
+PYTHON_BIN="${ROOT_DIR}/.venv/bin/python"
+if [[ ! -x "${PYTHON_BIN}" ]]; then
+  PYTHON_BIN="python3"
+fi
+export CRAWLERNEST_PG_PASSWORD="${CRAWLERNEST_PG_PASSWORD:-test}"
 
 # Auto-activate nvm if current Node is too old and nvm is available.
 _node_major_now() { node --version 2>/dev/null | cut -d. -f1 | tr -d 'v'; }
@@ -89,14 +94,14 @@ fi
 # 4. Python syntax check
 # ---------------------------------------------------------------------------
 echo "[4/8] Python syntax check..."
-if ! command -v python3 >/dev/null 2>&1; then
+if ! command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
   fail "python3 not found"
 else
   py_errors=0
 
   check_py() {
     local f="$1"
-    if ! python3 -m py_compile "${f}" 2>/dev/null; then
+    if ! "${PYTHON_BIN}" -m py_compile "${f}" 2>/dev/null; then
       fail "Python syntax error: ${f}"
       (( py_errors++ )) || true
     fi
@@ -124,7 +129,7 @@ echo "[5/8] Pipeline health diagnostics (readonly)..."
 if [[ ! -f "${ROOT_DIR}/scripts/check_pipeline_health.py" ]]; then
   fail "check_pipeline_health.py not found"
 else
-  health_out="$(python3 "${ROOT_DIR}/scripts/check_pipeline_health.py" 2>&1)" && rc=0 || rc=$?
+  health_out="$("${PYTHON_BIN}" "${ROOT_DIR}/scripts/check_pipeline_health.py" 2>&1)" && rc=0 || rc=$?
   echo "${health_out}"
   if [[ ${rc} -eq 0 ]]; then
     ok "Pipeline health diagnostics completed"
@@ -138,7 +143,7 @@ fi
 # ---------------------------------------------------------------------------
 echo "[6/8] Snapshot comparison validation (readonly fixtures)..."
 FIXTURE_DIR="${ROOT_DIR}/crawlernest/crawlernest-autoeval/datasets/ci_fixtures"
-compare_out="$(python3 "${ROOT_DIR}/scripts/compare_snapshots.py" \
+compare_out="$("${PYTHON_BIN}" "${ROOT_DIR}/scripts/compare_snapshots.py" \
   "${FIXTURE_DIR}/snapshot_fixture.json" \
   "${FIXTURE_DIR}/missing_source_state.json" \
   --json 2>&1)" && rc=0 || rc=$?
@@ -171,15 +176,15 @@ run_fixture_check() {
 }
 
 run_fixture_check "ranking regression empty aggregation fixture" "0 1" \
-  python3 "${ROOT_DIR}/crawlernest/crawlernest-autoeval/runners/run_ranking_regression.py" \
+  "${PYTHON_BIN}" "${ROOT_DIR}/crawlernest/crawlernest-autoeval/runners/run_ranking_regression.py" \
     --fixture-file "${FIXTURE_DIR}/empty_aggregation_state.json" --json
 
 run_fixture_check "source drift missing source fixture" "0" \
-  python3 "${ROOT_DIR}/crawlernest/crawlernest-autoeval/runners/run_source_drift.py" \
+  "${PYTHON_BIN}" "${ROOT_DIR}/crawlernest/crawlernest-autoeval/runners/run_source_drift.py" \
     --fixture-file "${FIXTURE_DIR}/missing_source_state.json" --json
 
 run_fixture_check "failure summary stale fixture" "0" \
-  python3 "${ROOT_DIR}/scripts/build_failure_summary.py" \
+  "${PYTHON_BIN}" "${ROOT_DIR}/scripts/build_failure_summary.py" \
     --snapshot-file "${FIXTURE_DIR}/stale_state.json" \
     --output "/tmp/crawlernest_smoke_failure_summary.md"
 

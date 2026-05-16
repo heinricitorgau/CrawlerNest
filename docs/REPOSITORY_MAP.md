@@ -60,6 +60,18 @@ Key paths:
 - `src/app/system-status/`: operational status UI.
 - `src/app/api/`: Next.js proxy routes to the Spring Boot API.
 
+**Auth and user-owned UI and proxy routes:**
+
+- `src/app/signup/`, `src/app/signin/`: signup and signin forms.
+- `src/app/saved-universities/page.tsx`: auth-aware saved universities list.
+- `src/app/saved-recommendations/page.tsx`: auth-aware saved recommendation plans list.
+- `src/app/api/auth/`: proxy routes for signup, signin, signout, and me.
+- `src/app/api/user/saved-universities/`: GET list proxy; `[canonicalUniversityId]/` — POST + DELETE proxy.
+- `src/app/api/user/saved-recommendations/`: GET list + POST proxy; `[id]/` — GET detail + DELETE proxy.
+- `src/lib/authProxy.ts`: `proxyGet`, `proxyPost`, `proxyDelete` helpers; forwards `Cookie` header inbound and `Set-Cookie` header outbound.
+- `src/hooks/useAuthPlaceholder.ts`: `useAuth()` hook — fetches `/api/auth/me`; provides `{ authenticated, currentUser, loading, refresh }`.
+- `src/hooks/useSavedUniversities.ts`: optimistic save/unsave toggle hook for the rankings page.
+
 ### `crawlernest/servise_for_java/`
 
 Spring Boot API service. The directory name is historical. It is the main product API read layer.
@@ -71,7 +83,20 @@ Key paths:
 - `src/main/java/clawer/repository/`: JDBC/JPA read adapters.
 - `src/test/java/clawer/`: API, service, and integration tests.
 - `src/test/resources/sql/`: integration-test database fixtures.
-- `src/main/resources/application.properties`: local datasource configuration.
+- `src/main/resources/application.properties`: local datasource and session configuration.
+
+**Auth and user-owned data paths:**
+
+- `src/main/java/clawer/auth/`: auth controller, service, DTOs, and schema initializer.
+  - `AuthController.java` — `/api/v1/auth/signup`, `/signin`, `/signout`, `/me`.
+  - `AuthService.java` — BCrypt account creation; signin with session-fixation prevention.
+  - `config/AuthSchemaInitializer.java` — idempotent `CREATE TABLE IF NOT EXISTS` for `app_user`, `saved_university`, `saved_recommendation` on `ApplicationReadyEvent`.
+  - `dto/` — `SignupRequest`, `SigninRequest`, `AuthUserResponse`.
+- `src/main/java/clawer/user/`: user-owned data controller, services, and DTOs.
+  - `controller/UserController.java` — all `/api/v1/user/` endpoints. `resolveUserId()` gates every method.
+  - `service/SavedUniversityService.java` — save (idempotent), delete, list by `user_id`.
+  - `service/SavedRecommendationService.java` — save, list summaries (JSONB extraction), get detail, delete — all scoped by `user_id`.
+  - `dto/` — `SaveRecommendationRequest`, `SavedRecommendationSummary`, `SavedRecommendationDetail`, `SavedUniversityResponse`.
 
 ### `crawlernest/crawlernest-autoeval/`
 
@@ -147,7 +172,10 @@ Historical code retained for reference. Prefer current paths under `crawlernest/
 | --- | --- |
 | Ingest data | `crawlernest/run_pipeline.py` |
 | API behavior | `crawlernest/servise_for_java/src/main/java/clawer/api/` |
+| Auth behavior | `crawlernest/servise_for_java/src/main/java/clawer/auth/` |
+| User-owned data | `crawlernest/servise_for_java/src/main/java/clawer/user/` |
 | Web behavior | `crawlernest/crawlernest-web/src/app/` |
+| Auth UI / hooks | `crawlernest/crawlernest-web/src/hooks/` and `src/app/signup/`, `src/app/signin/` |
 | Ranking formula | `crawlernest/crawlernest-core/ranking_aggregation/` |
 | Schema/view details | `crawlernest/crawlernest-schema/` |
 | Diagnostics | `scripts/` and `crawlernest/crawlernest-autoeval/` |

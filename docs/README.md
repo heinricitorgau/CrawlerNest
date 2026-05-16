@@ -35,6 +35,15 @@ layout, data movement, operations, and endpoint coverage.
 | [DEMO_CHECKLIST.md](DEMO_CHECKLIST.md) | Pre-demo and handover checklist. |
 | [LOCAL_TROUBLESHOOTING.md](LOCAL_TROUBLESHOOTING.md) | Local environment issues and fixes. |
 | [AI_DEV_WORKFLOW.md](AI_DEV_WORKFLOW.md) | AI-assisted development workflow and crawlernest-agents integration notes. |
+| [AUTH_LIMITATIONS.md](AUTH_LIMITATIONS.md) | Auth model, non-goals, localhost assumptions, scaling risks, and future requirements. |
+| [USER_DATA_SAFETY_REVIEW.md](USER_DATA_SAFETY_REVIEW.md) | User data safety review: isolation guarantees, validation hardening, session model, operational limits. |
+| [UX_STABILIZATION_NOTES.md](UX_STABILIZATION_NOTES.md) | UX stabilization pass: loading/error/session-expired states, save button consistency, shared auth messages, known limits. |
+| [RC1_ENVIRONMENT_FREEZE.md](RC1_ENVIRONMENT_FREEZE.md) | RC-1 environment bounds, verified runtime versions, localhost assumptions, and setup notes. |
+| [RC1_DEPENDENCY_REVIEW.md](RC1_DEPENDENCY_REVIEW.md) | RC-1 dependency inventory, pinning concerns, and drift risks. |
+| [RC1_RELEASE_HYGIENE.md](RC1_RELEASE_HYGIENE.md) | RC-1 artifact, ignore, snapshot, backup, and temporary-output policy. |
+| [RC1_STABILITY_REVIEW.md](RC1_STABILITY_REVIEW.md) | RC-1 long-run stability review and restart / persistence bounds. |
+| [RC1_FREEZE_SCOPE.md](RC1_FREEZE_SCOPE.md) | RC-1 frozen surfaces, allowed changes, and blocked expansion areas. |
+| [RC1_VALIDATION_RESULTS.md](RC1_VALIDATION_RESULTS.md) | RC-1 operational validation summary and accepted limitations. |
 
 ## Subfolders
 

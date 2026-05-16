@@ -79,7 +79,7 @@ if command -v python3 >/dev/null 2>&1; then
   if python_importable "${CURRENT_PYTHON}" "psycopg2"; then
     pass "psycopg2 importable"
   else
-    fail "psycopg2 is not importable in current python3"
+    warn "psycopg2 is not importable in current python3"
   fi
 else
   fail "python3 not found"

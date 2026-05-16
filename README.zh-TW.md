@@ -86,9 +86,11 @@ spring.datasource.password=test
 
 ### 6. 安裝前端相依套件
 
-需要 Node.js **>=20.9**。確認版本：
+需要 Node.js **>=20.9**。Repo 已包含 `.nvmrc`，使用 nvm 時先切到 frozen
+major version：
 
 ```bash
+nvm use
 node --version
 ```
 
@@ -96,7 +98,7 @@ node --version
 
 ```bash
 cd crawlernest/crawlernest-web
-npm install
+npm ci
 cd ../..
 ```
 
@@ -116,6 +118,8 @@ cd ../..
 cd crawlernest/servise_for_java
 ./mvnw -Dmaven.test.skip=true spring-boot:run
 ```
+
+若同時安裝多個 JDK，啟動 backend 前請確認 `JAVA_HOME` 指向 Java 17 JDK。
 
 ```bash
 cd crawlernest/crawlernest-web
@@ -336,6 +340,40 @@ reproducibility、observability 與保守 recovery，而不是 autonomous automa
 它不是 runtime dependency、CI requirement、submodule、symlink 或 production
 truth source。
 
+## 目前的 Identity Layer
+
+CrawlerNest 包含一個輕量的 session-based identity layer，供本機開發與 demo 使用。
+
+**包含功能：**
+
+- 帳號註冊與登入，密碼使用 BCrypt 雜湊。
+- HttpOnly session cookie（`JSESSIONID`，SameSite=Lax，30 分鐘 timeout）。
+- 已儲存大學 — 從排名頁加入書籤，於 `/saved-universities` 查看。
+- 已儲存推薦計畫快照 — 將完整推薦結果儲存為命名計畫，於 `/saved-recommendations` 查看。
+- 每位使用者資料隔離：所有 user data 查詢都只使用來自 session 的 `user_id`。
+
+**Auth 頁面：**
+
+```text
+Sign up:              http://localhost:3000/signup
+Sign in:              http://localhost:3000/signin
+Saved universities:   http://localhost:3000/saved-universities
+Saved plans:          http://localhost:3000/saved-recommendations
+```
+
+**目前範圍不包含：**
+
+- 無 RBAC 或 admin 工具。
+- 無 OAuth 或第三方 identity provider。
+- 無 JWT 或 token-based auth。
+- 無前端路由保護（頁面可直接存取；資料請求在 API 層把關）。
+- 無分散式 session 基礎設施 — 後端重啟會登出所有使用者。
+- 無速率限制、帳號鎖定或 email 驗證。
+
+**Localhost 假設：** Session cookie 不設 `Secure` flag，這是針對本機 HTTP 的刻意設計。在任何公開部署前必須開啟此設定。
+
+詳見 [docs/AUTH_LIMITATIONS.md](docs/AUTH_LIMITATIONS.md)。
+
 ## 選用 Agents 工作流程
 
 CrawlerNest 可以搭配同層的 `crawlernest-agents` repository 做 readonly
@@ -395,6 +433,12 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 - [Python Environment](docs/PYTHON_ENVIRONMENT.md) - venv、psycopg2 與 local runtime consistency
 - [Backup Restore Drill](docs/BACKUP_RESTORE_DRILL.md) - readonly-safe backup 與 restore rehearsal
 - [Snapshot Comparison](docs/SNAPSHOT_COMPARISON.md) - compare operational snapshots 與 failure-state fixtures
+- [RC-1 Environment Freeze](docs/RC1_ENVIRONMENT_FREEZE.md) - 已驗證 runtime 邊界與 setup 假設
+- [RC-1 Dependency Review](docs/RC1_DEPENDENCY_REVIEW.md) - dependency 風險與 pinning review
+- [RC-1 Release Hygiene](docs/RC1_RELEASE_HYGIENE.md) - generated artifacts 與 temporary outputs policy
+- [RC-1 Stability Review](docs/RC1_STABILITY_REVIEW.md) - 長時間操作、持久化與 restart review
+- [RC-1 Freeze Scope](docs/RC1_FREEZE_SCOPE.md) - frozen、allowed、blocked change surfaces
+- [RC-1 Validation Results](docs/RC1_VALIDATION_RESULTS.md) - release-candidate validation summary
 - [Demo Checklist](docs/DEMO_CHECKLIST.md) — demo 或交接前的逐步確認清單
 - [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — 本機開發環境已知問題與解法
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
 import { useSavedUniversities } from "@/hooks/useSavedUniversities";
 import type { SavedUniversityItem } from "@/hooks/useSavedUniversities";
+import { AUTH_MESSAGES } from "@/lib/authMessages";
 
 function LoadingShell() {
   return (
@@ -19,7 +20,7 @@ function LoadingShell() {
   );
 }
 
-function SignInPrompt() {
+function SignInPrompt({ message }: { message?: string }) {
   return (
     <main className="min-h-screen bg-[#f5f3ee] flex items-center justify-center px-4">
       <div className="w-full max-w-md rounded-2xl border border-[#e0ddd8] bg-white px-8 py-10 shadow-sm text-center">
@@ -33,7 +34,7 @@ function SignInPrompt() {
         </div>
         <h1 className="text-xl font-bold text-[#1a3d2e]">Sign in to view saved universities</h1>
         <p className="mt-2 text-sm text-[#6b7068]">
-          Your saved universities are tied to your account. Sign in to access them.
+          {message ?? "Your saved universities are tied to your account. Sign in to access them."}
         </p>
         <Link
           href="/signin"
@@ -58,7 +59,7 @@ function SavedList({ items, onRemove }: { items: SavedUniversityItem[]; onRemove
       <div className="rounded-2xl border border-[#e0ddd8] bg-white p-8 text-center shadow-sm">
         <p className="text-[#6b7068]">No saved universities yet.</p>
         <p className="mt-1 text-sm text-[#6b7068]">
-          Use the <span className="font-medium text-[#1a3d2e]">+ Save</span> button on any ranking row.
+          Use the <span className="font-medium text-[#1a3d2e]">{AUTH_MESSAGES.save}</span> button on any ranking row.
         </p>
         <Link
           href="/"
@@ -109,15 +110,24 @@ function SavedList({ items, onRemove }: { items: SavedUniversityItem[]; onRemove
 }
 
 export default function SavedUniversitiesPage() {
-  const { authenticated, loading: authLoading } = useAuth();
-  const { savedItems, loading, toggleSave } = useSavedUniversities(authenticated && !authLoading);
+  const { authenticated, loading: authLoading, refresh: refreshAuth } = useAuth();
+  const { savedItems, loading, toggleSave, sessionExpired } =
+    useSavedUniversities(authenticated && !authLoading, () => void refreshAuth());
 
   if (authLoading) {
     return <LoadingShell />;
   }
 
-  if (!authenticated) {
-    return <SignInPrompt />;
+  if (!authenticated || sessionExpired) {
+    return (
+      <SignInPrompt
+        message={
+          sessionExpired
+            ? AUTH_MESSAGES.sessionExpired
+            : undefined
+        }
+      />
+    );
   }
 
   return (
