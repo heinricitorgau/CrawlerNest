@@ -86,9 +86,11 @@ spring.datasource.password=test
 
 ### 6. Install frontend dependencies
 
-Node.js **>=20.9** is required. Check your version:
+Node.js **>=20.9** is required. The repo includes `.nvmrc`, so nvm users can
+select the frozen major version first:
 
 ```bash
+nvm use
 node --version
 ```
 
@@ -96,7 +98,7 @@ Install Node.js dependencies (run once, or after pulling changes):
 
 ```bash
 cd crawlernest/crawlernest-web
-npm install
+npm ci
 cd ../..
 ```
 
@@ -116,6 +118,9 @@ You can also run services manually:
 cd crawlernest/servise_for_java
 ./mvnw -Dmaven.test.skip=true spring-boot:run
 ```
+
+If multiple JDKs are installed, make sure `JAVA_HOME` points to a Java 17 JDK
+before starting the backend.
 
 ```bash
 cd crawlernest/crawlernest-web
@@ -337,6 +342,40 @@ The sibling `crawlernest-agents` repository remains a readonly development
 companion. It is not a runtime dependency, CI requirement, submodule, symlink, or
 production truth source.
 
+## Current Identity Layer
+
+CrawlerNest includes a minimal session-based identity layer for local development and demo use.
+
+**What is included:**
+
+- Account registration and sign-in with BCrypt password hashing.
+- HttpOnly session cookies (`JSESSIONID`, SameSite=Lax, 30-minute timeout).
+- Saved universities — bookmark rankings entries per account; view at `/saved-universities`.
+- Saved recommendation snapshots — save a full recommendation result as a named plan; view at `/saved-recommendations`.
+- Per-user data isolation: all user-data queries are scoped to the authenticated user.
+
+**Auth pages:**
+
+```text
+Sign up:              http://localhost:3000/signup
+Sign in:              http://localhost:3000/signin
+Saved universities:   http://localhost:3000/saved-universities
+Saved plans:          http://localhost:3000/saved-recommendations
+```
+
+**What is not included (current scope):**
+
+- No RBAC or admin tooling.
+- No OAuth or third-party identity providers.
+- No JWT or token-based auth.
+- No frontend route protection (pages are accessible; data requests are gated at the API layer).
+- No distributed session infrastructure — backend restart signs out all users.
+- No rate limiting, account lockout, or email verification.
+
+**Localhost assumption:** Session cookies do not use the `Secure` flag. This is intentional for local HTTP development. The flag must be set before any internet-accessible deployment.
+
+See [docs/AUTH_LIMITATIONS.md](docs/AUTH_LIMITATIONS.md) for the full limitations and scaling risks.
+
 ## Optional Agents Workflows
 
 CrawlerNest can work with a sibling `crawlernest-agents` repository for readonly
@@ -398,6 +437,12 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 - [Python Environment](docs/PYTHON_ENVIRONMENT.md) - venv, psycopg2, and local runtime consistency
 - [Backup Restore Drill](docs/BACKUP_RESTORE_DRILL.md) - readonly-safe backup and restore rehearsal
 - [Snapshot Comparison](docs/SNAPSHOT_COMPARISON.md) - compare operational snapshots and failure-state fixtures
+- [RC-1 Environment Freeze](docs/RC1_ENVIRONMENT_FREEZE.md) - verified runtime bounds and setup assumptions
+- [RC-1 Dependency Review](docs/RC1_DEPENDENCY_REVIEW.md) - dependency risk and pinning review
+- [RC-1 Release Hygiene](docs/RC1_RELEASE_HYGIENE.md) - generated artifact and temporary-output policy
+- [RC-1 Stability Review](docs/RC1_STABILITY_REVIEW.md) - long-run persistence and restart review
+- [RC-1 Freeze Scope](docs/RC1_FREEZE_SCOPE.md) - frozen, allowed, and blocked change surfaces
+- [RC-1 Validation Results](docs/RC1_VALIDATION_RESULTS.md) - release-candidate validation summary
 - [Demo Checklist](docs/DEMO_CHECKLIST.md) — step-by-step checklist before any demo or handover
 - [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — known issues and fixes for the local development environment
 

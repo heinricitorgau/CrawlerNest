@@ -64,6 +64,211 @@ This document lists the current Spring Boot API surface used by the product UI, 
 | --- | --- | --- | --- |
 | `GET` | `/admissions` | Legacy admission requirement query. | Admission requirement records. |
 
+## Auth API
+
+Auth endpoints live at `/api/v1/auth/` in Spring Boot. The Next.js proxy forwards them under `/api/auth/`. The session cookie (`JSESSIONID`) is set by Spring Boot and forwarded transparently through the Next.js proxy layer; the browser treats it as a first-party cookie for `localhost:3000`.
+
+### Summary
+
+| Method | Path | Auth required | Purpose |
+|---|---|---|---|
+| `POST` | `/api/v1/auth/signup` | No | Register a new account |
+| `POST` | `/api/v1/auth/signin` | No | Sign in and start a session |
+| `POST` | `/api/v1/auth/signout` | Optional | End the current session |
+| `GET` | `/api/v1/auth/me` | Session | Get the currently authenticated user |
+
+### `POST /api/v1/auth/signup`
+
+**Auth required:** No.
+
+**Request:** `{ "email": "string", "password": "string" }`
+
+Email is lowercased and trimmed. Password must be ≥ 8 characters.
+
+**Response (201 Created):** `{ "success": true, "data": { "id": number, "email": "string" } }`
+
+**Error cases:**
+- 400 — email or password missing, or password under 8 characters.
+- 409 — email already registered.
+
+**Limitations:** No email verification. No password-strength enforcement beyond minimum length. No rate limiting.
+
+**Session:** Does not start a session. The user must call `signin` to obtain a cookie.
+
+---
+
+### `POST /api/v1/auth/signin`
+
+**Auth required:** No.
+
+**Request:** `{ "email": "string", "password": "string" }`
+
+**Response (200 OK):** `{ "success": true, "data": { "id": number, "email": "string" } }`. Sets `JSESSIONID` HttpOnly cookie in `Set-Cookie` header.
+
+**Session behavior:** Any existing session is invalidated before a new one is created (session-fixation prevention). The new session stores `user_id` (Long) and expires after 30 minutes of inactivity.
+
+**Error cases:**
+- 401 — credentials invalid. Response is uniform regardless of whether the email exists (prevents account enumeration).
+
+**Limitations:** No rate limiting, no failed-attempt lockout, no multi-factor authentication.
+
+---
+
+### `POST /api/v1/auth/signout`
+
+**Auth required:** Optional (safe to call without a session).
+
+**Request:** Empty body.
+
+**Response (200 OK):** `{ "success": true }`. Sends `Set-Cookie` header to clear `JSESSIONID`.
+
+**Session behavior:** Invalidates the current session if one exists.
+
+---
+
+### `GET /api/v1/auth/me`
+
+**Auth required:** Session.
+
+**Request:** No body. The `JSESSIONID` cookie is forwarded automatically by the Next.js proxy.
+
+**Response (200 OK):** `{ "success": true, "data": { "id": number, "email": "string" } }`
+
+**Error cases:**
+- 401 — no valid session.
+
+**Limitations:** Returns only `id` and `email`. Password hash is never included in any auth response.
+
+---
+
+## User-Owned APIs
+
+User-owned endpoints live at `/api/v1/user/` in Spring Boot. The Next.js proxy forwards them under `/api/user/`. All endpoints require an active session (`JSESSIONID` cookie). Unauthenticated requests receive 401. All data queries are scoped to the authenticated user; `user_id` is derived only from the session, never from client-supplied parameters.
+
+### Saved Universities
+
+| Method | Path | Auth required | Purpose |
+|---|---|---|---|
+| `GET` | `/api/v1/user/saved-universities` | Session | List saved universities |
+| `POST` | `/api/v1/user/saved-universities/{canonicalUniversityId}` | Session | Save a university |
+| `DELETE` | `/api/v1/user/saved-universities/{canonicalUniversityId}` | Session | Remove a saved university |
+
+#### `GET /api/v1/user/saved-universities`
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "canonicalUniversityId": number,
+      "universityName": "string",
+      "slug": "string",
+      "country": "string",
+      "savedAt": "ISO-8601 timestamp"
+    }
+  ]
+}
+```
+Ordered by `saved_at DESC`. Returns only records owned by the session user.
+
+#### `POST /api/v1/user/saved-universities/{canonicalUniversityId}`
+
+**Path parameter:** `canonicalUniversityId` — numeric ID of the canonical university.
+
+**Request:** Empty body.
+
+**Response (201 Created):** `{ "success": true, "data": { "saved": true } }`
+
+**Behavior:** Idempotent. Duplicate saves are silently ignored (`INSERT ... ON CONFLICT DO NOTHING`).
+
+#### `DELETE /api/v1/user/saved-universities/{canonicalUniversityId}`
+
+**Request:** Empty body.
+
+**Response (200 OK):** `{ "success": true, "data": { "deleted": true } }`
+
+**Behavior:** No-op if the record does not exist or belongs to another user. No error is returned.
+
+---
+
+### Saved Recommendations
+
+| Method | Path | Auth required | Purpose |
+|---|---|---|---|
+| `GET` | `/api/v1/user/saved-recommendations` | Session | List recommendation plan summaries |
+| `POST` | `/api/v1/user/saved-recommendations` | Session | Save a recommendation snapshot |
+| `GET` | `/api/v1/user/saved-recommendations/{id}` | Session | Get full plan detail |
+| `DELETE` | `/api/v1/user/saved-recommendations/{id}` | Session | Delete a saved plan |
+
+#### `GET /api/v1/user/saved-recommendations`
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": number,
+      "title": "string",
+      "createdAt": "ISO-8601 timestamp",
+      "requestSummary": "string or null",
+      "topRecommendationName": "string or null"
+    }
+  ]
+}
+```
+`requestSummary` is derived from JSONB fields (country, IELTS, target rank, risk profile). `topRecommendationName` is the first university from the reach or target bucket. Ordered by `created_at DESC`.
+
+#### `POST /api/v1/user/saved-recommendations`
+
+**Request:**
+```json
+{
+  "title": "string",
+  "request": { /* recommendation request params */ },
+  "result":  { /* full recommendation response */ }
+}
+```
+
+**Validation:**
+- `title` must be non-blank and ≤ 200 characters; 400 otherwise.
+- `request` and `result` must be present (non-null); 400 otherwise.
+
+**Response (201 Created):** `{ "success": true, "data": { "id": number } }`
+
+**Limitations:** No deduplication. A user can save the same plan multiple times. No per-user quota. `result` is stored as JSONB; no size cap is enforced at the API layer.
+
+#### `GET /api/v1/user/saved-recommendations/{id}`
+
+**Path parameter:** `id` — numeric plan ID.
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": number,
+    "title": "string",
+    "createdAt": "ISO-8601 timestamp",
+    "requestJson": { /* stored request object */ },
+    "resultJson":  { /* stored result object */ }
+  }
+}
+```
+
+**Isolation:** Returns 404 if the record does not exist or belongs to another user (not 403, to prevent confirming record existence).
+
+#### `DELETE /api/v1/user/saved-recommendations/{id}`
+
+**Request:** Empty body.
+
+**Response (200 OK):** `{ "success": true, "data": { "deleted": true } }`
+
+**Isolation:** Returns 404 if not found or not owned by the session user.
+
+---
+
 ## Frontend Proxy Notes
 
 Next.js proxy routes live under:

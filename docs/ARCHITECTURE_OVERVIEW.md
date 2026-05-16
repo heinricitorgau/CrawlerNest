@@ -207,6 +207,64 @@ CI is intentionally split:
 - Release smoke confirms the platform can compile/build and that Python entry points are syntactically valid.
 - Data quality CI runs fixture-mode checks without requiring a live database.
 
+## Minimal Identity Layer
+
+CrawlerNest includes a minimal in-process session-based identity and user-owned persistence layer. It is deliberately thin and scoped for local development use.
+
+```mermaid
+flowchart TB
+    browser["Browser"]
+    nextjs["Next.js proxy<br/>crawlernest-web"]
+    spring["Spring Boot<br/>AuthController + UserController"]
+    session["JVM in-memory<br/>HttpSession"]
+    pg[("PostgreSQL<br/>warehouse.app_user<br/>warehouse.saved_university<br/>warehouse.saved_recommendation")]
+
+    browser -- "HttpOnly JSESSIONID cookie" --> nextjs
+    nextjs -- "Cookie header forwarded" --> spring
+    spring -- "resolveUserId(session)" --> session
+    spring -- "WHERE user_id = ? (from session)" --> pg
+```
+
+### Session Model
+
+- **Engine:** Servlet container `HttpSession`. No Redis, no JWT, no distributed session infrastructure.
+- **Cookie:** `JSESSIONID` set as `HttpOnly=true`, `SameSite=Lax`. The `Secure` flag is absent — localhost HTTP assumption only.
+- **Timeout:** 30 minutes of inactivity (sliding).
+- **Restart behavior:** Backend restart terminates all active sessions; users must re-authenticate.
+- **Session content:** Only `user_id` (Long). Email and other fields are not kept in session state.
+
+### User-Owned Persistence
+
+| Table | Schema | Purpose |
+|---|---|---|
+| `app_user` | `warehouse` | Accounts: `id`, `email`, `password_hash` (BCrypt), `created_at` |
+| `saved_university` | `warehouse` | Per-user saved ranking entries with `canonical_university_id` FK |
+| `saved_recommendation` | `warehouse` | Per-user recommendation snapshots: `title`, `request_json` (JSONB), `result_json` (JSONB) |
+
+Tables are created idempotently on `ApplicationReadyEvent` via `AuthSchemaInitializer` (`CREATE TABLE IF NOT EXISTS`).
+
+### Current Auth Boundaries
+
+This layer **provides:**
+- Account registration with BCrypt password hashing.
+- HttpOnly session cookies with session-fixation prevention.
+- Session-gated access to all user-owned API endpoints.
+- User-isolation enforcement: all data queries include `WHERE user_id = ?` from the session only.
+- 404 (not 403) for cross-user record access, to avoid confirming record existence.
+
+This layer **does not provide** (explicit non-goals for the current scope):
+- No RBAC or role management.
+- No OAuth or third-party identity providers.
+- No JWT or token-based authentication.
+- No frontend route protection (pages render; data requests are gated at the API layer).
+- No distributed session infrastructure.
+- No rate limiting, account lockout, or multi-factor authentication.
+- No admin tooling or user management surface.
+
+See [AUTH_LIMITATIONS.md](AUTH_LIMITATIONS.md) for the full non-goals list and scaling risks.
+
+---
+
 ## Related Documents
 
 - [Repository Map](REPOSITORY_MAP.md)

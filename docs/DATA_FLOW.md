@@ -202,6 +202,109 @@ flowchart TB
 
 Snapshots are useful for handoff, CI summaries, and incident analysis when live services are not available.
 
+## Identity and User Data Flows
+
+### Signin Flow
+
+```mermaid
+flowchart TB
+    browser["Browser<br/>POST /api/auth/signin"]
+    proxy["Next.js proxy<br/>/app/api/auth/signin/route.ts"]
+    spring["Spring Boot<br/>AuthController.signin()"]
+    authservice["AuthService.signin()"]
+    pg[("warehouse.app_user")]
+    session["JVM HttpSession"]
+
+    browser --> proxy
+    proxy -- "forwards Cookie header" --> spring
+    spring --> authservice
+    authservice -- "SELECT by email + BCrypt verify" --> pg
+    authservice -- "invalidate old session → create new → set user_id" --> session
+    spring -- "Set-Cookie JSESSIONID (HttpOnly)" --> proxy
+    proxy -- "Set-Cookie forwarded to browser" --> browser
+```
+
+1. Browser `POST`s `{ email, password }` to the Next.js proxy (`/api/auth/signin`).
+2. Proxy forwards the request — including any existing `Cookie` header — to Spring Boot.
+3. `AuthService` queries `warehouse.app_user` by email and verifies the BCrypt hash.
+4. On success: the existing session is invalidated (session-fixation prevention), a new session is created, and `user_id` is stored in the session attribute.
+5. Spring Boot includes `Set-Cookie: JSESSIONID=...` in the response. The proxy forwards this header back to the browser unchanged.
+6. The browser stores the cookie and sends it automatically on subsequent requests to `localhost:3000`.
+
+### Session Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Unauthenticated
+    Unauthenticated --> Authenticated : POST /api/auth/signin (valid credentials)
+    Authenticated --> Unauthenticated : POST /api/auth/signout
+    Authenticated --> Unauthenticated : 30-minute inactivity timeout
+    Authenticated --> Unauthenticated : Spring Boot process restart
+```
+
+- Session state lives in JVM heap only. A backend restart terminates all active sessions silently.
+- The 30-minute timeout is sliding — any request resets the clock.
+- Signout invalidates the session and sends a `Set-Cookie` that clears `JSESSIONID`.
+
+### Save University Flow
+
+```mermaid
+flowchart TB
+    browser["Browser — /rankings"]
+    hook["useSavedUniversities hook<br/>optimistic update"]
+    proxy["Next.js proxy<br/>/api/user/saved-universities/[id]"]
+    spring["Spring Boot<br/>UserController.save()"]
+    service["SavedUniversityService.save()"]
+    pg[("warehouse.saved_university")]
+
+    browser -- "click Save button" --> hook
+    hook -- "optimistic UI update" --> browser
+    hook -- "POST /api/user/saved-universities/{id}" --> proxy
+    proxy -- "forwards JSESSIONID cookie" --> spring
+    spring -- "resolveUserId(session) → userId" --> spring
+    spring --> service
+    service -- "INSERT ON CONFLICT DO NOTHING" --> pg
+    pg --> service
+    service --> spring
+    spring -- "201 Created" --> proxy
+    proxy --> hook
+    hook -- "revert on error" --> browser
+```
+
+- Optimistic update is applied immediately. If the API call fails, the hook reverts the UI.
+- Duplicate saves are no-ops at the DB level.
+
+### Save Recommendation Flow
+
+```mermaid
+flowchart TB
+    browser["Browser — /recommendations"]
+    page["recommendations/page.tsx<br/>handleSavePlan()"]
+    proxy["Next.js proxy<br/>/api/user/saved-recommendations"]
+    spring["Spring Boot<br/>UserController.saveRecommendation()"]
+    service["SavedRecommendationService.save()"]
+    pg[("warehouse.saved_recommendation")]
+
+    browser -- "click Save This Plan" --> page
+    page -- "POST { title, request, result }" --> proxy
+    proxy -- "forwards JSESSIONID cookie" --> spring
+    spring -- "resolveUserId(session)" --> spring
+    spring -- "validate title ≤ 200 chars, request/result non-null" --> spring
+    spring --> service
+    service -- "serialize to JSON strings → INSERT RETURNING id" --> pg
+    pg -- "new id" --> service
+    service --> spring
+    spring -- "201 Created { id }" --> proxy
+    proxy --> page
+    page -- "Saved ✓ + link to /saved-recommendations" --> browser
+```
+
+- `title` is validated (non-blank, ≤ 200 chars) at the controller before the service is called.
+- Both `request` (recommendation inputs) and `result` (full API response) are serialized and stored as JSONB.
+- The UI transitions to a "Saved ✓" state with a link to `/saved-recommendations` on success.
+
+---
+
 ## Related Documents
 
 - [Architecture Overview](ARCHITECTURE_OVERVIEW.md)

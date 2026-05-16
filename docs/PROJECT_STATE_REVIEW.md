@@ -154,6 +154,52 @@ Generated backup bundles such as metadata archives.
 Maturity: early operational support. Backup/restore verification is not yet a
 fully exercised production recovery workflow.
 
+## Identity Layer and User-Owned Persistence
+
+CrawlerNest includes a minimal in-process session-based identity layer and user-owned persistence features, added after the v0.1 milestone.
+
+### Identity Maturity
+
+| Aspect | Current State | Maturity |
+|---|---|---|
+| Account registration | Email + BCrypt (min 8 chars); no email verification | MVP |
+| Session management | In-memory `HttpSession`, 30-min timeout, HttpOnly cookie | MVP |
+| Session-fixation prevention | Existing session invalidated before new session created on signin | Implemented |
+| Password storage | BCrypt via `spring-security-crypto` (standalone, no filter chain) | Implemented |
+| Auth gating | `resolveUserId()` in `UserController`; 401 on missing or expired session | Implemented |
+| User isolation | All user-data queries include `WHERE user_id = ?` derived from session only | Implemented |
+| Cross-user access | Returns 404 (not 403) to avoid record-existence leaking | Implemented |
+
+**Explicit non-goals at current scope:** RBAC, OAuth, JWT, rate limiting, account deletion, multi-factor auth, email verification, frontend route protection.
+
+**Primary operational risk:** In-memory sessions mean a backend restart silently terminates all active sessions with no user-facing warning. Acceptable for local development and demo use; must be resolved before any multi-instance or production deployment.
+
+### User-Owned Persistence Maturity
+
+| Feature | Status | Notes |
+|---|---|---|
+| Saved universities | Implemented | Toggle from rankings page; `/saved-universities` page |
+| Saved recommendation snapshots | Implemented | Save from `/recommendations`; `/saved-recommendations` page |
+| Per-user quota | Not implemented | No limit on saves per user |
+| Account deletion / data export | Not implemented | Non-goal for current scope |
+| Retention policy | Not implemented | Records accumulate indefinitely |
+
+### Operational Limitations (Identity Layer)
+
+- **No `Secure` cookie flag:** Session cookies are transmitted in plaintext. Localhost HTTP assumption. Must be enabled before any internet-accessible deployment.
+- **No distributed session store:** Horizontal scaling is not possible without adding Redis or a JDBC session store.
+- **No rate limiting:** Auth endpoints and save endpoints accept unlimited requests.
+- **DB credential scope:** `username=test` / `password=test` are local dev credentials only.
+- **`JSESSIONID` forwarding:** The Next.js proxy forwards cookies to Spring Boot using a `Cookie` header copy. This works correctly for localhost but has no production hardening.
+
+### Scaling Concerns (Identity Layer)
+
+- JVM heap session storage is the bottleneck for concurrent user scaling.
+- `warehouse.saved_recommendation.result_json` (JSONB) stores full recommendation response payloads. No size cap beyond the 200-char title validation. DB storage growth should be monitored before extending beyond demo use.
+- The `warehouse` schema holds both ranking pipeline data and user data in the same PostgreSQL instance. At higher scale, these should be separated or schema-scoped differently.
+
+---
+
 ## Capability Matrix
 
 | Capability | Status | Maturity | Operational Risk | Owner Layer | Production Criticality |
@@ -165,6 +211,9 @@ fully exercised production recovery workflow.
 | Diagnostics | API, autoeval, scripts | Operational MVP | Medium | API + scripts | High |
 | Explainability | Stored evidence reads | MVP | Medium | API + frontend | Medium |
 | Recommendation | Aggregation candidate reads | MVP | Medium | Python core + API | Medium |
+| Session auth | In-memory HttpSession + BCrypt | MVP | Medium | Spring Boot + Next.js | Medium |
+| Saved universities | Per-user save/unsave toggle | MVP | Low | Spring Boot + Next.js | Low |
+| Saved recommendations | Per-user plan snapshots | MVP | Low | Spring Boot + Next.js | Low |
 | CI/CD | Smoke plus fixture checks | Operational MVP | Medium | GitHub Actions + scripts | High |
 | Operational automation | Pipeline, snapshots, cleanup | Operational MVP | Medium | Scripts + docs | High |
 | Readonly agent workflows | Optional sibling wrappers | Early support | Low | Scripts + sibling repo | Low |

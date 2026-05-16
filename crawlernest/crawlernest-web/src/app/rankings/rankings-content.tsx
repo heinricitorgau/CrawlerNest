@@ -18,6 +18,7 @@ import { formatRank, formatScore } from "@/lib/format";
 import { countryBelongsToRegion, normalizeCountryName } from "@/lib/regionMap";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
 import { useSavedUniversities } from "@/hooks/useSavedUniversities";
+import { AUTH_MESSAGES } from "@/lib/authMessages";
 
 type RankingItem = {
   canonicalUniversityId: number;
@@ -410,7 +411,7 @@ function RankingsTable({
                               : "border border-[#e0ddd8] bg-white text-[#6b7068] hover:border-[#3d7a5a] hover:bg-[#e8f2ec] hover:text-[#1a3d2e]"
                           }`}
                         >
-                          {isSaved ? "Saved ✓" : "+ Save"}
+                          {isSaved ? AUTH_MESSAGES.saved : AUTH_MESSAGES.save}
                         </button>
                       </div>
                     </td>
@@ -619,8 +620,11 @@ function RankingsHomeContent() {
   });
   const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
 
-  const { authenticated } = useAuth();
-  const { savedIds, toggleSave } = useSavedUniversities(authenticated);
+  const { authenticated, refresh: refreshAuth } = useAuth();
+  const { savedIds, toggleSave } = useSavedUniversities(
+    authenticated,
+    () => void refreshAuth()
+  );
 
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const REFRESH_INTERVAL_MS = 5000;

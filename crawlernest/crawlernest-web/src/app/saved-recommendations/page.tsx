@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
+import { AUTH_MESSAGES } from "@/lib/authMessages";
 
 type RecommendationSummary = {
   id: number;
@@ -20,6 +21,12 @@ type RecommendationDetail = {
   resultJson: Record<string, unknown>;
 };
 
+type ListState =
+  | { phase: "loading" }
+  | { phase: "ok"; items: RecommendationSummary[] }
+  | { phase: "session_expired" }
+  | { phase: "unavailable" };
+
 function LoadingShell() {
   return (
     <main className="min-h-screen bg-[#f5f3ee]">
@@ -34,7 +41,7 @@ function LoadingShell() {
   );
 }
 
-function SignInPrompt() {
+function SignInPrompt({ message }: { message?: string }) {
   return (
     <main className="min-h-screen bg-[#f5f3ee] flex items-center justify-center px-4">
       <div className="w-full max-w-md rounded-2xl border border-[#e0ddd8] bg-white px-8 py-10 shadow-sm text-center">
@@ -48,7 +55,7 @@ function SignInPrompt() {
         </div>
         <h1 className="text-xl font-bold text-[#1a3d2e]">Sign in to view saved plans</h1>
         <p className="mt-2 text-sm text-[#6b7068]">
-          Your saved recommendation plans are tied to your account.
+          {message ?? "Your saved recommendation plans are tied to your account."}
         </p>
         <Link
           href="/signin"
@@ -64,6 +71,15 @@ function SignInPrompt() {
         </p>
       </div>
     </main>
+  );
+}
+
+function UnavailableBanner() {
+  return (
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-800 text-sm">
+      <div className="font-medium">{AUTH_MESSAGES.loadFailed}</div>
+      <div className="mt-1 text-amber-700">Please try refreshing the page.</div>
+    </div>
   );
 }
 
@@ -144,22 +160,26 @@ function DetailPanel({ detail, onClose }: { detail: RecommendationDetail; onClos
   );
 }
 
-function SavedList({ items, onDelete }: {
+function SavedList({ items, onDelete, onSessionExpired }: {
   items: RecommendationSummary[];
   onDelete: (id: number) => void;
+  onSessionExpired: () => void;
 }) {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<RecommendationDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
 
   async function handleToggleDetail(id: number) {
     if (expandedId === id) {
       setExpandedId(null);
       setDetail(null);
+      setDetailError(null);
       return;
     }
     setExpandedId(id);
     setDetail(null);
+    setDetailError(null);
     setDetailLoading(true);
     try {
       const res = await fetch(`/api/user/saved-recommendations/${id}`, {
@@ -169,9 +189,13 @@ function SavedList({ items, onDelete }: {
       if (res.ok) {
         const json = (await res.json()) as { data?: RecommendationDetail };
         setDetail(json.data ?? null);
+      } else if (res.status === 401) {
+        onSessionExpired();
+      } else {
+        setDetailError(AUTH_MESSAGES.loadFailed);
       }
     } catch {
-      setDetail(null);
+      setDetailError(AUTH_MESSAGES.loadFailed);
     } finally {
       setDetailLoading(false);
     }
@@ -234,11 +258,11 @@ function SavedList({ items, onDelete }: {
           {expandedId === item.id && (
             detailLoading ? (
               <div className="mt-4 text-sm text-[#6b7068]">Loading…</div>
+            ) : detailError ? (
+              <div className="mt-4 text-sm text-amber-700">{detailError}</div>
             ) : detail ? (
               <DetailPanel detail={detail} onClose={() => { setExpandedId(null); setDetail(null); }} />
-            ) : (
-              <div className="mt-4 text-sm text-red-600">Could not load detail.</div>
-            )
+            ) : null
           )}
         </div>
       ))}
@@ -247,13 +271,12 @@ function SavedList({ items, onDelete }: {
 }
 
 export default function SavedRecommendationsPage() {
-  const { authenticated, loading: authLoading } = useAuth();
-  const [items, setItems] = useState<RecommendationSummary[]>([]);
-  const [listLoading, setListLoading] = useState(false);
+  const { authenticated, loading: authLoading, refresh: refreshAuth } = useAuth();
+  const [listState, setListState] = useState<ListState>({ phase: "loading" });
 
   const fetchList = useCallback(async () => {
     if (!authenticated) return;
-    setListLoading(true);
+    setListState({ phase: "loading" });
     try {
       const res = await fetch("/api/user/saved-recommendations", {
         credentials: "include",
@@ -261,14 +284,17 @@ export default function SavedRecommendationsPage() {
       });
       if (res.ok) {
         const json = (await res.json()) as { data?: RecommendationSummary[] };
-        setItems(Array.isArray(json?.data) ? json.data : []);
+        setListState({ phase: "ok", items: Array.isArray(json?.data) ? json.data : [] });
+      } else if (res.status === 401) {
+        setListState({ phase: "session_expired" });
+        void refreshAuth();
+      } else {
+        setListState({ phase: "unavailable" });
       }
     } catch {
-      setItems([]);
-    } finally {
-      setListLoading(false);
+      setListState({ phase: "unavailable" });
     }
-  }, [authenticated]);
+  }, [authenticated, refreshAuth]);
 
   useEffect(() => {
     fetchList();
@@ -281,19 +307,39 @@ export default function SavedRecommendationsPage() {
         credentials: "include",
       });
       if (res.ok) {
-        setItems((prev) => prev.filter((item) => item.id !== id));
+        setListState((prev) =>
+          prev.phase === "ok"
+            ? { phase: "ok", items: prev.items.filter((item) => item.id !== id) }
+            : prev
+        );
+      } else if (res.status === 401) {
+        setListState({ phase: "session_expired" });
+        void refreshAuth();
       }
     } catch {
-      // ignore
+      // ignore transient delete failures
     }
+  }
+
+  function handleSessionExpired() {
+    setListState({ phase: "session_expired" });
+    void refreshAuth();
   }
 
   if (authLoading) {
     return <LoadingShell />;
   }
 
-  if (!authenticated) {
-    return <SignInPrompt />;
+  if (!authenticated || listState.phase === "session_expired") {
+    return (
+      <SignInPrompt
+        message={
+          listState.phase === "session_expired"
+            ? AUTH_MESSAGES.sessionExpired
+            : undefined
+        }
+      />
+    );
   }
 
   return (
@@ -311,13 +357,19 @@ export default function SavedRecommendationsPage() {
           </p>
         </div>
 
-        {listLoading ? (
+        {listState.phase === "loading" ? (
           <div className="animate-pulse space-y-3">
             <div className="h-24 rounded-2xl bg-[#e0ddd8]" />
             <div className="h-24 rounded-2xl bg-[#e0ddd8]" />
           </div>
+        ) : listState.phase === "unavailable" ? (
+          <UnavailableBanner />
         ) : (
-          <SavedList items={items} onDelete={handleDelete} />
+          <SavedList
+            items={listState.items}
+            onDelete={handleDelete}
+            onSessionExpired={handleSessionExpired}
+          />
         )}
 
         <p className="mt-8 text-center text-sm text-[#6b7068]">

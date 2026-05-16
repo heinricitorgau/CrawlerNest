@@ -66,6 +66,15 @@ If someone is new to the repo, this is the fastest path:
 | `docs/OPERATIONAL_RUNBOOK.md` | Startup, smoke checks, daily pipeline, snapshots, diagnostics, CI troubleshooting, and rollback guidance. |
 | `docs/API_SURFACE.md` | Current API endpoint catalog for rankings, subjects, diagnostics, explainability, health, and freshness. |
 | `docs/PROJECT_STATE_REVIEW.md` | Current project maturity, inventory, operational risks, technical debt, scaling risks, and next-phase priorities. |
+| `docs/AUTH_LIMITATIONS.md` | Auth model, non-goals, localhost assumptions, future scaling risks, and deployment requirements. |
+| `docs/USER_DATA_SAFETY_REVIEW.md` | User data safety review: isolation guarantees, session model, validation hardening, health endpoint fix, operational limits. |
+| `docs/UX_STABILIZATION_NOTES.md` | UX stabilization pass notes: stabilized states, session expiry behavior, shared auth messages, intentionally avoided complexity, known limits. |
+| `docs/RC1_ENVIRONMENT_FREEZE.md` | RC-1 environment freeze, verified versions, localhost assumptions, unsupported environments, and setup notes. |
+| `docs/RC1_DEPENDENCY_REVIEW.md` | RC-1 dependency review across frontend, backend, and Python runtimes. |
+| `docs/RC1_RELEASE_HYGIENE.md` | RC-1 source-control hygiene for build outputs, generated evidence, and temporary artifacts. |
+| `docs/RC1_STABILITY_REVIEW.md` | RC-1 long-run stability review for sessions, persistence, diagnostics, storage, and restart behavior. |
+| `docs/RC1_FREEZE_SCOPE.md` | RC-1 frozen areas, allowed changes, blocked changes, and re-validation rules. |
+| `docs/RC1_VALIDATION_RESULTS.md` | RC-1 operational validation outcomes, warnings, and accepted limitations. |
 | `docs/architecture/REPO_STRUCTURE.md` | Compatibility wrapper that points to `docs/REPOSITORY_MAP.md`. |
 | `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md` | Compatibility wrapper that points to current architecture docs. |
 | `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` | Legacy mirror that now redirects readers to the canonical architecture docs in `docs/`. |

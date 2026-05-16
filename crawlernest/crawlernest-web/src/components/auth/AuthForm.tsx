@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, type FormEvent } from "react";
 import type { AuthFieldError, AuthMode } from "@/types/auth";
+import { normalizeAuthError, AUTH_MESSAGES } from "@/lib/authMessages";
 
 interface AuthFormProps {
   mode: AuthMode;
@@ -22,14 +23,6 @@ function validate(email: string, password: string): AuthFieldError {
   return errors;
 }
 
-function extractErrorMessage(data: unknown): string | null {
-  if (typeof data === "object" && data !== null && !Array.isArray(data)) {
-    const d = data as Record<string, unknown>;
-    if (typeof d.error === "string") return d.error;
-    if (typeof d.message === "string") return d.message;
-  }
-  return null;
-}
 
 // ─── Checkmark icon ────────────────────────────────────────────────────────
 
@@ -152,20 +145,14 @@ export default function AuthForm({ mode }: AuthFormProps) {
         return;
       }
 
-      if (res.status === 409) {
-        errorMsg = "An account with this email already exists.";
-      } else if (res.status === 401) {
+      // For 401 on signin specifically, use a friendlier message.
+      if (res.status === 401 && isSignIn) {
         errorMsg = "Invalid email or password.";
-      } else if (res.status === 503) {
-        errorMsg = "Authentication service is unavailable. Please try again later.";
-      } else if (res.status === 400) {
-        errorMsg =
-          extractErrorMessage(data) ?? "Please check your input and try again.";
       } else {
-        errorMsg = "Something went wrong. Please try again.";
+        errorMsg = normalizeAuthError(res.status, data);
       }
     } catch {
-      errorMsg = "Could not connect to the server. Please check your connection.";
+      errorMsg = AUTH_MESSAGES.networkError;
     }
 
     setSubmitError(errorMsg);
@@ -288,8 +275,8 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 >
                   {loading
                     ? isSignIn
-                      ? "Signing in…"
-                      : "Creating account…"
+                      ? AUTH_MESSAGES.signingIn
+                      : AUTH_MESSAGES.creatingAccount
                     : isSignIn
                     ? "Sign in"
                     : "Create account"}

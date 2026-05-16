@@ -20,6 +20,7 @@ target/
 # Logs / local artifacts
 logs/
 *.log
+tmp/
 
 # Operational automation outputs (generated at runtime)
 snapshots/
@@ -41,9 +42,6 @@ crawlernest/crawlernest-kb/qs_universes/**/standardized_rows.json
 
 # Build outputs
 .claude/
-.venv/
-node_modules/
-.next/
 dist/
 build/
 *.pyc
@@ -53,5 +51,3 @@ build/
 deployment-support/lobster-01/crawlernest/
 deployment-support/lobster-01/logs/
 deployment-support/lobster-01/requirements.txt
-
-tmp/ai-dev/
