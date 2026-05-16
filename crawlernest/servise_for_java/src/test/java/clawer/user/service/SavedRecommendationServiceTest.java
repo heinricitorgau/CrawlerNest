@@ -146,6 +146,48 @@ class SavedRecommendationServiceTest {
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
+    @Test
+    void saveRecommendation_withTitleTooLong_returns400() {
+        when(httpRequest.getSession(false)).thenReturn(httpSession);
+        when(httpSession.getAttribute("user_id")).thenReturn(1L);
+
+        SaveRecommendationRequest req = buildValidRequest();
+        req.setTitle("A".repeat(201));
+
+        ResponseEntity<?> response = userController.saveRecommendation(req, httpRequest);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(savedRecommendationService, never()).save(anyLong(), anyString(), any(), any());
+    }
+
+    @Test
+    void saveRecommendation_withNullRequestJson_returns400() {
+        when(httpRequest.getSession(false)).thenReturn(httpSession);
+        when(httpSession.getAttribute("user_id")).thenReturn(1L);
+
+        SaveRecommendationRequest req = buildValidRequest();
+        req.setRequestJson(null);
+
+        ResponseEntity<?> response = userController.saveRecommendation(req, httpRequest);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(savedRecommendationService, never()).save(anyLong(), anyString(), any(), any());
+    }
+
+    @Test
+    void saveRecommendation_withNullResultJson_returns400() {
+        when(httpRequest.getSession(false)).thenReturn(httpSession);
+        when(httpSession.getAttribute("user_id")).thenReturn(1L);
+
+        SaveRecommendationRequest req = buildValidRequest();
+        req.setResultJson(null);
+
+        ResponseEntity<?> response = userController.saveRecommendation(req, httpRequest);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        verify(savedRecommendationService, never()).save(anyLong(), anyString(), any(), any());
+    }
+
     private SaveRecommendationRequest buildValidRequest() {
         SaveRecommendationRequest req = new SaveRecommendationRequest();
         req.setTitle("My Plan");
