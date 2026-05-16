@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuthPlaceholder";
 
 function GitHubIcon() {
   return (
@@ -27,10 +28,24 @@ const NAV_LINKS = [
 
 export default function NavBar() {
   const pathname = usePathname() ?? "";
+  const { authenticated, currentUser, loading, refresh } = useAuth();
+
+  async function handleSignOut() {
+    try {
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      /* ignore network errors — state will update anyway */
+    }
+    await refresh();
+  }
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
-        
+
         {/* Left: Branding */}
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 group">
@@ -51,8 +66,8 @@ export default function NavBar() {
                   key={link.label}
                   href={link.href}
                   className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    isActive 
-                      ? "text-blue-600" 
+                    isActive
+                      ? "text-blue-600"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -63,8 +78,8 @@ export default function NavBar() {
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-6">
+        {/* Right: Auth actions */}
+        <div className="flex items-center gap-4">
           <a
             href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform"
             target="_blank"
@@ -74,13 +89,37 @@ export default function NavBar() {
           >
             <GitHubIcon />
           </a>
-          <span
-            aria-disabled="true"
-            title="Sign in is not available in this MVP yet."
-            className="hidden cursor-not-allowed text-xs font-semibold px-4 py-2 rounded border border-slate-200 bg-slate-50 text-slate-400 sm:block"
-          >
-            Sign In
-          </span>
+
+          {!loading && authenticated && currentUser ? (
+            /* ── Authenticated state ── */
+            <>
+              <span className="hidden max-w-[160px] truncate text-xs text-slate-600 sm:block">
+                {currentUser.email}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="hidden text-xs font-semibold px-4 py-2 rounded border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white transition-colors sm:block"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            /* ── Unauthenticated (or loading) state ── */
+            <>
+              <Link
+                href="/signup"
+                className="hidden text-xs font-medium px-3 py-2 rounded text-slate-600 hover:text-slate-900 transition-colors sm:block"
+              >
+                Sign up
+              </Link>
+              <Link
+                href="/signin"
+                className="hidden text-xs font-semibold px-4 py-2 rounded border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white transition-colors sm:block"
+              >
+                Sign in
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

@@ -67,6 +67,14 @@ public class HealthService {
             return item;
         }).toList());
 
+        try {
+            Long userCount = jdbcTemplate.queryForObject(
+                    "SELECT count(*) FROM warehouse.app_user", Long.class);
+            data.put("app_user_count", userCount != null ? userCount : 0L);
+        } catch (Exception ignored) {
+            data.put("app_user_count", 0L);
+        }
+
         return data;
     }
 }
