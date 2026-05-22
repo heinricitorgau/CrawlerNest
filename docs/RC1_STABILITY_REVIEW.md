@@ -56,7 +56,8 @@ Assesses the long-run operational behavior of the current system under sustained
 | No automatic rotation | Current policy: manual. The `scripts/cleanup_old_artifacts.sh` script exists for rotation. Acceptable for RC-1 demo cadence. |
 | `latest_status.json` overwrites on each run | By design. No historical version is lost since dated snapshot files are also written. |
 
-Current snapshot directory size: ~3 KB (2 files). No growth concern for RC-1.
+Current snapshot directory size in the 2026-05-22 RC-1 validation pass: ~20 KB
+(3 dated snapshots plus `latest_status.json`). No growth concern for RC-1.
 
 ---
 

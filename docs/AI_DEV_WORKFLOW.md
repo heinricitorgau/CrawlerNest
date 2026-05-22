@@ -144,6 +144,12 @@ These scripts do not fix issues automatically.
 
 They generate structured prompts and analysis input for the correct agent workflow.
 
+The wrappers may include readonly operational evidence such as snapshot status,
+failure summaries, operational summaries, drift timelines, freshness escalation
+reports, and captured smoke output. They do not consume live runtime authority,
+rerun pipelines, modify PostgreSQL, commit code, open pull requests, or make the
+`crawlernest-agents` repository authoritative for release decisions.
+
 ---
 
 ## Configuration

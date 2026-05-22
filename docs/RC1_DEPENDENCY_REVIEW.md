@@ -33,7 +33,7 @@ Covers the frontend (Next.js), backend (Spring Boot / Maven), and Python runtime
 |---|---|---|
 | `next@16.2.6` framework-line drift | Medium | The local frontend guidance already treats this line as behaviorally sensitive. Stable for the current feature set, but not a dependency to auto-update during freeze. |
 | `^` prefix allows minor/patch drift on `npm install` | Low | `package-lock.json` v3 pins exact resolved versions. Always use `npm ci` in CI/automation. |
-| Node major mismatch | Low | `.nvmrc` now pins Node 20 for local shells, while automation still verifies `>=20.9`. Use `nvm use` before install/build. |
+| Node major mismatch | Low | `.nvmrc` pins Node 20 for local shells, while automation verifies `>=20.9`. Use `nvm use` before install/build. |
 | `eslint-config-next` pinned to `16.2.1` | Low | Must stay synchronized with `next`. Acceptable for RC-1 freeze. |
 
 ---
@@ -103,7 +103,7 @@ Covers the frontend (Next.js), backend (Spring Boot / Maven), and Python runtime
 | Frontend packages | `package-lock.json` v3 (exact resolved) | Strong — use `npm ci` |
 | Java dependencies | Spring Boot BOM 3.2.3 (ranges managed) | Strong |
 | Python packages | `requirements.txt` (exact pins) | Adequate |
-| Node.js version | No `.nvmrc` | Weak — document gap |
+| Node.js version | `.nvmrc` (`20`) plus `verify_local_environment.sh` (`>=20.9`) | Adequate for RC-1 |
 | Java version | `<java.version>17</java.version>` in pom.xml | Strong |
 | Python interpreter | Not pinned | Weak — document gap |
 
