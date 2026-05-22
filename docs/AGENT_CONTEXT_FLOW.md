@@ -108,6 +108,9 @@ tmp/agent-analysis/
 - latest diagnostics snapshot
 - latest freshness snapshot
 - latest regression summary
+- latest operational summary when present
+- latest operational index summary when present
+- latest drift and freshness intelligence reports when present
 
 The snapshot includes these sections:
 
@@ -121,6 +124,30 @@ The snapshot includes these sections:
 
 If an expected artifact does not exist, the section is marked `[missing]`
 instead of failing.
+
+## Operational Artifact Alignment
+
+The agent context wrappers may consume generated evidence from:
+
+- `reports/latest_failure_summary.md`
+- `reports/operational_summary.md`
+- `reports/operational_index_summary.md`
+- `reports/drift_timeline.md`
+- `reports/freshness_escalation.md`
+- `snapshots/latest_status.json`
+- `releases/v0.1-demo/smoke_release_output.txt`
+
+They do not consume live runtime authority. In particular, the wrappers do not
+read from PostgreSQL directly, do not call mutation endpoints, do not rerun the
+pipeline, and do not treat generated reports as permission to repair anything.
+
+The sibling `crawlernest-agents` repository remains:
+
+- readonly from this repository's perspective
+- optional
+- a sibling repository, not a submodule
+- a non-runtime dependency
+- non-authoritative for release truth
 
 ## Failure Handling
 

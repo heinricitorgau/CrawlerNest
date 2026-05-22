@@ -40,6 +40,7 @@ If someone is new to the repo, this is the fastest path:
 | --- | --- |
 | `README.md` | Main English project entrypoint and overall repo introduction. |
 | `README.zh-TW.md` | Traditional Chinese version of the main project overview. |
+| `MARKDOWN_INDEX.md` | Root-level pointer to the canonical Markdown inventory under `docs/reference/`. |
 | `docs/README.md` | Documentation hub, canonical reading order, and duplicate-content policy. |
 
 ## 2. Foundation And Repo Governance
@@ -75,6 +76,45 @@ If someone is new to the repo, this is the fastest path:
 | `docs/RC1_STABILITY_REVIEW.md` | RC-1 long-run stability review for sessions, persistence, diagnostics, storage, and restart behavior. |
 | `docs/RC1_FREEZE_SCOPE.md` | RC-1 frozen areas, allowed changes, blocked changes, and re-validation rules. |
 | `docs/RC1_VALIDATION_RESULTS.md` | RC-1 operational validation outcomes, warnings, and accepted limitations. |
+| `docs/OPERATIONAL_INTELLIGENCE_AUTOMATION.md` | Readonly operational intelligence automation philosophy, boundaries, non-goals, and escalation semantics. |
+| `docs/SOURCE_HEALTH_MODEL.md` | Source health states and signals used by operational intelligence reports. |
+| `docs/OPERATIONAL_INDEX.md` | Unified operational hierarchy for snapshots, reports, diagnostics, validation, bundles, smoke checks, CI, and agent context artifacts. |
+| `docs/OPERATIONAL_VOCABULARY.md` | Consolidated operational vocabulary for stale, degraded, critical, drift, freshness, source coverage, and validation surfaces. |
+| `docs/REPORT_RELATIONSHIPS.md` | Report dependency and consumption map across snapshots, diagnostics, reports, bundles, and demo summaries. |
+| `docs/SNAPSHOT_LINEAGE.md` | Snapshot source, lifecycle, timeline derivation, comparison, freshness, and drift relationships. |
+| `docs/OPERATIONAL_SURFACE_REVIEW.md` | Operational surface review covering overlap, terminology risks, and consolidation recommendations. |
+| `docs/MAINTENANCE_PRIORITY_MATRIX.md` | Maintenance priority matrix with response guidance and freeze interaction rules. |
+| `docs/SOURCE_FRESHNESS_RECOVERY.md` | Source freshness recovery plan for stale QS and unavailable THE/ARWU. |
+| `docs/MAINTENANCE_RUNBOOK.md` | Copy-paste friendly maintenance runbook for freshness, drift, snapshots, release checks, and bundles. |
+| `docs/RELEASE_STATE_CHECKLIST.md` | Checklist for demo/release readiness and operational caveat coverage. |
+| `docs/OPERATIONAL_CLEANUP_GUIDE.md` | Cleanup and retention guidance for operational artifacts. |
+| `docs/SOURCE_STATE_EXPLAINABILITY.md` | Source-state explanations for maintainers, demos, reviewers, and caveat handling. |
+| `docs/FRESHNESS_CONSISTENCY_REVIEW.md` | Freshness consistency and divergence review across health checks, reports, and compact snapshots. |
+| `docs/MAINTENANCE_ERGONOMICS_REVIEW.md` | Maintenance ergonomics review covering entrypoints, cognitive load, discoverability, and cleanup opportunities. |
+| `docs/OPERATIONAL_CONFIDENCE_MODEL.md` | Operational confidence dimensions, levels, examples, escalation implications, and maintainer behavior. |
+| `docs/SOURCE_COMPLETENESS_REVIEW.md` | Current source completeness review for QS, THE, ARWU, and subject rankings. |
+| `docs/DEMO_HONESTY_GUIDELINES.md` | Demo honesty rules, required caveats, acceptable phrasing, and unacceptable phrasing. |
+| `docs/CONFIDENCE_CONSISTENCY_REVIEW.md` | Confidence consistency review across operational, maintenance, freshness, drift, caveat, and trust reports. |
+| `docs/MAINTENANCE_SIGNAL_CLARITY.md` | Maintenance signal hierarchy and recommended maintainer/release reading order. |
+| `docs/OPERATIONAL_RESTRAINT_GUIDELINES.md` | When NOT to add automation, diagnostics, reports, or scripts; saturation signals; safe addition criteria. |
+| `docs/MAINTENANCE_SUSTAINABILITY_REVIEW.md` | Sustainable vs complexifying maintenance areas; debt risks; highest-value future cleanup targets. |
+| `docs/SIGNAL_TO_NOISE_REVIEW.md` | Signal value classification and recommended reading hierarchy by operator role. |
+| `docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md` | Capabilities intentionally NOT implemented at RC-1 and the rationale for each. |
+| `docs/REPORT_CRITICALITY.md` | Critical / important / reference classification for all generated reports and release artifacts. |
+| `docs/RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md` | Must-exist vs supporting vs optional classification of v0.1-demo bundle artifacts. |
+| `docs/OPERATIONAL_CALMNESS_REVIEW.md` | Calm vs noisy surface analysis; false urgency risks; calmness preservation and wording discipline guidelines. |
+| `docs/REPORT_LIFECYCLE.md` | Producer, consumer, freshness expectation, lifecycle category, and archival expectation for every report. |
+| `docs/MAINTENANCE_FATIGUE_REVIEW.md` | Attention hotspots, repeated warning exposure, cognitive overload risks, and fatigue reduction workflows. |
+| `docs/OPERATIONAL_COHERENCE_REVIEW.md` | Coherence strengths, terminology risks, relationship stability, and future cleanup opportunities. |
+| `docs/MAINTENANCE_READING_MODES.md` | Structured reading modes for quick status, release/demo prep, freshness investigation, incident, audit, and onboarding. |
+| `docs/MAINTENANCE_CADENCE_REVIEW.md` | Appropriate cadence for each maintenance activity: daily, weekly, release-demo, incident-only, archival. |
+| `docs/OPERATIONAL_MEMORY_PRESERVATION.md` | What operational knowledge must be preserved long-term vs temporary; bundle archival semantics; handoff requirements. |
+| `docs/STABLE_DEGRADED_STATE.md` | Current RC-1 stable degraded posture: accepted conditions, what is stable, escalation triggers, communication guidance. |
+| `docs/MAINTENANCE_DISCIPLINE.md` | Behavioral discipline for maintenance: healthy and unhealthy patterns, discipline under pressure, boundaries. |
+| `docs/OPERATIONAL_CONTINUITY_REVIEW.md` | Continuity strengths, risks, vulnerable operational assumptions, and report relationships requiring attention. |
+| `docs/MAINTENANCE_CONTINUITY_MODEL.md` | Continuity concept definitions: stable degraded, report, snapshot, confidence, honesty, vocabulary continuity. |
+| `docs/OPERATIONAL_MEMORY_DURABILITY.md` | Artifact durability tiers (durable/semi-durable/ephemeral); bundle and snapshot durability semantics. |
+| `docs/STABLE_DEGRADED_CONTINUITY.md` | Long-term stable degraded posture guidance: calm maintenance, false urgency, desensitization, remediation churn. |
 | `docs/architecture/REPO_STRUCTURE.md` | Compatibility wrapper that points to `docs/REPOSITORY_MAP.md`. |
 | `docs/architecture/SYSTEM_ENGINE_ARCHITECTURE.md` | Compatibility wrapper that points to current architecture docs. |
 | `crawlernest/crawlernest-docs/SYSTEM_ARCHITECTURE.md` | Legacy mirror that now redirects readers to the canonical architecture docs in `docs/`. |
@@ -93,6 +133,8 @@ If someone is new to the repo, this is the fastest path:
 | `docs/PYTHON_ENVIRONMENT.md` | Python venv, psycopg2, PEP 668, and runtime consistency notes. |
 | `docs/BACKUP_RESTORE_DRILL.md` | Readonly-safe backup, restore, rollback, and disaster-recovery drill guidance. |
 | `docs/SNAPSHOT_COMPARISON.md` | Snapshot comparison workflow for coverage, freshness, drift, and failure-state fixtures. |
+| `docs/SOURCE_HEALTH_MODEL.md` | Source health states and readonly observability signals for source coverage, freshness, and drift. |
+| `docs/OPERATIONAL_INTELLIGENCE_AUTOMATION.md` | Operational intelligence automation philosophy, readonly guarantees, non-goals, and escalation semantics. |
 | `docs/deployment/Lobster_01_Deployment_Guide.md` | Production node deployment and runbook for Lobster-01. |
 | `deployment-support/lobster-01/README_NODE.md` | Operational notes for the Lobster-01 crawler node environment. |
 
