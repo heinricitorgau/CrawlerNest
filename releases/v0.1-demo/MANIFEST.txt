@@ -1,16 +1,28 @@
 CrawlerNest v0.1 Demo Bundle
-Built: 2026-05-16T09:55:39Z
+Built: 2026-05-22T19:11:08Z
 
 Contents:
 DEMO_SCRIPT_v0.1.md
 MANIFEST.txt
+OPERATIONAL_ARTIFACTS.md
 RELEASE_NOTES_v0.1.md
 RELEASE_STRUCTURE.md
 SCREENSHOT_CHECKLIST_v0.1.md
 VERSION_SCOPE_v0.1.md
+demo_caveats.md
 diagnostics_summary.txt
+drift_timeline.md
+freshness_escalation.md
 latest_failure_summary.md
 latest_status.json
+maintenance_calm_summary.md
+maintenance_continuity_summary.md
+maintenance_readiness_summary.md
+maintenance_steadiness_summary.md
+operational_index_summary.md
+operational_summary.md
+operational_trust_summary.md
 screenshots/README.md
 smoke_release_output.txt
 system_snapshot_20260508_072113.json
+system_snapshot_20260522_152944.json

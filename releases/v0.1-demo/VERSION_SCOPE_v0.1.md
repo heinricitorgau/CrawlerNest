@@ -172,6 +172,40 @@ These were intentionally excluded as out-of-scope for this milestone to maintain
 
 ---
 
+## Post-v0.1 Additions: Minimal Identity Layer
+
+The following capabilities were added after the v0.1 freeze as a focused identity and user-owned persistence layer. They do not modify the v0.1 data pipeline, aggregation, scoring, recommendation logic, diagnostics, explainability, or CI scope.
+
+### Included (post-v0.1)
+
+| Capability | Notes |
+|---|---|
+| Session-based auth | `warehouse.app_user`, `AuthController`, `AuthService`, BCrypt via `spring-security-crypto` |
+| HttpOnly session cookie | `JSESSIONID`, SameSite=Lax, 30-min timeout, session-fixation prevention |
+| Saved universities | `warehouse.saved_university`, per-user toggle from rankings page, `/saved-universities` page |
+| Saved recommendation snapshots | `warehouse.saved_recommendation`, save from `/recommendations`, `/saved-recommendations` page |
+| User-isolation enforcement | All user-data queries scoped to `user_id` from session only |
+| Input validation hardening | Title ≤ 200 chars, non-null request/result, uniform 401/404 responses |
+| User data safety review | `docs/USER_DATA_SAFETY_REVIEW.md` |
+| Auth limitations documentation | `docs/AUTH_LIMITATIONS.md` |
+
+### Not Included (post-v0.1 non-goals)
+
+| Capability | Reason |
+|---|---|
+| RBAC / admin tooling | Out of scope; single-user local model only |
+| OAuth / third-party identity providers | Not needed for local development |
+| JWT or token-based auth | Unnecessary complexity for in-process session model |
+| Frontend route protection | Pages are accessible; data endpoints are gated at API layer |
+| Distributed session infrastructure | No multi-instance deployment at this stage |
+| Rate limiting / account lockout | Non-goal for local demo scope |
+| Email verification | Non-goal for current scope |
+| Account deletion / data export | Non-goal for current scope |
+| Per-user quota | Non-goal for current scope |
+| `Secure` cookie flag | Intentionally absent for local HTTP; must be enabled before internet deployment |
+
+---
+
 ## Milestone Freeze Statement
 
 v0.1 was frozen with the following known state:

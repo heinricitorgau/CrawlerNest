@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchAppJson } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
 import { AUTH_MESSAGES } from "@/lib/authMessages";
+import { RC1_STANDARD_CAVEATS } from "@/lib/caveatMessages";
 import { AdmissionSignalBadge } from "@/components/AdmissionSignalBadge";
 import { PlanComparisonMatrix } from "@/components/PlanComparisonMatrix";
 import {
@@ -2579,6 +2580,160 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
   );
 }
 
+type ExplainState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "ok"; caveats: string[]; sourceCoverage: Record<string, boolean>; confidenceReason: string }
+  | { status: "error" };
+
+function ExplainPanel({ item }: { item: RecommendationItem }) {
+  const [open, setOpen] = useState(false);
+  const [explainState, setExplainState] = useState<ExplainState>({ status: "idle" });
+
+  function toggle() {
+    if (!open && explainState.status === "idle") {
+      setExplainState({ status: "loading" });
+      const url = `/api/recommendations/explain?canonicalUniversityId=${item.canonicalUniversityId}`;
+      fetch(url, { cache: "no-store" })
+        .then(async (res) => {
+          const json = (await res.json()) as {
+            success?: boolean;
+            data?: {
+              source_coverage?: {
+                qs_available?: boolean;
+                the_available?: boolean;
+                arwu_available?: boolean;
+              };
+              confidence_evidence?: { confidence_reason?: string };
+              caveats?: string[];
+            };
+          };
+          if (res.ok && json.data) {
+            const sc = json.data.source_coverage ?? {};
+            setExplainState({
+              status: "ok",
+              sourceCoverage: {
+                QS: sc.qs_available ?? false,
+                THE: sc.the_available ?? false,
+                ARWU: sc.arwu_available ?? false,
+              },
+              confidenceReason: json.data.confidence_evidence?.confidence_reason ?? "",
+              caveats: json.data.caveats ?? RC1_STANDARD_CAVEATS,
+            });
+          } else {
+            setExplainState({ status: "error" });
+          }
+        })
+        .catch(() => setExplainState({ status: "error" }));
+    }
+    setOpen((prev) => !prev);
+  }
+
+  const explain = item.recommendationExplain;
+
+  return (
+    <div className="mt-4">
+      <button
+        type="button"
+        onClick={toggle}
+        className="flex w-full items-center justify-between rounded-xl border border-[#d8e6dd] bg-[#f6fbf7] px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e] transition hover:bg-[#edf6f0]"
+      >
+        <span>Why this recommendation?</span>
+        <span className="text-[#6b7068]">{open ? "▲" : "▼"}</span>
+      </button>
+
+      {open && (
+        <div className="mt-1 rounded-xl border border-[#e0ddd8] bg-white p-4">
+          {explain ? (
+            <>
+              {explain.reasons.length > 0 && (
+                <div className="space-y-1.5 text-sm text-[#415046]">
+                  {explain.reasons.map((r) => (
+                    <div key={r}>✓ {r}</div>
+                  ))}
+                </div>
+              )}
+
+              {explain.warnings.length > 0 && (
+                <div className="mt-3 space-y-1.5 text-sm text-[#6b554f]">
+                  {explain.warnings.map((w) => (
+                    <div key={w}>⚠ {w}</div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-4">
+                <SummaryItem label="Ranking Fit" value={formatScore(explain.dimensions.rankingFit)} />
+                <SummaryItem label="Risk Fit" value={formatScore(explain.dimensions.riskFit)} />
+                <SummaryItem label="Language Fit" value={formatScore(explain.dimensions.languageFit)} />
+                <SummaryItem label="Data Confidence" value={formatScore(explain.dimensions.dataConfidence)} />
+              </div>
+            </>
+          ) : null}
+
+          {/* Source evidence — loaded from explain endpoint */}
+          {explainState.status === "loading" && (
+            <div className="mt-4 h-10 animate-pulse rounded bg-slate-100" />
+          )}
+          {explainState.status === "ok" && (
+            <>
+              <div className="mt-4">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                  Source Coverage
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(["QS", "THE", "ARWU"] as const).map((src) => (
+                    <span
+                      key={src}
+                      className={`rounded border px-2 py-0.5 text-xs font-semibold ${
+                        explainState.sourceCoverage[src]
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border-slate-200 bg-slate-50 text-slate-400"
+                      }`}
+                    >
+                      {src} {explainState.sourceCoverage[src] ? "✓" : "—"}
+                    </span>
+                  ))}
+                </div>
+                {explainState.confidenceReason && (
+                  <p className="mt-2 text-xs text-[#6b7068]">{explainState.confidenceReason}</p>
+                )}
+              </div>
+
+              <div className="mt-4">
+                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b3a2b]">
+                  Data Caveats
+                </div>
+                <ul className="space-y-1">
+                  {explainState.caveats.map((c, i) => (
+                    <li key={i} className="text-xs text-[#6b554f]">
+                      · {c}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
+          {explainState.status === "error" && (
+            <div className="mt-4">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b3a2b]">
+                Data Caveats
+              </div>
+              <ul className="space-y-1">
+                {RC1_STANDARD_CAVEATS.map((c, i) => (
+                  <li key={i} className="text-xs text-[#6b554f]">
+                    · {c}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ApplicationPlanGroup({
   title,
   icon,
@@ -3066,38 +3221,7 @@ function Section({
                 {item.explanation}
               </div>
 
-              {item.recommendationExplain && (
-                <div className="mt-4 rounded-xl border border-[#e0ddd8] bg-white p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
-                    Why This Fits You
-                  </div>
-                  <div className="mt-3 space-y-2 text-sm text-[#415046]">
-                    {item.recommendationExplain.reasons.map((reason) => (
-                      <div key={reason}>✓ {reason}</div>
-                    ))}
-                  </div>
-
-                  <div className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-[#8b3a2b]">
-                    Watch Out
-                  </div>
-                  <div className="mt-3 space-y-2 text-sm text-[#6b554f]">
-                    {item.recommendationExplain.warnings.length > 0 ? (
-                      item.recommendationExplain.warnings.map((warning) => (
-                        <div key={warning}>⚠ {warning}</div>
-                      ))
-                    ) : (
-                      <div>⚠ No major warnings detected from current data.</div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 grid gap-3 sm:grid-cols-4">
-                    <SummaryItem label="Ranking Fit" value={formatScore(item.recommendationExplain.dimensions.rankingFit)} />
-                    <SummaryItem label="Risk Fit" value={formatScore(item.recommendationExplain.dimensions.riskFit)} />
-                    <SummaryItem label="Language Fit" value={formatScore(item.recommendationExplain.dimensions.languageFit)} />
-                    <SummaryItem label="Data Confidence" value={formatScore(item.recommendationExplain.dimensions.dataConfidence)} />
-                  </div>
-                </div>
-              )}
+              <ExplainPanel item={item} />
             </div>
           ))}
         </div>

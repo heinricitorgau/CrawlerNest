@@ -6,6 +6,7 @@ import clawer.domain.ranking.ScopedRankedUniversity;
 import clawer.domain.ranking.ScopedRankingReadAdapter;
 import clawer.model.RecommendationGroupResponse;
 import clawer.model.RecommendationResult;
+import clawer.service.RecommendationEvidenceService;
 import clawer.service.RecommendationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,7 @@ class RecommendationControllerTest {
                 Map.of("risk_profile", "balanced")
         );
 
-        RecommendationController controller = new RecommendationController(service);
+        RecommendationController controller = new RecommendationController(service, mock(RecommendationEvidenceService.class));
         Object response = controller.getRecommendations(
                 "United Kingdom", null, null, null,
                 6.5, null, 100, null,
@@ -79,7 +80,7 @@ class RecommendationControllerTest {
                 Map.of("version", "v3", "scope", "region", "region", "Europe")
         );
 
-        RecommendationController controller = new RecommendationController(service);
+        RecommendationController controller = new RecommendationController(service, mock(RecommendationEvidenceService.class));
         Object response = controller.getRecommendations(
                 "United Kingdom", "region", "Europe", "1,2",
                 6.5, null, 100, null,
@@ -125,7 +126,7 @@ class RecommendationControllerTest {
                 Map.of("version", "v3", "risk_profile", "conservative", "country_policy", "hard_filter")
         );
 
-        RecommendationController controller = new RecommendationController(service);
+        RecommendationController controller = new RecommendationController(service, mock(RecommendationEvidenceService.class));
         Object response = controller.getRecommendations(
                 "United Kingdom", null, null, null,
                 null, 6.5, null, 100,
@@ -145,7 +146,7 @@ class RecommendationControllerTest {
 
     @Test
     void testRecommendationsV3ReturnsBadRequestWhenTargetRankMissing() {
-        RecommendationController controller = new RecommendationController(new FakeRecommendationService());
+        RecommendationController controller = new RecommendationController(new FakeRecommendationService(), mock(RecommendationEvidenceService.class));
 
         assertThrows(ResponseStatusException.class, () -> controller.getRecommendations(
                 "United Kingdom", null, null, null,

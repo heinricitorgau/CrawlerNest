@@ -1,5 +1,6 @@
 package clawer.api;
 
+import clawer.service.RecommendationEvidenceService;
 import clawer.service.RecommendationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -15,9 +18,14 @@ import java.util.Map;
 public class RecommendationController {
 
     private final RecommendationService recommendationService;
+    private final RecommendationEvidenceService evidenceService;
 
-    public RecommendationController(RecommendationService recommendationService) {
+    public RecommendationController(
+            RecommendationService recommendationService,
+            RecommendationEvidenceService evidenceService
+    ) {
         this.recommendationService = recommendationService;
+        this.evidenceService = evidenceService;
     }
 
     @GetMapping
@@ -116,6 +124,35 @@ public class RecommendationController {
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
         }
+    }
+
+    /**
+     * GET /api/v1/recommendations/explain
+     *
+     * Returns evidence backing a recommendation for a specific university.
+     * Readonly — does not recalculate scores or mutate any data.
+     * Returns 404 if the university is not found.
+     */
+    @GetMapping("/explain")
+    public Object getExplain(
+            @RequestParam(name = "canonicalUniversityId") Long canonicalUniversityId,
+            @RequestParam(name = "ieltsScore", required = false) Double ieltsScore,
+            @RequestParam(name = "targetRank", required = false) Integer targetRank,
+            @RequestParam(name = "country", required = false) String country,
+            @RequestParam(name = "subjectKey", required = false) String subjectKey
+    ) {
+        if (canonicalUniversityId == null || canonicalUniversityId <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "canonicalUniversityId is required and must be positive.");
+        }
+        Map<String, Object> evidence = evidenceService.getEvidence(
+                canonicalUniversityId, ieltsScore, targetRank, country, subjectKey
+        );
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("timestamp", Instant.now().toString());
+        metadata.put("endpoint", "recommendations/explain");
+        metadata.put("readonly", true);
+        metadata.put("canonical_university_id", canonicalUniversityId);
+        return clawer.dto.ApiResponse.success(evidence, metadata);
     }
 
     private static <T> T firstNonNull(T primary, T secondary) {

@@ -340,6 +340,61 @@ reproducibility、observability 與保守 recovery，而不是 autonomous automa
 它不是 runtime dependency、CI requirement、submodule、symlink 或 production
 truth source。
 
+## 維護治理
+
+CrawlerNest 採用保守、readonly-first 的維護哲學。
+下列文件定義了操作邊界與訊號層級：
+
+| 文件 | 用途 |
+|------|------|
+| [docs/OPERATIONAL_RESTRAINT_GUIDELINES.md](docs/OPERATIONAL_RESTRAINT_GUIDELINES.md) | 何時不應新增 automation、diagnostics、reports 或 scripts。 |
+| [docs/MAINTENANCE_SUSTAINABILITY_REVIEW.md](docs/MAINTENANCE_SUSTAINABILITY_REVIEW.md) | 哪些部分 sustainable、哪些開始複雜化、未來 cleanup 最值得的地方。 |
+| [docs/SIGNAL_TO_NOISE_REVIEW.md](docs/SIGNAL_TO_NOISE_REVIEW.md) | 高價值 vs 次要 signals；依操作角色推薦的閱讀層級。 |
+| [docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md](docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md) | RC-1 刻意未實作的功能清單與原因。 |
+| [docs/REPORT_CRITICALITY.md](docs/REPORT_CRITICALITY.md) | 所有 generated reports 的 critical / important / reference 分類。 |
+| [docs/RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md](docs/RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md) | Release bundle artifact 的必要 / 支援 / 可選分類。 |
+| [docs/OPERATIONAL_CALMNESS_REVIEW.md](docs/OPERATIONAL_CALMNESS_REVIEW.md) | 平靜 vs 嘈雜的維護表面分析；false urgency 風險；calm 保持指引。 |
+| [docs/REPORT_LIFECYCLE.md](docs/REPORT_LIFECYCLE.md) | 每個 report 的 producer、consumer、freshness 預期、lifecycle 分類與 archival 預期。 |
+| [docs/MAINTENANCE_FATIGUE_REVIEW.md](docs/MAINTENANCE_FATIGUE_REVIEW.md) | 注意力熱點、重複警告曝露、認知超載風險與疲勞減少工作流程。 |
+| [docs/OPERATIONAL_COHERENCE_REVIEW.md](docs/OPERATIONAL_COHERENCE_REVIEW.md) | 一致性優勢、術語風險、關係穩定性與未來清理機會。 |
+| [docs/MAINTENANCE_READING_MODES.md](docs/MAINTENANCE_READING_MODES.md) | 結構化閱讀模式：快速狀態確認、release 準備、freshness 調查、事故、稽核、onboarding。 |
+| [docs/MAINTENANCE_CADENCE_REVIEW.md](docs/MAINTENANCE_CADENCE_REVIEW.md) | 每項維護活動的適當頻率：daily、weekly、release-demo、incident-only、archival。 |
+| [docs/OPERATIONAL_MEMORY_PRESERVATION.md](docs/OPERATIONAL_MEMORY_PRESERVATION.md) | 哪些操作知識需長期保存 vs 暫時性；bundle archival 語意；交接需求。 |
+| [docs/STABLE_DEGRADED_STATE.md](docs/STABLE_DEGRADED_STATE.md) | 目前 RC-1 穩定降級狀態：已接受條件、穩定訊號、升級觸發條件、溝通指引。 |
+| [docs/MAINTENANCE_DISCIPLINE.md](docs/MAINTENANCE_DISCIPLINE.md) | 維護行為紀律：健康與不健康的維護模式；壓力下的紀律守則。 |
+| [docs/OPERATIONAL_CONTINUITY_REVIEW.md](docs/OPERATIONAL_CONTINUITY_REVIEW.md) | 持續性優勢、風險、脆弱操作假設，以及需要持續性關注的 report 關係分析。 |
+| [docs/MAINTENANCE_CONTINUITY_MODEL.md](docs/MAINTENANCE_CONTINUITY_MODEL.md) | 持續性概念定義：穩定降級、report、snapshot、信心、release 誠實度、詞彙持續性。 |
+| [docs/OPERATIONAL_MEMORY_DURABILITY.md](docs/OPERATIONAL_MEMORY_DURABILITY.md) | Artifact 耐久性分類（durable / semi-durable / ephemeral）；bundle 與 snapshot 耐久性語意。 |
+| [docs/STABLE_DEGRADED_CONTINUITY.md](docs/STABLE_DEGRADED_CONTINUITY.md) | 長期穩定降級狀態的維護指引：calm maintenance、避免 false urgency 與 desensitization。 |
+
+Maintenance calm summary（將已知 RC-1 穩定條件與需要處理的訊號分開說明）：
+
+```bash
+./scripts/build_maintenance_calm_summary.py
+# 輸出：reports/maintenance_calm_summary.md
+```
+
+Maintenance steadiness summary（謹慎等級、穩定降級指標、穩定性指引）：
+
+```bash
+./scripts/build_maintenance_steadiness_summary.py
+# 輸出：reports/maintenance_steadiness_summary.md
+```
+
+Maintenance continuity summary（持續性狀態、穩定降級持續性、release 誠實持續性）：
+
+```bash
+./scripts/build_maintenance_continuity_summary.py
+# 輸出：reports/maintenance_continuity_summary.md
+```
+
+Maintenance navigation（單頁操作員指引）：
+
+```bash
+./scripts/build_maintenance_navigation.py
+# 輸出：reports/maintenance_navigation.md
+```
+
 ## 目前的 Identity Layer
 
 CrawlerNest 包含一個輕量的 session-based identity layer，供本機開發與 demo 使用。
@@ -433,12 +488,34 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 - [Python Environment](docs/PYTHON_ENVIRONMENT.md) - venv、psycopg2 與 local runtime consistency
 - [Backup Restore Drill](docs/BACKUP_RESTORE_DRILL.md) - readonly-safe backup 與 restore rehearsal
 - [Snapshot Comparison](docs/SNAPSHOT_COMPARISON.md) - compare operational snapshots 與 failure-state fixtures
+- [Source Health Model](docs/SOURCE_HEALTH_MODEL.md) - source states 與 readonly health signals
+- [Operational Intelligence Automation](docs/OPERATIONAL_INTELLIGENCE_AUTOMATION.md) - observability automation 邊界與 escalation semantics
 - [RC-1 Environment Freeze](docs/RC1_ENVIRONMENT_FREEZE.md) - 已驗證 runtime 邊界與 setup 假設
 - [RC-1 Dependency Review](docs/RC1_DEPENDENCY_REVIEW.md) - dependency 風險與 pinning review
 - [RC-1 Release Hygiene](docs/RC1_RELEASE_HYGIENE.md) - generated artifacts 與 temporary outputs policy
 - [RC-1 Stability Review](docs/RC1_STABILITY_REVIEW.md) - 長時間操作、持久化與 restart review
 - [RC-1 Freeze Scope](docs/RC1_FREEZE_SCOPE.md) - frozen、allowed、blocked change surfaces
 - [RC-1 Validation Results](docs/RC1_VALIDATION_RESULTS.md) - release-candidate validation summary
+- [Operational Intelligence Automation](docs/OPERATIONAL_INTELLIGENCE_AUTOMATION.md) - readonly timeline、drift、freshness 與 summary automation 邊界
+- [Source Health Model](docs/SOURCE_HEALTH_MODEL.md) - source states 與 observability signals
+- [Operational Index](docs/OPERATIONAL_INDEX.md) - snapshots、reports、validation、bundles 與 agent context artifacts 的 hierarchy 與 ownership
+- [Operational Vocabulary](docs/OPERATIONAL_VOCABULARY.md) - reports 與 release evidence 的統一術語
+- [Report Relationships](docs/REPORT_RELATIONSHIPS.md) - report inputs、outputs、bundle feeds 與 demo summaries 的關係圖
+- [Snapshot Lineage](docs/SNAPSHOT_LINEAGE.md) - snapshot lifecycle 與 derived intelligence relationships
+- [Operational Surface Review](docs/OPERATIONAL_SURFACE_REVIEW.md) - overlapping operational artifacts 的 consolidation review
+- [Maintenance Priority Matrix](docs/MAINTENANCE_PRIORITY_MATRIX.md) - maintenance priorities、response times、escalation 與 freeze interaction
+- [Source Freshness Recovery](docs/SOURCE_FRESHNESS_RECOVERY.md) - stale 或 unavailable sources 的 human-led recovery plan
+- [Maintenance Runbook](docs/MAINTENANCE_RUNBOOK.md) - copy-paste friendly maintenance checks 與 refresh sequence
+- [Release State Checklist](docs/RELEASE_STATE_CHECKLIST.md) - demo/release 前的 operational readiness checklist
+- [Operational Cleanup Guide](docs/OPERATIONAL_CLEANUP_GUIDE.md) - snapshots、reports、bundles 與 tmp artifacts 的 retention / cleanup guidance
+- [Source State Explainability](docs/SOURCE_STATE_EXPLAINABILITY.md) - source-state explanations 與 demo caveat guidance
+- [Freshness Consistency Review](docs/FRESHNESS_CONSISTENCY_REVIEW.md) - freshness semantics alignment 與 known divergence
+- [Maintenance Ergonomics Review](docs/MAINTENANCE_ERGONOMICS_REVIEW.md) - maintenance entrypoint 與 workflow friction review
+- [Operational Confidence Model](docs/OPERATIONAL_CONFIDENCE_MODEL.md) - confidence dimensions、levels 與 maintainer behavior
+- [Source Completeness Review](docs/SOURCE_COMPLETENESS_REVIEW.md) - QS/THE/ARWU/subject completeness 與 caveat implications
+- [Demo Honesty Guidelines](docs/DEMO_HONESTY_GUIDELINES.md) - acceptable / unacceptable demo phrasing
+- [Confidence Consistency Review](docs/CONFIDENCE_CONSISTENCY_REVIEW.md) - maintenance reports 之間的 confidence semantics
+- [Maintenance Signal Clarity](docs/MAINTENANCE_SIGNAL_CLARITY.md) - authoritative、derived、demo-facing 與 escalation-facing signals
 - [Demo Checklist](docs/DEMO_CHECKLIST.md) — demo 或交接前的逐步確認清單
 - [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — 本機開發環境已知問題與解法
 

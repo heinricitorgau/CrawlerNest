@@ -1,0 +1,72 @@
+{
+  "snapshot_timestamp": "2026-05-22T15:29:44.062167+00:00",
+  "health": {
+    "postgres_connected": true,
+    "aggregated_rankings_count": 1499,
+    "subject_rankings_count": 0,
+    "latest_ranking_year": 2026,
+    "latest_subject_year": null,
+    "sources": [
+      {
+        "source_code": "QS",
+        "year": 2026,
+        "count": 1499
+      }
+    ]
+  },
+  "freshness": {
+    "global_rankings": [
+      {
+        "source_code": "QS",
+        "latest_ingested_at": "2026-05-08T06:24:35.437259+08:00",
+        "record_count": 1499,
+        "latest_year": 2026,
+        "age_hours": 353.1,
+        "stale": false,
+        "missing": false
+      }
+    ],
+    "subject_rankings": [],
+    "aggregation": {
+      "latest_run_id": 2,
+      "ranking_year": 2026,
+      "status": "finished",
+      "latest_at": "2026-05-08T06:24:35.935171+08:00",
+      "age_hours": 353.1,
+      "stale": false,
+      "behind_ingestion": false,
+      "output_count": 1499
+    },
+    "overall_stale": false
+  },
+  "unresolved": {
+    "total": 4,
+    "last_7d": 0,
+    "prior_7d": 0,
+    "trend_pct": null,
+    "by_source": [
+      {
+        "source_code": "QS",
+        "count": 4
+      }
+    ]
+  },
+  "drift_warnings": [],
+  "regression_summary": {
+    "aggregated_count": 1499,
+    "score_min": 0.000665,
+    "score_max": 1.0,
+    "score_avg": 0.0053,
+    "low_coverage_count": 1499
+  },
+  "last_ingestion": {
+    "source_code": "QS",
+    "batch_id": "qs-run-2026",
+    "started_at": "2026-05-08T06:24:35.661430+08:00",
+    "finished_at": "2026-05-08T06:24:35.661430+08:00",
+    "records_in": 1503,
+    "matched_count": 1499,
+    "unresolved_count": 4,
+    "inserted_count": 1499
+  }
+}
