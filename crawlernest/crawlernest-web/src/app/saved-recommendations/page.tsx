@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
 import { AUTH_MESSAGES } from "@/lib/authMessages";
+import { RC1_STANDARD_CAVEATS } from "@/lib/caveatMessages";
 
 type RecommendationSummary = {
   id: number;
@@ -83,18 +84,70 @@ function UnavailableBanner() {
   );
 }
 
+type SnapshotUniversity = {
+  universityName?: string;
+  explanation?: string;
+  recommendationExplain?: {
+    reasons?: string[];
+    warnings?: string[];
+    dimensions?: {
+      rankingFit?: number;
+      riskFit?: number;
+      languageFit?: number;
+      dataConfidence?: number;
+    };
+  };
+};
+
+function SnapshotEvidenceSection({ items }: { items: SnapshotUniversity[] }) {
+  const withEvidence = items.filter((u) => u.recommendationExplain);
+  if (withEvidence.length === 0) {
+    return (
+      <p className="mt-3 text-xs text-[#6b7068] italic">
+        Evidence details were not stored in this snapshot.
+      </p>
+    );
+  }
+  return (
+    <div className="mt-3 space-y-3">
+      {withEvidence.map((u, i) => (
+        <div key={i} className="rounded-lg border border-[#e0ddd8] bg-white p-3">
+          <div className="mb-1 text-xs font-semibold text-[#1a3d2e]">{u.universityName ?? "—"}</div>
+          {u.recommendationExplain?.reasons?.map((r, j) => (
+            <div key={j} className="text-xs text-[#415046]">✓ {r}</div>
+          ))}
+          {u.recommendationExplain?.warnings?.map((w, j) => (
+            <div key={j} className="text-xs text-[#6b554f]">⚠ {w}</div>
+          ))}
+        </div>
+      ))}
+      <div className="mt-2">
+        <div className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b3a2b]">
+          RC-1 Data Caveats
+        </div>
+        <ul className="space-y-0.5">
+          {RC1_STANDARD_CAVEATS.map((c, i) => (
+            <li key={i} className="text-xs text-[#6b554f]">· {c}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 function DetailPanel({ detail, onClose }: { detail: RecommendationDetail; onClose: () => void }) {
   const req = detail.requestJson ?? {};
   const result = detail.resultJson as {
     data?: {
-      reach?: Array<{ universityName?: string }>;
-      target?: Array<{ universityName?: string }>;
-      safety?: Array<{ universityName?: string }>;
+      reach?: SnapshotUniversity[];
+      target?: SnapshotUniversity[];
+      safety?: SnapshotUniversity[];
     };
   };
   const reach = result?.data?.reach ?? [];
   const target = result?.data?.target ?? [];
   const safety = result?.data?.safety ?? [];
+  const allItems = [...reach, ...target, ...safety];
 
   return (
     <div className="mt-4 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] p-5">
@@ -155,6 +208,16 @@ function DetailPanel({ detail, onClose }: { detail: RecommendationDetail; onClos
         </div>
       ) : (
         <p className="text-sm text-[#6b7068]">No university data in this snapshot.</p>
+      )}
+
+      {/* Evidence section */}
+      {allItems.length > 0 && (
+        <div className="mt-4 border-t border-[#e0ddd8] pt-4">
+          <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6b7068] mb-1">
+            Evidence Details
+          </div>
+          <SnapshotEvidenceSection items={allItems} />
+        </div>
       )}
     </div>
   );

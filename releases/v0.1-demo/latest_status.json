@@ -1,6 +1,6 @@
 {
-  "snapshot_timestamp": "2026-05-08T07:21:13.439979+00:00",
-  "snapshot_file": "system_snapshot_20260508_072113.json",
+  "snapshot_timestamp": "2026-05-22T15:29:44.062167+00:00",
+  "snapshot_file": "system_snapshot_20260522_152944.json",
   "aggregated_count": 1499,
   "source_counts": [
     {
@@ -10,7 +10,7 @@
     }
   ],
   "unresolved_total": 4,
-  "unresolved_last_7d": 4,
+  "unresolved_last_7d": 0,
   "unresolved_trend_pct": null,
   "drift_warning_count": 0,
   "drift_warnings": [],

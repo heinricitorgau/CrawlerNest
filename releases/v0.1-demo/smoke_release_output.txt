@@ -1,5 +1,5 @@
 # CrawlerNest v0.1 Release Smoke Output
-# Generated: 2026-05-16T09:55:39Z
+# Generated: 2026-05-22T19:11:08Z
 
 [1/8] Local environment verification (readonly)...
 [environment] readonly local verification
@@ -28,25 +28,26 @@ OK   Next.js build: success (Node v20.20.2)
 OK   Python syntax: all files OK
 [5/8] Pipeline health diagnostics (readonly)...
 CrawlerNest Pipeline Health
-Status: FAILED
-Checked at: 2026-05-16T09:55:52.273001+00:00
+Status: STALE
+Checked at: 2026-05-22T19:11:17.891043+00:00
 
-aggregated_rankings_count: None
-ranking_record_count: None
-unresolved_count: None
-duplicate_resolution_count: None
-latest_aggregation_finished_at: None
-latest_aggregation_age_hours: None
+aggregated_rankings_count: 1499
+ranking_record_count: 1499
+unresolved_count: 4
+duplicate_resolution_count: 3
+latest_aggregation_finished_at: 2026-05-08T06:24:35.935171+08:00
+latest_aggregation_age_hours: 356.78
 latest_subject_year: None
-source_coverage: {}
-missing_sources: []
+source_coverage: {'QS': 1499}
+missing_sources: ['THE', 'ARWU']
 
 Reasons:
-- connection to server at "127.0.0.1", port 5432 failed: fe_sendauth: no password supplied
-
+- latest aggregation is older than 36 hours
+- missing expected sources: THE, ARWU
+- duplicate resolution saves observed: 3
 
 {
-  "checked_at": "2026-05-16T09:55:52.273001+00:00",
+  "checked_at": "2026-05-22T19:11:17.891043+00:00",
   "thresholds": {
     "stale_after_hours": 36,
     "min_aggregated_rows": 100,
@@ -57,10 +58,26 @@ Reasons:
       "ARWU"
     ]
   },
-  "connection_error": "connection to server at \"127.0.0.1\", port 5432 failed: fe_sendauth: no password supplied\n",
-  "status": "failed",
+  "aggregated_rankings_count": 1499,
+  "ranking_record_count": 1499,
+  "unresolved_count": 4,
+  "duplicate_resolution_count": 3,
+  "latest_aggregation_finished_at": "2026-05-08T06:24:35.935171+08:00",
+  "latest_subject_year": null,
+  "source_coverage": {
+    "QS": 1499
+  },
+  "missing_sources": [
+    "THE",
+    "ARWU"
+  ],
+  "latest_aggregation_age_hours": 356.78,
+  "stale": true,
+  "status": "stale",
   "reasons": [
-    "connection to server at \"127.0.0.1\", port 5432 failed: fe_sendauth: no password supplied\n"
+    "latest aggregation is older than 36 hours",
+    "missing expected sources: THE, ARWU",
+    "duplicate resolution saves observed: 3"
   ]
 }
 OK   Pipeline health diagnostics completed
