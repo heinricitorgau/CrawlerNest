@@ -103,9 +103,9 @@ def check_overview_step_count() -> None:
     if overview.exists():
         text = overview.read_text(encoding="utf-8")
         check(
-            "overview contains [8/8]",
-            "[8/8]" in text,
-            "step [8/8] not found — script may not have been updated",
+            "overview contains steadiness step",
+            "[8/9]" in text or "[8/8]" in text,
+            "steadiness step not found — script may not have been updated",
         )
         check(
             "overview does not contain [7/7]",
