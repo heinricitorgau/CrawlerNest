@@ -8,6 +8,7 @@ import {
   AGENT_LIMITATIONS,
   AGENT_SUGGESTED_PROMPTS,
 } from "@/lib/agentSystemPrompt";
+import { AGENT_DEMO_RUBRIC } from "@/lib/agentResponseRubric";
 
 type AgentMode = "web" | "dev";
 type TaskKind =
@@ -1879,6 +1880,44 @@ export default function AgentPage() {
             </p>
           </section>
         ) : null}
+
+        <section className="mb-4 rounded-[1.5rem] border border-[#d8d3cb] bg-white px-5 py-4 text-sm shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#6b7068]">
+                Demo Ready Information
+              </div>
+              <div className="mt-2 text-base font-semibold text-[#1a3d2e]">
+                Advisory model surface for competition demos
+              </div>
+              <p className="mt-1 max-w-3xl leading-6 text-[#6b7068]">
+                Intended use: explain rankings, recommendations, analytics caveats,
+                source freshness, and debugging direction without changing CrawlerNest.
+              </p>
+            </div>
+            <div className="grid gap-2 text-xs sm:grid-cols-2">
+              <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1 text-[#1a3d2e]">
+                provider: {agentHealth?.generation?.providerLabel ?? "mock"}
+              </span>
+              <span className="rounded-full border border-[#cfe5d7] bg-[#edf7f1] px-3 py-1 text-[#1a6b3a]">
+                readonly
+              </span>
+              <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1 text-[#1a3d2e]">
+                advisory-only
+              </span>
+              <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1 text-[#1a3d2e]">
+                no tool calling
+              </span>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs text-[#6b7068]">
+            {AGENT_DEMO_RUBRIC.requiredBoundary.map((boundary) => (
+              <span key={boundary} className="rounded-full bg-[#faf8f4] px-2.5 py-1">
+                {boundary}
+              </span>
+            ))}
+          </div>
+        </section>
 
         <section className="flex-1 rounded-[2rem] border border-[#e0ddd8] bg-white shadow-sm">
           {showDebug || loading ? (
