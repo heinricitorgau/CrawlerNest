@@ -1,3 +1,5 @@
+import { AGENT_SYSTEM_PROMPT } from "@/lib/agentSystemPrompt";
+
 export type AgentModelProvider = "mock" | "ollama" | "openai";
 
 export type AgentProviderStatus = {
@@ -25,13 +27,6 @@ const DEFAULT_TIMEOUT_MS = 15000;
 
 const SAFE_ERROR =
   "Agent model provider is unavailable. The request stayed readonly and no CrawlerNest data was modified.";
-
-const SYSTEM_PROMPT = [
-  "You are CrawlerNest Agent in readonly advisory mode.",
-  "You may explain CrawlerNest concepts, suggest pages to inspect, and summarize next human steps.",
-  "You must not claim to run shell commands, edit files, run pipelines, write databases, or change rankings.",
-  "Keep answers concise, operationally honest, and demo-safe.",
-].join(" ");
 
 export function validateAgentMessage(message: unknown): string | null {
   if (typeof message !== "string") {
@@ -63,7 +58,7 @@ export function getAgentProviderStatus(env: ProviderEnv = process.env): AgentPro
       providerLabel: "invalid",
       modelName: null,
       baseUrl: null,
-      reason: "Unsupported AGENT_MODEL_PROVIDER. Use mock, ollama, or openai.",
+      reason: "Invalid provider. Set AGENT_MODEL_PROVIDER to mock, ollama, or openai.",
     };
   }
 
@@ -86,7 +81,7 @@ export function getAgentProviderStatus(env: ProviderEnv = process.env): AgentPro
       providerLabel: "ollama",
       modelName: modelName || null,
       baseUrl,
-      reason: modelName ? null : "AGENT_MODEL_NAME is required for Ollama.",
+      reason: modelName ? null : "Model name is required for Ollama provider.",
     };
   }
 
@@ -97,10 +92,10 @@ export function getAgentProviderStatus(env: ProviderEnv = process.env): AgentPro
     modelName: modelName || null,
     baseUrl: env.AGENT_MODEL_BASE_URL?.trim() || "https://api.openai.com/v1",
     reason: !env.OPENAI_API_KEY?.trim()
-      ? "OPENAI_API_KEY is required for OpenAI provider."
+      ? "OpenAI API key is missing. Configure it server-side before using the OpenAI provider."
       : modelName
         ? null
-        : "AGENT_MODEL_NAME is required for OpenAI provider.",
+        : "Model name is required for OpenAI provider.",
   };
 }
 
@@ -131,7 +126,7 @@ export async function generateAgentChatResponse(
   if (status.providerLabel === "mock") {
     return {
       ok: true,
-      text: buildMockResponse(message),
+      text: normalizeAgentResponse(buildMockResponse(message)),
       providerLabel: "mock",
       modelName: status.modelName,
       baseUrl: null,
@@ -153,7 +148,7 @@ export async function generateAgentChatResponse(
       providerLabel: status.providerLabel,
       modelName: status.modelName,
       baseUrl: status.baseUrl,
-      warnings: ["Provider request failed or timed out. Raw provider errors are not exposed."],
+      warnings: ["Model unavailable or timeout. Raw provider errors are not exposed."],
     };
   }
 
@@ -171,9 +166,34 @@ function buildMockResponse(message: string): string {
   const intent = message.trim().replace(/\s+/g, " ").slice(0, 240);
   return [
     `I read your request as: "${intent}".`,
-    "This Phase 1 agent response is advisory only. It does not run tools, edit the repository, write the database, or rerun CrawlerNest pipelines.",
-    "Useful CrawlerNest pages to inspect next: /analytics, /rankings, /recommendations, and /system-status.",
+    "I can explain CrawlerNest concepts, point you to relevant pages, summarize caveats, and suggest debugging direction.",
+    "This response is advisory only. I do not run tools, modify code, write the database, rerun pipelines, or change recommendations.",
+    "Useful pages to inspect next: /analytics, /rankings, /recommendations, and /system-status.",
+    "Check freshness and source coverage caveats before treating the result as complete.",
   ].join("\n\n");
+}
+
+export function normalizeAgentResponse(text: string): string {
+  let normalized = text;
+  const replacements: Array<[RegExp, string]> = [
+    [/\bI(?:'ve| have)? changed the code\b/gi, "I can suggest how to change the code"],
+    [/\bI(?:'ve| have)? modified the code\b/gi, "I can suggest how to modify the code"],
+    [/\bI(?:'ve| have)? edited the repository\b/gi, "I can suggest what a maintainer could edit"],
+    [/\bI(?:'ve| have)? updated the repo(?:sitory)?\b/gi, "I can suggest what a maintainer could update"],
+    [/\bI(?:'ve| have)? ran the pipeline\b/gi, "You can run the pipeline"],
+    [/\bI(?:'ve| have)? reran the pipeline\b/gi, "You can rerun the pipeline"],
+    [/\bI(?:'ve| have)? run the pipeline\b/gi, "You can run the pipeline"],
+    [/\bI(?:'ve| have)? updated the database\b/gi, "I can explain how a maintainer can update the database"],
+    [/\bI(?:'ve| have)? wrote to the database\b/gi, "I can explain how a maintainer can write to the database"],
+    [/\bI(?:'ve| have)? changed recommendations\b/gi, "I can explain recommendation behavior"],
+    [/\bI(?:'ve| have)? changed the rankings\b/gi, "I can explain ranking behavior"],
+  ];
+
+  for (const [pattern, replacement] of replacements) {
+    normalized = normalized.replace(pattern, replacement);
+  }
+
+  return normalized;
 }
 
 async function callOllamaProvider(
@@ -188,12 +208,12 @@ async function callOllamaProvider(
     model: status.modelName,
     stream: false,
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: AGENT_SYSTEM_PROMPT },
       { role: "user", content: message },
     ],
   };
   const json = await postJsonWithTimeout(endpoint, payload, {}, fetchImpl, timeoutMs);
-  const text = extractOllamaText(json);
+  const text = normalizeAgentResponse(extractOllamaText(json));
   return {
     ok: true,
     text,
@@ -217,7 +237,7 @@ async function callOpenAiProvider(
     model: status.modelName,
     temperature: 0.2,
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: AGENT_SYSTEM_PROMPT },
       { role: "user", content: message },
     ],
   };
@@ -228,7 +248,7 @@ async function callOpenAiProvider(
     fetchImpl,
     timeoutMs
   );
-  const text = extractOpenAiText(json);
+  const text = normalizeAgentResponse(extractOpenAiText(json));
   return {
     ok: true,
     text,
