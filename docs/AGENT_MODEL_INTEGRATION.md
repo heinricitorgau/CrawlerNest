@@ -10,6 +10,10 @@ Phase 2 adds response-quality alignment: a shared system prompt, provider prompt
 consistency, minimal response-safety normalization, visible capability
 boundaries, and suggested prompts.
 
+Phase 3 adds demo readiness: prompt library, response evaluation guidance,
+provider readiness matrix, fallback flow, rubric constants, and a visible demo
+ready information banner on `/agent`.
+
 ## Architecture
 
 ```mermaid
@@ -55,12 +59,18 @@ response.
 Phase 1 chat integration:
 
 - Does not execute tools.
+- no tool calling
 - Does not run shell commands.
+- no shell execution
 - Does not write to PostgreSQL.
+- no DB writes
 - Does not rerun crawlers, ingestion, aggregation, ranking, diagnostics, or recommendation pipelines.
+- no pipeline execution
 - Does not edit repository files.
+- no repo mutation
 - Does not write long-term memory.
 - Does not create commits, branches, PRs, or autonomous tasks.
+- no autonomous behavior
 
 The route returns metadata fields such as `toolsExecuted=false`, `dbWrites=false`,
 and `pipelineRuns=false` to make the boundary visible in debug output.
@@ -132,6 +142,40 @@ tools:
 - Where can I view analytics caveats?
 - How do I debug missing ranking data?
 
+## Demo Readiness
+
+Demo readiness docs:
+
+- [AGENT_DEMO_PROMPTS.md](AGENT_DEMO_PROMPTS.md): core competition prompts,
+  expected themes, caveats, and judge learning goals.
+- [AGENT_DEMO_EVALUATION.md](AGENT_DEMO_EVALUATION.md): good/bad answer
+  criteria and demo evaluation checks.
+- [AGENT_PROVIDER_MATRIX.md](AGENT_PROVIDER_MATRIX.md): mock, Ollama, and
+  OpenAI readiness comparison.
+- [AGENT_DEMO_FALLBACK.md](AGENT_DEMO_FALLBACK.md): presenter-safe fallback
+  flow for unavailable, timed out, missing-key, and misconfigured providers.
+
+The `/agent` page includes a "Demo Ready Information" banner that shows the
+current provider, readonly status, no-tool-calling status, advisory-only
+boundary, and intended use.
+
+## Provider Recommendations
+
+Competition default should be mock or Ollama:
+
+- `mock` is the safest default because it is repeatable, free, and independent
+  of internet access.
+- `ollama` is suitable when the local model is already pulled and verified.
+- `openai` can provide richer responses, but should not be the only demo path
+  because it depends on internet access, API key configuration, quota, and model
+  availability.
+
+Before a demo, run the validation script:
+
+```bash
+python3 scripts/validate_agent_demo_readiness.py
+```
+
 ## Mock Provider Behavior
 
 The mock provider is the default and works without environment variables. It:
@@ -189,6 +233,8 @@ included in frontend code.
 | Message too long | Rejects before any provider call. |
 
 Raw provider errors and stack traces are intentionally not shown to the browser.
+See [AGENT_DEMO_FALLBACK.md](AGENT_DEMO_FALLBACK.md) for presenter wording and
+fallback commands.
 
 ## Non-Goals
 
