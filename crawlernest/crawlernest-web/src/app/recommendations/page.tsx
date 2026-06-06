@@ -8,6 +8,7 @@ import { fetchAppJson } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
 import { AUTH_MESSAGES } from "@/lib/authMessages";
 import { RC1_STANDARD_CAVEATS } from "@/lib/caveatMessages";
+import { sourceAvailabilityConfig } from "@/lib/analyticsPresentation";
 import { AdmissionSignalBadge } from "@/components/AdmissionSignalBadge";
 import { PlanComparisonMatrix } from "@/components/PlanComparisonMatrix";
 import {
@@ -2647,11 +2648,16 @@ function ExplainPanel({ item }: { item: RecommendationItem }) {
           {explain ? (
             <>
               {explain.reasons.length > 0 && (
-                <div className="space-y-1.5 text-sm text-[#415046]">
-                  {explain.reasons.map((r) => (
-                    <div key={r}>✓ {r}</div>
-                  ))}
-                </div>
+                <>
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                    Evidence Chain
+                  </div>
+                  <div className="space-y-1.5 text-sm text-[#415046]">
+                    {explain.reasons.map((r) => (
+                      <div key={r}>✓ {r}</div>
+                    ))}
+                  </div>
+                </>
               )}
 
               {explain.warnings.length > 0 && (
@@ -2662,11 +2668,34 @@ function ExplainPanel({ item }: { item: RecommendationItem }) {
                 </div>
               )}
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-4">
+              <div className="mt-4 border-t border-[#e8e4de] pt-4 grid gap-3 sm:grid-cols-4">
                 <SummaryItem label="Ranking Fit" value={formatScore(explain.dimensions.rankingFit)} />
                 <SummaryItem label="Risk Fit" value={formatScore(explain.dimensions.riskFit)} />
                 <SummaryItem label="Language Fit" value={formatScore(explain.dimensions.languageFit)} />
                 <SummaryItem label="Data Confidence" value={formatScore(explain.dimensions.dataConfidence)} />
+              </div>
+
+              <div className="mt-4 border-t border-[#e8e4de] pt-4">
+                <div className="mb-1.5 flex items-center justify-between text-xs">
+                  <span className="font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                    Data Confidence
+                  </span>
+                  <span className="font-semibold tabular-nums text-[#415046]">
+                    {Math.round(explain.dimensions.dataConfidence)}%
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-[#f5f3ee]">
+                  <div
+                    className="h-2 rounded-full bg-[#1a3d2e]"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, explain.dimensions.dataConfidence))}%`,
+                    }}
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-[#6b7068]">
+                  Derived from source coverage and data completeness.{" "}
+                  <span className="font-medium text-[#415046]">Not AI-generated.</span>
+                </p>
               </div>
             </>
           ) : null}
@@ -2677,23 +2706,22 @@ function ExplainPanel({ item }: { item: RecommendationItem }) {
           )}
           {explainState.status === "ok" && (
             <>
-              <div className="mt-4">
+              <div className="mt-4 border-t border-[#e8e4de] pt-4">
                 <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
                   Source Coverage
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(["QS", "THE", "ARWU"] as const).map((src) => (
-                    <span
-                      key={src}
-                      className={`rounded border px-2 py-0.5 text-xs font-semibold ${
-                        explainState.sourceCoverage[src]
-                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                          : "border-slate-200 bg-slate-50 text-slate-400"
-                      }`}
-                    >
-                      {src} {explainState.sourceCoverage[src] ? "✓" : "—"}
-                    </span>
-                  ))}
+                  {(["QS", "THE", "ARWU"] as const).map((src) => {
+                    const cfg = sourceAvailabilityConfig(explainState.sourceCoverage[src]);
+                    return (
+                      <span
+                        key={src}
+                        className={`rounded border px-2 py-0.5 text-xs font-semibold ${cfg.badgeCls}`}
+                      >
+                        {src} {cfg.icon} {cfg.statusLabel}
+                      </span>
+                    );
+                  })}
                 </div>
                 {explainState.confidenceReason && (
                   <p className="mt-2 text-xs text-[#6b7068]">{explainState.confidenceReason}</p>

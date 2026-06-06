@@ -37,6 +37,7 @@ layout, data movement, operations, and endpoint coverage.
 | [DEMO_CHECKLIST.md](DEMO_CHECKLIST.md) | Pre-demo and handover checklist. |
 | [LOCAL_TROUBLESHOOTING.md](LOCAL_TROUBLESHOOTING.md) | Local environment issues and fixes. |
 | [AI_DEV_WORKFLOW.md](AI_DEV_WORKFLOW.md) | AI-assisted development workflow and crawlernest-agents integration notes. |
+| [AGENT_MODEL_INTEGRATION.md](AGENT_MODEL_INTEGRATION.md) | Readonly `/agent` model provider bridge, env vars, fallback behavior, and safety boundaries. |
 | [AUTH_LIMITATIONS.md](AUTH_LIMITATIONS.md) | Auth model, non-goals, localhost assumptions, scaling risks, and future requirements. |
 | [USER_DATA_SAFETY_REVIEW.md](USER_DATA_SAFETY_REVIEW.md) | User data safety review: isolation guarantees, validation hardening, session model, operational limits. |
 | [UX_STABILIZATION_NOTES.md](UX_STABILIZATION_NOTES.md) | UX stabilization pass: loading/error/session-expired states, save button consistency, shared auth messages, known limits. |
@@ -85,6 +86,20 @@ layout, data movement, operations, and endpoint coverage.
 | [MAINTENANCE_CONTINUITY_MODEL.md](MAINTENANCE_CONTINUITY_MODEL.md) | Continuity concept definitions: stable degraded, report, snapshot, confidence, honesty, vocabulary continuity. |
 | [OPERATIONAL_MEMORY_DURABILITY.md](OPERATIONAL_MEMORY_DURABILITY.md) | Artifact durability tiers (durable/semi-durable/ephemeral); bundle and snapshot durability semantics. |
 | [STABLE_DEGRADED_CONTINUITY.md](STABLE_DEGRADED_CONTINUITY.md) | Long-term stable degraded posture guidance: calm maintenance, false urgency avoidance, desensitization risks. |
+| [ANALYTICS_VISUALIZATION_PLAN.md](ANALYTICS_VISUALIZATION_PLAN.md) | Phase 3 visualization decisions: which analytics views to build, why, and operational honesty considerations. |
+| [COMPETITION_STORYTELLING.md](COMPETITION_STORYTELLING.md) | Competition demo storytelling framework: what to say, what to avoid, required caveats. |
+| [DEMO_FLOW_ARCHITECTURE.md](DEMO_FLOW_ARCHITECTURE.md) | Phase 4 demo flow: timing, screens, core messages, and condensed flows for 30s / 90s / 4-min formats. |
+| [JUDGE_ATTENTION_STRATEGY.md](JUDGE_ATTENTION_STRATEGY.md) | Phase 4 judge strategy: high-impact screens, misunderstanding risks, framing guidance. |
+| [DEMO_ROUTE.md](DEMO_ROUTE.md) | Phase 4 demo route: step-by-step click sequence with dwell times and core sentences. |
+| [DEMO_SCREENSHOT_PLAN.md](DEMO_SCREENSHOT_PLAN.md) | Phase 4 screenshot plan: which screens to capture, what must be visible, what to crop out. |
+| [DEMO_EVIDENCE_SEQUENCING.md](DEMO_EVIDENCE_SEQUENCING.md) | Phase 4 evidence sequencing: revelation order from problem to data to explainability to caveats. |
+| [DEMO_HONESTY_STRATEGY.md](DEMO_HONESTY_STRATEGY.md) | Phase 4 honesty strategy: which caveats to state aloud, framing without alarm inflation. |
+| [DEMO_PRODUCTION_RUNBOOK.md](DEMO_PRODUCTION_RUNBOOK.md) | Demo Production Phase 1: environment startup, browser prep, session verification, pre-demo checklist. |
+| [DEMO_BROWSER_STATE.md](DEMO_BROWSER_STATE.md) | Demo Production Phase 1: browser tabs, zoom, light mode, session state, avoid-during-demo actions. |
+| [SCREENSHOT_CAPTURE_WORKFLOW.md](SCREENSHOT_CAPTURE_WORKFLOW.md) | Demo Production Phase 1: priority screenshots, required visible elements, crop guidance, fallback use. |
+| [DEMO_RECORDING_PREP.md](DEMO_RECORDING_PREP.md) | Demo Production Phase 1: screen resolution, narration pacing, offline-safe operation, recovery guidance. |
+| [DEMO_DATA_FREEZE.md](DEMO_DATA_FREEZE.md) | Demo Production Phase 1: which data to freeze before demo, why stable degraded beats unstable freshness. |
+| [DEMO_FAILURE_RECOVERY.md](DEMO_FAILURE_RECOVERY.md) | Demo Production Phase 1: per-failure recovery steps for backend, session, analytics, browser, environment. |
 
 ## Subfolders
 

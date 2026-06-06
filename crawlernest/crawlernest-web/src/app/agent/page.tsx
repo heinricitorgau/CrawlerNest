@@ -266,9 +266,6 @@ type AgentHealthResponse = {
   };
 };
 
-const AGENT_START_COMMAND =
-  "python3 -m crawlernest.interfaces.api.agent_api --host 127.0.0.1 --port 8090";
-
 const TASK_OPTIONS: Array<{ value: TaskKind; label: string }> = [
   { value: "data_query", label: "Data Query" },
   { value: "ranking_explain", label: "Ranking Explain" },
@@ -335,17 +332,6 @@ const QUICK_TASKS: Array<{
       2
     ),
   },
-  {
-    label: "Refine Extractor",
-    mode: "dev",
-    kind: "dev_refinement",
-    prompt: "Improve THE extractor failure handling",
-    context: JSON.stringify(
-      { target: "the_extractor", notes: ["focus on parse stability"] },
-      null,
-      2
-    ),
-  },
 ];
 
 const PROMPT_HINTS: Record<TaskKind, string> = {
@@ -366,10 +352,10 @@ function getFriendlyError(error: string | null) {
   }
 
   if (
-    error.includes("Failed to reach /api/agent/tasks") ||
+    error.includes("Failed to reach /api/agent/chat") ||
     error.includes("Failed to reach agent API")
   ) {
-    return "Agent service is offline. Start the Python agent API, then try again.";
+    return "Agent chat route is unavailable. Check the Next.js server, then try again.";
   }
 
   return error;
@@ -1681,14 +1667,6 @@ export default function AgentPage() {
       return;
     }
 
-    let parsedContext: Record<string, unknown> = {};
-    try {
-      parsedContext = contextJson.trim() ? JSON.parse(contextJson) : {};
-    } catch {
-      setError("Context JSON is invalid.");
-      return;
-    }
-
     setLoading(true);
     setError(null);
     shouldAutoScrollRef.current = true;
@@ -1705,18 +1683,13 @@ export default function AgentPage() {
     setHistory((current) => [...current, pendingEntry]);
 
     try {
-      const res = await fetch("/api/agent/tasks", {
+      const res = await fetch("/api/agent/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          mode,
-          kind,
-          source: mode === "dev" ? "api-dev" : "web",
-          user_input: trimmedPrompt,
-          context: parsedContext,
-          constraints: { debug: showDebug },
+          message: trimmedPrompt,
           session_id: sessionId,
         }),
       });
@@ -1741,9 +1714,6 @@ export default function AgentPage() {
       );
       if (!res.ok || !json.success) {
         setError(nextEntry.error);
-        if ((json.error ?? "").includes("Failed to reach agent API")) {
-          setAgentStatus("offline");
-        }
       } else {
         setAgentStatus("online");
       }
@@ -1754,7 +1724,7 @@ export default function AgentPage() {
         kind,
         prompt: trimmedPrompt,
         response: null,
-        error: "Failed to reach /api/agent/tasks",
+        error: "Failed to reach /api/agent/chat",
       };
       setHistory((current) =>
         current.map((entry) => (entry.id === entryId ? nextEntry : entry))
@@ -1824,18 +1794,16 @@ export default function AgentPage() {
             >
               agent: {agentStatus}
             </div>
+            <div className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#6b7068]">
+              provider: {agentHealth?.generation?.providerLabel ?? "mock"}
+            </div>
               {showDebug ? (
                 <>
                   <div className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#6b7068]">
-                    {agentHealth?.generation?.configured
-                      ? `provider: ${agentHealth.generation.providerLabel ?? "configured"}`
-                      : "provider: fallback"}
-                  </div>
-                  <div className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#6b7068]">
-                    Agent
+                    readonly
                   </div>
                 <div className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-sm text-[#1a3d2e]">
-                  Web and dev agent share the same core
+                  Chat route does not execute tools
                 </div>
               </>
             ) : null}
@@ -1866,9 +1834,9 @@ export default function AgentPage() {
               CrawlerNest Agent
             </h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6b7068]">
-              Ask for a ranking explanation, a university lookup, or a dev refinement
-              task. The page stays thin and sends everything through the same agent
-              API used by future web features.
+              Ask for a ranking explanation, a university lookup, or a maintenance
+              question. Agent responses are advisory only. They do not modify
+              CrawlerNest.
             </p>
           </div>
         </header>
@@ -1889,14 +1857,11 @@ export default function AgentPage() {
 
         {agentStatus === "offline" ? (
           <section className="mb-4 rounded-[1.5rem] border border-[#f0caca] bg-[#fff8f8] px-5 py-4 text-sm text-[#7c3131]">
-            <div className="font-semibold text-[#a33a3a]">Agent service offline</div>
+            <div className="font-semibold text-[#a33a3a]">Agent chat route unavailable</div>
             <p className="mt-2 leading-6">
-              The page is ready, but the independent Python agent API is not running.
-              Start it with:
+              The page is ready, but the local Next.js chat bridge did not respond.
+              Check the dev server and provider configuration, then try again.
             </p>
-            <pre className="mt-3 overflow-x-auto rounded-xl bg-white px-4 py-3 text-xs text-[#1a1a1a]">
-              {AGENT_START_COMMAND}
-            </pre>
           </section>
         ) : null}
 
@@ -2382,7 +2347,7 @@ export default function AgentPage() {
                       disabled={loading}
                       className="rounded-full bg-[#16382a] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42] disabled:cursor-not-allowed disabled:bg-[#c0bdb8]"
                     >
-                      {loading ? "Running..." : "Run"}
+                      {loading ? "Generating..." : "Send"}
                     </button>
                   </div>
 
@@ -2428,10 +2393,10 @@ export default function AgentPage() {
                   <div className="mt-6">
                     <h2 className="text-lg font-semibold text-[#1a3d2e]">How it works</h2>
                     <div className="mt-4 space-y-3 text-sm leading-6 text-[#6b7068]">
-                      <p>1. This page sends a task to <code>/api/agent/tasks</code>.</p>
-                      <p>2. The Next proxy forwards it to the independent Python agent API.</p>
-                      <p>3. The agent service runs the shared planner, runner, and tools.</p>
-                      <p>4. The structured result comes back here unchanged.</p>
+                      <p>1. This page sends a readonly chat message to <code>/api/agent/chat</code>.</p>
+                      <p>2. The server-side provider bridge selects mock, Ollama, or OpenAI.</p>
+                      <p>3. The bridge returns advisory text only; it does not run tools.</p>
+                      <p>4. No shell commands, DB writes, pipeline runs, or repo edits are performed.</p>
                     </div>
                   </div>
 
@@ -2466,10 +2431,10 @@ export default function AgentPage() {
 
                   <div className="mt-6 rounded-[1.5rem] border border-[#e0ddd8] bg-white p-4">
                     <div className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
-                      Agent startup
+                      Provider setup
                     </div>
                     <pre className="mt-3 overflow-x-auto rounded-xl bg-[#faf8f4] px-4 py-3 text-xs text-[#1a1a1a]">
-                      {AGENT_START_COMMAND}
+                      AGENT_MODEL_PROVIDER=mock npm run dev
                     </pre>
                   </div>
 

@@ -126,6 +126,16 @@ cd crawlernest/crawlernest-web
 npm run dev
 ```
 
+Agent 頁面會透過 `/api/agent/chat` 使用 readonly model-provider bridge。
+預設是 mock provider；它不會執行 tools、不會寫 DB、不會跑 pipeline，也不會修改 repo。
+
+```bash
+AGENT_MODEL_PROVIDER=mock npm run dev
+```
+
+Ollama 與 OpenAI 的 server-side 環境變數設定請見
+[Agent Model Integration](docs/AGENT_MODEL_INTEGRATION.md)。
+
 ### 8. Smoke check
 
 ```bash
