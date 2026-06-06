@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  confidenceConfig,
+  confidencePostureLabel,
+  severityConfig,
+  sourceAvailabilityConfig,
+  spreadToSeverity,
+} from "@/lib/analyticsPresentation";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -380,10 +387,19 @@ export default function AnalyticsPage() {
                         <td className="px-3 py-2 font-mono">{row.source_ranks.QS ?? "—"}</td>
                         <td className="px-3 py-2 font-mono">{row.source_ranks.THE ?? "—"}</td>
                         <td className="px-3 py-2 font-mono">{row.source_ranks.ARWU ?? "—"}</td>
-                        <td className="px-3 py-2 font-mono">{row.rank_spread}</td>
                         <td className="px-3 py-2">
-                          <span className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-xs font-semibold uppercase text-slate-700">
-                            {row.confidence}
+                          <span className="font-mono text-slate-700">{row.rank_spread}</span>
+                          <span
+                            className={`ml-2 rounded border px-1.5 py-0.5 text-xs font-semibold ${severityConfig(spreadToSeverity(row.rank_spread)).badgeCls}`}
+                          >
+                            {severityConfig(spreadToSeverity(row.rank_spread)).label}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2">
+                          <span
+                            className={`rounded border px-1.5 py-0.5 text-xs font-semibold uppercase ${confidenceConfig(row.confidence).badgeCls}`}
+                          >
+                            {confidenceConfig(row.confidence).label}
                           </span>
                         </td>
                       </tr>
@@ -407,34 +423,100 @@ export default function AnalyticsPage() {
           )}
           {disagreement && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {Object.entries(disagreement.missing_source_coverage).map(([source, item]) => (
-                <div key={source} className="border border-slate-200 bg-white p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
-                      {source} Coverage
+              {Object.entries(disagreement.missing_source_coverage).map(([source, item]) => {
+                const available = item.covered_pct > 0;
+                const availCfg = sourceAvailabilityConfig(available);
+                return (
+                  <div key={source} className="border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                        {source} Coverage
+                      </div>
+                      <span
+                        className={`rounded border px-2 py-0.5 text-xs font-semibold ${availCfg.badgeCls}`}
+                      >
+                        {availCfg.icon} {availCfg.statusLabel}
+                      </span>
                     </div>
-                    <div className="font-mono text-sm font-bold text-slate-900">
-                      {item.covered_pct.toFixed(1)}%
+                    <div className="mt-3">
+                      <div className="mb-1 text-xs text-slate-500">
+                        {item.covered_pct.toFixed(1)}% covered
+                      </div>
+                      <div className="h-2 bg-slate-100">
+                        <div
+                          className={`h-2 ${available ? "bg-blue-600" : "bg-slate-200"}`}
+                          style={{ width: `${Math.max(0, Math.min(100, item.covered_pct))}%` }}
+                        />
+                      </div>
                     </div>
+                    <div className="mt-2 text-xs text-slate-500">
+                      {item.covered_count.toLocaleString()} covered,{" "}
+                      {item.missing_count.toLocaleString()} missing
+                    </div>
+                    {!available && (
+                      <div className="mt-2 text-xs text-slate-500">
+                        Not available at RC-1.
+                      </div>
+                    )}
                   </div>
-                  <div className="mt-3 h-2 bg-slate-100">
-                    <div
-                      className="h-2 bg-blue-600"
-                      style={{ width: `${Math.max(0, Math.min(100, item.covered_pct))}%` }}
-                    />
-                  </div>
-                  <div className="mt-2 text-xs text-slate-500">
-                    {item.covered_count.toLocaleString()} covered,{" "}
-                    {item.missing_count.toLocaleString()} missing
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
           {disagreement &&
             Object.keys(disagreement.missing_source_coverage).length === 0 && (
               <p className="text-sm text-slate-500">No source coverage data available.</p>
             )}
+        </section>
+
+        {/* ── Operational Posture ── */}
+        <section className="mb-8">
+          <SectionHeader
+            title="Operational Posture"
+            sub="System self-assessment: source availability, confidence distribution, and data posture at RC-1"
+          />
+          {disagreementState.status === "loading" && <LoadingBlock />}
+          {disagreement && (
+            <div className="space-y-4">
+              <div className="border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                  Source Availability
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(["QS", "THE", "ARWU"] as const).map((src) => {
+                    const item = disagreement.missing_source_coverage[src];
+                    const available = item != null && item.covered_pct > 0;
+                    const cfg = sourceAvailabilityConfig(available);
+                    return (
+                      <span
+                        key={src}
+                        className={`rounded border px-3 py-1 text-xs font-semibold ${cfg.badgeCls}`}
+                      >
+                        {src} {cfg.icon} {cfg.statusLabel}
+                      </span>
+                    );
+                  })}
+                </div>
+                <p className="mt-3 text-xs text-slate-500">
+                  THE and ARWU data are not available at RC-1. All universities in this dataset
+                  are QS-sourced only. Multi-source agreement analysis will improve when these
+                  sources are added.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <StatCard
+                  label="Confidence Posture"
+                  value={confidencePostureLabel(disagreement.confidence_buckets)}
+                  sub="derived from source coverage and data completeness"
+                />
+                <StatCard
+                  label="Freshness Detail"
+                  value="/system-status"
+                  sub="ingestion timestamps and pipeline state"
+                />
+              </div>
+            </div>
+          )}
         </section>
 
         {/* ── Analytics Caveats ── */}

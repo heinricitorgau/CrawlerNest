@@ -56,6 +56,7 @@ If someone is new to the repo, this is the fastest path:
 | `docs/foundation/DO_NOT_AUTO_MODIFY.md` | Areas that agents and automated patch loops must not rewrite. |
 | `docs/foundation/TESTING_GUIDE.md` | Testing, validation, and maintenance guidance. |
 | `docs/AI_DEV_WORKFLOW.md` | AI-assisted development workflow and crawlernest-agents integration notes. |
+| `docs/AGENT_MODEL_INTEGRATION.md` | Readonly agent model provider bridge architecture, supported providers, env vars, fallback behavior, and safety boundaries. |
 
 ## 3. Architecture And Platform Design
 
@@ -96,6 +97,7 @@ If someone is new to the repo, this is the fastest path:
 | `docs/DEMO_HONESTY_GUIDELINES.md` | Demo honesty rules, required caveats, acceptable phrasing, and unacceptable phrasing. |
 | `docs/CONFIDENCE_CONSISTENCY_REVIEW.md` | Confidence consistency review across operational, maintenance, freshness, drift, caveat, and trust reports. |
 | `docs/MAINTENANCE_SIGNAL_CLARITY.md` | Maintenance signal hierarchy and recommended maintainer/release reading order. |
+| `docs/AGENT_MODEL_INTEGRATION.md` | Agent model provider integration for `/agent` with mock, Ollama, and OpenAI boundaries. |
 | `docs/OPERATIONAL_RESTRAINT_GUIDELINES.md` | When NOT to add automation, diagnostics, reports, or scripts; saturation signals; safe addition criteria. |
 | `docs/MAINTENANCE_SUSTAINABILITY_REVIEW.md` | Sustainable vs complexifying maintenance areas; debt risks; highest-value future cleanup targets. |
 | `docs/SIGNAL_TO_NOISE_REVIEW.md` | Signal value classification and recommended reading hierarchy by operator role. |
