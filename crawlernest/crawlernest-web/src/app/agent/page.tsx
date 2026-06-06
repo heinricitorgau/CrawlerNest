@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+import {
+  AGENT_CAPABILITIES,
+  AGENT_LIMITATIONS,
+  AGENT_SUGGESTED_PROMPTS,
+} from "@/lib/agentSystemPrompt";
+
 type AgentMode = "web" | "dev";
 type TaskKind =
   | "data_query"
@@ -1751,6 +1757,15 @@ export default function AgentPage() {
     setError(null);
   }
 
+  function applySuggestedPrompt(nextPrompt: string) {
+    setMode("web");
+    setKind("data_query");
+    setPrompt(nextPrompt);
+    setContextJson("{}");
+    setError(null);
+    promptRef.current?.focus();
+  }
+
   function handlePromptChange(nextPrompt: string) {
     setPrompt(nextPrompt);
     setContextJson((current) => stripPromptBoundContext(current));
@@ -2385,6 +2400,49 @@ export default function AgentPage() {
                       {task.prompt}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-[1.5rem] border border-[#e0ddd8] bg-white p-4">
+                <div className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
+                  Suggested prompts
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2 text-sm text-[#1a3d2e]">
+                  {AGENT_SUGGESTED_PROMPTS.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => applySuggestedPrompt(suggestion)}
+                      disabled={loading}
+                      className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1.5 text-left text-sm text-[#1a3d2e] transition hover:bg-[#e8f2ec] disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-[1.5rem] border border-[#e0ddd8] bg-white p-4">
+                <div className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
+                  Capability boundary
+                </div>
+                <div className="mt-3 grid gap-4 text-sm leading-6 sm:grid-cols-2 lg:grid-cols-1">
+                  <div>
+                    <div className="font-medium text-[#1a3d2e]">Agent can</div>
+                    <ul className="mt-2 space-y-1 text-[#6b7068]">
+                      {AGENT_CAPABILITIES.map((capability) => (
+                        <li key={capability}>- {capability}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <div className="font-medium text-[#a33a3a]">Agent cannot</div>
+                    <ul className="mt-2 space-y-1 text-[#6b7068]">
+                      {AGENT_LIMITATIONS.map((limitation) => (
+                        <li key={limitation}>- {limitation}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
 
