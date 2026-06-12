@@ -284,4 +284,4 @@ They forward browser-safe requests to the Spring Boot API and normalize local ba
 - [Architecture Overview](ARCHITECTURE_OVERVIEW.md)
 - [Data Flow](DATA_FLOW.md)
 - [Repository Map](REPOSITORY_MAP.md)
-- [Operational Runbook](OPERATIONAL_RUNBOOK.md)
+- [Operational Runbook](operational/OPERATIONAL_RUNBOOK.md)

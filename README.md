@@ -135,7 +135,7 @@ write the database, run pipelines, or modify the repository.
 AGENT_MODEL_PROVIDER=mock npm run dev
 ```
 
-See [Agent Model Integration](docs/AGENT_MODEL_INTEGRATION.md) for Ollama and
+See [Agent Model Integration](docs/agent/AGENT_MODEL_INTEGRATION.md) for Ollama and
 OpenAI server-side environment setup.
 
 ### 8. Smoke check
@@ -197,7 +197,7 @@ Start with these docs when changing architecture or onboarding:
 - [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md)
 - [Repository Map](docs/REPOSITORY_MAP.md)
 - [Data Flow](docs/DATA_FLOW.md)
-- [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md)
+- [Operational Runbook](docs/operational/OPERATIONAL_RUNBOOK.md)
 - [API Surface](docs/API_SURFACE.md)
 
 ## Subject Rankings MVP
@@ -329,11 +329,11 @@ CrawlerNest v0.1 is the first formally scoped engineering milestone. It is a **r
 
 | Document | Purpose |
 |----------|---------|
-| [docs/RELEASE_NOTES_v0.1.md](docs/RELEASE_NOTES_v0.1.md) | Executive summary, capabilities, known limitations, maturity assessment |
-| [docs/DEMO_SCRIPT_v0.1.md](docs/DEMO_SCRIPT_v0.1.md) | 3-min, 5-min, and 10-min demo flows with commands and expected output |
-| [docs/VERSION_SCOPE_v0.1.md](docs/VERSION_SCOPE_v0.1.md) | Included / not included / explicitly avoided scope definition |
-| [docs/SCREENSHOT_CHECKLIST_v0.1.md](docs/SCREENSHOT_CHECKLIST_v0.1.md) | Screenshot requirements, routes, viewports, filenames |
-| [docs/RELEASE_STRUCTURE.md](docs/RELEASE_STRUCTURE.md) | Bundle structure, artifact meanings, reproducibility assumptions |
+| [docs/RELEASE_NOTES_v0.1.md](docs/release/RELEASE_NOTES_v0.1.md) | Executive summary, capabilities, known limitations, maturity assessment |
+| [docs/DEMO_SCRIPT_v0.1.md](docs/demo/DEMO_SCRIPT_v0.1.md) | 3-min, 5-min, and 10-min demo flows with commands and expected output |
+| [docs/VERSION_SCOPE_v0.1.md](docs/release/VERSION_SCOPE_v0.1.md) | Included / not included / explicitly avoided scope definition |
+| [docs/SCREENSHOT_CHECKLIST_v0.1.md](docs/demo/SCREENSHOT_CHECKLIST_v0.1.md) | Screenshot requirements, routes, viewports, filenames |
+| [docs/RELEASE_STRUCTURE.md](docs/release/RELEASE_STRUCTURE.md) | Bundle structure, artifact meanings, reproducibility assumptions |
 
 To build the demo bundle:
 
@@ -360,25 +360,25 @@ The following documents define the operational boundaries and signal hierarchy:
 
 | Document | Purpose |
 |----------|---------|
-| [docs/OPERATIONAL_RESTRAINT_GUIDELINES.md](docs/OPERATIONAL_RESTRAINT_GUIDELINES.md) | When NOT to add automation, diagnostics, reports, or scripts. |
-| [docs/MAINTENANCE_SUSTAINABILITY_REVIEW.md](docs/MAINTENANCE_SUSTAINABILITY_REVIEW.md) | What is sustainable, what is complexifying, and where future cleanup is most valuable. |
-| [docs/SIGNAL_TO_NOISE_REVIEW.md](docs/SIGNAL_TO_NOISE_REVIEW.md) | High-value vs secondary signals; recommended reading hierarchy by operator role. |
-| [docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md](docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md) | Capabilities intentionally NOT implemented at RC-1 and why. |
-| [docs/REPORT_CRITICALITY.md](docs/REPORT_CRITICALITY.md) | Critical / important / reference classification for all generated reports. |
-| [docs/RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md](docs/RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md) | Must-exist vs supporting vs optional artifact classification for the release bundle. |
-| [docs/OPERATIONAL_CALMNESS_REVIEW.md](docs/OPERATIONAL_CALMNESS_REVIEW.md) | Calm vs noisy surface analysis; false urgency risks; calmness preservation guidelines. |
-| [docs/REPORT_LIFECYCLE.md](docs/REPORT_LIFECYCLE.md) | Producer, consumer, freshness expectation, lifecycle category, and archival expectation per report. |
-| [docs/MAINTENANCE_FATIGUE_REVIEW.md](docs/MAINTENANCE_FATIGUE_REVIEW.md) | Attention hotspots, repeated warning exposure, cognitive overload risks, and fatigue reduction. |
-| [docs/OPERATIONAL_COHERENCE_REVIEW.md](docs/OPERATIONAL_COHERENCE_REVIEW.md) | Coherence strengths, terminology risks, relationship stability, and cleanup opportunities. |
-| [docs/MAINTENANCE_READING_MODES.md](docs/MAINTENANCE_READING_MODES.md) | Structured reading modes: quick status, release prep, freshness investigation, incident, audit, onboarding. |
-| [docs/MAINTENANCE_CADENCE_REVIEW.md](docs/MAINTENANCE_CADENCE_REVIEW.md) | Appropriate cadence for each maintenance activity: daily, weekly, release-demo, incident-only, archival. |
-| [docs/OPERATIONAL_MEMORY_PRESERVATION.md](docs/OPERATIONAL_MEMORY_PRESERVATION.md) | What must be preserved long-term vs temporary; bundle archival semantics; handoff requirements. |
-| [docs/STABLE_DEGRADED_STATE.md](docs/STABLE_DEGRADED_STATE.md) | Current RC-1 stable degraded posture: accepted conditions, escalation triggers, communication guidance. |
-| [docs/MAINTENANCE_DISCIPLINE.md](docs/MAINTENANCE_DISCIPLINE.md) | Behavioral discipline: healthy and unhealthy maintenance patterns; discipline under pressure. |
-| [docs/OPERATIONAL_CONTINUITY_REVIEW.md](docs/OPERATIONAL_CONTINUITY_REVIEW.md) | Continuity strengths, risks, vulnerable assumptions, and report relationships requiring continuity. |
-| [docs/MAINTENANCE_CONTINUITY_MODEL.md](docs/MAINTENANCE_CONTINUITY_MODEL.md) | Continuity concepts: stable degraded, report, snapshot, confidence, release honesty, vocabulary. |
-| [docs/OPERATIONAL_MEMORY_DURABILITY.md](docs/OPERATIONAL_MEMORY_DURABILITY.md) | Artifact durability tiers (durable/semi-durable/ephemeral); bundle and snapshot semantics. |
-| [docs/STABLE_DEGRADED_CONTINUITY.md](docs/STABLE_DEGRADED_CONTINUITY.md) | Long-term stable degraded posture: calm maintenance, false urgency avoidance, desensitization risks. |
+| [docs/OPERATIONAL_RESTRAINT_GUIDELINES.md](docs/operational/OPERATIONAL_RESTRAINT_GUIDELINES.md) | When NOT to add automation, diagnostics, reports, or scripts. |
+| [docs/MAINTENANCE_SUSTAINABILITY_REVIEW.md](docs/operational/MAINTENANCE_SUSTAINABILITY_REVIEW.md) | What is sustainable, what is complexifying, and where future cleanup is most valuable. |
+| [docs/SIGNAL_TO_NOISE_REVIEW.md](docs/data/SIGNAL_TO_NOISE_REVIEW.md) | High-value vs secondary signals; recommended reading hierarchy by operator role. |
+| [docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md](docs/operational/OPERATIONAL_BOUNDARY_REINFORCEMENT.md) | Capabilities intentionally NOT implemented at RC-1 and why. |
+| [docs/REPORT_CRITICALITY.md](docs/data/REPORT_CRITICALITY.md) | Critical / important / reference classification for all generated reports. |
+| [docs/RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md](docs/release/RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md) | Must-exist vs supporting vs optional artifact classification for the release bundle. |
+| [docs/OPERATIONAL_CALMNESS_REVIEW.md](docs/operational/OPERATIONAL_CALMNESS_REVIEW.md) | Calm vs noisy surface analysis; false urgency risks; calmness preservation guidelines. |
+| [docs/REPORT_LIFECYCLE.md](docs/data/REPORT_LIFECYCLE.md) | Producer, consumer, freshness expectation, lifecycle category, and archival expectation per report. |
+| [docs/MAINTENANCE_FATIGUE_REVIEW.md](docs/operational/MAINTENANCE_FATIGUE_REVIEW.md) | Attention hotspots, repeated warning exposure, cognitive overload risks, and fatigue reduction. |
+| [docs/OPERATIONAL_COHERENCE_REVIEW.md](docs/operational/OPERATIONAL_COHERENCE_REVIEW.md) | Coherence strengths, terminology risks, relationship stability, and cleanup opportunities. |
+| [docs/MAINTENANCE_READING_MODES.md](docs/operational/MAINTENANCE_READING_MODES.md) | Structured reading modes: quick status, release prep, freshness investigation, incident, audit, onboarding. |
+| [docs/MAINTENANCE_CADENCE_REVIEW.md](docs/operational/MAINTENANCE_CADENCE_REVIEW.md) | Appropriate cadence for each maintenance activity: daily, weekly, release-demo, incident-only, archival. |
+| [docs/OPERATIONAL_MEMORY_PRESERVATION.md](docs/operational/OPERATIONAL_MEMORY_PRESERVATION.md) | What must be preserved long-term vs temporary; bundle archival semantics; handoff requirements. |
+| [docs/STABLE_DEGRADED_STATE.md](docs/data/STABLE_DEGRADED_STATE.md) | Current RC-1 stable degraded posture: accepted conditions, escalation triggers, communication guidance. |
+| [docs/MAINTENANCE_DISCIPLINE.md](docs/operational/MAINTENANCE_DISCIPLINE.md) | Behavioral discipline: healthy and unhealthy maintenance patterns; discipline under pressure. |
+| [docs/OPERATIONAL_CONTINUITY_REVIEW.md](docs/operational/OPERATIONAL_CONTINUITY_REVIEW.md) | Continuity strengths, risks, vulnerable assumptions, and report relationships requiring continuity. |
+| [docs/MAINTENANCE_CONTINUITY_MODEL.md](docs/operational/MAINTENANCE_CONTINUITY_MODEL.md) | Continuity concepts: stable degraded, report, snapshot, confidence, release honesty, vocabulary. |
+| [docs/OPERATIONAL_MEMORY_DURABILITY.md](docs/operational/OPERATIONAL_MEMORY_DURABILITY.md) | Artifact durability tiers (durable/semi-durable/ephemeral); bundle and snapshot semantics. |
+| [docs/STABLE_DEGRADED_CONTINUITY.md](docs/data/STABLE_DEGRADED_CONTINUITY.md) | Long-term stable degraded posture: calm maintenance, false urgency avoidance, desensitization risks. |
 
 Maintenance calm summary (contextualizes known RC-1 stable conditions vs signals needing attention):
 
@@ -416,11 +416,11 @@ an explainable, evidence-backed analytics platform with observable source tracea
 
 | Document | Purpose |
 |----------|---------|
-| [docs/COMPETITION_TRACK.md](docs/COMPETITION_TRACK.md) | Positioning, competition differentiators, what CrawlerNest is and is not, non-goals. |
-| [docs/ANALYTICS_SURFACE_PLAN.md](docs/ANALYTICS_SURFACE_PLAN.md) | Analytics items evaluated: demo value, complexity, RC-1 limitations, non-goals. |
-| [docs/ANALYTICS_EXPLAINABILITY.md](docs/ANALYTICS_EXPLAINABILITY.md) | Explainability requirements, caveat delivery, what analytics must not do. |
-| [docs/COMPETITION_DEMO_NARRATIVE.md](docs/COMPETITION_DEMO_NARRATIVE.md) | Demo flow, talking points, required caveats, what not to claim. |
-| [docs/RECOMMENDATION_EVIDENCE_MODEL.md](docs/RECOMMENDATION_EVIDENCE_MODEL.md) | Evidence types for recommendation explanation: ranking, IELTS, source, confidence, caveats. |
+| [docs/COMPETITION_TRACK.md](docs/competition/COMPETITION_TRACK.md) | Positioning, competition differentiators, what CrawlerNest is and is not, non-goals. |
+| [docs/ANALYTICS_SURFACE_PLAN.md](docs/analytics/ANALYTICS_SURFACE_PLAN.md) | Analytics items evaluated: demo value, complexity, RC-1 limitations, non-goals. |
+| [docs/ANALYTICS_EXPLAINABILITY.md](docs/analytics/ANALYTICS_EXPLAINABILITY.md) | Explainability requirements, caveat delivery, what analytics must not do. |
+| [docs/COMPETITION_DEMO_NARRATIVE.md](docs/competition/COMPETITION_DEMO_NARRATIVE.md) | Demo flow, talking points, required caveats, what not to claim. |
+| [docs/RECOMMENDATION_EVIDENCE_MODEL.md](docs/analytics/RECOMMENDATION_EVIDENCE_MODEL.md) | Evidence types for recommendation explanation: ranking, IELTS, source, confidence, caveats. |
 
 **Analytics endpoints (readonly):**
 
@@ -524,41 +524,41 @@ cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegration
 - [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md) - high-level system map and rendered diagrams
 - [Repository Map](docs/REPOSITORY_MAP.md) - directory ownership and onboarding map
 - [Data Flow](docs/DATA_FLOW.md) - ranking and subject ranking data flow
-- [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md) - startup, smoke checks, snapshots, diagnostics, and rollback
+- [Operational Runbook](docs/operational/OPERATIONAL_RUNBOOK.md) - startup, smoke checks, snapshots, diagnostics, and rollback
 - [API Surface](docs/API_SURFACE.md) - current endpoint catalog
 - [Project State Review](docs/PROJECT_STATE_REVIEW.md) - maturity, risk, readiness, and next-phase assessment
 - [Python Environment](docs/PYTHON_ENVIRONMENT.md) - venv, psycopg2, and local runtime consistency
-- [Backup Restore Drill](docs/BACKUP_RESTORE_DRILL.md) - readonly-safe backup and restore rehearsal
-- [Snapshot Comparison](docs/SNAPSHOT_COMPARISON.md) - compare operational snapshots and failure-state fixtures
-- [Source Health Model](docs/SOURCE_HEALTH_MODEL.md) - source states and readonly health signals
-- [Operational Intelligence Automation](docs/OPERATIONAL_INTELLIGENCE_AUTOMATION.md) - observability automation boundaries and escalation semantics
-- [RC-1 Environment Freeze](docs/RC1_ENVIRONMENT_FREEZE.md) - verified runtime bounds and setup assumptions
-- [RC-1 Dependency Review](docs/RC1_DEPENDENCY_REVIEW.md) - dependency risk and pinning review
-- [RC-1 Release Hygiene](docs/RC1_RELEASE_HYGIENE.md) - generated artifact and temporary-output policy
-- [RC-1 Stability Review](docs/RC1_STABILITY_REVIEW.md) - long-run persistence and restart review
-- [RC-1 Freeze Scope](docs/RC1_FREEZE_SCOPE.md) - frozen, allowed, and blocked change surfaces
-- [RC-1 Validation Results](docs/RC1_VALIDATION_RESULTS.md) - release-candidate validation summary
-- [Operational Intelligence Automation](docs/OPERATIONAL_INTELLIGENCE_AUTOMATION.md) - readonly timeline, drift, freshness, and summary automation boundaries
-- [Source Health Model](docs/SOURCE_HEALTH_MODEL.md) - source states and observability signals
-- [Operational Index](docs/OPERATIONAL_INDEX.md) - hierarchy and ownership for snapshots, reports, validation, bundles, and agent context artifacts
-- [Operational Vocabulary](docs/OPERATIONAL_VOCABULARY.md) - consolidated terminology for reports and release evidence
-- [Report Relationships](docs/REPORT_RELATIONSHIPS.md) - graph of report inputs, outputs, bundle feeds, and demo summaries
-- [Snapshot Lineage](docs/SNAPSHOT_LINEAGE.md) - snapshot lifecycle and derived intelligence relationships
-- [Operational Surface Review](docs/OPERATIONAL_SURFACE_REVIEW.md) - consolidation review for overlapping operational artifacts
-- [Maintenance Priority Matrix](docs/MAINTENANCE_PRIORITY_MATRIX.md) - maintenance priorities, response times, escalation, and freeze interaction
-- [Source Freshness Recovery](docs/SOURCE_FRESHNESS_RECOVERY.md) - human-led recovery plan for stale or unavailable sources
-- [Maintenance Runbook](docs/MAINTENANCE_RUNBOOK.md) - copy-paste friendly maintenance checks and refresh sequence
-- [Release State Checklist](docs/RELEASE_STATE_CHECKLIST.md) - pre-demo/release operational readiness checklist
-- [Operational Cleanup Guide](docs/OPERATIONAL_CLEANUP_GUIDE.md) - retention and cleanup guidance for snapshots, reports, bundles, and tmp artifacts
-- [Source State Explainability](docs/SOURCE_STATE_EXPLAINABILITY.md) - source-state explanations and demo caveat guidance
-- [Freshness Consistency Review](docs/FRESHNESS_CONSISTENCY_REVIEW.md) - freshness semantics alignment and known divergence
-- [Maintenance Ergonomics Review](docs/MAINTENANCE_ERGONOMICS_REVIEW.md) - maintenance entrypoint and workflow friction review
-- [Operational Confidence Model](docs/OPERATIONAL_CONFIDENCE_MODEL.md) - confidence dimensions, levels, and maintainer behavior
-- [Source Completeness Review](docs/SOURCE_COMPLETENESS_REVIEW.md) - QS/THE/ARWU/subject completeness and caveat implications
-- [Demo Honesty Guidelines](docs/DEMO_HONESTY_GUIDELINES.md) - acceptable and unacceptable demo phrasing
-- [Confidence Consistency Review](docs/CONFIDENCE_CONSISTENCY_REVIEW.md) - confidence semantics across maintenance reports
-- [Maintenance Signal Clarity](docs/MAINTENANCE_SIGNAL_CLARITY.md) - authoritative, derived, demo-facing, and escalation-facing signals
-- [Demo Checklist](docs/DEMO_CHECKLIST.md) — step-by-step checklist before any demo or handover
+- [Backup Restore Drill](docs/operational/BACKUP_RESTORE_DRILL.md) - readonly-safe backup and restore rehearsal
+- [Snapshot Comparison](docs/data/SNAPSHOT_COMPARISON.md) - compare operational snapshots and failure-state fixtures
+- [Source Health Model](docs/data/SOURCE_HEALTH_MODEL.md) - source states and readonly health signals
+- [Operational Intelligence Automation](docs/operational/OPERATIONAL_INTELLIGENCE_AUTOMATION.md) - observability automation boundaries and escalation semantics
+- [RC-1 Environment Freeze](docs/release/RC1_ENVIRONMENT_FREEZE.md) - verified runtime bounds and setup assumptions
+- [RC-1 Dependency Review](docs/release/RC1_DEPENDENCY_REVIEW.md) - dependency risk and pinning review
+- [RC-1 Release Hygiene](docs/release/RC1_RELEASE_HYGIENE.md) - generated artifact and temporary-output policy
+- [RC-1 Stability Review](docs/release/RC1_STABILITY_REVIEW.md) - long-run persistence and restart review
+- [RC-1 Freeze Scope](docs/release/RC1_FREEZE_SCOPE.md) - frozen, allowed, and blocked change surfaces
+- [RC-1 Validation Results](docs/release/RC1_VALIDATION_RESULTS.md) - release-candidate validation summary
+- [Operational Intelligence Automation](docs/operational/OPERATIONAL_INTELLIGENCE_AUTOMATION.md) - readonly timeline, drift, freshness, and summary automation boundaries
+- [Source Health Model](docs/data/SOURCE_HEALTH_MODEL.md) - source states and observability signals
+- [Operational Index](docs/operational/OPERATIONAL_INDEX.md) - hierarchy and ownership for snapshots, reports, validation, bundles, and agent context artifacts
+- [Operational Vocabulary](docs/operational/OPERATIONAL_VOCABULARY.md) - consolidated terminology for reports and release evidence
+- [Report Relationships](docs/data/REPORT_RELATIONSHIPS.md) - graph of report inputs, outputs, bundle feeds, and demo summaries
+- [Snapshot Lineage](docs/data/SNAPSHOT_LINEAGE.md) - snapshot lifecycle and derived intelligence relationships
+- [Operational Surface Review](docs/operational/OPERATIONAL_SURFACE_REVIEW.md) - consolidation review for overlapping operational artifacts
+- [Maintenance Priority Matrix](docs/operational/MAINTENANCE_PRIORITY_MATRIX.md) - maintenance priorities, response times, escalation, and freeze interaction
+- [Source Freshness Recovery](docs/data/SOURCE_FRESHNESS_RECOVERY.md) - human-led recovery plan for stale or unavailable sources
+- [Maintenance Runbook](docs/operational/MAINTENANCE_RUNBOOK.md) - copy-paste friendly maintenance checks and refresh sequence
+- [Release State Checklist](docs/release/RELEASE_STATE_CHECKLIST.md) - pre-demo/release operational readiness checklist
+- [Operational Cleanup Guide](docs/operational/OPERATIONAL_CLEANUP_GUIDE.md) - retention and cleanup guidance for snapshots, reports, bundles, and tmp artifacts
+- [Source State Explainability](docs/data/SOURCE_STATE_EXPLAINABILITY.md) - source-state explanations and demo caveat guidance
+- [Freshness Consistency Review](docs/data/FRESHNESS_CONSISTENCY_REVIEW.md) - freshness semantics alignment and known divergence
+- [Maintenance Ergonomics Review](docs/operational/MAINTENANCE_ERGONOMICS_REVIEW.md) - maintenance entrypoint and workflow friction review
+- [Operational Confidence Model](docs/operational/OPERATIONAL_CONFIDENCE_MODEL.md) - confidence dimensions, levels, and maintainer behavior
+- [Source Completeness Review](docs/data/SOURCE_COMPLETENESS_REVIEW.md) - QS/THE/ARWU/subject completeness and caveat implications
+- [Demo Honesty Guidelines](docs/demo/DEMO_HONESTY_GUIDELINES.md) - acceptable and unacceptable demo phrasing
+- [Confidence Consistency Review](docs/data/CONFIDENCE_CONSISTENCY_REVIEW.md) - confidence semantics across maintenance reports
+- [Maintenance Signal Clarity](docs/operational/MAINTENANCE_SIGNAL_CLARITY.md) - authoritative, derived, demo-facing, and escalation-facing signals
+- [Demo Checklist](docs/demo/DEMO_CHECKLIST.md) — step-by-step checklist before any demo or handover
 - [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — known issues and fixes for the local development environment
 
 ## Common Issues
