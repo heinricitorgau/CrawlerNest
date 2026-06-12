@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import NavBar from "@/components/NavBar";
+import CookieConsent from "@/components/CookieConsent";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className="min-h-full font-sans">
         <NavBar />
         <div className="relative z-10">{children}</div>
+        <CookieConsent />
         <div aria-hidden="true" className="site-watermark">
           <img
             src="/crawler-watermark.png"

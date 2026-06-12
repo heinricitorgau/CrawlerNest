@@ -899,7 +899,7 @@ def build_parser(
     qs_subject_parser.add_argument(
         "--subject",
         required=True,
-        choices=["computer-science", "electrical-engineering"],
+        choices=["computer-science", "electrical-engineering", "business-management"],
     )
     qs_subject_parser.add_argument("--ranking-year", "--year", dest="ranking_year", type=int, default=default_ranking_year)
     qs_subject_parser.add_argument("--limit", type=int, default=0)
