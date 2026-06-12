@@ -116,6 +116,12 @@ def ensure_subject_ranking_schema(cur: object) -> None:
                 'Electrical Engineering',
                 'Engineering and Technology',
                 '{"QS": ["Engineering - Electrical and Electronic"]}'::jsonb
+            ),
+            (
+                'business-management',
+                'Business & Management',
+                'Business and Economics',
+                '{"QS": ["Business & Management Studies"]}'::jsonb
             )
         ON CONFLICT (subject_key) DO UPDATE SET
             display_name = EXCLUDED.display_name,
@@ -253,16 +259,11 @@ def _subject_ids(cur: object) -> dict[str, int]:
         """
         SELECT subject_key, subject_id
         FROM warehouse.ranking_subject
-        WHERE subject_key IN ('computer-science', 'electrical-engineering')
-          AND is_active = TRUE
+        WHERE is_active = TRUE
         """
     )
     rows = cur.fetchall()
-    ids = {str(row[0]): int(row[1]) for row in rows}
-    missing = {"computer-science", "electrical-engineering"} - set(ids)
-    if missing:
-        raise RuntimeError(f"missing subject seeds: {', '.join(sorted(missing))}")
-    return ids
+    return {str(row[0]): int(row[1]) for row in rows}
 
 
 def _upsert_subject_row(

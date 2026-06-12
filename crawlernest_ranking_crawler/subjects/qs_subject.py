@@ -18,10 +18,12 @@ from crawlernest_ranking_crawler.subjects.contracts import (
 from crawlernest_ranking_crawler.subjects.writer import write_subject_ranking_rows
 
 DEFAULT_SNAPSHOT_ROOT = Path(__file__).resolve().parents[2] / "crawlernest" / "crawlernest-kb" / "qs_subject_rankings"
+DEFAULT_UNIVERSE_ROOT = Path(__file__).resolve().parents[2] / "crawlernest" / "crawlernest-kb" / "qs_universes"
 
 QS_SUBJECT_SOURCE_NAMES = {
     "computer-science": "Computer Science and Information Systems",
     "electrical-engineering": "Engineering - Electrical and Electronic",
+    "business-management": "Business & Management Studies",
 }
 
 
@@ -69,16 +71,20 @@ def load_qs_subject_snapshot(
     normalized_subject = normalize_qs_subject_key(subject_key)
     root = snapshot_root or DEFAULT_SNAPSHOT_ROOT
     candidates = [
+        # prefer the richer universe crawl cache when available
+        DEFAULT_UNIVERSE_ROOT / str(year) / "subject" / normalized_subject / "standardized_rows.json",
         root / str(year) / f"{normalized_subject}.json",
         root / f"{year}_{normalized_subject}.json",
     ]
     for path in candidates:
         if path.exists():
             payload = json.loads(path.read_text(encoding="utf-8"))
-            return _coerce_rows(payload)
+            rows = _coerce_rows(payload)
+            if rows:
+                return rows
     raise FileNotFoundError(
         f"No QS subject snapshot found for {normalized_subject} {year}. "
-        f"Looked under {root}."
+        f"Looked under {root} and {DEFAULT_UNIVERSE_ROOT}."
     )
 
 

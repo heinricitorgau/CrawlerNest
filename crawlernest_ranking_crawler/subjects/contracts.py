@@ -5,7 +5,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-SUPPORTED_QS_SUBJECT_KEYS = frozenset({"computer-science", "electrical-engineering"})
+SUPPORTED_QS_SUBJECT_KEYS = frozenset({
+    "computer-science",
+    "electrical-engineering",
+    "business-management",
+})
 
 QS_SUBJECT_ALIASES: dict[str, str] = {
     "computer science": "computer-science",
@@ -19,6 +23,11 @@ QS_SUBJECT_ALIASES: dict[str, str] = {
     "engineering - electrical and electronic": "electrical-engineering",
     "engineering electrical and electronic": "electrical-engineering",
     "electrical & electronic engineering": "electrical-engineering",
+    "business management": "business-management",
+    "business-management": "business-management",
+    "business_management": "business-management",
+    "business & management studies": "business-management",
+    "business and management studies": "business-management",
 }
 
 _WHITESPACE_RE = re.compile(r"\s+")
