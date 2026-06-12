@@ -309,5 +309,5 @@ flowchart TB
 
 - [Architecture Overview](ARCHITECTURE_OVERVIEW.md)
 - [Repository Map](REPOSITORY_MAP.md)
-- [Operational Runbook](OPERATIONAL_RUNBOOK.md)
+- [Operational Runbook](operational/OPERATIONAL_RUNBOOK.md)
 - [API Surface](API_SURFACE.md)

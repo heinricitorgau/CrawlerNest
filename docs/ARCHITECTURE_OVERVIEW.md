@@ -269,6 +269,6 @@ See [AUTH_LIMITATIONS.md](AUTH_LIMITATIONS.md) for the full non-goals list and s
 
 - [Repository Map](REPOSITORY_MAP.md)
 - [Data Flow](DATA_FLOW.md)
-- [Operational Runbook](OPERATIONAL_RUNBOOK.md)
+- [Operational Runbook](operational/OPERATIONAL_RUNBOOK.md)
 - [API Surface](API_SURFACE.md)
-- [CI Pipelines](CI_PIPELINES.md)
+- [CI Pipelines](release/CI_PIPELINES.md)

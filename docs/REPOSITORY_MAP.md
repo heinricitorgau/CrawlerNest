@@ -185,5 +185,5 @@ Historical code retained for reference. Prefer current paths under `crawlernest/
 
 - [Architecture Overview](ARCHITECTURE_OVERVIEW.md)
 - [Data Flow](DATA_FLOW.md)
-- [Operational Runbook](OPERATIONAL_RUNBOOK.md)
+- [Operational Runbook](operational/OPERATIONAL_RUNBOOK.md)
 - [API Surface](API_SURFACE.md)
