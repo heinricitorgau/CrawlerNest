@@ -224,7 +224,10 @@ export default function DataQualityPage() {
         {dqState.status === "ok" && hasDriftWarnings && (
           <div className="mb-6 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             {dq!.drift_warnings.length} source drift warning
-            {dq!.drift_warnings.length !== 1 ? "s" : ""} detected. Review the table below.
+            {dq!.drift_warnings.length !== 1 ? "s" : ""} detected.{" "}
+            <a href="#drift-table" className="underline hover:text-amber-900">
+              Review the table below.
+            </a>
           </div>
         )}
         {dqState.status === "ok" && !hasDriftWarnings && (
@@ -369,7 +372,7 @@ export default function DataQualityPage() {
         </section>
 
         {/* ── Source Drift Warnings ── */}
-        <section className="mb-8">
+        <section id="drift-table" className="mb-8">
           <SectionHeader
             title="Source Drift Warnings"
             sub="Detected by comparing consecutive ingestion batches"
