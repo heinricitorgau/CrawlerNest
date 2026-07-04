@@ -1,0 +1,19 @@
+name: Lint Agent Files
+
+on:
+  pull_request:
+    paths:
+      - "agents/**"
+      - "scripts/lint-agents.sh"
+
+jobs:
+  lint:
+    name: Validate curated agent prompts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run agent linter
+        run: |
+          chmod +x scripts/lint-agents.sh
+          ./scripts/lint-agents.sh

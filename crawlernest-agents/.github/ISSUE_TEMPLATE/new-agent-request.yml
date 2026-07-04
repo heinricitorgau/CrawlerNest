@@ -1,0 +1,35 @@
+name: New Agent Request
+description: Propose a new CrawlerNest-specific agent
+labels: ["enhancement", "agent"]
+body:
+  - type: input
+    id: agent-name
+    attributes:
+      label: Proposed agent name
+      placeholder: e.g. CrawlerNest Data Quality Auditor
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Which repeated CrawlerNest workflow needs this?
+      placeholder: Describe the recurring task or failure mode this agent would support.
+    validations:
+      required: true
+
+  - type: textarea
+    id: gap
+    attributes:
+      label: Why is an existing agent insufficient?
+      placeholder: Explain why this should not be handled by the current MVP agents.
+    validations:
+      required: true
+
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Boundaries
+      placeholder: What should this agent own, and what should it explicitly not own?
+    validations:
+      required: true

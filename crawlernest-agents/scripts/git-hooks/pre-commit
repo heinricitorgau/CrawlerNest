@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+echo "[pre-commit] Running agent lint..."
+./scripts/lint-agents.sh
+
+echo "[pre-commit] Checking shell scripts..."
+while IFS= read -r file; do
+  [[ -n "$file" ]] || continue
+  bash -n "$file"
+done < <(find scripts -type f -name "*.sh" | sort)
+
+echo "[pre-commit] Checking required docs..."
+required_files=(
+  "README.md"
+  "AGENT_SELECTION.md"
+  "DEV_PLAYBOOK.md"
+  "AGENT_PROMPT_LIBRARY.md"
+)
+
+for file in "${required_files[@]}"; do
+  if [[ ! -f "$file" ]]; then
+    echo "[pre-commit] Missing required file: $file"
+    exit 1
+  fi
+done
+
+./scripts/check-doc-drift.sh
+
+changed="$(git diff --cached --name-only --diff-filter=ACMR)"
+if echo "$changed" | grep -q '^agents/'; then
+  echo "[pre-commit] Agent files changed."
+  echo "[pre-commit] Reminder: validate role boundaries and avoid overlapping responsibilities."
+fi
+
+echo "[pre-commit] Passed."
