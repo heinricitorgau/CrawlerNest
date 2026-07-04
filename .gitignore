@@ -24,8 +24,10 @@ tmp/
 
 # Operational automation outputs (generated at runtime)
 snapshots/
+snapshot_htmls/
 reports/
 backups/
+agent_debug_report.docx
 
 # Runtime crawler artifacts
 crawlernest/crawlernest-kb/databases/the_rankings_*.json
@@ -39,6 +41,11 @@ crawlernest/crawlernest-kb/qs_universes/**/standardized_rows.json
 # Local databases
 *.db
 *.db.bak
+*.sqlite3
+
+# Personal runtime outputs
+my_*.json
+my_*.jsonl
 
 # Build outputs
 .claude/
