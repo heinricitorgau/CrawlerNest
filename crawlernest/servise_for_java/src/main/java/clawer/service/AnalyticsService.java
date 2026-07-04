@@ -1,5 +1,7 @@
 package clawer.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -19,9 +21,11 @@ public class AnalyticsService {
     private static final int TREND_LIMIT = 200;
 
     private final JdbcTemplate jdbcTemplate;
+    private final ObjectMapper objectMapper;
 
-    public AnalyticsService(JdbcTemplate jdbcTemplate) {
+    public AnalyticsService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -180,12 +184,17 @@ public class AnalyticsService {
 
     private int countSources(Object sourceRanksJson) {
         if (sourceRanksJson == null) return 0;
-        String json = sourceRanksJson.toString();
-        int count = 0;
-        for (String source : List.of("\"QS\"", "\"THE\"", "\"ARWU\"")) {
-            if (json.contains(source)) count++;
+        try {
+            Map<String, Object> ranks = objectMapper.readValue(
+                    sourceRanksJson.toString(), new TypeReference<>() {});
+            int count = 0;
+            for (Object rank : ranks.values()) {
+                if (rank != null) count++;
+            }
+            return count;
+        } catch (Exception ex) {
+            return 0;
         }
-        return count;
     }
 
     private List<String> buildTrendCaveats(boolean singleYear, boolean noData) {

@@ -414,7 +414,10 @@ export default function SystemStatusPage() {
               {/* Overall stale banner */}
               {freshness.overall_stale && (
                 <div className="border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
-                  One or more data sources are stale or missing. Review the table below.
+                  One or more data sources are stale or missing.{" "}
+                  <a href="#freshness-table" className="underline hover:text-amber-900">
+                    Review the table below.
+                  </a>
                 </div>
               )}
               {!freshness.overall_stale && (
@@ -424,7 +427,7 @@ export default function SystemStatusPage() {
               )}
 
               {/* Global ranking sources */}
-              <div className="border border-slate-200 bg-white shadow-sm">
+              <div id="freshness-table" className="border border-slate-200 bg-white shadow-sm">
                 <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
                   Global Ranking Sources
                 </div>
