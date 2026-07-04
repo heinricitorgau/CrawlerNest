@@ -282,7 +282,7 @@ crawlernest/crawlernest-web/src/__tests__/RecommendationPageExport.test.tsx
 6. `crawlernest/pipeline/`
 7. `crawlernest/crawlernest-admission-crawler/`
 8. `crawlernest_admission_crawler/`
-9. `crawlernest/crawlernest-normalization-py/` (bridge) / `Clawer-C-Data-Normalization-Engine/` (C engine)
+9. `crawlernest/crawlernest-normalization-py/` (bridge) / `crawlernest/crawlernest-normalization/` (C engine)
 10. `crawlernest/crawlernest-core/`
 11. `crawlernest/core/services/`
 12. `crawlernest/servise_for_java/`

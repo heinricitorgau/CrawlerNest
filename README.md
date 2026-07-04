@@ -471,47 +471,44 @@ See [docs/AUTH_LIMITATIONS.md](docs/AUTH_LIMITATIONS.md) for the full limitation
 
 ## Optional Agents Workflows
 
-`crawlernest-agents/` is a repo-native AI dev agent collection included directly
-in this repository. It provides readonly development analysis agents and scripts
-without modifying runtime, API, or database code.
+`crawlernest/crawlernest-agents/` is a repo-native AI dev agent collection.
+It provides readonly development analysis agents and scripts without modifying
+runtime, API, or database code.
 
 ```text
-University-Data-Infrastructure-Web-Platform/
-  crawlernest-agents/          ← agent definitions and scripts
-    agents/                    ← per-role agent YAML definitions
-    scripts/                   ← debug, analysis, and pipeline wrappers
-    memory/                    ← persistent agent context files
+crawlernest/crawlernest-agents/
+  agents/     ← per-role agent definitions
+  scripts/    ← debug, analysis, and pipeline wrappers
+  memory/     ← persistent agent context files
 ```
 
 Use `./scripts/agent_debug.sh` for the optional debug workflow and
 `./scripts/agent_pipeline_analysis.sh <log_file>` for readonly pipeline log
 analysis. These agents are not a dependency, CI step, or production runtime
-component. Generated analysis output is limited to `tmp/agent-debug/`,
-`tmp/agent-analysis/`, or `crawlernest-agents/tmp/`.
+component. Generated analysis output is limited to `tmp/agent-debug/` or
+`tmp/agent-analysis/`.
 
 Repo-aware prompt context is available through
 `./scripts/agent_context_snapshot.sh` and `./scripts/agent_repo_prompt.sh`.
-The snapshot flow collects readonly repository state and operational evidence,
-then injects `tmp/agent-context/context_snapshot.md` into prompt generation.
-Context artifacts stay in `tmp/agent-context/`.
 
 ## C Normalization Engine
 
-`Clawer-C-Data-Normalization-Engine/` is a standalone C-language CSV normalization
+`crawlernest/crawlernest-normalization/` is a standalone C-language CSV normalization
 engine that standardizes heterogeneous crawler output (university names, country
 abbreviations, rank-range strings, score formats) into comparable numeric records.
 
 ```text
-Clawer-C-Data-Normalization-Engine/
+crawlernest/crawlernest-normalization/
   c_engine/src/       ← normalization logic in C
   c_engine/include/   ← public header files
   c_engine/Makefile   ← build script (requires gcc)
   c_engine/data/      ← sample input/output CSV files
 ```
 
-This component is a research deliverable and is **not** called by the Python
-pipeline, Spring Boot API, or Next.js frontend at runtime. It operates
-independently on CSV files.
+The Python bridge (`crawlernest-normalization-py/`) calls the compiled binary
+and falls back to a pure-Python normalizer when the binary is unavailable.
+This component is a research deliverable and is **not** called by the Spring Boot
+API or Next.js frontend at runtime.
 
 ## Manual Development
 
