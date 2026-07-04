@@ -1,579 +1,92 @@
 # CrawlerNest
 
-CrawlerNest 是一個端到端的大學資料基礎設施與網站平台，涵蓋全球排名、學科排名、申請訊號與本機探索流程。
+端到端的大學資料基礎設施與網站平台。將 QS、THE、ARWU 的全球排名與學科排名彙整進統一的資料倉儲，提供具可解釋性的 API，並以 Next.js 前端呈現大學比較、瀏覽與儲存功能。
 
-這是一個 data-first 系統：UI 讀取 warehouse 與 analytics view，crawler 與 pipeline 負責把資料整理成 canonical records 並寫入 PostgreSQL。
+系統以資料為核心：爬蟲與 pipeline 負責將 canonical records 寫入 PostgreSQL，前端只從 analytics views 讀取，從不直接存取原始資料表。
 
-## 快速啟動
+---
 
-建議用這個流程完整啟動本機環境。
+## 功能概覽
 
-### 1. 建立 Python 環境
+- **全球排名** — 彙整 1,499 所大學（QS 2026 完整匯入，含 THE 與 ARWU adapter）
+- **學科排名** — QS 2026 學科資料：資工、電機、商管
+- **可解釋性** — 每筆排名與推薦均附帶來源比較、信心等級與證據鏈
+- **推薦系統** — 依地區、排名區間、學科篩選大學，可匯出命名計畫
+- **分析儀表板** — 年度排名變化、跨來源分歧、資料品質診斷
+- **身份層** — Session-based 帳號、已儲存大學、已儲存推薦計畫
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+---
+
+## 系統架構
+
+```mermaid
+flowchart LR
+    sources["QS / THE / ARWU"]
+    ingestion["Python 爬蟲\n與標準化"]
+    warehouse[("PostgreSQL\nwarehouse")]
+    analytics[("Analytics\nviews")]
+    api["Spring Boot API\n:8080"]
+    frontend["Next.js\n:3000"]
+
+    sources --> ingestion --> warehouse --> analytics --> api --> frontend
 ```
 
-### 2. 安裝並啟動 PostgreSQL
+**技術棧：** Python · PostgreSQL · Spring Boot (Java 17) · Next.js (React) · Tailwind CSS
 
-WSL/Ubuntu 建議使用本機 PostgreSQL 套件：
+---
 
-```bash
-sudo apt update
-sudo apt install postgresql postgresql-contrib
-sudo service postgresql start
+## 目錄結構
+
+```
+crawlernest/
+  crawlernest-web/          Next.js 前端
+  servise_for_java/         Spring Boot API
+  crawlernest-core/         canonical 解析、aggregation
+  pipeline/                 CLI 進入點
+  crawlernest-normalization/ C 語言 CSV 標準化引擎（研究元件）
+  crawlernest-agents/       AI 開發 agent 集合（readonly，選用）
+crawlernest_ranking_crawler/ Python 排名匯入套件
+crawlernest_admission_crawler/ Python 申請資訊匯入套件
+docs/                       架構、營運、發佈文件
+scripts/                    啟動、smoke check、營運自動化
+tests/                      整合測試
 ```
 
-建立本機開發用 role 與 database：
+---
 
-```bash
-sudo -u postgres psql -c "CREATE ROLE test WITH LOGIN PASSWORD 'test';"
-sudo -u postgres createdb -O test clawer
-```
+## 開始使用
 
-如果 role 或 database 已存在，沿用同一組連線設定：
+→ **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** — 完整本機設定教學（PostgreSQL、Python、Java、Node.js、資料 pipeline）
 
-```text
-database: clawer
-user: test
-password: test
-host: localhost
-port: 5432
-```
-
-### 3. Bootstrap schemas 與 seed data
-
-新環境先執行一次；這個指令可以安全重跑。
-
-```bash
-python3 -m crawlernest.run_pipeline bootstrap-postgres \
-  --pg-user test \
-  --pg-password test \
-  --pg-database clawer
-```
-
-### 4. 初始化排名資料
-
-沒有資料時，網站會顯示空結果。
-
-```bash
-./.venv/bin/python -m crawlernest.run_pipeline run \
-  --limit 20 \
-  --ranking-year 2026 \
-  --pg-user test \
-  --pg-password test \
-  --pg-database clawer
-```
-
-可以先確認 analytics view 有資料：
-
-```bash
-PGPASSWORD=test psql -h localhost -U test -d clawer \
-  -c "SELECT count(*) FROM analytics.v_aggregated_rankings_latest;"
-```
-
-### 5. 確認 Spring Boot datasource 帳密
-
-`crawlernest/servise_for_java/src/main/resources/application.properties` 必須使用：
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/clawer
-spring.datasource.username=test
-spring.datasource.password=test
-```
-
-### 6. 安裝前端相依套件
-
-需要 Node.js **>=20.9**。Repo 已包含 `.nvmrc`，使用 nvm 時先切到 frozen
-major version：
-
-```bash
-nvm use
-node --version
-```
-
-安裝 Node.js 相依套件（初次執行，或 pull 新版後執行）：
-
-```bash
-cd crawlernest/crawlernest-web
-npm ci
-cd ../..
-```
-
-### 7. 啟動本機服務
+第一次設定完成後，之後只需：
 
 ```bash
 ./scripts/start_localhost.sh
 ```
 
-這個 script 會依序：檢查 PostgreSQL、確認 Node.js 版本、確認 `node_modules`
-存在、確認 API port 未被占用、用 `-Dmaven.test.skip=true` 啟動 Spring Boot，
-再啟動 Next.js frontend。按 `Ctrl+C` 可同時停止兩個服務。
+---
 
-也可以手動啟動服務：
+## 文件索引
 
-```bash
-cd crawlernest/servise_for_java
-./mvnw -Dmaven.test.skip=true spring-boot:run
-```
-
-若同時安裝多個 JDK，啟動 backend 前請確認 `JAVA_HOME` 指向 Java 17 JDK。
-
-```bash
-cd crawlernest/crawlernest-web
-npm run dev
-```
-
-Agent 頁面會透過 `/api/agent/chat` 使用 readonly model-provider bridge。
-預設是 mock provider；它不會執行 tools、不會寫 DB、不會跑 pipeline，也不會修改 repo。
-
-```bash
-AGENT_MODEL_PROVIDER=mock npm run dev
-```
-
-Ollama 與 OpenAI 的 server-side 環境變數設定請見
-[Agent Model Integration](docs/AGENT_MODEL_INTEGRATION.md)。
-
-### 8. Smoke check
-
-```bash
-curl -i "http://localhost:8080/api/v1/rankings?page=1&pageSize=5"
-curl -i "http://localhost:3000/api/rankings?page=1&pageSize=5"
-curl -I "http://localhost:3000/rankings"
-./scripts/smoke_local_stack.sh
-```
-
-## 服務位置
-
-```text
-Web: http://localhost:3000
-API: http://localhost:8080
-Agent API: http://localhost:8090
-```
-
-主要頁面：
-
-```text
-全球排名: http://localhost:3000/rankings
-學科排名: http://localhost:3000/subject-rankings
-Agent: http://localhost:3000/agent
-```
-
-## 系統架構
-
-CrawlerNest 目前是 data pipeline 加 product read layer 的組合：
-
-```mermaid
-flowchart LR
-    sources["QS / THE / ARWU<br/>排名來源"]
-    ingestion["Python 爬蟲<br/>與標準化"]
-    matching["Canonical university<br/>解析"]
-    warehouse[("PostgreSQL<br/>warehouse tables")]
-    analytics[("Analytics<br/>aggregation / views")]
-    api["Spring Boot API"]
-    frontend["Next.js 前端"]
-
-    sources --> ingestion --> matching --> warehouse --> analytics --> api --> frontend
-```
-
-目前系統元件：
-
-- QS 與 THE ranking ingestion；有 ARWU adapter，可在有來源資料時使用。
-- Aggregation 寫入並讀取 `analytics.v_aggregated_rankings_latest`。
-- 學科排名是獨立的 QS subject read path，不改 global aggregation。
-- Recommendation layer 讀取 aggregated ranking candidates。
-- Diagnostics 涵蓋 health、freshness、data quality、ranking readiness、subject readiness、source agreement。
-- Cross-source intelligence 與 explainability APIs 支援 source comparison、disagreement、confidence、aggregation inputs。
-- Operational automation 包含 daily pipeline、snapshots、metadata bundles、smoke checks。
-- CI/CD 包含 release smoke 與 fixture-mode data quality workflows。
-
-架構與 onboarding 文件：
-
-- [Documentation Hub](docs/README.md)
-- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md)
-- [Repository Map](docs/REPOSITORY_MAP.md)
-- [Data Flow](docs/DATA_FLOW.md)
-- [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md)
-- [API Surface](docs/API_SURFACE.md)
-
-## Subject Rankings MVP
-
-學科排名是獨立的 read path，不是 global ranking aggregation 的延伸。
-
-目前 MVP 支援：
-
-```text
-source: QS
-year: 2026
-subjects:
-  - computer-science
-  - electrical-engineering
-```
-
-載入 QS 學科排名資料：
-
-```bash
-./.venv/bin/python -m crawlernest.run_pipeline run-qs-subject \
-  --subject computer-science \
-  --year 2026 \
-  --pg-user test \
-  --pg-password test \
-  --pg-database clawer
-```
-
-```bash
-./.venv/bin/python -m crawlernest.run_pipeline run-qs-subject \
-  --subject electrical-engineering \
-  --year 2026 \
-  --pg-user test \
-  --pg-password test \
-  --pg-database clawer
-```
-
-Subject Ranking API 範例：
-
-```bash
-curl "http://localhost:8080/api/v1/subject-rankings/subjects"
-curl "http://localhost:8080/api/v1/subject-rankings?subject=computer-science&year=2026&page=1&pageSize=20"
-```
-
-Web proxy 範例：
-
-```bash
-curl "http://localhost:3000/api/subject-rankings/subjects"
-curl "http://localhost:3000/api/subject-rankings?subject=computer-science&year=2026&page=1&pageSize=20"
-```
-
-## 資料可見性
-
-全球排名 UI 讀取：
-
-```text
-warehouse.ranking_record
-analytics.v_aggregated_rankings_latest
-```
-
-學科排名 UI 讀取：
-
-```text
-warehouse.subject_ranking_record
-analytics.v_subject_rankings_latest
-```
-
-Raw 與 staging tables 是 pipeline 輸入，不會直接顯示在產品 UI。
-
-## Diagnostics 與 Explainability
-
-Operational 與 data quality surfaces：
-
-```text
-Health:              /api/v1/health
-Freshness:           /api/v1/freshness
-Ranking diagnostics: /api/v1/diagnostics/rankings
-Subject diagnostics: /api/v1/diagnostics/subjects
-Data quality:        /api/v1/diagnostics/data-quality
-Source agreement:    /api/v1/diagnostics/source-agreement
-```
-
-Explainability surfaces：
-
-```text
-Source comparison:   /api/v1/universities/{id}/source-comparison
-Ranking explain:     /api/v1/rankings/{id}/explain
-University sources:  /universities/[slug]/sources
-```
-
-這些 endpoint 讀取既有 ranking evidence 與 aggregation output，不會修改 aggregation、canonical matching、recommendation scoring 或 schema。
-
-## CI/CD 與營運自動化
-
-CI workflows：
-
-```text
-.github/workflows/release-smoke.yml
-.github/workflows/data-quality.yml
-```
-
-Operational scripts：
-
-```text
-scripts/smoke_release.sh
-scripts/smoke_local_stack.sh
-scripts/run_daily_pipeline.sh
-scripts/export_system_snapshot.py
-scripts/export_metadata_bundle.sh
-scripts/build_failure_summary.py
-```
-
-營運證據會輸出到 `snapshots/`、`reports/` 與 daily logs。
-
-## v0.1 Demo Milestone
-
-CrawlerNest v0.1 是第一個正式範圍界定的 engineering milestone，是一個 **可重現、可展示、可操作的 MVP**，而非生產環境部署。
-
-**目前 Release 狀態：**
-
-- 1,499 所大學已完成 aggregation（QS 2026 完整匯入）
-- Subject rankings MVP 可運作（Computer Science、Electrical Engineering）
-- 完整 diagnostics 與 explainability API 覆蓋
-- CI 通過（release-smoke + data-quality），不需要 live database
-- Readonly agent integration，僅供開發支援使用
-
-**Release bundle：** `releases/v0.1-demo/` — 由 `scripts/build_demo_bundle.sh` 建立
-
-**Release 文件：**
-
-| 文件 | 用途 |
+| 主題 | 文件 |
 |------|------|
-| [docs/RELEASE_NOTES_v0.1.md](docs/RELEASE_NOTES_v0.1.md) | 執行摘要、功能說明、已知限制、成熟度評估 |
-| [docs/DEMO_SCRIPT_v0.1.md](docs/DEMO_SCRIPT_v0.1.md) | 3 分鐘、5 分鐘、10 分鐘 demo 流程，含指令與預期輸出 |
-| [docs/VERSION_SCOPE_v0.1.md](docs/VERSION_SCOPE_v0.1.md) | 包含 / 不包含 / 明確排除的範圍定義 |
-| [docs/SCREENSHOT_CHECKLIST_v0.1.md](docs/SCREENSHOT_CHECKLIST_v0.1.md) | Screenshot 需求、路徑、viewport、建議檔名 |
-| [docs/RELEASE_STRUCTURE.md](docs/RELEASE_STRUCTURE.md) | Bundle 結構、artifact 意義、重現性假設說明 |
+| 系統架構 | [docs/ARCHITECTURE_OVERVIEW.md](docs/ARCHITECTURE_OVERVIEW.md) |
+| 目錄地圖 | [docs/REPOSITORY_MAP.md](docs/REPOSITORY_MAP.md) |
+| 資料流向 | [docs/DATA_FLOW.md](docs/DATA_FLOW.md) |
+| API 列表 | [docs/API_SURFACE.md](docs/API_SURFACE.md) |
+| 營運手冊 | [docs/operational/OPERATIONAL_RUNBOOK.md](docs/operational/OPERATIONAL_RUNBOOK.md) |
+| 身份驗證限制 | [docs/AUTH_LIMITATIONS.md](docs/AUTH_LIMITATIONS.md) |
+| 本機問題排解 | [docs/LOCAL_TROUBLESHOOTING.md](docs/LOCAL_TROUBLESHOOTING.md) |
+| 所有文件 | [docs/README.md](docs/README.md) |
 
-建立 demo bundle：
+---
 
-```bash
-./scripts/build_demo_bundle.sh
-```
+## 目前狀態
 
-## 目前成熟度
+CrawlerNest v0.1 是 operational MVP——可重現、可展示，尚非生產環境部署。
 
-CrawlerNest 目前是 operational MVP：end-to-end ranking path、subject ranking
-path、diagnostics、smoke checks、snapshots 與 recovery docs 已可支援本機開發與
-evidence-driven iteration。現階段重點是 operational reliability、
-reproducibility、observability 與保守 recovery，而不是 autonomous automation。
+- THE 與 ARWU 處於 stable degraded 狀態（資料不可用）；QS 2026 已完整匯入
+- 所有大學目前為單一來源；在 RC-1 狀態下信心等級固定為 "low"
+- Agent 頁面預設使用 mock provider，不會寫入資料庫
 
-同層的 `crawlernest-agents` repository 仍是 readonly development companion。
-它不是 runtime dependency、CI requirement、submodule、symlink 或 production
-truth source。
-
-## 維護治理
-
-CrawlerNest 採用保守、readonly-first 的維護哲學。
-下列文件定義了操作邊界與訊號層級：
-
-| 文件 | 用途 |
-|------|------|
-| [docs/OPERATIONAL_RESTRAINT_GUIDELINES.md](docs/OPERATIONAL_RESTRAINT_GUIDELINES.md) | 何時不應新增 automation、diagnostics、reports 或 scripts。 |
-| [docs/MAINTENANCE_SUSTAINABILITY_REVIEW.md](docs/MAINTENANCE_SUSTAINABILITY_REVIEW.md) | 哪些部分 sustainable、哪些開始複雜化、未來 cleanup 最值得的地方。 |
-| [docs/SIGNAL_TO_NOISE_REVIEW.md](docs/SIGNAL_TO_NOISE_REVIEW.md) | 高價值 vs 次要 signals；依操作角色推薦的閱讀層級。 |
-| [docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md](docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md) | RC-1 刻意未實作的功能清單與原因。 |
-| [docs/REPORT_CRITICALITY.md](docs/REPORT_CRITICALITY.md) | 所有 generated reports 的 critical / important / reference 分類。 |
-| [docs/RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md](docs/RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md) | Release bundle artifact 的必要 / 支援 / 可選分類。 |
-| [docs/OPERATIONAL_CALMNESS_REVIEW.md](docs/OPERATIONAL_CALMNESS_REVIEW.md) | 平靜 vs 嘈雜的維護表面分析；false urgency 風險；calm 保持指引。 |
-| [docs/REPORT_LIFECYCLE.md](docs/REPORT_LIFECYCLE.md) | 每個 report 的 producer、consumer、freshness 預期、lifecycle 分類與 archival 預期。 |
-| [docs/MAINTENANCE_FATIGUE_REVIEW.md](docs/MAINTENANCE_FATIGUE_REVIEW.md) | 注意力熱點、重複警告曝露、認知超載風險與疲勞減少工作流程。 |
-| [docs/OPERATIONAL_COHERENCE_REVIEW.md](docs/OPERATIONAL_COHERENCE_REVIEW.md) | 一致性優勢、術語風險、關係穩定性與未來清理機會。 |
-| [docs/MAINTENANCE_READING_MODES.md](docs/MAINTENANCE_READING_MODES.md) | 結構化閱讀模式：快速狀態確認、release 準備、freshness 調查、事故、稽核、onboarding。 |
-| [docs/MAINTENANCE_CADENCE_REVIEW.md](docs/MAINTENANCE_CADENCE_REVIEW.md) | 每項維護活動的適當頻率：daily、weekly、release-demo、incident-only、archival。 |
-| [docs/OPERATIONAL_MEMORY_PRESERVATION.md](docs/OPERATIONAL_MEMORY_PRESERVATION.md) | 哪些操作知識需長期保存 vs 暫時性；bundle archival 語意；交接需求。 |
-| [docs/STABLE_DEGRADED_STATE.md](docs/STABLE_DEGRADED_STATE.md) | 目前 RC-1 穩定降級狀態：已接受條件、穩定訊號、升級觸發條件、溝通指引。 |
-| [docs/MAINTENANCE_DISCIPLINE.md](docs/MAINTENANCE_DISCIPLINE.md) | 維護行為紀律：健康與不健康的維護模式；壓力下的紀律守則。 |
-| [docs/OPERATIONAL_CONTINUITY_REVIEW.md](docs/OPERATIONAL_CONTINUITY_REVIEW.md) | 持續性優勢、風險、脆弱操作假設，以及需要持續性關注的 report 關係分析。 |
-| [docs/MAINTENANCE_CONTINUITY_MODEL.md](docs/MAINTENANCE_CONTINUITY_MODEL.md) | 持續性概念定義：穩定降級、report、snapshot、信心、release 誠實度、詞彙持續性。 |
-| [docs/OPERATIONAL_MEMORY_DURABILITY.md](docs/OPERATIONAL_MEMORY_DURABILITY.md) | Artifact 耐久性分類（durable / semi-durable / ephemeral）；bundle 與 snapshot 耐久性語意。 |
-| [docs/STABLE_DEGRADED_CONTINUITY.md](docs/STABLE_DEGRADED_CONTINUITY.md) | 長期穩定降級狀態的維護指引：calm maintenance、避免 false urgency 與 desensitization。 |
-
-Maintenance calm summary（將已知 RC-1 穩定條件與需要處理的訊號分開說明）：
-
-```bash
-./scripts/build_maintenance_calm_summary.py
-# 輸出：reports/maintenance_calm_summary.md
-```
-
-Maintenance steadiness summary（謹慎等級、穩定降級指標、穩定性指引）：
-
-```bash
-./scripts/build_maintenance_steadiness_summary.py
-# 輸出：reports/maintenance_steadiness_summary.md
-```
-
-Maintenance continuity summary（持續性狀態、穩定降級持續性、release 誠實持續性）：
-
-```bash
-./scripts/build_maintenance_continuity_summary.py
-# 輸出：reports/maintenance_continuity_summary.md
-```
-
-Maintenance navigation（單頁操作員指引）：
-
-```bash
-./scripts/build_maintenance_navigation.py
-# 輸出：reports/maintenance_navigation.md
-```
-
-## 目前的 Identity Layer
-
-CrawlerNest 包含一個輕量的 session-based identity layer，供本機開發與 demo 使用。
-
-**包含功能：**
-
-- 帳號註冊與登入，密碼使用 BCrypt 雜湊。
-- HttpOnly session cookie（`JSESSIONID`，SameSite=Lax，30 分鐘 timeout）。
-- 已儲存大學 — 從排名頁加入書籤，於 `/saved-universities` 查看。
-- 已儲存推薦計畫快照 — 將完整推薦結果儲存為命名計畫，於 `/saved-recommendations` 查看。
-- 每位使用者資料隔離：所有 user data 查詢都只使用來自 session 的 `user_id`。
-
-**Auth 頁面：**
-
-```text
-Sign up:              http://localhost:3000/signup
-Sign in:              http://localhost:3000/signin
-Saved universities:   http://localhost:3000/saved-universities
-Saved plans:          http://localhost:3000/saved-recommendations
-```
-
-**目前範圍不包含：**
-
-- 無 RBAC 或 admin 工具。
-- 無 OAuth 或第三方 identity provider。
-- 無 JWT 或 token-based auth。
-- 無前端路由保護（頁面可直接存取；資料請求在 API 層把關）。
-- 無分散式 session 基礎設施 — 後端重啟會登出所有使用者。
-- 無速率限制、帳號鎖定或 email 驗證。
-
-**Localhost 假設：** Session cookie 不設 `Secure` flag，這是針對本機 HTTP 的刻意設計。在任何公開部署前必須開啟此設定。
-
-詳見 [docs/AUTH_LIMITATIONS.md](docs/AUTH_LIMITATIONS.md)。
-
-## 選用 Agents 工作流程
-
-CrawlerNest 可以搭配同層的 `crawlernest-agents` repository 做 readonly
-development analysis：
-
-```text
-dev/
-  University-Data-Infrastructure-Web-Platform/
-  crawlernest-agents/
-```
-
-使用 `./scripts/agent_debug.sh` 執行選用 debug workflow，使用
-`./scripts/agent_pipeline_analysis.sh <log_file>` 做 readonly pipeline log
-analysis。這些 wrapper 不會把 `crawlernest-agents` 變成 dependency、symlink、
-submodule、CI step 或 production runtime component。產生的分析輸出只允許放在
-`tmp/agent-debug/`、`tmp/agent-analysis/`，或 agents repo 自己的 `tmp/`。
-
-Repo-aware prompt context 可透過 `./scripts/agent_context_snapshot.sh` 與
-`./scripts/agent_repo_prompt.sh` 使用。snapshot flow 會收集 readonly repository
-state 與 operational evidence，並把 `tmp/agent-context/context_snapshot.md` 注入
-prompt generation。context artifacts 只會放在 `tmp/agent-context/`。
-
-## 手動開發模式
-
-啟動 Spring Boot API：
-
-```bash
-cd crawlernest/servise_for_java
-./mvnw -Dmaven.test.skip=true spring-boot:run
-```
-
-啟動 Next.js Web：
-
-```bash
-cd crawlernest/crawlernest-web
-npm install
-npm run dev
-```
-
-執行常用檢查：
-
-```bash
-python3 crawlernest/scripts/smoke_subject_rankings.py
-cd crawlernest/crawlernest-web && npm run build
-cd crawlernest/servise_for_java && ./mvnw -q -Dtest=SubjectRankingApiIntegrationTest test
-```
-
-## 文件
-
-- [Documentation Hub](docs/README.md) - 文件入口與重複內容整理原則
-- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md) - high-level system map and rendered diagrams
-- [Repository Map](docs/REPOSITORY_MAP.md) - directory ownership and onboarding map
-- [Data Flow](docs/DATA_FLOW.md) - ranking and subject ranking data flow
-- [Operational Runbook](docs/OPERATIONAL_RUNBOOK.md) - startup, smoke checks, snapshots, diagnostics, rollback
-- [API Surface](docs/API_SURFACE.md) - current endpoint catalog
-- [Project State Review](docs/PROJECT_STATE_REVIEW.md) - maturity、risk、readiness 與 next-phase assessment
-- [Python Environment](docs/PYTHON_ENVIRONMENT.md) - venv、psycopg2 與 local runtime consistency
-- [Backup Restore Drill](docs/BACKUP_RESTORE_DRILL.md) - readonly-safe backup 與 restore rehearsal
-- [Snapshot Comparison](docs/SNAPSHOT_COMPARISON.md) - compare operational snapshots 與 failure-state fixtures
-- [Source Health Model](docs/SOURCE_HEALTH_MODEL.md) - source states 與 readonly health signals
-- [Operational Intelligence Automation](docs/OPERATIONAL_INTELLIGENCE_AUTOMATION.md) - observability automation 邊界與 escalation semantics
-- [RC-1 Environment Freeze](docs/RC1_ENVIRONMENT_FREEZE.md) - 已驗證 runtime 邊界與 setup 假設
-- [RC-1 Dependency Review](docs/RC1_DEPENDENCY_REVIEW.md) - dependency 風險與 pinning review
-- [RC-1 Release Hygiene](docs/RC1_RELEASE_HYGIENE.md) - generated artifacts 與 temporary outputs policy
-- [RC-1 Stability Review](docs/RC1_STABILITY_REVIEW.md) - 長時間操作、持久化與 restart review
-- [RC-1 Freeze Scope](docs/RC1_FREEZE_SCOPE.md) - frozen、allowed、blocked change surfaces
-- [RC-1 Validation Results](docs/RC1_VALIDATION_RESULTS.md) - release-candidate validation summary
-- [Operational Intelligence Automation](docs/OPERATIONAL_INTELLIGENCE_AUTOMATION.md) - readonly timeline、drift、freshness 與 summary automation 邊界
-- [Source Health Model](docs/SOURCE_HEALTH_MODEL.md) - source states 與 observability signals
-- [Operational Index](docs/OPERATIONAL_INDEX.md) - snapshots、reports、validation、bundles 與 agent context artifacts 的 hierarchy 與 ownership
-- [Operational Vocabulary](docs/OPERATIONAL_VOCABULARY.md) - reports 與 release evidence 的統一術語
-- [Report Relationships](docs/REPORT_RELATIONSHIPS.md) - report inputs、outputs、bundle feeds 與 demo summaries 的關係圖
-- [Snapshot Lineage](docs/SNAPSHOT_LINEAGE.md) - snapshot lifecycle 與 derived intelligence relationships
-- [Operational Surface Review](docs/OPERATIONAL_SURFACE_REVIEW.md) - overlapping operational artifacts 的 consolidation review
-- [Maintenance Priority Matrix](docs/MAINTENANCE_PRIORITY_MATRIX.md) - maintenance priorities、response times、escalation 與 freeze interaction
-- [Source Freshness Recovery](docs/SOURCE_FRESHNESS_RECOVERY.md) - stale 或 unavailable sources 的 human-led recovery plan
-- [Maintenance Runbook](docs/MAINTENANCE_RUNBOOK.md) - copy-paste friendly maintenance checks 與 refresh sequence
-- [Release State Checklist](docs/RELEASE_STATE_CHECKLIST.md) - demo/release 前的 operational readiness checklist
-- [Operational Cleanup Guide](docs/OPERATIONAL_CLEANUP_GUIDE.md) - snapshots、reports、bundles 與 tmp artifacts 的 retention / cleanup guidance
-- [Source State Explainability](docs/SOURCE_STATE_EXPLAINABILITY.md) - source-state explanations 與 demo caveat guidance
-- [Freshness Consistency Review](docs/FRESHNESS_CONSISTENCY_REVIEW.md) - freshness semantics alignment 與 known divergence
-- [Maintenance Ergonomics Review](docs/MAINTENANCE_ERGONOMICS_REVIEW.md) - maintenance entrypoint 與 workflow friction review
-- [Operational Confidence Model](docs/OPERATIONAL_CONFIDENCE_MODEL.md) - confidence dimensions、levels 與 maintainer behavior
-- [Source Completeness Review](docs/SOURCE_COMPLETENESS_REVIEW.md) - QS/THE/ARWU/subject completeness 與 caveat implications
-- [Demo Honesty Guidelines](docs/DEMO_HONESTY_GUIDELINES.md) - acceptable / unacceptable demo phrasing
-- [Confidence Consistency Review](docs/CONFIDENCE_CONSISTENCY_REVIEW.md) - maintenance reports 之間的 confidence semantics
-- [Maintenance Signal Clarity](docs/MAINTENANCE_SIGNAL_CLARITY.md) - authoritative、derived、demo-facing 與 escalation-facing signals
-- [Demo Checklist](docs/DEMO_CHECKLIST.md) — demo 或交接前的逐步確認清單
-- [Local Troubleshooting](docs/LOCAL_TROUBLESHOOTING.md) — 本機開發環境已知問題與解法
-
-## 常見問題
-
-### Port 8080 被佔用
-
-```bash
-lsof -i :8080
-kill -9 <PID>
-```
-
-### UI 沒有資料
-
-先執行 pipeline，再重新整理頁面：
-
-```bash
-./.venv/bin/python -m crawlernest.run_pipeline run \
-  --limit 20 \
-  --ranking-year 2026 \
-  --pg-user test \
-  --pg-password test \
-  --pg-database clawer
-```
-
-如果是學科排名頁，也需要針對想看的 subject 執行 subject loader。
-
-### 學科排名頁能開，但表格是空的
-
-確認 subject pipeline 有寫入資料，而且 Java API 正在執行：
-
-```bash
-python3 crawlernest/scripts/smoke_subject_rankings.py
-curl "http://localhost:8080/api/v1/subject-rankings?subject=computer-science&year=2026"
-```
-
-### 找不到 Docker
-
-WSL/local 流程不需要 Docker。使用快速啟動第 2 步的本機 PostgreSQL service 即可。
-
-## 建議開發流程
-
-```text
-1. 啟動 PostgreSQL
-2. 執行資料 pipeline
-3. 啟動 API 與 Web
-4. 打開 /rankings 或 /subject-rankings
-5. 先從 warehouse/analytics views 查資料，再 debug UI
-```
-
-CrawlerNest 以 correctness-first 為原則。當畫面看起來不對時，先確認 data pipeline 與 warehouse views，再修改產品層。
+發佈說明：[docs/release/RELEASE_NOTES_v0.1.md](docs/release/RELEASE_NOTES_v0.1.md)
