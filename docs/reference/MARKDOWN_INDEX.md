@@ -185,8 +185,8 @@ If someone is new to the repo, this is the fastest path:
 
 | File | Purpose |
 | --- | --- |
-| `Clawer-C-Data-Normalization-Engine/README.md` | Main normalization module overview (C engine). |
-| `Clawer-C-Data-Normalization-Engine/c_engine/docs/architecture.md` | Detailed architecture for the C-based normalization engine. |
+| `crawlernest/crawlernest-normalization/README.md` | Main normalization module overview (C engine). |
+| `crawlernest/crawlernest-normalization/c_engine/docs/architecture.md` | Detailed architecture for the C-based normalization engine. |
 | `crawlernest/crawlernest-normalization-py/README.md` | Python-side normalization constants and mappings. |
 | `crawlernest/crawlernest-recommendation/README.md` | Recommendation module overview and future direction. |
 

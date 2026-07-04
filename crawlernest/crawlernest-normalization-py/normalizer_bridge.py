@@ -99,10 +99,10 @@ def normalize_country_py(country: str) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 
 _DEFAULT_BINARY_CANDIDATES: list[str] = [
-    # Project root → Clawer-C-Data-Normalization-Engine
-    str(Path(__file__).resolve().parents[2] / "Clawer-C-Data-Normalization-Engine" / "c_engine" / "build" / "clawer_normalizer"),
+    # crawlernest/ → crawlernest-normalization (sibling module)
+    str(Path(__file__).resolve().parents[1] / "crawlernest-normalization" / "c_engine" / "build" / "clawer_normalizer"),
     # Windows portable build (same engine, dist layout)
-    str(Path(__file__).resolve().parents[2] / "Clawer-C-Data-Normalization-Engine" / "c_engine" / "dist" / "ClawerNormalizer-Portable" / "clawer_normalizer.exe"),
+    str(Path(__file__).resolve().parents[1] / "crawlernest-normalization" / "c_engine" / "dist" / "ClawerNormalizer-Portable" / "clawer_normalizer.exe"),
 ]
 
 

@@ -269,19 +269,21 @@ See [AUTH_LIMITATIONS.md](AUTH_LIMITATIONS.md) for the full non-goals list and s
 
 ### crawlernest-agents
 
-`crawlernest-agents/` is a repo-native AI dev agent collection (not a runtime
-dependency). It provides readonly development analysis agents — debug, pipeline,
-and code-review roles — and shell scripts that wrap them. No agent writes to the
-database, calls the API, or modifies source files. Output artifacts are written to
-`tmp/` directories only.
+`crawlernest/crawlernest-agents/` is a repo-native AI dev agent collection (not a
+runtime dependency). It provides readonly development analysis agents — debug,
+pipeline, and code-review roles — and shell scripts that wrap them. No agent
+writes to the database, calls the API, or modifies source files. Output artifacts
+are written to `tmp/` directories only.
 
-### Clawer-C-Data-Normalization-Engine
+### crawlernest-normalization
 
-A standalone C-language CSV normalization engine that standardizes heterogeneous
-crawler output (university names, country abbreviations, rank-range strings) into
-comparable numeric records. It operates independently on CSV files and is not
-called by the Python pipeline, Spring Boot API, or Next.js frontend at runtime.
-It is a research deliverable documenting the normalization problem formulation.
+`crawlernest/crawlernest-normalization/` is a standalone C-language CSV
+normalization engine that standardizes heterogeneous crawler output (university
+names, country abbreviations, rank-range strings) into comparable numeric records.
+The Python bridge in `crawlernest/crawlernest-normalization-py/` calls the compiled
+binary with automatic fallback to a pure-Python normalizer. This component is a
+research deliverable and is not called by the Spring Boot API or Next.js frontend
+at runtime.
 
 ---
 
