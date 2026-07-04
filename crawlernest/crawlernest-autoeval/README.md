@@ -153,7 +153,7 @@ cde345\t0.78\t0.88\t5\tdiscard\tregex-only parsing
 Adapters connect AutoEval to existing modules:
 
 - crawlernest-extractors
-- crawlernest-normalization
+- Clawer-C-Data-Normalization-Engine (via crawlernest-normalization-py bridge)
 
 This avoids modifying core systems directly.
 

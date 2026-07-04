@@ -76,8 +76,8 @@ Depending on experiment scope:
   - `crawlernest-extractors/`
 
 - Normalization rules
-  - `crawlernest-normalization/`
-  - `crawlernest-normalization-py/`
+  - `Clawer-C-Data-Normalization-Engine/` (C engine, canonical source)
+  - `crawlernest-normalization-py/` (Python bridge + fallback)
 
 - Prompt / parsing logic (if applicable)
 
