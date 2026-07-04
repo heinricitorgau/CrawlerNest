@@ -471,27 +471,47 @@ See [docs/AUTH_LIMITATIONS.md](docs/AUTH_LIMITATIONS.md) for the full limitation
 
 ## Optional Agents Workflows
 
-CrawlerNest can work with a sibling `crawlernest-agents` repository for readonly
-development analysis:
+`crawlernest-agents/` is a repo-native AI dev agent collection included directly
+in this repository. It provides readonly development analysis agents and scripts
+without modifying runtime, API, or database code.
 
 ```text
-dev/
-  University-Data-Infrastructure-Web-Platform/
-  crawlernest-agents/
+University-Data-Infrastructure-Web-Platform/
+  crawlernest-agents/          ← agent definitions and scripts
+    agents/                    ← per-role agent YAML definitions
+    scripts/                   ← debug, analysis, and pipeline wrappers
+    memory/                    ← persistent agent context files
 ```
 
 Use `./scripts/agent_debug.sh` for the optional debug workflow and
 `./scripts/agent_pipeline_analysis.sh <log_file>` for readonly pipeline log
-analysis. These wrappers do not make `crawlernest-agents` a dependency, symlink,
-submodule, CI step, or production runtime component. Generated analysis output is
-limited to `tmp/agent-debug/`, `tmp/agent-analysis/`, or the agents repo's own
-`tmp/` directory.
+analysis. These agents are not a dependency, CI step, or production runtime
+component. Generated analysis output is limited to `tmp/agent-debug/`,
+`tmp/agent-analysis/`, or `crawlernest-agents/tmp/`.
 
 Repo-aware prompt context is available through
 `./scripts/agent_context_snapshot.sh` and `./scripts/agent_repo_prompt.sh`.
 The snapshot flow collects readonly repository state and operational evidence,
 then injects `tmp/agent-context/context_snapshot.md` into prompt generation.
 Context artifacts stay in `tmp/agent-context/`.
+
+## C Normalization Engine
+
+`Clawer-C-Data-Normalization-Engine/` is a standalone C-language CSV normalization
+engine that standardizes heterogeneous crawler output (university names, country
+abbreviations, rank-range strings, score formats) into comparable numeric records.
+
+```text
+Clawer-C-Data-Normalization-Engine/
+  c_engine/src/       ← normalization logic in C
+  c_engine/include/   ← public header files
+  c_engine/Makefile   ← build script (requires gcc)
+  c_engine/data/      ← sample input/output CSV files
+```
+
+This component is a research deliverable and is **not** called by the Python
+pipeline, Spring Boot API, or Next.js frontend at runtime. It operates
+independently on CSV files.
 
 ## Manual Development
 
