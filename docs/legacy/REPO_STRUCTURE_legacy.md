@@ -83,8 +83,7 @@ crawlernest/
 ├── crawlernest-cli/                   # [LEGACY / COMPAT] 舊 CLI UI 材料
 ├── crawlernest-docs/                  # [LEGACY / COMPAT] 舊文件鏡像
 ├── crawlernest-infra/                 # [LEGACY / COMPAT] infra 備忘與配置
-├── crawlernest-normalization/         # [MAINLINE] normalization 實作（含 C engine）
-├── crawlernest-normalization-py/      # [MAINLINE] Python normalization 材料
+├── crawlernest-normalization-py/      # [MAINLINE] Python normalization bridge + fallback
 ├── crawlernest-recommendation/        # [LEGACY / COMPAT] 舊推薦模組材料
 └── crawlernest-tests/                 # [MAINLINE] Python 測試區
 ```
@@ -283,7 +282,7 @@ crawlernest/crawlernest-web/src/__tests__/RecommendationPageExport.test.tsx
 6. `crawlernest/pipeline/`
 7. `crawlernest/crawlernest-admission-crawler/`
 8. `crawlernest_admission_crawler/`
-9. `crawlernest/crawlernest-normalization-py/` / `crawlernest/crawlernest-normalization/`
+9. `crawlernest/crawlernest-normalization-py/` (bridge) / `Clawer-C-Data-Normalization-Engine/` (C engine)
 10. `crawlernest/crawlernest-core/`
 11. `crawlernest/core/services/`
 12. `crawlernest/servise_for_java/`
