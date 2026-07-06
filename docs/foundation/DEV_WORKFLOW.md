@@ -128,7 +128,7 @@ If a change touches `crawlernest/crawlernest-crawler-core/`, decide first whethe
 Use this split:
 
 - put HTTP, retry, rate limiting, logging, snapshot, and other business-agnostic runtime primitives into `crawlernest-crawler-core/`
-- keep ranking-source parsing and ranking-specific crawl policy in `crawlernest-ranking-crawler/`
+- keep ranking-source parsing and ranking-specific crawl policy in `crawlernest_ranking_crawler/` (repo root)
 - keep admission-page discovery, admission extraction, and admission-specific crawl policy in `crawlernest-admission-crawler/`
 
 Do not use `crawlernest-crawler-core/` as a convenience sink for cross-module logic. It is allowed to evolve as a separately developable shared subproject only if it stays generic.

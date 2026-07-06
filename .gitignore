@@ -43,6 +43,10 @@ crawlernest/crawlernest-kb/qs_universes/**/standardized_rows.json
 *.db.bak
 *.sqlite3
 
+# Deprecated diverged copy — the live package is crawlernest_ranking_crawler/ at
+# the repo root. This copy was untracked; ignored so searches and tooling skip it.
+crawlernest/crawlernest-ranking-crawler/
+
 # Personal runtime outputs
 my_*.json
 my_*.jsonl

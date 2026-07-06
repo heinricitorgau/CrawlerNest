@@ -21,7 +21,7 @@ It should also not absorb recommendation, warehouse, or product-facing decision 
 
 `crawlernest-crawler-core/` exists to give both crawler engines a stable shared runtime boundary:
 
-- `crawlernest-ranking-crawler/` depends on it for crawler runtime behavior
+- `crawlernest_ranking_crawler/` (repo root) depends on it for crawler runtime behavior
 - `crawlernest-admission-crawler/` depends on it for crawler runtime behavior
 - shared fixes to retry / logging / pacing should land here
 - source-specific parsing or extraction should stay in the engine that owns that source
