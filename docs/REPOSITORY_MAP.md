@@ -40,7 +40,7 @@ Important subdirectories:
 
 - `crawlernest/run_pipeline.py`: primary Python CLI for bootstrap, ingestion, aggregation, subject ranking, and maintenance tasks.
 - `crawlernest/crawlernest-core/`: core Python packages for multi-source ingestion, ranking aggregation, entity resolution, comparison, and recommendation logic.
-- `crawlernest/crawlernest-ranking-crawler/`: ranking crawler components and source-specific extractors.
+- `crawlernest_ranking_crawler/` (repo root, underscores): the live ranking pipeline package imported by `run_pipeline.py`. A diverged hyphenated copy formerly at `crawlernest/crawlernest-ranking-crawler/` is deprecated, untracked, and gitignored — do not edit it.
 - `crawlernest/crawlernest-admission-crawler/`: admission crawler and extraction support.
 - `crawlernest/crawlernest-schema/`: PostgreSQL schema definitions for warehouse, analytics, recommendation, and ranking support.
 - `crawlernest/db/`: analytics bridge helpers used to sync and backfill database outputs.

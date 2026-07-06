@@ -20,13 +20,14 @@ them without a coordinated rename, and remember them when searching:
 
 - **`crawlernest_ranking_crawler/` at the repo root (underscores) is the live
   ranking pipeline package.** It is what `crawlernest/run_pipeline.py` imports.
-- `crawlernest/crawlernest-ranking-crawler/` (hyphens) is a diverged copy that no
-  Python code imports. Do not edit it expecting runtime effect, even though
-  `docs/REPOSITORY_MAP.md` points there.
+- `crawlernest/crawlernest-ranking-crawler/` (hyphens) was a diverged copy that no
+  Python code imports. It is untracked and gitignored now; if it still exists on
+  disk, do not edit it.
 - Same pattern applies to root `crawlernest_admission_crawler/` and
   `crawlernest_crawler_core/` — verify imports before choosing where to edit.
-- Build artifacts are unfortunately tracked in git (`__pycache__/`, `*.pyc`,
-  `crawlernest/clawer.db`, `*.db.bak`). Never edit or read these as source.
+- Build artifacts (`__pycache__/`, `*.pyc`, `crawlernest/clawer.db`, `*.db.bak`)
+  were untracked from git and are gitignored, but stale copies may remain on
+  disk. Never edit or read these as source.
 - Some docs exist in two copies (e.g. `docs/demo/DEMO_SCRIPT_v0.1.md` and
   `releases/v0.1-demo/DEMO_SCRIPT_v0.1.md`). Update both or note the divergence.
 

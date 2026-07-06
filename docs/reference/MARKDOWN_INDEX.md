@@ -145,7 +145,6 @@ If someone is new to the repo, this is the fastest path:
 | File | Purpose |
 | --- | --- |
 | `crawlernest/crawlernest-crawler-core/README.md` | Shared crawler runtime primitives for HTTP, retry, rate limiting, logging, and snapshot hooks; treated as a thin standalone shared crawler subproject boundary. |
-| `crawlernest/crawlernest-ranking-crawler/README.md` | Ranking-specific crawler engine entry doc. |
 | `crawlernest/crawlernest-admission-crawler/README.md` | Admission-specific crawler engine entry doc. |
 | `crawlernest/crawlernest-core/README.md` | Shared config, models, logging, and common utilities. |
 | `crawlernest/crawlernest-core/entity_resolution/README.md` | Deterministic ranking-entity resolution, alias curation loop, and future resolution direction. |
