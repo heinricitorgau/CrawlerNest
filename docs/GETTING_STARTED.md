@@ -2,6 +2,11 @@
 
 Complete setup guide for running CrawlerNest locally from scratch.
 
+> **Shortcut:** `./scripts/setup_from_scratch.sh` automates steps 1–4 and 6
+> below (venv, PostgreSQL via local install or Docker, schema bootstrap,
+> first data crawl, npm ci). Use this guide when you want to run the steps
+> manually or when the script tells you something is missing.
+
 ## Prerequisites
 
 | Dependency | Version | Notes |
@@ -26,7 +31,16 @@ pip install -r requirements.txt
 
 ## 2. PostgreSQL
 
-On WSL / Ubuntu:
+**Option A — Docker (easiest):**
+
+```bash
+docker compose -f docker-compose.postgres.yml up -d
+```
+
+This provides PostgreSQL 16 with the expected role, password, and database
+already created, persisted in a named volume.
+
+**Option B — local install (WSL / Ubuntu):**
 
 ```bash
 sudo apt update
@@ -65,6 +79,13 @@ python3 -m crawlernest.run_pipeline bootstrap-postgres \
 ---
 
 ## 4. Load Ranking Data
+
+The repository ships with no ranking data — this step crawls it live from
+the ranking source. Requests are spaced 10 seconds apart by default
+(`--request-delay`); keep the pacing respectful and check the source site's
+`robots.txt` and terms before increasing crawl volume. If the live fetch
+fails, the pipeline falls back to your most recent local snapshot under
+`crawlernest/crawlernest-kb/` (created automatically on each successful run).
 
 ```bash
 ./.venv/bin/python -m crawlernest.run_pipeline run \
