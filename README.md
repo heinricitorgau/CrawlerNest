@@ -56,13 +56,45 @@ tests/                      integration tests
 
 ## Getting Started
 
-→ **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** — full local setup (PostgreSQL, Python, Java, Node.js, data pipeline)
+First-time setup (fresh clone → runnable, one command):
 
-One-line start (after first-time setup):
+```bash
+./scripts/setup_from_scratch.sh
+```
+
+The script creates the Python venv, installs dependencies, starts PostgreSQL
+(local install or Docker via `docker-compose.postgres.yml`), bootstraps the
+schema, runs the first data crawl, and installs frontend dependencies. It is
+idempotent — re-run it after fixing whatever it reports.
+
+Then start everything:
 
 ```bash
 ./scripts/start_localhost.sh
 ```
+
+→ **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** — the same steps done
+manually, plus subject rankings and troubleshooting.
+
+### Run your own data
+
+**This repository ships with no ranking data.** Every deployment crawls its
+own data directly from the ranking sources:
+
+```bash
+./.venv/bin/python -m crawlernest.run_pipeline run \
+  --limit 20 --ranking-year 2026 \
+  --pg-user test --pg-password test --pg-database clawer
+```
+
+- Crawling is polite by default: **10 seconds between requests** (tune with
+  `--request-delay`, but stay respectful). Check the source site's
+  `robots.txt` and terms of use before increasing crawl volume.
+- If a live fetch fails, the pipeline falls back to your most recent local
+  snapshot under `crawlernest/crawlernest-kb/` (snapshots are created on each
+  successful run and are not committed to git).
+- The crawl writes staging → warehouse → analytics; the UI reads only
+  analytics views. Re-running is safe and idempotent per year/source.
 
 ---
 
