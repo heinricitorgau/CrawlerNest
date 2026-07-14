@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CrawlerNest — University Ranking Data Platform</title>
+<meta name="description" content="Open-source university ranking data infrastructure: crawl ranking data yourself, aggregate it in PostgreSQL, and browse it with an explainability-first web UI.">
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1c1e21; --muted: #5b6470; --line: #e3e6ea;
+    --card: #f6f8fa; --accent: #0b57d0; --accent-fg: #ffffff; --code-bg: #21262d; --code-fg: #e6edf3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --fg: #e6edf3; --muted: #9aa4b2; --line: #262c33;
+      --card: #161b22; --accent: #4c8dff; --accent-fg: #0d1117; --code-bg: #161b22; --code-fg: #e6edf3;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 0 1.25rem;
+  }
+  main { max-width: 46rem; margin: 0 auto; padding: 4rem 0 5rem; }
+  h1 { font-size: 2.4rem; letter-spacing: -0.02em; line-height: 1.15; }
+  .tagline { color: var(--muted); font-size: 1.15rem; margin-top: 0.75rem; }
+  section { margin-top: 3rem; }
+  h2 {
+    font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 0.5rem;
+  }
+  ul { padding-left: 1.2rem; margin-top: 1rem; }
+  li { margin-top: 0.45rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .dl-grid { display: grid; gap: 0.9rem; margin-top: 1.25rem; }
+  .dl-card {
+    display: block; background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 1rem 1.15rem;
+  }
+  .dl-card strong { display: block; margin-bottom: 0.2rem; }
+  .dl-card span { color: var(--muted); font-size: 0.92rem; }
+  .btn {
+    display: inline-block; background: var(--accent); color: var(--accent-fg);
+    font-weight: 600; border-radius: 8px; padding: 0.65rem 1.2rem; margin-top: 1.25rem;
+  }
+  .btn:hover { text-decoration: none; filter: brightness(1.08); }
+  pre {
+    background: var(--code-bg); color: var(--code-fg); border-radius: 10px;
+    padding: 1rem 1.15rem; overflow-x: auto; margin-top: 1rem;
+    font: 0.86rem/1.6 ui-monospace, "Cascadia Code", Consolas, monospace;
+  }
+  code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
+  p { margin-top: 1rem; }
+  .note {
+    border-left: 3px solid var(--accent); background: var(--card);
+    padding: 0.85rem 1.1rem; border-radius: 0 8px 8px 0; margin-top: 1.25rem;
+    font-size: 0.95rem;
+  }
+  footer {
+    max-width: 46rem; margin: 0 auto; padding: 1.5rem 0 3rem;
+    border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>CrawlerNest</h1>
+  <p class="tagline">
+    An open-source university ranking data platform. Python crawlers ingest
+    ranking sources into a PostgreSQL warehouse, a Spring Boot API serves
+    aggregated read-only data, and a Next.js frontend lets you browse,
+    compare, and shortlist universities.
+  </p>
+  <a class="btn" href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform">View on GitHub</a>
+
+  <section>
+    <h2>What it does</h2>
+    <ul>
+      <li><strong>Global &amp; subject rankings</strong> — aggregated into a single warehouse with canonical university identities</li>
+      <li><strong>Explainability first</strong> — every ranking shows its sources, confidence level, and known data caveats; no black-box scores</li>
+      <li><strong>Analytics</strong> — rank trends, cross-source disagreement, and data-quality diagnostics</li>
+      <li><strong>Run it yourself</strong> — the repository ships with no data; your deployment crawls its own, politely (10s request spacing by default)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Download</h2>
+    <div class="dl-grid">
+      <a class="dl-card" href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/archive/refs/heads/main.zip">
+        <strong>ZIP archive (main branch)</strong>
+        <span>Direct download, no git required</span>
+      </a>
+      <a class="dl-card" href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/releases">
+        <strong>Releases</strong>
+        <span>Tagged versions and release notes</span>
+      </a>
+      <div class="dl-card">
+        <strong>Git clone</strong>
+        <span><code>git clone https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform.git</code></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Quick start</h2>
+    <pre><code>./scripts/setup_from_scratch.sh   # venv, PostgreSQL, schema, first crawl
+./scripts/start_localhost.sh      # API :8080 + web :3000</code></pre>
+    <p>
+      Then open <code>http://localhost:3000/rankings</code>. Prerequisites and
+      the manual step-by-step are in
+      <a href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/blob/main/docs/GETTING_STARTED.md">GETTING_STARTED.md</a>.
+    </p>
+    <div class="note">
+      <strong>Bring your own data.</strong> No ranking data is bundled. The
+      pipeline crawls sources live with polite defaults — review each source
+      site's <code>robots.txt</code> and terms of use before raising crawl
+      volume, and keep your data local unless the source's license permits
+      redistribution.
+    </div>
+  </section>
+
+  <section>
+    <h2>Documentation</h2>
+    <ul>
+      <li><a href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/blob/main/docs/ARCHITECTURE_OVERVIEW.md">Architecture overview</a></li>
+      <li><a href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/blob/main/docs/GETTING_STARTED.md">Getting started</a></li>
+      <li><a href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/blob/main/docs/API_SURFACE.md">API surface</a></li>
+      <li><a href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/blob/main/docs/analytics/ANALYTICS_EXPLAINABILITY.md">Analytics explainability policy</a></li>
+    </ul>
+  </section>
+</main>
+<footer>
+  CrawlerNest · Apache License 2.0 ·
+  <a href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform">GitHub</a>
+</footer>
+</body>
+</html>
