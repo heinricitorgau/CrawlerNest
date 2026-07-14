@@ -7,5 +7,27 @@ Disallow: /saved-universities
 Disallow: /saved-recommendations
 Disallow: /agent
 Disallow: /preview
+Disallow: /compare
+Disallow: /recommendations
+Disallow: /system-status
 Disallow: /*?
 Allow: /
+
+# High-volume crawlers with no indexing value for this site
+User-agent: Bytespider
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
