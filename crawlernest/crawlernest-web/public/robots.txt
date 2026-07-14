@@ -1,9 +1,5 @@
-# CrawlerNest — robots.txt
-# Public data pages (rankings, universities, analytics) are crawlable.
-# API proxy routes and user-specific pages are excluded: they carry no
-# indexable content and some depend on the signed-in session.
-
 User-agent: *
+Crawl-delay: 10
 Disallow: /api/
 Disallow: /signin
 Disallow: /signup
@@ -11,4 +7,5 @@ Disallow: /saved-universities
 Disallow: /saved-recommendations
 Disallow: /agent
 Disallow: /preview
+Disallow: /*?
 Allow: /
