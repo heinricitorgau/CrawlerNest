@@ -87,6 +87,24 @@ class WebResponseGenerator:
         if os.getenv("WEB_AGENT_GENERATION_DISABLED", "").strip() in {"1", "true", "TRUE"}:
             return None
 
+        # DwarfStar 4 (ds4) local inference engine. ds4-server exposes an
+        # OpenAI-compatible /v1 API, so it plugs in as a first-class named
+        # provider. Opt-in: only active when WEB_AGENT_DS4_BASE_URL is set, so
+        # default behavior is unchanged. Recommended value:
+        # http://localhost:8000/v1 (ds4-server default port), model
+        # "deepseek-v4-flash".
+        ds4_base = os.getenv("WEB_AGENT_DS4_BASE_URL", "").strip()
+        if ds4_base:
+            normalized_base = ds4_base.rstrip("/")
+            if not normalized_base.endswith("/v1"):
+                normalized_base = f"{normalized_base}/v1"
+            return ProviderConfig(
+                base_url=normalized_base,
+                api_key=os.getenv("WEB_AGENT_DS4_API_KEY", "").strip(),
+                model_name=os.getenv("WEB_AGENT_DS4_MODEL", "").strip() or "deepseek-v4-flash",
+                provider_label="ds4",
+            )
+
         web_base = os.getenv("WEB_AGENT_OPENAI_BASE_URL", "").strip()
         web_key = os.getenv("WEB_AGENT_OPENAI_API_KEY", "").strip()
         web_model = os.getenv("WEB_AGENT_MODEL", "").strip()
