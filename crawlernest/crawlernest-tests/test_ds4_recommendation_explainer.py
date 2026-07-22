@@ -170,15 +170,23 @@ class TestEngineWiring(unittest.TestCase):
         generator = WebResponseGenerator()
         engine = WebAgentEngine(generator=generator)
 
+        from crawlernest.agent.web_agent.generation.data_query_explainer import DataQueryExplainer
         from crawlernest.agent.web_agent.generation.ranking_explainer import RankingExplainer
+        from crawlernest.agent.web_agent.generation.university_lookup_explainer import (
+            UniversityLookupExplainer,
+        )
 
         self.assertIsInstance(engine._recommendation_explainer, RecommendationExplainer)
         self.assertIsInstance(engine._ranking_explainer, RankingExplainer)
-        # Both explainers must reuse the engine's generator so a single provider
-        # configuration (ds4 or otherwise) drives generic generation and both
-        # the recommendation and ranking explanations.
+        self.assertIsInstance(engine._university_lookup_explainer, UniversityLookupExplainer)
+        self.assertIsInstance(engine._data_query_explainer, DataQueryExplainer)
+        # Every explainer must reuse the engine's generator so a single provider
+        # configuration (ds4 or otherwise) drives generic generation and all the
+        # task-specific explanations.
         self.assertIs(engine._recommendation_explainer._generator, generator)
         self.assertIs(engine._ranking_explainer._generator, generator)
+        self.assertIs(engine._university_lookup_explainer._generator, generator)
+        self.assertIs(engine._data_query_explainer._generator, generator)
 
 
 if __name__ == "__main__":
