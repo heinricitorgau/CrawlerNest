@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-import re
 from typing import Any
 
+from crawlernest.agent.web_agent.generation.intent_detection import (
+    detect_lookup_intents,
+    detect_ranking_intents,
+)
 from crawlernest.agent.web_agent.generation.models import RetrievedContext
 
 
@@ -406,95 +409,10 @@ class WebContextBuilder:
         return facts[:12]
 
     def _detect_lookup_intents(self, user_input: str) -> list[str]:
-        lowered = user_input.lower()
-        intents: list[str] = []
-
-        location_patterns = [
-            r"\bwhere\b",
-            r"\blocated\b",
-            r"在哪",
-            r"哪裡",
-            r"位於",
-            r"位在",
-            r"哪個國家",
-            r"哪个国家",
-            r"城市",
-        ]
-        admission_patterns = [
-            r"錄取門檻",
-            r"录取门槛",
-            r"申請門檻",
-            r"申请门槛",
-            r"admission",
-            r"requirement",
-            r"ielts",
-            r"toefl",
-        ]
-        ranking_patterns = [
-            r"排名",
-            r"\brank\b",
-            r"\branking\b",
-            r"qs",
-            r"the ",
-            r"arwu",
-        ]
-
-        if any(re.search(pattern, lowered, re.IGNORECASE) for pattern in location_patterns):
-            intents.append("location")
-        if any(re.search(pattern, lowered, re.IGNORECASE) for pattern in admission_patterns):
-            intents.append("admission")
-        if any(re.search(pattern, lowered, re.IGNORECASE) for pattern in ranking_patterns):
-            intents.append("ranking")
-
-        if not intents:
-            intents.append("identity")
-        return intents
+        return detect_lookup_intents(user_input)
 
     def _detect_ranking_intents(self, user_input: str) -> list[str]:
-        lowered = user_input.lower()
-        intents: list[str] = []
-
-        compare_patterns = [
-            r"比較",
-            r"比较",
-            r"\bcompare\b",
-            r"\bvs\b",
-            r"versus",
-            r"差別",
-            r"差异",
-        ]
-        rank_position_patterns = [
-            r"第幾",
-            r"第几",
-            r"幾名",
-            r"几名",
-            r"排名多少",
-            r"ranked",
-            r"\bwhat rank\b",
-            r"\brank\b",
-            r"\bposition\b",
-        ]
-        why_high_patterns = [
-            r"為什麼",
-            r"为什么",
-            r"\bwhy\b",
-            r"原因",
-            r"為何",
-            r"为何",
-            r"ranks highly",
-            r"ranks so high",
-        ]
-
-        if any(re.search(pattern, lowered, re.IGNORECASE) for pattern in compare_patterns):
-            intents.append("compare")
-        if any(re.search(pattern, lowered, re.IGNORECASE) for pattern in rank_position_patterns):
-            intents.append("rank_position")
-        if any(re.search(pattern, lowered, re.IGNORECASE) for pattern in why_high_patterns):
-            intents.append("why_high")
-
-        if not intents:
-            intents.append("general_explain")
-        return intents
+        return detect_ranking_intents(user_input)
 
     def _build_source_hints(self, task_kind: str, raw_data: dict[str, Any]) -> list[str]:
         hints: list[str] = []

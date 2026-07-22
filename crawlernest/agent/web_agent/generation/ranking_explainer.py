@@ -12,6 +12,7 @@ from typing import Any
 
 from crawlernest.agent.web_agent.generation.grounded_explainer import (
     ExplanationResult,
+    FieldSpec,
     GroundedExplainer,
 )
 
@@ -54,6 +55,17 @@ class RankingExplainer(GroundedExplainer):
 
     system_instruction = _SYSTEM_INSTRUCTION
     constraints = _DEFAULT_CONSTRAINTS
+
+    _ITEM_FIELDS: FieldSpec = [
+        ("country", "country"),
+        ("aggregatedRank", "aggregated_rank"),
+        ("globalRank", "global_rank"),
+        ("scopeRank", "scope_rank"),
+        ("compositeScore", "composite_score"),
+        ("primarySource", "primary_source"),
+        ("sourceCount", "source_count"),
+        ("rankingYear", "ranking_year"),
+    ]
 
     def explain(
         self,
@@ -105,38 +117,13 @@ class RankingExplainer(GroundedExplainer):
         return "\n".join(parts).strip()
 
     def _format_item(self, item: dict[str, Any]) -> str:
-        name = str(item.get("universityName") or item.get("label") or "Unknown university")
-        fields: list[str] = []
-
-        if item.get("country"):
-            fields.append(f"country={item['country']}")
-        if item.get("aggregatedRank") is not None:
-            fields.append(f"aggregated_rank={item['aggregatedRank']}")
-        if item.get("globalRank") is not None:
-            fields.append(f"global_rank={item['globalRank']}")
-        if item.get("scopeRank") is not None:
-            fields.append(f"scope_rank={item['scopeRank']}")
-        if item.get("compositeScore") is not None:
-            fields.append(f"composite_score={item['compositeScore']}")
-        if item.get("primarySource"):
-            fields.append(f"primary_source={item['primarySource']}")
-        if item.get("sourceCount") is not None:
-            fields.append(f"source_count={item['sourceCount']}")
-        if item.get("rankingYear") is not None:
-            fields.append(f"ranking_year={item['rankingYear']}")
-
-        detail = "; ".join(fields) if fields else "no additional evidence"
-        return f"{name} ({detail})"
+        return self._format_named_item(item, self._ITEM_FIELDS)
 
     def _deterministic_fallback(self, items: list[dict[str, Any]], focus_entity: str) -> str:
         if not items:
             return "The ranking query returned no universities for this slice."
-        names = [
-            str(item.get("universityName") or item.get("label"))
-            for item in items
-            if isinstance(item, dict) and (item.get("universityName") or item.get("label"))
-        ]
-        listed = ", ".join(names[:5]) if names else "the matched universities"
+        names = self._top_names(items)
+        listed = ", ".join(names) if names else "the matched universities"
         if focus_entity.strip():
             return f"For {focus_entity.strip()}, the closest ranking rows on this page are: {listed}."
         return f"The ranking rows on this page include: {listed}."

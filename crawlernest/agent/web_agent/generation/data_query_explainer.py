@@ -13,6 +13,7 @@ from typing import Any
 
 from crawlernest.agent.web_agent.generation.grounded_explainer import (
     ExplanationResult,
+    FieldSpec,
     GroundedExplainer,
 )
 
@@ -53,6 +54,14 @@ class DataQueryExplainer(GroundedExplainer):
 
     system_instruction = _SYSTEM_INSTRUCTION
     constraints = _DEFAULT_CONSTRAINTS
+
+    _ITEM_FIELDS: FieldSpec = [
+        ("country", "country"),
+        ("aggregatedRank", "aggregated_rank"),
+        ("compositeScore", "composite_score"),
+        ("primarySource", "primary_source"),
+        ("sourceCount", "source_count"),
+    ]
 
     def explain(
         self,
@@ -111,30 +120,13 @@ class DataQueryExplainer(GroundedExplainer):
         return "\n".join(parts).strip()
 
     def _format_item(self, item: dict[str, Any]) -> str:
-        name = str(item.get("universityName") or item.get("label") or "Unknown university")
-        fields: list[str] = []
-        if item.get("country"):
-            fields.append(f"country={item['country']}")
-        if item.get("aggregatedRank") is not None:
-            fields.append(f"aggregated_rank={item['aggregatedRank']}")
-        if item.get("compositeScore") is not None:
-            fields.append(f"composite_score={item['compositeScore']}")
-        if item.get("primarySource"):
-            fields.append(f"primary_source={item['primarySource']}")
-        if item.get("sourceCount") is not None:
-            fields.append(f"source_count={item['sourceCount']}")
-        detail = "; ".join(fields) if fields else "no additional evidence"
-        return f"{name} ({detail})"
+        return self._format_named_item(item, self._ITEM_FIELDS)
 
     def _deterministic_fallback(self, items: list[dict[str, Any]], metadata: dict[str, Any]) -> str:
         if not items:
             return "The query returned no rows for this slice."
-        names = [
-            str(item.get("universityName") or item.get("label"))
-            for item in items
-            if isinstance(item, dict) and (item.get("universityName") or item.get("label"))
-        ]
-        listed = ", ".join(names[:5]) if names else "the matched rows"
+        names = self._top_names(items)
+        listed = ", ".join(names) if names else "the matched rows"
         total = metadata.get("totalCount")
         suffix = f" (of {total} total)" if total is not None else ""
         return f"This page returned {len(items)} rows{suffix}, including: {listed}."
