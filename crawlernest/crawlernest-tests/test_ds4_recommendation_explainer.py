@@ -163,5 +163,19 @@ class TestDs4ProviderResolution(unittest.TestCase):
         self.assertFalse(status["configured"])
 
 
+class TestEngineWiring(unittest.TestCase):
+    def test_engine_wires_explainer_sharing_the_generator(self) -> None:
+        from crawlernest.agent.web_agent.engine.web_agent_engine import WebAgentEngine
+
+        generator = WebResponseGenerator()
+        engine = WebAgentEngine(generator=generator)
+
+        self.assertIsInstance(engine._recommendation_explainer, RecommendationExplainer)
+        # The explainer must reuse the engine's generator so a single provider
+        # configuration (ds4 or otherwise) drives both generic generation and
+        # recommendation explanations.
+        self.assertIs(engine._recommendation_explainer._generator, generator)
+
+
 if __name__ == "__main__":
     unittest.main()

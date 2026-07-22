@@ -15,6 +15,9 @@ from crawlernest.agent.shared.planner.shared_planner import SharedPlanner
 from crawlernest.agent.web_agent.formatter.response_formatter import WebResponseFormatter
 from crawlernest.agent.web_agent.generation.context_builder import WebContextBuilder
 from crawlernest.agent.web_agent.generation.prompt_builder import WebPromptBuilder
+from crawlernest.agent.web_agent.generation.recommendation_explainer import (
+    RecommendationExplainer,
+)
 from crawlernest.agent.web_agent.generation.response_generator import WebResponseGenerator
 from crawlernest.agent.web_agent.grounding.grounding_analyzer import GroundingAnalyzer
 from crawlernest.agent.web_agent.interpretation.query_rewriter import QueryRewriter
@@ -77,6 +80,10 @@ class WebAgentEngine:
         self._context_builder = context_builder or WebContextBuilder()
         self._prompt_builder = prompt_builder or WebPromptBuilder()
         self._generator = generator or WebResponseGenerator()
+        # Recommendation explanations use a dedicated grounded/honest prompt but
+        # share the same provider (ds4 or whatever is configured) as generic
+        # generation, so a single config drives both.
+        self._recommendation_explainer = RecommendationExplainer(generator=self._generator)
         self._memory = memory_store or ConversationStore()
         self._memory_policy = memory_policy or MemoryPolicy()
         self._referential_resolver = referential_resolver or ReferentialResolver()
@@ -488,6 +495,27 @@ class WebAgentEngine:
         if policy_decision.mode == "deterministic":
             answer_text = fallback_text
             answer_paragraphs = fallback_paragraphs
+        elif request.kind == "recommendation":
+            # Recommendations get a dedicated grounded/honest explanation:
+            # scores, ranks, and confidence stay exactly as the deterministic
+            # engine computed them; the model only writes prose and always
+            # degrades to the deterministic reply.
+            rec_data = response.data if isinstance(response.data, dict) else {}
+            rec_items = rec_data.get("items")
+            rec_caveats = rec_data.get("caveats")
+            explanation = self._recommendation_explainer.explain(
+                items=list(rec_items) if isinstance(rec_items, list) else [],
+                profile=rec_data.get("profile") if isinstance(rec_data.get("profile"), dict) else None,
+                query=request.user_input,
+                caveats=rec_caveats if isinstance(rec_caveats, list) else None,
+                deterministic_reply=fallback_text,
+            )
+            answer_text = explanation.text
+            answer_paragraphs = explanation.paragraphs
+            generation_source = explanation.source
+            model_name = explanation.model_name
+            if explanation.warning:
+                response.warnings.append(explanation.warning)
         else:
             prompt = self._prompt_builder.build(
                 user_input=(
