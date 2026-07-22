@@ -14,10 +14,14 @@ from crawlernest.agent.shared.models.task_response import TaskResponse
 from crawlernest.agent.shared.planner.shared_planner import SharedPlanner
 from crawlernest.agent.web_agent.formatter.response_formatter import WebResponseFormatter
 from crawlernest.agent.web_agent.generation.context_builder import WebContextBuilder
+from crawlernest.agent.web_agent.generation.data_query_explainer import DataQueryExplainer
 from crawlernest.agent.web_agent.generation.prompt_builder import WebPromptBuilder
 from crawlernest.agent.web_agent.generation.ranking_explainer import RankingExplainer
 from crawlernest.agent.web_agent.generation.recommendation_explainer import (
     RecommendationExplainer,
+)
+from crawlernest.agent.web_agent.generation.university_lookup_explainer import (
+    UniversityLookupExplainer,
 )
 from crawlernest.agent.web_agent.generation.response_generator import WebResponseGenerator
 from crawlernest.agent.web_agent.grounding.grounding_analyzer import GroundingAnalyzer
@@ -86,6 +90,8 @@ class WebAgentEngine:
         # generation, so a single config drives both.
         self._recommendation_explainer = RecommendationExplainer(generator=self._generator)
         self._ranking_explainer = RankingExplainer(generator=self._generator)
+        self._university_lookup_explainer = UniversityLookupExplainer(generator=self._generator)
+        self._data_query_explainer = DataQueryExplainer(generator=self._generator)
         self._memory = memory_store or ConversationStore()
         self._memory_policy = memory_policy or MemoryPolicy()
         self._referential_resolver = referential_resolver or ReferentialResolver()
@@ -531,6 +537,45 @@ class WebAgentEngine:
                 focus_entity=str(rank_data.get("focusEntity") or ""),
                 query=request.user_input,
                 caveats=rank_caveats if isinstance(rank_caveats, list) else None,
+                deterministic_reply=fallback_text,
+            )
+            answer_text = explanation.text
+            answer_paragraphs = explanation.paragraphs
+            generation_source = explanation.source
+            model_name = explanation.model_name
+            if explanation.warning:
+                response.warnings.append(explanation.warning)
+        elif request.kind == "university_lookup":
+            # University lookups explain a single detail preview; identity,
+            # ranking, and admission facts come straight from the warehouse and
+            # missing sections are stated plainly (honesty contract).
+            lookup_data = response.data if isinstance(response.data, dict) else {}
+            lookup_caveats = lookup_data.get("caveats")
+            explanation = self._university_lookup_explainer.explain(
+                preview=lookup_data,
+                query=request.user_input,
+                caveats=lookup_caveats if isinstance(lookup_caveats, list) else None,
+                deterministic_reply=fallback_text,
+            )
+            answer_text = explanation.text
+            answer_paragraphs = explanation.paragraphs
+            generation_source = explanation.source
+            model_name = explanation.model_name
+            if explanation.warning:
+                response.warnings.append(explanation.warning)
+        elif request.kind == "data_query":
+            # Data queries explain the returned slice: counts, page, and notable
+            # rows. Ranks, scores, and totals stay as the warehouse reported
+            # them, and pagination is respected (honesty contract).
+            query_data = response.data if isinstance(response.data, dict) else {}
+            query_items = query_data.get("items")
+            query_metadata = query_data.get("metadata")
+            query_caveats = query_data.get("caveats")
+            explanation = self._data_query_explainer.explain(
+                items=list(query_items) if isinstance(query_items, list) else [],
+                metadata=query_metadata if isinstance(query_metadata, dict) else None,
+                query=request.user_input,
+                caveats=query_caveats if isinstance(query_caveats, list) else None,
                 deterministic_reply=fallback_text,
             )
             answer_text = explanation.text

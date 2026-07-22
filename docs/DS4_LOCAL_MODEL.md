@@ -1,7 +1,8 @@
 # Local LLM via ds4 (DwarfStar 4)
 
 CrawlerNest can use a **local** LLM to generate natural-language text — currently
-recommendation and ranking-explain answers — instead of a hosted API. The local engine is
+recommendation, ranking-explain, university-lookup, and data-query answers —
+instead of a hosted API. The local engine is
 [ds4 / DwarfStar 4](https://github.com/antirez/ds4), a self-contained inference
 server for DeepSeek V4 Flash. `ds4-server` exposes an OpenAI-compatible `/v1`
 API, so it plugs into the existing web-agent generation layer as a first-class
@@ -112,12 +113,21 @@ semantics as the recommendation explainer.
 
 ## Live wiring
 
-Both explainers are wired into the web-agent engine
-(`crawlernest/agent/web_agent/engine/web_agent_engine.py`): `recommendation`
-tasks route through `RecommendationExplainer` and `ranking_explain` tasks through
-`RankingExplainer`. Both share the engine's single generator, so the one provider
-configuration above drives every path. With no provider configured, each path
-falls back to its deterministic reply and behavior is unchanged.
+The explainers are wired into the web-agent engine
+(`crawlernest/agent/web_agent/engine/web_agent_engine.py`), one per task kind:
+
+| Task kind | Explainer |
+|-----------|-----------|
+| `recommendation` | `RecommendationExplainer` |
+| `ranking_explain` | `RankingExplainer` |
+| `university_lookup` | `UniversityLookupExplainer` |
+| `data_query` | `DataQueryExplainer` |
+
+All four share the engine's single generator, so the one provider configuration
+above drives every path. With no provider configured, each path falls back to its
+deterministic reply and behavior is unchanged. Every explainer follows the same
+honesty contract: it grounds strictly on the data the deterministic layer already
+produced, never recomputes ranks/scores/counts, and preserves caveats verbatim.
 
 ## Tests
 
@@ -126,7 +136,9 @@ Offline, no network or GPU required:
 ```bash
 PYTHONPATH=. ./.venv/bin/python -m pytest \
   crawlernest/crawlernest-tests/test_ds4_recommendation_explainer.py \
-  crawlernest/crawlernest-tests/test_ds4_ranking_explainer.py -q
+  crawlernest/crawlernest-tests/test_ds4_ranking_explainer.py \
+  crawlernest/crawlernest-tests/test_ds4_university_lookup_explainer.py \
+  crawlernest/crawlernest-tests/test_ds4_data_query_explainer.py -q
 ```
 
 These cover the grounded/honest prompt, the deterministic fallback paths, and the
