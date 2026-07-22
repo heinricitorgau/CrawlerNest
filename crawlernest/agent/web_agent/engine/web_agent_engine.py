@@ -15,6 +15,7 @@ from crawlernest.agent.shared.planner.shared_planner import SharedPlanner
 from crawlernest.agent.web_agent.formatter.response_formatter import WebResponseFormatter
 from crawlernest.agent.web_agent.generation.context_builder import WebContextBuilder
 from crawlernest.agent.web_agent.generation.prompt_builder import WebPromptBuilder
+from crawlernest.agent.web_agent.generation.ranking_explainer import RankingExplainer
 from crawlernest.agent.web_agent.generation.recommendation_explainer import (
     RecommendationExplainer,
 )
@@ -84,6 +85,7 @@ class WebAgentEngine:
         # share the same provider (ds4 or whatever is configured) as generic
         # generation, so a single config drives both.
         self._recommendation_explainer = RecommendationExplainer(generator=self._generator)
+        self._ranking_explainer = RankingExplainer(generator=self._generator)
         self._memory = memory_store or ConversationStore()
         self._memory_policy = memory_policy or MemoryPolicy()
         self._referential_resolver = referential_resolver or ReferentialResolver()
@@ -508,6 +510,27 @@ class WebAgentEngine:
                 profile=rec_data.get("profile") if isinstance(rec_data.get("profile"), dict) else None,
                 query=request.user_input,
                 caveats=rec_caveats if isinstance(rec_caveats, list) else None,
+                deterministic_reply=fallback_text,
+            )
+            answer_text = explanation.text
+            answer_paragraphs = explanation.paragraphs
+            generation_source = explanation.source
+            model_name = explanation.model_name
+            if explanation.warning:
+                response.warnings.append(explanation.warning)
+        elif request.kind == "ranking_explain":
+            # Ranking explanations get the same grounded/honest treatment:
+            # ranks, composite scores, and source counts stay exactly as the
+            # warehouse reported them; the model only writes prose and always
+            # degrades to the deterministic reply.
+            rank_data = response.data if isinstance(response.data, dict) else {}
+            rank_items = rank_data.get("items")
+            rank_caveats = rank_data.get("caveats")
+            explanation = self._ranking_explainer.explain(
+                items=list(rank_items) if isinstance(rank_items, list) else [],
+                focus_entity=str(rank_data.get("focusEntity") or ""),
+                query=request.user_input,
+                caveats=rank_caveats if isinstance(rank_caveats, list) else None,
                 deterministic_reply=fallback_text,
             )
             answer_text = explanation.text

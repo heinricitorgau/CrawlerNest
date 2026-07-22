@@ -1,7 +1,7 @@
 # Local LLM via ds4 (DwarfStar 4)
 
-CrawlerNest can use a **local** LLM to generate natural-language text — starting
-with recommendation explanations — instead of a hosted API. The local engine is
+CrawlerNest can use a **local** LLM to generate natural-language text — currently
+recommendation and ranking-explain answers — instead of a hosted API. The local engine is
 [ds4 / DwarfStar 4](https://github.com/antirez/ds4), a self-contained inference
 server for DeepSeek V4 Flash. `ds4-server` exposes an OpenAI-compatible `/v1`
 API, so it plugs into the existing web-agent generation layer as a first-class
@@ -101,13 +101,32 @@ print(result.text)
 deterministic reply was used, so callers can always tell whether the model was
 involved.
 
+## Ranking explanation generator
+
+`crawlernest/agent/web_agent/generation/ranking_explainer.py` is the companion
+for `ranking_explain` tasks. It grounds on the ranking rows the warehouse
+returned (aggregated/global/scope rank, composite score, primary source, source
+count, year) and answers where a university sits and which source supports that
+position — never recomputing a rank. Same fallback and `result.source`
+semantics as the recommendation explainer.
+
+## Live wiring
+
+Both explainers are wired into the web-agent engine
+(`crawlernest/agent/web_agent/engine/web_agent_engine.py`): `recommendation`
+tasks route through `RecommendationExplainer` and `ranking_explain` tasks through
+`RankingExplainer`. Both share the engine's single generator, so the one provider
+configuration above drives every path. With no provider configured, each path
+falls back to its deterministic reply and behavior is unchanged.
+
 ## Tests
 
 Offline, no network or GPU required:
 
 ```bash
 PYTHONPATH=. ./.venv/bin/python -m pytest \
-  crawlernest/crawlernest-tests/test_ds4_recommendation_explainer.py -q
+  crawlernest/crawlernest-tests/test_ds4_recommendation_explainer.py \
+  crawlernest/crawlernest-tests/test_ds4_ranking_explainer.py -q
 ```
 
 These cover the grounded/honest prompt, the deterministic fallback paths, and the
