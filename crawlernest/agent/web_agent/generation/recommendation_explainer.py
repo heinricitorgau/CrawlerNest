@@ -13,6 +13,7 @@ from typing import Any
 
 from crawlernest.agent.web_agent.generation.grounded_explainer import (
     ExplanationResult,
+    FieldSpec,
     GroundedExplainer,
 )
 
@@ -55,6 +56,28 @@ class RecommendationExplainer(GroundedExplainer):
 
     system_instruction = _SYSTEM_INSTRUCTION
     constraints = _DEFAULT_CONSTRAINTS
+
+    _ITEM_FIELDS: FieldSpec = [
+        (("category", "decision"), "category"),
+        ("country", "country"),
+        ("aggregatedRank", "aggregated_rank"),
+        ("matchingScore", "matching_score"),
+        (("confidence", "recommendationConfidence"), "confidence"),
+        ("preferenceAlignment", "preference_alignment"),
+        ("gpaRequirement", "gpa_req"),
+        ("ieltsRequirement", "ielts_req"),
+        ("toeflRequirement", "toefl_req"),
+        ("duolingoRequirement", "duolingo_req"),
+    ]
+    _PROFILE_FIELDS: FieldSpec = [
+        ("country", "country"),
+        ("targetRank", "target_rank"),
+        ("ielts", "ielts"),
+        ("toefl", "toefl"),
+        ("gpa", "gpa"),
+        ("riskProfile", "risk_profile"),
+        ("preferredRankingSource", "preferred_source"),
+    ]
 
     def explain(
         self,
@@ -108,58 +131,17 @@ class RecommendationExplainer(GroundedExplainer):
         return "\n".join(parts).strip()
 
     def _format_item(self, item: dict[str, Any]) -> str:
-        name = str(item.get("universityName") or item.get("label") or "Unknown university")
-        fields: list[str] = []
-
-        category = item.get("category") or item.get("decision")
-        if category:
-            fields.append(f"category={category}")
-        if item.get("country"):
-            fields.append(f"country={item['country']}")
-        if item.get("aggregatedRank") is not None:
-            fields.append(f"aggregated_rank={item['aggregatedRank']}")
-        if item.get("matchingScore") is not None:
-            fields.append(f"matching_score={item['matchingScore']}")
-        confidence = item.get("confidence") if item.get("confidence") is not None else item.get("recommendationConfidence")
-        if confidence is not None:
-            fields.append(f"confidence={confidence}")
-        if item.get("preferenceAlignment") is not None:
-            fields.append(f"preference_alignment={item['preferenceAlignment']}")
-        if item.get("gpaRequirement") is not None:
-            fields.append(f"gpa_req={item['gpaRequirement']}")
-        if item.get("ieltsRequirement") is not None:
-            fields.append(f"ielts_req={item['ieltsRequirement']}")
-        if item.get("toeflRequirement") is not None:
-            fields.append(f"toefl_req={item['toeflRequirement']}")
-        if item.get("duolingoRequirement") is not None:
-            fields.append(f"duolingo_req={item['duolingoRequirement']}")
-
-        detail = "; ".join(fields) if fields else "no additional evidence"
-        return f"{name} ({detail})"
+        return self._format_named_item(item, self._ITEM_FIELDS)
 
     def _format_profile(self, profile: dict[str, Any]) -> str:
-        keys = [
-            ("country", "country"),
-            ("targetRank", "target_rank"),
-            ("ielts", "ielts"),
-            ("toefl", "toefl"),
-            ("gpa", "gpa"),
-            ("riskProfile", "risk_profile"),
-            ("preferredRankingSource", "preferred_source"),
-        ]
-        fields = [f"{label}={profile[key]}" for key, label in keys if profile.get(key) not in (None, "", [], {})]
-        return "; ".join(fields)
+        return self._format_fields(profile, self._PROFILE_FIELDS)
 
     def _deterministic_fallback(self, items: list[dict[str, Any]], caveats: list[str]) -> str:
         if not items:
             text = "No universities matched the given profile with the current data."
         else:
-            names = [
-                str(item.get("universityName") or item.get("label"))
-                for item in items
-                if isinstance(item, dict) and (item.get("universityName") or item.get("label"))
-            ]
-            listed = ", ".join(names[:5]) if names else "the matched universities"
+            names = self._top_names(items)
+            listed = ", ".join(names) if names else "the matched universities"
             text = f"Based on the ranking and admission data, the recommended universities are: {listed}."
         if caveats:
             text = text + "\n\n" + "\n".join(f"- {caveat}" for caveat in caveats)

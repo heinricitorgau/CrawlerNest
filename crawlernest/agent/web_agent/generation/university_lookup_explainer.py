@@ -92,7 +92,7 @@ class UniversityLookupExplainer(GroundedExplainer):
 
         identity = preview.get("identity_summary")
         if isinstance(identity, dict):
-            id_fields = self._pairs(
+            id_fields = self._format_fields(
                 identity,
                 [("status", "status"), ("city_name", "city"), ("country_id", "country_id"), ("website_url", "website")],
             )
@@ -101,7 +101,7 @@ class UniversityLookupExplainer(GroundedExplainer):
 
         ranking = preview.get("ranking_summary")
         if isinstance(ranking, dict):
-            rk_fields = self._pairs(
+            rk_fields = self._format_fields(
                 ranking,
                 [
                     ("row_count", "rows"),
@@ -118,7 +118,7 @@ class UniversityLookupExplainer(GroundedExplainer):
 
         admission = preview.get("admission_summary")
         if isinstance(admission, dict):
-            ad_fields = self._pairs(
+            ad_fields = self._format_fields(
                 admission,
                 [
                     ("row_count", "rows"),
@@ -140,17 +140,6 @@ class UniversityLookupExplainer(GroundedExplainer):
         parts.extend(self._caveat_lines(caveats))
 
         return "\n".join(parts).strip()
-
-    def _pairs(self, data: dict[str, Any], keys: list[tuple[str, str]]) -> str:
-        out: list[str] = []
-        for key, label in keys:
-            value = data.get(key)
-            if value in (None, "", [], {}):
-                continue
-            if isinstance(value, list):
-                value = ", ".join(str(v) for v in value[:6])
-            out.append(f"{label}={value}")
-        return "; ".join(out)
 
     def _deterministic_fallback(self, preview: dict[str, Any], name: str) -> str:
         if not name:

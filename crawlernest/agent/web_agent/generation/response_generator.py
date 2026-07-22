@@ -8,6 +8,12 @@ from urllib import error, request
 from crawlernest.agent.web_agent.generation.models import GenerationResult, PromptPayload
 
 
+def _ensure_v1_base(base_url: str) -> str:
+    """Normalize an OpenAI-compatible base URL to end in ``/v1``."""
+    normalized = base_url.rstrip("/")
+    return normalized if normalized.endswith("/v1") else f"{normalized}/v1"
+
+
 @dataclass(slots=True)
 class ProviderConfig:
     base_url: str
@@ -95,11 +101,8 @@ class WebResponseGenerator:
         # "deepseek-v4-flash".
         ds4_base = os.getenv("WEB_AGENT_DS4_BASE_URL", "").strip()
         if ds4_base:
-            normalized_base = ds4_base.rstrip("/")
-            if not normalized_base.endswith("/v1"):
-                normalized_base = f"{normalized_base}/v1"
             return ProviderConfig(
-                base_url=normalized_base,
+                base_url=_ensure_v1_base(ds4_base),
                 api_key=os.getenv("WEB_AGENT_DS4_API_KEY", "").strip(),
                 model_name=os.getenv("WEB_AGENT_DS4_MODEL", "").strip() or "deepseek-v4-flash",
                 provider_label="ds4",
@@ -132,11 +135,8 @@ class WebResponseGenerator:
         ollama_base = os.getenv("WEB_AGENT_OLLAMA_BASE_URL", "").strip()
         ollama_model = os.getenv("WEB_AGENT_OLLAMA_MODEL", "").strip()
         if ollama_base and ollama_model:
-            normalized_base = ollama_base.rstrip("/")
-            if not normalized_base.endswith("/v1"):
-                normalized_base = f"{normalized_base}/v1"
             return ProviderConfig(
-                base_url=normalized_base,
+                base_url=_ensure_v1_base(ollama_base),
                 api_key="",
                 model_name=ollama_model,
                 provider_label="ollama",

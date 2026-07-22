@@ -15,9 +15,24 @@ deterministic layer produced them, and caveats are preserved verbatim.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from crawlernest.agent.web_agent.generation.models import GenerationResult, PromptPayload
 from crawlernest.agent.web_agent.generation.response_generator import WebResponseGenerator
+
+#: Values treated as "no evidence" when formatting fields.
+_EMPTY_VALUES = (None, "", [], {})
+_MISSING = object()
+
+# A field spec entry is (source, label): `source` is a data key, or a tuple of
+# candidate keys tried in order (first non-empty wins). Used to render evidence
+# as "label=value; ..." without hand-writing a per-field if-ladder.
+FieldSpec = list[tuple[Any, str]]
+
+
+def split_paragraphs(text: str) -> list[str]:
+    """Split on blank lines into non-empty paragraphs, falling back to [text]."""
+    return [part.strip() for part in text.split("\n\n") if part.strip()] or [text]
 
 
 @dataclass(slots=True)
@@ -74,10 +89,9 @@ class GroundedExplainer:
 
     @staticmethod
     def _fallback_result(fallback: str, *, warning: str | None = None) -> ExplanationResult:
-        paragraphs = [part.strip() for part in fallback.split("\n\n") if part.strip()] or [fallback]
         return ExplanationResult(
             text=fallback,
-            paragraphs=paragraphs,
+            paragraphs=split_paragraphs(fallback),
             source="fallback",
             warning=warning,
         )
@@ -91,3 +105,42 @@ class GroundedExplainer:
         if not caveats:
             return []
         return ["", "Caveats (reproduce verbatim, do not soften):", *[f"- {c}" for c in caveats]]
+
+    @staticmethod
+    def _format_fields(data: dict[str, Any], spec: FieldSpec, *, list_limit: int = 6) -> str:
+        """Render selected fields as ``label=value; ...``, skipping empty values.
+
+        Replaces the per-field ``if data.get(k): parts.append(...)`` ladders the
+        explainers used to hand-write.
+        """
+        out: list[str] = []
+        for source, label in spec:
+            keys = (source,) if isinstance(source, str) else source
+            value: Any = _MISSING
+            for key in keys:
+                candidate = data.get(key, _MISSING)
+                if candidate is not _MISSING and candidate not in _EMPTY_VALUES:
+                    value = candidate
+                    break
+            if value is _MISSING:
+                continue
+            if isinstance(value, list):
+                value = ", ".join(str(v) for v in value[:list_limit])
+            out.append(f"{label}={value}")
+        return "; ".join(out)
+
+    @classmethod
+    def _format_named_item(cls, item: dict[str, Any], spec: FieldSpec, *, list_limit: int = 6) -> str:
+        """``Name (label=value; ...)`` for a single evidence row."""
+        name = str(item.get("universityName") or item.get("label") or "Unknown university")
+        detail = cls._format_fields(item, spec, list_limit=list_limit) or "no additional evidence"
+        return f"{name} ({detail})"
+
+    @staticmethod
+    def _top_names(items: list[dict[str, Any]], *, limit: int = 5) -> list[str]:
+        """University/label names from evidence rows, for deterministic fallbacks."""
+        return [
+            str(item.get("universityName") or item.get("label"))
+            for item in items
+            if isinstance(item, dict) and (item.get("universityName") or item.get("label"))
+        ][:limit]
