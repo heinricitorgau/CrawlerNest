@@ -204,3 +204,14 @@ encoding, the `/v1/chat/completions` call, response parsing, and the
 `source="llm"` vs `"fallback"` mapping — so everything except the model itself is
 verified without a GPU. A check against a real `ds4-server` (i.e. model output
 quality) must still be run on a supported machine and is not part of CI.
+
+### Continuous integration
+
+[![Agent Tests](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/agent-tests.yml/badge.svg)](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/agent-tests.yml)
+
+The [`Agent Tests`](../.github/workflows/agent-tests.yml) workflow runs all eight
+files above on every push and pull request to `main` (Ubuntu, Python 3.12,
+`pip install -r requirements.txt`). The badge above reflects the latest run; the
+first run on the integration commit was green — **39 passed** — matching the
+local and clean-venv results. Model-output-quality checks against a real
+`ds4-server` remain out of CI (they need a GPU/large-memory host).
