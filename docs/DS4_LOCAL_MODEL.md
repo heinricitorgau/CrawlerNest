@@ -193,9 +193,14 @@ PYTHONPATH=. ./.venv/bin/python -m pytest \
   crawlernest/crawlernest-tests/test_ds4_recommendation_explainer.py \
   crawlernest/crawlernest-tests/test_ds4_ranking_explainer.py \
   crawlernest/crawlernest-tests/test_ds4_university_lookup_explainer.py \
-  crawlernest/crawlernest-tests/test_ds4_data_query_explainer.py -q
+  crawlernest/crawlernest-tests/test_ds4_data_query_explainer.py \
+  crawlernest/crawlernest-tests/test_ds4_live_path_mock_server.py -q
 ```
 
 These cover the grounded/honest prompt, the deterministic fallback paths, and the
-ds4 provider resolution. A live check against a running `ds4-server` must be run
-on a supported machine and is not part of CI.
+ds4 provider resolution. `test_ds4_live_path_mock_server.py` additionally spins up
+a mock OpenAI-compatible server and drives the **real HTTP round-trip** — request
+encoding, the `/v1/chat/completions` call, response parsing, and the
+`source="llm"` vs `"fallback"` mapping — so everything except the model itself is
+verified without a GPU. A check against a real `ds4-server` (i.e. model output
+quality) must still be run on a supported machine and is not part of CI.
