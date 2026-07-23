@@ -1,0 +1,45 @@
+name: Agent Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  ds4-agent-tests:
+    name: ds4 / web-agent generation tests (offline, no GPU)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # The web-agent generation layer + ds4 integration. All offline: the
+      # live-path test drives a real HTTP round-trip against a mock
+      # OpenAI-compatible server, so no GPU and no ds4-server are needed.
+      - name: Run ds4 / generation-layer tests
+        env:
+          PYTHONPATH: .
+        run: |
+          pytest \
+            crawlernest/crawlernest-tests/test_ds4_recommendation_explainer.py \
+            crawlernest/crawlernest-tests/test_ds4_ranking_explainer.py \
+            crawlernest/crawlernest-tests/test_ds4_university_lookup_explainer.py \
+            crawlernest/crawlernest-tests/test_ds4_data_query_explainer.py \
+            crawlernest/crawlernest-tests/test_ds4_live_path_mock_server.py \
+            crawlernest/crawlernest-tests/test_intent_detection.py \
+            crawlernest/crawlernest-tests/test_context_builder_summary_facts.py \
+            crawlernest/crawlernest-tests/test_prompt_builder_instruction.py \
+            -q
