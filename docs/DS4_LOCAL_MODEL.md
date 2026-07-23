@@ -77,6 +77,61 @@ print(WebResponseGenerator().inspect_provider_status())
 #  'baseUrl': 'http://localhost:8000/v1', 'reason': None}
 ```
 
+## Pointing at a remote ds4-server
+
+Most machines cannot run DeepSeek V4 Flash (it needs ~96–128 GB for the 2-bit
+quant, more for q4). CrawlerNest itself is light, so the normal setup is to run
+`ds4-server` on **one** capable host (a Mac Studio, a DGX box, a cloud GPU
+instance) and point every CrawlerNest process at it over the network. Nothing in
+the integration is tied to `localhost` — only the URL changes.
+
+**On the ds4 host** — `ds4-server` binds `127.0.0.1` (localhost only) by default,
+so it is not reachable from other machines until you bind a routable interface:
+
+```bash
+./ds4-server --ctx 100000 --host 0.0.0.0   # listen on all interfaces, port 8000
+```
+
+**On each CrawlerNest host** — point at the ds4 host's address:
+
+```bash
+export WEB_AGENT_DS4_BASE_URL="http://10.0.0.42:8000/v1"   # ds4 host IP or DNS name
+export WEB_AGENT_DS4_MODEL="deepseek-v4-flash"
+```
+
+Confirm reachability before relying on it:
+
+```bash
+curl -s http://10.0.0.42:8000/v1/models        # should return the model list JSON
+```
+
+### Security
+
+`ds4-server` has **no built-in authentication**. Binding `0.0.0.0` exposes the
+model to everything that can route to the host, so only do it on a trusted,
+firewalled network. Two safer options:
+
+- **SSH tunnel** (recommended): leave the server on `127.0.0.1` on the ds4 host
+  and forward a local port from the CrawlerNest host —
+  `ssh -N -L 8000:localhost:8000 user@ds4-host` — then keep
+  `WEB_AGENT_DS4_BASE_URL="http://localhost:8000/v1"`. Traffic is encrypted and
+  the model is never exposed to the LAN.
+- **Auth-terminating reverse proxy** (nginx/Caddy) in front of `ds4-server`;
+  put its URL in `WEB_AGENT_DS4_BASE_URL` and the bearer token in
+  `WEB_AGENT_DS4_API_KEY` (sent as `Authorization: Bearer …`).
+
+Never send warehouse data to a ds4 host you do not control.
+
+### Latency and timeouts
+
+The client waits **20 s** per request (`urlopen(..., timeout=20)` in
+`response_generator.py`). Over a network, a cold prefill or a long generation on
+a busy remote server can exceed that; when it does, the request **falls back to
+the deterministic reply** (`result.source == "fallback"` with a timeout warning)
+rather than erroring — the same graceful degradation as an unreachable server.
+Keep `--ctx` sane on the ds4 host and prefer a low-latency link if you want the
+`llm` path to win consistently.
+
 ## Recommendation explanation generator
 
 `crawlernest/agent/web_agent/generation/recommendation_explainer.py` turns an
