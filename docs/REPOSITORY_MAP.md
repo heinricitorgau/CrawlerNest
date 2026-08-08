@@ -15,7 +15,6 @@ flowchart TB
     reports["reports/"]
     backups["backups/"]
     workflows[".github/workflows/"]
-    deployment["deployment-support/"]
     legacy["legacy/"]
 
     root --> crawlernest
@@ -26,7 +25,6 @@ flowchart TB
     root --> reports
     root --> backups
     root --> workflows
-    root --> deployment
     root --> legacy
 ```
 
@@ -157,10 +155,6 @@ CI definitions:
 ### `crawlernest-samples/`
 
 Sample data used for local development, previews, and crawler/export demonstrations.
-
-### `deployment-support/`
-
-Deployment notes and node-specific operational files, including Lobster host support.
 
 ### `legacy/`
 

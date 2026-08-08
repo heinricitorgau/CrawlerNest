@@ -70,7 +70,8 @@ Covers the frontend (Next.js), backend (Spring Boot / Maven), and Python runtime
 
 ## Python Runtime
 
-**Source:** `requirements.txt` (root and `deployment-support/lobster-01/requirements.txt` — identical content)
+**Source:** `requirements.txt` (repo root; the Lobster-01 runtime package copies this
+file verbatim when `crawlernest/scripts/build_lobster_runtime.sh` builds it)
 
 ### Dependencies
 

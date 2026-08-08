@@ -43,7 +43,7 @@ With these boundaries:
   minimal viable canonical linking
 - `crawlernest-core/multi_source/` and `crawlernest-core/ranking_aggregation/`
   future-expansion oriented, not the primary execution path
-- `crawlernest/agent/`, `crawlernest-mini-agent/`, `crawlernest-autoeval/`
+- `crawlernest/agent/` and `crawlernest-autoeval/`
   development-support systems, not production data path
 
 ## Recommended Reading

@@ -48,8 +48,8 @@ This project plan should be read with the execution architecture as the current 
 | Website MVP | Next.js frontend, University Detail, Recommendation UI, live freshness refresh | Operational | ~92% |
 | Quality & Validation | Transaction safety, JUnit, AutoEval baseline | Operational | ~90% |
 | Recommendation Engine | Basic / rule-based / optional recommendation path | Limited | ~70% |
-| Agent Runtime | `crawlernest/agent/`, mini-agent, AutoEval-assisted loop | Development Support Only | ~70% |
-| Low-Spec Runtime | `lobster-01` optimized workspace and scripts | Completed | 100% |
+| Agent Runtime | `crawlernest/agent/`, AutoEval-assisted loop | Development Support Only | ~70% |
+| Low-Spec Runtime | `lobster-01` build script and deployment runbook | Completed | 100% |
 
 ---
 
@@ -59,7 +59,7 @@ This project plan should be read with the execution architecture as the current 
 CrawlerNest is currently best understood as a controlled 3-zone system:
 1.  **Active Data Pipeline:** crawl, extract, normalize, write, warehouse, API, web.
 2.  **Controlled Expansion:** limited admission enrichment and basic rule-based recommendation.
-3.  **Development Support:** agent, mini-agent, and AutoEval systems outside the production data path.
+3.  **Development Support:** agent and AutoEval systems outside the production data path.
 
 The broader layered architecture still matters as a long-term design target, but it should not be mistaken for the current executable mainline.
 

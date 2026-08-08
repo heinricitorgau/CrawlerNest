@@ -9,14 +9,14 @@ Included:
 - Root docs
 - `docs/`
 - Module `README.md` and design docs under `crawlernest/`
-- `mini_agent/README.md`
-- `deployment-support/lobster-01/README_NODE.md`
+- `legacy/mini_agent/README.md`
 
 Excluded from this index:
 - `.venv/`, `.venv-1/`
 - `node_modules/`
 - `.claude/worktrees/`
-- mirrored module docs under `deployment-support/lobster-01/crawlernest/`
+- `deployment-support/` — build output of
+  `crawlernest/scripts/build_lobster_runtime.sh`, no longer tracked
 
 ## Reading Order
 
@@ -138,7 +138,6 @@ If someone is new to the repo, this is the fastest path:
 | `docs/data/SOURCE_HEALTH_MODEL.md` | Source health states and readonly observability signals for source coverage, freshness, and drift. |
 | `docs/operational/OPERATIONAL_INTELLIGENCE_AUTOMATION.md` | Operational intelligence automation philosophy, readonly guarantees, non-goals, and escalation semantics. |
 | `docs/deployment/Lobster_01_Deployment_Guide.md` | Production node deployment and runbook for Lobster-01. |
-| `deployment-support/lobster-01/README_NODE.md` | Operational notes for the Lobster-01 crawler node environment. |
 
 ## 5. Core Product Modules
 
@@ -191,23 +190,15 @@ If someone is new to the repo, this is the fastest path:
 
 ## 9. Mini-Agent Track
 
-There are two mini-agent areas in this repo:
-- `mini_agent/` at the repo root: lightweight Python mini-agent project
-- `crawlernest/crawlernest-mini-agent/`: broader Claw Code system docs, including Rust parity work
+`legacy/mini_agent/` is the lightweight Python mini-agent project. The former
+`crawlernest/crawlernest-mini-agent/` tree was a vendored third-party "Claw Code"
+checkout (Python + Rust) that no CrawlerNest code imported and that shipped
+without its own LICENSE; it has been removed from the repository along with its
+docs.
 
 | File | Purpose |
 | --- | --- |
-| `mini_agent/README.md` | Entry doc for the lightweight mini-agent project at repo root. |
-| `crawlernest/crawlernest-mini-agent/README.md` | Main overview of the full mini-agent system. |
-| `crawlernest/crawlernest-mini-agent/PHILOSOPHY.md` | Design philosophy and intended abstraction layer. |
-| `crawlernest/crawlernest-mini-agent/USAGE.md` | Canonical usage guide for the mini-agent workflow. |
-| `crawlernest/crawlernest-mini-agent/ROADMAP.md` | Planned milestones and future direction. |
-| `crawlernest/crawlernest-mini-agent/CLAUDE.md` | Contributor guidance for Claude Code usage in this subproject. |
-| `crawlernest/crawlernest-mini-agent/docs/container.md` | Container-first workflow guidance. |
-| `crawlernest/crawlernest-mini-agent/rust/README.md` | Rust implementation overview. |
-| `crawlernest/crawlernest-mini-agent/PARITY.md` | Canonical parity status for the mini-agent Rust port. |
-| `crawlernest/crawlernest-mini-agent/rust/MOCK_PARITY_HARNESS.md` | Deterministic mock LLM parity harness notes. |
-| `crawlernest/crawlernest-mini-agent/rust/TUI-ENHANCEMENT-PLAN.md` | TUI enhancement plan for the Rust implementation. |
+| `legacy/mini_agent/README.md` | Entry doc for the lightweight Python mini-agent project. |
 
 ## 10. Legacy And Compatibility Docs
 
