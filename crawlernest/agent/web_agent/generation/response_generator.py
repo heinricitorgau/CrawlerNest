@@ -4,7 +4,9 @@ import json
 import logging
 import os
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 from urllib import error, request
 
 from crawlernest.agent.web_agent.generation.models import GenerationResult, PromptPayload
@@ -66,6 +68,10 @@ def _resolve_timeout(env_name: str, default: float) -> float:
     return default
 
 
+def _env_flag(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass(slots=True)
 class ProviderConfig:
     base_url: str
@@ -73,6 +79,7 @@ class ProviderConfig:
     model_name: str
     provider_label: str
     timeout: float = _DEFAULT_TIMEOUT
+    stream: bool = False
 
 
 class WebResponseGenerator:
@@ -85,6 +92,7 @@ class WebResponseGenerator:
                 "modelName": None,
                 "baseUrl": None,
                 "timeout": None,
+                "stream": None,
                 "reason": "No web generation provider configured.",
             }
 
@@ -94,6 +102,7 @@ class WebResponseGenerator:
             "modelName": provider.model_name,
             "baseUrl": provider.base_url,
             "timeout": provider.timeout,
+            "stream": provider.stream,
             "reason": None,
         }
 
@@ -102,7 +111,15 @@ class WebResponseGenerator:
         *,
         prompt: PromptPayload,
         fallback_text: str,
+        on_delta: Callable[[str], None] | None = None,
     ) -> GenerationResult:
+        """Generate a reply, falling back to *fallback_text* on any failure.
+
+        ``on_delta`` is called with each text chunk as it arrives, but only when
+        the provider is in streaming mode; it is a hook for a future token-level
+        UI. The return value is always the complete text either way, so callers
+        that ignore it are unaffected.
+        """
         provider = self._resolve_provider()
 
         if provider is None:
@@ -120,6 +137,8 @@ class WebResponseGenerator:
                 model_name=provider.model_name,
                 prompt=prompt,
                 timeout=provider.timeout,
+                stream=provider.stream,
+                on_delta=on_delta,
             )
             paragraphs = [part.strip() for part in reply.split("\n\n") if part.strip()]
             _record("llm")
@@ -170,7 +189,8 @@ class WebResponseGenerator:
         # default behavior is unchanged. Recommended value:
         # http://localhost:8000/v1 (ds4-server default port), model
         # "deepseek-v4-flash". WEB_AGENT_DS4_TIMEOUT (seconds) overrides the
-        # longer default request timeout for slow/remote generation.
+        # longer default request timeout for slow/remote generation, and
+        # WEB_AGENT_DS4_STREAM=1 switches to SSE streaming (see _read_sse_stream).
         ds4_base = os.getenv("WEB_AGENT_DS4_BASE_URL", "").strip()
         if ds4_base:
             return ProviderConfig(
@@ -179,6 +199,7 @@ class WebResponseGenerator:
                 model_name=os.getenv("WEB_AGENT_DS4_MODEL", "").strip() or "deepseek-v4-flash",
                 provider_label="ds4",
                 timeout=_resolve_timeout("WEB_AGENT_DS4_TIMEOUT", _DS4_DEFAULT_TIMEOUT),
+                stream=_env_flag("WEB_AGENT_DS4_STREAM"),
             )
 
         web_base = os.getenv("WEB_AGENT_OPENAI_BASE_URL", "").strip()
@@ -225,6 +246,8 @@ class WebResponseGenerator:
         model_name: str,
         prompt: PromptPayload,
         timeout: float = _DEFAULT_TIMEOUT,
+        stream: bool = False,
+        on_delta: Callable[[str], None] | None = None,
     ) -> str:
         endpoint = base_url.rstrip("/")
         if not endpoint.endswith("/chat/completions"):
@@ -239,7 +262,7 @@ class WebResponseGenerator:
             messages.extend(prompt.conversation_turns)
         messages.append({"role": "user", "content": self._compose_user_content(prompt)})
 
-        body = {
+        body: dict[str, Any] = {
             "model": model_name,
             "temperature": 0.4,
             "messages": messages,
@@ -247,6 +270,9 @@ class WebResponseGenerator:
         headers: dict[str, str] = {
             "Content-Type": "application/json",
         }
+        if stream:
+            body["stream"] = True
+            headers["Accept"] = "text/event-stream"
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
 
@@ -258,6 +284,12 @@ class WebResponseGenerator:
         )
         try:
             with request.urlopen(req, timeout=timeout) as response:
+                if stream:
+                    # A server that ignores stream:true and answers with plain
+                    # JSON is handled by falling through to the non-stream parse.
+                    content_type = (response.headers.get("Content-Type") or "").lower()
+                    if "text/event-stream" in content_type:
+                        return self._read_sse_stream(response, on_delta=on_delta)
                 payload = json.loads(response.read().decode("utf-8"))
         except error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
@@ -283,6 +315,62 @@ class WebResponseGenerator:
                 return "\n\n".join(text_parts)
 
         raise RuntimeError("Generation provider returned no text content.")
+
+    def _read_sse_stream(
+        self,
+        response: Any,
+        *,
+        on_delta: Callable[[str], None] | None = None,
+    ) -> str:
+        """Accumulate an OpenAI-style ``text/event-stream`` into the full reply.
+
+        Streaming is what makes long generation survivable: the socket timeout
+        applies per read, so a slow model that keeps emitting chunks no longer
+        trips the single-shot request timeout.
+
+        A stream that ends without its terminator is treated as a failure rather
+        than returned as partial text. Truncated prose can silently drop the
+        caveats the honesty contract requires, so the caller degrades to the
+        deterministic reply instead.
+        """
+        parts: list[str] = []
+        finished = False
+
+        for raw_line in response:
+            line = raw_line.decode("utf-8", errors="replace").strip()
+            if not line or line.startswith(":"):
+                continue  # keep-alive / comment
+            if not line.startswith("data:"):
+                continue
+            data = line[len("data:") :].strip()
+            if data == "[DONE]":
+                finished = True
+                break
+            try:
+                chunk = json.loads(data)
+            except ValueError:
+                continue  # tolerate a malformed frame rather than losing the stream
+
+            choices = chunk.get("choices")
+            if not isinstance(choices, list) or not choices:
+                continue
+            choice = choices[0]
+            delta = choice.get("delta")
+            piece = delta.get("content") if isinstance(delta, dict) else None
+            if isinstance(piece, str) and piece:
+                parts.append(piece)
+                if on_delta is not None:
+                    on_delta(piece)
+            if choice.get("finish_reason"):
+                finished = True
+
+        if not finished:
+            raise RuntimeError("Generation stream ended before completion.")
+
+        text = "".join(parts).strip()
+        if not text:
+            raise RuntimeError("Generation stream produced no text content.")
+        return text
 
     def _compose_user_content(self, prompt: PromptPayload) -> str:
         parts = [
