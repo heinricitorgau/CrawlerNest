@@ -1,0 +1,21 @@
+# Trim the downloadable source archive (GitHub "Download ZIP" / git archive)
+# to a runnable package: pipeline, API, web, schemas, and start scripts.
+# git clone still delivers the full repository including everything below.
+
+# Development, evaluation, and CI-only trees
+/.github            export-ignore
+/.vscode            export-ignore
+.gitattributes      export-ignore
+.ignore             export-ignore
+/tests              export-ignore
+/legacy             export-ignore
+/releases           export-ignore
+crawlernest/crawlernest-tests      export-ignore
+crawlernest/crawlernest-autoeval   export-ignore
+crawlernest/crawlernest-agents     export-ignore
+crawlernest/crawlernest-docs       export-ignore
+crawlernest/crawlernest-samples    export-ignore
+
+# Documentation lives on GitHub; keep only the setup guide in the archive
+docs/**                 export-ignore
+docs/GETTING_STARTED.md -export-ignore
