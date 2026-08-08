@@ -1886,6 +1886,23 @@ export function RecommendationPageContent() {
                 </ul>
               </div>
             ) : null}
+
+            {/* Model-written comparison, kept separate from the deterministic
+                explanation above. Grounded on the compared rows only. */}
+            <div className="mt-4">
+              <RecommendationExplanation
+                taskKind="comparison"
+                title="How these compare"
+                items={comparisonItems.map((item) => ({
+                  universityName: item.universityName,
+                  country: item.country,
+                  aggregatedRank: item.aggregatedRank,
+                  ieltsMin: item.ieltsMin,
+                  matchingScore: item.matchingScore,
+                }))}
+                caveats={RC1_STANDARD_CAVEATS}
+              />
+            </div>
           </section>
         ) : null}
 

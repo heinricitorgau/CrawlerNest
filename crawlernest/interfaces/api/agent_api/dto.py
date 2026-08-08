@@ -14,7 +14,14 @@ _MAX_EXPLAIN_ITEMS = 20
 _MAX_EXPLAIN_CAVEATS = 10
 
 _EXPLAIN_TASK_KINDS: frozenset[str] = frozenset(
-    {"recommendation", "ranking_explain", "university_lookup", "data_query"}
+    {
+        "recommendation",
+        "ranking_explain",
+        "university_lookup",
+        "data_query",
+        "comparison",
+        "application_plan",
+    }
 )
 
 
@@ -31,8 +38,13 @@ class AgentExplainPayload:
     task_kind: str
     items: list[dict[str, Any]] = field(default_factory=list)
     caveats: list[str] = field(default_factory=list)
+    # Doubles as the detail preview for university_lookup and the slice metadata
+    # for data_query; those kinds carry their evidence as a mapping, not rows.
     profile: dict[str, Any] = field(default_factory=dict)
+    # The already-grouped reach/target/safety plan, for application_plan.
+    plan: dict[str, Any] = field(default_factory=dict)
     query: str = ""
+    criterion: str = ""
     deterministic_reply: str = ""
 
     @classmethod
@@ -55,6 +67,7 @@ class AgentExplainPayload:
         )
 
         raw_profile = payload.get("profile")
+        raw_plan = payload.get("plan")
         raw_reply = payload.get("deterministicReply") or payload.get("deterministic_reply") or ""
 
         return cls(
@@ -62,7 +75,9 @@ class AgentExplainPayload:
             items=items,
             caveats=caveats,
             profile=dict(raw_profile) if isinstance(raw_profile, dict) else {},
+            plan=dict(raw_plan) if isinstance(raw_plan, dict) else {},
             query=str(payload.get("query", "") or ""),
+            criterion=str(payload.get("criterion", "") or ""),
             deterministic_reply=str(raw_reply),
         )
 

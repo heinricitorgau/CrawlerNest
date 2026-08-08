@@ -218,15 +218,31 @@ semantics as the recommendation explainer.
 The explainers are wired into the web-agent engine
 (`crawlernest/agent/web_agent/engine/web_agent_engine.py`), one per task kind:
 
-| Task kind | Explainer |
-|-----------|-----------|
-| `recommendation` | `RecommendationExplainer` |
-| `ranking_explain` | `RankingExplainer` |
-| `university_lookup` | `UniversityLookupExplainer` |
-| `data_query` | `DataQueryExplainer` |
+| Task kind | Explainer | Reached via |
+|-----------|-----------|-------------|
+| `recommendation` | `RecommendationExplainer` | web-agent engine, `/explain` |
+| `ranking_explain` | `RankingExplainer` | web-agent engine, `/explain` |
+| `university_lookup` | `UniversityLookupExplainer` | web-agent engine, `/explain` |
+| `data_query` | `DataQueryExplainer` | web-agent engine, `/explain` |
+| `comparison` | `ComparisonExplainer` | `/explain` |
+| `application_plan` | `ApplicationPlanExplainer` | `/explain` |
 
-All four share the engine's single generator, so the one provider configuration
-above drives every path. With no provider configured, each path falls back to its
+The first four are wired into the web-agent engine and share its single
+generator, so the one provider configuration above drives every path.
+`comparison` and `application_plan` are explanation-only surfaces reached
+through the explain route:
+
+- **`comparison`** explains how the universities placed side by side differ. It
+  compares *only* on the supplied fields — never on teaching quality, campus
+  life, or anything else it was not given — names the fields that are missing
+  for some of the rows so absence is not read as similarity, and declines to
+  declare a winner the data does not support. Takes `items` plus an optional
+  `criterion` ("lowest IELTS").
+- **`application_plan`** narrates an already-grouped reach/target/safety plan.
+  It never regroups a school, never restates a risk label, and **never predicts
+  an admission outcome** — reach/target/safety describe the shape of a
+  portfolio, not a probability. An empty group is stated plainly rather than
+  glossed over. Takes `plan` instead of `items`. With no provider configured, each path falls back to its
 deterministic reply and behavior is unchanged. Every explainer follows the same
 honesty contract: it grounds strictly on the data the deterministic layer already
 produced, never recomputes ranks/scores/counts, and preserves caveats verbatim.
@@ -287,13 +303,20 @@ Request body (`items` capped at 20, `caveats` at 10):
 
 ```jsonc
 {
-  "taskKind": "recommendation",   // or ranking_explain | university_lookup | data_query
+  "taskKind": "recommendation",   // see the task-kind table below
   "items": [ /* the rows on screen */ ],
   "caveats": ["Only the QS source is available; ..."],
-  "profile": { "country": "Taiwan" },
+  "profile": { "country": "Taiwan" },   // detail preview for university_lookup
+  "plan": { /* grouped plan */ },        // application_plan only, instead of items
+  "criterion": "lowest IELTS",           // comparison only
   "query": "Recommend Taiwan universities for me"
 }
 ```
+
+The recommendations page uses two of these surfaces today: the result sections
+get a `recommendation` explanation, and the side-by-side table gets a
+`comparison` one, rendered separately from the deterministic explanation already
+shown there.
 
 ## Faithfulness eval
 

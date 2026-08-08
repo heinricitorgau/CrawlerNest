@@ -105,6 +105,42 @@ class TestExplainHandler(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(body["data"]["source"], "fallback")
 
+    def test_comparison_kind_is_routed(self) -> None:
+        with mock.patch.dict("os.environ", {"WEB_AGENT_GENERATION_DISABLED": "1"}, clear=False):
+            status, body = self.handler.handle_explain(
+                {
+                    "taskKind": "comparison",
+                    "items": [
+                        {"universityName": "A University", "aggregatedRank": 68},
+                        {"universityName": "B University", "aggregatedRank": 220},
+                    ],
+                    "criterion": "lowest rank",
+                    "deterministicReply": "Comparing two schools.",
+                }
+            )
+        self.assertEqual(status, 200)
+        self.assertEqual(body["data"]["taskKind"], "comparison")
+        self.assertEqual(body["data"]["source"], "fallback")
+
+    def test_application_plan_kind_uses_plan_not_items(self) -> None:
+        with mock.patch.dict("os.environ", {"WEB_AGENT_GENERATION_DISABLED": "1"}, clear=False):
+            status, body = self.handler.handle_explain(
+                {
+                    "taskKind": "application_plan",
+                    "items": [],  # plan-based kinds carry no rows
+                    "plan": {
+                        "planName": "balanced",
+                        "reach": [{"universityName": "A University", "risk": "high"}],
+                        "target": [],
+                        "safety": [],
+                    },
+                    "deterministicReply": "Plan overview.",
+                }
+            )
+        self.assertEqual(status, 200)
+        self.assertEqual(body["data"]["taskKind"], "application_plan")
+        self.assertEqual(body["data"]["explanation"], "Plan overview.")
+
     def test_generation_failure_degrades_instead_of_500(self) -> None:
         target = (
             "crawlernest.agent.web_agent.generation.recommendation_explainer"

@@ -4,13 +4,27 @@ import { useEffect, useState } from "react";
 
 export type ExplanationItem = Record<string, unknown>;
 
+export type ExplanationTaskKind =
+  | "recommendation"
+  | "ranking_explain"
+  | "university_lookup"
+  | "data_query"
+  | "comparison"
+  | "application_plan";
+
 export type RecommendationExplanationProps = {
   /** The rows currently on screen. The agent explains exactly these. */
   items: ExplanationItem[];
   caveats?: string[];
   profile?: Record<string, unknown>;
+  /** The already-grouped plan, for the application_plan kind. */
+  plan?: Record<string, unknown>;
   query?: string;
-  taskKind?: "recommendation" | "ranking_explain" | "university_lookup" | "data_query";
+  /** What the user said they care about, for the comparison kind. */
+  criterion?: string;
+  taskKind?: ExplanationTaskKind;
+  /** Heading for the panel. */
+  title?: string;
 };
 
 type ExplanationState = {
@@ -37,17 +51,23 @@ export default function RecommendationExplanation({
   items,
   caveats,
   profile,
+  plan,
   query,
+  criterion,
   taskKind = "recommendation",
+  title = "Why these results",
 }: RecommendationExplanationProps) {
   const [result, setResult] = useState<ExplanationState | null>(null);
 
-  // Refetch only when the displayed rows actually change.
-  const itemsKey = JSON.stringify(items);
+  // Refetch only when the displayed evidence actually changes.
+  const itemsKey = JSON.stringify({ items, plan: plan ?? null });
   const caveatsKey = JSON.stringify(caveats ?? []);
+  // Plan-based kinds carry their evidence as a mapping rather than rows.
+  const hasEvidence =
+    (items && items.length > 0) || (plan != null && Object.keys(plan).length > 0);
 
   useEffect(() => {
-    if (!items || items.length === 0) {
+    if (!hasEvidence) {
       return;
     }
 
@@ -63,7 +83,7 @@ export default function RecommendationExplanation({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: controller.signal,
-          body: JSON.stringify({ taskKind, items, caveats, profile, query }),
+          body: JSON.stringify({ taskKind, items, caveats, profile, plan, query, criterion }),
         });
         if (!response.ok) {
           if (active) setResult(empty);
@@ -95,11 +115,10 @@ export default function RecommendationExplanation({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemsKey, caveatsKey, taskKind, query]);
 
-  const hasItems = Boolean(items && items.length > 0);
-  // A result belonging to a previous row set counts as "still loading".
+  // A result belonging to a previous evidence set counts as "still loading".
   const explanation = result && result.key === itemsKey ? result : null;
 
-  if (hasItems && explanation === null) {
+  if (hasEvidence && explanation === null) {
     return (
       <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
         Preparing an explanation of these results…
@@ -113,11 +132,11 @@ export default function RecommendationExplanation({
 
   return (
     <section
-      aria-label="Explanation of these recommendations"
+      aria-label={title}
       className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900"
     >
       <div className="mb-2 flex items-center justify-between gap-3">
-        <span className="font-medium">Why these results</span>
+        <span className="font-medium">{title}</span>
         <span className="text-xs text-blue-700">
           Written by a local model
           {explanation.modelName ? ` (${explanation.modelName})` : ""}

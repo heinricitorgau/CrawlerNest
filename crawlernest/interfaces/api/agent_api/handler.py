@@ -26,6 +26,12 @@ class AgentApiHandler:
         the text, ``"fallback"`` when the deterministic reply was used, so the
         caller can label it honestly.
         """
+        from crawlernest.agent.web_agent.generation.application_plan_explainer import (
+            ApplicationPlanExplainer,
+        )
+        from crawlernest.agent.web_agent.generation.comparison_explainer import (
+            ComparisonExplainer,
+        )
         from crawlernest.agent.web_agent.generation.data_query_explainer import (
             DataQueryExplainer,
         )
@@ -39,11 +45,29 @@ class AgentApiHandler:
 
         request = AgentExplainPayload.from_dict(payload)
 
-        if not request.items and request.task_kind != "university_lookup":
+        # university_lookup carries a preview and application_plan carries a
+        # plan; every other kind explains rows.
+        _ROW_BASED = {"recommendation", "ranking_explain", "data_query", "comparison"}
+        if not request.items and request.task_kind in _ROW_BASED:
             return 400, {"success": False, "error": "items must be a non-empty list"}
 
         try:
-            if request.task_kind == "ranking_explain":
+            if request.task_kind == "comparison":
+                result = ComparisonExplainer().explain(
+                    items=request.items,
+                    query=request.query,
+                    criterion=request.criterion,
+                    caveats=request.caveats,
+                    deterministic_reply=request.deterministic_reply,
+                )
+            elif request.task_kind == "application_plan":
+                result = ApplicationPlanExplainer().explain(
+                    plan=request.plan,
+                    query=request.query,
+                    caveats=request.caveats,
+                    deterministic_reply=request.deterministic_reply,
+                )
+            elif request.task_kind == "ranking_explain":
                 result = RankingExplainer().explain(
                     items=request.items,
                     focus_entity=str(request.profile.get("focusEntity", "")),

@@ -83,6 +83,45 @@ describe("RecommendationExplanation", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("uses the given title and task kind for a comparison", async () => {
+    mockFetchOnce({
+      success: true,
+      data: { source: "llm", modelName: null, paragraphs: ["NTU ranks higher."] },
+    });
+
+    render(
+      <RecommendationExplanation
+        items={ITEMS}
+        taskKind="comparison"
+        title="How these compare"
+      />
+    );
+
+    expect(await screen.findByText("NTU ranks higher.")).toBeInTheDocument();
+    expect(screen.getByText("How these compare")).toBeInTheDocument();
+  });
+
+  it("explains a plan even though it carries no rows", async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, data: { source: "llm", paragraphs: ["Plan prose."] } }),
+    });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(
+      <RecommendationExplanation
+        items={[]}
+        taskKind="application_plan"
+        plan={{ planName: "balanced", reach: [{ universityName: "A University" }] }}
+      />
+    );
+
+    expect(await screen.findByText("Plan prose.")).toBeInTheDocument();
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.taskKind).toBe("application_plan");
+    expect(body.plan.planName).toBe("balanced");
+  });
+
   it("sends the displayed rows to the explain route", async () => {
     const fetchMock = jest.fn().mockResolvedValue({
       ok: true,
