@@ -1,0 +1,117 @@
+[
+  {
+    "id": "faith-001",
+    "description": "Faithful recommendation explanation — every number from evidence, caveat reproduced verbatim",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [
+        {
+          "universityName": "National Taiwan University",
+          "country": "Taiwan",
+          "category": "target",
+          "aggregatedRank": 68,
+          "matchingScore": 0.82,
+          "recommendationConfidence": "medium"
+        }
+      ],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "National Taiwan University is a target-tier match: it sits at aggregated rank 68 with a matching score of 0.82 and medium confidence.\n\nOnly the QS source is available; THE and ARWU ranks are null.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-002",
+    "description": "Fabricated rank — the model states a rank that is not in the evidence",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [
+        {
+          "universityName": "National Taiwan University",
+          "country": "Taiwan",
+          "category": "target",
+          "aggregatedRank": 68,
+          "matchingScore": 0.82
+        }
+      ],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "National Taiwan University is ranked 12 globally with a matching score of 0.82.\n\nOnly the QS source is available; THE and ARWU ranks are null.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_number"] }
+  },
+  {
+    "id": "faith-003",
+    "description": "Dropped caveat — the data limitation is silently omitted",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [
+        {
+          "universityName": "National Taiwan University",
+          "aggregatedRank": 68,
+          "matchingScore": 0.82
+        }
+      ],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "National Taiwan University is a target-tier match at aggregated rank 68 with a matching score of 0.82.",
+    "expect": { "faithful": false, "violation_kinds": ["missing_caveat"] }
+  },
+  {
+    "id": "faith-004",
+    "description": "Invented institution — a university that never appeared in the evidence",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [
+        {
+          "universityName": "National Taiwan University",
+          "aggregatedRank": 68
+        }
+      ],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "National Taiwan University (rank 68) is the strongest fit, ahead of Pacific Rim University.\n\nOnly the QS source is available; THE and ARWU ranks are null.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_university"] }
+  },
+  {
+    "id": "faith-005",
+    "description": "Faithful ranking explanation — list positions and counts are derivable from the evidence",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [
+        {
+          "universityName": "National Taiwan University",
+          "aggregatedRank": 68,
+          "primarySource": "QS",
+          "sourceCount": 1,
+          "rankingYear": 2026
+        },
+        {
+          "universityName": "National Cheng Kung University",
+          "aggregatedRank": 220,
+          "primarySource": "QS",
+          "sourceCount": 1,
+          "rankingYear": 2026
+        }
+      ],
+      "caveats": []
+    },
+    "explanation": "Across the 2 rows on this page, National Taiwan University leads at aggregated rank 68, with National Cheng Kung University at 220. Both positions come from QS 2026 only, so the comparison rests on a single source.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-006",
+    "description": "Rescaled score — 0.82 restated as 82%; deliberately flagged as a silent transformation",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [
+        {
+          "universityName": "National Taiwan University",
+          "aggregatedRank": 68,
+          "matchingScore": 0.82
+        }
+      ],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University is an 82% match at rank 68.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_number"] }
+  }
+]
