@@ -39,7 +39,10 @@ class _RequestHandler(BaseHTTPRequestHandler):
         )
 
     def do_POST(self) -> None:  # noqa: N802
-        if self.path != "/api/v1/agent/tasks":
+        # /explain is a separate route rather than a task kind on purpose: it
+        # must not reach the planner, the tools, or the warehouse. It only turns
+        # rows the caller already has into prose.
+        if self.path not in {"/api/v1/agent/tasks", "/api/v1/agent/explain"}:
             self._write_json(
                 HTTPStatus.NOT_FOUND,
                 {"success": False, "error": "route not found"},
@@ -78,7 +81,10 @@ class _RequestHandler(BaseHTTPRequestHandler):
             )
             return
 
-        status_code, response = self.api_handler.handle_task(payload)
+        if self.path == "/api/v1/agent/explain":
+            status_code, response = self.api_handler.handle_explain(payload)
+        else:
+            status_code, response = self.api_handler.handle_task(payload)
         self._write_json(HTTPStatus(status_code), response)
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A003
