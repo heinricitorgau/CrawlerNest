@@ -1,11 +1,50 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
+import threading
 from dataclasses import dataclass
 from urllib import error, request
 
 from crawlernest.agent.web_agent.generation.models import GenerationResult, PromptPayload
+
+logger = logging.getLogger(__name__)
+
+# Default per-request HTTP timeout (seconds). ds4 gets a longer default because
+# a remote, large local model can spend real time on prefill before the first
+# byte; other OpenAI-compatible providers keep the historical 20s.
+_DEFAULT_TIMEOUT = 20.0
+_DS4_DEFAULT_TIMEOUT = 60.0
+
+# Process-wide generation outcome counters, for observability: watch the
+# llm-vs-fallback rate when a ds4 host is (or isn't) reachable.
+_stats_lock = threading.Lock()
+_generation_stats: dict[str, int] = {"llm": 0, "fallback": 0, "disabled": 0}
+
+
+def generation_stats() -> dict[str, int]:
+    """Snapshot of generation outcomes since process start.
+
+    - ``llm``: the model produced the reply.
+    - ``fallback``: a provider was configured and tried, but the call failed
+      (network / HTTP / parse / timeout) and the deterministic reply was used.
+    - ``disabled``: no provider configured, deterministic reply used.
+    """
+    with _stats_lock:
+        return dict(_generation_stats)
+
+
+def reset_generation_stats() -> None:
+    """Zero the outcome counters (mainly for tests)."""
+    with _stats_lock:
+        for key in _generation_stats:
+            _generation_stats[key] = 0
+
+
+def _record(outcome: str) -> None:
+    with _stats_lock:
+        _generation_stats[outcome] = _generation_stats.get(outcome, 0) + 1
 
 
 def _ensure_v1_base(base_url: str) -> str:
@@ -14,12 +53,26 @@ def _ensure_v1_base(base_url: str) -> str:
     return normalized if normalized.endswith("/v1") else f"{normalized}/v1"
 
 
+def _resolve_timeout(env_name: str, default: float) -> float:
+    """Positive float from ``env_name``, else ``default``."""
+    raw = os.getenv(env_name, "").strip()
+    if raw:
+        try:
+            value = float(raw)
+            if value > 0:
+                return value
+        except ValueError:
+            pass
+    return default
+
+
 @dataclass(slots=True)
 class ProviderConfig:
     base_url: str
     api_key: str
     model_name: str
     provider_label: str
+    timeout: float = _DEFAULT_TIMEOUT
 
 
 class WebResponseGenerator:
@@ -31,6 +84,7 @@ class WebResponseGenerator:
                 "providerLabel": None,
                 "modelName": None,
                 "baseUrl": None,
+                "timeout": None,
                 "reason": "No web generation provider configured.",
             }
 
@@ -39,6 +93,7 @@ class WebResponseGenerator:
             "providerLabel": provider.provider_label,
             "modelName": provider.model_name,
             "baseUrl": provider.base_url,
+            "timeout": provider.timeout,
             "reason": None,
         }
 
@@ -51,6 +106,8 @@ class WebResponseGenerator:
         provider = self._resolve_provider()
 
         if provider is None:
+            _record("disabled")
+            logger.debug("web-agent generation: no provider configured; deterministic reply used")
             return self._fallback(
                 fallback_text,
                 warning="No web generation provider configured; deterministic fallback used.",
@@ -62,8 +119,15 @@ class WebResponseGenerator:
                 api_key=provider.api_key,
                 model_name=provider.model_name,
                 prompt=prompt,
+                timeout=provider.timeout,
             )
             paragraphs = [part.strip() for part in reply.split("\n\n") if part.strip()]
+            _record("llm")
+            logger.info(
+                "web-agent generation: source=llm provider=%s model=%s",
+                provider.provider_label,
+                provider.model_name,
+            )
             return GenerationResult(
                 reply_text=reply,
                 paragraphs=paragraphs or [reply],
@@ -71,6 +135,13 @@ class WebResponseGenerator:
                 model_name=provider.model_name,
             )
         except Exception as exc:
+            _record("fallback")
+            logger.warning(
+                "web-agent generation: source=fallback provider=%s model=%s reason=%s",
+                provider.provider_label,
+                provider.model_name,
+                exc,
+            )
             return self._fallback(
                 fallback_text,
                 warning=(
@@ -98,7 +169,8 @@ class WebResponseGenerator:
         # provider. Opt-in: only active when WEB_AGENT_DS4_BASE_URL is set, so
         # default behavior is unchanged. Recommended value:
         # http://localhost:8000/v1 (ds4-server default port), model
-        # "deepseek-v4-flash".
+        # "deepseek-v4-flash". WEB_AGENT_DS4_TIMEOUT (seconds) overrides the
+        # longer default request timeout for slow/remote generation.
         ds4_base = os.getenv("WEB_AGENT_DS4_BASE_URL", "").strip()
         if ds4_base:
             return ProviderConfig(
@@ -106,6 +178,7 @@ class WebResponseGenerator:
                 api_key=os.getenv("WEB_AGENT_DS4_API_KEY", "").strip(),
                 model_name=os.getenv("WEB_AGENT_DS4_MODEL", "").strip() or "deepseek-v4-flash",
                 provider_label="ds4",
+                timeout=_resolve_timeout("WEB_AGENT_DS4_TIMEOUT", _DS4_DEFAULT_TIMEOUT),
             )
 
         web_base = os.getenv("WEB_AGENT_OPENAI_BASE_URL", "").strip()
@@ -151,6 +224,7 @@ class WebResponseGenerator:
         api_key: str,
         model_name: str,
         prompt: PromptPayload,
+        timeout: float = _DEFAULT_TIMEOUT,
     ) -> str:
         endpoint = base_url.rstrip("/")
         if not endpoint.endswith("/chat/completions"):
@@ -183,7 +257,7 @@ class WebResponseGenerator:
             method="POST",
         )
         try:
-            with request.urlopen(req, timeout=20) as response:
+            with request.urlopen(req, timeout=timeout) as response:
                 payload = json.loads(response.read().decode("utf-8"))
         except error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")

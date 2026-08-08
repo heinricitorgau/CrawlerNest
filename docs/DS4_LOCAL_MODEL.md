@@ -56,6 +56,7 @@ behavior is unchanged if you leave it unset.
 ```bash
 export WEB_AGENT_DS4_BASE_URL="http://localhost:8000/v1"   # trailing /v1 optional; added if missing
 export WEB_AGENT_DS4_MODEL="deepseek-v4-flash"             # default if unset
+export WEB_AGENT_DS4_TIMEOUT="60"                          # seconds per request; default 60 for ds4
 # export WEB_AGENT_DS4_API_KEY="..."                       # only if you front ds4 with an auth proxy
 ```
 
@@ -124,13 +125,33 @@ Never send warehouse data to a ds4 host you do not control.
 
 ### Latency and timeouts
 
-The client waits **20 s** per request (`urlopen(..., timeout=20)` in
-`response_generator.py`). Over a network, a cold prefill or a long generation on
-a busy remote server can exceed that; when it does, the request **falls back to
-the deterministic reply** (`result.source == "fallback"` with a timeout warning)
-rather than erroring — the same graceful degradation as an unreachable server.
-Keep `--ctx` sane on the ds4 host and prefer a low-latency link if you want the
-`llm` path to win consistently.
+The client waits `WEB_AGENT_DS4_TIMEOUT` seconds per request (**default 60** for
+ds4; other providers keep 20). Over a network, a cold prefill or a long
+generation on a busy remote server can still exceed that; when it does, the
+request **falls back to the deterministic reply** (`result.source == "fallback"`
+with a timeout warning) rather than erroring — the same graceful degradation as
+an unreachable server. Raise `WEB_AGENT_DS4_TIMEOUT` for slow hosts, keep `--ctx`
+sane on the ds4 host, and prefer a low-latency link if you want the `llm` path to
+win consistently.
+
+### Observability
+
+Every generation records its outcome in a process-wide counter, so you can watch
+how often the model actually answered versus fell back:
+
+```python
+from crawlernest.agent.web_agent.generation.response_generator import generation_stats
+print(generation_stats())
+# {'llm': 42, 'fallback': 3, 'disabled': 0}
+#   llm      = the model produced the reply
+#   fallback = a provider was configured but the call failed (timeout / HTTP /
+#              parse), deterministic reply used
+#   disabled = no provider configured, deterministic reply used
+```
+
+Each outcome is also logged on the `crawlernest.agent.web_agent.generation.response_generator`
+logger (`INFO` for `llm`, `WARNING` with the reason for `fallback`), so a spike in
+fallbacks is visible in normal application logs.
 
 ## Recommendation explanation generator
 

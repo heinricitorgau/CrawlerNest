@@ -162,6 +162,35 @@ class TestDs4ProviderResolution(unittest.TestCase):
             status = WebResponseGenerator().inspect_provider_status()
         self.assertFalse(status["configured"])
 
+    def test_ds4_timeout_default_and_override(self) -> None:
+        base = {
+            "WEB_AGENT_DS4_BASE_URL": "http://localhost:8000",
+            "WEB_AGENT_GENERATION_DISABLED": "",
+        }
+        # Default: ds4 gets the longer 60s timeout.
+        with mock.patch.dict("os.environ", {**base, "WEB_AGENT_DS4_TIMEOUT": ""}, clear=False):
+            self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 60.0)
+        # Override via env.
+        with mock.patch.dict("os.environ", {**base, "WEB_AGENT_DS4_TIMEOUT": "12.5"}, clear=False):
+            self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 12.5)
+        # Invalid / non-positive values fall back to the default.
+        with mock.patch.dict("os.environ", {**base, "WEB_AGENT_DS4_TIMEOUT": "nope"}, clear=False):
+            self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 60.0)
+
+    def test_disabled_records_disabled_stat(self) -> None:
+        from crawlernest.agent.web_agent.generation.response_generator import (
+            generation_stats,
+            reset_generation_stats,
+        )
+
+        with mock.patch.dict("os.environ", {"WEB_AGENT_GENERATION_DISABLED": "1"}, clear=False):
+            reset_generation_stats()
+            result = RecommendationExplainer().explain(items=_ITEMS, deterministic_reply="d")
+            stats = generation_stats()
+        self.assertEqual(result.source, "fallback")
+        self.assertEqual(stats["disabled"], 1)
+        self.assertEqual(stats["llm"], 0)
+
 
 class TestEngineWiring(unittest.TestCase):
     def test_engine_wires_explainer_sharing_the_generator(self) -> None:

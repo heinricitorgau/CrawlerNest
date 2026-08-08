@@ -161,6 +161,26 @@ class TestDs4LivePath(unittest.TestCase):
         self.assertEqual(result.text, "Rule-based reply.")
         self.assertIsNotNone(result.warning)
 
+    def test_generation_stats_track_llm_and_fallback(self) -> None:
+        from crawlernest.agent.web_agent.generation.response_generator import (
+            generation_stats,
+            reset_generation_stats,
+        )
+
+        reset_generation_stats()
+
+        self.server.next_status = 200
+        self.server.next_body = self._chat_response("ok")
+        RecommendationExplainer().explain(items=_ITEMS, deterministic_reply="d")
+
+        self.server.next_status = 500
+        self.server.next_body = {"error": "boom"}
+        RecommendationExplainer().explain(items=_ITEMS, deterministic_reply="d")
+
+        stats = generation_stats()
+        self.assertEqual(stats["llm"], 1)
+        self.assertEqual(stats["fallback"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
