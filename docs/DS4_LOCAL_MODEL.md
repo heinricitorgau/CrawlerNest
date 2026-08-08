@@ -215,7 +215,8 @@ PYTHONPATH=. ./.venv/bin/python -m pytest \
   crawlernest/crawlernest-tests/test_ds4_ranking_explainer.py \
   crawlernest/crawlernest-tests/test_ds4_university_lookup_explainer.py \
   crawlernest/crawlernest-tests/test_ds4_data_query_explainer.py \
-  crawlernest/crawlernest-tests/test_ds4_live_path_mock_server.py -q
+  crawlernest/crawlernest-tests/test_ds4_live_path_mock_server.py \
+  crawlernest/crawlernest-tests/test_faithfulness.py -q
 ```
 
 These cover the grounded/honest prompt, the deterministic fallback paths, and the
@@ -226,13 +227,55 @@ encoding, the `/v1/chat/completions` call, response parsing, and the
 verified without a GPU. A check against a real `ds4-server` (i.e. model output
 quality) must still be run on a supported machine and is not part of CI.
 
+## Faithfulness eval
+
+The honesty contract above is a promise; this is the check that it held. After an
+explanation is generated, the evidence it was supposed to stay inside is known
+exactly, so faithfulness is verified **mechanically** — no LLM judge, no scoring
+model — by `crawlernest/agent/web_agent/generation/faithfulness.py`:
+
+| Violation | Meaning |
+|-----------|---------|
+| `unsupported_number` | a number in the prose that is not in the evidence (list positions and counts are allowed — "the top 2" describes the given rows) |
+| `missing_caveat` | a supplied caveat that was not reproduced (whitespace-insensitive) |
+| `unsupported_university` | a university-shaped name that never appeared in the evidence |
+
+Run it over the golden dataset (needs no model):
+
+```bash
+PYTHONPATH=. ./.venv/bin/python \
+  crawlernest/crawlernest-autoeval/runners/run_faithfulness_eval.py
+```
+
+The dataset (`crawlernest/crawlernest-autoeval/datasets/faithfulness/golden.json`)
+pairs faithful explanations with known-bad ones — a fabricated rank, a dropped
+caveat, an invented institution, a score silently rescaled from `0.82` to `82%` —
+so the run also guards the checker itself against regressions. Add `--json` for a
+machine-readable summary.
+
+To check what a **real model** produces, point at a running ds4 and use live mode:
+
+```bash
+WEB_AGENT_DS4_BASE_URL=http://localhost:8000/v1 PYTHONPATH=. ./.venv/bin/python \
+  crawlernest/crawlernest-autoeval/runners/run_faithfulness_eval.py --live
+```
+
+Live mode regenerates each entry's explanation through the configured provider
+and reports violations in the actual output; any violation is a failure.
+
+Two limits worth stating plainly. Number matching is textual, so a legitimate
+reformat (`0.82` → `82%`) is reported — deliberately, since rescaling a score is
+the kind of silent transformation the contract forbids. University detection is a
+name-shape heuristic: it catches confidently fabricated institutions, not every
+possible invented entity.
+
 ### Continuous integration
 
 [![Agent Tests](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/agent-tests.yml/badge.svg)](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/agent-tests.yml)
 
-The [`Agent Tests`](../.github/workflows/agent-tests.yml) workflow runs all eight
-files above on every push and pull request to `main` (Ubuntu, Python 3.12,
-`pip install -r requirements.txt`). The badge above reflects the latest run; the
-first run on the integration commit was green — **39 passed** — matching the
-local and clean-venv results. Model-output-quality checks against a real
-`ds4-server` remain out of CI (they need a GPU/large-memory host).
+The [`Agent Tests`](../.github/workflows/agent-tests.yml) workflow runs the test
+files above **and** the fixture-mode faithfulness eval on every push and pull
+request to `main` (Ubuntu, Python 3.12, `pip install -r requirements.txt`). The
+badge above reflects the latest run. Model-output-quality checks against a real
+`ds4-server` — including `--live` faithfulness — remain out of CI, since they
+need a GPU/large-memory host.
