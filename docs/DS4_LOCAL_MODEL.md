@@ -253,6 +253,48 @@ encoding, the `/v1/chat/completions` call, response parsing, and the
 verified without a GPU. A check against a real `ds4-server` (i.e. model output
 quality) must still be run on a supported machine and is not part of CI.
 
+## In the product UI
+
+The `/recommendations` page shows an explanation of the results it just
+rendered. Two rules shape how it is wired:
+
+**The model is not in the data path.** The Spring Boot read API is untouched.
+Ranks, scores, and confidence reach the page exactly as before; the explanation
+is fetched separately as a progressive enhancement. If the agent or ds4 is down,
+the page is byte-for-byte what it is today — a read-only analytics endpoint never
+waits on an optional GPU service.
+
+**The agent explains what is on screen, never its own query.** The page POSTs the
+rows it is displaying to `/api/agent/explain`, which proxies to the agent's
+`POST /api/v1/agent/explain`. That route is deliberately *not* a task kind: it
+never reaches the planner, the tools, or the warehouse. Had it re-run a
+recommendation, the agent could have computed a different list and described
+universities the user cannot see.
+
+```
+/recommendations ──rows──▶ /api/agent/explain ──▶ agent :8090 /api/v1/agent/explain
+                                                        │ (explainer only, no DB)
+                                                        ▼
+                                                   ds4 /v1/chat/completions
+```
+
+The panel renders **only when `source == "llm"`**. When the deterministic reply
+was used, nothing is shown rather than presenting rule-based text as a model
+explanation, and the panel always carries the line *"Ranks, scores, and
+confidence come from the ranking data — the model only describes them."*
+
+Request body (`items` capped at 20, `caveats` at 10):
+
+```jsonc
+{
+  "taskKind": "recommendation",   // or ranking_explain | university_lookup | data_query
+  "items": [ /* the rows on screen */ ],
+  "caveats": ["Only the QS source is available; ..."],
+  "profile": { "country": "Taiwan" },
+  "query": "Recommend Taiwan universities for me"
+}
+```
+
 ## Faithfulness eval
 
 The honesty contract above is a promise; this is the check that it held. After an

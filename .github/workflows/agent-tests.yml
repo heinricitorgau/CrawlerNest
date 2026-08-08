@@ -43,6 +43,7 @@ jobs:
             crawlernest/crawlernest-tests/test_context_builder_summary_facts.py \
             crawlernest/crawlernest-tests/test_prompt_builder_instruction.py \
             crawlernest/crawlernest-tests/test_faithfulness.py \
+            crawlernest/crawlernest-tests/test_agent_api_explain.py \
             -q
 
       # Mechanical faithfulness eval over the golden dataset: verifies the

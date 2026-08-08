@@ -11,6 +11,7 @@ import { RC1_STANDARD_CAVEATS } from "@/lib/caveatMessages";
 import { sourceAvailabilityConfig } from "@/lib/analyticsPresentation";
 import { AdmissionSignalBadge } from "@/components/AdmissionSignalBadge";
 import { PlanComparisonMatrix } from "@/components/PlanComparisonMatrix";
+import RecommendationExplanation from "@/components/RecommendationExplanation";
 import {
   formatIelts,
   formatRank,
@@ -2518,6 +2519,27 @@ export function RecommendationPageContent() {
                 ) : null}
               </section>
             ) : null}
+
+            {/* Progressive enhancement: prose about the rows already computed
+                above. The displayed rows are sent to the agent rather than
+                re-queried, so the text cannot describe a different result set.
+                Renders nothing when no local model is available. */}
+            <RecommendationExplanation
+              items={[
+                ...data.reach.map((item) => ({ item, category: "reach" })),
+                ...data.target.map((item) => ({ item, category: "target" })),
+                ...data.safety.map((item) => ({ item, category: "safety" })),
+              ].map(({ item, category }) => ({
+                universityName: item.universityName,
+                country: item.country,
+                category,
+                aggregatedRank: item.aggregatedRank,
+                matchingScore: item.matchingScore,
+                recommendationConfidence: item.recommendationConfidence,
+                ieltsRequirement: item.ieltsMin,
+              }))}
+              caveats={RC1_STANDARD_CAVEATS}
+            />
 
             <Section
               title="Reach"
