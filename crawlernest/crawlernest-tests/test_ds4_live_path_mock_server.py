@@ -15,10 +15,12 @@ import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from unittest import mock
 
+from crawlernest.agent.web_agent.generation.models import PromptPayload
 from crawlernest.agent.web_agent.generation.ranking_explainer import RankingExplainer
 from crawlernest.agent.web_agent.generation.recommendation_explainer import (
     RecommendationExplainer,
 )
+from crawlernest.agent.web_agent.generation.response_generator import WebResponseGenerator
 
 
 class _MockHandler(BaseHTTPRequestHandler):
@@ -35,6 +37,15 @@ class _MockHandler(BaseHTTPRequestHandler):
         # Record the request so the test can assert on what was sent.
         self.server.requests.append({"path": self.path, "method": "POST", "body": body})
 
+        if self.server.next_sse is not None:
+            self.send_response(self.server.next_status)
+            self.send_header("Content-Type", "text/event-stream")
+            self.end_headers()
+            for frame in self.server.next_sse:
+                self.wfile.write(f"data: {frame}\n\n".encode("utf-8"))
+            self.wfile.flush()
+            return
+
         status = self.server.next_status
         payload = json.dumps(self.server.next_body).encode("utf-8")
         self.send_response(status)
@@ -50,6 +61,8 @@ class _MockServer(ThreadingHTTPServer):
         self.requests: list[dict] = []
         self.next_status = 200
         self.next_body: dict = {}
+        # When set, respond as text/event-stream with these raw `data:` frames.
+        self.next_sse: list[str] | None = None
 
 
 _ITEMS = [
@@ -180,6 +193,101 @@ class TestDs4LivePath(unittest.TestCase):
         stats = generation_stats()
         self.assertEqual(stats["llm"], 1)
         self.assertEqual(stats["fallback"], 1)
+
+
+class TestDs4Streaming(unittest.TestCase):
+    """SSE streaming transport (WEB_AGENT_DS4_STREAM=1)."""
+
+    def setUp(self) -> None:
+        self.server = _MockServer(("127.0.0.1", 0))
+        self.port = self.server.server_address[1]
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        self._env = mock.patch.dict(
+            "os.environ",
+            {
+                "WEB_AGENT_DS4_BASE_URL": f"http://127.0.0.1:{self.port}",
+                "WEB_AGENT_DS4_STREAM": "1",
+                "WEB_AGENT_GENERATION_DISABLED": "",
+                "WEB_AGENT_OPENAI_BASE_URL": "",
+                "OPENAI_BASE_URL": "",
+            },
+            clear=False,
+        )
+        self._env.start()
+
+    def tearDown(self) -> None:
+        self._env.stop()
+        self.server.shutdown()
+        self.server.server_close()
+
+    def _prompt(self) -> PromptPayload:
+        return PromptPayload(
+            system_instruction="sys",
+            user_message="hi",
+            context_block="evidence",
+            response_constraints=["be honest"],
+        )
+
+    def test_stream_flag_is_advertised(self) -> None:
+        status = WebResponseGenerator().inspect_provider_status()
+        self.assertTrue(status["stream"])
+        self.assertEqual(status["providerLabel"], "ds4")
+
+    def test_streamed_deltas_accumulate_and_invoke_on_delta(self) -> None:
+        self.server.next_sse = [
+            json.dumps({"choices": [{"delta": {"role": "assistant"}}]}),
+            json.dumps({"choices": [{"delta": {"content": "Hello "}}]}),
+            json.dumps({"choices": [{"delta": {"content": "world"}}]}),
+            "[DONE]",
+        ]
+        seen: list[str] = []
+
+        result = WebResponseGenerator().generate_response(
+            prompt=self._prompt(),
+            fallback_text="Rule-based reply.",
+            on_delta=seen.append,
+        )
+
+        self.assertEqual(result.source, "llm")
+        self.assertEqual(result.reply_text, "Hello world")
+        self.assertEqual(seen, ["Hello ", "world"])
+        # The request actually asked for streaming.
+        self.assertTrue(self.server.requests[0]["body"]["stream"])
+
+    def test_finish_reason_terminates_without_done_sentinel(self) -> None:
+        self.server.next_sse = [
+            json.dumps({"choices": [{"delta": {"content": "Complete."}, "finish_reason": "stop"}]}),
+        ]
+        result = WebResponseGenerator().generate_response(
+            prompt=self._prompt(), fallback_text="Rule-based reply."
+        )
+        self.assertEqual(result.source, "llm")
+        self.assertEqual(result.reply_text, "Complete.")
+
+    def test_truncated_stream_falls_back_instead_of_returning_partial_text(self) -> None:
+        # No [DONE] and no finish_reason: the reply is incomplete, so returning
+        # it could silently drop the caveats the honesty contract requires.
+        self.server.next_sse = [
+            json.dumps({"choices": [{"delta": {"content": "Partial answer that never"}}]}),
+        ]
+        result = WebResponseGenerator().generate_response(
+            prompt=self._prompt(), fallback_text="Rule-based reply."
+        )
+        self.assertEqual(result.source, "fallback")
+        self.assertEqual(result.reply_text, "Rule-based reply.")
+        self.assertIn("ended before completion", result.warning or "")
+
+    def test_non_streaming_server_response_still_parses(self) -> None:
+        # Server ignores stream:true and answers with plain JSON.
+        self.server.next_sse = None
+        self.server.next_body = {"choices": [{"message": {"content": "PLAIN JSON REPLY"}}]}
+
+        result = WebResponseGenerator().generate_response(
+            prompt=self._prompt(), fallback_text="Rule-based reply."
+        )
+        self.assertEqual(result.source, "llm")
+        self.assertEqual(result.reply_text, "PLAIN JSON REPLY")
 
 
 if __name__ == "__main__":

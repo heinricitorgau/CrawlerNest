@@ -57,6 +57,7 @@ behavior is unchanged if you leave it unset.
 export WEB_AGENT_DS4_BASE_URL="http://localhost:8000/v1"   # trailing /v1 optional; added if missing
 export WEB_AGENT_DS4_MODEL="deepseek-v4-flash"             # default if unset
 export WEB_AGENT_DS4_TIMEOUT="60"                          # seconds per request; default 60 for ds4
+export WEB_AGENT_DS4_STREAM="1"                            # opt in to SSE streaming (see below)
 # export WEB_AGENT_DS4_API_KEY="..."                       # only if you front ds4 with an auth proxy
 ```
 
@@ -133,6 +134,31 @@ with a timeout warning) rather than erroring — the same graceful degradation a
 an unreachable server. Raise `WEB_AGENT_DS4_TIMEOUT` for slow hosts, keep `--ctx`
 sane on the ds4 host, and prefer a low-latency link if you want the `llm` path to
 win consistently.
+
+### Streaming (SSE)
+
+Set `WEB_AGENT_DS4_STREAM=1` to request `stream: true` and consume ds4's
+`text/event-stream` response instead of waiting for one JSON body.
+
+The practical win is timeout behaviour, not just responsiveness: the socket
+timeout applies **per read**, so a slow model that keeps emitting chunks no
+longer trips `WEB_AGENT_DS4_TIMEOUT` the way a single long request does. This is
+the real fix for "the remote host is fast enough, but a long generation still
+fell back".
+
+Two deliberate behaviours:
+
+- **A truncated stream falls back.** If the stream ends without `[DONE]` or a
+  `finish_reason`, the partial text is discarded and the deterministic reply is
+  used. Returning half an explanation could silently drop the caveats the
+  honesty contract requires, so incomplete output is treated as failure.
+- **A server that ignores `stream: true` still works.** If the response comes
+  back as plain JSON, it is parsed normally.
+
+`WebResponseGenerator.generate_response()` accepts an optional
+`on_delta(text_chunk)` callback, invoked as each chunk arrives while streaming.
+It is the attachment point for a future token-level UI; the return value is
+always the complete text, so existing callers are unaffected.
 
 ### Observability
 
