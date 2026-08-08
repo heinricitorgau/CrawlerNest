@@ -102,8 +102,7 @@ suite in `crawlernest/crawlernest-tests/` does not run in CI — run it locally.
 - `docs/GETTING_STARTED.md` — canonical setup steps and troubleshooting
 - `docs/ARCHITECTURE_OVERVIEW.md`, `docs/DATA_FLOW.md`, `docs/API_SURFACE.md`
 - `docs/REPOSITORY_MAP.md` — directory guide (but see the stale-duplicate warning above)
-- `crawlernest/crawlernest-web/CLAUDE.md` and
-  `crawlernest/crawlernest-mini-agent/CLAUDE.md` — subproject-specific guidance
+- `crawlernest/crawlernest-web/CLAUDE.md` — subproject-specific guidance
 
 ## Debugging order
 

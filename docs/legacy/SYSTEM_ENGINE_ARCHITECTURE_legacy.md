@@ -89,7 +89,6 @@ flowchart TD
         direction LR
         AGG_F["[FUTURE] multi_source + ranking_aggregation"]
         AGENT_F["[DEV-SUPPORT] crawlernest/agent/"]
-        MINI_F["[DEV-SUPPORT] crawlernest-mini-agent/"]
         AUTOEVAL_F["[DEV-SUPPORT] crawlernest-autoeval/"]
         CAGENTS_F["[DEV-SUPPORT] ../crawlernest-agents"]
     end
@@ -183,7 +182,6 @@ flowchart TD
 
     subgraph AGENT["Agent And Improvement"]
         AGS["crawlernest/agent/"]
-        MINI["crawlernest-mini-agent/"]
         EVAL["crawlernest-autoeval/"]
     end
 
@@ -336,7 +334,6 @@ Design constraints:
 flowchart LR
     AG["crawlernest/agent/"] --> PAPI["agent_api"]
     AG --> PCLI["agent_cli"]
-    MINI["crawlernest-mini-agent/"] --> AG
     EVAL["crawlernest-autoeval/"] -. evaluate / improve .-> AG
     EVAL -. evaluate / improve .-> EXT["crawlernest-extractors/"]
 ```
@@ -383,7 +380,6 @@ mindmap
       crawlernest-web/
     Agent
       crawlernest/agent/
-      crawlernest-mini-agent/
       crawlernest-autoeval/
     Data
       crawlernest-schema/

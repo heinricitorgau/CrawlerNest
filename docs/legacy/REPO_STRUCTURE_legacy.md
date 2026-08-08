@@ -31,7 +31,6 @@ repo-root/
 ├── crawlernest_ranking_crawler/       # [MAINLINE] importable ranking pipeline package
 ├── crawlernest_crawler_core/          # [MAINLINE] importable shared crawler runtime package
 ├── crawlernest-samples/               # 外層樣本 / artifact 輸出
-├── deployment-support/                # 節點部署與 runtime 資產
 ├── logs/                              # 執行日誌
 ├── test_*.py                          # focused Python regression tests
 ├── legacy/                            # [LEGACY / COMPAT] 外層舊版/相容殼層與過渡材料
@@ -76,7 +75,6 @@ crawlernest/
 │
 ├── servise_for_java/                  # [MAINLINE] Spring Boot API（名稱為歷史拼字）
 ├── crawlernest-web/                   # [MAINLINE] Next.js 前端
-├── crawlernest-mini-agent/            # [DEV-SUPPORT] 獨立 mini-agent 產品 / runtime / Rust crates
 ├── crawlernest-autoeval/              # [DEV-SUPPORT] extractor / autoloop evaluation
 │
 ├── crawlernest-api/                   # [LEGACY / COMPAT] 舊 API / 過渡材料
