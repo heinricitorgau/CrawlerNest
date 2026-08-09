@@ -6,7 +6,9 @@ or changes a published rank, and every model output is stored and labelled as an
 estimate. This is the same honesty contract the rest of the repo runs on — see
 the "No black-box scores" rule in the root [`CLAUDE.md`](../../CLAUDE.md).
 
-Status: **Phase 1 complete** (feature layer + EDA). No model is trained yet.
+Status: **Phase 2 complete** — feature layer, EDA, and a trained, evaluated
+overall-score estimator. See [`model_cards/overall_score.md`](model_cards/overall_score.md)
+for the full record.
 
 ## The data
 
@@ -41,6 +43,7 @@ evaluation only.
 ./.venv/bin/pip install -r requirements-ml.txt
 PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.features.build_features
 PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.eda.run_eda
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.training.train_overall_score
 ```
 
 ## Phase 1 findings
@@ -129,22 +132,96 @@ and predictions deep in the tail do not.
 
 ![Target distribution](artifacts/eda/target_distribution.png)
 
+## Phase 2 results
+
+Full detail in the [model card](model_cards/overall_score.md). Three things came
+out of it.
+
+### The published weighting is recovered from the data
+
+A linear fit on the raw indicators reproduces QS's documented weighting to a
+mean absolute error of **0.0006** (worst case 0.0008): Academic Reputation
+0.2996 against a published 0.30, Citations per Faculty 0.1992 against 0.20, and
+so on for all nine.
+
+This reframes what the model is. The overall score is a deterministic weighted
+sum, so this is system identification, not forecasting — and an R² of 0.9999
+should be read as "the formula was recovered", never as predictive accuracy.
+Tree models do *worse* here (random forest RMSE 3.84 against 0.18), which is the
+expected result when the true relationship is exactly linear.
+
+It also shows why correlation is not importance: Citations per Faculty carries a
+20% weight but correlates with the target at only 0.476, below three indicators
+weighted at 5%.
+
+### Imputation, not model choice, decided performance under shift
+
+The first run used median imputation and scored Spearman 0.9551 against the
+published ranks of the 903. Holding the weights fixed and only changing how
+missing indicators are handled:
+
+| Missing-value strategy | Spearman on the 903 |
+|---|---:|
+| median imputation | 0.9551 |
+| renormalise over available weights | **0.9755** |
+
+The fitted and published weights differ by at most 0.0008, so none of that gap
+is about the model. Median imputation borrows values from a training
+distribution whose medians run three to five times higher than the withheld
+tail, biasing exactly the 114 rows that carry a missing indicator. The
+recommended model, `linear_renorm`, renormalises instead — and then wins on both
+cross-validation (RMSE 0.175 against 0.278) and extrapolation.
+
+The general lesson is worth stating plainly: under covariate shift the default
+preprocessing step did more damage than any modelling decision, and only the
+out-of-distribution check surfaced it. Cross-validation alone would have shipped
+the worse pipeline.
+
+### A quarter of the inference set is unsupported
+
+| Set | n | Supported | % |
+|---|---:|---:|---:|
+| Labelled (train) | 600 | 590 | 98.33 |
+| Unlabelled (infer) | 903 | 657 | 72.76 |
+
+Support is the mean distance to the 10 nearest training rows in standardised
+indicator space, thresholded at the 95th percentile of the training set's own
+leave-one-out distances — mechanical and inspectable, like the rest of the
+confidence handling in this repo. **27% of the rows we would predict sit outside
+the region the model was fitted on**, and the flag is what decides whether an
+estimate is publishable.
+
 ## Layout
 
 ```
 ranking_ml/
   features/
-    schema.py           feature contract, QS published weights, validation
-    regions.py          107 countries → 12 regions, documented judgement calls
-    build_features.py   snapshot → FeatureMatrix (X, y, rank, names)
+    schema.py               feature contract, QS published weights, validation
+    regions.py              107 countries → 12 regions, documented judgement calls
+    build_features.py       snapshot → FeatureMatrix (X, y, rank, names)
   eda/
-    run_eda.py          the analysis and figures above
+    run_eda.py              the analysis and figures above
+  models/
+    overall_score.py        candidate estimators, incl. RenormalisedWeightedScore
+    support.py              distance-to-training-data flag
+  evaluation/
+    metrics.py              RMSE / MAE / R², and rank agreement
+    baselines.py            QS's published weighting, and weight-recovery tables
+  training/
+    train_overall_score.py  the run that produces everything above
+model_cards/
+  overall_score.md          full record for the trained estimator
 artifacts/
-  eda/                  committed figures
-  models/              trained binaries (gitignored, rebuildable)
+  eda/                      committed figures
+  metrics/                  committed metrics.json, what CI compares against
+  models/                   trained binaries (gitignored, rebuildable)
 ```
 
 ## Next
 
-Phase 2 trains the regressor against the published-weight baseline. Phase 3
-adds the cross-source disagreement classifier and the LLM-evaluation upgrade.
+Phase 3: the cross-source disagreement classifier over the 820 QS ∩ THE overlap
+(the AUC-shaped problem), and the LLM-evaluation upgrade — expanding the
+faithfulness golden set and reporting precision/recall of the checker itself.
+
+Not yet wired up: `analytics.ml_predictions`, the CI metrics gate, and the
+`caveats` string that must accompany any estimate the API surfaces.

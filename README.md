@@ -70,8 +70,27 @@ and Spearman correlation against the published ranks of the 903 provides the
 only external validation available in the shifted region — the scores are
 unknown there, but the ordering is not.
 
+Two results came out of it:
+
+**The published weighting is recoverable from the data.** A linear fit on the
+raw indicators reproduces QS's documented weighting to a mean absolute error of
+0.0006 — Academic Reputation 0.2996 against a published 0.30, Citations per
+Faculty 0.1992 against 0.20, and so on across all nine. That makes this system
+identification rather than forecasting, and the resulting R² of 0.9999 is
+reported as "the formula was recovered", not as predictive accuracy.
+
+**Preprocessing mattered more than the model.** The first pipeline used median
+imputation and scored Spearman 0.9551 against the published ranks of the 903.
+Holding the weights fixed — they differ from QS's by at most 0.0008 — and only
+renormalising over available indicators instead of imputing moved that to
+0.9755. Median imputation borrows values from a training distribution whose
+medians run three to five times higher than the withheld tail. Cross-validation
+alone would have shipped the worse pipeline; only the out-of-distribution check
+caught it.
+
 Estimates are stored and labelled as estimates. Nothing in the modelling layer
-writes to `analytics.aggregated_rankings` or changes a published rank.
+writes to `analytics.aggregated_rankings` or changes a published rank, and 27%
+of the inference set is flagged as outside the model's support.
 
 → **[crawlernest/crawlernest-ml/](crawlernest/crawlernest-ml/)** — feature
 contract, EDA, metrics, and model cards.
