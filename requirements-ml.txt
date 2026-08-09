@@ -1,0 +1,13 @@
+# CrawlerNest modelling dependencies (crawlernest/crawlernest-ml/).
+#
+# Deliberately separate from requirements.txt: the crawler/API runtime stays a
+# 7-package install, and a crawl node never needs scikit-learn. Install with:
+#
+#   ./.venv/bin/pip install -r requirements-ml.txt
+
+numpy==2.5.1
+pandas==3.0.5
+scikit-learn==1.9.0
+scipy==1.18.0
+matplotlib==3.11.1
+joblib==1.5.3

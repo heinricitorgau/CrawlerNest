@@ -17,6 +17,8 @@ The system is data-first: crawlers and pipelines write canonical records into Po
 - **Explainability** — every ranking and recommendation comes with a source comparison, confidence level, and evidence chain
 - **Recommendations** — filter universities by region, rank tier, and subject; export a named plan
 - **Analytics** — year-over-year rank movement, cross-source disagreement, data quality diagnostics
+- **Modelling** — a feature layer over the nine QS indicators, with the withheld
+  `Overall Score` of ranks 601–1503 as a supervised target
 - **Identity layer** — session-based accounts, saved universities, saved recommendation plans
 
 ---
@@ -39,6 +41,43 @@ flowchart LR
 
 ---
 
+## Modelling layer
+
+QS publishes nine component indicators for all 1,503 universities in the 2026
+snapshot, but the `Overall Score` only for ranks 1–600. That asymmetry is a
+supervised learning problem sitting in the data:
+
+```
+rank    1– 600  →  score published   →    600 labelled rows  (training set)
+rank  601–1503  →  score withheld    →    903 unlabelled rows (inference set)
+```
+
+Exploratory analysis of that split produced the finding that shapes the whole
+modelling design:
+
+![QS universities in indicator space](crawlernest/crawlernest-ml/artifacts/eda/pca_scatter.png)
+
+PC1 alone explains 50.7% of the variance and orders the labelled universities
+almost monotonically by rank. But the 903 universities we would predict pile up
+at the low end of PC1, where training data is sparse — every indicator differs
+between the two groups by 0.67 to 1.91 pooled standard deviations. **Predicting
+the withheld scores is extrapolation, not interpolation.**
+
+So the model does not get to report a flattering cross-validated error and call
+it accuracy. Cross-validation measures how well it recovers QS's scoring
+function; a per-prediction support flag decides which estimates are publishable;
+and Spearman correlation against the published ranks of the 903 provides the
+only external validation available in the shifted region — the scores are
+unknown there, but the ordering is not.
+
+Estimates are stored and labelled as estimates. Nothing in the modelling layer
+writes to `analytics.aggregated_rankings` or changes a published rank.
+
+→ **[crawlernest/crawlernest-ml/](crawlernest/crawlernest-ml/)** — feature
+contract, EDA, metrics, and model cards.
+
+---
+
 ## Repository Layout
 
 ```
@@ -46,6 +85,7 @@ crawlernest/
   crawlernest-web/          Next.js frontend
   servise_for_java/         Spring Boot API
   crawlernest-core/         canonical resolution, aggregation
+  crawlernest-ml/           feature layer, EDA, and models over the QS indicators
   pipeline/                 CLI entry points
   crawlernest-normalization/ C-language CSV normalizer (research component)
   crawlernest-agents/       AI dev agent collection (readonly, optional)

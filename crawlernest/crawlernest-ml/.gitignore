@@ -1,0 +1,8 @@
+# Trained model binaries are rebuildable from the committed snapshot; only the
+# metrics that describe them belong in git.
+artifacts/models/
+*.joblib
+*.pkl
+
+# EDA figures and metrics.json are deliberately NOT ignored: the README links
+# to them and CI compares metrics against them.
