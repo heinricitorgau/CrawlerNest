@@ -1,0 +1,194 @@
+{
+  "dataset": {
+    "snapshot": "crawlernest/crawlernest-kb/databases/last_crawl_snapshot.json",
+    "rows_total": 1503,
+    "rows_labelled": 600,
+    "rows_unlabelled": 903,
+    "features": [
+      "Academic Reputation",
+      "Employer Reputation",
+      "Faculty Student Ratio",
+      "Citations per Faculty",
+      "International Faculty Ratio",
+      "International Student Ratio",
+      "International Research Network",
+      "Employment Outcomes",
+      "Sustainability Score",
+      "region=North America",
+      "region=Latin America",
+      "region=Western Europe",
+      "region=Eastern Europe",
+      "region=Middle East and North Africa",
+      "region=Sub-Saharan Africa",
+      "region=East Asia",
+      "region=South Asia",
+      "region=Southeast Asia",
+      "region=Caucasus and Central Asia",
+      "region=Oceania",
+      "region=Unknown"
+    ]
+  },
+  "baseline": {
+    "published_weights": {
+      "rmse": 0.7829,
+      "mae": 0.6785,
+      "r2": 0.9983,
+      "n": 600
+    }
+  },
+  "cross_validation": {
+    "linear_raw": {
+      "rmse_mean": 0.2777,
+      "rmse_std": 0.157,
+      "mae_mean": 0.0911,
+      "mae_std": 0.0195,
+      "r2_mean": 0.9997,
+      "r2_std": 0.0002,
+      "folds": 5
+    },
+    "linear_renorm": {
+      "rmse_mean": 0.1752,
+      "rmse_std": 0.123,
+      "mae_mean": 0.0465,
+      "mae_std": 0.0215,
+      "r2_mean": 0.9999,
+      "r2_std": 0.0001,
+      "folds": 5
+    },
+    "ridge": {
+      "rmse_mean": 0.2858,
+      "rmse_std": 0.1519,
+      "mae_mean": 0.103,
+      "mae_std": 0.0204,
+      "r2_mean": 0.9997,
+      "r2_std": 0.0002,
+      "folds": 5
+    },
+    "random_forest": {
+      "rmse_mean": 3.8434,
+      "rmse_std": 0.5486,
+      "mae_mean": 2.8804,
+      "mae_std": 0.2626,
+      "r2_mean": 0.9572,
+      "r2_std": 0.0099,
+      "folds": 5
+    },
+    "gradient_boosting": {
+      "rmse_mean": 2.3936,
+      "rmse_std": 0.2194,
+      "mae_mean": 1.8304,
+      "mae_std": 0.1688,
+      "r2_mean": 0.9835,
+      "r2_std": 0.0022,
+      "folds": 5
+    }
+  },
+  "best_model": "linear_renorm",
+  "weight_recovery": {
+    "rows": [
+      {
+        "indicator": "Academic Reputation",
+        "qs_published": 0.3,
+        "recovered": 0.2996,
+        "abs_error": 0.0004
+      },
+      {
+        "indicator": "Citations per Faculty",
+        "qs_published": 0.2,
+        "recovered": 0.1992,
+        "abs_error": 0.0008
+      },
+      {
+        "indicator": "Employer Reputation",
+        "qs_published": 0.15,
+        "recovered": 0.1504,
+        "abs_error": 0.0004
+      },
+      {
+        "indicator": "Faculty Student Ratio",
+        "qs_published": 0.1,
+        "recovered": 0.0993,
+        "abs_error": 0.0007
+      },
+      {
+        "indicator": "International Faculty Ratio",
+        "qs_published": 0.05,
+        "recovered": 0.0493,
+        "abs_error": 0.0007
+      },
+      {
+        "indicator": "International Student Ratio",
+        "qs_published": 0.05,
+        "recovered": 0.0508,
+        "abs_error": 0.0008
+      },
+      {
+        "indicator": "International Research Network",
+        "qs_published": 0.05,
+        "recovered": 0.0499,
+        "abs_error": 0.0001
+      },
+      {
+        "indicator": "Employment Outcomes",
+        "qs_published": 0.05,
+        "recovered": 0.0506,
+        "abs_error": 0.0006
+      },
+      {
+        "indicator": "Sustainability Score",
+        "qs_published": 0.05,
+        "recovered": 0.0508,
+        "abs_error": 0.0008
+      }
+    ],
+    "mean_abs_error": 0.0006,
+    "intercept": -1.7265
+  },
+  "support": [
+    {
+      "set": "labelled (train)",
+      "n": 600,
+      "supported": 590,
+      "supported_pct": 98.33,
+      "distance_median": 1.3159,
+      "distance_p95": 1.8929,
+      "threshold": 2.1372
+    },
+    {
+      "set": "unlabelled (infer)",
+      "n": 903,
+      "supported": 657,
+      "supported_pct": 72.76,
+      "distance_median": 1.8943,
+      "distance_p95": 2.4838,
+      "threshold": 2.1372
+    }
+  ],
+  "rank_agreement": {
+    "linear_renorm": {
+      "all_unlabelled": {
+        "spearman": 0.9754349338061236,
+        "p_value": 0.0,
+        "n": 903
+      },
+      "supported_only": {
+        "spearman": 0.9735513394814175,
+        "p_value": 0.0,
+        "n": 657
+      }
+    },
+    "published_weight baseline": {
+      "all_unlabelled": {
+        "spearman": 0.975432726278594,
+        "p_value": 0.0,
+        "n": 903
+      },
+      "supported_only": {
+        "spearman": 0.973546848579426,
+        "p_value": 0.0,
+        "n": 657
+      }
+    }
+  },
+  "recommended_for_inference": "linear_renorm"
+}
