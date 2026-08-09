@@ -21,6 +21,14 @@ Two modes:
     faithfulness of what the model actually produced; requires a reachable
     server.
 
+In fixture mode the run also scores **the checker itself as a detector**:
+per-violation-kind precision, recall and F1 against the golden expectations. A
+pass count alone cannot distinguish a checker that catches everything from one
+that also fires on clean text, and the false-positive rate is the number that
+decides whether the check can gate anything. Reading it requires the dataset to
+carry enough faithful cases to put in the denominator, which is why roughly half
+the golden entries expect no violation at all.
+
 Exit codes: 0 = PASS, 1 = FAIL, 2 = usage/setup error.
 """
 
@@ -91,6 +99,59 @@ def generate_live(entry: dict[str, Any]) -> tuple[str, str]:
     return result.text, result.source
 
 
+VIOLATION_KINDS = ("unsupported_number", "missing_caveat", "unsupported_university")
+
+
+def _prf(true_positive: int, false_positive: int, false_negative: int) -> dict[str, float]:
+    precision = true_positive / (true_positive + false_positive) if true_positive + false_positive else 1.0
+    recall = true_positive / (true_positive + false_negative) if true_positive + false_negative else 1.0
+    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    return {"precision": round(precision, 4), "recall": round(recall, 4), "f1": round(f1, 4)}
+
+
+def detector_metrics(results: list[dict[str, Any]]) -> dict[str, Any]:
+    """Score the checker as a detector, per violation kind and overall.
+
+    One case contributes at most one true positive per kind: the question is
+    whether the kind was raised on that case, not how many times.
+    """
+    per_kind: dict[str, Any] = {}
+    totals = {"tp": 0, "fp": 0, "fn": 0}
+
+    for kind in VIOLATION_KINDS:
+        tp = fp = fn = 0
+        for result in results:
+            expected = kind in set(result.get("expected", {}).get("violation_kinds", []))
+            detected = kind in {v["kind"] for v in result["violations"]}
+            tp += expected and detected
+            fp += (not expected) and detected
+            fn += expected and (not detected)
+        per_kind[kind] = {"tp": tp, "fp": fp, "fn": fn, **_prf(tp, fp, fn)}
+        totals["tp"] += tp
+        totals["fp"] += fp
+        totals["fn"] += fn
+
+    macro = {
+        metric: round(sum(per_kind[k][metric] for k in VIOLATION_KINDS) / len(VIOLATION_KINDS), 4)
+        for metric in ("precision", "recall", "f1")
+    }
+
+    # Case-level verdict accuracy, and the false-positive rate on clean text --
+    # the number that decides whether this check can gate a release.
+    clean = [r for r in results if r.get("expected", {}).get("faithful", True)]
+    flagged_clean = sum(1 for r in clean if not r["faithful"])
+    correct = sum(1 for r in results if r["faithful"] == r.get("expected", {}).get("faithful", True))
+
+    return {
+        "per_kind": per_kind,
+        "micro": {**totals, **_prf(totals["tp"], totals["fp"], totals["fn"])},
+        "macro": macro,
+        "verdict_accuracy": round(correct / len(results), 4) if results else 1.0,
+        "clean_cases": len(clean),
+        "false_positive_rate_on_clean": round(flagged_clean / len(clean), 4) if clean else 0.0,
+    }
+
+
 def evaluate(entries: list[dict[str, Any]], *, live: bool, verbose: bool) -> dict[str, Any]:
     results: list[dict[str, Any]] = []
     passed = failed = 0
@@ -141,7 +202,7 @@ def evaluate(entries: list[dict[str, Any]], *, live: bool, verbose: bool) -> dic
             for violation in report.violations:
                 print(f"    ! {violation.kind}: {violation.detail}")
 
-    return {
+    summary = {
         "mode": "live" if live else "fixture",
         "total": len(entries),
         "passed": passed,
@@ -149,6 +210,9 @@ def evaluate(entries: list[dict[str, Any]], *, live: bool, verbose: bool) -> dic
         "result": "PASS" if failed == 0 else "FAIL",
         "entries": results,
     }
+    if not live:
+        summary["detector"] = detector_metrics(results)
+    return summary
 
 
 def main() -> int:
@@ -170,7 +234,27 @@ def main() -> int:
     else:
         print()
         print(f"Faithfulness ({summary['mode']} mode): {summary['passed']} passed, {summary['failed']} failed")
-        print(f"Result: {summary['result']}")
+        detector = summary.get("detector")
+        if detector:
+            print()
+            print("Checker scored as a detector")
+            print(f"  {'kind':<26} {'TP':>3} {'FP':>3} {'FN':>3}   {'P':>6} {'R':>6} {'F1':>6}")
+            for kind, stats in detector["per_kind"].items():
+                print(
+                    f"  {kind:<26} {stats['tp']:>3} {stats['fp']:>3} {stats['fn']:>3}   "
+                    f"{stats['precision']:>6.3f} {stats['recall']:>6.3f} {stats['f1']:>6.3f}"
+                )
+            micro = detector["micro"]
+            print(
+                f"  {'micro-average':<26} {micro['tp']:>3} {micro['fp']:>3} {micro['fn']:>3}   "
+                f"{micro['precision']:>6.3f} {micro['recall']:>6.3f} {micro['f1']:>6.3f}"
+            )
+            print(f"  macro F1 {detector['macro']['f1']:.3f}   verdict accuracy {detector['verdict_accuracy']:.3f}")
+            print(
+                f"  false positives on clean text: "
+                f"{detector['false_positive_rate_on_clean']:.3f} over {detector['clean_cases']} faithful cases"
+            )
+        print(f"\nResult: {summary['result']}")
 
     return 0 if summary["result"] == "PASS" else 1
 

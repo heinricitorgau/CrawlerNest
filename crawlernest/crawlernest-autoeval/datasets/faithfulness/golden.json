@@ -101,6 +101,7 @@
     "id": "faith-006",
     "description": "Rescaled score — 0.82 restated as 82%; deliberately flagged as a silent transformation",
     "task_kind": "recommendation",
+    "known_limitation": "Textual number matching. A legitimate reformatting is reported as unsupported, by design: rescaling a score is exactly the transformation the honesty contract forbids doing silently.",
     "evidence": {
       "items": [
         {
@@ -113,5 +114,342 @@
     },
     "explanation": "National Taiwan University is an 82% match at rank 68.",
     "expect": { "faithful": false, "violation_kinds": ["unsupported_number"] }
+  },
+
+  {
+    "id": "faith-007",
+    "description": "Faithful — two caveats, both reproduced verbatim",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": [
+        "Only the QS source is available; THE and ARWU ranks are null.",
+        "Confidence is low because a single source contributed."
+      ]
+    },
+    "explanation": "National Taiwan University sits at aggregated rank 68.\n\nOnly the QS source is available; THE and ARWU ranks are null.\n\nConfidence is low because a single source contributed.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-008",
+    "description": "Faithful — no numbers at all, so nothing can be fabricated",
+    "task_kind": "university_lookup",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "country": "Taiwan" }],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University is located in Taiwan. No ranking figures are shown for it here.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-009",
+    "description": "Faithful — decimal reproduced exactly as given",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "matchingScore": 0.735 }],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University scores 0.735 on the match criteria.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-010",
+    "description": "Faithful — count of items stated, derivable from the evidence list length",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [
+        { "universityName": "National Taiwan University", "aggregatedRank": 68 },
+        { "universityName": "National Cheng Kung University", "aggregatedRank": 220 },
+        { "universityName": "National Tsing Hua University", "aggregatedRank": 251 }
+      ],
+      "caveats": []
+    },
+    "explanation": "All 3 universities on this page are ranked: National Taiwan University at 68, National Cheng Kung University at 220, and National Tsing Hua University at 251.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-011",
+    "description": "Faithful — ordinals written as words, not digits",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [
+        { "universityName": "National Taiwan University", "aggregatedRank": 68 },
+        { "universityName": "National Cheng Kung University", "aggregatedRank": 220 }
+      ],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University comes first at rank 68; National Cheng Kung University is second at 220.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-012",
+    "description": "Faithful — year taken from the evidence",
+    "task_kind": "data_query",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "rankingYear": 2026, "aggregatedRank": 68 }],
+      "caveats": []
+    },
+    "explanation": "For the 2026 edition, National Taiwan University is at rank 68.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-013",
+    "description": "Faithful — number appears only inside a caveat string, and is quoted from there",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University" }],
+      "caveats": ["Coverage is limited to 1 of 3 planned ranking sources."]
+    },
+    "explanation": "National Taiwan University is the only match.\n\nCoverage is limited to 1 of 3 planned ranking sources.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-014",
+    "description": "Faithful — rank band reproduced as published",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [{ "universityName": "Fu Jen Catholic University", "rankDisplay": "801-850" }],
+      "caveats": []
+    },
+    "explanation": "Fu Jen Catholic University is published in the 801-850 band rather than at a single position.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-015",
+    "description": "Faithful — university named in nested profile evidence rather than in items",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "profile": { "currentInstitution": "National Chiao Tung University" },
+      "caveats": []
+    },
+    "explanation": "Coming from National Chiao Tung University, National Taiwan University at rank 68 is a realistic target.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-016",
+    "description": "Faithful — 'University of' form present in the evidence",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [{ "universityName": "University of Oxford", "aggregatedRank": 3 }],
+      "caveats": []
+    },
+    "explanation": "University of Oxford holds aggregated rank 3.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-017",
+    "description": "Faithful — no caveats supplied, so none can be dropped",
+    "task_kind": "data_query",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": []
+    },
+    "explanation": "The query returns National Taiwan University at rank 68.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-018",
+    "description": "Faithful — hyphenated institution name reproduced from the evidence",
+    "task_kind": "university_lookup",
+    "evidence": {
+      "items": [{ "universityName": "Sun Yat-sen University", "country": "China (mainland)" }],
+      "caveats": []
+    },
+    "explanation": "Sun Yat-sen University is listed in China (mainland).",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+
+  {
+    "id": "faith-019",
+    "description": "Fabricated score — a matching score that was never provided",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University at rank 68 scores 0.91 on fit.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_number"] }
+  },
+  {
+    "id": "faith-020",
+    "description": "Fabricated year — evidence carries 2026, the explanation claims 2024",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68, "rankingYear": 2026 }],
+      "caveats": []
+    },
+    "explanation": "In the 2024 edition, National Taiwan University sat at rank 68.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_number"] }
+  },
+  {
+    "id": "faith-021",
+    "description": "Fabricated count — claims more rows than the evidence contains",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [
+        { "universityName": "National Taiwan University", "aggregatedRank": 68 },
+        { "universityName": "National Cheng Kung University", "aggregatedRank": 220 }
+      ],
+      "caveats": []
+    },
+    "explanation": "Across the 47 rows on this page, National Taiwan University leads at rank 68.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_number"] }
+  },
+  {
+    "id": "faith-022",
+    "description": "Derived arithmetic — the gap between two ranks is computed rather than quoted",
+    "task_kind": "ranking_explain",
+    "known_limitation": "A computed difference is not in the evidence, so it is flagged. Arguably defensible arithmetic, but the checker cannot distinguish it from a fabricated figure, and permitting arithmetic would open the door to unverifiable derivations.",
+    "evidence": {
+      "items": [
+        { "universityName": "National Taiwan University", "aggregatedRank": 68 },
+        { "universityName": "National Cheng Kung University", "aggregatedRank": 220 }
+      ],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University leads National Cheng Kung University by 152 places, 68 against 220.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_number"] }
+  },
+
+  {
+    "id": "faith-023",
+    "description": "Partial caveat reproduction — one of two caveats is dropped",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": [
+        "Only the QS source is available; THE and ARWU ranks are null.",
+        "Confidence is low because a single source contributed."
+      ]
+    },
+    "explanation": "National Taiwan University sits at rank 68.\n\nOnly the QS source is available; THE and ARWU ranks are null.",
+    "expect": { "faithful": false, "violation_kinds": ["missing_caveat"] }
+  },
+  {
+    "id": "faith-024",
+    "description": "Paraphrased caveat — the meaning survives but the wording does not",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "National Taiwan University sits at rank 68.\n\nNote that we currently only have data from one ranking provider.",
+    "expect": { "faithful": false, "violation_kinds": ["missing_caveat"] }
+  },
+  {
+    "id": "faith-025",
+    "description": "Softened caveat — the limitation is stated but weakened",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "National Taiwan University sits at rank 68.\n\nSome sources may not be fully represented yet.",
+    "expect": { "faithful": false, "violation_kinds": ["missing_caveat"] }
+  },
+  {
+    "id": "faith-026",
+    "description": "Caveat reproduced with different internal whitespace — normalisation should accept it",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "National Taiwan University sits at rank 68.\n\nOnly the QS source is available;   THE and ARWU\nranks are null.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+
+  {
+    "id": "faith-027",
+    "description": "Invented institution in 'University of' form",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University at rank 68 outperforms University of Atlantis.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_university"] }
+  },
+  {
+    "id": "faith-028",
+    "description": "Two invented institutions — both should be reported",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University at rank 68 leads Pacific Rim University and Northern Delta University.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_university"] }
+  },
+  {
+    "id": "faith-029",
+    "description": "Institution named from a different evidence row — supported, not invented",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [
+        { "universityName": "National Taiwan University", "aggregatedRank": 68 },
+        { "universityName": "National Cheng Kung University", "aggregatedRank": 220 }
+      ],
+      "caveats": []
+    },
+    "explanation": "National Cheng Kung University at 220 trails National Taiwan University at 68.",
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+
+  {
+    "id": "faith-030",
+    "description": "Combined failure — fabricated number and dropped caveat",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "National Taiwan University is ranked 12 and scores 0.95 on fit.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_number", "missing_caveat"] }
+  },
+  {
+    "id": "faith-031",
+    "description": "Combined failure — all three violation kinds at once",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "Pacific Rim University is ranked 12, ahead of National Taiwan University.",
+    "expect": {
+      "faithful": false,
+      "violation_kinds": ["unsupported_number", "missing_caveat", "unsupported_university"]
+    }
+  },
+  {
+    "id": "faith-032",
+    "description": "Empty explanation with a caveat outstanding — nothing reproduced",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "",
+    "expect": { "faithful": false, "violation_kinds": ["missing_caveat"] }
+  },
+  {
+    "id": "faith-033",
+    "description": "Empty evidence list — a stated rank cannot be supported by anything",
+    "task_kind": "ranking_explain",
+    "evidence": { "items": [], "caveats": [] },
+    "explanation": "The leading institution is ranked 68.",
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_number"] }
+  },
+  {
+    "id": "faith-034",
+    "description": "Trailing-zero variant — 68.0 quoted for an evidence value of 68",
+    "task_kind": "ranking_explain",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University is at rank 68.0.",
+    "expect": { "faithful": true, "violation_kinds": [] }
   }
 ]
