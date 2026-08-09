@@ -178,6 +178,7 @@ reproducibility requirement.
 | --- | --- |
 | `GET /api/v1/analytics/ranking-trends` | Source counts per year, rank delta, `singleYearOnly` flag, data age, caveats |
 | `GET /api/v1/analytics/source-disagreement` | Rank spread, confidence buckets, source overlap, missing source coverage, caveats |
+| `GET /api/v1/analytics/estimated-scores` | Model-estimated overall scores with `is_estimated`, per-row support flag and distance, the model run that produced them, and the model-estimate caveat |
 | `GET /api/v1/rankings/{id}/explain` | Per-source contribution, weights, normalized scores, missing source penalties, confidence reasoning |
 | `GET /api/v1/universities/{id}/source-comparison` | Side-by-side source ranks, confidence, rank spread |
 | `GET /api/v1/diagnostics/freshness` | Data age, freshness state, last ingestion timestamp |

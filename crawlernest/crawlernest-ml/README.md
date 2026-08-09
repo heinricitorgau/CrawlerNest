@@ -6,9 +6,10 @@ or changes a published rank, and every model output is stored and labelled as an
 estimate. This is the same honesty contract the rest of the repo runs on — see
 the "No black-box scores" rule in the root [`CLAUDE.md`](../../CLAUDE.md).
 
-Status: **Phase 3 complete** — feature layer, EDA, and two evaluated models.
-Full records in [`model_cards/overall_score.md`](model_cards/overall_score.md)
-and [`model_cards/disagreement.md`](model_cards/disagreement.md).
+Status: feature layer, EDA, two evaluated models, and a serving path that writes
+estimates into `analytics.ml_predictions` for the API to read. Full records in
+[`model_cards/overall_score.md`](model_cards/overall_score.md) and
+[`model_cards/disagreement.md`](model_cards/disagreement.md).
 
 ## The data
 
@@ -282,6 +283,8 @@ ranking_ml/
   training/
     train_overall_score.py  the overall-score run
     train_disagreement.py   the cross-source disagreement run
+  serving/
+    predict.py              batch scoring into analytics.ml_predictions
 model_cards/
   overall_score.md          full record for the score estimator
   disagreement.md           full record for the disagreement classifier
@@ -291,17 +294,49 @@ artifacts/
   models/                   trained binaries (gitignored, rebuildable)
 ```
 
+## Serving
+
+Estimates reach the API through their own tables, never through
+`analytics.aggregated_rankings`:
+
+```bash
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.serving.predict \
+    --pg-user test --pg-password test --pg-database clawer
+# add --dry-run to compute everything and write nothing
+```
+
+The job fits the estimator on the 600 labelled universities, predicts the 903
+withheld ones, resolves each to a `canonical_university_id`, and writes one
+`analytics.ml_model_runs` row plus its predictions in a single transaction. On
+the current snapshot 902 of 903 resolve; the one that does not is a snapshot row
+literally named "N/A", which is skipped rather than guessed at.
+
+The schema enforces two things rather than trusting callers to:
+`ml_predictions.is_estimated` is `CHECK`-constrained true, so no writer can turn
+the disclosure off, and every row carries its support distance, so no consumer
+can surface an estimate without the means to say how far outside the training
+data it sits.
+
+`GET /api/v1/analytics/estimated-scores` reads them. Every non-empty response
+carries `AnalyticsService.ESTIMATED_SCORE_CAVEAT`, and each item carries
+`is_estimated` and `is_supported`. Unsupported rows are returned by default —
+`?supported_only=true` filters them — because dropping them silently would hide
+the part of the output least worth trusting.
+
+### A boundary check worth knowing about
+
+QS's lowest published overall score is 20.8, and every estimated university ranks
+below 600, so on QS's own ordering no estimate should exceed 20.8. Two of 902
+do (0.22%), the worst by 0.585. They are left unclipped: clipping would pile
+rows up at the boundary and hide the error rather than remove it, and the size of
+the overshoot is a useful read on the estimates' precision near the cut-off.
+
 ## Next
 
-Not yet wired up, in the order they matter:
-
-1. `analytics.ml_predictions` and `analytics.ml_model_runs` — the schema for
-   storing estimates as estimates, alongside the support flag.
-2. The `caveats` string any surfaced estimate must carry. Per the root
-   `CLAUDE.md`, that means changing `AnalyticsService.java`,
-   `AnalyticsController.java`, and the explainability doc together.
-3. A CI job that reruns both training scripts in fixture mode and fails if the
+1. A CI job that reruns both training scripts in fixture mode and fails if the
    committed metrics regress. `artifacts/metrics/*.json` exists for this.
-4. LLM-as-judge as a *second* faithfulness signal, calibrated against the
+2. Surfacing the disagreement classifier's probability through the same path.
+   The tables are model-agnostic; only a second `predict` job is missing.
+3. LLM-as-judge as a *second* faithfulness signal, calibrated against the
    mechanical checker on the golden set and reported with Cohen's κ before it is
    trusted for anything.
