@@ -10,6 +10,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItems;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,9 +48,17 @@ class SubjectRankingApiIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.items.length()").value(2))
-                .andExpect(jsonPath("$.data.items[0].subjectKey").value("computer-science"))
-                .andExpect(jsonPath("$.data.items[1].subjectKey").value("electrical-engineering"));
+                // Assert the supported subjects by slug, not by count: this endpoint returns every
+                // active row in warehouse.ranking_subject, so a bare count neither identifies which
+                // subjects came back nor survives a new subject being added.
+                .andExpect(jsonPath("$.data.items[*].subjectKey",
+                        hasItems("business-management", "computer-science", "electrical-engineering")))
+                .andExpect(jsonPath("$.data.items[?(@.subjectKey == 'business-management')].subjectName",
+                        contains("Business & Management")))
+                .andExpect(jsonPath("$.data.items[?(@.subjectKey == 'computer-science')].subjectName",
+                        contains("Computer Science")))
+                .andExpect(jsonPath("$.data.items[?(@.subjectKey == 'electrical-engineering')].subjectName",
+                        contains("Electrical Engineering")));
     }
 
     @Test

@@ -16,6 +16,7 @@ public class AuthSchemaInitializer {
 
     @EventListener(ApplicationReadyEvent.class)
     public void createAuthTables() {
+        jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS warehouse");
         jdbcTemplate.execute("""
                 CREATE TABLE IF NOT EXISTS warehouse.app_user (
                     id            BIGSERIAL    PRIMARY KEY,
