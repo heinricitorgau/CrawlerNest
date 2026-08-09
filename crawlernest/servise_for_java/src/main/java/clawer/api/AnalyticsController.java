@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +20,11 @@ import java.util.Map;
  * All endpoints are strictly readonly. No data is mutated, no pipeline is
  * triggered, and no scores are changed. Each response includes a caveats
  * array disclosing known data limitations (stale data, unavailable sources,
- * single-year coverage).
+ * single-year coverage, and any modelled value present in the payload).
+ *
+ * The model-estimate disclosure is not repeated here: this class references
+ * {@link AnalyticsService#ESTIMATED_SCORE_CAVEAT} so the string has one
+ * definition rather than two copies to keep in step.
  */
 @RestController
 @RequestMapping("/api/v1/analytics")
@@ -91,12 +96,18 @@ public class AnalyticsController {
         Map<String, Object> agreementData = sourceIntelligenceService.getSourceAgreementDiagnostics();
 
         // Add analytics-specific caveats to the response.
-        List<String> caveats = List.of(
+        List<String> caveats = new ArrayList<>(List.of(
                 "THE (Times Higher Education) data is not available. Disagreement analysis reflects QS source only.",
                 "ARWU (Academic Ranking of World Universities) data is not available. Disagreement analysis reflects QS source only.",
                 "QS ranking data was last ingested at RC-1 packaging. Data may not reflect the current published rankings.",
                 "At RC-1, all universities have single-source (QS-only) coverage. Multi-source disagreement analysis becomes available when THE and ARWU are ingested."
-        );
+        ));
+
+        // Disagreement diagnostics are computed from published ranks only. When
+        // the modelled disagreement probability is surfaced here, this flag
+        // becomes the condition that carries ESTIMATED_SCORE_CAVEAT with it.
+        AnalyticsService.appendModelEstimateCaveat(caveats, false);
+        caveats = List.copyOf(caveats);
 
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("timestamp", Instant.now().toString());

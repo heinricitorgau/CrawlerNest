@@ -73,6 +73,33 @@ Caveats are not optional. They are the honesty contract for analytics output.
 | Stale data | "QS ranking data was last ingested at RC-1 packaging (approximately 354 hours ago). Data may not reflect the current published rankings." |
 | Single-year trends | "Year-over-year trend analysis requires data from multiple aggregation runs. Current data covers a single year — no rank delta is available." |
 | Incomplete subject coverage | "Subject ranking data is incomplete. Subject analytics are not available in this release." |
+| Response carries a modelled value | "Some values in this response are model estimates produced by CrawlerNest, not figures published by the ranking source. Estimated values are labelled as estimates, carry a support flag, and never replace a published rank." |
+
+### Model estimates
+
+The modelling layer in `crawlernest/crawlernest-ml/` produces estimated values —
+an overall score for the universities QS withholds one from, and a cross-source
+disagreement probability. These are not published figures and must never be
+presented as though they were.
+
+Three rules govern them:
+
+1. **Separate storage.** Estimates live in their own tables and never overwrite
+   `composite_score` or enter `analytics.aggregated_rankings`.
+2. **Conditional disclosure.** Any response carrying an estimate includes the
+   caveat above. It is conditional rather than always-on: most responses contain
+   nothing but published figures, and a caveat that fires when it does not apply
+   trains readers to skip the array.
+3. **Support, not confidence.** Each estimate carries a mechanically-derived
+   support flag — distance from the data the model was fitted on — in keeping
+   with the rule that confidence is derived and never assigned by hand. A
+   supported estimate is one the model has seen comparable cases for; it is not
+   a claim about the estimate's error.
+
+The caveat string has a single definition, `AnalyticsService.ESTIMATED_SCORE_CAVEAT`.
+`AnalyticsController` references that constant rather than repeating it, and
+`AnalyticsCaveatContractTest` reads this document and fails if the text here
+drifts from the code.
 
 ### Caveat Delivery
 

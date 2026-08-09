@@ -20,6 +20,19 @@ public class AnalyticsService {
 
     private static final int TREND_LIMIT = 200;
 
+    /**
+     * Disclosure attached to any response carrying a value produced by the
+     * modelling layer rather than published by a ranking source.
+     *
+     * Single source of truth: {@code AnalyticsController} references this
+     * constant rather than repeating the text, and
+     * {@code AnalyticsCaveatContractTest} asserts that
+     * {@code docs/analytics/ANALYTICS_EXPLAINABILITY.md} carries it verbatim.
+     * Change the string here and the test will tell you if the doc drifted.
+     */
+    public static final String ESTIMATED_SCORE_CAVEAT =
+            "Some values in this response are model estimates produced by CrawlerNest, not figures published by the ranking source. Estimated values are labelled as estimates, carry a support flag, and never replace a published rank.";
+
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
 
@@ -59,7 +72,8 @@ public class AnalyticsService {
         if (years.isEmpty()) {
             data.put("items", List.of());
             data.put("total_count", 0);
-            data.put("caveats", buildTrendCaveats(true, true));
+            // No rows at all, so certainly no modelled values among them.
+            data.put("caveats", buildTrendCaveats(true, true, false));
             data.put("evaluation_timestamp", Instant.now().toString());
             return data;
         }
@@ -175,7 +189,9 @@ public class AnalyticsService {
             data.put("total_count", items.size());
         }
 
-        data.put("caveats", buildTrendCaveats(singleYearOnly, false));
+        // Trends read analytics.aggregated_rankings only, which holds published
+        // figures. Flips when analytics.ml_predictions is joined in.
+        data.put("caveats", buildTrendCaveats(singleYearOnly, false, false));
         data.put("evaluation_timestamp", Instant.now().toString());
         return data;
     }
@@ -197,7 +213,7 @@ public class AnalyticsService {
         }
     }
 
-    private List<String> buildTrendCaveats(boolean singleYear, boolean noData) {
+    private List<String> buildTrendCaveats(boolean singleYear, boolean noData, boolean containsModelEstimates) {
         List<String> caveats = new ArrayList<>();
         caveats.add("THE (Times Higher Education) data is not available. Analysis reflects QS source only.");
         caveats.add("ARWU (Academic Ranking of World Universities) data is not available. Analysis reflects QS source only.");
@@ -208,6 +224,27 @@ public class AnalyticsService {
         if (noData) {
             caveats.add("No aggregated ranking data is currently available.");
         }
+        appendModelEstimateCaveat(caveats, containsModelEstimates);
         return caveats;
+    }
+
+    /**
+     * Adds {@link #ESTIMATED_SCORE_CAVEAT} when the payload carries a modelled
+     * value.
+     *
+     * The caveat is conditional rather than always-on because an unconditional
+     * disclosure would be false: most responses contain nothing but published
+     * figures, and a caveat that appears when it does not apply teaches readers
+     * to skip the caveats array.
+     *
+     * Today every caller passes {@code false}: {@code analytics.ml_predictions}
+     * does not exist yet, so no endpoint can carry an estimate. The flag flips
+     * where estimates are joined in, and the contract and its tests are in place
+     * before the first estimate can reach a response rather than after.
+     */
+    public static void appendModelEstimateCaveat(List<String> caveats, boolean containsModelEstimates) {
+        if (containsModelEstimates) {
+            caveats.add(ESTIMATED_SCORE_CAVEAT);
+        }
     }
 }
