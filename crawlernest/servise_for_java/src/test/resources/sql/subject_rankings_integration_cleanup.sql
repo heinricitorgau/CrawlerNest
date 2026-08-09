@@ -3,7 +3,7 @@ WHERE ranking_year = 2099
    OR source_entity_id LIKE 'qs:subject:%:2099:%';
 
 DELETE FROM warehouse.ranking_subject
-WHERE subject_key IN ('computer-science', 'electrical-engineering')
+WHERE subject_key IN ('computer-science', 'electrical-engineering', 'business-management')
   AND NOT EXISTS (
       SELECT 1
       FROM warehouse.subject_ranking_record srr

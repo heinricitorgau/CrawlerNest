@@ -34,6 +34,12 @@ INSERT INTO warehouse.ranking_subject (
         'Electrical Engineering',
         'Engineering and Technology',
         '{"QS": ["Engineering - Electrical and Electronic"]}'::jsonb
+    ),
+    (
+        'business-management',
+        'Business & Management',
+        'Business and Economics',
+        '{"QS": ["Business & Management Studies"]}'::jsonb
     )
 ON CONFLICT (subject_key) DO UPDATE SET
     display_name = EXCLUDED.display_name,

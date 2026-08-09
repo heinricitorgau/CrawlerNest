@@ -1,0 +1,59 @@
+name: API Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  java-tests:
+    name: Spring Boot test suite (PostgreSQL-backed)
+    runs-on: ubuntu-latest
+
+    # The integration tests connect through src/main/resources/application.properties,
+    # so the service container matches the credentials hardcoded there
+    # (clawer / test / test) and no datasource override is needed.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: clawer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d clawer"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Make Maven wrapper executable
+        run: chmod +x crawlernest/servise_for_java/mvnw
+
+      # The database starts empty: every @Sql setup script is self-contained
+      # (CREATE SCHEMA / CREATE TABLE IF NOT EXISTS), so no bootstrap or
+      # pipeline run is required here.
+      - name: Run tests
+        working-directory: crawlernest/servise_for_java
+        run: ./mvnw test
+
+      - name: Upload surefire reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: crawlernest/servise_for_java/target/surefire-reports/
+          retention-days: 7

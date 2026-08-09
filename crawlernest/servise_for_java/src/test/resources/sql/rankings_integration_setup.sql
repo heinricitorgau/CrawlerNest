@@ -107,6 +107,60 @@ CREATE TABLE IF NOT EXISTS warehouse.admission_records_preview (
     raw_payload JSONB
 );
 
+CREATE TABLE IF NOT EXISTS warehouse.ranking_source (
+    ranking_source_id SMALLSERIAL PRIMARY KEY,
+    source_code TEXT NOT NULL UNIQUE,
+    source_name TEXT NOT NULL,
+    source_version TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    metadata JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS warehouse.source_university_mapping (
+    source_mapping_id BIGSERIAL PRIMARY KEY,
+    ranking_source_id SMALLINT NOT NULL
+        REFERENCES warehouse.ranking_source(ranking_source_id),
+    source_entity_id TEXT NOT NULL,
+    canonical_university_id BIGINT NOT NULL
+        REFERENCES warehouse.canonical_university(canonical_university_id),
+    match_method TEXT NOT NULL,
+    confidence_score NUMERIC(5,4) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    first_seen_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_seen_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    metadata JSONB,
+    UNIQUE (ranking_source_id, source_entity_id)
+);
+
+-- Source-comparison and evidence queries read warehouse.ranking_record directly. The
+-- fixtures deliberately leave it empty (those endpoints fall back to the preview tables),
+-- but the table must exist or the context fails on a database the pipeline has not built.
+CREATE TABLE IF NOT EXISTS warehouse.ranking_record (
+    ranking_record_id BIGSERIAL PRIMARY KEY,
+    canonical_university_id BIGINT NOT NULL
+        REFERENCES warehouse.canonical_university(canonical_university_id),
+    ranking_source_id SMALLINT NOT NULL
+        REFERENCES warehouse.ranking_source(ranking_source_id),
+    source_mapping_id BIGINT
+        REFERENCES warehouse.source_university_mapping(source_mapping_id),
+    ranking_year INTEGER NOT NULL,
+    ranking_type TEXT NOT NULL DEFAULT 'world',
+    universe_type TEXT NOT NULL DEFAULT 'global',
+    universe_key TEXT NOT NULL DEFAULT 'global',
+    rank_position INTEGER,
+    score NUMERIC(8,4),
+    score_scale NUMERIC(8,4),
+    source_version TEXT,
+    source_url TEXT,
+    metadata JSONB,
+    ingested_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    run_id TEXT,
+    CHECK (rank_position IS NULL OR rank_position > 0),
+    CHECK (score IS NULL OR score >= 0)
+);
+
 CREATE TABLE IF NOT EXISTS analytics.aggregation_runs (
     aggregation_run_id BIGSERIAL PRIMARY KEY,
     run_label TEXT,
