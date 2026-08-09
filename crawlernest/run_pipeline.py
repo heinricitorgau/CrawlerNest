@@ -119,6 +119,7 @@ def ensure_postgres_schema(
         MODULE_ROOT / "crawlernest-schema" / "subject_ranking_postgresql.sql",
         MODULE_ROOT / "crawlernest-schema" / "ranking_aggregation_postgresql.sql",
         MODULE_ROOT / "crawlernest-schema" / "recommendation_postgresql.sql",
+        MODULE_ROOT / "crawlernest-schema" / "ml_postgresql.sql",
     ]
     try:
         with conn.cursor() as cur:

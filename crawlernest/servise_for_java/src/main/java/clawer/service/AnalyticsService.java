@@ -19,6 +19,7 @@ import java.util.Map;
 public class AnalyticsService {
 
     private static final int TREND_LIMIT = 200;
+    private static final int ESTIMATE_LIMIT = 200;
 
     /**
      * Disclosure attached to any response carrying a value produced by the
@@ -192,6 +193,87 @@ public class AnalyticsService {
         // Trends read analytics.aggregated_rankings only, which holds published
         // figures. Flips when analytics.ml_predictions is joined in.
         data.put("caveats", buildTrendCaveats(singleYearOnly, false, false));
+        data.put("evaluation_timestamp", Instant.now().toString());
+        return data;
+    }
+
+    /**
+     * Returns model-estimated overall scores for universities whose score the
+     * ranking source withholds.
+     *
+     * This is the one analytics surface that carries values CrawlerNest produced
+     * rather than values a ranking body published, so it is the one that sets
+     * {@code containsModelEstimates} and ships {@link #ESTIMATED_SCORE_CAVEAT}.
+     *
+     * The modelling tables are optional: a deployment that has never run the
+     * scoring job has no analytics.ml_predictions. That is not an error, so this
+     * returns an empty result with an explanatory caveat rather than failing.
+     *
+     * Readonly: reads analytics.v_ml_predictions_latest only.
+     */
+    public Map<String, Object> getEstimatedScores(boolean supportedOnly, int limit) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        int cappedLimit = Math.max(1, Math.min(limit, ESTIMATE_LIMIT));
+
+        Boolean viewPresent = jdbcTemplate.queryForObject(
+                "SELECT to_regclass('analytics.v_ml_predictions_latest') IS NOT NULL", Boolean.class);
+
+        if (viewPresent == null || !viewPresent) {
+            data.put("items", List.of());
+            data.put("total_count", 0);
+            data.put("model", null);
+            List<String> caveats = new ArrayList<>();
+            caveats.add("No model estimates are available. The modelling layer has not been run against this database.");
+            data.put("caveats", caveats);
+            data.put("evaluation_timestamp", Instant.now().toString());
+            return data;
+        }
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+                SELECT model_name, model_version, trained_at, support_threshold,
+                       canonical_university_id, university_name, slug, country_name,
+                       ranking_year, predicted_value, support_distance, is_supported, is_estimated
+                  FROM analytics.v_ml_predictions_latest
+                 WHERE (%s OR is_supported)
+                 ORDER BY predicted_value DESC
+                 LIMIT %d
+                """.formatted(supportedOnly ? "FALSE" : "TRUE", cappedLimit));
+
+        List<Map<String, Object>> items = new ArrayList<>();
+        Map<String, Object> model = null;
+        for (Map<String, Object> row : rows) {
+            if (model == null) {
+                model = new LinkedHashMap<>();
+                model.put("name", row.get("model_name"));
+                model.put("version", row.get("model_version"));
+                model.put("trained_at", String.valueOf(row.get("trained_at")));
+                model.put("support_threshold", row.get("support_threshold"));
+            }
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("canonical_university_id", row.get("canonical_university_id"));
+            item.put("university_name", row.get("university_name"));
+            item.put("slug", row.get("slug"));
+            item.put("country_name", row.get("country_name"));
+            item.put("ranking_year", row.get("ranking_year"));
+            item.put("estimated_overall_score", row.get("predicted_value"));
+            item.put("support_distance", row.get("support_distance"));
+            item.put("is_supported", row.get("is_supported"));
+            item.put("is_estimated", row.get("is_estimated"));
+            items.add(item);
+        }
+
+        data.put("items", items);
+        data.put("total_count", items.size());
+        data.put("model", model);
+
+        List<String> caveats = new ArrayList<>();
+        caveats.add("Estimates cover universities ranked below the published score cut-off. The ranking source publishes their component indicators but withholds the overall score.");
+        caveats.add("Cross-validated error is measured on universities that do have a published score. Those are a different population from these, so it does not describe the error here.");
+        if (!supportedOnly) {
+            caveats.add("Rows with is_supported = false sit outside the range of data the model was fitted on. Their estimates carry no support from comparable cases.");
+        }
+        appendModelEstimateCaveat(caveats, !items.isEmpty());
+        data.put("caveats", caveats);
         data.put("evaluation_timestamp", Instant.now().toString());
         return data;
     }

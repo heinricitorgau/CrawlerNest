@@ -6,6 +6,7 @@ import clawer.service.SourceIntelligenceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
@@ -117,6 +118,49 @@ public class AnalyticsController {
 
         Map<String, Object> response = new LinkedHashMap<>(agreementData);
         response.put("analytics_caveats", caveats);
+
+        return ResponseEntity.ok(ApiResponse.success(response, metadata));
+    }
+
+    /**
+     * GET /api/v1/analytics/estimated-scores
+     *
+     * Returns model-estimated overall scores for universities whose score the
+     * ranking source publishes component indicators for but withholds a total
+     * for.
+     *
+     * This is the only analytics surface carrying values CrawlerNest produced
+     * rather than values a ranking body published, so every non-empty response
+     * includes {@link AnalyticsService#ESTIMATED_SCORE_CAVEAT}. Each item also
+     * carries {@code is_estimated} and a support flag saying whether the model
+     * was fitted on comparable cases.
+     *
+     * Readonly, like every endpoint here. Estimates live in their own tables and
+     * never modify a published rank.
+     *
+     * @param supportedOnly when true, omit estimates that fall outside the
+     *                      model's support; defaults to false so the unsupported
+     *                      ones are visible rather than quietly dropped
+     * @param limit         maximum rows to return, capped by the service
+     */
+    @GetMapping("/estimated-scores")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getEstimatedScores(
+            @RequestParam(name = "supported_only", defaultValue = "false") boolean supportedOnly,
+            @RequestParam(name = "limit", defaultValue = "50") int limit
+    ) {
+        Map<String, Object> estimateData = analyticsService.getEstimatedScores(supportedOnly, limit);
+
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("timestamp", Instant.now().toString());
+        metadata.put("endpoint", "estimated-scores");
+        metadata.put("readonly", true);
+        metadata.put("caveats", estimateData.get("caveats"));
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("model", estimateData.get("model"));
+        response.put("total_count", estimateData.get("total_count"));
+        response.put("items", estimateData.get("items"));
+        response.put("evaluation_timestamp", estimateData.get("evaluation_timestamp"));
 
         return ResponseEntity.ok(ApiResponse.success(response, metadata));
     }
