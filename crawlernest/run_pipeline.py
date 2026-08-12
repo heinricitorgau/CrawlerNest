@@ -12,7 +12,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Iterable, Optional, Any
+from typing import Callable, Iterable, Optional, Any
 
 try:
     from pipeline.bootstrap import bootstrap_module_paths, resolve_repo_paths
@@ -3928,156 +3928,253 @@ def run_qs_subject_ranking_phase2(
 
 
 
-def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
-    if args.command == "bootstrap-postgres":
-        summary = bootstrap_postgres_layer(
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
-            reset=bool(getattr(args, "reset", False)),
-        )
-        print(json.dumps(summary, ensure_ascii=False, indent=2))
-        if int(summary["ranking_subject_count"]) <= 0:
-            raise SystemExit("bootstrap failed: warehouse.ranking_subject is empty")
-        return 0
+def _cmd_bootstrap_postgres(args: argparse.Namespace) -> int:
+    """Handler for the ``bootstrap-postgres`` command."""
+    summary = bootstrap_postgres_layer(
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+        reset=bool(getattr(args, "reset", False)),
+    )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    if int(summary["ranking_subject_count"]) <= 0:
+        raise SystemExit("bootstrap failed: warehouse.ranking_subject is empty")
+    return 0
 
-    if args.command in {"run-qs-subject", "run-qs-subject-rankings"}:
-        if getattr(args, "skip_existing_year", False):
-            subject_key = args.subject if args.command == "run-qs-subject" else None
-            existing = _count_subject_existing(
-                args.pg_host, args.pg_port, args.pg_database,
-                args.pg_user, args.pg_password, args.ranking_year, subject_key,
-            )
-            if existing > 0:
-                label = subject_key or "all subjects"
-                print(
-                    f"[skip] subject_ranking_record already has {existing} rows for "
-                    f"{label} year {args.ranking_year} — skipping (--skip-existing-year)"
-                )
-                return 0
 
-        ensure_subject_ranking_postgres_schema(
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
+def _cmd_run_qs_subject(args: argparse.Namespace) -> int:
+    """Handler for the ``run-qs-subject / run-qs-subject-rankings`` command."""
+    if getattr(args, "skip_existing_year", False):
+        subject_key = args.subject if args.command == "run-qs-subject" else None
+        existing = _count_subject_existing(
+            args.pg_host, args.pg_port, args.pg_database,
+            args.pg_user, args.pg_password, args.ranking_year, subject_key,
         )
-        summary = run_qs_subject_ranking_phase2(
-            subject_key=(args.subject if args.command == "run-qs-subject" else None),
-            ranking_year=args.ranking_year,
-            limit=max(0, int(getattr(args, "limit", 0) or 0)),
-            snapshot_root=(None if not getattr(args, "snapshot_dir", None) else Path(args.snapshot_dir)),
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-        )
-        print(json.dumps(summary, ensure_ascii=False, indent=2))
-        return 0
-
-    if args.command == "crawl-ranking":
-        output_path, count, normalized_path, staging_path = _run_sample_crawl_export(
-            args.command,
-            args.output_file,
-            normalized_output_file=(
-                args.normalized_output_file if getattr(args, "with_normalized_output", False) else None
-            ),
-            staging_output_file=(
-                args.staging_output_file if getattr(args, "write_staging", False) else None
-            ),
-        )
-        print(f"[crawl-ranking] exported={count} output={output_path}")
-        if normalized_path is not None:
-            print(f"[crawl-ranking] normalized_output={normalized_path}")
-        if staging_path is not None:
-            print(f"[crawl-ranking] staging_output={staging_path}")
-        return 0
-
-    if args.command == "crawl-admission":
-        output_path, count, normalized_path, staging_path = _run_sample_crawl_export(
-            args.command,
-            args.output_file,
-            normalized_output_file=(
-                args.normalized_output_file if getattr(args, "with_normalized_output", False) else None
-            ),
-            staging_output_file=(
-                args.staging_output_file if getattr(args, "write_staging", False) else None
-            ),
-        )
-        print(f"[crawl-admission] exported={count} output={output_path}")
-        if normalized_path is not None:
-            print(f"[crawl-admission] normalized_output={normalized_path}")
-        if staging_path is not None:
-            print(f"[crawl-admission] staging_output={staging_path}")
-        return 0
-
-    if args.command == "validate-admission-staging":
-        summary = _validate_admission_staging(args.staging_input_file)
-        print(
-            "[validate-admission-staging] "
-            f"total={summary['total_rows']} "
-            f"valid={summary['valid_row_count']} "
-            f"invalid={summary['invalid_row_count']} "
-            f"duplicates={summary['duplicate_row_count']}"
-        )
-        print(f"[validate-admission-staging] staging_file={summary['staging_file']}")
-        if summary["error_samples"]:
-            print("[validate-admission-staging] error_samples:")
-            print(json.dumps(summary["error_samples"], ensure_ascii=False, indent=2))
-        if summary["duplicate_samples"]:
-            print("[validate-admission-staging] duplicate_samples:")
-            print(json.dumps(summary["duplicate_samples"], ensure_ascii=False, indent=2))
-        return 0
-
-    if args.command == "ingest-admission-staging":
-        try:
-            summary = _ingest_admission_staging(
-                args.staging_input_file,
-                args.sqlite_db_file,
-                allow_partial=bool(getattr(args, "allow_partial_ingest", False)),
-                write_target=str(getattr(args, "write_target", "sqlite")),
-                staging_table=str(getattr(args, "staging_table", "admission_staging_records")),
-                pg_host=str(getattr(args, "pg_host", "localhost")),
-                pg_port=int(getattr(args, "pg_port", 5432)),
-                pg_database=str(getattr(args, "pg_database", "clawer")),
-                pg_user=str(getattr(args, "pg_user", "test")),
-                pg_password=str(getattr(args, "pg_password", "")),
-            )
-        except (ValueError, RuntimeError) as exc:
-            print(f"[ingest-admission-staging] aborted: {exc}")
-            validation_summary = _validate_admission_staging(args.staging_input_file)
+        if existing > 0:
+            label = subject_key or "all subjects"
             print(
-                "[ingest-admission-staging] "
-                f"total={validation_summary['total_rows']} "
-                f"valid={validation_summary['valid_row_count']} "
-                f"invalid={validation_summary['invalid_row_count']} "
-                f"duplicates={validation_summary['duplicate_row_count']}"
+                f"[skip] subject_ranking_record already has {existing} rows for "
+                f"{label} year {args.ranking_year} — skipping (--skip-existing-year)"
             )
-            return 1
+            return 0
 
+    ensure_subject_ranking_postgres_schema(
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+    )
+    summary = run_qs_subject_ranking_phase2(
+        subject_key=(args.subject if args.command == "run-qs-subject" else None),
+        ranking_year=args.ranking_year,
+        limit=max(0, int(getattr(args, "limit", 0) or 0)),
+        snapshot_root=(None if not getattr(args, "snapshot_dir", None) else Path(args.snapshot_dir)),
+        pg_host=args.pg_host,
+        pg_port=args.pg_port,
+        pg_database=args.pg_database,
+        pg_user=args.pg_user,
+        pg_password=args.pg_password,
+    )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_crawl_ranking(args: argparse.Namespace) -> int:
+    """Handler for the ``crawl-ranking`` command."""
+    output_path, count, normalized_path, staging_path = _run_sample_crawl_export(
+        args.command,
+        args.output_file,
+        normalized_output_file=(
+            args.normalized_output_file if getattr(args, "with_normalized_output", False) else None
+        ),
+        staging_output_file=(
+            args.staging_output_file if getattr(args, "write_staging", False) else None
+        ),
+    )
+    print(f"[crawl-ranking] exported={count} output={output_path}")
+    if normalized_path is not None:
+        print(f"[crawl-ranking] normalized_output={normalized_path}")
+    if staging_path is not None:
+        print(f"[crawl-ranking] staging_output={staging_path}")
+    return 0
+
+
+def _cmd_crawl_admission(args: argparse.Namespace) -> int:
+    """Handler for the ``crawl-admission`` command."""
+    output_path, count, normalized_path, staging_path = _run_sample_crawl_export(
+        args.command,
+        args.output_file,
+        normalized_output_file=(
+            args.normalized_output_file if getattr(args, "with_normalized_output", False) else None
+        ),
+        staging_output_file=(
+            args.staging_output_file if getattr(args, "write_staging", False) else None
+        ),
+    )
+    print(f"[crawl-admission] exported={count} output={output_path}")
+    if normalized_path is not None:
+        print(f"[crawl-admission] normalized_output={normalized_path}")
+    if staging_path is not None:
+        print(f"[crawl-admission] staging_output={staging_path}")
+    return 0
+
+
+def _cmd_validate_admission_staging(args: argparse.Namespace) -> int:
+    """Handler for the ``validate-admission-staging`` command."""
+    summary = _validate_admission_staging(args.staging_input_file)
+    print(
+        "[validate-admission-staging] "
+        f"total={summary['total_rows']} "
+        f"valid={summary['valid_row_count']} "
+        f"invalid={summary['invalid_row_count']} "
+        f"duplicates={summary['duplicate_row_count']}"
+    )
+    print(f"[validate-admission-staging] staging_file={summary['staging_file']}")
+    if summary["error_samples"]:
+        print("[validate-admission-staging] error_samples:")
+        print(json.dumps(summary["error_samples"], ensure_ascii=False, indent=2))
+    if summary["duplicate_samples"]:
+        print("[validate-admission-staging] duplicate_samples:")
+        print(json.dumps(summary["duplicate_samples"], ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_ingest_admission_staging(args: argparse.Namespace) -> int:
+    """Handler for the ``ingest-admission-staging`` command."""
+    try:
+        summary = _ingest_admission_staging(
+            args.staging_input_file,
+            args.sqlite_db_file,
+            allow_partial=bool(getattr(args, "allow_partial_ingest", False)),
+            write_target=str(getattr(args, "write_target", "sqlite")),
+            staging_table=str(getattr(args, "staging_table", "admission_staging_records")),
+            pg_host=str(getattr(args, "pg_host", "localhost")),
+            pg_port=int(getattr(args, "pg_port", 5432)),
+            pg_database=str(getattr(args, "pg_database", "clawer")),
+            pg_user=str(getattr(args, "pg_user", "test")),
+            pg_password=str(getattr(args, "pg_password", "")),
+        )
+    except (ValueError, RuntimeError) as exc:
+        print(f"[ingest-admission-staging] aborted: {exc}")
+        validation_summary = _validate_admission_staging(args.staging_input_file)
         print(
             "[ingest-admission-staging] "
-            f"write_target={summary['write_target']} "
-            f"mode={summary['mode']} "
-            f"inserted={summary['inserted_row_count']} "
-            f"skipped_existing={summary['skipped_existing_row_count']} "
-            f"valid={summary['valid_row_count']} "
-            f"invalid={summary['invalid_row_count']} "
-            f"duplicates={summary['duplicate_row_count']}"
+            f"total={validation_summary['total_rows']} "
+            f"valid={validation_summary['valid_row_count']} "
+            f"invalid={validation_summary['invalid_row_count']} "
+            f"duplicates={validation_summary['duplicate_row_count']}"
         )
-        print(f"[ingest-admission-staging] target_location={summary['target_location']}")
-        print(f"[ingest-admission-staging] table={summary['table_name']}")
-        return 0
+        return 1
 
-    if args.command == "preview-admission-warehouse-map":
-        summary = _preview_admission_warehouse_map(
+    print(
+        "[ingest-admission-staging] "
+        f"write_target={summary['write_target']} "
+        f"mode={summary['mode']} "
+        f"inserted={summary['inserted_row_count']} "
+        f"skipped_existing={summary['skipped_existing_row_count']} "
+        f"valid={summary['valid_row_count']} "
+        f"invalid={summary['invalid_row_count']} "
+        f"duplicates={summary['duplicate_row_count']}"
+    )
+    print(f"[ingest-admission-staging] target_location={summary['target_location']}")
+    print(f"[ingest-admission-staging] table={summary['table_name']}")
+    return 0
+
+
+def _cmd_preview_admission_warehouse_map(args: argparse.Namespace) -> int:
+    """Handler for the ``preview-admission-warehouse-map`` command."""
+    summary = _preview_admission_warehouse_map(
+        input_source=str(args.input_source),
+        staging_input_file=str(args.staging_input_file),
+        staging_table=str(args.staging_table),
+        output_file=str(args.output_file),
+        pg_host=str(args.pg_host),
+        pg_port=int(args.pg_port),
+        pg_database=str(args.pg_database),
+        pg_user=str(args.pg_user),
+        pg_password=str(args.pg_password),
+    )
+    print(
+        "[preview-admission-warehouse-map] "
+        f"input_source={summary['input_source']} "
+        f"rows={summary['row_count']} "
+        f"output={summary['output_file']}"
+    )
+    if summary["preview_rows"]:
+        print("[preview-admission-warehouse-map] preview_rows:")
+        print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_write_admission_warehouse_preview(args: argparse.Namespace) -> int:
+    """Handler for the ``write-admission-warehouse-preview`` command."""
+    try:
+        summary = _write_admission_warehouse_preview(
             input_source=str(args.input_source),
+            preview_input_file=str(args.preview_input_file),
             staging_input_file=str(args.staging_input_file),
             staging_table=str(args.staging_table),
+            landing_schema=str(args.landing_schema),
+            landing_table=str(args.landing_table),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
+        )
+    except RuntimeError as exc:
+        print(f"[write-admission-warehouse-preview] aborted: {exc}")
+        return 1
+
+    print(
+        "[write-admission-warehouse-preview] "
+        f"rows={summary['row_count']} "
+        f"inserted={summary['inserted_row_count']} "
+        f"skipped_existing={summary['skipped_existing_row_count']}"
+    )
+    print(f"[write-admission-warehouse-preview] target={summary['target_location']}")
+    print(f"[write-admission-warehouse-preview] table={summary['table_name']}")
+    return 0
+
+
+def _cmd_resolve_admission_entities(args: argparse.Namespace) -> int:
+    """Handler for the ``resolve-admission-entities`` command."""
+    try:
+        summary = _resolve_admission_entities(
+            target_schema=str(args.target_schema),
+            target_table=str(args.target_table),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
+        )
+    except RuntimeError as exc:
+        print(f"[resolve-admission-entities] aborted: {exc}")
+        return 1
+
+    print(
+        "[resolve-admission-entities] "
+        f"total={summary['total_rows']} "
+        f"resolved={summary['resolved_row_count']} "
+        f"unresolved={summary['unresolved_row_count']} "
+        f"canonical_exact={summary['canonical_exact_match_count']} "
+        f"alias_exact={summary['alias_exact_match_count']}"
+    )
+    print(f"[resolve-admission-entities] target={summary['target_table']}")
+    return 0
+
+
+def _cmd_unresolved_admission_entities(args: argparse.Namespace) -> int:
+    """Handler for the ``unresolved-admission-entities`` command."""
+    try:
+        summary = _get_unresolved_admission_entities(
+            target_schema=str(args.target_schema),
+            target_table=str(args.target_table),
+            limit=int(args.limit),
             output_file=str(args.output_file),
             pg_host=str(args.pg_host),
             pg_port=int(args.pg_port),
@@ -4085,338 +4182,333 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
             pg_user=str(args.pg_user),
             pg_password=str(args.pg_password),
         )
-        print(
-            "[preview-admission-warehouse-map] "
-            f"input_source={summary['input_source']} "
-            f"rows={summary['row_count']} "
-            f"output={summary['output_file']}"
+    except RuntimeError as exc:
+        print(f"[unresolved-admission-entities] aborted: {exc}")
+        return 1
+
+    print(
+        "[unresolved-admission-entities] "
+        f"target={summary['target_table']} "
+        f"rows={summary['row_count']}"
+    )
+    if summary["rows"]:
+        print("normalized_university_name | occurrence_count")
+        for row in summary["rows"]:
+            print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
+    else:
+        print("No unresolved admission entities found.")
+    if summary["output_file"]:
+        print(f"[unresolved-admission-entities] output={summary['output_file']}")
+    return 0
+
+
+def _cmd_refresh_admission_resolution(args: argparse.Namespace) -> int:
+    """Handler for the ``refresh-admission-resolution`` command."""
+    try:
+        summary = _refresh_admission_resolution(
+            target_schema=str(args.target_schema),
+            target_table=str(args.target_table),
+            limit=int(args.limit),
+            output_file=str(args.output_file),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
         )
-        if summary["preview_rows"]:
-            print("[preview-admission-warehouse-map] preview_rows:")
-            print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
-        return 0
+    except RuntimeError as exc:
+        print(f"[refresh-admission-resolution] aborted: {exc}")
+        return 1
 
-    if args.command == "write-admission-warehouse-preview":
-        try:
-            summary = _write_admission_warehouse_preview(
-                input_source=str(args.input_source),
-                preview_input_file=str(args.preview_input_file),
-                staging_input_file=str(args.staging_input_file),
-                staging_table=str(args.staging_table),
-                landing_schema=str(args.landing_schema),
-                landing_table=str(args.landing_table),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[write-admission-warehouse-preview] aborted: {exc}")
-            return 1
+    print(
+        "[refresh-admission-resolution] "
+        f"target={summary['target_table']} "
+        f"before_unresolved={summary['before_unresolved_count']} "
+        f"after_unresolved={summary['after_unresolved_count']} "
+        f"before_distinct={summary['before_distinct_university_count']} "
+        f"after_distinct={summary['after_distinct_university_count']} "
+        f"resolved={summary['resolved_row_count']} "
+        f"unresolved={summary['unresolved_row_count']} "
+        f"canonical_exact={summary['canonical_exact_match_count']} "
+        f"alias_exact={summary['alias_exact_match_count']}"
+    )
+    if summary["display_rows"]:
+        print("normalized_university_name | occurrence_count")
+        for row in summary["display_rows"]:
+            print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
+    else:
+        print("No unresolved admission entities found.")
+    if summary["output_file"]:
+        print(f"[refresh-admission-resolution] output={summary['output_file']}")
+    return 0
 
-        print(
-            "[write-admission-warehouse-preview] "
-            f"rows={summary['row_count']} "
-            f"inserted={summary['inserted_row_count']} "
-            f"skipped_existing={summary['skipped_existing_row_count']}"
+
+def _cmd_rebuild_preview_and_resolve(args: argparse.Namespace) -> int:
+    """Handler for the ``rebuild-preview-and-resolve`` command."""
+    ensure_postgres_schema(
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+    )
+    try:
+        summary = _rebuild_preview_and_resolve(
+            ranking_preview_input_file=str(args.ranking_preview_input_file),
+            admission_preview_input_file=str(args.admission_preview_input_file),
+            ranking_landing_schema=str(args.ranking_landing_schema),
+            ranking_landing_table=str(args.ranking_landing_table),
+            admission_landing_schema=str(args.admission_landing_schema),
+            admission_landing_table=str(args.admission_landing_table),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
+            refresh_limit=int(args.limit),
+            refresh_output_file=str(args.output_file),
         )
-        print(f"[write-admission-warehouse-preview] target={summary['target_location']}")
-        print(f"[write-admission-warehouse-preview] table={summary['table_name']}")
-        return 0
+    except RuntimeError as exc:
+        print(f"[rebuild-preview-and-resolve] aborted: {exc}")
+        return 1
 
-    if args.command == "resolve-admission-entities":
-        try:
-            summary = _resolve_admission_entities(
-                target_schema=str(args.target_schema),
-                target_table=str(args.target_table),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[resolve-admission-entities] aborted: {exc}")
-            return 1
+    ranking_summary = summary["ranking_preview_summary"]
+    admission_summary = summary["admission_preview_summary"]
+    ranking_resolution_summary = summary["ranking_resolution_summary"]
+    admission_resolution_summary = summary["admission_resolution_summary"]
 
-        print(
-            "[resolve-admission-entities] "
-            f"total={summary['total_rows']} "
-            f"resolved={summary['resolved_row_count']} "
-            f"unresolved={summary['unresolved_row_count']} "
-            f"canonical_exact={summary['canonical_exact_match_count']} "
-            f"alias_exact={summary['alias_exact_match_count']}"
+    print(
+        "[rebuild-preview-and-resolve] ranking_preview "
+        f"rows={ranking_summary['row_count']} "
+        f"inserted={ranking_summary['inserted_row_count']} "
+        f"skipped_existing={ranking_summary['skipped_existing_row_count']}"
+    )
+    print(
+        "[rebuild-preview-and-resolve] admission_preview "
+        f"rows={admission_summary['row_count']} "
+        f"inserted={admission_summary['inserted_row_count']} "
+        f"skipped_existing={admission_summary['skipped_existing_row_count']}"
+    )
+    print(
+        "[rebuild-preview-and-resolve] ranking_resolution "
+        f"total={ranking_resolution_summary['total_rows']} "
+        f"resolved={ranking_resolution_summary['resolved_row_count']} "
+        f"unresolved={ranking_resolution_summary['unresolved_row_count']}"
+    )
+    print(
+        "[rebuild-preview-and-resolve] admission_resolution "
+        f"resolved={admission_resolution_summary['resolved_row_count']} "
+        f"unresolved={admission_resolution_summary['unresolved_row_count']} "
+        f"before_distinct={admission_resolution_summary['before_distinct_university_count']} "
+        f"after_distinct={admission_resolution_summary['after_distinct_university_count']}"
+    )
+    print("[rebuild-preview-and-resolve] overall_status=success")
+    return 0
+
+
+def _cmd_preview_ranking_admission_convergence(args: argparse.Namespace) -> int:
+    """Handler for the ``preview-ranking-admission-convergence`` command."""
+    try:
+        summary = _preview_ranking_admission_convergence(
+            ranking_schema=str(args.ranking_schema),
+            ranking_table=str(args.ranking_table),
+            admission_schema=str(args.admission_schema),
+            admission_table=str(args.admission_table),
+            limit=int(args.limit),
+            output_file=str(args.output_file),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
         )
-        print(f"[resolve-admission-entities] target={summary['target_table']}")
-        return 0
+    except RuntimeError as exc:
+        print(f"[preview-ranking-admission-convergence] aborted: {exc}")
+        return 1
 
-    if args.command == "unresolved-admission-entities":
-        try:
-            summary = _get_unresolved_admission_entities(
-                target_schema=str(args.target_schema),
-                target_table=str(args.target_table),
-                limit=int(args.limit),
-                output_file=str(args.output_file),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[unresolved-admission-entities] aborted: {exc}")
-            return 1
+    print(
+        "[preview-ranking-admission-convergence] "
+        f"rows={summary['row_count']} "
+        f"both={summary['both_count']} "
+        f"ranking_only={summary['ranking_only_count']} "
+        f"admission_only={summary['admission_only_count']}"
+    )
+    print(f"[preview-ranking-admission-convergence] ranking_table={summary['ranking_table']}")
+    print(f"[preview-ranking-admission-convergence] admission_table={summary['admission_table']}")
+    if summary["preview_rows"]:
+        print("[preview-ranking-admission-convergence] preview_rows:")
+        print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
+    else:
+        print("No converged ranking/admission preview rows found.")
+    if summary["output_file"]:
+        print(f"[preview-ranking-admission-convergence] output={summary['output_file']}")
+    return 0
 
-        print(
-            "[unresolved-admission-entities] "
-            f"target={summary['target_table']} "
-            f"rows={summary['row_count']}"
+
+def _cmd_preview_canonical_university_detail(args: argparse.Namespace) -> int:
+    """Handler for the ``preview-canonical-university-detail`` command."""
+    try:
+        summary = _preview_canonical_university_detail(
+            canonical_university_id=(
+                None if getattr(args, "canonical_university_id", None) is None
+                else int(args.canonical_university_id)
+            ),
+            university_name=str(getattr(args, "university_name", "") or ""),
+            output_file=str(getattr(args, "output_file", "") or ""),
+            ranking_schema=str(getattr(args, "ranking_schema", "warehouse")),
+            ranking_table=str(getattr(args, "ranking_table", "ranking_records_preview")),
+            admission_schema=str(getattr(args, "admission_schema", "warehouse")),
+            admission_table=str(getattr(args, "admission_table", "admission_records_preview")),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
         )
-        if summary["rows"]:
-            print("normalized_university_name | occurrence_count")
-            for row in summary["rows"]:
-                print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
-        else:
-            print("No unresolved admission entities found.")
-        if summary["output_file"]:
-            print(f"[unresolved-admission-entities] output={summary['output_file']}")
-        return 0
+    except (RuntimeError, ValueError) as exc:
+        print(f"[preview-canonical-university-detail] aborted: {exc}")
+        return 1
 
-    if args.command == "refresh-admission-resolution":
-        try:
-            summary = _refresh_admission_resolution(
-                target_schema=str(args.target_schema),
-                target_table=str(args.target_table),
-                limit=int(args.limit),
-                output_file=str(args.output_file),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[refresh-admission-resolution] aborted: {exc}")
-            return 1
+    print(
+        "[preview-canonical-university-detail] "
+        f"canonical_university_id={summary['canonical_university_id']} "
+        f"has_ranking_data={summary['data_availability']['has_ranking_data']} "
+        f"has_admission_data={summary['data_availability']['has_admission_data']}"
+    )
+    print("[preview-canonical-university-detail] preview:")
+    print(json.dumps({k: v for k, v in summary.items() if k != "output_file"}, ensure_ascii=False, indent=2))
+    if summary["output_file"]:
+        print(f"[preview-canonical-university-detail] output={summary['output_file']}")
+    return 0
 
-        print(
-            "[refresh-admission-resolution] "
-            f"target={summary['target_table']} "
-            f"before_unresolved={summary['before_unresolved_count']} "
-            f"after_unresolved={summary['after_unresolved_count']} "
-            f"before_distinct={summary['before_distinct_university_count']} "
-            f"after_distinct={summary['after_distinct_university_count']} "
-            f"resolved={summary['resolved_row_count']} "
-            f"unresolved={summary['unresolved_row_count']} "
-            f"canonical_exact={summary['canonical_exact_match_count']} "
-            f"alias_exact={summary['alias_exact_match_count']}"
+
+def _cmd_validate_ranking_staging(args: argparse.Namespace) -> int:
+    """Handler for the ``validate-ranking-staging`` command."""
+    summary = _validate_ranking_staging(args.staging_input_file)
+    print(
+        "[validate-ranking-staging] "
+        f"total={summary['total_rows']} "
+        f"valid={summary['valid_row_count']} "
+        f"invalid={summary['invalid_row_count']} "
+        f"duplicates={summary['duplicate_row_count']}"
+    )
+    print(f"[validate-ranking-staging] staging_file={summary['staging_file']}")
+    if summary["error_samples"]:
+        print("[validate-ranking-staging] error_samples:")
+        print(json.dumps(summary["error_samples"], ensure_ascii=False, indent=2))
+    if summary["duplicate_samples"]:
+        print("[validate-ranking-staging] duplicate_samples:")
+        print(json.dumps(summary["duplicate_samples"], ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_ingest_ranking_staging(args: argparse.Namespace) -> int:
+    """Handler for the ``ingest-ranking-staging`` command."""
+    try:
+        summary = _ingest_ranking_staging(
+            args.staging_input_file,
+            args.sqlite_db_file,
+            allow_partial=bool(getattr(args, "allow_partial_ingest", False)),
+            write_target=str(getattr(args, "write_target", "sqlite")),
+            pg_host=str(getattr(args, "pg_host", "localhost")),
+            pg_port=int(getattr(args, "pg_port", 5432)),
+            pg_database=str(getattr(args, "pg_database", "clawer")),
+            pg_user=str(getattr(args, "pg_user", "test")),
+            pg_password=str(getattr(args, "pg_password", "")),
         )
-        if summary["display_rows"]:
-            print("normalized_university_name | occurrence_count")
-            for row in summary["display_rows"]:
-                print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
-        else:
-            print("No unresolved admission entities found.")
-        if summary["output_file"]:
-            print(f"[refresh-admission-resolution] output={summary['output_file']}")
-        return 0
-
-    if args.command == "rebuild-preview-and-resolve":
-        ensure_postgres_schema(
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
-        )
-        try:
-            summary = _rebuild_preview_and_resolve(
-                ranking_preview_input_file=str(args.ranking_preview_input_file),
-                admission_preview_input_file=str(args.admission_preview_input_file),
-                ranking_landing_schema=str(args.ranking_landing_schema),
-                ranking_landing_table=str(args.ranking_landing_table),
-                admission_landing_schema=str(args.admission_landing_schema),
-                admission_landing_table=str(args.admission_landing_table),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-                refresh_limit=int(args.limit),
-                refresh_output_file=str(args.output_file),
-            )
-        except RuntimeError as exc:
-            print(f"[rebuild-preview-and-resolve] aborted: {exc}")
-            return 1
-
-        ranking_summary = summary["ranking_preview_summary"]
-        admission_summary = summary["admission_preview_summary"]
-        ranking_resolution_summary = summary["ranking_resolution_summary"]
-        admission_resolution_summary = summary["admission_resolution_summary"]
-
-        print(
-            "[rebuild-preview-and-resolve] ranking_preview "
-            f"rows={ranking_summary['row_count']} "
-            f"inserted={ranking_summary['inserted_row_count']} "
-            f"skipped_existing={ranking_summary['skipped_existing_row_count']}"
-        )
-        print(
-            "[rebuild-preview-and-resolve] admission_preview "
-            f"rows={admission_summary['row_count']} "
-            f"inserted={admission_summary['inserted_row_count']} "
-            f"skipped_existing={admission_summary['skipped_existing_row_count']}"
-        )
-        print(
-            "[rebuild-preview-and-resolve] ranking_resolution "
-            f"total={ranking_resolution_summary['total_rows']} "
-            f"resolved={ranking_resolution_summary['resolved_row_count']} "
-            f"unresolved={ranking_resolution_summary['unresolved_row_count']}"
-        )
-        print(
-            "[rebuild-preview-and-resolve] admission_resolution "
-            f"resolved={admission_resolution_summary['resolved_row_count']} "
-            f"unresolved={admission_resolution_summary['unresolved_row_count']} "
-            f"before_distinct={admission_resolution_summary['before_distinct_university_count']} "
-            f"after_distinct={admission_resolution_summary['after_distinct_university_count']}"
-        )
-        print("[rebuild-preview-and-resolve] overall_status=success")
-        return 0
-
-    if args.command == "preview-ranking-admission-convergence":
-        try:
-            summary = _preview_ranking_admission_convergence(
-                ranking_schema=str(args.ranking_schema),
-                ranking_table=str(args.ranking_table),
-                admission_schema=str(args.admission_schema),
-                admission_table=str(args.admission_table),
-                limit=int(args.limit),
-                output_file=str(args.output_file),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[preview-ranking-admission-convergence] aborted: {exc}")
-            return 1
-
-        print(
-            "[preview-ranking-admission-convergence] "
-            f"rows={summary['row_count']} "
-            f"both={summary['both_count']} "
-            f"ranking_only={summary['ranking_only_count']} "
-            f"admission_only={summary['admission_only_count']}"
-        )
-        print(f"[preview-ranking-admission-convergence] ranking_table={summary['ranking_table']}")
-        print(f"[preview-ranking-admission-convergence] admission_table={summary['admission_table']}")
-        if summary["preview_rows"]:
-            print("[preview-ranking-admission-convergence] preview_rows:")
-            print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
-        else:
-            print("No converged ranking/admission preview rows found.")
-        if summary["output_file"]:
-            print(f"[preview-ranking-admission-convergence] output={summary['output_file']}")
-        return 0
-
-    if args.command == "preview-canonical-university-detail":
-        try:
-            summary = _preview_canonical_university_detail(
-                canonical_university_id=(
-                    None if getattr(args, "canonical_university_id", None) is None
-                    else int(args.canonical_university_id)
-                ),
-                university_name=str(getattr(args, "university_name", "") or ""),
-                output_file=str(getattr(args, "output_file", "") or ""),
-                ranking_schema=str(getattr(args, "ranking_schema", "warehouse")),
-                ranking_table=str(getattr(args, "ranking_table", "ranking_records_preview")),
-                admission_schema=str(getattr(args, "admission_schema", "warehouse")),
-                admission_table=str(getattr(args, "admission_table", "admission_records_preview")),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except (RuntimeError, ValueError) as exc:
-            print(f"[preview-canonical-university-detail] aborted: {exc}")
-            return 1
-
-        print(
-            "[preview-canonical-university-detail] "
-            f"canonical_university_id={summary['canonical_university_id']} "
-            f"has_ranking_data={summary['data_availability']['has_ranking_data']} "
-            f"has_admission_data={summary['data_availability']['has_admission_data']}"
-        )
-        print("[preview-canonical-university-detail] preview:")
-        print(json.dumps({k: v for k, v in summary.items() if k != "output_file"}, ensure_ascii=False, indent=2))
-        if summary["output_file"]:
-            print(f"[preview-canonical-university-detail] output={summary['output_file']}")
-        return 0
-
-    if args.command == "validate-ranking-staging":
-        summary = _validate_ranking_staging(args.staging_input_file)
-        print(
-            "[validate-ranking-staging] "
-            f"total={summary['total_rows']} "
-            f"valid={summary['valid_row_count']} "
-            f"invalid={summary['invalid_row_count']} "
-            f"duplicates={summary['duplicate_row_count']}"
-        )
-        print(f"[validate-ranking-staging] staging_file={summary['staging_file']}")
-        if summary["error_samples"]:
-            print("[validate-ranking-staging] error_samples:")
-            print(json.dumps(summary["error_samples"], ensure_ascii=False, indent=2))
-        if summary["duplicate_samples"]:
-            print("[validate-ranking-staging] duplicate_samples:")
-            print(json.dumps(summary["duplicate_samples"], ensure_ascii=False, indent=2))
-        return 0
-
-    if args.command == "ingest-ranking-staging":
-        try:
-            summary = _ingest_ranking_staging(
-                args.staging_input_file,
-                args.sqlite_db_file,
-                allow_partial=bool(getattr(args, "allow_partial_ingest", False)),
-                write_target=str(getattr(args, "write_target", "sqlite")),
-                pg_host=str(getattr(args, "pg_host", "localhost")),
-                pg_port=int(getattr(args, "pg_port", 5432)),
-                pg_database=str(getattr(args, "pg_database", "clawer")),
-                pg_user=str(getattr(args, "pg_user", "test")),
-                pg_password=str(getattr(args, "pg_password", "")),
-            )
-        except (ValueError, RuntimeError) as exc:
-            print(f"[ingest-ranking-staging] aborted: {exc}")
-            validation_summary = _validate_ranking_staging(args.staging_input_file)
-            print(
-                "[ingest-ranking-staging] "
-                f"total={validation_summary['total_rows']} "
-                f"valid={validation_summary['valid_row_count']} "
-                f"invalid={validation_summary['invalid_row_count']} "
-                f"duplicates={validation_summary['duplicate_row_count']}"
-            )
-            return 1
-
+    except (ValueError, RuntimeError) as exc:
+        print(f"[ingest-ranking-staging] aborted: {exc}")
+        validation_summary = _validate_ranking_staging(args.staging_input_file)
         print(
             "[ingest-ranking-staging] "
-            f"write_target={summary['write_target']} "
-            f"mode={summary['mode']} "
-            f"inserted={summary['inserted_row_count']} "
-            f"skipped_existing={summary['skipped_existing_row_count']} "
-            f"valid={summary['valid_row_count']} "
-            f"invalid={summary['invalid_row_count']} "
-            f"duplicates={summary['duplicate_row_count']}"
+            f"total={validation_summary['total_rows']} "
+            f"valid={validation_summary['valid_row_count']} "
+            f"invalid={validation_summary['invalid_row_count']} "
+            f"duplicates={validation_summary['duplicate_row_count']}"
         )
-        print(f"[ingest-ranking-staging] target_location={summary['target_location']}")
-        print(f"[ingest-ranking-staging] table={summary['table_name']}")
-        return 0
+        return 1
 
-    if args.command == "preview-ranking-warehouse-map":
-        summary = _preview_ranking_warehouse_map(
+    print(
+        "[ingest-ranking-staging] "
+        f"write_target={summary['write_target']} "
+        f"mode={summary['mode']} "
+        f"inserted={summary['inserted_row_count']} "
+        f"skipped_existing={summary['skipped_existing_row_count']} "
+        f"valid={summary['valid_row_count']} "
+        f"invalid={summary['invalid_row_count']} "
+        f"duplicates={summary['duplicate_row_count']}"
+    )
+    print(f"[ingest-ranking-staging] target_location={summary['target_location']}")
+    print(f"[ingest-ranking-staging] table={summary['table_name']}")
+    return 0
+
+
+def _cmd_preview_ranking_warehouse_map(args: argparse.Namespace) -> int:
+    """Handler for the ``preview-ranking-warehouse-map`` command."""
+    summary = _preview_ranking_warehouse_map(
+        input_source=str(args.input_source),
+        staging_input_file=str(args.staging_input_file),
+        staging_table=str(args.staging_table),
+        output_file=str(args.output_file),
+        pg_host=str(args.pg_host),
+        pg_port=int(args.pg_port),
+        pg_database=str(args.pg_database),
+        pg_user=str(args.pg_user),
+        pg_password=str(args.pg_password),
+    )
+    print(
+        "[preview-ranking-warehouse-map] "
+        f"input_source={summary['input_source']} "
+        f"rows={summary['row_count']} "
+        f"output={summary['output_file']}"
+    )
+    if summary["preview_rows"]:
+        print("[preview-ranking-warehouse-map] preview_rows:")
+        print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_write_ranking_warehouse_preview(args: argparse.Namespace) -> int:
+    """Handler for the ``write-ranking-warehouse-preview`` command."""
+    try:
+        summary = _write_ranking_warehouse_preview(
             input_source=str(args.input_source),
+            preview_input_file=str(args.preview_input_file),
             staging_input_file=str(args.staging_input_file),
             staging_table=str(args.staging_table),
+            landing_schema=str(args.landing_schema),
+            landing_table=str(args.landing_table),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
+        )
+    except RuntimeError as exc:
+        print(f"[write-ranking-warehouse-preview] aborted: {exc}")
+        return 1
+
+    print(
+        "[write-ranking-warehouse-preview] "
+        f"rows={summary['row_count']} "
+        f"inserted={summary['inserted_row_count']} "
+        f"skipped_existing={summary['skipped_existing_row_count']}"
+    )
+    print(f"[write-ranking-warehouse-preview] target={summary['target_location']}")
+    print(f"[write-ranking-warehouse-preview] table={summary['table_name']}")
+    return 0
+
+
+def _cmd_aggregate_ranking_preview(args: argparse.Namespace) -> int:
+    """Handler for the ``aggregate-ranking-preview`` command."""
+    try:
+        summary = _aggregate_ranking_preview(
+            input_source=str(args.input_source),
+            preview_input_file=str(args.preview_input_file),
+            source_schema=str(args.source_schema),
+            source_table=str(args.source_table),
+            target_schema=str(args.target_schema),
+            target_table=str(args.target_table),
             output_file=str(args.output_file),
             pg_host=str(args.pg_host),
             pg_port=int(args.pg_port),
@@ -4424,409 +4516,422 @@ def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
             pg_user=str(args.pg_user),
             pg_password=str(args.pg_password),
         )
-        print(
-            "[preview-ranking-warehouse-map] "
-            f"input_source={summary['input_source']} "
-            f"rows={summary['row_count']} "
-            f"output={summary['output_file']}"
+    except RuntimeError as exc:
+        print(f"[aggregate-ranking-preview] aborted: {exc}")
+        return 1
+
+    print(
+        "[aggregate-ranking-preview] "
+        f"input_source={summary['input_source']} "
+        f"rows={summary['row_count']} "
+        f"written={summary['written_row_count']}"
+    )
+    print(f"[aggregate-ranking-preview] source={summary['source_location']}")
+    print(f"[aggregate-ranking-preview] output={summary['output_file']}")
+    print(f"[aggregate-ranking-preview] target={summary['target_location']}")
+    print(f"[aggregate-ranking-preview] table={summary['table_name']}")
+    if summary["preview_rows"]:
+        print("[aggregate-ranking-preview] preview_rows:")
+        print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_decision_ranking_preview(args: argparse.Namespace) -> int:
+    """Handler for the ``decision-ranking-preview`` command."""
+    try:
+        summary = _decision_ranking_preview(
+            source_schema=str(args.source_schema),
+            source_table=str(args.source_table),
+            target_schema=str(args.target_schema),
+            target_table=str(args.target_table),
+            output_file=str(args.output_file),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
         )
-        if summary["preview_rows"]:
-            print("[preview-ranking-warehouse-map] preview_rows:")
-            print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
-        return 0
+    except RuntimeError as exc:
+        print(f"[decision-ranking-preview] aborted: {exc}")
+        return 1
 
-    if args.command == "write-ranking-warehouse-preview":
-        try:
-            summary = _write_ranking_warehouse_preview(
-                input_source=str(args.input_source),
-                preview_input_file=str(args.preview_input_file),
-                staging_input_file=str(args.staging_input_file),
-                staging_table=str(args.staging_table),
-                landing_schema=str(args.landing_schema),
-                landing_table=str(args.landing_table),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[write-ranking-warehouse-preview] aborted: {exc}")
-            return 1
+    print(
+        f"[decision-ranking-preview] rows={summary['row_count']} "
+        f"inserted={summary['inserted_row_count']}"
+    )
+    return 0
 
-        print(
-            "[write-ranking-warehouse-preview] "
-            f"rows={summary['row_count']} "
-            f"inserted={summary['inserted_row_count']} "
-            f"skipped_existing={summary['skipped_existing_row_count']}"
+
+def _cmd_resolve_ranking_entities(args: argparse.Namespace) -> int:
+    """Handler for the ``resolve-ranking-entities`` command."""
+    try:
+        summary = _resolve_ranking_entities(
+            target_schema=str(args.target_schema),
+            target_table=str(args.target_table),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
         )
-        print(f"[write-ranking-warehouse-preview] target={summary['target_location']}")
-        print(f"[write-ranking-warehouse-preview] table={summary['table_name']}")
-        return 0
+    except RuntimeError as exc:
+        print(f"[resolve-ranking-entities] aborted: {exc}")
+        return 1
 
-    if args.command == "aggregate-ranking-preview":
-        try:
-            summary = _aggregate_ranking_preview(
-                input_source=str(args.input_source),
-                preview_input_file=str(args.preview_input_file),
-                source_schema=str(args.source_schema),
-                source_table=str(args.source_table),
-                target_schema=str(args.target_schema),
-                target_table=str(args.target_table),
-                output_file=str(args.output_file),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[aggregate-ranking-preview] aborted: {exc}")
-            return 1
+    print(
+        "[resolve-ranking-entities] "
+        f"total={summary['total_rows']} "
+        f"resolved={summary['resolved_row_count']} "
+        f"unresolved={summary['unresolved_row_count']}"
+    )
+    print(f"[resolve-ranking-entities] target={summary['target_table']}")
+    return 0
 
-        print(
-            "[aggregate-ranking-preview] "
-            f"input_source={summary['input_source']} "
-            f"rows={summary['row_count']} "
-            f"written={summary['written_row_count']}"
+
+def _cmd_unresolved_ranking_entities(args: argparse.Namespace) -> int:
+    """Handler for the ``unresolved-ranking-entities`` command."""
+    try:
+        summary = _get_unresolved_ranking_entities(
+            target_schema=str(args.target_schema),
+            target_table=str(args.target_table),
+            limit=int(args.limit),
+            output_file=str(args.output_file),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
         )
-        print(f"[aggregate-ranking-preview] source={summary['source_location']}")
-        print(f"[aggregate-ranking-preview] output={summary['output_file']}")
-        print(f"[aggregate-ranking-preview] target={summary['target_location']}")
-        print(f"[aggregate-ranking-preview] table={summary['table_name']}")
-        if summary["preview_rows"]:
-            print("[aggregate-ranking-preview] preview_rows:")
-            print(json.dumps(summary["preview_rows"], ensure_ascii=False, indent=2))
-        return 0
+    except RuntimeError as exc:
+        print(f"[unresolved-ranking-entities] aborted: {exc}")
+        return 1
 
-    if args.command == "decision-ranking-preview":
-        try:
-            summary = _decision_ranking_preview(
-                source_schema=str(args.source_schema),
-                source_table=str(args.source_table),
-                target_schema=str(args.target_schema),
-                target_table=str(args.target_table),
-                output_file=str(args.output_file),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[decision-ranking-preview] aborted: {exc}")
-            return 1
+    print(
+        "[unresolved-ranking-entities] "
+        f"target={summary['target_table']} "
+        f"rows={summary['row_count']}"
+    )
+    if summary["rows"]:
+        print("normalized_university_name | occurrence_count")
+        for row in summary["rows"]:
+            print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
+    else:
+        print("No unresolved ranking entities found.")
+    if summary["output_file"]:
+        print(f"[unresolved-ranking-entities] output={summary['output_file']}")
+    return 0
 
-        print(
-            f"[decision-ranking-preview] rows={summary['row_count']} "
-            f"inserted={summary['inserted_row_count']}"
-        )
-        return 0
 
-    if args.command == "resolve-ranking-entities":
-        try:
-            summary = _resolve_ranking_entities(
-                target_schema=str(args.target_schema),
-                target_table=str(args.target_table),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[resolve-ranking-entities] aborted: {exc}")
-            return 1
+def _cmd_refresh_ranking_resolution(args: argparse.Namespace) -> int:
+    """Handler for the ``refresh-ranking-resolution`` command."""
+    try:
+        summary = _refresh_ranking_resolution(
+            target_schema=str(args.target_schema),
+            target_table=str(args.target_table),
+            limit=int(args.limit),
+            output_file=str(args.output_file),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
+        )
+    except RuntimeError as exc:
+        print(f"[refresh-ranking-resolution] aborted: {exc}")
+        return 1
 
-        print(
-            "[resolve-ranking-entities] "
-            f"total={summary['total_rows']} "
-            f"resolved={summary['resolved_row_count']} "
-            f"unresolved={summary['unresolved_row_count']}"
-        )
-        print(f"[resolve-ranking-entities] target={summary['target_table']}")
-        return 0
+    print(
+        "[refresh-ranking-resolution] "
+        f"target={summary['target_table']} "
+        f"before_unresolved={summary['before_unresolved_count']} "
+        f"after_unresolved={summary['after_unresolved_count']} "
+        f"before_distinct={summary['before_distinct_university_count']} "
+        f"after_distinct={summary['after_distinct_university_count']} "
+        f"resolved={summary['resolved_row_count']} "
+        f"unresolved={summary['unresolved_row_count']}"
+    )
+    if summary["display_rows"]:
+        print("normalized_university_name | occurrence_count")
+        for row in summary["display_rows"]:
+            print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
+    else:
+        print("No unresolved ranking entities found.")
+    if summary["output_file"]:
+        print(f"[refresh-ranking-resolution] output={summary['output_file']}")
+    return 0
 
-    if args.command == "unresolved-ranking-entities":
-        try:
-            summary = _get_unresolved_ranking_entities(
-                target_schema=str(args.target_schema),
-                target_table=str(args.target_table),
-                limit=int(args.limit),
-                output_file=str(args.output_file),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[unresolved-ranking-entities] aborted: {exc}")
-            return 1
 
-        print(
-            "[unresolved-ranking-entities] "
-            f"target={summary['target_table']} "
-            f"rows={summary['row_count']}"
+def _cmd_seed_university_alias(args: argparse.Namespace) -> int:
+    """Handler for the ``seed-university-alias`` command."""
+    try:
+        summary = _seed_university_alias(
+            canonical=str(args.canonical),
+            alias=str(args.alias),
+            pg_host=str(args.pg_host),
+            pg_port=int(args.pg_port),
+            pg_database=str(args.pg_database),
+            pg_user=str(args.pg_user),
+            pg_password=str(args.pg_password),
         )
-        if summary["rows"]:
-            print("normalized_university_name | occurrence_count")
-            for row in summary["rows"]:
-                print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
-        else:
-            print("No unresolved ranking entities found.")
-        if summary["output_file"]:
-            print(f"[unresolved-ranking-entities] output={summary['output_file']}")
-        return 0
+    except (RuntimeError, ValueError) as exc:
+        print(f"[seed-university-alias] aborted: {exc}")
+        return 1
 
-    if args.command == "refresh-ranking-resolution":
-        try:
-            summary = _refresh_ranking_resolution(
-                target_schema=str(args.target_schema),
-                target_table=str(args.target_table),
-                limit=int(args.limit),
-                output_file=str(args.output_file),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except RuntimeError as exc:
-            print(f"[refresh-ranking-resolution] aborted: {exc}")
-            return 1
+    print(
+        "[seed-university-alias] "
+        f"canonical_id={summary['canonical_university_id']} "
+        f"created_canonical={'yes' if summary['created_canonical'] else 'no'} "
+        f"created_alias={'yes' if summary['created_alias'] else 'no'}"
+    )
+    print(
+        f"[seed-university-alias] canonical={summary['canonical_name']} "
+        f"normalized_canonical={summary['normalized_canonical_name']}"
+    )
+    print(
+        f"[seed-university-alias] alias={summary['alias']} "
+        f"normalized_alias={summary['normalized_alias']}"
+    )
+    return 0
 
-        print(
-            "[refresh-ranking-resolution] "
-            f"target={summary['target_table']} "
-            f"before_unresolved={summary['before_unresolved_count']} "
-            f"after_unresolved={summary['after_unresolved_count']} "
-            f"before_distinct={summary['before_distinct_university_count']} "
-            f"after_distinct={summary['after_distinct_university_count']} "
-            f"resolved={summary['resolved_row_count']} "
-            f"unresolved={summary['unresolved_row_count']}"
-        )
-        if summary["display_rows"]:
-            print("normalized_university_name | occurrence_count")
-            for row in summary["display_rows"]:
-                print(f"{row['normalized_university_name']} | {row['occurrence_count']}")
-        else:
-            print("No unresolved ranking entities found.")
-        if summary["output_file"]:
-            print(f"[refresh-ranking-resolution] output={summary['output_file']}")
-        return 0
 
-    if args.command == "seed-university-alias":
-        try:
-            summary = _seed_university_alias(
-                canonical=str(args.canonical),
-                alias=str(args.alias),
-                pg_host=str(args.pg_host),
-                pg_port=int(args.pg_port),
-                pg_database=str(args.pg_database),
-                pg_user=str(args.pg_user),
-                pg_password=str(args.pg_password),
-            )
-        except (RuntimeError, ValueError) as exc:
-            print(f"[seed-university-alias] aborted: {exc}")
-            return 1
+def _cmd_seed_canonical(args: argparse.Namespace) -> int:
+    """Handler for the ``seed-canonical`` command."""
+    ensure_postgres_schema(
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+    )
+    summary = seed_canonical_universities(
+        pg_host=args.pg_host,
+        pg_port=args.pg_port,
+        pg_database=args.pg_database,
+        pg_user=args.pg_user,
+        pg_password=args.pg_password,
+    )
+    print(
+        f"[seed-canonical] seeded={summary['seeded']} "
+        f"skipped={summary['skipped']} failed={summary['failed']}"
+    )
+    print(
+        f"[seed-canonical] years_aggregated={summary['years_aggregated']} "
+        f"aggregated_rows={summary['aggregated_rows']}"
+    )
+    return 0
 
-        print(
-            "[seed-university-alias] "
-            f"canonical_id={summary['canonical_university_id']} "
-            f"created_canonical={'yes' if summary['created_canonical'] else 'no'} "
-            f"created_alias={'yes' if summary['created_alias'] else 'no'}"
-        )
-        print(
-            f"[seed-university-alias] canonical={summary['canonical_name']} "
-            f"normalized_canonical={summary['normalized_canonical_name']}"
-        )
-        print(
-            f"[seed-university-alias] alias={summary['alias']} "
-            f"normalized_alias={summary['normalized_alias']}"
-        )
-        return 0
 
-    if args.command == "seed-canonical":
-        ensure_postgres_schema(
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
-        )
-        summary = seed_canonical_universities(
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-        )
-        print(
-            f"[seed-canonical] seeded={summary['seeded']} "
-            f"skipped={summary['skipped']} failed={summary['failed']}"
-        )
-        print(
-            f"[seed-canonical] years_aggregated={summary['years_aggregated']} "
-            f"aggregated_rows={summary['aggregated_rows']}"
-        )
-        return 0
-
-    if args.command == "seed-canonical-from-missing":
-        ensure_postgres_schema(
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
-        )
-        summary = seed_canonical_from_missing_entities(
-            source_code=str(args.source or "THE").strip().upper(),
+def _cmd_seed_canonical_from_missing(args: argparse.Namespace) -> int:
+    """Handler for the ``seed-canonical-from-missing`` command."""
+    ensure_postgres_schema(
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+    )
+    summary = seed_canonical_from_missing_entities(
+        source_code=str(args.source or "THE").strip().upper(),
+        ranking_year=args.ranking_year,
+        pg_host=args.pg_host,
+        pg_port=args.pg_port,
+        pg_database=args.pg_database,
+        pg_user=args.pg_user,
+        pg_password=args.pg_password,
+    )
+    print(
+        f"[seed-canonical-from-missing] seeded={summary['seeded']} "
+        f"skipped={summary['skipped']} failed={summary['failed']}"
+    )
+    if summary["source_code"] == "THE":
+        print("[seed-canonical-from-missing] re-ingesting THE rankings...")
+        the_summary = run_the_rankings_ingestion(
             ranking_year=args.ranking_year,
+            output_dir=MODULE_ROOT / "crawlernest-kb" / "databases",
             pg_host=args.pg_host,
             pg_port=args.pg_port,
             pg_database=args.pg_database,
             pg_user=args.pg_user,
             pg_password=args.pg_password,
+            skip_seed=True,
         )
         print(
-            f"[seed-canonical-from-missing] seeded={summary['seeded']} "
-            f"skipped={summary['skipped']} failed={summary['failed']}"
+            f"[seed-canonical-from-missing] matched={the_summary['matched_count']} "
+            f"unresolved={the_summary['unresolved_count']} "
+            f"aggregated_rows={the_summary['aggregated_rows']}"
         )
-        if summary["source_code"] == "THE":
-            print("[seed-canonical-from-missing] re-ingesting THE rankings...")
-            the_summary = run_the_rankings_ingestion(
-                ranking_year=args.ranking_year,
-                output_dir=MODULE_ROOT / "crawlernest-kb" / "databases",
-                pg_host=args.pg_host,
-                pg_port=args.pg_port,
-                pg_database=args.pg_database,
-                pg_user=args.pg_user,
-                pg_password=args.pg_password,
-                skip_seed=True,
-            )
-            print(
-                f"[seed-canonical-from-missing] matched={the_summary['matched_count']} "
-                f"unresolved={the_summary['unresolved_count']} "
-                f"aggregated_rows={the_summary['aggregated_rows']}"
-            )
-        return 0
+    return 0
 
-    if args.command == "backfill-ranking-records":
-        ensure_postgres_schema(
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
-        )
-        summary = backfill_qs_ranking_records_from_legacy(
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-        )
-        print(
-            f"[backfill-ranking-records] run_id={summary['run_id']} "
-            f"backfilled={summary['backfilled']} skipped={summary['skipped']} failed={summary['failed']}"
-        )
-        print(
-            f"[backfill-ranking-records] years_aggregated={summary['years_aggregated']} "
-            f"aggregated_rows={summary['aggregated_rows']}"
-        )
-        return 0
 
-    if args.command == "rebuild-universe-records":
-        ensure_postgres_schema(
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
-        )
-        summary = rebuild_universe_records_diagnostic(
-            ranking_year=args.ranking_year,
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-        )
-        print(
-            f"[rebuild] legacy global candidate rows for {summary['ranking_year']}: "
-            f"{summary['legacy_global_count']}"
-        )
-        if summary["missing_universes"]:
-            print("[rebuild] universes requiring re-crawl:")
-            for label in summary["missing_universes"]:
-                print(f"- {label}")
-        else:
-            print("[rebuild] all configured QS universes have ranking_record rows.")
-        print(json.dumps(summary, ensure_ascii=False, indent=2))
-        return 0
+def _cmd_backfill_ranking_records(args: argparse.Namespace) -> int:
+    """Handler for the ``backfill-ranking-records`` command."""
+    ensure_postgres_schema(
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+    )
+    summary = backfill_qs_ranking_records_from_legacy(
+        pg_host=args.pg_host,
+        pg_port=args.pg_port,
+        pg_database=args.pg_database,
+        pg_user=args.pg_user,
+        pg_password=args.pg_password,
+    )
+    print(
+        f"[backfill-ranking-records] run_id={summary['run_id']} "
+        f"backfilled={summary['backfilled']} skipped={summary['skipped']} failed={summary['failed']}"
+    )
+    print(
+        f"[backfill-ranking-records] years_aggregated={summary['years_aggregated']} "
+        f"aggregated_rows={summary['aggregated_rows']}"
+    )
+    return 0
 
-    if args.command == "run-the-rankings":
-        ensure_postgres_schema(
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
-        )
-        summary = run_the_rankings_ingestion(
-            ranking_year=args.ranking_year,
-            output_dir=Path(args.output_dir),
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-            skip_seed=bool(args.skip_seed),
-        )
-        print(json.dumps(summary, ensure_ascii=False, indent=2))
-        return 0
 
-    if args.command == "run-arwu-rankings":
-        ensure_postgres_schema(
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
-        )
-        summary = run_arwu_rankings_ingestion(
-            ranking_year=args.ranking_year,
-            output_dir=Path(args.output_dir),
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-            skip_seed=bool(args.skip_seed),
-        )
-        print(json.dumps(summary, ensure_ascii=False, indent=2))
-        return 0
+def _cmd_rebuild_universe_records(args: argparse.Namespace) -> int:
+    """Handler for the ``rebuild-universe-records`` command."""
+    ensure_postgres_schema(
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+    )
+    summary = rebuild_universe_records_diagnostic(
+        ranking_year=args.ranking_year,
+        pg_host=args.pg_host,
+        pg_port=args.pg_port,
+        pg_database=args.pg_database,
+        pg_user=args.pg_user,
+        pg_password=args.pg_password,
+    )
+    print(
+        f"[rebuild] legacy global candidate rows for {summary['ranking_year']}: "
+        f"{summary['legacy_global_count']}"
+    )
+    if summary["missing_universes"]:
+        print("[rebuild] universes requiring re-crawl:")
+        for label in summary["missing_universes"]:
+            print(f"- {label}")
+    else:
+        print("[rebuild] all configured QS universes have ranking_record rows.")
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    return 0
 
-    if args.command == "validate-global-multi-source":
-        ensure_postgres_schema(
-            args.pg_host,
-            args.pg_port,
-            args.pg_database,
-            args.pg_user,
-            args.pg_password,
-        )
-        summary = validate_global_multi_source(
-            pg_host=args.pg_host,
-            pg_port=args.pg_port,
-            pg_database=args.pg_database,
-            pg_user=args.pg_user,
-            pg_password=args.pg_password,
-            ranking_year=args.ranking_year,
-        )
-        print(json.dumps(summary, ensure_ascii=False, indent=2))
-        return 0
 
+def _cmd_run_the_rankings(args: argparse.Namespace) -> int:
+    """Handler for the ``run-the-rankings`` command."""
+    ensure_postgres_schema(
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+    )
+    summary = run_the_rankings_ingestion(
+        ranking_year=args.ranking_year,
+        output_dir=Path(args.output_dir),
+        pg_host=args.pg_host,
+        pg_port=args.pg_port,
+        pg_database=args.pg_database,
+        pg_user=args.pg_user,
+        pg_password=args.pg_password,
+        skip_seed=bool(args.skip_seed),
+    )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_run_arwu_rankings(args: argparse.Namespace) -> int:
+    """Handler for the ``run-arwu-rankings`` command."""
+    ensure_postgres_schema(
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+    )
+    summary = run_arwu_rankings_ingestion(
+        ranking_year=args.ranking_year,
+        output_dir=Path(args.output_dir),
+        pg_host=args.pg_host,
+        pg_port=args.pg_port,
+        pg_database=args.pg_database,
+        pg_user=args.pg_user,
+        pg_password=args.pg_password,
+        skip_seed=bool(args.skip_seed),
+    )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_validate_global_multi_source(args: argparse.Namespace) -> int:
+    """Handler for the ``validate-global-multi-source`` command."""
+    ensure_postgres_schema(
+        args.pg_host,
+        args.pg_port,
+        args.pg_database,
+        args.pg_user,
+        args.pg_password,
+    )
+    summary = validate_global_multi_source(
+        pg_host=args.pg_host,
+        pg_port=args.pg_port,
+        pg_database=args.pg_database,
+        pg_user=args.pg_user,
+        pg_password=args.pg_password,
+        ranking_year=args.ranking_year,
+    )
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+    return 0
+
+
+#: Command name to handler. Replaces a 900-line if-ladder; the branches were
+#: mutually exclusive on ``args.command``, so a lookup is equivalent to the
+#: sequence of guards it came from.
+_REMAINING_COMMAND_HANDLERS: dict[str, Callable[[argparse.Namespace], int]] = {
+    "bootstrap-postgres": _cmd_bootstrap_postgres,
+    "run-qs-subject": _cmd_run_qs_subject,
+    "run-qs-subject-rankings": _cmd_run_qs_subject,
+    "crawl-ranking": _cmd_crawl_ranking,
+    "crawl-admission": _cmd_crawl_admission,
+    "validate-admission-staging": _cmd_validate_admission_staging,
+    "ingest-admission-staging": _cmd_ingest_admission_staging,
+    "preview-admission-warehouse-map": _cmd_preview_admission_warehouse_map,
+    "write-admission-warehouse-preview": _cmd_write_admission_warehouse_preview,
+    "resolve-admission-entities": _cmd_resolve_admission_entities,
+    "unresolved-admission-entities": _cmd_unresolved_admission_entities,
+    "refresh-admission-resolution": _cmd_refresh_admission_resolution,
+    "rebuild-preview-and-resolve": _cmd_rebuild_preview_and_resolve,
+    "preview-ranking-admission-convergence": _cmd_preview_ranking_admission_convergence,
+    "preview-canonical-university-detail": _cmd_preview_canonical_university_detail,
+    "validate-ranking-staging": _cmd_validate_ranking_staging,
+    "ingest-ranking-staging": _cmd_ingest_ranking_staging,
+    "preview-ranking-warehouse-map": _cmd_preview_ranking_warehouse_map,
+    "write-ranking-warehouse-preview": _cmd_write_ranking_warehouse_preview,
+    "aggregate-ranking-preview": _cmd_aggregate_ranking_preview,
+    "decision-ranking-preview": _cmd_decision_ranking_preview,
+    "resolve-ranking-entities": _cmd_resolve_ranking_entities,
+    "unresolved-ranking-entities": _cmd_unresolved_ranking_entities,
+    "refresh-ranking-resolution": _cmd_refresh_ranking_resolution,
+    "seed-university-alias": _cmd_seed_university_alias,
+    "seed-canonical": _cmd_seed_canonical,
+    "seed-canonical-from-missing": _cmd_seed_canonical_from_missing,
+    "backfill-ranking-records": _cmd_backfill_ranking_records,
+    "rebuild-universe-records": _cmd_rebuild_universe_records,
+    "run-the-rankings": _cmd_run_the_rankings,
+    "run-arwu-rankings": _cmd_run_arwu_rankings,
+    "validate-global-multi-source": _cmd_validate_global_multi_source,
+}
+
+
+def _dispatch_remaining_commands(args: argparse.Namespace) -> int:
+    """Dispatch the commands this module owns, else fall back to the router."""
+    handler = _REMAINING_COMMAND_HANDLERS.get(args.command)
+    if handler is not None:
+        return handler(args)
     return dispatch_command(args, _build_dispatch_dependencies())
 
 
