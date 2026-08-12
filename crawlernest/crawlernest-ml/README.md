@@ -331,12 +331,60 @@ do (0.22%), the worst by 0.585. They are left unclipped: clipping would pile
 rows up at the boundary and hide the error rather than remove it, and the size of
 the overshoot is a useful read on the estimates' precision near the cut-off.
 
+## CI
+
+`.github/workflows/ml-tests.yml` runs on every push and pull request, with no
+database and no network — everything trains from the committed snapshot.
+
+```bash
+# what CI does, locally
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m pytest crawlernest/crawlernest-ml/tests -q
+mkdir -p /tmp/metrics-baseline && cp artifacts/metrics/*.json /tmp/metrics-baseline/
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.training.train_overall_score
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.training.train_disagreement
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.evaluation.check_metrics \
+    --baseline-dir /tmp/metrics-baseline
+```
+
+**38 feature-layer tests** run first: matrix shape, the 600/903 publication
+split, region coverage for all 107 countries, value parsing, the renormalising
+baseline, and that `rank` never appears among the features. They are fast and
+have no model in them, so a broken feature layer fails as itself rather than
+surfacing later as an unexplained metric movement.
+
+**The metrics gate** then retrains both models and compares against the
+committed `artifacts/metrics/*.json`. A model has no compiler and no failing test
+to say it broke; without a gate, a change that quietly costs three points of AUC
+looks exactly like a change that costs nothing. This repo already had that
+failure mode once — a Java test that stayed red for two months because no
+workflow ran it.
+
+Two kinds of guard, because they fail differently:
+
+| Kind | Checked how | Examples |
+|---|---|---|
+| **Invariant** | exactly, and first | `rows_labelled` = 600, `matched` = 820, `positives` = 164 |
+| **Metric** | against a direction and tolerance | `linear_renorm` RMSE (±0.05), weight-recovery error (±0.0005), disagreement ROC-AUC (±0.02) |
+
+Invariants come first because they describe the *data*: if the training set
+stops being 600 rows, no metric comparison below it means anything.
+
+Training is seeded and reproducible — a rerun on the same snapshot reproduces
+every guarded number exactly, so the tolerances exist for library drift rather
+than for run-to-run noise. Metric movement within tolerance is reported but does
+not fail; it is the cue to retrain and recommit the metrics files.
+
+The gate was verified by feeding it a deliberately degraded report: a 0.063 drop
+in ROC-AUC and a changed row count both fail it with exit 1. A gate that cannot
+fail is not a gate.
+
 ## Next
 
-1. A CI job that reruns both training scripts in fixture mode and fails if the
-   committed metrics regress. `artifacts/metrics/*.json` exists for this.
-2. Surfacing the disagreement classifier's probability through the same path.
+1. Surfacing the disagreement classifier's probability through the serving path.
    The tables are model-agnostic; only a second `predict` job is missing.
-3. LLM-as-judge as a *second* faithfulness signal, calibrated against the
+2. LLM-as-judge as a *second* faithfulness signal, calibrated against the
    mechanical checker on the golden set and reported with Cohen's κ before it is
    trusted for anything.
+3. Cross-checking the MATLAB port in `matlab/` against the Python EDA. Both claim
+   to compute the same covariate-shift figures; nothing currently verifies that
+   they agree.
