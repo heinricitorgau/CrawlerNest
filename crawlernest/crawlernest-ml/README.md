@@ -352,6 +352,25 @@ baseline, and that `rank` never appears among the features. They are fast and
 have no model in them, so a broken feature layer fails as itself rather than
 surfacing later as an unexplained metric movement.
 
+**The MATLAB parity check** then compares the committed `artifacts/eda_matlab/`
+tables against a fresh Python run, at a tolerance of 1e-9. Two implementations
+that disagree are not a redundancy — they are a bug in one of them, and nobody
+knows which. Measured agreement:
+
+| Table | Column | Max absolute difference |
+|---|---|---:|
+| correlation_with_target | `pearson_r` | 7.2e-16 |
+| covariate_shift | `labelled_mean` | 7.1e-14 |
+| covariate_shift | `unlabelled_mean` | 1.8e-14 |
+| covariate_shift | `standardised_gap` | 4.9e-15 |
+| missingness | `missing`, `missing_pct` | 0 |
+
+Machine precision, which is what the same formulas over the same inputs should
+give. The check needs no MATLAB on the runner, because the MATLAB side is
+committed output — which also bounds what it proves: it catches the Python side
+drifting, and a MATLAB re-run that changes numbers, but not someone editing the
+`.m` files and never re-running them. Stale CSVs still match.
+
 **The metrics gate** then retrains both models and compares against the
 committed `artifacts/metrics/*.json`. A model has no compiler and no failing test
 to say it broke; without a gate, a change that quietly costs three points of AUC
@@ -385,6 +404,6 @@ fail is not a gate.
 2. LLM-as-judge as a *second* faithfulness signal, calibrated against the
    mechanical checker on the golden set and reported with Cohen's κ before it is
    trusted for anything.
-3. Cross-checking the MATLAB port in `matlab/` against the Python EDA. Both claim
-   to compute the same covariate-shift figures; nothing currently verifies that
-   they agree.
+3. Putting MATLAB on a runner so the `.m` sources are re-executed rather than
+   compared against their committed output. Until then, re-run `run_qs_eda.m`
+   by hand after editing it, or the parity check passes on stale CSVs.

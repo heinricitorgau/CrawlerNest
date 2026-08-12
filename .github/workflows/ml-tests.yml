@@ -36,6 +36,15 @@ jobs:
           PYTHONPATH: crawlernest/crawlernest-ml
         run: pytest crawlernest/crawlernest-ml/tests -q
 
+      # Two implementations that disagree are not a redundancy, they are a bug
+      # in one of them and nobody knows which. This compares the committed
+      # MATLAB artifacts against a fresh Python run at 1e-9. It needs no MATLAB
+      # on the runner, because the MATLAB side is committed output.
+      - name: MATLAB port parity
+        env:
+          PYTHONPATH: crawlernest/crawlernest-ml
+        run: python -m ranking_ml.evaluation.check_matlab_parity
+
       # The training scripts overwrite artifacts/metrics/*.json in place, so the
       # committed files have to be copied aside before they are clobbered. Those
       # copies are the baseline; what training writes is the candidate.

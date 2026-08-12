@@ -108,6 +108,27 @@ neither colormap:
 - matplotlib `RdBu_r` → a hand-built blue-white-red diverging map.
 - matplotlib `viridis` → `parula`.
 
+## Parity is checked, not asserted
+
+The claim that this port computes the same numbers is verified on every push:
+
+```bash
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python \
+    -m ranking_ml.evaluation.check_matlab_parity
+```
+
+It compares the committed CSVs in `../artifacts/eda_matlab/` against a fresh
+Python run at a tolerance of 1e-9. Measured agreement is 7.2e-16 on the
+correlations, 7.1e-14 on the covariate-shift means, and exact on missingness —
+machine precision, which is what the same formulas over the same inputs should
+give. The step runs in `.github/workflows/ml-tests.yml` and needs no MATLAB,
+because this side is committed output.
+
+**That is also its limit.** Editing a `.m` file without re-running it leaves the
+CSVs stale, and stale CSVs still match. **Re-run `run_qs_eda.m` and commit the
+regenerated `../artifacts/eda_matlab/` after any change here**, or the check
+silently guards nothing.
+
 ## What this does *not* cover
 
 Only the Phase 1 EDA. The Phase 2 weight recovery, the support flag, and the

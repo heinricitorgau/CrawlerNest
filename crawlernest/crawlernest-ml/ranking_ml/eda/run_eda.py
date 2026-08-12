@@ -118,6 +118,11 @@ def covariate_shift(matrix) -> pd.DataFrame:
     deviations (Cohen's d). Anything past roughly 0.8 is a large shift and means
     a cross-validated error on the labelled rows understates the error the model
     will actually make on the unlabelled ones.
+
+    Returned at full precision. Rounding belongs to whoever displays the number,
+    not to the function that computes it -- a rounded return value cannot be
+    compared against an independent implementation, which is exactly what
+    ``check_matlab_parity`` needs to do.
     """
     indicators = _prepared_indicators(matrix.X)
     labelled = matrix.labelled_mask.to_numpy()
@@ -129,12 +134,28 @@ def covariate_shift(matrix) -> pd.DataFrame:
         rows.append(
             {
                 "indicator": name,
-                "labelled_mean": round(float(a.mean()), 2),
-                "unlabelled_mean": round(float(b.mean()), 2),
-                "standardised_gap": round(float((a.mean() - b.mean()) / pooled), 2) if pooled else float("nan"),
+                "labelled_mean": float(a.mean()),
+                "unlabelled_mean": float(b.mean()),
+                "standardised_gap": float((a.mean() - b.mean()) / pooled) if pooled else float("nan"),
             }
         )
     return pd.DataFrame(rows).sort_values("standardised_gap", key=abs, ascending=False)
+
+
+def correlation_with_target(matrix) -> pd.DataFrame:
+    """Pearson correlation of each indicator with the target, labelled rows only.
+
+    Full precision, for the same reason as :func:`covariate_shift`.
+    """
+    X_lab, y_lab = matrix.labelled()
+    prepared = _prepared_indicators(X_lab)
+    target = pd.Series(y_lab.to_numpy(), index=X_lab.index)
+    correlations = prepared.corrwith(target)
+    return (
+        pd.DataFrame({"indicator": correlations.index, "pearson_r": correlations.to_numpy()})
+        .sort_values("pearson_r", ascending=False)
+        .reset_index(drop=True)
+    )
 
 
 def plot_target_distribution(matrix, out_dir: Path) -> Path:
@@ -168,22 +189,23 @@ def main() -> int:
     matrix = load_feature_matrix(args.snapshot)
     print(matrix.summary())
 
+    missing = missingness_report(matrix)
     print("\n--- missingness ---")
-    print(missingness_report(matrix).to_string())
+    print(missing.to_string())
 
-    X_lab, y_lab = matrix.labelled()
-    corr_to_target = (
-        _prepared_indicators(X_lab)
-        .corrwith(pd.Series(y_lab.to_numpy(), index=X_lab.index))
-        .sort_values(ascending=False)
-        .round(3)
-    )
+    correlations = correlation_with_target(matrix)
     print("\n--- indicator correlation with Overall Score (labelled rows) ---")
-    print(corr_to_target.to_string())
+    print(correlations.round(3).to_string(index=False))
 
     shift = covariate_shift(matrix)
     print("\n--- covariate shift, labelled vs unlabelled (Cohen's d) ---")
-    print(shift.to_string(index=False))
+    print(shift.round(4).to_string(index=False))
+
+    # Written at full precision so an independent implementation can be checked
+    # against them -- see ranking_ml.evaluation.check_matlab_parity.
+    correlations.to_csv(out_dir / "correlation_with_target.csv", index=False)
+    shift.to_csv(out_dir / "covariate_shift.csv", index=False)
+    missing.reset_index(names="indicator").to_csv(out_dir / "missingness.csv", index=False)
 
     paths = [
         plot_correlation(matrix, out_dir),
