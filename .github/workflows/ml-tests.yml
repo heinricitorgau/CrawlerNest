@@ -1,0 +1,78 @@
+name: ML Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  ml-metrics:
+    name: feature tests and metrics regression gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-ml.txt
+          pip install pytest
+
+      # Fast, no database, no training. These guard the assumptions the models
+      # rest on -- matrix shape, the 600/903 publication split, region coverage,
+      # value parsing -- so a broken feature layer fails here rather than
+      # surfacing as an unexplained metric movement two steps later.
+      - name: Feature-layer tests
+        env:
+          PYTHONPATH: crawlernest/crawlernest-ml
+        run: pytest crawlernest/crawlernest-ml/tests -q
+
+      # The training scripts overwrite artifacts/metrics/*.json in place, so the
+      # committed files have to be copied aside before they are clobbered. Those
+      # copies are the baseline; what training writes is the candidate.
+      - name: Stash the committed metrics as the baseline
+        run: |
+          mkdir -p /tmp/metrics-baseline
+          cp crawlernest/crawlernest-ml/artifacts/metrics/*.json /tmp/metrics-baseline/
+          ls -l /tmp/metrics-baseline
+
+      # Everything trains from the committed crawl snapshot, so no database and
+      # no network are involved.
+      - name: Retrain both models
+        env:
+          PYTHONPATH: crawlernest/crawlernest-ml
+        run: |
+          python -m ranking_ml.training.train_overall_score
+          python -m ranking_ml.training.train_disagreement
+
+      # A model has no compiler and no failing test to say it broke. Without
+      # this, a change that quietly costs three points of AUC looks exactly like
+      # a change that costs nothing.
+      - name: Metrics regression gate
+        env:
+          PYTHONPATH: crawlernest/crawlernest-ml
+        run: python -m ranking_ml.evaluation.check_metrics --baseline-dir /tmp/metrics-baseline
+
+      # Informational: shows whether the numbers moved within tolerance, which
+      # is the cue to recommit the metrics files. Not a failure on its own --
+      # only regressions fail, above.
+      - name: Report metric drift within tolerance
+        if: always()
+        run: |
+          if git diff --quiet -- crawlernest/crawlernest-ml/artifacts/metrics/; then
+            echo "Committed metrics match this run exactly."
+          else
+            echo "Metrics moved within tolerance. Diff:"
+            git --no-pager diff -- crawlernest/crawlernest-ml/artifacts/metrics/
+            echo
+            echo "If this is a deliberate improvement, retrain locally and commit the updated files."
+          fi
