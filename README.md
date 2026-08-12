@@ -24,6 +24,23 @@ The system is data-first: crawlers and pipelines write canonical records into Po
 
 ---
 
+## What it looks like
+
+The rankings browser, reading 1,499 aggregated universities out of the
+warehouse:
+
+![Rankings browser](docs/assets/screenshots/rankings.png)
+
+The analytics page, where the honesty contract is visible rather than just
+documented — the single-year limitation is stated at the top, and source
+coverage shows exactly which of the three ranking bodies actually contributed:
+
+![Analytics](docs/assets/screenshots/analytics.png)
+
+Both captured from a local run against the real database, not mockups.
+
+---
+
 ## Architecture
 
 ```mermaid
