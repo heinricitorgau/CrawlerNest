@@ -3,4 +3,4 @@
 -- ON DELETE CASCADE on ml_run_id removes the predictions with the run.
 
 DELETE FROM analytics.ml_model_runs
-WHERE model_name = 'ml_predictions_integration_test';
+WHERE model_name IN ('ml_predictions_integration_test', 'ml_disagreement_integration_test');

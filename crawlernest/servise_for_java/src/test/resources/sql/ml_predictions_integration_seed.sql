@@ -40,3 +40,34 @@ INSERT INTO analytics.ml_predictions (
 SELECT r.ml_run_id, 990002, 2099, 30.2500, 9.900000, FALSE
   FROM analytics.ml_model_runs r
  WHERE r.model_name = 'ml_predictions_integration_test';
+
+-- A second target, so the endpoints have something to leak into each other if
+-- their target filter is ever dropped. The values are chosen to make a leak
+-- obvious: probabilities are 0-1 while the scores above are tens, and both
+-- endpoints sort by predicted_value descending.
+INSERT INTO analytics.ml_model_runs (
+    model_name, model_version, target, trained_at,
+    training_rows, inference_rows,
+    feature_names_json, metrics_json, baseline_metrics_json,
+    support_threshold, notes
+) VALUES (
+    'ml_disagreement_integration_test',
+    'test-0001',
+    'qs_the_disagreement',
+    TIMESTAMPTZ '2099-01-01 00:00:00+00',
+    820,
+    1,
+    '["Academic Reputation","Employer Reputation"]'::jsonb,
+    '{"roc_auc": 0.8133, "pr_auc": 0.4696}'::jsonb,
+    '{"roc_auc": 0.5, "pr_auc": 0.2}'::jsonb,
+    2.137164,
+    'Integration test fixture.'
+);
+
+INSERT INTO analytics.ml_predictions (
+    ml_run_id, canonical_university_id, ranking_year,
+    predicted_value, support_distance, is_supported
+)
+SELECT r.ml_run_id, 990003, 2099, 0.9600, 1.050000, TRUE
+  FROM analytics.ml_model_runs r
+ WHERE r.model_name = 'ml_disagreement_integration_test';

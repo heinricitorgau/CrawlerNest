@@ -12,6 +12,7 @@ import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -91,6 +92,48 @@ class EstimatedScoresApiIntegrationTest {
                 .andExpect(jsonPath("$.data.items[0].is_supported").value(true))
                 .andExpect(jsonPath("$.metadata.caveats",
                         hasItem(AnalyticsService.ESTIMATED_SCORE_CAVEAT)));
+    }
+
+    @Test
+    @DisplayName("each endpoint returns only its own target")
+    void targetsDoNotLeakBetweenEndpoints() throws Exception {
+        // The view holds the latest run per target, so both fixtures are visible
+        // to an unfiltered query. Without a target filter, estimated-scores would
+        // return three rows instead of two and disagreement-risk would lead with
+        // a 42.5 "probability".
+        mockMvc.perform(get("/api/v1/analytics/estimated-scores").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.total_count").value(2))
+                .andExpect(jsonPath("$.data.model.name").value("ml_predictions_integration_test"))
+                // a probability would sort last here and be quietly appended
+                .andExpect(jsonPath("$.data.items[*].estimated_overall_score",
+                        not(hasItem(0.96))));
+
+        mockMvc.perform(get("/api/v1/analytics/disagreement-risk").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.total_count").value(1))
+                .andExpect(jsonPath("$.data.model.name").value("ml_disagreement_integration_test"))
+                .andExpect(jsonPath("$.data.items[0].disagreement_probability").value(0.96))
+                // the score endpoint's field name must not appear here
+                .andExpect(jsonPath("$.data.items[0].estimated_overall_score").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("a disagreement probability is disclosed as an estimate and as a probability")
+    void disagreementRiskIsDisclosed() throws Exception {
+        mockMvc.perform(get("/api/v1/analytics/disagreement-risk").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.metadata.readonly").value(true))
+                .andExpect(jsonPath("$.metadata.caveats",
+                        hasItem(AnalyticsService.ESTIMATED_SCORE_CAVEAT)))
+                // The distinction that keeps this honest: a probability is not a
+                // finding about the university.
+                .andExpect(jsonPath("$.metadata.caveats", hasItem(
+                        "This is a probability, not a finding. A high value means universities with "
+                                + "similar QS profiles are often placed differently by THE, not that this "
+                                + "university has been shown to be misranked.")))
+                .andExpect(jsonPath("$.data.items[0].is_estimated").value(true))
+                .andExpect(jsonPath("$.data.items[0].is_supported").value(true));
     }
 
     @Test
