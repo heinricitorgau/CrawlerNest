@@ -109,6 +109,44 @@ def _prf(true_positive: int, false_positive: int, false_negative: int) -> dict[s
     return {"precision": round(precision, 4), "recall": round(recall, 4), "f1": round(f1, 4)}
 
 
+def ground_truth_coverage(entries: list[dict[str, Any]], results: list[dict[str, Any]]) -> dict[str, Any]:
+    """How much actual unfaithfulness the rules reach, as opposed to specified.
+
+    ``expect`` says what the checker should report; ``ground_truth`` says whether
+    the explanation is in fact faithful. For most of the dataset they agree,
+    because those cases were written from the checker's own taxonomy. The
+    faith-1xx cases were written the other way round -- unfaithfulness first,
+    then checked to confirm no rule reaches it -- so there the two differ.
+
+    Reporting only the first number would say the checker is perfect. It is
+    perfect against its specification, and that is a smaller claim.
+    """
+    by_id = {e.get("id"): e for e in entries}
+    tracked = []
+    for result in results:
+        entry = by_id.get(result["id"], {})
+        truth = entry.get("ground_truth", {}).get(
+            "faithful", entry.get("expect", {}).get("faithful", True)
+        )
+        tracked.append((bool(truth), bool(result["faithful"]), entry))
+
+    unfaithful = [t for t in tracked if not t[0]]
+    caught = [t for t in unfaithful if not t[1]]
+    beyond = [t for t in unfaithful if t[1]]
+    clean = [t for t in tracked if t[0]]
+    false_alarms = [t for t in clean if not t[1]]
+
+    return {
+        "cases": len(tracked),
+        "actually_unfaithful": len(unfaithful),
+        "caught_by_rules": len(caught),
+        "recall_against_truth": round(len(caught) / len(unfaithful), 4) if unfaithful else 1.0,
+        "beyond_the_rules": [t[2].get("id") for t in beyond],
+        "actually_faithful": len(clean),
+        "false_alarms": [t[2].get("id") for t in false_alarms],
+    }
+
+
 def detector_metrics(results: list[dict[str, Any]]) -> dict[str, Any]:
     """Score the checker as a detector, per violation kind and overall.
 
@@ -212,6 +250,7 @@ def evaluate(entries: list[dict[str, Any]], *, live: bool, verbose: bool) -> dic
     }
     if not live:
         summary["detector"] = detector_metrics(results)
+        summary["ground_truth"] = ground_truth_coverage(entries, results)
     return summary
 
 
@@ -252,8 +291,20 @@ def main() -> int:
             print(f"  macro F1 {detector['macro']['f1']:.3f}   verdict accuracy {detector['verdict_accuracy']:.3f}")
             print(
                 f"  false positives on clean text: "
-                f"{detector['false_positive_rate_on_clean']:.3f} over {detector['clean_cases']} faithful cases"
+                f"{detector['false_positive_rate_on_clean']:.3f} over {detector['clean_cases']} cases "
+                "the specification calls clean"
             )
+        coverage = summary.get("ground_truth")
+        if coverage:
+            print()
+            print("Checker measured against what is actually unfaithful")
+            print(f"  cases                    {coverage['cases']}")
+            print(f"  actually unfaithful      {coverage['actually_unfaithful']}")
+            print(f"  caught by the rules      {coverage['caught_by_rules']}")
+            print(f"  recall against truth     {coverage['recall_against_truth']:.3f}")
+            print(f"  beyond the rules         {len(coverage['beyond_the_rules'])} "
+                  f"({', '.join(coverage['beyond_the_rules']) or 'none'})")
+            print(f"  false alarms             {coverage['false_alarms'] or 'none'}")
         print(f"\nResult: {summary['result']}")
 
     return 0 if summary["result"] == "PASS" else 1

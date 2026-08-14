@@ -1,11 +1,21 @@
-﻿{
+{
   "model": "qwen2.5:7b-instruct",
-  "cases": 34,
-  "mechanical_accuracy": 1.0,
-  "judge_accuracy": 0.7941,
-  "cohens_kappa_judge_vs_mechanical": 0.5882,
+  "cases": 46,
+  "mechanical_accuracy": 0.7609,
+  "judge_accuracy": 0.8043,
+  "cohens_kappa_judge_vs_mechanical": 0.2882,
   "unparseable_judge_replies": 0,
-  "caught_only_by_judge": [],
+  "caught_only_by_judge": [
+    "faith-101",
+    "faith-102",
+    "faith-103",
+    "faith-104",
+    "faith-106",
+    "faith-107",
+    "faith-109",
+    "faith-110",
+    "faith-111"
+  ],
   "judge_false_alarms_on_clean_text": [
     "faith-015"
   ],
@@ -23,7 +33,7 @@
       "expected_faithful": false,
       "mechanical": false,
       "judge": false,
-      "judge_reason": "Invents global rank which is not supported by the evidence.",
+      "judge_reason": "Invents a global rank that is not supported by the evidence.",
       "description": "Fabricated rank — the model states a rank that is not in the evidence"
     },
     {
@@ -55,7 +65,7 @@
       "expected_faithful": false,
       "mechanical": false,
       "judge": false,
-      "judge_reason": "Invents a matching score and rescales it to a percentage.",
+      "judge_reason": "Invents a matching score and rescales it to a rank.",
       "description": "Rescaled score — 0.82 restated as 82%; deliberately flagged as a silent transformation"
     },
     {
@@ -87,7 +97,7 @@
       "expected_faithful": true,
       "mechanical": true,
       "judge": true,
-      "judge_reason": "The explanation accurately reflects the rankings provided in the evidence.",
+      "judge_reason": "The explanation accurately reflects the ranks provided in the evidence.",
       "description": "Faithful — count of items stated, derivable from the evidence list length"
     },
     {
@@ -151,7 +161,7 @@
       "expected_faithful": true,
       "mechanical": true,
       "judge": true,
-      "judge_reason": "The explanation matches the evidence and there are no caveats to consider.",
+      "judge_reason": "The explanation matches the evidence and does not include any invented information or dropped caveats.",
       "description": "Faithful — hyphenated institution name reproduced from the evidence"
     },
     {
@@ -191,7 +201,7 @@
       "expected_faithful": false,
       "mechanical": false,
       "judge": true,
-      "judge_reason": "The explanation accurately reflects the evidence and includes all relevant caveats.",
+      "judge_reason": "The explanation matches the evidence and includes all relevant caveats.",
       "description": "Partial caveat reproduction — one of two caveats is dropped"
     },
     {
@@ -199,7 +209,7 @@
       "expected_faithful": false,
       "mechanical": false,
       "judge": true,
-      "judge_reason": "The explanation accurately reflects the evidence and includes the caveat.",
+      "judge_reason": "The explanation matches the evidence and includes the caveat.",
       "description": "Paraphrased caveat — the meaning survives but the wording does not"
     },
     {
@@ -231,7 +241,7 @@
       "expected_faithful": false,
       "mechanical": false,
       "judge": false,
-      "judge_reason": "Invents institutions (Pacific Rim University and Northern Delta University) not supported by the evidence.",
+      "judge_reason": "Invents ranks for other universities.",
       "description": "Two invented institutions — both should be reported"
     },
     {
@@ -255,7 +265,7 @@
       "expected_faithful": false,
       "mechanical": false,
       "judge": false,
-      "judge_reason": "The explanation invents a figure (Pacific Rim University's rank) and does not mention the caveats related to the availability of ranks from different sources.",
+      "judge_reason": "The explanation invents a figure (Pacific Rim University's rank) and does not mention the caveats supplied with the evidence.",
       "description": "Combined failure — all three violation kinds at once"
     },
     {
@@ -281,6 +291,102 @@
       "judge": true,
       "judge_reason": "The explanation matches the evidence and there are no caveats to consider.",
       "description": "Trailing-zero variant — 68.0 quoted for an evidence value of 68"
+    },
+    {
+      "id": "faith-101",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "The explanation softens the caveat by stating that the disagreement between sources makes little difference.",
+      "description": "Caveat reproduced verbatim, then neutralised by the sentence after it"
+    },
+    {
+      "id": "faith-102",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "The explanation invents the reasons for the university's rank.",
+      "description": "Causal claim the evidence does not support"
+    },
+    {
+      "id": "faith-103",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "Invents a figure (rank 68) not directly stated in the evidence and softens the caveat by removing 'low' confidence.",
+      "description": "Confidence inflated past what the evidence states"
+    },
+    {
+      "id": "faith-104",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "Invents a figure (0.82) not present in the evidence.",
+      "description": "Advice offered where the evidence is descriptive"
+    },
+    {
+      "id": "faith-105",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the evidence and includes all necessary caveats.",
+      "description": "A model estimate attributed to the ranking source"
+    },
+    {
+      "id": "faith-106",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "The explanation invents that the rank represents a consensus position across the major ranking bodies, which is not directly supported by the evidence.",
+      "description": "Caveat reproduced, then contradicted elsewhere in the same answer"
+    },
+    {
+      "id": "faith-107",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "Invents a figure (year after year) not supported by the evidence.",
+      "description": "Single-year evidence described as a trend"
+    },
+    {
+      "id": "faith-108",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation only uses ranks provided and makes a straightforward comparison without inventing or transforming any data.",
+      "description": "Superlative on a dimension the evidence does not rank"
+    },
+    {
+      "id": "faith-109",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "The explanation invents that all institutions listed are strongly placed globally, which is not supported by the evidence.",
+      "description": "Selective presentation — the weaker row is dropped and the result generalised"
+    },
+    {
+      "id": "faith-110",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "Invents the figure 'around that proportion' and restates the matching score in weaker language.",
+      "description": "A supplied number restated as something it does not measure"
+    },
+    {
+      "id": "faith-111",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "The explanation states a worldwide rank for a subject-specific university, which is not supported by the evidence.",
+      "description": "Subject-scoped evidence presented as a global standing"
+    },
+    {
+      "id": "faith-112",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence and includes all caveats without softening.",
+      "description": "Faithful under pressure — a limitation stated plainly and not softened"
     }
   ]
 }
