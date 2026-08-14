@@ -34,6 +34,8 @@ TARGETS = [
     ("crawlernest.run_pipeline", REPO_ROOT / "crawlernest" / "run_pipeline.py"),
     ("crawlernest.pipeline.commands.admission",
      REPO_ROOT / "crawlernest" / "pipeline" / "commands" / "admission.py"),
+    ("crawlernest.pipeline.commands.ranking",
+     REPO_ROOT / "crawlernest" / "pipeline" / "commands" / "ranking.py"),
 ]
 
 FunctionNode = (ast.FunctionDef, ast.AsyncFunctionDef)
