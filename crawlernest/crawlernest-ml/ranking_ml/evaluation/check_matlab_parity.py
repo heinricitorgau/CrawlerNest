@@ -81,10 +81,30 @@ def check_artifacts_are_current() -> list[str]:
     sources = "crawlernest/crawlernest-ml/matlab/*.m"
     artifacts = "crawlernest/crawlernest-ml/artifacts/eda_matlab"
 
+    # A shallow clone reports the grafted commit's timestamp for *every* path, so
+    # the two timestamps come back equal and the ordering test can never fire.
+    # That is worse than an error: the guard would pass on a stale artifact and
+    # look like it had checked. actions/checkout defaults to fetch-depth 1, so
+    # this is the normal state in CI unless fetch-depth: 0 is set.
+    if _git("rev-parse", "--is-shallow-repository") == "true":
+        failures.append(
+            "cannot determine whether the artifacts are current: this is a shallow "
+            "clone, where git reports one timestamp for every path and the ordering "
+            "test is meaningless. Set fetch-depth: 0 on actions/checkout."
+        )
+        return failures
+
     source_time = _git("log", "-1", "--format=%ct", "--", sources)
     artifact_time = _git("log", "-1", "--format=%ct", "--", artifacts)
 
-    if source_time and artifact_time and int(source_time) > int(artifact_time):
+    if not source_time or not artifact_time:
+        failures.append(
+            "cannot determine whether the artifacts are current: no commit touches "
+            f"{'matlab/*.m' if not source_time else 'artifacts/eda_matlab/'} in this checkout."
+        )
+        return failures
+
+    if int(source_time) > int(artifact_time):
         changed = _git("log", "-1", "--format=%h %s", "--", sources)
         failures.append(
             f"matlab/ was committed after artifacts/eda_matlab/ ({changed}). "
@@ -161,7 +181,7 @@ def main() -> int:
 
     failures: list[str] = check_artifacts_are_current()
     print("### are the committed artifacts current with the .m sources?")
-    print("    " + ("stale -- see below" if failures else "yes"))
+    print("    " + ("no -- see below" if failures else "yes"))
     for name, columns in COMPARISONS.items():
         matlab_path = matlab_dir / name
         if not matlab_path.is_file():
