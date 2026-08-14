@@ -42,6 +42,10 @@ try:
         _write_ranking_warehouse_preview,
     )
     from pipeline.utils.artifacts import save_json_artifact
+    from pipeline.utils.postgres import (
+        build_multi_source_pipeline as _build_multi_source_pipeline,
+        connect_postgres as _connect_postgres,
+    )
 except ModuleNotFoundError:  # pragma: no cover - package import compatibility
     from .pipeline.commands.admission import (  # noqa: F401
         COMMANDS as _ADMISSION_COMMANDS,
@@ -54,6 +58,10 @@ except ModuleNotFoundError:  # pragma: no cover - package import compatibility
         _write_ranking_warehouse_preview,
     )
     from .pipeline.utils.artifacts import save_json_artifact  # noqa: F401
+    from .pipeline.utils.postgres import (  # noqa: F401
+        build_multi_source_pipeline as _build_multi_source_pipeline,
+        connect_postgres as _connect_postgres,
+    )
 
 
 REPO_ROOT, MODULE_ROOT = resolve_repo_paths(__file__)
@@ -1251,39 +1259,6 @@ def write_universities(
         writer.close()
 
     return inserted, skipped, failed
-
-
-def _connect_postgres(
-    pg_host: Optional[str],
-    pg_port: int,
-    pg_database: Optional[str],
-    pg_user: Optional[str],
-    pg_password: Optional[str],
-) -> Any:
-    if psycopg2 is None:
-        raise RuntimeError("psycopg2 is required for PostgreSQL mode")
-    return psycopg2.connect(
-        host=pg_host,
-        port=pg_port,
-        database=pg_database,
-        user=pg_user,
-        password=pg_password,
-    )
-
-
-def _build_multi_source_pipeline(conn: Any) -> MultiSourceRankingPipeline:
-    er_repo = EntityResolutionRepository(conn)
-    profiles = er_repo.load_canonical_profiles()
-    if not profiles:
-        raise RuntimeError(
-            "No canonical university profiles found. Seed entity resolution tables before multi-source ingestion."
-        )
-    resolver = EntityResolver(profiles)
-    return MultiSourceRankingPipeline(
-        resolver=resolver,
-        multi_source_repo=MultiSourceRepository(conn),
-        aggregation_repo=RankingAggregationRepository(conn),
-    )
 
 
 def sync_qs_multi_source_rankings(
