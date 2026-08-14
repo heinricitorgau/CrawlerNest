@@ -263,6 +263,54 @@ than quoted. Both are unverifiable transformations, so flagging them is the
 intended contract, and the dataset now records that decision instead of leaving
 it in a comment.
 
+### The LLM judge was measured, and rejected
+
+An LLM judge is the obvious next move: it is the only thing that can catch
+unfaithfulness the rules cannot express. So it was measured before being
+adopted, on the same 34 golden cases, against `qwen2.5:7b-instruct` at
+temperature 0.
+
+| | Accuracy vs golden labels |
+|---|---:|
+| Mechanical checker | **1.0000** |
+| LLM judge | 0.7941 |
+
+Cohen's κ between the two raters: **0.588**. Every judge reply parsed.
+
+The κ alone would read as moderate agreement and might be talked into an
+adoption. The direction of the disagreements is what settles it. Seven cases
+differ, and the judge is wrong in all seven:
+
+- **Six missed violations.** It passed an invented institution ("does not invent
+  any figures or institutions" — the explanation named Pacific Rim University),
+  a dropped caveat, a partially dropped caveat, a paraphrased caveat, a
+  fabricated row count, and computed arithmetic.
+- **One false alarm** on clean text, `faith-015`, where the institution was
+  named in nested profile evidence rather than in the item list.
+
+**Caught only by the judge: none.** It contributed no detection the rules missed,
+missed six the rules caught, and invented one objection. On this dataset it is
+strictly worse and adds a model dependency, latency and cost for it.
+
+So no judge is wired into the pipeline. The calibration runner stays as a
+measurement:
+
+```bash
+python crawlernest/crawlernest-autoeval/runners/run_judge_calibration.py \
+    --base-url http://localhost:11434/v1 --model qwen2.5:7b-instruct
+```
+
+Full per-case output is committed at
+`crawlernest/crawlernest-autoeval/reports/judge_calibration_qwen2.5-7b.json`.
+
+Two honest limits on this conclusion. It is one 7B model — a larger one may do
+better, and the runner takes `--model` so that is a measurement away rather than
+an argument. And the golden set is built from the rule checker's own taxonomy, so
+it is exactly the ground where rules are strongest; a judge's real value would be
+on unfaithfulness nobody has written a rule for, which by construction this
+dataset does not contain. That is an argument for extending the dataset, not for
+adopting an unmeasured judge.
+
 ## Layout
 
 ```
@@ -401,9 +449,11 @@ fail is not a gate.
 
 1. Surfacing the disagreement classifier's probability through the serving path.
    The tables are model-agnostic; only a second `predict` job is missing.
-2. LLM-as-judge as a *second* faithfulness signal, calibrated against the
-   mechanical checker on the golden set and reported with Cohen's κ before it is
-   trusted for anything.
+2. Golden cases for unfaithfulness no rule can express — a caveat reproduced
+   verbatim and then undercut by the next sentence, a true statement arranged to
+   mislead. The judge measurement above is only informative once the dataset
+   contains failures the rules cannot reach by construction; on the current set
+   it measures the judge on the rules' home ground.
 3. Putting MATLAB on a runner so the `.m` sources are re-executed rather than
    compared against their committed output. Until then, re-run `run_qs_eda.m`
    by hand after editing it, or the parity check passes on stale CSVs.
