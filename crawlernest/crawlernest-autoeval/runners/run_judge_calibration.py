@@ -147,6 +147,10 @@ def main() -> int:
     parser.add_argument("--min-kappa", type=float, default=None,
                         help="Fail if kappa falls below this. Omit to measure only.")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument("--out", default=None,
+                        help="Write the JSON report here. Use this rather than shell "
+                             "redirection: PowerShell's Out-File adds a UTF-8 BOM that "
+                             "makes the result unparseable by json.load.")
     args = parser.parse_args()
 
     entries = json.loads(Path(args.golden_file).read_text(encoding="utf-8"))
@@ -165,7 +169,14 @@ def main() -> int:
             evidence={k: v for k, v in evidence.items() if k not in {"items", "caveats"}} or None,
             caveats=evidence.get("caveats", []),
         )
-        expected = bool(entry.get("expect", {}).get("faithful", True))
+        # Ground truth, not the checker's specification. For most cases they are
+        # the same; for the faith-1xx cases they differ on purpose, and those are
+        # the only ones that can tell you whether a judge adds anything.
+        expected = bool(
+            entry.get("ground_truth", {}).get(
+                "faithful", entry.get("expect", {}).get("faithful", True)
+            )
+        )
         verdict, reason = ask_judge(args.base_url, args.model, build_prompt(entry), args.timeout)
 
         if verdict is None:
@@ -200,7 +211,9 @@ def main() -> int:
     judge_acc = sum(1 for j, t in zip(judge, truth) if j == t) / n
     kappa = cohens_kappa(judge, mechanical)
 
-    # What a judge would add: cases the rules pass but the judge correctly flags.
+    # The whole question, in one list: unfaithfulness the rules cannot express
+    # and the judge nonetheless catches. Everything else a judge does here is
+    # duplication or noise.
     caught_only_by_judge = [
         r["id"] for r in rows
         if r["mechanical"] is True and r["expected_faithful"] is False and r["judge"] is False
@@ -222,6 +235,12 @@ def main() -> int:
         "judge_false_alarms_on_clean_text": false_alarms,
         "rows": rows,
     }
+
+    if args.out:
+        Path(args.out).write_text(
+            json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        print(f"\nreport written to {args.out}")
 
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
