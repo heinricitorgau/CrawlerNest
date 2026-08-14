@@ -22,6 +22,17 @@ public class AnalyticsService {
     private static final int ESTIMATE_LIMIT = 200;
 
     /**
+     * Modelling targets stored in analytics.ml_predictions.
+     *
+     * Every read of v_ml_predictions_latest must filter on one of these. The view
+     * holds the latest run *per target*, so an unfiltered query returns two
+     * different quantities in one list -- 0-100 scores and 0-1 probabilities --
+     * and sorting that by predicted_value buries one behind the other.
+     */
+    private static final String TARGET_OVERALL_SCORE = "qs_overall_score";
+    private static final String TARGET_DISAGREEMENT = "qs_the_disagreement";
+
+    /**
      * Disclosure attached to any response carrying a value produced by the
      * modelling layer rather than published by a ranking source.
      *
@@ -234,10 +245,12 @@ public class AnalyticsService {
                        canonical_university_id, university_name, slug, country_name,
                        ranking_year, predicted_value, support_distance, is_supported, is_estimated
                   FROM analytics.v_ml_predictions_latest
-                 WHERE (%s OR is_supported)
+                 WHERE target = ?
+                   AND (%s OR is_supported)
                  ORDER BY predicted_value DESC
                  LIMIT %d
-                """.formatted(supportedOnly ? "FALSE" : "TRUE", cappedLimit));
+                """.formatted(supportedOnly ? "FALSE" : "TRUE", cappedLimit),
+                TARGET_OVERALL_SCORE);
 
         List<Map<String, Object>> items = new ArrayList<>();
         Map<String, Object> model = null;
@@ -271,6 +284,87 @@ public class AnalyticsService {
         caveats.add("Cross-validated error is measured on universities that do have a published score. Those are a different population from these, so it does not describe the error here.");
         if (!supportedOnly) {
             caveats.add("Rows with is_supported = false sit outside the range of data the model was fitted on. Their estimates carry no support from comparable cases.");
+        }
+        appendModelEstimateCaveat(caveats, !items.isEmpty());
+        data.put("caveats", caveats);
+        data.put("evaluation_timestamp", Instant.now().toString());
+        return data;
+    }
+
+    /**
+     * Returns the modelled probability that THE ranks a university substantially
+     * differently from QS, predicted from QS indicators alone.
+     *
+     * Deliberately a separate surface from {@link #getEstimatedScores}, rather
+     * than a parameter on it. Both read the same table, but one returns a 0-100
+     * score and the other a 0-1 probability; sharing a response shape would mean
+     * sharing a field name for two different quantities.
+     *
+     * Readonly: reads analytics.v_ml_predictions_latest only.
+     */
+    public Map<String, Object> getDisagreementRisk(boolean supportedOnly, int limit) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        int cappedLimit = Math.max(1, Math.min(limit, ESTIMATE_LIMIT));
+
+        Boolean viewPresent = jdbcTemplate.queryForObject(
+                "SELECT to_regclass('analytics.v_ml_predictions_latest') IS NOT NULL", Boolean.class);
+
+        if (viewPresent == null || !viewPresent) {
+            data.put("items", List.of());
+            data.put("total_count", 0);
+            data.put("model", null);
+            List<String> caveats = new ArrayList<>();
+            caveats.add("No disagreement predictions are available. The modelling layer has not been run against this database.");
+            data.put("caveats", caveats);
+            data.put("evaluation_timestamp", Instant.now().toString());
+            return data;
+        }
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
+                SELECT model_name, model_version, trained_at, support_threshold,
+                       canonical_university_id, university_name, slug, country_name,
+                       ranking_year, predicted_value, support_distance, is_supported, is_estimated
+                  FROM analytics.v_ml_predictions_latest
+                 WHERE target = ?
+                   AND (%s OR is_supported)
+                 ORDER BY predicted_value DESC
+                 LIMIT %d
+                """.formatted(supportedOnly ? "FALSE" : "TRUE", cappedLimit),
+                TARGET_DISAGREEMENT);
+
+        List<Map<String, Object>> items = new ArrayList<>();
+        Map<String, Object> model = null;
+        for (Map<String, Object> row : rows) {
+            if (model == null) {
+                model = new LinkedHashMap<>();
+                model.put("name", row.get("model_name"));
+                model.put("version", row.get("model_version"));
+                model.put("trained_at", String.valueOf(row.get("trained_at")));
+                model.put("support_threshold", row.get("support_threshold"));
+            }
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("canonical_university_id", row.get("canonical_university_id"));
+            item.put("university_name", row.get("university_name"));
+            item.put("slug", row.get("slug"));
+            item.put("country_name", row.get("country_name"));
+            item.put("ranking_year", row.get("ranking_year"));
+            item.put("disagreement_probability", row.get("predicted_value"));
+            item.put("support_distance", row.get("support_distance"));
+            item.put("is_supported", row.get("is_supported"));
+            item.put("is_estimated", row.get("is_estimated"));
+            items.add(item);
+        }
+
+        data.put("items", items);
+        data.put("total_count", items.size());
+        data.put("model", model);
+
+        List<String> caveats = new ArrayList<>();
+        caveats.add("This is a probability, not a finding. A high value means universities with similar QS profiles are often placed differently by THE, not that this university has been shown to be misranked.");
+        caveats.add("The model is trained on the universities QS and THE both rank. Universities outside that overlap are scored by extrapolation, which the support flag reports per row.");
+        caveats.add("THE data is not ingested in this release, so no prediction here can currently be checked against an actual THE placement.");
+        if (!supportedOnly) {
+            caveats.add("Rows with is_supported = false sit outside the range of data the model was fitted on. Their probabilities carry no support from comparable cases.");
         }
         appendModelEstimateCaveat(caveats, !items.isEmpty());
         data.put("caveats", caveats);

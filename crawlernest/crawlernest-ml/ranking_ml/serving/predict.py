@@ -172,13 +172,17 @@ def main() -> int:
         resolved = frame[frame["canonical_university_id"].notna()].copy()
         resolved["canonical_university_id"] = resolved["canonical_university_id"].astype(int)
 
+        # Rows and names are different counts and it matters which is reported:
+        # several snapshot rows can share a name, and entity resolution merges
+        # some names onto one canonical university.
+        dropped_rows = len(frame) - len(resolved)
         print(
-            f"\nresolved {len(resolved)} of {len(frame)} universities to canonical ids "
-            f"({len(unresolved)} unresolved)"
+            f"\nresolved {len(resolved)} of {len(frame)} rows to canonical ids "
+            f"({dropped_rows} rows dropped, {len(unresolved)} distinct names unmatched)"
         )
         if unresolved:
             preview = ", ".join(unresolved[:5])
-            print(f"  unresolved (first 5): {preview}")
+            print(f"  unmatched names (first 5): {preview}")
 
         if resolved.empty:
             print("ERROR nothing resolved; refusing to write an empty run", file=sys.stderr)

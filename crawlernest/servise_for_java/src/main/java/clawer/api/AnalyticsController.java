@@ -164,4 +164,43 @@ public class AnalyticsController {
 
         return ResponseEntity.ok(ApiResponse.success(response, metadata));
     }
+
+    /**
+     * GET /api/v1/analytics/disagreement-risk
+     *
+     * Returns the modelled probability that THE places a university
+     * substantially differently from QS, predicted from QS indicators alone.
+     *
+     * Separate from estimated-scores rather than a parameter on it: both read
+     * the same table, but one returns a 0-100 score and this returns a 0-1
+     * probability, and one response shape for two quantities would mean one
+     * field name for two meanings.
+     *
+     * A probability is not a finding, and the caveats say so. Readonly.
+     *
+     * @param supportedOnly omit rows outside the model's support; defaults to
+     *                      false so they stay visible rather than being dropped
+     * @param limit         maximum rows, capped by the service
+     */
+    @GetMapping("/disagreement-risk")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getDisagreementRisk(
+            @RequestParam(name = "supported_only", defaultValue = "false") boolean supportedOnly,
+            @RequestParam(name = "limit", defaultValue = "50") int limit
+    ) {
+        Map<String, Object> riskData = analyticsService.getDisagreementRisk(supportedOnly, limit);
+
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("timestamp", Instant.now().toString());
+        metadata.put("endpoint", "disagreement-risk");
+        metadata.put("readonly", true);
+        metadata.put("caveats", riskData.get("caveats"));
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("model", riskData.get("model"));
+        response.put("total_count", riskData.get("total_count"));
+        response.put("items", riskData.get("items"));
+        response.put("evaluation_timestamp", riskData.get("evaluation_timestamp"));
+
+        return ResponseEntity.ok(ApiResponse.success(response, metadata));
+    }
 }

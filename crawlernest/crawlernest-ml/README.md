@@ -365,11 +365,52 @@ the disclosure off, and every row carries its support distance, so no consumer
 can surface an estimate without the means to say how far outside the training
 data it sits.
 
-`GET /api/v1/analytics/estimated-scores` reads them. Every non-empty response
+The disagreement classifier has its own job, and the asymmetry between them is
+the point:
+
+```bash
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python \
+    -m ranking_ml.serving.predict_disagreement \
+    --pg-user test --pg-password test --pg-database clawer
+```
+
+It trains on the 820 universities QS and THE both rank, then scores **all 1,503
+QS universities** — including the 683 THE has never covered. That is where the
+probability is useful: a contested institution can be flagged at QS ingest time
+rather than after a second source arrives, which in this deployment it never has.
+
+Worth checking, since the training set is an overlap rather than a slice: **96.8%
+of the 1,503 fall inside the training support**, against 72.8% for the
+overall-score model. The overlap spans the QS distribution instead of clustering
+at one end of it the way a published-score cutoff does.
+
+`GET /api/v1/analytics/estimated-scores` and
+`GET /api/v1/analytics/disagreement-risk` read them. Every non-empty response
 carries `AnalyticsService.ESTIMATED_SCORE_CAVEAT`, and each item carries
 `is_estimated` and `is_supported`. Unsupported rows are returned by default —
 `?supported_only=true` filters them — because dropping them silently would hide
 the part of the output least worth trusting.
+
+They are two endpoints rather than one with a parameter because one returns a
+0–100 score and the other a 0–1 probability. A shared response shape would mean a
+shared field name for two different quantities; instead the fields are
+`estimated_overall_score` and `disagreement_probability`, and neither appears in
+the other's response.
+
+The risk endpoint also carries a caveat the score endpoint does not: **a
+probability is not a finding.** A high value means universities with similar QS
+profiles are often placed differently by THE — not that this university has been
+shown to be misranked.
+
+### A bug the second model exposed
+
+`v_ml_predictions_latest` holds the latest run per target, so adding the
+classifier put two quantities in one view. The existing query had no target
+filter: it would have returned 0–100 scores and 0–1 probabilities in one list
+sorted by value, burying every probability beneath every score and reporting a
+total that counted both. Both reads now filter on target, and the integration
+test seeds **both** fixtures so each endpoint has something to leak. Removing
+either filter turns that test red — checked, not assumed.
 
 ### A boundary check worth knowing about
 
@@ -447,8 +488,9 @@ fail is not a gate.
 
 ## Next
 
-1. Surfacing the disagreement classifier's probability through the serving path.
-   The tables are model-agnostic; only a second `predict` job is missing.
+1. A CI job that runs both serving jobs against a throwaway database, so the
+   write path is exercised rather than only the training path. The metrics gate
+   covers the models; nothing currently covers `predict.py`.
 2. Golden cases for unfaithfulness no rule can express — a caveat reproduced
    verbatim and then undercut by the next sentence, a true statement arranged to
    mislead. The judge measurement above is only informative once the dataset
