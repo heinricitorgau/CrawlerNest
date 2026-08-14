@@ -26,6 +26,10 @@ tmp/
 snapshots/
 snapshot_htmls/
 reports/
+# ...except the autoeval reports, which are curated evidence rather than runtime
+# dumps. Three of them were already tracked; this stops the next one from being
+# silently dropped.
+!crawlernest/crawlernest-autoeval/reports/
 backups/
 agent_debug_report.docx
 

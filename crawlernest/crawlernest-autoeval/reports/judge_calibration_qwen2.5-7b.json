@@ -1,0 +1,286 @@
+﻿{
+  "model": "qwen2.5:7b-instruct",
+  "cases": 34,
+  "mechanical_accuracy": 1.0,
+  "judge_accuracy": 0.7941,
+  "cohens_kappa_judge_vs_mechanical": 0.5882,
+  "unparseable_judge_replies": 0,
+  "caught_only_by_judge": [],
+  "judge_false_alarms_on_clean_text": [
+    "faith-015"
+  ],
+  "rows": [
+    {
+      "id": "faith-001",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence items and caveats supplied.",
+      "description": "Faithful recommendation explanation — every number from evidence, caveat reproduced verbatim"
+    },
+    {
+      "id": "faith-002",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "Invents global rank which is not supported by the evidence.",
+      "description": "Fabricated rank — the model states a rank that is not in the evidence"
+    },
+    {
+      "id": "faith-003",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": true,
+      "judge_reason": "The explanation does not invent any figures or institutions and accurately reflects the evidence provided.",
+      "description": "Dropped caveat — the data limitation is silently omitted"
+    },
+    {
+      "id": "faith-004",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": true,
+      "judge_reason": "The explanation does not invent any figures or institutions, and accurately reproduces all supplied caveats.",
+      "description": "Invented institution — a university that never appeared in the evidence"
+    },
+    {
+      "id": "faith-005",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the evidence without inventing figures or institutions, and does not drop any caveats.",
+      "description": "Faithful ranking explanation — list positions and counts are derivable from the evidence"
+    },
+    {
+      "id": "faith-006",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "Invents a matching score and rescales it to a percentage.",
+      "description": "Rescaled score — 0.82 restated as 82%; deliberately flagged as a silent transformation"
+    },
+    {
+      "id": "faith-007",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence and includes all caveats without softening.",
+      "description": "Faithful — two caveats, both reproduced verbatim"
+    },
+    {
+      "id": "faith-008",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation does not invent any institutions or figures and accurately reflects the evidence provided.",
+      "description": "Faithful — no numbers at all, so nothing can be fabricated"
+    },
+    {
+      "id": "faith-009",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence and does not include any invented figures or institutions.",
+      "description": "Faithful — decimal reproduced exactly as given"
+    },
+    {
+      "id": "faith-010",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the rankings provided in the evidence.",
+      "description": "Faithful — count of items stated, derivable from the evidence list length"
+    },
+    {
+      "id": "faith-011",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the ranks provided in the evidence.",
+      "description": "Faithful — ordinals written as words, not digits"
+    },
+    {
+      "id": "faith-012",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence provided.",
+      "description": "Faithful — year taken from the evidence"
+    },
+    {
+      "id": "faith-013",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence and includes all caveats.",
+      "description": "Faithful — number appears only inside a caveat string, and is quoted from there"
+    },
+    {
+      "id": "faith-014",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation does not invent any figures or institutions and accurately reflects the evidence provided.",
+      "description": "Faithful — rank band reproduced as published"
+    },
+    {
+      "id": "faith-015",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "The explanation invents an institution (National Taiwan University as a target) that is not directly supported by the evidence.",
+      "description": "Faithful — university named in nested profile evidence rather than in items"
+    },
+    {
+      "id": "faith-016",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence provided.",
+      "description": "Faithful — 'University of' form present in the evidence"
+    },
+    {
+      "id": "faith-017",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence and does not include any invented figures or institutions.",
+      "description": "Faithful — no caveats supplied, so none can be dropped"
+    },
+    {
+      "id": "faith-018",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence and there are no caveats to consider.",
+      "description": "Faithful — hyphenated institution name reproduced from the evidence"
+    },
+    {
+      "id": "faith-019",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "Invents a figure (0.91) not supported by the evidence.",
+      "description": "Fabricated score — a matching score that was never provided"
+    },
+    {
+      "id": "faith-020",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "The ranking year in the explanation is incorrect.",
+      "description": "Fabricated year — evidence carries 2026, the explanation claims 2024"
+    },
+    {
+      "id": "faith-021",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": true,
+      "judge_reason": "The explanation does not invent a figure or institution and is consistent with the evidence provided.",
+      "description": "Fabricated count — claims more rows than the evidence contains"
+    },
+    {
+      "id": "faith-022",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the difference between the ranks provided in the evidence.",
+      "description": "Derived arithmetic — the gap between two ranks is computed rather than quoted"
+    },
+    {
+      "id": "faith-023",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the evidence and includes all relevant caveats.",
+      "description": "Partial caveat reproduction — one of two caveats is dropped"
+    },
+    {
+      "id": "faith-024",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the evidence and includes the caveat.",
+      "description": "Paraphrased caveat — the meaning survives but the wording does not"
+    },
+    {
+      "id": "faith-025",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "drops a caveat by stating that some sources may not be fully represented yet, which is weaker than the original caveat.",
+      "description": "Softened caveat — the limitation is stated but weakened"
+    },
+    {
+      "id": "faith-026",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence and includes all caveats without softening.",
+      "description": "Caveat reproduced with different internal whitespace — normalisation should accept it"
+    },
+    {
+      "id": "faith-027",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "Invents the institution 'University of Atlantis'.",
+      "description": "Invented institution in 'University of' form"
+    },
+    {
+      "id": "faith-028",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "Invents institutions (Pacific Rim University and Northern Delta University) not supported by the evidence.",
+      "description": "Two invented institutions — both should be reported"
+    },
+    {
+      "id": "faith-029",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the ranks provided in the evidence without inventing or altering any information.",
+      "description": "Institution named from a different evidence row — supported, not invented"
+    },
+    {
+      "id": "faith-030",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "Invents a rank (12) and a score (0.95) not present in the evidence.",
+      "description": "Combined failure — fabricated number and dropped caveat"
+    },
+    {
+      "id": "faith-031",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "The explanation invents a figure (Pacific Rim University's rank) and does not mention the caveats related to the availability of ranks from different sources.",
+      "description": "Combined failure — all three violation kinds at once"
+    },
+    {
+      "id": "faith-032",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "No explanation provided to be audited.",
+      "description": "Empty explanation with a caveat outstanding — nothing reproduced"
+    },
+    {
+      "id": "faith-033",
+      "expected_faithful": false,
+      "mechanical": false,
+      "judge": false,
+      "judge_reason": "There are no evidence items provided to support the ranking of the institution.",
+      "description": "Empty evidence list — a stated rank cannot be supported by anything"
+    },
+    {
+      "id": "faith-034",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence and there are no caveats to consider.",
+      "description": "Trailing-zero variant — 68.0 quoted for an evidence value of 68"
+    }
+  ]
+}
