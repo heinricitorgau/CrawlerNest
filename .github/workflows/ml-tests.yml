@@ -85,3 +85,87 @@ jobs:
             echo
             echo "If this is a deliberate improvement, retrain locally and commit the updated files."
           fi
+
+  ml-serving:
+    name: serving write path (throwaway PostgreSQL)
+    runs-on: ubuntu-latest
+
+    # The training jobs above need no database. This one exists because the
+    # write path -- resolve names to canonical ids, insert a run, insert its
+    # predictions -- had no coverage at all: the metrics gate stops at the model.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: clawer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d clawer"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PYTHONPATH: crawlernest/crawlernest-ml
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-ml.txt
+
+      - name: Create the schema
+        run: |
+          python -m crawlernest.run_pipeline bootstrap-postgres \
+            --pg-user test --pg-password test --pg-database clawer
+
+      # The serving jobs resolve names against warehouse.canonical_university,
+      # which the pipeline normally fills by crawling. This fills it from the
+      # committed snapshot instead, so the write path can be exercised without a
+      # network round trip.
+      - name: Seed canonical universities from the snapshot
+        run: |
+          python -m ranking_ml.serving.seed_canonical_from_snapshot \
+            --pg-user test --pg-password test --pg-database clawer
+
+      - name: Write the overall-score estimates
+        run: |
+          python -m ranking_ml.serving.predict \
+            --pg-user test --pg-password test --pg-database clawer
+
+      - name: Write the disagreement probabilities
+        run: |
+          python -m ranking_ml.serving.predict_disagreement \
+            --pg-user test --pg-password test --pg-database clawer
+
+      # Exit 0 from the jobs above only means they did not crash. This checks the
+      # rows: both targets present, each value on the scale its target implies,
+      # disclosure columns intact, and nothing leaked into the published table.
+      - name: Verify what was written
+        run: |
+          python -m ranking_ml.serving.verify_predictions \
+            --pg-user test --pg-password test --pg-database clawer
+
+      # Re-running must replace cleanly rather than accumulate: the API reads
+      # "latest per target", so a second run that leaves both visible would show
+      # two models at once.
+      - name: Re-run both jobs and verify again
+        run: |
+          python -m ranking_ml.serving.predict \
+            --pg-user test --pg-password test --pg-database clawer
+          python -m ranking_ml.serving.predict_disagreement \
+            --pg-user test --pg-password test --pg-database clawer
+          python -m ranking_ml.serving.verify_predictions \
+            --pg-user test --pg-password test --pg-database clawer
