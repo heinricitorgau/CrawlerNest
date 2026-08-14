@@ -36,6 +36,12 @@ TARGETS = [
      REPO_ROOT / "crawlernest" / "pipeline" / "commands" / "admission.py"),
     ("crawlernest.pipeline.commands.ranking",
      REPO_ROOT / "crawlernest" / "pipeline" / "commands" / "ranking.py"),
+    ("crawlernest.pipeline.commands.canonical",
+     REPO_ROOT / "crawlernest" / "pipeline" / "commands" / "canonical.py"),
+    ("crawlernest.pipeline.utils.schema",
+     REPO_ROOT / "crawlernest" / "pipeline" / "utils" / "schema.py"),
+    ("crawlernest.pipeline.utils.postgres",
+     REPO_ROOT / "crawlernest" / "pipeline" / "utils" / "postgres.py"),
 ]
 
 FunctionNode = (ast.FunctionDef, ast.AsyncFunctionDef)
