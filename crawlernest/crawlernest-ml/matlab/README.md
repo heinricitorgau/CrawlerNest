@@ -125,9 +125,37 @@ give. The step runs in `.github/workflows/ml-tests.yml` and needs no MATLAB,
 because this side is committed output.
 
 **That is also its limit.** Editing a `.m` file without re-running it leaves the
-CSVs stale, and stale CSVs still match. **Re-run `run_qs_eda.m` and commit the
-regenerated `../artifacts/eda_matlab/` after any change here**, or the check
-silently guards nothing.
+CSVs stale, and stale CSVs still match. The check now asks git about the ordering
+as well — it fails if a `.m` was committed after the artifacts, or if one is
+modified in the working tree while the artifacts are not — so the sequence that
+produces a stale artifact is caught even though the sources are not re-executed.
+**Re-run `run_qs_eda.m` and commit the regenerated `../artifacts/eda_matlab/`
+after any change here.**
+
+### Why the sources are not re-executed in CI
+
+MathWorks' `setup-matlab` action runs MATLAB on GitHub-hosted runners without a
+licence **for public repositories only**. This repository is private, so CI would
+need an `MLM_LICENSE_TOKEN` from an entitled MathWorks account. That is a
+licensing decision, not an engineering one, and it is why the ordering guard
+exists instead.
+
+The sources were verified against the committed artifacts by hand on R2026a:
+re-running `run_qs_eda.m` reproduces all three CSVs **byte for byte**. Only the
+PNGs differ, in encoding rather than content, which is why the parity check
+compares numbers and not images.
+
+If the repository ever goes public, or a licence token is added as a secret, the
+step to add is:
+
+```yaml
+- uses: matlab-actions/setup-matlab@v2
+- uses: matlab-actions/run-command@v2
+  with:
+    command: cd crawlernest/crawlernest-ml/matlab; run_qs_eda
+```
+
+followed by a `git diff --exit-code` on `../artifacts/eda_matlab/*.csv`.
 
 ## What this does *not* cover
 

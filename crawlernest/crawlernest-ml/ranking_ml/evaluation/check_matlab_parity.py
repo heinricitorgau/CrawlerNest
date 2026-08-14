@@ -16,9 +16,13 @@ against a **fresh** Python run. So:
 
 - It catches the Python side drifting away from a verified reference.
 - It catches a MATLAB re-run that produces different numbers.
-- It does **not** catch someone editing the ``.m`` files and never re-running
-  them: the CSVs would simply go stale, and stale files still match. Guarding
-  that needs MATLAB on the runner, which is not a dependency worth adding here.
+- It cannot itself catch someone editing the ``.m`` files and never re-running
+  them, because stale CSVs still match. :func:`check_artifacts_are_current`
+  covers that separately, by asking git whether the sources moved after the
+  artifacts did. That is a weaker guarantee than re-executing the sources --
+  which needs MATLAB on the runner, and MathWorks' free GitHub-hosted MATLAB
+  covers public repositories only -- but it catches the failure that actually
+  happens.
 
 The tolerance is 1e-9. These are the same formulas over the same inputs, so
 agreement should be near machine precision; anything looser would let a genuine
@@ -28,6 +32,7 @@ methodological difference pass as rounding.
 from __future__ import annotations
 
 import argparse
+import subprocess
 from pathlib import Path
 
 import pandas as pd
@@ -47,6 +52,57 @@ COMPARISONS: dict[str, tuple[str, ...]] = {
     "covariate_shift.csv": ("labelled_mean", "unlabelled_mean", "standardised_gap"),
     "missingness.csv": ("missing", "missing_pct"),
 }
+
+
+def _git(*args: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(_REPO_ROOT), *args],
+        capture_output=True, text=True, check=True,
+    ).stdout.strip()
+
+
+def check_artifacts_are_current() -> list[str]:
+    """Did the ``.m`` sources move after the artifacts they produce?
+
+    The parity check reads committed CSVs, so editing a source and forgetting to
+    re-run it leaves a check that passes on stale files. Git can answer the
+    narrower question of ordering without MATLAB being installed:
+
+    - in history, is the newest commit touching ``matlab/*.m`` newer than the
+      newest commit touching ``artifacts/eda_matlab/``?
+    - in the working tree, is a source modified while the artifacts are not?
+
+    Neither proves the numbers still agree -- only re-running does that -- but
+    both catch the sequence that produces a silently stale artifact.
+    """
+    failures: list[str] = []
+    # Only the .m files produce artifacts. Watching the whole directory would
+    # fire on a README edit, and a check that cries wolf gets switched off.
+    sources = "crawlernest/crawlernest-ml/matlab/*.m"
+    artifacts = "crawlernest/crawlernest-ml/artifacts/eda_matlab"
+
+    source_time = _git("log", "-1", "--format=%ct", "--", sources)
+    artifact_time = _git("log", "-1", "--format=%ct", "--", artifacts)
+
+    if source_time and artifact_time and int(source_time) > int(artifact_time):
+        changed = _git("log", "-1", "--format=%h %s", "--", sources)
+        failures.append(
+            f"matlab/ was committed after artifacts/eda_matlab/ ({changed}). "
+            "Re-run run_qs_eda.m and commit the regenerated artifacts, or the "
+            "parity check is comparing against output the sources no longer produce."
+        )
+
+    dirty = _git("status", "--porcelain", "--", sources, artifacts).splitlines()
+    dirty_sources = [line for line in dirty if line[3:].endswith(".m")]
+    dirty_artifacts = [line for line in dirty if line[3:].startswith(artifacts)]
+    if dirty_sources and not dirty_artifacts:
+        names = ", ".join(line[3:].split("/")[-1] for line in dirty_sources)
+        failures.append(
+            f"uncommitted changes in matlab/ ({names}) with no corresponding change "
+            "in artifacts/eda_matlab/. Re-run run_qs_eda.m before committing."
+        )
+
+    return failures
 
 
 def python_tables() -> dict[str, pd.DataFrame]:
@@ -103,7 +159,9 @@ def main() -> int:
     matlab_dir = Path(args.matlab_dir)
     computed = python_tables()
 
-    failures: list[str] = []
+    failures: list[str] = check_artifacts_are_current()
+    print("### are the committed artifacts current with the .m sources?")
+    print("    " + ("stale -- see below" if failures else "yes"))
     for name, columns in COMPARISONS.items():
         matlab_path = matlab_dir / name
         if not matlab_path.is_file():
@@ -115,13 +173,15 @@ def main() -> int:
 
     print()
     if failures:
-        print(f"FAIL -- the two implementations disagree ({len(failures)} problem(s)):")
+        print(f"FAIL -- {len(failures)} problem(s):")
         for failure in failures:
             print(f"  - {failure}")
         print(
-            "\nOne of them is wrong. Check the missing-value handling first: both sides "
-            "must median-impute, and the medians must come from the same rows -- the "
-            "training set for the correlation table, all rows for the covariate shift."
+            "\nIf the numbers disagree, one implementation is wrong: check the "
+            "missing-value handling first, since both sides must median-impute and the "
+            "medians must come from the same rows -- the training set for the "
+            "correlation table, all rows for the covariate shift. If the artifacts are "
+            "stale, re-run run_qs_eda.m; nothing here re-executes MATLAB for you."
         )
         return 1
 
