@@ -1,0 +1,45 @@
+name: Python Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    # Weekly on Monday at 05:00 UTC. Scheduled as well as on-push because these
+    # tests have a history of failing with time: a cache fixture with a hardcoded
+    # timestamp aged past its TTL and went red for three months. A cron run
+    # catches that class of decay on a repository nobody is pushing to.
+    - cron: "0 5 * * 1"
+
+jobs:
+  python-tests:
+    name: crawlernest-tests (fixture mode — no live DB)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # The suite skips its PostgreSQL and live-HTTP tests unless opted into, so
+      # it needs no services. Everything else is fetcher, extractor and mocked
+      # ranking-API coverage.
+      - name: Run the test suite
+        run: python crawlernest/crawlernest-tests/run_tests.py
+
+      # These check the pipeline entry point and the modules extracted from it.
+      # They import every command module, so a move that dropped a dependency
+      # fails here rather than in a command a user happens to run.
+      - name: Pipeline name resolution
+        run: python scripts/check_pipeline_names.py

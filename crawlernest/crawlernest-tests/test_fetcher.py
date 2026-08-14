@@ -93,6 +93,14 @@ class TestUniversityFetcher(unittest.TestCase):
     def test_cached_resolution_is_preferred(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             cache_path = Path(tmpdir) / "resolution_cache.json"
+            # Freshly resolved. This used to be a hardcoded 2026-03-27, which put
+            # the entry outside the 30-day default TTL about a month after the
+            # test was written and turned a cache hit into an HTTP fallthrough.
+            resolved_at = (
+                datetime.datetime.now(datetime.timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z")
+            )
             cache_path.write_text(
                 json.dumps(
                     {
@@ -101,7 +109,7 @@ class TestUniversityFetcher(unittest.TestCase):
                                 "ranking_id": "3990755",
                                 "ranking_id_candidates": ["3990755"],
                                 "resolved_ranking_page_url": "https://www.topuniversities.com/europe-university-rankings",
-                                "resolved_at": "2026-03-27T00:00:00Z",
+                                "resolved_at": resolved_at,
                             }
                         }
                     }
@@ -114,6 +122,10 @@ class TestUniversityFetcher(unittest.TestCase):
             self.config.universe_key = "europe"
             self.config.ranking_page_url = "https://www.topuniversities.com/europe-university-rankings"
             self.config.resolution_cache_path = str(cache_path)
+            # This test is about the cache being preferred over HTTP, not about
+            # expiry, so state the TTL rather than inheriting whatever the Config
+            # default happens to be. TestResolutionCacheTTL covers expiry.
+            self.config.resolution_cache_ttl_seconds = 3600
 
             with patch.object(self.fetcher.session, "get") as mock_get:
                 nid = self.fetcher._ensure_ranking_id()
