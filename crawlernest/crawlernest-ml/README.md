@@ -456,9 +456,21 @@ knows which. Measured agreement:
 
 Machine precision, which is what the same formulas over the same inputs should
 give. The check needs no MATLAB on the runner, because the MATLAB side is
-committed output — which also bounds what it proves: it catches the Python side
-drifting, and a MATLAB re-run that changes numbers, but not someone editing the
-`.m` files and never re-running them. Stale CSVs still match.
+committed output.
+
+That bounds what it proves — stale CSVs still match — so it also asks git about
+ordering: it fails if a `.m` was committed after the artifacts, or is modified in
+the working tree while they are not. That does not re-execute the sources, but it
+catches the sequence that makes an artifact stale. Verified in both directions:
+clean tree passes, and editing `run_qs_eda.m` without regenerating fails with the
+instruction to re-run it.
+
+Re-executing the sources in CI needs MATLAB on the runner, and MathWorks' free
+GitHub-hosted MATLAB covers public repositories only; this one is private. The
+sources were instead verified by hand on R2026a: re-running `run_qs_eda.m`
+reproduces all three CSVs byte for byte, with only the PNGs differing in encoding.
+[`matlab/README.md`](matlab/README.md) records the workflow step to add if that
+ever becomes possible.
 
 **A second job, `ml-serving`,** runs the write path against a throwaway
 PostgreSQL: create the schema, seed canonical universities from the committed
@@ -512,8 +524,9 @@ fail is not a gate.
 
 ## Next
 
-1. MATLAB on a runner so the `.m` sources are re-executed rather than compared
-   against their committed output.
+1. Re-executing the MATLAB sources in CI, which needs either a public repository
+   or an `MLM_LICENSE_TOKEN`. The ordering guard covers the failure that
+   actually happens; this would close the remaining gap.
 2. Golden cases for unfaithfulness no rule can express — a caveat reproduced
    verbatim and then undercut by the next sentence, a true statement arranged to
    mislead. The judge measurement above is only informative once the dataset
