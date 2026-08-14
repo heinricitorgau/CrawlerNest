@@ -460,6 +460,30 @@ committed output — which also bounds what it proves: it catches the Python sid
 drifting, and a MATLAB re-run that changes numbers, but not someone editing the
 `.m` files and never re-running them. Stale CSVs still match.
 
+**A second job, `ml-serving`,** runs the write path against a throwaway
+PostgreSQL: create the schema, seed canonical universities from the committed
+snapshot, run both serving jobs, then check the rows. The metrics gate stops at
+the model, so before this the write path had no coverage at all.
+
+The row check is the part that earns its keep. Exiting 0 only means a job did not
+crash; `verify_predictions.py` asserts both targets are present, that each value
+sits on the scale its target implies — a 0–1 probability and a 0–100 score share
+a column, so a job writing to the wrong target shows up as a value in the wrong
+range — that the disclosure columns are intact, and that no estimate has reached
+`analytics.aggregated_rankings`. Both jobs are then run a second time and checked
+again, because the API reads "latest per target" and a re-run that left both
+visible would surface two models at once.
+
+Rehearsing this job locally found a bug the live database had been hiding. Four
+snapshot rows are named `N/A`; against a warehouse seeded one row per name they
+all resolved onto a single invented university and the insert aborted on a
+duplicate key, writing nothing. Two fixes: the seeder skips missing-data markers
+instead of creating an entity for them, and both serving jobs collapse to one row
+per canonical university before inserting. The second matters beyond this bug —
+real entity resolution merges variant spellings, which is why the warehouse holds
+1,499 canonical universities for 1,503 snapshot rows, and `ml_predictions` is
+unique on canonical id.
+
 **The metrics gate** then retrains both models and compares against the
 committed `artifacts/metrics/*.json`. A model has no compiler and no failing test
 to say it broke; without a gate, a change that quietly costs three points of AUC
@@ -488,9 +512,8 @@ fail is not a gate.
 
 ## Next
 
-1. A CI job that runs both serving jobs against a throwaway database, so the
-   write path is exercised rather than only the training path. The metrics gate
-   covers the models; nothing currently covers `predict.py`.
+1. MATLAB on a runner so the `.m` sources are re-executed rather than compared
+   against their committed output.
 2. Golden cases for unfaithfulness no rule can express — a caveat reproduced
    verbatim and then undercut by the next sentence, a true statement arranged to
    mislead. The judge measurement above is only informative once the dataset

@@ -46,7 +46,11 @@ from ranking_ml.features.build_features import DEFAULT_SNAPSHOT, load_feature_ma
 from ranking_ml.features.cross_source import build_cross_source_frame, disagreement_label
 from ranking_ml.features.schema import QS_INDICATORS
 from ranking_ml.models.support import SupportFlagger
-from ranking_ml.serving.predict import normalise_name, resolve_canonical_ids
+from ranking_ml.serving.predict import (
+    collapse_to_one_row_per_university,
+    normalise_name,
+    resolve_canonical_ids,
+)
 from ranking_ml.training.train_disagreement import RANDOM_STATE, build_classifiers
 
 MODEL_NAME = "qs_the_disagreement_classifier"
@@ -154,6 +158,11 @@ def main() -> int:
               f"({dropped_rows} rows dropped, {len(unresolved)} distinct names unmatched)")
         if unresolved:
             print(f"  unmatched names (first 5): {', '.join(unresolved[:5])}")
+
+        resolved, merged = collapse_to_one_row_per_university(resolved)
+        if merged:
+            print(f"  {merged} rows resolved onto a university already covered; "
+                  "kept the best-ranked spelling of each")
         if resolved.empty:
             print("ERROR nothing resolved; refusing to write an empty run", file=sys.stderr)
             return 1

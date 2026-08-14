@@ -61,6 +61,23 @@ def snapshot_version(path: Path) -> str:
     return f"qs{RANKING_YEAR}-{digest}"
 
 
+def collapse_to_one_row_per_university(frame: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Keep one prediction per canonical university, and say how many were dropped.
+
+    Entity resolution merges variant spellings, so several snapshot rows can
+    resolve to the same canonical university -- the warehouse holds 1,499 of them
+    for 1,503 snapshot rows. ``ml_predictions`` is unique on
+    ``(ml_run_id, canonical_university_id, ranking_year)``, so writing the
+    unmerged rows aborts the whole insert on a duplicate key.
+
+    The first row wins. The snapshot is ordered by published rank, so that is the
+    best-ranked spelling of the university rather than an arbitrary one.
+    """
+    before = len(frame)
+    deduped = frame.drop_duplicates(subset="canonical_university_id", keep="first")
+    return deduped, before - len(deduped)
+
+
 def resolve_canonical_ids(connection, names: pd.Series) -> tuple[pd.Series, list[str]]:
     """Map university names to canonical ids, reporting what did not resolve.
 
@@ -175,6 +192,9 @@ def main() -> int:
         # Rows and names are different counts and it matters which is reported:
         # several snapshot rows can share a name, and entity resolution merges
         # some names onto one canonical university.
+        # Rows and names are different counts and it matters which is reported:
+        # several snapshot rows can share a name, and entity resolution merges
+        # some names onto one canonical university.
         dropped_rows = len(frame) - len(resolved)
         print(
             f"\nresolved {len(resolved)} of {len(frame)} rows to canonical ids "
@@ -183,6 +203,11 @@ def main() -> int:
         if unresolved:
             preview = ", ".join(unresolved[:5])
             print(f"  unmatched names (first 5): {preview}")
+
+        resolved, merged = collapse_to_one_row_per_university(resolved)
+        if merged:
+            print(f"  {merged} rows resolved onto a university already covered; "
+                  "kept the best-ranked spelling of each")
 
         if resolved.empty:
             print("ERROR nothing resolved; refusing to write an empty run", file=sys.stderr)
