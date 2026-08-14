@@ -9,6 +9,7 @@ import datetime as dt
 import json
 import logging
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -29,9 +30,17 @@ except ModuleNotFoundError:  # pragma: no cover - package import compatibility
 
 
 try:
-    from pipeline.commands.admission import COMMANDS as _ADMISSION_COMMANDS
+    from pipeline.commands.admission import (
+        COMMANDS as _ADMISSION_COMMANDS,
+        _refresh_admission_resolution,
+        _write_admission_warehouse_preview,
+    )
 except ModuleNotFoundError:  # pragma: no cover - package import compatibility
-    from .pipeline.commands.admission import COMMANDS as _ADMISSION_COMMANDS
+    from .pipeline.commands.admission import (  # noqa: F401
+        COMMANDS as _ADMISSION_COMMANDS,
+        _refresh_admission_resolution,
+        _write_admission_warehouse_preview,
+    )
 
 
 REPO_ROOT, MODULE_ROOT = resolve_repo_paths(__file__)
