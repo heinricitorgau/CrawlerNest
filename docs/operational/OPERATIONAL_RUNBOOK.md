@@ -81,9 +81,20 @@ The smoke script checks:
 - Spring Boot compile
 - Next.js build
 - Python syntax for selected entry points
-- optional API endpoint checks when Spring Boot is reachable
+- pipeline health diagnostics, snapshot comparison, failure-state fixtures
 
-If API endpoint checks are skipped, start Spring Boot and rerun the script when endpoint coverage is required.
+It starts no services and checks no endpoints. It used to end with API checks
+that skipped themselves whenever Spring Boot was unreachable, which meant a pass
+implied a working API nothing had touched.
+
+For endpoint coverage, start Spring Boot and run the checks directly:
+
+```bash
+bash scripts/smoke_api_endpoints.sh
+```
+
+CI runs that script in the `Analytics bridge smoke` job, against a server the
+job starts, so it cannot skip there.
 
 ## Local Stack Smoke
 

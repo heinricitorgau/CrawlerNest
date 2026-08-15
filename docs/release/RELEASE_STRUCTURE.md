@@ -256,9 +256,10 @@ Output of `scripts/smoke_release.sh` captured at bundle creation time. Contains 
 5. Pipeline health diagnostics (readonly)
 6. Snapshot comparison validation (readonly fixtures)
 7. Failure-state fixture validation (readonly fixtures)
-8. API endpoint checks (skipped if Spring Boot is not running)
 
 A `Release smoke passed.` line at the end confirms the build artifact chain is intact. This is the same script run by CI (`release-smoke.yml`).
+
+The script starts no services and checks no endpoints. It previously ended with an eighth step of API endpoint checks that skipped whenever Spring Boot was unreachable — which nothing running the script starts — so a pass implied API coverage that had never run. Those checks are now `scripts/smoke_api_endpoints.sh`, executed by the `Analytics bridge smoke` CI job against a server that job starts. Bundles captured before that change show `[n/8]` and a skipped step 8.
 
 ---
 

@@ -125,7 +125,8 @@ kept per release milestone.
 
 | Artifact | Purpose | Producer Script | Readonly Status | Expected Frequency | Consumed By | Operational Importance |
 | --- | --- | --- | --- | --- | --- | --- |
-| `scripts/smoke_release.sh` output | Build, syntax, fixture, diagnostics, and optional API endpoint smoke. | `scripts/smoke_release.sh` | Build/read checks only; no pipeline mutation. | Before release or bundle build. | bundle, CI, humans. | High. |
+| `scripts/smoke_release.sh` output | Build, syntax, fixture, and diagnostics smoke. No services, no endpoints. | `scripts/smoke_release.sh` | Build/read checks only; no pipeline mutation. | Before release or bundle build. | bundle, CI, humans. | High. |
+| `scripts/smoke_api_endpoints.sh` output | Endpoint liveness and `postgres_connected`, against a running API. | `scripts/smoke_api_endpoints.sh` | Read-only HTTP checks. | In CI's `Analytics bridge smoke` job; locally with Spring Boot up. | CI, humans. | High. |
 | `scripts/smoke_local_stack.sh` output | Local stack reachability and UI/API smoke. | `scripts/smoke_local_stack.sh` | GET checks only. | While running local services. | operators. | Medium-high. |
 
 Retention expectation: capture release smoke in bundle; local stack smoke is

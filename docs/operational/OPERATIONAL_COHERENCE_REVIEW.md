@@ -58,7 +58,7 @@ The three primary pre-release artifacts are coherent:
 | --- | --- | --- |
 | `operational_trust_summary.md` | Confidence rollup | Maintenance readiness, caveats, freshness, snapshot |
 | `demo_caveats.md` | Presenter obligations | Freshness escalation, operational summary, snapshot |
-| `smoke_release_output.txt` | Build/runtime health | Runtime services, API endpoints |
+| `smoke_release_output.txt` | Build health | Build artefacts and readonly fixtures (no services, no endpoints) |
 
 These three artifacts answer different questions and do not duplicate each
 other's conclusions. They are also the only three artifacts classified as

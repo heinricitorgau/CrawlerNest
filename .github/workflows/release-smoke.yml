@@ -41,9 +41,8 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x crawlernest/servise_for_java/mvnw
 
-      # Step 8 (API endpoint checks) skips itself when Spring Boot is not
-      # reachable, and this job does not start one, so it skips here. Those
-      # checks run in the analytics-bridge job below, against a live server.
+      # Build artefacts only — this job starts no services and checks no
+      # endpoints. The API checks live in the analytics-bridge job below.
       - name: Run smoke_release.sh
         run: bash scripts/smoke_release.sh
 
