@@ -575,10 +575,12 @@ fail is not a gate.
 
 ## Next
 
-1. Alerting on the counters. `GET /api/v1/agent/stats` now serves them with the
-   two rates worth watching, but reading it is still a person's job — nothing
-   polls it and nothing raises anything. The counters are also process-local, so
-   a deployment with more than one agent worker sees a fraction of the picture.
+1. Aggregating across workers. A configured judge that stops answering now logs a
+   warning after five consecutive no-opinion replies, so that failure speaks
+   without being asked — but the counters behind `GET /api/v1/agent/stats` are
+   process-local, so a deployment with more than one agent worker sees a fraction
+   of the picture from any single one. A judge flagging everything still has no
+   equivalent alarm: unlike silence, it is at least visible in the responses.
 2. Re-executing the MATLAB sources in CI, which needs either a public repository
    or an `MLM_LICENSE_TOKEN`. The ordering guard covers the failure that
    actually happens; this would close the remaining gap.

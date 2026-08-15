@@ -27,6 +27,8 @@ what the rules alone would have produced.
 
 from __future__ import annotations
 
+import logging
+import os
 import threading
 from dataclasses import dataclass, field
 from typing import Any
@@ -93,6 +95,59 @@ def _record(*outcomes: str) -> None:
             _verification_stats[outcome] = _verification_stats.get(outcome, 0) + 1
 
 
+_LOG = logging.getLogger("CrawlerNest.agent.verification")
+
+# A configured judge that answers nothing is the failure worth saying out loud,
+# because it is the one that leaves no trace in the responses: every explanation
+# still reads fine. Serving the count at /api/v1/agent/stats only helps someone
+# who looks. This says it where logs already go.
+#
+# Threshold rather than every occurrence: one timeout is weather, a run of them
+# is a broken endpoint, and a warning per request would be noise nobody reads --
+# which is the failure mode this whole layer keeps running into.
+_DARK_JUDGE_THRESHOLD = int(os.getenv("WEB_AGENT_JUDGE_DARK_THRESHOLD", "5") or 5)
+_consecutive_no_opinion = 0
+_dark_judge_reported = False
+
+
+def _note_judge_answered() -> None:
+    """A real verdict: reset the streak, and say so if it had been reported."""
+    global _consecutive_no_opinion, _dark_judge_reported
+    with _stats_lock:
+        recovered = _dark_judge_reported
+        _consecutive_no_opinion = 0
+        _dark_judge_reported = False
+    if recovered:
+        _LOG.info("Judge is answering again after a run of no-opinion replies.")
+
+
+def _note_judge_silent(judge: LlmJudge) -> None:
+    global _consecutive_no_opinion, _dark_judge_reported
+    with _stats_lock:
+        _consecutive_no_opinion += 1
+        streak = _consecutive_no_opinion
+        should_report = streak >= _DARK_JUDGE_THRESHOLD and not _dark_judge_reported
+        if should_report:
+            _dark_judge_reported = True
+    if should_report:
+        _LOG.warning(
+            "Judge configured at %s (model %s) has returned no opinion %d times in a row. "
+            "Explanations are being verified by the rules alone; nothing in the responses "
+            "shows this.",
+            judge.base_url or "<unset>",
+            judge.model_name,
+            streak,
+        )
+
+
+def reset_judge_health() -> None:
+    """Clear the streak state (mainly for tests)."""
+    global _consecutive_no_opinion, _dark_judge_reported
+    with _stats_lock:
+        _consecutive_no_opinion = 0
+        _dark_judge_reported = False
+
+
 @dataclass(frozen=True)
 class VerificationOutcome:
     action: str
@@ -143,10 +198,13 @@ def verify_explanation(
         )
         if verdict is None:
             _record("judge_no_opinion")
+            _note_judge_silent(judge)
         elif verdict.faithful:
             _record("judge_agreed")
+            _note_judge_answered()
         else:
             _record("judge_flagged")
+            _note_judge_answered()
 
     if verdict is not None and not verdict.faithful:
         _record(KEEP_WITH_WARNING)

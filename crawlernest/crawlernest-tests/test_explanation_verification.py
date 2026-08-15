@@ -20,6 +20,7 @@ from crawlernest.agent.web_agent.generation.verification import (
     KEEP,
     KEEP_WITH_WARNING,
     USE_FALLBACK,
+    reset_judge_health,
     reset_verification_stats,
     verification_stats,
     verify_explanation,
@@ -180,6 +181,58 @@ class TestVerificationStats(unittest.TestCase):
         verify_explanation(explanation=_FAITHFUL, items=_ITEMS, caveats=_CAVEATS)
         reset_verification_stats()
         self.assertEqual(set(verification_stats().values()), {0})
+
+
+class TestDarkJudgeWarning(unittest.TestCase):
+    """A configured judge answering nothing leaves no trace in the responses.
+
+    Every explanation still reads fine, the rules still run, and the only sign is
+    a counter nobody is watching. This is the part that speaks without being
+    asked.
+    """
+
+    def setUp(self) -> None:
+        reset_verification_stats()
+        reset_judge_health()
+
+    def _run(self, judge, times: int):
+        for _ in range(times):
+            verify_explanation(
+                explanation=_FAITHFUL, items=_ITEMS, caveats=_CAVEATS, judge=judge
+            )
+
+    def test_one_silent_reply_is_weather_and_stays_quiet(self):
+        with self.assertNoLogs("CrawlerNest.agent.verification", level="WARNING"):
+            self._run(StubJudge(None), 4)
+
+    def test_a_run_of_silence_is_reported_once(self):
+        judge = StubJudge(None)
+        with self.assertLogs("CrawlerNest.agent.verification", level="WARNING") as captured:
+            self._run(judge, 5)
+        self.assertEqual(len(captured.records), 1)
+        self.assertIn("no opinion 5 times in a row", captured.output[0])
+        self.assertIn("rules alone", captured.output[0])
+
+        # Still broken, still silent: a warning per request is noise nobody reads.
+        with self.assertNoLogs("CrawlerNest.agent.verification", level="WARNING"):
+            self._run(judge, 10)
+
+    def test_recovery_is_announced_so_the_warning_can_be_closed(self):
+        self._run(StubJudge(None), 5)
+        healthy = StubJudge(JudgeVerdict(faithful=True, reason="ok", model_name="stub"))
+        with self.assertLogs("CrawlerNest.agent.verification", level="INFO") as captured:
+            self._run(healthy, 1)
+        self.assertIn("answering again", captured.output[0])
+
+    def test_an_intermittent_judge_does_not_trip_the_threshold(self):
+        """Alternating success and failure is not a dark endpoint."""
+        silent, healthy = StubJudge(None), StubJudge(
+            JudgeVerdict(faithful=True, reason="ok", model_name="stub")
+        )
+        with self.assertNoLogs("CrawlerNest.agent.verification", level="WARNING"):
+            for _ in range(10):
+                self._run(silent, 2)
+                self._run(healthy, 1)
 
 
 class TestJudgeClient(unittest.TestCase):
