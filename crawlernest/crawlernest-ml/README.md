@@ -612,12 +612,24 @@ catches the sequence that makes an artifact stale. Verified in both directions:
 clean tree passes, and editing `run_qs_eda.m` without regenerating fails with the
 instruction to re-run it.
 
-Re-executing the sources in CI needs MATLAB on the runner, and MathWorks' free
-GitHub-hosted MATLAB covers public repositories only; this one is private. The
-sources were instead verified by hand on R2026a: re-running `run_qs_eda.m`
-reproduces all three CSVs byte for byte, with only the PNGs differing in encoding.
-[`matlab/README.md`](matlab/README.md) records the workflow step to add if that
-ever becomes possible.
+**Since the repository became public**, that last gap is closed. MathWorks' free
+GitHub-hosted MATLAB covers public repositories, so a third job,
+`matlab-reexecution`, installs MATLAB with the Statistics and Machine Learning
+Toolbox — `run_qs_eda.m` calls `pca` and `corr` — runs the sources into a scratch
+directory, and checks the result twice:
+
+- `--matlab-dir` points at the fresh output, so the Python comparison above is
+  now against sources that just executed rather than against committed CSVs.
+- `--committed-dir` compares fresh against committed, asserting directly that the
+  sources still produce what is in the repository. That is the statement the
+  git-ordering guard could only approximate.
+
+The ordering guard stays anyway: it runs in the fast job on every push and needs
+no MATLAB.
+
+Before this the sources were verified by hand on R2026a — re-running
+`run_qs_eda.m` reproduced all three CSVs byte for byte, with only the PNGs
+differing in encoding.
 
 **A second job, `ml-serving`,** runs the write path against a throwaway
 PostgreSQL: create the schema, seed canonical universities from the committed
@@ -671,14 +683,7 @@ fail is not a gate.
 
 ## Next
 
-1. Re-executing the MATLAB sources in CI, which needs either a public repository
-   or an `MLM_LICENSE_TOKEN`. The ordering guard covers the failure that actually
-   happens — a `.m` edited without regenerating its artifacts — so what remains
-   is the narrower case of the sources changing meaning while still producing
-   output that matches. Until then, re-run `run_qs_eda.m` by hand after editing
-   it.
-
-2. **Nineteen hand-written cases is a thin basis for a claim about a whole class
+1. **Nineteen hand-written cases is a thin basis for a claim about a whole class
    of failure.** The provenance checker was built against six of them and catches
    all six, so the union reaching 1.000 says the dataset has been exhausted, not
    that the class has. It is not evidence of generalisation to provenance
@@ -686,7 +691,7 @@ fail is not a gate.
    the structured half of each check is general, the textual half is not, and a
    model wording the same lie differently would get past it.
 
-3. **The ordering check is only as closed as the vocabulary.** It rests on QS
+2. **The ordering check is only as closed as the vocabulary.** It rests on QS
    publishing nine indicators and no more. Adding THE or ARWU, whose indicator
    sets differ, means extending `_DIMENSIONS` — the drift test catches a renamed
    QS indicator but cannot know about a source that is not implemented yet.

@@ -45,7 +45,9 @@ jobs:
       # Two implementations that disagree are not a redundancy, they are a bug
       # in one of them and nobody knows which. This compares the committed
       # MATLAB artifacts against a fresh Python run at 1e-9. It needs no MATLAB
-      # on the runner, because the MATLAB side is committed output.
+      # on the runner, because the MATLAB side is committed output -- which is
+      # also its limit, and why the matlab-reexecution job below exists. Kept
+      # here because it is fast and catches Python-side drift on every push.
       - name: MATLAB port parity
         env:
           PYTHONPATH: crawlernest/crawlernest-ml
@@ -181,3 +183,68 @@ jobs:
             --pg-user test --pg-password test --pg-database clawer
           python -m ranking_ml.serving.verify_predictions \
             --pg-user test --pg-password test --pg-database clawer
+
+  matlab-reexecution:
+    name: MATLAB sources re-executed (public-repo runner)
+    runs-on: ubuntu-latest
+
+    # Until the repository was public this could not exist: MathWorks' free
+    # GitHub-hosted MATLAB covers public repositories only, so CI could compare
+    # the *committed* MATLAB output against Python but never re-run the sources
+    # that produced it. The gap that left is narrow and real -- edit a .m file,
+    # do not re-run it, and the parity check happily compares against output the
+    # sources no longer produce. check_artifacts_are_current asks git about
+    # commit ordering, which catches the ordinary mistake but proves nothing
+    # about the numbers.
+    #
+    # This job closes it by executing the sources and comparing what they
+    # produce, both against Python and against what is committed.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # The freshness guard inside check_matlab_parity reports "cannot tell"
+          # on a shallow clone rather than passing quietly.
+          fetch-depth: 0
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          # run_qs_eda.m calls pca and corr; both are Statistics and Machine
+          # Learning Toolbox, not base MATLAB.
+          products: Statistics_and_Machine_Learning_Toolbox
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-ml.txt
+
+      # Writes to a scratch directory, never over the committed artifacts, so
+      # the comparison below has two independent things to compare.
+      - name: Re-run run_qs_eda.m
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            addpath("crawlernest/crawlernest-ml/matlab");
+            run_qs_eda(OutDir="/tmp/eda_matlab_fresh");
+
+      - name: Show what MATLAB produced
+        run: ls -l /tmp/eda_matlab_fresh
+
+      # --matlab-dir is the run that just happened, so the Python comparison is
+      # against freshly executed sources rather than committed CSVs.
+      # --committed-dir additionally asserts the two agree, which is the
+      # statement the git-ordering guard could only approximate.
+      - name: Parity against freshly executed sources
+        env:
+          PYTHONPATH: crawlernest/crawlernest-ml
+        run: |
+          python -m ranking_ml.evaluation.check_matlab_parity \
+            --matlab-dir /tmp/eda_matlab_fresh \
+            --committed-dir crawlernest/crawlernest-ml/artifacts/eda_matlab
