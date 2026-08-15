@@ -332,34 +332,65 @@ prompt — `provenance.py`. Each one compares a field the pipeline already write
 against a phrase pattern: `isEstimated` against a figure credited to a ranking
 body, a null in `sourceRanks` against a claim that the source declines to rank,
 a coverage caveat against language blaming the university, an ingestion
-timestamp against an assertion of currency, and any claim about what lies
-outside the supplied rows. A mechanical signal fits what these failures are —
-each is a mismatch with a known field, not a judgement call — and it keeps the
-precision that lets a signal act rather than merely warn.
+timestamp against an assertion of currency, a ranking claim against the
+dimensions the evidence actually carries, and any claim about what lies outside
+the supplied rows. A mechanical signal fits what these failures are — each is a
+mismatch with a known field, not a judgement call — and it keeps the precision
+that lets a signal act rather than merely warn.
 
 | | Recall | False alarms |
 |---|---:|---:|
 | Rules only | 0.472 | 0 |
-| Provenance only | 0.139 | 0 |
-| Rules + provenance | 0.611 | 0 |
+| Provenance only | 0.167 | 0 |
+| Rules + provenance | 0.639 | 0 |
 | Rules + judge | 0.833 | 1 |
-| **All three** | **0.972** | 1 |
+| **All three** | **1.000** | 1 |
 
-**The remaining miss is `faith-108`**, the superlative on a dimension the
-evidence does not rank — the one case of the six deliberately left out. Catching
-it needs to know which dimensions *are* ranked, and every pattern that catches
-"the better choice for international students" also catches ordinary comparative
-prose. Five checks with no false positives are worth more than six with some:
-precision is the entire reason this layer exists alongside the judge rather than
-instead of it, and a rule that fires on clean text spends exactly that.
+**Read that 1.000 as saturation of the measuring instrument, not as a claim
+about unfaithfulness in general.** Nineteen of these cases were written to
+characterise gaps in the first two signals, and the sixth check was then built
+against six of them. A dataset cannot both define a target and independently
+confirm it was hit. What the number does support is narrower and still worth
+having: no failure mode identified so far escapes all three signals, and the two
+mechanical ones reached 0.639 without a single false alarm.
+
+### The ordering check, and a reversed judgement
+
+The sixth check nearly did not exist. A superlative on a dimension the evidence
+does not rank looked undecidable — it needs to know which dimensions *are*
+ranked, and a pattern catching "the better choice for international students"
+also catches ordinary comparative prose.
+
+That was wrong, and the reason is in `schema.py`: **the dimension vocabulary is
+closed.** QS publishes nine indicators and no more, so "for international
+students" resolves to a named column, and whether that column is in the evidence
+is a fact about the item keys. Add `internationalStudentRatio` to the rows and
+the check goes quiet. An ordering claim over a criterion outside that vocabulary
+is left alone — guessing there is where false positives would come from.
+
+`provenance.py` restates the vocabulary instead of importing it, because
+`crawlernest-ml` is not on the agent's import path. `test_provenance` loads
+`schema.py` by file path and asserts the two agree in both directions, so a
+renamed indicator fails a test rather than silently leaving a dimension
+unwatched. That guard was checked by breaking it: dropping an indicator and
+inventing one each turn it red.
 
 Each check is tested against its own negative: the same sentence with the
-structured field flipped, asserting the check goes quiet. Four of the five are
-gated that way. The fifth — completeness — has no gate by design, because the
-evidence is always a page of results, so a claim about what lies outside it is
-never supportable whatever the fields say. What that check must not do is catch
-the *scoped* version ("all 3 universities on this page"), which is both common
-and true, and that has its own test.
+structured field flipped, asserting the check goes quiet. Five of the six are
+gated that way. The exception — completeness — has no gate by design, because
+the evidence is always a page of results, so a claim about what lies outside it
+is never supportable whatever the fields say.
+
+The negatives matter more than the positives here, and the golden set cannot
+supply them: it holds exactly **one** faithful comparative case, so it could not
+tell a working ordering check from one that fires on every comparison. Those
+negatives are written in the test file instead — a bare rank comparison, a
+superlative with no criterion, "ranked in the top 100", a dimension named
+without being ranked on, a scoped claim ("all 3 universities on this page"), and
+an unrecognised criterion. One of them found a real defect: a 60-character
+lookback reached across a sentence boundary and read "NTU is the best on rank. A
+separate note: policies for international students vary…" as an ordering claim.
+The window is now clipped at the nearest clause break.
 
 Because both mechanical signals now discard the model's text, `/api/v1/agent/stats`
 counts them apart — `rules_flag_rate` and `provenance_flag_rate` alongside
@@ -649,13 +680,16 @@ fail is not a gate.
 
 2. **Nineteen hand-written cases is a thin basis for a claim about a whole class
    of failure.** The provenance checker was built against six of them and catches
-   five, which is the strongest statement the dataset supports — it is not
-   evidence that it generalises to provenance failures nobody has written down.
-   Five phrase patterns are also five phrasings; the structured half of each
-   check is general, the textual half is not.
+   all six, so the union reaching 1.000 says the dataset has been exhausted, not
+   that the class has. It is not evidence of generalisation to provenance
+   failures nobody has written down. Six phrase patterns are also six phrasings:
+   the structured half of each check is general, the textual half is not, and a
+   model wording the same lie differently would get past it.
 
-3. **`faith-108` is uncaught by all three signals** — see above for why it was
-   left out rather than approximated.
+3. **The ordering check is only as closed as the vocabulary.** It rests on QS
+   publishing nine indicators and no more. Adding THE or ARWU, whose indicator
+   sets differ, means extending `_DIMENSIONS` — the drift test catches a renamed
+   QS indicator but cannot know about a source that is not implemented yet.
 
 These are honest limits rather than a backlog. The judge is wired in as a second
 signal; its two failure modes announce themselves on stdout — silence after five
