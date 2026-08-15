@@ -204,40 +204,19 @@ if [[ "${reach_status}" == "200" ]]; then
   api_reachable=true
 fi
 
+# The checks themselves live in scripts/smoke_api_endpoints.sh so that CI and a
+# developer's laptop run the same ones. Skipping here is a local convenience --
+# not everybody has the server up. CI runs that script directly, after waiting
+# for /health, where an unreachable API is a failure rather than a skip.
 if ! ${api_reachable}; then
   skip "Spring Boot not reachable at ${API_BASE} — start it to run endpoint checks"
 else
-  check_endpoint() {
-    local label="$1"
-    local url="$2"
-    local status
-    status="$(curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 5 "${url}" 2>/dev/null || true)"
-    if [[ "${status}" == "200" ]]; then
-      ok "${label}: HTTP 200"
-    else
-      fail "${label}: expected 200, got ${status}"
-    fi
-  }
-
-  check_endpoint "/api/v1/health"               "${API_BASE}/api/v1/health"
-  check_endpoint "/api/v1/freshness"            "${API_BASE}/api/v1/freshness"
-  check_endpoint "/api/v1/diagnostics/rankings" "${API_BASE}/api/v1/diagnostics/rankings"
-  check_endpoint "/api/v1/diagnostics/subjects" "${API_BASE}/api/v1/diagnostics/subjects"
-
-  # Verify postgres_connected in health response
-  health_pg="$(curl -sS --connect-timeout 5 "${API_BASE}/api/v1/health" 2>/dev/null | \
-    python3 -c "
-import json, sys
-try:
-    d = json.load(sys.stdin)
-    print('true' if d.get('data', {}).get('postgres_connected') else 'false')
-except Exception:
-    print('false')
-" 2>/dev/null || echo 'false')"
-  if [[ "${health_pg}" == "true" ]]; then
-    ok "/api/v1/health: postgres_connected=true"
+  endpoint_out="$(API_BASE="${API_BASE}" bash "${ROOT_DIR}/scripts/smoke_api_endpoints.sh" 2>&1)" && rc=0 || rc=$?
+  echo "${endpoint_out}"
+  if [[ ${rc} -eq 0 ]]; then
+    ok "API endpoint checks passed"
   else
-    fail "/api/v1/health: postgres_connected is not true"
+    fail "API endpoint checks failed"
   fi
 fi
 
