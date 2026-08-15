@@ -575,20 +575,19 @@ fail is not a gate.
 
 ## Next
 
-1. Aggregating across workers. A configured judge that stops answering now logs a
-   warning after five consecutive no-opinion replies, so that failure speaks
-   without being asked — but the counters behind `GET /api/v1/agent/stats` are
-   process-local, so a deployment with more than one agent worker sees a fraction
-   of the picture from any single one. A judge flagging everything still has no
-   equivalent alarm: unlike silence, it is at least visible in the responses.
-2. Re-executing the MATLAB sources in CI, which needs either a public repository
-   or an `MLM_LICENSE_TOKEN`. The ordering guard covers the failure that
-   actually happens; this would close the remaining gap.
-2. Wiring the judge in as a second signal, now that the measurement supports it.
-   The rules stay authoritative for the violations they define and keep perfect
-   precision; the judge covers the class they cannot reach. It needs a reachable
-   model, a latency budget, and a decision about what a disagreement between the
-   two should do to a response.
-3. Putting MATLAB on a runner so the `.m` sources are re-executed rather than
-   compared against their committed output. Until then, re-run `run_qs_eda.m`
-   by hand after editing it, or the parity check passes on stale CSVs.
+1. Re-executing the MATLAB sources in CI, which needs either a public repository
+   or an `MLM_LICENSE_TOKEN`. The ordering guard covers the failure that actually
+   happens — a `.m` edited without regenerating its artifacts — so what remains
+   is the narrower case of the sources changing meaning while still producing
+   output that matches. Until then, re-run `run_qs_eda.m` by hand after editing
+   it.
+
+2. Widening the golden set. Eleven hand-written cases is a thin basis for a claim
+   about a whole class of failure, and the judge's 0.714 recall rests on them.
+
+Both are honest limits rather than a backlog. The judge is wired in as a second
+signal; its two failure modes announce themselves on stdout — silence after five
+consecutive no-opinion replies, objections after ten in a row, each reported once
+per episode with recovery logged so the warning can be closed. The counters
+behind `GET /api/v1/agent/stats` are process-local, which is the whole picture
+for a single-worker deployment and a fraction of it for anything larger.
