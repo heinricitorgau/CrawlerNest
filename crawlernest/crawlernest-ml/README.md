@@ -325,6 +325,47 @@ So the recommendation reverses: **adopt the judge as a second signal, never as a
 replacement.** The rules keep perfect precision and must stay authoritative for
 the violations they define; the judge covers a class they provably cannot reach.
 
+### The third signal: provenance, absence, completeness
+
+That specification was then built, as structured checks rather than a second
+prompt — `provenance.py`. Each one compares a field the pipeline already writes
+against a phrase pattern: `isEstimated` against a figure credited to a ranking
+body, a null in `sourceRanks` against a claim that the source declines to rank,
+a coverage caveat against language blaming the university, an ingestion
+timestamp against an assertion of currency, and any claim about what lies
+outside the supplied rows. A mechanical signal fits what these failures are —
+each is a mismatch with a known field, not a judgement call — and it keeps the
+precision that lets a signal act rather than merely warn.
+
+| | Recall | False alarms |
+|---|---:|---:|
+| Rules only | 0.472 | 0 |
+| Provenance only | 0.139 | 0 |
+| Rules + provenance | 0.611 | 0 |
+| Rules + judge | 0.833 | 1 |
+| **All three** | **0.972** | 1 |
+
+**The remaining miss is `faith-108`**, the superlative on a dimension the
+evidence does not rank — the one case of the six deliberately left out. Catching
+it needs to know which dimensions *are* ranked, and every pattern that catches
+"the better choice for international students" also catches ordinary comparative
+prose. Five checks with no false positives are worth more than six with some:
+precision is the entire reason this layer exists alongside the judge rather than
+instead of it, and a rule that fires on clean text spends exactly that.
+
+Each check is tested against its own negative: the same sentence with the
+structured field flipped, asserting the check goes quiet. Four of the five are
+gated that way. The fifth — completeness — has no gate by design, because the
+evidence is always a page of results, so a claim about what lies outside it is
+never supportable whatever the fields say. What that check must not do is catch
+the *scoped* version ("all 3 universities on this page"), which is both common
+and true, and that has its own test.
+
+Because both mechanical signals now discard the model's text, `/api/v1/agent/stats`
+counts them apart — `rules_flag_rate` and `provenance_flag_rate` alongside
+`mechanical_rejection_rate`. A signal that never fires is worth noticing, and a
+combined number would hide it.
+
 That is now wired in, and it turned out the checker itself never had been: it was
 scored in CI every run and never consulted at generation time, so a violation was
 measured rather than stopped. `generation/verification.py` sits between the model
@@ -606,13 +647,17 @@ fail is not a gate.
    output that matches. Until then, re-run `run_qs_eda.m` by hand after editing
    it.
 
-2. A third signal for provenance, absence and completeness — the class the judge
-   demonstrably does not reach. The six cases it misses say what such a check
-   would have to answer: where did this figure come from, how old is it, and what
-   is missing from the evidence rather than from the world. Nineteen hand-written
-   cases is still a thin basis for a claim about a whole class of failure.
+2. **Nineteen hand-written cases is a thin basis for a claim about a whole class
+   of failure.** The provenance checker was built against six of them and catches
+   five, which is the strongest statement the dataset supports — it is not
+   evidence that it generalises to provenance failures nobody has written down.
+   Five phrase patterns are also five phrasings; the structured half of each
+   check is general, the textual half is not.
 
-Both are honest limits rather than a backlog. The judge is wired in as a second
+3. **`faith-108` is uncaught by all three signals** — see above for why it was
+   left out rather than approximated.
+
+These are honest limits rather than a backlog. The judge is wired in as a second
 signal; its two failure modes announce themselves on stdout — silence after five
 consecutive no-opinion replies, objections after ten in a row, each reported once
 per episode with recovery logged so the warning can be closed. The counters

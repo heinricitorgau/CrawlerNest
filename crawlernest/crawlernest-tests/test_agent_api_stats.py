@@ -59,7 +59,7 @@ class TestStatsPayload(unittest.TestCase):
         signals = payload["signals"]
 
         self.assertEqual(signals["explanations_verified"], 0)
-        self.assertIsNone(signals["rules_rejection_rate"])
+        self.assertIsNone(signals["mechanical_rejection_rate"])
         self.assertIsNone(signals["judge_flag_rate"])
         self.assertTrue(any("has not been consulted" in c for c in payload["caveats"]))
 
@@ -91,7 +91,7 @@ class TestStatsPayload(unittest.TestCase):
 
         signals = build_stats_payload()["signals"]
         self.assertEqual(signals["explanations_verified"], 2)
-        self.assertEqual(signals["rules_rejection_rate"], 0.5)
+        self.assertEqual(signals["mechanical_rejection_rate"], 0.5)
         self.assertEqual(signals["judge_consulted"], 1)
         self.assertEqual(signals["judge_flag_rate"], 1.0)
 
