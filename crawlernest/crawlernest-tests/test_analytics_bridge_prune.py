@@ -34,6 +34,12 @@ if REPO_ROOT not in sys.path:
 #: and anything left in the scope is by definition superseded.
 ISOLATED_YEAR = 1900
 
+#: The test creates its own university rather than borrowing whichever row
+#: happens to be first. Reading an existing one meant skipping on an empty
+#: database -- which is exactly what CI has, so the test would have looked like
+#: coverage there while never running.
+FIXTURE_SLUG = "crawlernest-test-superseded-prune-fixture"
+
 
 @unittest.skipUnless(
     os.getenv("CRAWLERNEST_RUN_PG_TESTS") == "1", "PostgreSQL integration tests are opt-in"
@@ -58,10 +64,32 @@ class TestSupersededRowsArePruned(unittest.TestCase):
     def setUp(self):
         self.conn = self.psycopg2.connect(**self.dsn)
         self._clear_isolated_year()
+        self.university_id = self._ensure_fixture_university()
 
     def tearDown(self):
         self._clear_isolated_year()
+        with self.conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM warehouse.canonical_university WHERE canonical_slug = %s",
+                (FIXTURE_SLUG,),
+            )
+        self.conn.commit()
         self.conn.close()
+
+    def _ensure_fixture_university(self):
+        """Own the row the test depends on, so an empty database is not a skip."""
+        with self.conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO warehouse.canonical_university"
+                " (canonical_slug, display_name, display_name_normalized)"
+                " VALUES (%s, %s, %s)"
+                " ON CONFLICT (canonical_slug) DO UPDATE SET updated_at = CURRENT_TIMESTAMP"
+                " RETURNING canonical_university_id",
+                (FIXTURE_SLUG, "CrawlerNest Prune Fixture", "crawlernest prune fixture"),
+            )
+            university_id = cur.fetchone()[0]
+        self.conn.commit()
+        return university_id
 
     def _clear_isolated_year(self):
         with self.conn.cursor() as cur:
@@ -77,12 +105,8 @@ class TestSupersededRowsArePruned(unittest.TestCase):
 
     def _plant_superseded_row(self):
         """A row from an earlier run that finished cleanly and nothing will re-touch."""
+        university_id = self.university_id
         with self.conn.cursor() as cur:
-            cur.execute("SELECT canonical_university_id FROM warehouse.canonical_university LIMIT 1")
-            row = cur.fetchone()
-            if row is None:
-                self.skipTest("warehouse.canonical_university is empty")
-            university_id = row[0]
             cur.execute(
                 "INSERT INTO analytics.aggregation_runs (ranking_year, universe_type,"
                 " universe_key, aggregation_method_version, status, finished_at)"
