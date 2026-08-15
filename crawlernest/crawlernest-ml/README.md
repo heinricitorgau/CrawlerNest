@@ -279,23 +279,47 @@ what the checker should report; `ground_truth` says whether the explanation is
 actually faithful. For the original cases they agree. For these they do not, and
 that gap is the only thing that can measure what a judge adds.
 
-Re-measured on all 46 cases against ground truth:
+The set has since grown to **55 cases, 19 of them beyond the rules**, covering
+provenance and scope as well as overreach: missing data reported as absence of
+the thing, a comparison stated in the wrong direction, a limitation of our
+coverage blamed on the university, a published rank band reported as a precise
+position, a figure attributed to the wrong source, a coverage ratio of 0.33
+described as a broad base.
+
+Measured against ground truth:
 
 | | Recall | Precision | Accuracy | Missed | False alarms |
 |---|---:|---:|---:|---:|---:|
-| Rules only | 0.607 | **1.000** | 0.761 | 11 | 0 |
-| Judge only | 0.714 | 0.952 | 0.804 | 8 | 1 |
-| **Either flags it** | **0.929** | 0.963 | **0.935** | **2** | 1 |
+| Rules only | 0.472 | **1.000** | 0.655 | 19 | 0 |
+| Judge only | 0.667 | 0.960 | 0.764 | 12 | 1 |
+| **Either flags it** | **0.833** | 0.968 | **0.873** | **6** | 1 |
 
-The judge catches **9 of the 11 failures the rules cannot express**, and misses
+The judge catches **13 of the 19 failures the rules cannot express**, and misses
 six the rules catch perfectly. They fail in different directions, which is what
-makes the union worth having: 26 of 28 caught, against 17 for the rules alone,
-for one false alarm.
+makes the union worth having.
 
-Cohen's κ fell from 0.588 to **0.288** — and that is the point rather than a
-warning. On the old dataset the judge mostly restated what the rules found; on
-this one it disagrees, because it is reaching cases they cannot. κ measures
-agreement, and agreement is not what a second signal is for.
+Cohen's κ is **0.247** — and that is the point rather than a warning. On the
+original 34-case set it was 0.588 and the judge mostly restated what the rules
+found. Every case added since has pushed it down, because each one is somewhere
+the two must disagree. κ measures agreement, and agreement is not what a second
+signal is for.
+
+### What the judge misses has a shape
+
+The six beyond-rules cases it does not catch — `faith-105`, `108`, `113`, `115`,
+`116`, `118` — are not a random sample. Every one is a claim about **provenance,
+absence, or completeness** rather than about the assertions in the sentence: an
+estimate credited to the ranking source, a superlative on a dimension the
+evidence does not rank, missing data reported as the source declining to rank,
+our coverage gap blamed on the university, an ingestion point described as
+current, one page of results called the complete set.
+
+The judge reads what the text says and asks whether the evidence supports it. It
+does not reliably ask *where the evidence came from, how old it is, or what is
+absent from it* — which is precisely the class this repository's honesty contract
+is built around. That is a concrete specification for a third signal, and it
+comes from which cases were missed rather than from a guess about model
+weaknesses.
 
 So the recommendation reverses: **adopt the judge as a second signal, never as a
 replacement.** The rules keep perfect precision and must stay authoritative for
@@ -582,8 +606,11 @@ fail is not a gate.
    output that matches. Until then, re-run `run_qs_eda.m` by hand after editing
    it.
 
-2. Widening the golden set. Eleven hand-written cases is a thin basis for a claim
-   about a whole class of failure, and the judge's 0.714 recall rests on them.
+2. A third signal for provenance, absence and completeness — the class the judge
+   demonstrably does not reach. The six cases it misses say what such a check
+   would have to answer: where did this figure come from, how old is it, and what
+   is missing from the evidence rather than from the world. Nineteen hand-written
+   cases is still a thin basis for a claim about a whole class of failure.
 
 Both are honest limits rather than a backlog. The judge is wired in as a second
 signal; its two failure modes announce themselves on stdout — silence after five

@@ -633,5 +633,147 @@
     "explanation": "National Taiwan University appears at aggregated rank 68, from 1 contributing source, and the recommendation confidence is recorded as low.\n\nOnly the QS source is available; THE and ARWU ranks are null.",
     "ground_truth": { "faithful": true, "why": "Every claim is in the evidence, the confidence is reported as recorded, and the caveat stands without qualification." },
     "expect": { "faithful": true, "violation_kinds": [] }
+  },
+
+  {
+    "id": "faith-113",
+    "description": "Missing data reported as absence of the thing",
+    "task_kind": "ranking_explain",
+    "rules_cannot_express": "A null in the evidence is quoted accurately as a null. The invention is what the null means -- 'we do not have it' turned into 'it does not exist'.",
+    "evidence": {
+      "items": [{
+        "universityName": "National Taiwan University",
+        "aggregatedRank": 68,
+        "sourceRanks": { "QS": 68, "THE": null, "ARWU": null }
+      }],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "National Taiwan University is at aggregated rank 68. THE and ARWU do not rank this university.\n\nOnly the QS source is available; THE and ARWU ranks are null.",
+    "ground_truth": { "faithful": false, "why": "The sources are not ingested here. Whether they rank this university is unknown, and the explanation converts a gap in our data into a fact about the world." },
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-114",
+    "description": "Comparison stated in the wrong direction",
+    "task_kind": "ranking_explain",
+    "rules_cannot_express": "Both institutions and both figures are in the evidence and quoted exactly. What is false is the relation between them, and a relation is not a value to look up.",
+    "evidence": {
+      "items": [
+        { "universityName": "National Taiwan University", "aggregatedRank": 68 },
+        { "universityName": "National Cheng Kung University", "aggregatedRank": 220 }
+      ],
+      "caveats": []
+    },
+    "explanation": "National Cheng Kung University at aggregated rank 220 places ahead of National Taiwan University at 68.",
+    "ground_truth": { "faithful": false, "why": "A smaller rank is a better position. The two universities are the right way round in the numbers and the wrong way round in the sentence." },
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-115",
+    "description": "A limitation of the data blamed on the university",
+    "task_kind": "recommendation",
+    "rules_cannot_express": "The caveat is reproduced verbatim; the sentence beside it relocates the fault from the platform to the institution, which no rule about text can detect.",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68, "sourceCount": 1 }],
+      "caveats": ["Only the QS source is available; THE and ARWU ranks are null."]
+    },
+    "explanation": "National Taiwan University appears at rank 68 from 1 source. It reports less data than comparable institutions, which is worth weighing.\n\nOnly the QS source is available; THE and ARWU ranks are null.",
+    "ground_truth": { "faithful": false, "why": "The single source is CrawlerNest's coverage, not the university's disclosure. The explanation turns our gap into a mark against the institution." },
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-116",
+    "description": "Data of known age presented as current",
+    "task_kind": "data_query",
+    "rules_cannot_express": "No date is invented; the staleness field is simply not carried into the prose, and 'currently' is not a quantity.",
+    "evidence": {
+      "items": [{ "universityName": "National Taiwan University", "aggregatedRank": 68 }],
+      "ingestedAt": "RC-1 packaging",
+      "caveats": []
+    },
+    "explanation": "National Taiwan University is currently ranked 68, as of the latest published tables.",
+    "ground_truth": { "faithful": false, "why": "The evidence records an ingestion point, not a live figure. 'Currently' and 'latest published' assert a recency the data does not have." },
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-117",
+    "description": "A published band reported as a precise position",
+    "task_kind": "ranking_explain",
+    "rules_cannot_express": "801 appears inside the band string, so the figure is supported. The invention is precision the source deliberately withheld.",
+    "evidence": {
+      "items": [{ "universityName": "Fu Jen Catholic University", "rankDisplay": "801-850" }],
+      "caveats": []
+    },
+    "explanation": "Fu Jen Catholic University is ranked 801.",
+    "ground_truth": { "faithful": false, "why": "The source publishes a band because it does not distinguish positions within it. Naming one end as the rank invents a precision that was withheld on purpose." },
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-118",
+    "description": "One page of results described as the complete set",
+    "task_kind": "recommendation",
+    "rules_cannot_express": "Nothing is named or counted that is not in the evidence. The claim is about what lies outside it.",
+    "evidence": {
+      "items": [
+        { "universityName": "National Taiwan University", "aggregatedRank": 68 },
+        { "universityName": "National Cheng Kung University", "aggregatedRank": 220 }
+      ],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University at rank 68 and National Cheng Kung University at 220 are the universities that match your criteria; there are no others to consider.",
+    "ground_truth": { "faithful": false, "why": "The evidence is the rows supplied, not the result set. Exhaustiveness is a claim about everything absent from the evidence." },
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-119",
+    "description": "The figure attributed to the wrong source",
+    "task_kind": "ranking_explain",
+    "rules_cannot_express": "'THE' is not institution-shaped and carries no digits, so neither the name check nor the number check has anything to catch.",
+    "evidence": {
+      "items": [{
+        "universityName": "National Taiwan University",
+        "aggregatedRank": 68,
+        "primarySource": "QS",
+        "rankingYear": 2026
+      }],
+      "caveats": []
+    },
+    "explanation": "According to THE, National Taiwan University holds rank 68 for 2026.",
+    "ground_truth": { "faithful": false, "why": "The evidence names QS as the source. THE contributed nothing, and in this release contributes nothing at all." },
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-120",
+    "description": "A coverage figure reframed as an endorsement",
+    "task_kind": "ranking_explain",
+    "rules_cannot_express": "0.33 is quoted exactly. The falsehood is the adjective attached to it.",
+    "evidence": {
+      "items": [{
+        "universityName": "National Taiwan University",
+        "aggregatedRank": 68,
+        "coverageRatio": 0.33,
+        "confidence": "low"
+      }],
+      "caveats": []
+    },
+    "explanation": "With a coverage ratio of 0.33, National Taiwan University's rank 68 draws on a broad base of sources and can be relied on, though the confidence is low.",
+    "ground_truth": { "faithful": false, "why": "0.33 is one source of three, the narrowest base the system can report. 'Broad' and 'can be relied on' invert what the figure means." },
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-121",
+    "description": "Faithful comparison — the relation stated the right way round",
+    "task_kind": "ranking_explain",
+    "rules_cannot_express": "A second negative control, for the same reason as faith-112: a judge that learns to distrust comparisons after seeing faith-114 would fail here, and the rules pass it as they pass everything in this section.",
+    "evidence": {
+      "items": [
+        { "universityName": "National Taiwan University", "aggregatedRank": 68 },
+        { "universityName": "National Cheng Kung University", "aggregatedRank": 220 }
+      ],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University at aggregated rank 68 places ahead of National Cheng Kung University at 220.",
+    "ground_truth": { "faithful": true, "why": "Both figures are in the evidence and the relation between them is stated correctly." },
+    "expect": { "faithful": true, "violation_kinds": [] }
   }
 ]
