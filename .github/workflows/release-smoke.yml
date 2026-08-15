@@ -41,5 +41,109 @@ jobs:
       - name: Make Maven wrapper executable
         run: chmod +x crawlernest/servise_for_java/mvnw
 
+      # Note: step 8 of this script (API endpoint checks) skips itself when
+      # Spring Boot is not reachable, and this job never starts it -- so those
+      # checks have never run here. The analytics-bridge job below is the one
+      # that exercises a live API.
       - name: Run smoke_release.sh
         run: bash scripts/smoke_release.sh
+
+  analytics-bridge-smoke:
+    name: Analytics bridge smoke (PostgreSQL + Spring Boot)
+    runs-on: ubuntu-latest
+
+    # smoke_analytics_bridge.py checks the warehouse -> analytics write path end
+    # to end: the bridge is idempotent across two runs, ranking_record and the
+    # latest view are non-empty, and /api/v1/rankings serves what was written.
+    # It needed a database and a running API, so nothing in CI ran it and it was
+    # a script somebody had to remember by hand.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: clawer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: "maven"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Bootstrap PostgreSQL schemas
+        run: |
+          python -m crawlernest.run_pipeline bootstrap-postgres \
+            --pg-user test --pg-password test --pg-database clawer
+
+      # Six universities into the two legacy tables. The bridge derives
+      # everything else itself, so no crawl and no network are involved.
+      - name: Seed legacy warehouse rows
+        env:
+          PGPASSWORD: test
+        run: |
+          psql -h localhost -U test -d clawer \
+            -v ON_ERROR_STOP=1 \
+            -f crawlernest/crawlernest-autoeval/datasets/ci_fixtures/legacy_rankings_seed.sql
+
+      - name: Make Maven wrapper executable
+        run: chmod +x crawlernest/servise_for_java/mvnw
+
+      # The API half of the smoke needs a real server; application.properties
+      # already points at localhost:5432/clawer with test/test, which is what the
+      # service above provides.
+      - name: Start Spring Boot
+        working-directory: crawlernest/servise_for_java
+        run: |
+          nohup ./mvnw -q -Dmaven.test.skip=true spring-boot:run \
+            > /tmp/springboot.log 2>&1 &
+          echo "started"
+
+      - name: Wait for the API to answer
+        run: |
+          for attempt in $(seq 1 60); do
+            status="$(curl -sS -o /dev/null -w '%{http_code}' --connect-timeout 2 \
+              http://localhost:8080/api/v1/health 2>/dev/null || true)"
+            if [ "$status" = "200" ]; then
+              echo "API healthy after $attempt attempts"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Spring Boot never became healthy; last 40 log lines:"
+          tail -40 /tmp/springboot.log
+          exit 1
+
+      - name: Run smoke_analytics_bridge.py
+        env:
+          PYTHONPATH: .:crawlernest
+        run: |
+          python crawlernest/scripts/smoke_analytics_bridge.py \
+            --user test --password test --database clawer
+
+      - name: Spring Boot log on failure
+        if: failure()
+        run: tail -60 /tmp/springboot.log || true
