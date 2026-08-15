@@ -575,11 +575,10 @@ fail is not a gate.
 
 ## Next
 
-1. Surfacing the counters. `verification.py` now counts every action and judge
-   outcome, and `response_generator.py` has counted generation outcomes for
-   longer — and **nothing reads either of them outside the tests**. Counting is
-   half the job; an endpoint or a log line is the other half, and until that
-   exists a judge going dark is recorded and still unnoticed.
+1. Alerting on the counters. `GET /api/v1/agent/stats` now serves them with the
+   two rates worth watching, but reading it is still a person's job — nothing
+   polls it and nothing raises anything. The counters are also process-local, so
+   a deployment with more than one agent worker sees a fraction of the picture.
 2. Re-executing the MATLAB sources in CI, which needs either a public repository
    or an `MLM_LICENSE_TOKEN`. The ordering guard covers the failure that
    actually happens; this would close the remaining gap.
