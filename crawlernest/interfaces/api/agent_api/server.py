@@ -9,12 +9,74 @@ from typing import Any
 
 from crawlernest.agent.web_agent.generation.response_generator import (
     WebResponseGenerator,
+    generation_stats,
 )
+from crawlernest.agent.web_agent.generation.verification import verification_stats
 
 from .handler import AgentApiHandler
 
 
 _MAX_REQUEST_BYTES = int(os.environ.get("CRAWLERNEST_AGENT_API_MAX_REQUEST_BYTES", "131072"))
+
+
+def _rate(numerator: int, denominator: int) -> float | None:
+    """A proportion, or ``None`` when there is nothing to divide by.
+
+    Zero would read as "this never happens" when the truth is "this has not been
+    observed yet", and those call for opposite reactions.
+    """
+    return round(numerator / denominator, 4) if denominator else None
+
+
+def build_stats_payload() -> dict[str, Any]:
+    """Generation and verification counters, plus the rates worth watching.
+
+    Raw counts alone leave the reader to do the division, and the two failure
+    modes these counters exist for are only legible as rates: a judge flagging
+    everything, and a judge that has quietly gone dark. Both are reported
+    directly rather than left to be derived.
+    """
+    generation = generation_stats()
+    verification = verification_stats()
+
+    verified = verification["keep"] + verification["keep_with_warning"] + verification["use_fallback"]
+    consulted = (
+        verification["judge_agreed"]
+        + verification["judge_flagged"]
+        + verification["judge_no_opinion"]
+    )
+
+    caveats = [
+        "Counters are process-local and start at zero on restart. They describe this "
+        "process since it started, not the deployment, and not a time window.",
+        "Judge rates are over consultations rather than over all explanations: when the "
+        "rules fire they decide alone and the judge is never asked.",
+    ]
+    if consulted == 0:
+        caveats.append(
+            "The judge has not been consulted. Either it is not configured "
+            "(WEB_AGENT_JUDGE_BASE_URL unset) or no explanation has reached it yet, and "
+            "these counters cannot tell those apart."
+        )
+    elif verification["judge_no_opinion"] == consulted:
+        caveats.append(
+            "Every judge consultation returned no opinion. A misconfigured or unreachable "
+            "endpoint looks exactly like a healthy one from the responses alone."
+        )
+
+    return {
+        "success": True,
+        "generation": generation,
+        "verification": verification,
+        "signals": {
+            "explanations_verified": verified,
+            "rules_rejection_rate": _rate(verification["use_fallback"], verified),
+            "judge_consulted": consulted,
+            "judge_flag_rate": _rate(verification["judge_flagged"], consulted),
+            "judge_no_opinion_rate": _rate(verification["judge_no_opinion"], consulted),
+        },
+        "caveats": caveats,
+    }
 
 
 class _RequestHandler(BaseHTTPRequestHandler):
@@ -31,6 +93,10 @@ class _RequestHandler(BaseHTTPRequestHandler):
                     "generation": self.response_generator.inspect_provider_status(),
                 },
             )
+            return
+
+        if self.path == "/api/v1/agent/stats":
+            self._write_json(HTTPStatus.OK, build_stats_payload())
             return
 
         self._write_json(

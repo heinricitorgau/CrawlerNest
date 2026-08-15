@@ -44,6 +44,7 @@ jobs:
             crawlernest/crawlernest-tests/test_prompt_builder_instruction.py \
             crawlernest/crawlernest-tests/test_faithfulness.py \
             crawlernest/crawlernest-tests/test_explanation_verification.py \
+            crawlernest/crawlernest-tests/test_agent_api_stats.py \
             crawlernest/crawlernest-tests/test_agent_api_explain.py \
             crawlernest/crawlernest-tests/test_ds4_comparison_and_plan_explainers.py \
             -q
