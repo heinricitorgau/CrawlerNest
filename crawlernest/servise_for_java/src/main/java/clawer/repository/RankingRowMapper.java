@@ -17,10 +17,15 @@ class RankingRowMapper {
     private final SourceRankParser sourceRankParser;
     private final ObjectMapper objectMapper;
     private final Logger logger;
+    /**
+     * Fallback only: used when a row carries no source_weights_used_json. Kept in
+     * step with db/analytics_bridge.py:WEIGHTS so the fallback describes the same
+     * aggregation the stored rows came from.
+     */
     private static final Map<String, Double> DEFAULT_SOURCE_WEIGHTS = Map.of(
-            "QS", 0.40,
-            "THE", 0.35,
-            "ARWU", 0.25
+            "QS", 0.222,
+            "THE", 0.654,
+            "ARWU", 0.124
     );
 
     RankingRowMapper(SourceRankParser sourceRankParser, ObjectMapper objectMapper, Logger logger) {

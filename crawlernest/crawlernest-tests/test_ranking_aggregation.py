@@ -46,12 +46,15 @@ class RankingAggregationTest(unittest.TestCase):
         outputs = RankingAggregator().aggregate_rankings(records)
         by_id = {row.canonical_university_id: row for row in outputs}
 
-        self.assertAlmostEqual(by_id[1].composite_score or 0.0, 0.505, places=6)
+        # (0.222 * 1/1 + 0.654 * 1/100) / (0.222 + 0.654)
+        self.assertAlmostEqual(by_id[1].composite_score or 0.0, 0.26089, places=5)
+        # Both sources agree at rank 10, so renormalisation returns 1/10 whatever
+        # the weights are -- this one is deliberately weight-independent.
         self.assertAlmostEqual(by_id[2].composite_score or 0.0, 0.1, places=6)
         self.assertEqual(1, by_id[1].display_rank)
         self.assertEqual(2, by_id[2].display_rank)
         self.assertEqual({"QS": 1.0, "THE": 100.0, "ARWU": None}, by_id[1].source_ranks)
-        self.assertEqual({"QS": 0.4, "THE": 0.4, "ARWU": None}, by_id[1].source_weights_used)
+        self.assertEqual({"QS": 0.222, "THE": 0.654, "ARWU": None}, by_id[1].source_weights_used)
 
     def test_aggregation_is_universe_isolated_and_one_row_per_university(self):
         records = [

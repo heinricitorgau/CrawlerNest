@@ -30,11 +30,13 @@ class AggregationExplainabilityTest {
         assertEquals(4, explain.getSources().get("QS"));
         assertEquals(5, explain.getSources().get("THE"));
         assertNull(explain.getSources().get("ARWU"));
-        assertEquals(0.40, explain.getWeights().get("QS"));
-        assertEquals(0.35, explain.getWeights().get("THE"));
-        assertEquals(0.25, explain.getWeights().get("ARWU"));
+        assertEquals(0.222, explain.getWeights().get("QS"));
+        assertEquals(0.654, explain.getWeights().get("THE"));
+        assertEquals(0.124, explain.getWeights().get("ARWU"));
         assertEquals(2, explain.getAvailableSourceCount());
-        assertEquals(4.466667, explain.getAggregatedRankValue());
+        // (4 * 0.222 + 5 * 0.654) / (0.222 + 0.654), renormalised over the two
+        // sources actually present.
+        assertEquals(4.746575, explain.getAggregatedRankValue());
         assertEquals("Two ranking sources available.", explain.getNote());
         assertEquals(row.getAggregationMethodVersion(), explain.getAggregationMethodVersion());
         assertEquals(row.getCoverageRatio(), explain.getCoverageRatio());

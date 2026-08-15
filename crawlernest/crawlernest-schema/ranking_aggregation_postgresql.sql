@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS analytics.aggregated_rankings (
     coverage_ratio NUMERIC(8,6), -- sum(weights_used) / sum(configured_weights)
     source_ranks_json JSONB NOT NULL,             -- {"QS":10,"THE":25,"ARWU":40}
     source_normalized_scores_json JSONB NOT NULL, -- {"QS":99.1,...}
-    source_weights_used_json JSONB NOT NULL,      -- {"QS":0.4,...}
+    source_weights_used_json JSONB NOT NULL,      -- {"QS":0.222,...} null where a source is absent
     aggregation_method_version TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
