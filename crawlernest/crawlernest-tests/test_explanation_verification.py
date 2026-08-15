@@ -20,6 +20,8 @@ from crawlernest.agent.web_agent.generation.verification import (
     KEEP,
     KEEP_WITH_WARNING,
     USE_FALLBACK,
+    reset_verification_stats,
+    verification_stats,
     verify_explanation,
 )
 
@@ -133,6 +135,51 @@ class TestExplainerWiring(unittest.TestCase):
         ).explain(items=_ITEMS, caveats=_CAVEATS, deterministic_reply="Rule-based reply.")
 
         self.assertEqual(result.source, "llm")
+
+
+class TestVerificationStats(unittest.TestCase):
+    """The counters exist to make two invisible failures visible."""
+
+    def setUp(self) -> None:
+        reset_verification_stats()
+
+    def test_a_judge_flagging_everything_is_visible(self):
+        judge = StubJudge(JudgeVerdict(faithful=False, reason="no", model_name="stub"))
+        for _ in range(3):
+            verify_explanation(
+                explanation=_FAITHFUL, items=_ITEMS, caveats=_CAVEATS, judge=judge
+            )
+        stats = verification_stats()
+        self.assertEqual(stats["keep_with_warning"], 3)
+        self.assertEqual(stats["judge_flagged"], 3)
+        self.assertEqual(stats["keep"], 0)
+
+    def test_a_judge_that_has_gone_dark_is_visible_and_looks_different(self):
+        """Every response still reads fine, so only the counter shows it."""
+        judge = StubJudge(None)
+        for _ in range(3):
+            verify_explanation(
+                explanation=_FAITHFUL, items=_ITEMS, caveats=_CAVEATS, judge=judge
+            )
+        stats = verification_stats()
+        self.assertEqual(stats["judge_no_opinion"], 3)
+        self.assertEqual(stats["keep"], 3)
+        self.assertEqual(stats["keep_with_warning"], 0)
+
+    def test_rule_violations_are_counted_and_the_judge_is_recorded_as_unasked(self):
+        judge = StubJudge(JudgeVerdict(faithful=True, reason="ok", model_name="stub"))
+        verify_explanation(
+            explanation=_INVENTS_A_RANK, items=_ITEMS, caveats=_CAVEATS, judge=judge
+        )
+        stats = verification_stats()
+        self.assertEqual(stats["use_fallback"], 1)
+        self.assertEqual(stats["judge_absent"], 1)
+        self.assertEqual(stats["judge_agreed"], 0)
+
+    def test_reset_zeroes_every_counter(self):
+        verify_explanation(explanation=_FAITHFUL, items=_ITEMS, caveats=_CAVEATS)
+        reset_verification_stats()
+        self.assertEqual(set(verification_stats().values()), {0})
 
 
 class TestJudgeClient(unittest.TestCase):
