@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
-# Release smoke test — verifies build artefacts only.
-# Does NOT require running services for the compile/build steps.
-# API endpoint checks are skipped if Spring Boot is not reachable.
+# Release smoke test — verifies build artefacts only. Requires no running
+# services, and no longer pretends to check any.
+#
+# This used to end with API endpoint checks that skipped themselves whenever
+# Spring Boot was unreachable. Nothing running this script starts one, so they
+# never ran and a pass here implied a working API that had not been touched.
+# They now live in scripts/smoke_api_endpoints.sh and run in the
+# analytics-bridge CI job, against a server that job starts. To check endpoints
+# locally, run that script directly with the server up.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JAVA_DIR="${ROOT_DIR}/crawlernest/servise_for_java"
 WEB_DIR="${ROOT_DIR}/crawlernest/crawlernest-web"
 CRAWLERNEST_DIR="${ROOT_DIR}/crawlernest"
-API_BASE="${API_BASE:-http://localhost:8080}"
 PYTHON_BIN="${ROOT_DIR}/.venv/bin/python"
 if [[ ! -x "${PYTHON_BIN}" ]]; then
   PYTHON_BIN="python3"
@@ -30,12 +35,11 @@ FAIL=0
 
 ok()   { echo "OK   $*"; (( PASS++ )) || true; }
 fail() { echo "FAIL $*"; (( FAIL++ )) || true; }
-skip() { echo "SKIP $*"; }
 
 # ---------------------------------------------------------------------------
 # 1. Local environment verification
 # ---------------------------------------------------------------------------
-echo "[1/8] Local environment verification (readonly)..."
+echo "[1/7] Local environment verification (readonly)..."
 if [[ ! -x "${ROOT_DIR}/scripts/verify_local_environment.sh" ]]; then
   fail "verify_local_environment.sh not found or not executable"
 else
@@ -51,7 +55,7 @@ fi
 # ---------------------------------------------------------------------------
 # 2. Spring Boot compile
 # ---------------------------------------------------------------------------
-echo "[2/8] Spring Boot compile (no tests)..."
+echo "[2/7] Spring Boot compile (no tests)..."
 if [[ ! -f "${JAVA_DIR}/mvnw" ]]; then
   fail "mvnw not found at ${JAVA_DIR}/mvnw"
 else
@@ -67,7 +71,7 @@ fi
 # ---------------------------------------------------------------------------
 # 3. Next.js build
 # ---------------------------------------------------------------------------
-echo "[3/8] Next.js build..."
+echo "[3/7] Next.js build..."
 if [[ ! -d "${WEB_DIR}/node_modules" ]]; then
   fail "node_modules not found — run: cd crawlernest/crawlernest-web && npm install"
 else
@@ -93,7 +97,7 @@ fi
 # ---------------------------------------------------------------------------
 # 4. Python syntax check
 # ---------------------------------------------------------------------------
-echo "[4/8] Python syntax check..."
+echo "[4/7] Python syntax check..."
 if ! command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
   fail "python3 not found"
 else
@@ -125,7 +129,7 @@ fi
 # ---------------------------------------------------------------------------
 # 5. Pipeline health diagnostics
 # ---------------------------------------------------------------------------
-echo "[5/8] Pipeline health diagnostics (readonly)..."
+echo "[5/7] Pipeline health diagnostics (readonly)..."
 if [[ ! -f "${ROOT_DIR}/scripts/check_pipeline_health.py" ]]; then
   fail "check_pipeline_health.py not found"
 else
@@ -141,7 +145,7 @@ fi
 # ---------------------------------------------------------------------------
 # 6. Snapshot comparison validation
 # ---------------------------------------------------------------------------
-echo "[6/8] Snapshot comparison validation (readonly fixtures)..."
+echo "[6/7] Snapshot comparison validation (readonly fixtures)..."
 FIXTURE_DIR="${ROOT_DIR}/crawlernest/crawlernest-autoeval/datasets/ci_fixtures"
 compare_out="$("${PYTHON_BIN}" "${ROOT_DIR}/scripts/compare_snapshots.py" \
   "${FIXTURE_DIR}/snapshot_fixture.json" \
@@ -157,7 +161,7 @@ fi
 # ---------------------------------------------------------------------------
 # 7. Failure-state fixture validation
 # ---------------------------------------------------------------------------
-echo "[7/8] Failure-state fixture validation (readonly fixtures)..."
+echo "[7/7] Failure-state fixture validation (readonly fixtures)..."
 fixture_errors=0
 
 run_fixture_check() {
@@ -190,34 +194,6 @@ run_fixture_check "failure summary stale fixture" "0" \
 
 if [[ ${fixture_errors} -eq 0 ]]; then
   ok "Failure-state fixture validation completed"
-fi
-
-# ---------------------------------------------------------------------------
-# 8. API endpoint checks (skipped if Spring Boot is not running)
-# ---------------------------------------------------------------------------
-echo "[8/8] API endpoint checks (optional — requires Spring Boot on ${API_BASE})..."
-
-api_reachable=false
-reach_status="$(curl -sS -o /dev/null -w "%{http_code}" \
-  --connect-timeout 3 "${API_BASE}/api/v1/health" 2>/dev/null || true)"
-if [[ "${reach_status}" == "200" ]]; then
-  api_reachable=true
-fi
-
-# The checks themselves live in scripts/smoke_api_endpoints.sh so that CI and a
-# developer's laptop run the same ones. Skipping here is a local convenience --
-# not everybody has the server up. CI runs that script directly, after waiting
-# for /health, where an unreachable API is a failure rather than a skip.
-if ! ${api_reachable}; then
-  skip "Spring Boot not reachable at ${API_BASE} — start it to run endpoint checks"
-else
-  endpoint_out="$(API_BASE="${API_BASE}" bash "${ROOT_DIR}/scripts/smoke_api_endpoints.sh" 2>&1)" && rc=0 || rc=$?
-  echo "${endpoint_out}"
-  if [[ ${rc} -eq 0 ]]; then
-    ok "API endpoint checks passed"
-  else
-    fail "API endpoint checks failed"
-  fi
 fi
 
 # ---------------------------------------------------------------------------
