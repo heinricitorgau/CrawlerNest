@@ -107,7 +107,7 @@ class TestDs4LivePath(unittest.TestCase):
         self.server.next_status = 200
         self.server.next_body = self._chat_response("MOCK LLM REPLY")
 
-        result = RecommendationExplainer().explain(
+        result = RecommendationExplainer(verify=False).explain(
             items=_ITEMS,
             profile={"country": "Taiwan"},
             query="recommend for me",
@@ -154,7 +154,7 @@ class TestDs4LivePath(unittest.TestCase):
             [{"type": "text", "text": "BLOCK A"}, {"type": "text", "text": "BLOCK B"}]
         )
 
-        result = RecommendationExplainer().explain(
+        result = RecommendationExplainer(verify=False).explain(
             items=_ITEMS, deterministic_reply="Rule-based reply."
         )
 
@@ -166,7 +166,7 @@ class TestDs4LivePath(unittest.TestCase):
         self.server.next_status = 500
         self.server.next_body = {"error": "boom"}
 
-        result = RecommendationExplainer().explain(
+        result = RecommendationExplainer(verify=False).explain(
             items=_ITEMS, deterministic_reply="Rule-based reply."
         )
 
@@ -184,11 +184,11 @@ class TestDs4LivePath(unittest.TestCase):
 
         self.server.next_status = 200
         self.server.next_body = self._chat_response("ok")
-        RecommendationExplainer().explain(items=_ITEMS, deterministic_reply="d")
+        RecommendationExplainer(verify=False).explain(items=_ITEMS, deterministic_reply="d")
 
         self.server.next_status = 500
         self.server.next_body = {"error": "boom"}
-        RecommendationExplainer().explain(items=_ITEMS, deterministic_reply="d")
+        RecommendationExplainer(verify=False).explain(items=_ITEMS, deterministic_reply="d")
 
         stats = generation_stats()
         self.assertEqual(stats["llm"], 1)

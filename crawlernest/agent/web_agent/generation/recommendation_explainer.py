@@ -102,6 +102,8 @@ class RecommendationExplainer(GroundedExplainer):
             fallback=fallback,
             default_query="Explain these university recommendations for my profile.",
             query=query,
+            items=items,
+            caveats=caveats,
         )
 
     # -- evidence assembly --------------------------------------------------

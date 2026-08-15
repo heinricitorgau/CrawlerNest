@@ -96,6 +96,8 @@ class ApplicationPlanExplainer(GroundedExplainer):
             fallback=fallback,
             default_query="Walk me through this application plan.",
             query=query,
+            items=plan.get("items") if isinstance(plan, dict) else None,
+            caveats=caveats,
         )
 
     # -- evidence assembly --------------------------------------------------

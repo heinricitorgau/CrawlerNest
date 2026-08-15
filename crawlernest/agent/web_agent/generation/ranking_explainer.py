@@ -90,6 +90,8 @@ class RankingExplainer(GroundedExplainer):
             fallback=fallback,
             default_query="Explain this ranking result.",
             query=query,
+            items=items,
+            caveats=caveats,
         )
 
     # -- evidence assembly --------------------------------------------------

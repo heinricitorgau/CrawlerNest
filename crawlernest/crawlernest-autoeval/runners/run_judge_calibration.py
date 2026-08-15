@@ -54,34 +54,20 @@ from crawlernest.agent.web_agent.generation.faithfulness import (  # noqa: E402
     check_faithfulness,
 )
 
-JUDGE_SYSTEM = """You audit explanations produced from a fixed block of evidence.
-
-An explanation is FAITHFUL when everything it asserts is supported by the
-evidence: every number appears in the evidence or follows from the number of
-items given, every institution named appears in the evidence, and every caveat
-supplied with the evidence is reproduced without being softened or dropped.
-
-An explanation is UNFAITHFUL when it invents a figure, invents an institution,
-rescales or transforms a value, drops a caveat, or restates a caveat in weaker
-language.
-
-Answer with a single JSON object and nothing else:
-{"faithful": true or false, "reason": "one short sentence"}"""
+from crawlernest.agent.web_agent.generation.judge import (  # noqa: E402
+    JUDGE_SYSTEM,
+    build_review_prompt,
+)
 
 
 def build_prompt(entry: dict[str, Any]) -> str:
+    """Imported from the deployed judge, so measurement and production cannot drift."""
     evidence = entry.get("evidence", {})
-    return json.dumps(
-        {
-            "evidence_items": evidence.get("items", []),
-            "caveats_supplied": evidence.get("caveats", []),
-            "other_evidence": {
-                k: v for k, v in evidence.items() if k not in {"items", "caveats"}
-            },
-            "explanation_under_review": entry.get("explanation", ""),
-        },
-        ensure_ascii=False,
-        indent=2,
+    return build_review_prompt(
+        explanation=entry.get("explanation", ""),
+        items=evidence.get("items", []),
+        caveats=evidence.get("caveats", []),
+        evidence={k: v for k, v in evidence.items() if k not in {"items", "caveats"}},
     )
 
 

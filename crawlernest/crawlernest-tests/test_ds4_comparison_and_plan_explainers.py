@@ -49,7 +49,7 @@ _PLAN = {
 class TestComparisonExplainer(unittest.TestCase):
     def test_grounded_prompt_names_axes_and_missing_fields(self) -> None:
         gen = CapturingGenerator()
-        result = ComparisonExplainer(generator=gen).explain(  # type: ignore[arg-type]
+        result = ComparisonExplainer(generator=gen, verify=False).explain(  # type: ignore[arg-type]
             items=_COMPARE,
             criterion="lowest IELTS",
             query="which is easier to get into",
@@ -73,7 +73,7 @@ class TestComparisonExplainer(unittest.TestCase):
 
     def test_single_item_is_not_a_comparison(self) -> None:
         gen = CapturingGenerator()
-        result = ComparisonExplainer(generator=gen).explain(  # type: ignore[arg-type]
+        result = ComparisonExplainer(generator=gen, verify=False).explain(  # type: ignore[arg-type]
             items=_COMPARE[:1], deterministic_reply="Only one school selected."
         )
         self.assertEqual(result.source, "fallback")
@@ -82,7 +82,7 @@ class TestComparisonExplainer(unittest.TestCase):
 
     def test_falls_back_on_provider_failure(self) -> None:
         gen = CapturingGenerator(source="fallback")
-        result = ComparisonExplainer(generator=gen).explain(  # type: ignore[arg-type]
+        result = ComparisonExplainer(generator=gen, verify=False).explain(  # type: ignore[arg-type]
             items=_COMPARE, deterministic_reply="Deterministic compare."
         )
         self.assertEqual(result.source, "fallback")
@@ -92,7 +92,7 @@ class TestComparisonExplainer(unittest.TestCase):
 class TestApplicationPlanExplainer(unittest.TestCase):
     def test_grounded_prompt_carries_plan_shape_and_empty_group(self) -> None:
         gen = CapturingGenerator()
-        result = ApplicationPlanExplainer(generator=gen).explain(  # type: ignore[arg-type]
+        result = ApplicationPlanExplainer(generator=gen, verify=False).explain(  # type: ignore[arg-type]
             plan=_PLAN, query="walk me through it", caveats=["Only QS is available."]
         )
 
@@ -115,7 +115,7 @@ class TestApplicationPlanExplainer(unittest.TestCase):
 
     def test_empty_plan_stays_deterministic(self) -> None:
         gen = CapturingGenerator()
-        result = ApplicationPlanExplainer(generator=gen).explain(  # type: ignore[arg-type]
+        result = ApplicationPlanExplainer(generator=gen, verify=False).explain(  # type: ignore[arg-type]
             plan={"reach": [], "target": [], "safety": []},
             deterministic_reply="No plan yet.",
         )

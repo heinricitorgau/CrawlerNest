@@ -52,7 +52,7 @@ _CAVEATS = ["Only the QS source is available; THE and ARWU ranks are null."]
 class TestDataQueryExplainer(unittest.TestCase):
     def test_grounded_prompt_carries_slice_metadata_and_rows(self) -> None:
         gen = CapturingGenerator()
-        explainer = DataQueryExplainer(generator=gen)  # type: ignore[arg-type]
+        explainer = DataQueryExplainer(generator=gen, verify=False)  # type: ignore[arg-type]
 
         result = explainer.explain(
             items=_ITEMS,
@@ -80,14 +80,14 @@ class TestDataQueryExplainer(unittest.TestCase):
 
     def test_falls_back_on_provider_failure(self) -> None:
         gen = CapturingGenerator(source="fallback")
-        explainer = DataQueryExplainer(generator=gen)  # type: ignore[arg-type]
+        explainer = DataQueryExplainer(generator=gen, verify=False)  # type: ignore[arg-type]
         result = explainer.explain(items=_ITEMS, metadata=_METADATA, deterministic_reply="Deterministic data reply.")
         self.assertEqual(result.source, "fallback")
         self.assertEqual(result.text, "Deterministic data reply.")
 
     def test_empty_items_stays_deterministic_without_calling_model(self) -> None:
         gen = CapturingGenerator()
-        explainer = DataQueryExplainer(generator=gen)  # type: ignore[arg-type]
+        explainer = DataQueryExplainer(generator=gen, verify=False)  # type: ignore[arg-type]
         result = explainer.explain(items=[], metadata={}, deterministic_reply="No rows.")
         self.assertEqual(result.source, "fallback")
         self.assertEqual(result.text, "No rows.")

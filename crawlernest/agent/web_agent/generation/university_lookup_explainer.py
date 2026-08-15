@@ -76,6 +76,11 @@ class UniversityLookupExplainer(GroundedExplainer):
             fallback=fallback,
             default_query=f"Tell me about {name}.",
             query=query,
+            # A lookup has one subject rather than a list; passing it as a single
+            # item keeps the "counts derivable from the evidence" allowance
+            # accurate instead of implying an empty result set.
+            items=[preview] if isinstance(preview, dict) else None,
+            caveats=caveats,
         )
 
     # -- evidence assembly --------------------------------------------------

@@ -14,11 +14,17 @@ deterministic layer produced them, and caveats are preserved verbatim.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Any
 
+from crawlernest.agent.web_agent.generation.judge import LlmJudge
 from crawlernest.agent.web_agent.generation.models import GenerationResult, PromptPayload
 from crawlernest.agent.web_agent.generation.response_generator import WebResponseGenerator
+from crawlernest.agent.web_agent.generation.verification import (
+    USE_FALLBACK,
+    verify_explanation,
+)
 
 #: Values treated as "no evidence" when formatting fields.
 _EMPTY_VALUES = (None, "", [], {})
@@ -58,8 +64,23 @@ class GroundedExplainer:
     #: Response constraints; set by each subclass.
     constraints: tuple[str, ...] = ()
 
-    def __init__(self, generator: WebResponseGenerator | None = None) -> None:
+    def __init__(
+        self,
+        generator: WebResponseGenerator | None = None,
+        judge: LlmJudge | None = None,
+        verify: bool | None = None,
+    ) -> None:
         self._generator = generator or WebResponseGenerator()
+        # Absent unless WEB_AGENT_JUDGE_BASE_URL is set; see judge.LlmJudge.
+        self._judge = judge if judge is not None else LlmJudge()
+        # On by default: the honesty contract is the reason this layer exists.
+        # WEB_AGENT_VERIFY_EXPLANATIONS=0 disables it, which means shipping model
+        # text that has not been checked against its evidence -- an operational
+        # escape hatch, not a supported mode.
+        self._verify = (
+            verify if verify is not None
+            else os.getenv("WEB_AGENT_VERIFY_EXPLANATIONS", "1").strip() not in {"0", "false", "no"}
+        )
 
     def _explain(
         self,
@@ -68,6 +89,8 @@ class GroundedExplainer:
         fallback: str,
         default_query: str,
         query: str = "",
+        items: list[dict[str, Any]] | None = None,
+        caveats: list[str] | None = None,
     ) -> ExplanationResult:
         prompt = PromptPayload(
             system_instruction=self.system_instruction,
@@ -79,12 +102,43 @@ class GroundedExplainer:
             prompt=prompt,
             fallback_text=fallback,
         )
+
+        # Only model output is worth checking. The fallback is the deterministic
+        # text this layer would substitute anyway, so verifying it would at best
+        # replace it with itself.
+        if not self._verify or result.source != "llm":
+            return ExplanationResult(
+                text=result.reply_text,
+                paragraphs=result.paragraphs,
+                source=result.source,
+                model_name=result.model_name,
+                warning=result.warning,
+            )
+
+        outcome = verify_explanation(
+            explanation=result.reply_text,
+            items=items,
+            caveats=caveats,
+            evidence=evidence_block,
+            judge=self._judge if self._judge.is_configured else None,
+        )
+        warning = " ".join(w for w in (result.warning, outcome.warning) if w) or None
+
+        if outcome.action == USE_FALLBACK:
+            return ExplanationResult(
+                text=fallback,
+                paragraphs=split_paragraphs(fallback),
+                source="fallback",
+                model_name=result.model_name,
+                warning=warning,
+            )
+
         return ExplanationResult(
             text=result.reply_text,
             paragraphs=result.paragraphs,
             source=result.source,
             model_name=result.model_name,
-            warning=result.warning,
+            warning=warning,
         )
 
     @staticmethod
