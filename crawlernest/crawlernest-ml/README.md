@@ -300,8 +300,16 @@ agreement, and agreement is not what a second signal is for.
 So the recommendation reverses: **adopt the judge as a second signal, never as a
 replacement.** The rules keep perfect precision and must stay authoritative for
 the violations they define; the judge covers a class they provably cannot reach.
-Nothing is wired in yet — that is an implementation task, and it now has a
-measurement behind it instead of an intuition.
+
+That is now wired in, and it turned out the checker itself never had been: it was
+scored in CI every run and never consulted at generation time, so a violation was
+measured rather than stopped. `generation/verification.py` sits between the model
+and the caller and weights the two signals by their measured precision — a rules
+violation (precision 1.000) discards the model's text for the deterministic
+reply; a judge-only concern (precision 0.952) keeps the text and attaches a
+warning, because discarding a good answer on a signal wrong one time in twenty is
+the worse trade. The judge is absent unless `WEB_AGENT_JUDGE_BASE_URL` is set, and
+an unreachable one returns *no opinion* rather than approval.
 
 Two limits still stand. It remains one 7B model, and `--model` makes a larger one
 a measurement rather than an argument. And eleven hand-written cases is a small
@@ -567,7 +575,10 @@ fail is not a gate.
 
 ## Next
 
-1. Re-executing the MATLAB sources in CI, which needs either a public repository
+1. A judge-flag rate in the generation stats. `verification.py` returns an action
+   per explanation and nothing counts them yet, so there is no way to notice the
+   judge starting to flag everything.
+2. Re-executing the MATLAB sources in CI, which needs either a public repository
    or an `MLM_LICENSE_TOKEN`. The ordering guard covers the failure that
    actually happens; this would close the remaining gap.
 2. Wiring the judge in as a second signal, now that the measurement supports it.

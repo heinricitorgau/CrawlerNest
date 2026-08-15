@@ -43,7 +43,7 @@ _CAVEATS = ["Only the QS source is available; THE and ARWU ranks are null."]
 class TestUniversityLookupExplainer(unittest.TestCase):
     def test_grounded_prompt_carries_preview_and_missing_sections(self) -> None:
         gen = CapturingGenerator()
-        explainer = UniversityLookupExplainer(generator=gen)  # type: ignore[arg-type]
+        explainer = UniversityLookupExplainer(generator=gen, verify=False)  # type: ignore[arg-type]
 
         result = explainer.explain(preview=_PREVIEW, query="Tell me about NTU", caveats=_CAVEATS)
 
@@ -65,14 +65,14 @@ class TestUniversityLookupExplainer(unittest.TestCase):
 
     def test_falls_back_on_provider_failure(self) -> None:
         gen = CapturingGenerator(source="fallback")
-        explainer = UniversityLookupExplainer(generator=gen)  # type: ignore[arg-type]
+        explainer = UniversityLookupExplainer(generator=gen, verify=False)  # type: ignore[arg-type]
         result = explainer.explain(preview=_PREVIEW, deterministic_reply="Deterministic lookup reply.")
         self.assertEqual(result.source, "fallback")
         self.assertEqual(result.text, "Deterministic lookup reply.")
 
     def test_empty_preview_stays_deterministic_without_calling_model(self) -> None:
         gen = CapturingGenerator()
-        explainer = UniversityLookupExplainer(generator=gen)  # type: ignore[arg-type]
+        explainer = UniversityLookupExplainer(generator=gen, verify=False)  # type: ignore[arg-type]
         result = explainer.explain(preview={}, deterministic_reply="No university.")
         self.assertEqual(result.source, "fallback")
         self.assertEqual(result.text, "No university.")

@@ -97,6 +97,8 @@ class ComparisonExplainer(GroundedExplainer):
             fallback=fallback,
             default_query="Compare these universities for me.",
             query=query,
+            items=items,
+            caveats=caveats,
         )
 
     # -- evidence assembly --------------------------------------------------

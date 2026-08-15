@@ -67,7 +67,7 @@ _CAVEATS = ["Only the QS source is available; THE and ARWU ranks are null."]
 class TestRecommendationExplainer(unittest.TestCase):
     def test_grounded_prompt_carries_evidence_and_honesty_rules(self) -> None:
         gen = CapturingGenerator()
-        explainer = RecommendationExplainer(generator=gen)  # type: ignore[arg-type]
+        explainer = RecommendationExplainer(generator=gen, verify=False)  # type: ignore[arg-type]
 
         result = explainer.explain(
             items=_ITEMS,
@@ -102,7 +102,7 @@ class TestRecommendationExplainer(unittest.TestCase):
 
     def test_prompt_never_asks_model_to_compute_scores(self) -> None:
         gen = CapturingGenerator()
-        explainer = RecommendationExplainer(generator=gen)  # type: ignore[arg-type]
+        explainer = RecommendationExplainer(generator=gen, verify=False)  # type: ignore[arg-type]
         explainer.explain(items=_ITEMS, profile={}, query="explain")
 
         assert gen.prompt is not None
@@ -114,7 +114,7 @@ class TestRecommendationExplainer(unittest.TestCase):
 
     def test_falls_back_to_deterministic_reply_on_provider_failure(self) -> None:
         gen = CapturingGenerator(source="fallback")
-        explainer = RecommendationExplainer(generator=gen)  # type: ignore[arg-type]
+        explainer = RecommendationExplainer(generator=gen, verify=False)  # type: ignore[arg-type]
 
         result = explainer.explain(
             items=_ITEMS,
@@ -126,7 +126,7 @@ class TestRecommendationExplainer(unittest.TestCase):
 
     def test_empty_items_stays_deterministic_without_calling_model(self) -> None:
         gen = CapturingGenerator()
-        explainer = RecommendationExplainer(generator=gen)  # type: ignore[arg-type]
+        explainer = RecommendationExplainer(generator=gen, verify=False)  # type: ignore[arg-type]
 
         result = explainer.explain(items=[], deterministic_reply="Nothing matched.")
 
