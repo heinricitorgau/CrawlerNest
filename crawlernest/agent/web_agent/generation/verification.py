@@ -27,6 +27,7 @@ what the rules alone would have produced.
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -37,6 +38,59 @@ from crawlernest.agent.web_agent.generation.judge import JudgeVerdict, LlmJudge
 KEEP = "keep"
 KEEP_WITH_WARNING = "keep_with_warning"
 USE_FALLBACK = "use_fallback"
+
+# Process-wide counters, mirroring response_generator's generation_stats.
+#
+# Two failure modes are invisible without them, and they look nothing alike. A
+# judge that starts flagging everything shows up as keep_with_warning climbing
+# toward the total. A judge that has quietly gone dark -- wrong URL, expired key,
+# a host that accepts connections and times out -- shows up as judge_no_opinion
+# climbing instead, while every response still looks fine.
+_stats_lock = threading.Lock()
+_verification_stats: dict[str, int] = {
+    "keep": 0,
+    "keep_with_warning": 0,
+    "use_fallback": 0,
+    "judge_agreed": 0,
+    "judge_flagged": 0,
+    "judge_no_opinion": 0,
+    "judge_absent": 0,
+}
+
+
+def verification_stats() -> dict[str, int]:
+    """Snapshot of verification outcomes since process start.
+
+    Actions, one per verified explanation:
+
+    - ``keep``: both signals clean, or the only signal was clean.
+    - ``keep_with_warning``: the judge objected and the rules did not; the text
+      was kept because the judge's precision does not justify discarding it.
+    - ``use_fallback``: the rules fired and the model's text was discarded.
+
+    Judge outcomes, which do not sum to the actions because the rules
+    short-circuit the judge entirely when they fire:
+
+    - ``judge_agreed`` / ``judge_flagged``: it was asked and answered.
+    - ``judge_no_opinion``: asked, and unreachable, slow or unparseable.
+    - ``judge_absent``: not configured, or not consulted because the rules had
+      already decided.
+    """
+    with _stats_lock:
+        return dict(_verification_stats)
+
+
+def reset_verification_stats() -> None:
+    """Zero the counters (mainly for tests)."""
+    with _stats_lock:
+        for key in _verification_stats:
+            _verification_stats[key] = 0
+
+
+def _record(*outcomes: str) -> None:
+    with _stats_lock:
+        for outcome in outcomes:
+            _verification_stats[outcome] = _verification_stats.get(outcome, 0) + 1
 
 
 @dataclass(frozen=True)
@@ -77,19 +131,30 @@ def verify_explanation(
     if not report.faithful:
         # The rules are authoritative for what they define. No point asking a
         # second opinion about a verdict that is already reliable.
+        _record(USE_FALLBACK, "judge_absent")
         return VerificationOutcome(action=USE_FALLBACK, rule_violations=report.kinds)
 
     verdict: JudgeVerdict | None = None
-    if judge is not None:
+    if judge is None:
+        _record("judge_absent")
+    else:
         verdict = judge.review(
             explanation=explanation, items=items, caveats=caveats, evidence=evidence
         )
+        if verdict is None:
+            _record("judge_no_opinion")
+        elif verdict.faithful:
+            _record("judge_agreed")
+        else:
+            _record("judge_flagged")
 
     if verdict is not None and not verdict.faithful:
+        _record(KEEP_WITH_WARNING)
         return VerificationOutcome(
             action=KEEP_WITH_WARNING,
             judge_reason=verdict.reason or "no reason given",
             judge_model=verdict.model_name,
         )
 
+    _record(KEEP)
     return VerificationOutcome(action=KEEP)
