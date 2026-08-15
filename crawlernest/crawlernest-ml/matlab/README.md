@@ -132,30 +132,43 @@ produces a stale artifact is caught even though the sources are not re-executed.
 **Re-run `run_qs_eda.m` and commit the regenerated `../artifacts/eda_matlab/`
 after any change here.**
 
-### Why the sources are not re-executed in CI
+### How the sources are re-executed in CI
 
 MathWorks' `setup-matlab` action runs MATLAB on GitHub-hosted runners without a
-licence **for public repositories only**. This repository is private, so CI would
-need an `MLM_LICENSE_TOKEN` from an entitled MathWorks account. That is a
-licensing decision, not an engineering one, and it is why the ordering guard
-exists instead.
-
-The sources were verified against the committed artifacts by hand on R2026a:
-re-running `run_qs_eda.m` reproduces all three CSVs **byte for byte**. Only the
-PNGs differ, in encoding rather than content, which is why the parity check
-compares numbers and not images.
-
-If the repository ever goes public, or a licence token is added as a secret, the
-step to add is:
+licence **for public repositories only**. This repository was private, which is
+why the ordering guard existed instead. It is public now, so the
+`matlab-reexecution` job in `.github/workflows/ml-tests.yml` runs the sources on
+every push:
 
 ```yaml
 - uses: matlab-actions/setup-matlab@v2
+  with:
+    products: Statistics_and_Machine_Learning_Toolbox
 - uses: matlab-actions/run-command@v2
   with:
-    command: cd crawlernest/crawlernest-ml/matlab; run_qs_eda
+    command: |
+      addpath("crawlernest/crawlernest-ml/matlab");
+      run_qs_eda(OutDir="/tmp/eda_matlab_fresh");
 ```
 
-followed by a `git diff --exit-code` on `../artifacts/eda_matlab/*.csv`.
+The toolbox is not optional: `run_qs_eda.m` calls `pca` and `corr`, neither of
+which is in base MATLAB.
+
+Output goes to a scratch directory rather than over `../artifacts/eda_matlab/`,
+so the parity check has two independent things to compare. It is then run with
+`--matlab-dir` on the fresh output — making the Python comparison one against
+sources that just executed — and `--committed-dir` on the repository's copy,
+which asserts the sources still produce what is committed. A numeric comparison
+rather than `git diff --exit-code`, because the PNGs differ in encoding between
+runs while the numbers do not.
+
+Before this, the sources were verified by hand on R2026a: re-running
+`run_qs_eda.m` reproduced all three CSVs **byte for byte**, with only the PNGs
+differing.
+
+The ordering guard stays. It runs in the fast job, needs no MATLAB, and still
+catches the sequence that makes an artifact stale. **Re-run `run_qs_eda.m` and
+commit the regenerated `../artifacts/eda_matlab/` after any change here.**
 
 ## What this does *not* cover
 

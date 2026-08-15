@@ -18,11 +18,15 @@ against a **fresh** Python run. So:
 - It catches a MATLAB re-run that produces different numbers.
 - It cannot itself catch someone editing the ``.m`` files and never re-running
   them, because stale CSVs still match. :func:`check_artifacts_are_current`
-  covers that separately, by asking git whether the sources moved after the
-  artifacts did. That is a weaker guarantee than re-executing the sources --
-  which needs MATLAB on the runner, and MathWorks' free GitHub-hosted MATLAB
-  covers public repositories only -- but it catches the failure that actually
-  happens.
+  covers that by asking git whether the sources moved after the artifacts did,
+  which catches the ordinary mistake but proves nothing about the numbers.
+
+Since the repository became public, MathWorks' free GitHub-hosted MATLAB is
+available to it, and the ``matlab-reexecution`` job in ``ml-tests.yml`` runs the
+``.m`` sources on every push. It passes the fresh output as ``--matlab-dir``, so
+the comparison above is against sources that just executed, and the committed
+artifacts as ``--committed-dir``, which asserts directly what the git-ordering
+guard could only approximate. This module still never invokes MATLAB itself.
 
 The tolerance is 1e-9. These are the same formulas over the same inputs, so
 agreement should be near machine precision; anything looser would let a genuine
@@ -171,9 +175,69 @@ def compare(name: str, python: pd.DataFrame, matlab: pd.DataFrame, columns: tupl
     return failures
 
 
+def compare_artifact_dirs(fresh: Path, committed: Path) -> list[str]:
+    """Do freshly executed sources still produce the committed artifacts?
+
+    ``check_artifacts_are_current`` can only ask git about commit ordering, which
+    catches the usual mistake but proves nothing about the numbers. Given MATLAB
+    on the runner, this answers it directly: run the ``.m`` sources into a fresh
+    directory and compare that against what is committed.
+
+    A difference here means the committed CSVs are not what the sources produce
+    -- somebody edited MATLAB and did not re-run it, or re-ran it and did not
+    commit the result. Either way the parity check has been reading a reference
+    that no longer exists.
+    """
+    failures: list[str] = []
+    print("\n### do the .m sources still produce the committed artifacts?")
+
+    for name, columns in COMPARISONS.items():
+        fresh_path, committed_path = fresh / name, committed / name
+        if not fresh_path.is_file():
+            failures.append(f"{name}: MATLAB produced no {fresh_path}")
+            continue
+        if not committed_path.is_file():
+            failures.append(f"{name}: nothing committed at {committed_path}")
+            continue
+
+        fresh_table = pd.read_csv(fresh_path)
+        committed_table = pd.read_csv(committed_path)
+        if set(fresh_table["indicator"]) != set(committed_table["indicator"]):
+            failures.append(
+                f"{name}: a fresh MATLAB run covers different indicators than the "
+                "committed artifact."
+            )
+            continue
+
+        merged = fresh_table.merge(committed_table, on="indicator", suffixes=("_new", "_old"))
+        for column in columns:
+            worst = float(
+                (merged[f"{column}_new"].astype(float) - merged[f"{column}_old"].astype(float))
+                .abs().max()
+            )
+            print(f"  {name:<28} {column:<20} {worst:>12.3e}  "
+                  f"{'ok' if worst <= TOLERANCE else 'STALE'}")
+            if worst > TOLERANCE:
+                failures.append(
+                    f"{name}: {column} from a fresh MATLAB run differs from the committed "
+                    f"artifact by {worst:.3e}. Re-run run_qs_eda.m and commit the result."
+                )
+
+    return failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Compare the MATLAB EDA port to the Python one.")
     parser.add_argument("--matlab-dir", default=str(DEFAULT_MATLAB_DIR))
+    parser.add_argument(
+        "--committed-dir",
+        default=None,
+        help=(
+            "Compare --matlab-dir against this directory as well. Used in CI, where "
+            "--matlab-dir holds output from a MATLAB run that just happened and this "
+            "holds what is in the repository."
+        ),
+    )
     args = parser.parse_args()
 
     matlab_dir = Path(args.matlab_dir)
@@ -182,6 +246,9 @@ def main() -> int:
     failures: list[str] = check_artifacts_are_current()
     print("### are the committed artifacts current with the .m sources?")
     print("    " + ("no -- see below" if failures else "yes"))
+
+    if args.committed_dir:
+        failures.extend(compare_artifact_dirs(matlab_dir, Path(args.committed_dir)))
     for name, columns in COMPARISONS.items():
         matlab_path = matlab_dir / name
         if not matlab_path.is_file():
@@ -201,7 +268,8 @@ def main() -> int:
             "missing-value handling first, since both sides must median-impute and the "
             "medians must come from the same rows -- the training set for the "
             "correlation table, all rows for the covariate shift. If the artifacts are "
-            "stale, re-run run_qs_eda.m; nothing here re-executes MATLAB for you."
+            "stale, re-run run_qs_eda.m -- this module never executes MATLAB itself; "
+            "CI does that and passes the result in with --matlab-dir."
         )
         return 1
 
