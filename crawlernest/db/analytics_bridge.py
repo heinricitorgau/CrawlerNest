@@ -52,6 +52,10 @@ class AnalyticsBridgeSummary:
     aggregation_run_id: int
     aggregated_rankings_count: int
     latest_view_count: int
+    #: Rows for this scope left behind by an earlier run and deleted by this one.
+    #: Normally 0. A non-zero value means universities dropped out of the source
+    #: data, which is worth seeing rather than silently cleaning up.
+    superseded_rankings_removed: int = 0
 
 
 def sync_legacy_rankings_to_analytics(
@@ -120,6 +124,13 @@ def sync_legacy_rankings_to_analytics(
                 universe_key=universe_key,
                 aggregation_run_id=aggregation_run_id,
             )
+            superseded_rankings_removed = _prune_superseded_rankings(
+                cur,
+                ranking_year=ranking_year,
+                universe_type=universe_type,
+                universe_key=universe_key,
+                aggregation_run_id=aggregation_run_id,
+            )
             latest_view_count = _latest_view_count(
                 cur,
                 ranking_year=ranking_year,
@@ -139,6 +150,7 @@ def sync_legacy_rankings_to_analytics(
         aggregation_run_id=aggregation_run_id,
         aggregated_rankings_count=aggregated_rankings_count,
         latest_view_count=latest_view_count,
+        superseded_rankings_removed=superseded_rankings_removed,
     )
 
 
@@ -643,6 +655,59 @@ def _sync_aggregated_rankings(
         ),
     )
     return int(cur.fetchone()[0] or 0)
+
+
+def _prune_superseded_rankings(
+    cur: Any,
+    *,
+    ranking_year: int,
+    universe_type: str,
+    universe_key: str,
+    aggregation_run_id: int,
+) -> int:
+    """Delete rows in this scope that the current run did not produce.
+
+    The upsert above writes one row per university and stamps it with this run's
+    id, but it can only touch universities that are *in* this run. A university
+    that was aggregated once and has since dropped out of the source data keeps
+    its row, its old rank and its old run id forever.
+
+    That is not merely untidy. ``display_rank`` is assigned by ROW_NUMBER over
+    the current run, so a leftover row holds a rank the current run has also
+    handed to somebody else -- the live table had 163 duplicated ranks from
+    exactly this. ``v_aggregated_rankings_latest`` hides them, because it joins
+    on the latest run id, but ``AnalyticsService.getRankingTrends`` reads the
+    base table and filters only on ``run.status = 'finished'``. A superseded
+    row's run finished perfectly well, so that filter does not exclude it and
+    the stale rank is served.
+
+    Deleting is safe and is what the table's shape already implies: the unique
+    constraint is on (university, year, universe, method) with no run id, so
+    this table is current state, not history. History lives in
+    ``analytics.aggregation_runs``. Nothing carries a foreign key to
+    ``aggregated_ranking_id``.
+
+    Scoped to one year, universe and method version, so a run cannot delete
+    another scope's rows or another method's parallel output.
+    """
+    cur.execute(
+        """
+        DELETE FROM analytics.aggregated_rankings
+        WHERE ranking_year = %s
+          AND universe_type = %s
+          AND universe_key = %s
+          AND aggregation_method_version = %s
+          AND aggregation_run_id IS DISTINCT FROM %s
+        """,
+        (
+            ranking_year,
+            universe_type,
+            universe_key,
+            AGGREGATION_METHOD_VERSION,
+            aggregation_run_id,
+        ),
+    )
+    return int(cur.rowcount or 0)
 
 
 def _latest_view_count(cur: Any, *, ranking_year: int, universe_type: str, universe_key: str) -> int:
