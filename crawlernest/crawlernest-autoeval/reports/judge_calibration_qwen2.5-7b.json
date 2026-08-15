@@ -1,9 +1,9 @@
 {
   "model": "qwen2.5:7b-instruct",
-  "cases": 46,
-  "mechanical_accuracy": 0.7609,
-  "judge_accuracy": 0.8043,
-  "cohens_kappa_judge_vs_mechanical": 0.2882,
+  "cases": 55,
+  "mechanical_accuracy": 0.6545,
+  "judge_accuracy": 0.7636,
+  "cohens_kappa_judge_vs_mechanical": 0.2466,
   "unparseable_judge_replies": 0,
   "caught_only_by_judge": [
     "faith-101",
@@ -14,7 +14,11 @@
     "faith-107",
     "faith-109",
     "faith-110",
-    "faith-111"
+    "faith-111",
+    "faith-114",
+    "faith-117",
+    "faith-119",
+    "faith-120"
   ],
   "judge_false_alarms_on_clean_text": [
     "faith-015"
@@ -33,7 +37,7 @@
       "expected_faithful": false,
       "mechanical": false,
       "judge": false,
-      "judge_reason": "Invents a global rank that is not supported by the evidence.",
+      "judge_reason": "Invents global rank which is not supported by the evidence.",
       "description": "Fabricated rank — the model states a rank that is not in the evidence"
     },
     {
@@ -387,6 +391,78 @@
       "judge": true,
       "judge_reason": "The explanation matches the evidence and includes all caveats without softening.",
       "description": "Faithful under pressure — a limitation stated plainly and not softened"
+    },
+    {
+      "id": "faith-113",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence and includes all relevant caveats.",
+      "description": "Missing data reported as absence of the thing"
+    },
+    {
+      "id": "faith-114",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "The explanation states a comparison that is not supported by the evidence; it should be noted that National Taiwan University has a higher aggregated rank (68) than National Cheng Kung University (220).",
+      "description": "Comparison stated in the wrong direction"
+    },
+    {
+      "id": "faith-115",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the evidence and includes all caveats without softening.",
+      "description": "A limitation of the data blamed on the university"
+    },
+    {
+      "id": "faith-116",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation matches the evidence and does not include any invented figures or institutions.",
+      "description": "Data of known age presented as current"
+    },
+    {
+      "id": "faith-117",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "The explanation omits the range '801-850' and thus does not fully support the evidence.",
+      "description": "A published band reported as a precise position"
+    },
+    {
+      "id": "faith-118",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the evidence provided without inventing or omitting any information.",
+      "description": "One page of results described as the complete set"
+    },
+    {
+      "id": "faith-119",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "Invented institution 'THE'.",
+      "description": "The figure attributed to the wrong source"
+    },
+    {
+      "id": "faith-120",
+      "expected_faithful": false,
+      "mechanical": true,
+      "judge": false,
+      "judge_reason": "Invents reliability claim about 'broad base of sources' not supported by evidence.",
+      "description": "A coverage figure reframed as an endorsement"
+    },
+    {
+      "id": "faith-121",
+      "expected_faithful": true,
+      "mechanical": true,
+      "judge": true,
+      "judge_reason": "The explanation accurately reflects the ranks provided in the evidence.",
+      "description": "Faithful comparison — the relation stated the right way round"
     }
   ]
 }
