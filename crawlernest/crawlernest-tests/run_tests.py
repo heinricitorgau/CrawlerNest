@@ -34,6 +34,11 @@ def run_all_tests():
         "test_fetcher",
         "test_extractor",
         "test_db_writer",
+        # Aggregation: these existed but no runner loaded them, so a change to
+        # the source weights or the composite maths went unchecked here.
+        "test_ranking_aggregation",
+        "test_multi_source_pipeline",
+        "test_analytics_bridge_weights",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.

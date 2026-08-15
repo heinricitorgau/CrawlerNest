@@ -23,10 +23,12 @@ class AggregationConfig:
 def default_aggregation_config() -> AggregationConfig:
     return AggregationConfig(
         aggregation_method_version="multi_source_weighted_v1",
+        # Mirrored by db.analytics_bridge.WEIGHTS, which serves the legacy
+        # bridge path; test_analytics_bridge_weights asserts the two agree.
         source_weights={
-            "QS": 0.40,
-            "THE": 0.40,
-            "ARWU": 0.20,
+            "QS": 0.222,
+            "THE": 0.654,
+            "ARWU": 0.124,
         },
         source_score_scales={},
         source_rank_fallback_max={},

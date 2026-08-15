@@ -11,11 +11,34 @@ SOURCE_NAME_MAP = {
     "ARWU": "Academic Ranking of World Universities",
 }
 
+#: Source importance for rank aggregation. Bound into the aggregation SQL as
+#: parameters and reported verbatim in the run's config_json, so what a run says
+#: it weighted and what it actually weighted are the same numbers.
+#:
+#: Only QS carries data today. With one source present the composite is
+#: renormalised by the available weight, so these values do not move composite
+#: scores or display ranks until THE or ARWU is ingested -- what they do move is
+#: coverage_ratio, which is the fraction of configured weight actually behind a
+#: row, and is meant to fall when most of the intended evidence is missing.
+#:
+#: Mirrored by ranking_aggregation.config.default_aggregation_config(), which
+#: serves the multi-source path; test_analytics_bridge_weights asserts the two
+#: agree.
 WEIGHTS = {
-    "QS": 0.4,
-    "THE": 0.4,
-    "ARWU": 0.2,
+    "QS": 0.222,
+    "THE": 0.654,
+    "ARWU": 0.124,
 }
+
+#: Source order used for the SQL parameter triples below. Fixed here rather than
+#: relying on dict order at each call site, because a reordering would silently
+#: assign THE's weight to QS.
+WEIGHT_ORDER = ("QS", "THE", "ARWU")
+
+
+def _weight_triple() -> tuple[float, ...]:
+    return tuple(float(WEIGHTS[source]) for source in WEIGHT_ORDER)
+
 
 AGGREGATION_METHOD_VERSION = "multi_source_weighted_v1"
 
@@ -506,9 +529,9 @@ def _sync_aggregated_rankings(
                 CASE WHEN the_rank IS NOT NULL THEN 1.0 / the_rank ELSE NULL END AS the_norm,
                 CASE WHEN arwu_rank IS NOT NULL THEN 1.0 / arwu_rank ELSE NULL END AS arwu_norm,
                 (
-                    CASE WHEN qs_rank IS NOT NULL THEN 0.4 ELSE 0 END
-                    + CASE WHEN the_rank IS NOT NULL THEN 0.4 ELSE 0 END
-                    + CASE WHEN arwu_rank IS NOT NULL THEN 0.2 ELSE 0 END
+                    CASE WHEN qs_rank IS NOT NULL THEN %s::numeric ELSE 0 END
+                    + CASE WHEN the_rank IS NOT NULL THEN %s::numeric ELSE 0 END
+                    + CASE WHEN arwu_rank IS NOT NULL THEN %s::numeric ELSE 0 END
                 )::numeric AS available_weight
             FROM pivoted
         ),
@@ -520,9 +543,9 @@ def _sync_aggregated_rankings(
                 universe_key,
                 (
                     (
-                        COALESCE(0.4 * qs_norm, 0)
-                        + COALESCE(0.4 * the_norm, 0)
-                        + COALESCE(0.2 * arwu_norm, 0)
+                        COALESCE(%s::numeric * qs_norm, 0)
+                        + COALESCE(%s::numeric * the_norm, 0)
+                        + COALESCE(%s::numeric * arwu_norm, 0)
                     ) / NULLIF(available_weight, 0)
                 )::numeric(10,6) AS composite_score,
                 available_weight::numeric(8,6) AS coverage_ratio,
@@ -537,9 +560,9 @@ def _sync_aggregated_rankings(
                     'ARWU', arwu_norm
                 ) AS source_normalized_scores_json,
                 jsonb_build_object(
-                    'QS', CASE WHEN qs_rank IS NOT NULL THEN 0.4 ELSE NULL END,
-                    'THE', CASE WHEN the_rank IS NOT NULL THEN 0.4 ELSE NULL END,
-                    'ARWU', CASE WHEN arwu_rank IS NOT NULL THEN 0.2 ELSE NULL END
+                    'QS', CASE WHEN qs_rank IS NOT NULL THEN %s::numeric ELSE NULL END,
+                    'THE', CASE WHEN the_rank IS NOT NULL THEN %s::numeric ELSE NULL END,
+                    'ARWU', CASE WHEN arwu_rank IS NOT NULL THEN %s::numeric ELSE NULL END
                 ) AS source_weights_used_json
             FROM scored
             WHERE available_weight > 0
@@ -607,6 +630,14 @@ def _sync_aggregated_rankings(
             ranking_year,
             universe_type,
             universe_key,
+            # Three triples, in the order they appear above: available_weight,
+            # the composite numerator, and source_weights_used_json. They are
+            # bound from WEIGHTS rather than written into the SQL so the weights
+            # this run *reports* in config_json and the weights it *applies*
+            # cannot drift apart -- they are now the same object.
+            *_weight_triple(),
+            *_weight_triple(),
+            *_weight_triple(),
             aggregation_run_id,
             AGGREGATION_METHOD_VERSION,
         ),

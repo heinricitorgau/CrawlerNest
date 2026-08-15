@@ -29,10 +29,15 @@ flowchart LR
 
 2. Rank aggregation
 - configurable per source
-- default:
-  - QS: 0.40
-  - THE: 0.35
-  - ARWU: 0.25
+- default (`default_aggregation_config()`, mirrored by `db/analytics_bridge.py`
+  and the Java `AggregationExplainability`; the weights must sum to 1.0 because
+  `coverage_ratio` is a fraction of the configured total):
+  - QS: 0.222
+  - THE: 0.654
+  - ARWU: 0.124
+- only QS is ingested today, and a single-source row renormalises by the
+  available weight, so these values currently move `coverage_ratio` but not
+  `composite_score` or `display_rank`
 - aggregated rank value = weighted average of available source ranks
 - lower aggregated rank value is better
 

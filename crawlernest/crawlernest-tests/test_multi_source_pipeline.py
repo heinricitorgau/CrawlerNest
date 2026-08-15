@@ -175,7 +175,11 @@ class TestMultiSourcePipeline(unittest.TestCase):
         self.assertAlmostEqual(oxford.source_normalized_scores["QS"] or 0.0, 0.333333, places=6)
         self.assertAlmostEqual(oxford.source_normalized_scores["THE"] or 0.0, 1.0, places=6)
         self.assertAlmostEqual(oxford.source_normalized_scores["ARWU"] or 0.0, 0.142857, places=6)
-        self.assertAlmostEqual(oxford.composite_score or 0.0, 0.561905, places=6)
+        # All three sources present, so the full weighting applies with no
+        # renormalisation: 0.222 * 1/3 + 0.654 * 1/1 + 0.124 * 1/7. This is the
+        # only case here where the weights move the composite at all -- with QS
+        # alone the renormalisation cancels them out.
+        self.assertAlmostEqual(oxford.composite_score or 0.0, 0.745714, places=6)
         self.assertEqual(oxford.display_rank, 1)
 
         cambridge = by_canonical[2]
@@ -251,8 +255,9 @@ class TestMultiSourcePipeline(unittest.TestCase):
         lmu = outputs[0]
         self.assertEqual(10, lmu.canonical_university_id)
         self.assertEqual({"QS": 59.0, "THE": 34.0, "ARWU": None}, lmu.source_ranks)
-        self.assertEqual({"QS": 0.4, "THE": 0.4, "ARWU": None}, lmu.source_weights_used)
-        self.assertAlmostEqual(lmu.composite_score or 0.0, 0.02318, places=6)
+        self.assertEqual({"QS": 0.222, "THE": 0.654, "ARWU": None}, lmu.source_weights_used)
+        # (0.222 * 1/59 + 0.654 * 1/34) / (0.222 + 0.654)
+        self.assertAlmostEqual(lmu.composite_score or 0.0, 0.02625, places=5)
         self.assertEqual(2, lmu.metadata["available_rank_count"])
 
 
