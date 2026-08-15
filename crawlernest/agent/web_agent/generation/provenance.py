@@ -20,14 +20,26 @@ can be re-derived by hand -- the same standard the faithfulness rules are held
 to, and the reason this is worth having alongside an LLM judge rather than
 instead of the rules.
 
-## What is deliberately not checked
+## The ordering check, and why it is decidable after all
 
-A superlative on a dimension the evidence does not rank (``faith-108``) needs to
-know which dimensions *are* ranked, and every phrasing pattern that catches "the
-better choice for international students" also catches legitimate comparative
-prose. Five checks with no false positives are worth more than six with some: the
-value of this layer over the judge is precision, and a rule that fires on clean
-text spends exactly that.
+A superlative on a dimension the evidence does not rank ("the better choice for
+international students", over rows carrying only rank and country) first looked
+undecidable here: it needs to know which dimensions *are* ranked, and a pattern
+that catches that sentence also catches ordinary comparative prose.
+
+It is decidable, because the dimension vocabulary is closed. QS publishes nine
+indicators and no more, so "for international students" resolves to a named
+column, and whether that column is in the evidence is a fact about the item keys.
+The check fires only when a recognised dimension term carries an ordering claim
+*and* no item holds a field for it -- add the field and it goes quiet, like the
+others. An ordering claim over an unrecognised criterion is left alone: guessing
+there is where the false positives would come from, and precision is the whole
+reason this layer can act rather than warn.
+
+``_DIMENSIONS`` restates the indicator vocabulary rather than importing it,
+because ``crawlernest-ml`` is not on the agent's import path. ``test_provenance``
+loads ``ranking_ml/features/schema.py`` by path and asserts every QS indicator is
+covered here, so the two cannot drift silently.
 """
 
 from __future__ import annotations
@@ -80,6 +92,79 @@ _EXHAUSTIVE = re.compile(
     r"|the\s+only\s+universities\s+that\s+match"
     r"|the\s+complete\s+(?:list|set)\s+of)",
 )
+
+# An ordering claim: one thing placed above another. Kept narrow on purpose --
+# these are the words that make a sentence a ranking, not merely a description.
+_ORDERING = re.compile(
+    r"\b(?:better|best|stronger|strongest|superior|leading|top|highest|finest"
+    r"|outperforms?|outranks?|ahead|preferable|first choice)\b",
+    re.IGNORECASE,
+)
+
+#: How far before a dimension term an ordering word still governs it.
+#: "the better choice for international students" is 21 characters, so this is
+#: wide enough for a subject clause. The window is additionally clipped at the
+#: nearest sentence boundary: without that, "NTU is the best on rank. A separate
+#: note: policies for international students vary by country" reads as an
+#: ordering claim about international students, and it is not one.
+_ORDERING_WINDOW = 60
+
+#: Sentence terminators, used to stop the ordering window at a clause it cannot
+#: legitimately reach across.
+_SENTENCE_BREAK = re.compile(r"[.!?;:\n]")
+
+# The closed vocabulary. Keys are the QS indicator labels (the source of truth is
+# ranking_ml/features/schema.py:QS_INDICATORS, and test_provenance asserts this
+# covers all nine); each entry lists the prose that expresses the dimension and
+# the evidence fields that would support a claim about it. Field names are
+# compared with punctuation and case stripped, so "International Student Ratio",
+# "internationalStudentRatio" and "international_student_ratio" all match.
+_DIMENSIONS: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
+    "Academic Reputation": (
+        ("academic reputation", "academic standing", "academically"),
+        ("academicReputation",),
+    ),
+    "Employer Reputation": (
+        ("employer reputation", "employer regard", "reputation among employers"),
+        ("employerReputation",),
+    ),
+    "Faculty Student Ratio": (
+        ("faculty student ratio", "student faculty ratio", "class sizes", "teaching quality"),
+        ("facultyStudentRatio", "studentFacultyRatio"),
+    ),
+    "Citations per Faculty": (
+        ("citations per faculty", "citation impact", "research impact", "research output"),
+        ("citationsPerFaculty",),
+    ),
+    "International Faculty Ratio": (
+        ("international faculty", "international staff", "overseas faculty"),
+        ("internationalFacultyRatio", "internationalFaculty"),
+    ),
+    "International Student Ratio": (
+        ("international students", "international student ratio", "overseas students",
+         "foreign students"),
+        ("internationalStudentRatio", "internationalStudents"),
+    ),
+    "International Research Network": (
+        ("international research network", "research collaboration",
+         "international collaboration"),
+        ("internationalResearchNetwork",),
+    ),
+    "Employment Outcomes": (
+        ("employment outcomes", "graduate employment", "job prospects", "employability",
+         "career outcomes"),
+        ("employmentOutcomes",),
+    ),
+    "Sustainability Score": (
+        ("sustainability", "environmental performance"),
+        ("sustainabilityScore", "sustainability"),
+    ),
+}
+
+
+def _normalise(name: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(name).lower())
+
 
 #: Fields that mark a value as produced by the modelling layer.
 _ESTIMATE_FLAGS = ("isEstimated", "is_estimated")
@@ -150,6 +235,41 @@ def _null_sources(items: list[dict[str, Any]] | None, evidence: Any) -> set[str]
     return missing
 
 
+def _present_fields(items: list[dict[str, Any]] | None, evidence: Any) -> set[str]:
+    """Every field name anywhere in the evidence, normalised for comparison."""
+    present: set[str] = set()
+    for mapping in list(_walk(items)) + list(_walk(evidence)):
+        for key, value in mapping.items():
+            # A key explicitly set to null carries no dimension: that is the same
+            # absence sourceRanks nulls describe, not a ranked dimension.
+            if value is not None:
+                present.add(_normalise(key))
+    return present
+
+
+def _ungrounded_ordering(body: str, present: set[str]) -> str | None:
+    """A ranking claim over a dimension the evidence does not carry.
+
+    Returns the dimension name, or ``None``. Only recognised dimensions are
+    considered -- an ordering claim over some criterion outside the QS
+    vocabulary is not evidence of anything, and guessing would cost the
+    precision that lets this signal act.
+    """
+    lowered = body.lower()
+    for dimension, (phrases, fields) in _DIMENSIONS.items():
+        if any(_normalise(f) in present for f in fields):
+            continue
+        for phrase in phrases:
+            for match in re.finditer(re.escape(phrase), lowered):
+                window = lowered[max(0, match.start() - _ORDERING_WINDOW):match.start()]
+                breaks = list(_SENTENCE_BREAK.finditer(window))
+                if breaks:
+                    window = window[breaks[-1].end():]
+                if _ORDERING.search(window):
+                    return dimension
+    return None
+
+
 def check_provenance(
     *,
     explanation: str,
@@ -197,6 +317,14 @@ def check_provenance(
         violations.append(ProvenanceViolation(
             "stale_data_claimed_current",
             "the evidence records an ingestion point, and the explanation asserts currency",
+        ))
+
+    dimension = _ungrounded_ordering(body, _present_fields(items, evidence))
+    if dimension:
+        violations.append(ProvenanceViolation(
+            "unsupported_ordering_criterion",
+            f"the explanation ranks the options on {dimension}, which no field in "
+            "the evidence carries",
         ))
 
     if _EXHAUSTIVE.search(body):
