@@ -71,8 +71,10 @@ def build_stats_payload() -> dict[str, Any]:
     caveats = [
         "Counters are process-local and start at zero on restart. They describe this "
         "process since it started, not the deployment, and not a time window.",
-        "Judge rates are over consultations rather than over all explanations: when the "
-        "rules fire they decide alone and the judge is never asked.",
+        "Judge rates are over consultations rather than over all explanations: when a "
+        "mechanical signal fires it decides alone and the judge is never asked.",
+        "rules_flag_rate and provenance_flag_rate can both apply to one explanation, so "
+        "they may sum to more than mechanical_rejection_rate.",
     ]
     if consulted == 0:
         caveats.append(
@@ -92,7 +94,9 @@ def build_stats_payload() -> dict[str, Any]:
         "verification": verification,
         "signals": {
             "explanations_verified": verified,
-            "rules_rejection_rate": _rate(verification["use_fallback"], verified),
+            "mechanical_rejection_rate": _rate(verification["use_fallback"], verified),
+            "rules_flag_rate": _rate(verification["rules_flagged"], verified),
+            "provenance_flag_rate": _rate(verification["provenance_flagged"], verified),
             "judge_consulted": consulted,
             "judge_flag_rate": _rate(verification["judge_flagged"], consulted),
             "judge_no_opinion_rate": _rate(verification["judge_no_opinion"], consulted),

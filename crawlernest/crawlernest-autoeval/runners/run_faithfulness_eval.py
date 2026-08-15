@@ -49,6 +49,9 @@ GOLDEN_FILE = Path(__file__).resolve().parents[1] / "datasets" / "faithfulness" 
 from crawlernest.agent.web_agent.generation.faithfulness import (  # noqa: E402
     check_faithfulness,
 )
+from crawlernest.agent.web_agent.generation.provenance import (  # noqa: E402
+    check_provenance,
+)
 
 
 def load_golden(path: Path) -> list[dict[str, Any]]:
@@ -110,7 +113,7 @@ def _prf(true_positive: int, false_positive: int, false_negative: int) -> dict[s
 
 
 def ground_truth_coverage(entries: list[dict[str, Any]], results: list[dict[str, Any]]) -> dict[str, Any]:
-    """How much actual unfaithfulness the rules reach, as opposed to specified.
+    """How much actual unfaithfulness the mechanical signals reach, as opposed to specified.
 
     ``expect`` says what the checker should report; ``ground_truth`` says whether
     the explanation is in fact faithful. For most of the dataset they agree,
@@ -120,6 +123,11 @@ def ground_truth_coverage(entries: list[dict[str, Any]], results: list[dict[str,
 
     Reporting only the first number would say the checker is perfect. It is
     perfect against its specification, and that is a smaller claim.
+
+    Two mechanical signals are scored here, separately and combined. The
+    provenance checker was built specifically against cases the rules cannot
+    express, so a combined number that hid which signal earned it would make the
+    rules look better than they are.
     """
     by_id = {e.get("id"): e for e in entries}
     tracked = []
@@ -128,22 +136,36 @@ def ground_truth_coverage(entries: list[dict[str, Any]], results: list[dict[str,
         truth = entry.get("ground_truth", {}).get(
             "faithful", entry.get("expect", {}).get("faithful", True)
         )
-        tracked.append((bool(truth), bool(result["faithful"]), entry))
+        rules_clean = bool(result["faithful"])
+        prov_clean = bool(result.get("provenance_sound", True))
+        tracked.append((bool(truth), rules_clean, prov_clean, entry))
 
     unfaithful = [t for t in tracked if not t[0]]
-    caught = [t for t in unfaithful if not t[1]]
-    beyond = [t for t in unfaithful if t[1]]
     clean = [t for t in tracked if t[0]]
-    false_alarms = [t for t in clean if not t[1]]
+
+    by_rules = [t for t in unfaithful if not t[1]]
+    by_provenance = [t for t in unfaithful if not t[2]]
+    by_either = [t for t in unfaithful if not t[1] or not t[2]]
+    beyond_rules = [t for t in unfaithful if t[1]]
+    beyond_both = [t for t in unfaithful if t[1] and t[2]]
+
+    def _rate(n: int) -> float:
+        return round(n / len(unfaithful), 4) if unfaithful else 1.0
 
     return {
         "cases": len(tracked),
         "actually_unfaithful": len(unfaithful),
-        "caught_by_rules": len(caught),
-        "recall_against_truth": round(len(caught) / len(unfaithful), 4) if unfaithful else 1.0,
-        "beyond_the_rules": [t[2].get("id") for t in beyond],
+        "caught_by_rules": len(by_rules),
+        "caught_by_provenance": len(by_provenance),
+        "caught_by_mechanical": len(by_either),
+        "recall_against_truth": _rate(len(by_rules)),
+        "recall_provenance": _rate(len(by_provenance)),
+        "recall_mechanical": _rate(len(by_either)),
+        "beyond_the_rules": [t[3].get("id") for t in beyond_rules],
+        "beyond_mechanical": [t[3].get("id") for t in beyond_both],
         "actually_faithful": len(clean),
-        "false_alarms": [t[2].get("id") for t in false_alarms],
+        "false_alarms": [t[3].get("id") for t in clean if not t[1]],
+        "provenance_false_alarms": [t[3].get("id") for t in clean if not t[2]],
     }
 
 
@@ -211,6 +233,16 @@ def evaluate(entries: list[dict[str, Any]], *, live: bool, verbose: bool) -> dic
             caveats=caveats,
         )
 
+        # Scored alongside the rules but never folded into the pass/fail verdict:
+        # `expect` describes the rules' taxonomy, and merging a second signal's
+        # kinds into it would fail cases the rules handle exactly as specified.
+        provenance = check_provenance(
+            explanation=explanation,
+            items=items,
+            evidence={k: v for k, v in evidence.items() if k not in {"items", "caveats"}} or None,
+            caveats=caveats,
+        )
+
         expect = entry.get("expect", {})
         if live:
             # No stored expectation applies to freshly generated text: the model
@@ -231,6 +263,8 @@ def evaluate(entries: list[dict[str, Any]], *, live: bool, verbose: bool) -> dic
                 "source": source,
                 "faithful": report.faithful,
                 "violations": [v.as_dict() for v in report.violations],
+                "provenance_sound": provenance.sound,
+                "provenance_violations": [v.as_dict() for v in provenance.violations],
                 **({"expected": expect} if not live else {}),
             }
         )
@@ -239,6 +273,8 @@ def evaluate(entries: list[dict[str, Any]], *, live: bool, verbose: bool) -> dic
             print(f"[{results[-1]['status']}] {entry.get('id')} — {entry.get('description')}")
             for violation in report.violations:
                 print(f"    ! {violation.kind}: {violation.detail}")
+            for violation in provenance.violations:
+                print(f"    ~ {violation.kind}: {violation.detail}")
 
     summary = {
         "mode": "live" if live else "fixture",
@@ -297,14 +333,19 @@ def main() -> int:
         coverage = summary.get("ground_truth")
         if coverage:
             print()
-            print("Checker measured against what is actually unfaithful")
+            print("Checkers measured against what is actually unfaithful")
             print(f"  cases                    {coverage['cases']}")
             print(f"  actually unfaithful      {coverage['actually_unfaithful']}")
-            print(f"  caught by the rules      {coverage['caught_by_rules']}")
-            print(f"  recall against truth     {coverage['recall_against_truth']:.3f}")
-            print(f"  beyond the rules         {len(coverage['beyond_the_rules'])} "
-                  f"({', '.join(coverage['beyond_the_rules']) or 'none'})")
-            print(f"  false alarms             {coverage['false_alarms'] or 'none'}")
+            print(f"  caught by the rules      {coverage['caught_by_rules']}  "
+                  f"(recall {coverage['recall_against_truth']:.3f})")
+            print(f"  caught by provenance     {coverage['caught_by_provenance']}  "
+                  f"(recall {coverage['recall_provenance']:.3f})")
+            print(f"  caught by either         {coverage['caught_by_mechanical']}  "
+                  f"(recall {coverage['recall_mechanical']:.3f})")
+            print(f"  beyond both              {len(coverage['beyond_mechanical'])} "
+                  f"({', '.join(coverage['beyond_mechanical']) or 'none'})")
+            print(f"  false alarms, rules      {coverage['false_alarms'] or 'none'}")
+            print(f"  false alarms, provenance {coverage['provenance_false_alarms'] or 'none'}")
         print(f"\nResult: {summary['result']}")
 
     return 0 if summary["result"] == "PASS" else 1

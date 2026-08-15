@@ -1,17 +1,27 @@
-"""Decide what to do with a generated explanation, given two signals.
+"""Decide what to do with a generated explanation, given three signals.
 
 Until now the faithfulness checker existed only in the evaluation harness: it was
 scored on a golden set every CI run and never consulted at generation time. So an
 explanation that violated the honesty contract was measured, not stopped. This is
 the layer that acts on it.
 
-Two signals with different precision, so two different responses:
+Three signals, and the decisive question is precision, not recall -- a signal that
+is right every time can discard the model's text, one that is usually right can
+only annotate it:
 
-``rules`` -- the mechanical checker
+``rules`` -- the mechanical faithfulness checker
     Perfect precision on the golden set: 20 detections, no false positives. When
     it fires, the explanation really did invent a figure, drop a caveat or name
     an institution that is not there. Acting decisively is warranted, so the
     deterministic reply is used instead and the model's text is discarded.
+
+``provenance`` -- the structured status checker
+    Also perfect precision: 5 detections on the 55-case set, none on a clean
+    explanation. It answers a question the other two do not ask -- not whether a
+    claim is supported, but whether the *status* of the evidence behind it is
+    described honestly. Same precision as the rules, so the same decisive
+    response. See ``provenance.py`` for why this is a separate signal rather than
+    more rules.
 
 ``judge`` -- the optional LLM second opinion
     Recall 0.714 against 0.607 for the rules, but precision 0.952: one clean
@@ -22,7 +32,7 @@ Two signals with different precision, so two different responses:
 
 Absence of the judge is not approval. ``None`` from the judge means no opinion --
 unconfigured, unreachable, or an unparseable reply -- and the outcome is exactly
-what the rules alone would have produced.
+what the mechanical signals alone would have produced.
 """
 
 from __future__ import annotations
@@ -35,6 +45,7 @@ from typing import Any
 
 from crawlernest.agent.web_agent.generation.faithfulness import check_faithfulness
 from crawlernest.agent.web_agent.generation.judge import JudgeVerdict, LlmJudge
+from crawlernest.agent.web_agent.generation.provenance import check_provenance
 
 #: What the caller should do with the generated text.
 KEEP = "keep"
@@ -53,6 +64,8 @@ _verification_stats: dict[str, int] = {
     "keep": 0,
     "keep_with_warning": 0,
     "use_fallback": 0,
+    "rules_flagged": 0,
+    "provenance_flagged": 0,
     "judge_agreed": 0,
     "judge_flagged": 0,
     "judge_no_opinion": 0,
@@ -65,13 +78,22 @@ def verification_stats() -> dict[str, int]:
 
     Actions, one per verified explanation:
 
-    - ``keep``: both signals clean, or the only signal was clean.
-    - ``keep_with_warning``: the judge objected and the rules did not; the text
-      was kept because the judge's precision does not justify discarding it.
-    - ``use_fallback``: the rules fired and the model's text was discarded.
+    - ``keep``: every signal consulted was clean.
+    - ``keep_with_warning``: the judge objected and neither mechanical signal
+      did; the text was kept because the judge's precision does not justify
+      discarding it.
+    - ``use_fallback``: a mechanical signal fired and the model's text was
+      discarded.
 
-    Judge outcomes, which do not sum to the actions because the rules
-    short-circuit the judge entirely when they fire:
+    Which mechanical signal fired, counted separately because they can fire on
+    the same explanation and because a signal that never fires is one worth
+    knowing about:
+
+    - ``rules_flagged``: the faithfulness checker.
+    - ``provenance_flagged``: the provenance/absence/completeness checker.
+
+    Judge outcomes, which do not sum to the actions because the mechanical
+    signals short-circuit the judge entirely when they fire:
 
     - ``judge_agreed`` / ``judge_flagged``: it was asked and answered.
     - ``judge_no_opinion``: asked, and unreachable, slow or unparseable.
@@ -187,6 +209,7 @@ def reset_judge_health() -> None:
 class VerificationOutcome:
     action: str
     rule_violations: list[str] = field(default_factory=list)
+    provenance_violations: list[str] = field(default_factory=list)
     judge_reason: str | None = None
     judge_model: str | None = None
 
@@ -194,7 +217,7 @@ class VerificationOutcome:
     def warning(self) -> str | None:
         """One line for the caller to attach, or ``None`` when nothing was found."""
         if self.action == USE_FALLBACK:
-            kinds = ", ".join(sorted(set(self.rule_violations)))
+            kinds = ", ".join(sorted(set(self.rule_violations + self.provenance_violations)))
             return (f"Generated explanation failed the faithfulness check ({kinds}); "
                     "deterministic reply used.")
         if self.action == KEEP_WITH_WARNING:
@@ -214,15 +237,31 @@ def verify_explanation(
     evidence: Any = None,
     judge: LlmJudge | None = None,
 ) -> VerificationOutcome:
-    """Run the rules, then the judge if one is configured, and decide."""
+    """Run both mechanical signals, then the judge if one is configured."""
     report = check_faithfulness(
         explanation=explanation, items=items, evidence=evidence, caveats=caveats
     )
+    provenance = check_provenance(
+        explanation=explanation, items=items, evidence=evidence, caveats=caveats
+    )
+
+    # Both are run even when the first has already decided the outcome, so the
+    # per-signal counters describe what each signal sees rather than what the
+    # evaluation order let it see.
     if not report.faithful:
-        # The rules are authoritative for what they define. No point asking a
-        # second opinion about a verdict that is already reliable.
+        _record("rules_flagged")
+    if not provenance.sound:
+        _record("provenance_flagged")
+
+    if not report.faithful or not provenance.sound:
+        # Both mechanical checks are authoritative for what they define. No point
+        # asking a second opinion about a verdict that is already reliable.
         _record(USE_FALLBACK, "judge_absent")
-        return VerificationOutcome(action=USE_FALLBACK, rule_violations=report.kinds)
+        return VerificationOutcome(
+            action=USE_FALLBACK,
+            rule_violations=report.kinds,
+            provenance_violations=provenance.kinds,
+        )
 
     verdict: JudgeVerdict | None = None
     if judge is None:
