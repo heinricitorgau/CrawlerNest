@@ -7,7 +7,9 @@ the honesty about what the numbers do not say.
 
 from __future__ import annotations
 
+import io
 import json
+import logging
 import threading
 import unittest
 import urllib.error
@@ -16,10 +18,15 @@ from http.server import ThreadingHTTPServer
 
 from crawlernest.agent.web_agent.generation.judge import JudgeVerdict, LlmJudge
 from crawlernest.agent.web_agent.generation.verification import (
+    reset_judge_health,
     reset_verification_stats,
     verify_explanation,
 )
-from crawlernest.interfaces.api.agent_api.server import _RequestHandler, build_stats_payload
+from crawlernest.interfaces.api.agent_api.server import (
+    _RequestHandler,
+    build_stats_payload,
+    configure_logging,
+)
 
 _ITEMS = [{"universityName": "National Taiwan University", "aggregatedRank": 68}]
 _CAVEATS = ["Only the QS source is available; THE and ARWU ranks are null."]
@@ -92,6 +99,65 @@ class TestStatsPayload(unittest.TestCase):
         self.assertTrue(
             any("process-local" in c for c in build_stats_payload()["caveats"])
         )
+
+
+class TestLoggingReachesStdout(unittest.TestCase):
+    """Which stream, and at which level -- not merely that a record was emitted.
+
+    assertLogs attaches its own handler, so it passes whether or not the process
+    has one. It therefore could not catch the defect this covers: with no logging
+    configured the agent API fell back to logging.lastResort, which writes to
+    stderr and drops everything below WARNING, so the dark-judge warning went to
+    the wrong stream and the recovery message that closes it never appeared at
+    all.
+    """
+
+    def setUp(self) -> None:
+        reset_verification_stats()
+        reset_judge_health()
+        self._saved = logging.getLogger().handlers[:]
+        self._saved_level = logging.getLogger().level
+
+    def tearDown(self) -> None:
+        root = logging.getLogger()
+        for handler in root.handlers[:]:
+            root.removeHandler(handler)
+        for handler in self._saved:
+            root.addHandler(handler)
+        root.setLevel(self._saved_level)
+
+    def test_a_warning_lands_on_the_configured_stream(self):
+        stream = io.StringIO()
+        configure_logging(stream=stream)
+        judge = _StubJudge(None)
+        for _ in range(5):
+            verify_explanation(explanation=_FAITHFUL, items=_ITEMS, caveats=_CAVEATS, judge=judge)
+
+        self.assertIn("no opinion 5 times in a row", stream.getvalue())
+
+    def test_the_recovery_message_survives_the_default_level(self):
+        """It is logged at INFO, which lastResort would have discarded."""
+        stream = io.StringIO()
+        configure_logging(stream=stream)
+        for _ in range(5):
+            verify_explanation(
+                explanation=_FAITHFUL, items=_ITEMS, caveats=_CAVEATS, judge=_StubJudge(None)
+            )
+        healthy = _StubJudge(JudgeVerdict(faithful=True, reason="ok", model_name="stub"))
+        verify_explanation(explanation=_FAITHFUL, items=_ITEMS, caveats=_CAVEATS, judge=healthy)
+
+        self.assertIn("answering again", stream.getvalue())
+
+    def test_a_judge_objecting_to_everything_is_reported_too(self):
+        stream = io.StringIO()
+        configure_logging(stream=stream)
+        judge = _StubJudge(JudgeVerdict(faithful=False, reason="no", model_name="stub"))
+        for _ in range(10):
+            verify_explanation(explanation=_FAITHFUL, items=_ITEMS, caveats=_CAVEATS, judge=judge)
+
+        output = stream.getvalue()
+        self.assertIn("objected to 10 explanations in a row", output)
+        self.assertEqual(output.count("objected to"), 1)
 
 
 class TestStatsRoute(unittest.TestCase):

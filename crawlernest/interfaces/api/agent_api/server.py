@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
+import sys
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -17,6 +19,26 @@ from .handler import AgentApiHandler
 
 
 _MAX_REQUEST_BYTES = int(os.environ.get("CRAWLERNEST_AGENT_API_MAX_REQUEST_BYTES", "131072"))
+
+
+def configure_logging(stream: Any = None, level: str | None = None) -> None:
+    """Send this process's logs to stdout, at INFO by default.
+
+    Without this the agent API configures no handler at all, so Python falls back
+    to ``logging.lastResort`` -- which writes to **stderr** and drops anything
+    below WARNING. Two consequences, both wrong for a service whose logs are read
+    from stdout: the dark-judge warning lands on the wrong stream, and the
+    recovery message that lets it be closed never appears.
+
+    Unit tests could not have caught it. ``assertLogs`` attaches its own handler,
+    so it passes whether or not the process has one.
+    """
+    logging.basicConfig(
+        stream=stream if stream is not None else sys.stdout,
+        level=(level or os.getenv("CRAWLERNEST_AGENT_API_LOG_LEVEL", "INFO")).upper(),
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        force=True,
+    )
 
 
 def _rate(numerator: int, denominator: int) -> float | None:
@@ -176,6 +198,7 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
+    configure_logging()
     server = ThreadingHTTPServer((args.host, args.port), _RequestHandler)
     print(f"[agent-api] listening on http://{args.host}:{args.port}")
     try:

@@ -140,12 +140,47 @@ def _note_judge_silent(judge: LlmJudge) -> None:
         )
 
 
+# The mirror image: a judge objecting to everything. Less urgent than silence,
+# because it is at least visible in each response's warning, but a reviewer that
+# rejects every answer is broken in the same way and just as worth saying once.
+_FLAG_STORM_THRESHOLD = int(os.getenv("WEB_AGENT_JUDGE_FLAG_STORM_THRESHOLD", "10") or 10)
+_consecutive_flags = 0
+_flag_storm_reported = False
+
+
+def _note_judge_verdict(flagged: bool, judge: LlmJudge) -> None:
+    """Track runs of consecutive objections, and report one once."""
+    global _consecutive_flags, _flag_storm_reported
+    with _stats_lock:
+        if flagged:
+            _consecutive_flags += 1
+        else:
+            _consecutive_flags = 0
+            _flag_storm_reported = False
+        streak = _consecutive_flags
+        should_report = flagged and streak >= _FLAG_STORM_THRESHOLD and not _flag_storm_reported
+        if should_report:
+            _flag_storm_reported = True
+    if should_report:
+        _LOG.warning(
+            "Judge at %s (model %s) has objected to %d explanations in a row. Each was kept, "
+            "since the rules found nothing; a reviewer rejecting everything is as broken as "
+            "one rejecting nothing.",
+            judge.base_url or "<unset>",
+            judge.model_name,
+            streak,
+        )
+
+
 def reset_judge_health() -> None:
     """Clear the streak state (mainly for tests)."""
     global _consecutive_no_opinion, _dark_judge_reported
+    global _consecutive_flags, _flag_storm_reported
     with _stats_lock:
         _consecutive_no_opinion = 0
         _dark_judge_reported = False
+        _consecutive_flags = 0
+        _flag_storm_reported = False
 
 
 @dataclass(frozen=True)
@@ -202,9 +237,11 @@ def verify_explanation(
         elif verdict.faithful:
             _record("judge_agreed")
             _note_judge_answered()
+            _note_judge_verdict(flagged=False, judge=judge)
         else:
             _record("judge_flagged")
             _note_judge_answered()
+            _note_judge_verdict(flagged=True, judge=judge)
 
     if verdict is not None and not verdict.faithful:
         _record(KEEP_WITH_WARNING)
