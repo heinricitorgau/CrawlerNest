@@ -18,6 +18,11 @@ class FakeMultiSourceRepository:
     def __init__(self) -> None:
         self.unified_rows = []
         self.raw_rows = []
+        #: (ranking_source_id, ranking_year, ranking_type, run_id) per prune call.
+        #: Recorded rather than ignored so a pipeline that stops pruning, or
+        #: prunes the wrong scope, is visible here and not only in the
+        #: PostgreSQL tests.
+        self.prune_calls = []
 
     def upsert_ranking_sources(self, sources):
         return {code: idx for idx, (code, _, _) in enumerate(sources, start=1)}
@@ -27,6 +32,10 @@ class FakeMultiSourceRepository:
 
     def upsert_ranking_records(self, unified_rows, source_id_map, run_id=None):
         self.unified_rows = [row for row in self.unified_rows if row.canonical_university_id is not None]
+
+    def prune_superseded_records(self, *, ranking_source_id, ranking_year, ranking_type, run_id):
+        self.prune_calls.append((ranking_source_id, ranking_year, ranking_type, run_id))
+        return 0
 
     def log_missing_entities(self, raw_rows, unified_rows):
         self.raw_rows.extend(raw_rows)
@@ -259,6 +268,77 @@ class TestMultiSourcePipeline(unittest.TestCase):
         # (0.222 * 1/59 + 0.654 * 1/34) / (0.222 + 0.654)
         self.assertAlmostEqual(lmu.composite_score or 0.0, 0.02625, places=5)
         self.assertEqual(2, lmu.metadata["available_rank_count"])
+
+
+class TestSupersededRecordsArePruned(unittest.TestCase):
+    """The pipeline must ask for a prune, scoped to what it just wrote.
+
+    The database behaviour is covered by test_ingest_idempotency. This covers the
+    wiring, which is the part that silently stops happening when somebody
+    reorders the ingest steps.
+    """
+
+    def _pipeline(self, repo):
+        resolver = EntityResolver(
+            [
+                CanonicalProfile(
+                    canonical_university_id=1,
+                    display_name="A University",
+                    country_hint="taiwan",
+                    aliases=(),
+                )
+            ]
+        )
+        return MultiSourceRankingPipeline(
+            resolver=resolver,
+            multi_source_repo=repo,
+            aggregation_repo=FakeAggregationRepository(),
+        )
+
+    def test_prune_is_requested_per_source_for_the_year_ingested(self):
+        repo = FakeMultiSourceRepository()
+        self._pipeline(repo).ingest_records(
+            [
+                StandardizedRankingRecord(
+                    "QS", "qs:a", "A University", "Taiwan", 2026, "world", 1, 90.0
+                ),
+                StandardizedRankingRecord(
+                    "THE", "the:a", "A University", "Taiwan", 2026, "world", 2, 88.0
+                ),
+            ],
+            batch_id="prune-test",
+            run_label_prefix="prune-test",
+        )
+
+        scopes = {(year, rtype, run) for _, year, rtype, run in repo.prune_calls}
+        self.assertEqual(
+            scopes,
+            {(2026, "world", "prune-test")},
+            f"expected one scope per ingested year; got {repo.prune_calls}",
+        )
+        self.assertEqual(
+            len({sid for sid, _, _, _ in repo.prune_calls}),
+            2,
+            "each source must be pruned under its own id, or one source's run id "
+            f"would delete another source's rows: {repo.prune_calls}",
+        )
+
+    def test_no_batch_id_means_no_prune(self):
+        """With no run id to compare against, every row would look superseded."""
+        repo = FakeMultiSourceRepository()
+        self._pipeline(repo).ingest_records(
+            [
+                StandardizedRankingRecord(
+                    "QS", "qs:a", "A University", "Taiwan", 2026, "world", 1, 90.0
+                )
+            ],
+            batch_id=None,
+            run_label_prefix="prune-test",
+        )
+
+        self.assertEqual(
+            repo.prune_calls, [], "pruning without a run id would empty the table"
+        )
 
 
 if __name__ == "__main__":

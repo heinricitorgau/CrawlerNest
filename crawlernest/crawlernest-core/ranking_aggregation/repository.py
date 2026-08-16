@@ -26,12 +26,37 @@ class RankingAggregationRepository:
         notes: str | None = None,
     ) -> int:
         with self.conn.cursor() as cur:
+            # The label is deterministic -- prefix, year, universe -- so a second
+            # ingest of the same source and year produces the same one. Inserting
+            # blindly made re-ingestion fail on the unique index rather than
+            # replace, which meant every correction had to hand-edit run_label
+            # before it could run.
+            #
+            # Reusing the row is what the analytics bridge already does through
+            # the same index, so the two writers into this table now behave the
+            # same way. The index is a partial one covering
+            # multi_source_weighted_v1, which is why the conflict target is
+            # written out rather than named.
             cur.execute(
                 """
                 INSERT INTO analytics.aggregation_runs (
                     run_label, ranking_year, universe_type, universe_key, aggregation_method_version,
                     status, input_record_count, config_json, notes
                 ) VALUES (%s, %s, %s, %s, %s, 'running', %s, %s::jsonb, %s)
+                ON CONFLICT (run_label)
+                    WHERE run_label IS NOT NULL
+                      AND aggregation_method_version = 'multi_source_weighted_v1'
+                DO UPDATE SET
+                    ranking_year = EXCLUDED.ranking_year,
+                    universe_type = EXCLUDED.universe_type,
+                    universe_key = EXCLUDED.universe_key,
+                    status = 'running',
+                    started_at = CURRENT_TIMESTAMP,
+                    finished_at = NULL,
+                    input_record_count = EXCLUDED.input_record_count,
+                    output_record_count = 0,
+                    config_json = EXCLUDED.config_json,
+                    notes = EXCLUDED.notes
                 RETURNING aggregation_run_id
                 """,
                 (
