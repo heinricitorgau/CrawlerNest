@@ -75,9 +75,19 @@ python3 crawlernest/crawlernest-tests/run_tests.py
 ./scripts/smoke_local_stack.sh
 ```
 
-CI: `.github/workflows/release-smoke.yml` (full-stack smoke, includes Java build)
-and `data-quality.yml` (fixture-mode checks, Python syntax). The full Python test
-suite in `crawlernest/crawlernest-tests/` does not run in CI — run it locally.
+CI: six workflows, ten jobs — see the table in [README.md](README.md#continuous-integration).
+`crawlernest/crawlernest-tests/` now runs in `python-tests.yml`, in two jobs: fixture
+mode, and a PostgreSQL job that opts the database tests in with
+`CRAWLERNEST_RUN_PG_TESTS=1`. Locally those tests skip unless you set the same
+variable, so a clean local run does not mean the database paths were exercised:
+
+```bash
+CRAWLERNEST_RUN_PG_TESTS=1 CRAWLERNEST_PG_PASSWORD=test \
+  python3 crawlernest/crawlernest-tests/run_tests.py
+```
+
+`run_tests.py` names its modules explicitly. Adding a test file does not put it in
+CI — several sat unrun for months that way. Add it to the `test_modules` list.
 
 ## Behavioral policies that constrain changes
 
