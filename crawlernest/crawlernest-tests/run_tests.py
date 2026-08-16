@@ -43,6 +43,7 @@ def run_all_tests():
         # Need PostgreSQL; skip themselves unless CRAWLERNEST_RUN_PG_TESTS=1.
         "test_analytics_bridge_prune",
         "test_ingest_idempotency",
+        "test_pairing_matches_warehouse",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.
