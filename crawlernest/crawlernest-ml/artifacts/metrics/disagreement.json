@@ -1,63 +1,63 @@
 {
   "dataset": {
-    "matched": 820,
+    "matched": 1082,
     "qs_population": 1503,
     "the_population": 2191,
     "label_quantile": 0.8,
-    "gap_threshold": 0.2327,
-    "positives": 164,
-    "positive_rate": 0.2
+    "gap_threshold": 0.2349,
+    "positives": 217,
+    "positive_rate": 0.2006
   },
   "qs_only": {
     "logistic": {
-      "roc_auc": 0.7307,
-      "pr_auc": 0.3198,
-      "brier": 0.1455
+      "roc_auc": 0.734,
+      "pr_auc": 0.3371,
+      "brier": 0.1449
     },
     "gradient_boosting": {
-      "roc_auc": 0.8133,
-      "pr_auc": 0.4696,
-      "brier": 0.1355
+      "roc_auc": 0.8262,
+      "pr_auc": 0.5196,
+      "brier": 0.1265
     }
   },
   "both_sources": {
     "logistic": {
-      "roc_auc": 0.8282,
-      "pr_auc": 0.6131,
-      "brier": 0.1137
+      "roc_auc": 0.8281,
+      "pr_auc": 0.5702,
+      "brier": 0.118
     },
     "gradient_boosting": {
-      "roc_auc": 0.8902,
-      "pr_auc": 0.7048,
-      "brier": 0.0979
+      "roc_auc": 0.9048,
+      "pr_auc": 0.7693,
+      "brier": 0.087
     }
   },
   "best_qs_only": "gradient_boosting",
   "threshold_sensitivity": [
     {
       "quantile": 0.7,
-      "threshold": 0.1869,
-      "positive_rate": 0.3,
-      "roc_auc": 0.8534,
-      "pr_auc": 0.6756
+      "threshold": 0.1854,
+      "positive_rate": 0.3004,
+      "roc_auc": 0.8379,
+      "pr_auc": 0.6588
     },
     {
       "quantile": 0.8,
-      "threshold": 0.2327,
-      "positive_rate": 0.2,
-      "roc_auc": 0.8133,
-      "pr_auc": 0.4696
+      "threshold": 0.2349,
+      "positive_rate": 0.2006,
+      "roc_auc": 0.8262,
+      "pr_auc": 0.5196
     },
     {
       "quantile": 0.9,
-      "threshold": 0.3076,
-      "positive_rate": 0.1,
-      "roc_auc": 0.7485,
-      "pr_auc": 0.2124
+      "threshold": 0.3217,
+      "positive_rate": 0.1007,
+      "roc_auc": 0.79,
+      "pr_auc": 0.2584
     }
   ],
   "favoured_among_positives": {
-    "THE": 133,
-    "QS": 31
+    "THE": 171,
+    "QS": 46
   }
 }
