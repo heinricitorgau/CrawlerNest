@@ -214,6 +214,10 @@ def _extract_rows_from_html_tables(html: str, year: int, page_url: str) -> list[
                     "year": year,
                     "ranking_type": "world",
                     "rank": rank,
+                    # ARWU bands its tail ("401-500"), and the band is what it
+                    # published. Both paths carry it so rows from the rendered
+                    # table and rows from the payload have one shape.
+                    "rank_display": str(row[rank_idx].get("text", "")).strip() if rank_idx is not None else str(rank),
                     "score": score,
                     "url": profile_link or page_url,
                     "metadata": {
@@ -236,6 +240,117 @@ def _candidate_pages(year: int) -> list[str]:
         f"{BASE_URL}/rankings/arwu/{year - 1}",
         f"{BASE_URL}/rankings/arwu/{year - 2}",
     ]
+
+
+def _split_top_level(blob: str) -> list[str]:
+    """Split a comma-separated argument list, ignoring commas inside quotes or brackets."""
+    out: list[str] = []
+    depth = 0
+    quote: str | None = None
+    buf: list[str] = []
+    for ch in blob:
+        if quote:
+            buf.append(ch)
+            if ch == quote and buf[-2:-1] != ["\\"]:
+                quote = None
+            continue
+        if ch in "\"'":
+            quote = ch
+            buf.append(ch)
+        elif ch in "[{(":
+            depth += 1
+            buf.append(ch)
+        elif ch in "]})":
+            depth -= 1
+            buf.append(ch)
+        elif ch == "," and depth == 0:
+            out.append("".join(buf).strip())
+            buf = []
+        else:
+            buf.append(ch)
+    if buf:
+        out.append("".join(buf).strip())
+    return out
+
+
+#: Entries appear in two syntaxes. Most are object literals; a couple of dozen
+#: are runs of assignments to one object. Both carry the same fields.
+_LITERAL_ENTRY = re.compile(
+    r"ranking:(\w+),univNameEn:(\w+),univUp:\w+,univLogo:\w+,"
+    r"region:(\w+),regionLogo:\w+,regionRanking:\w+,univCode:\w+,score:(\w+)"
+)
+_ASSIGNED_ENTRY = re.compile(
+    r"\.ranking=(\w+);\w+\.univNameEn=(\w+);\w+\.univUp=\w+;\w+\.univLogo=\w+;"
+    r"\w+\.region=(\w+);\w+\.regionLogo=\w+;\w+\.regionRanking=\w+;\w+\.univCode=\w+;\w+\.score=(\w+)"
+)
+
+
+def _rows_from_payload(payload_js: str, year: int, page_url: str) -> list[dict[str, Any]]:
+    """Read the whole table out of the Nuxt payload.
+
+    The rendered page carries only the first 30 rows; the payload behind it
+    carries all ~1,000. It is a JSONP call whose values are all replaced by
+    positional parameter names, so reading it means rebuilding the
+    parameter-to-argument map and resolving each entry through it.
+
+    Returns an empty list on anything unexpected. The caller falls back to the
+    HTML table, which is smaller but has been correct for as long as it existed.
+    """
+    head = re.match(r'__NUXT_JSONP__\("[^"]*",\s*\(function\(([^)]*)\)\{', payload_js)
+    if not head:
+        return []
+    params = [p.strip() for p in head.group(1).split(",")]
+
+    tail_start = payload_js.rfind("}(")
+    if tail_start < 0:
+        return []
+    args = _split_top_level(payload_js[tail_start + 2:].rstrip().rstrip(");"))
+    if len(args) != len(params):
+        print(f"[arwu] payload parameter/argument mismatch ({len(params)} vs {len(args)}); "
+              "falling back to the rendered table")
+        return []
+
+    table: dict[str, Any] = {}
+    for name, raw in zip(params, args):
+        try:
+            table[name] = json.loads(raw)
+        except Exception:
+            table[name] = raw
+
+    seen: set[str] = set()
+    rows: list[dict[str, Any]] = []
+    for pattern in (_LITERAL_ENTRY, _ASSIGNED_ENTRY):
+        for rank_v, name_v, region_v, score_v in pattern.findall(payload_js):
+            name = table.get(name_v)
+            if not isinstance(name, str) or not name.strip() or name in seen:
+                continue
+            seen.add(name)
+            rank_text = str(table.get(rank_v, "")).strip()
+            rows.append(
+                {
+                    "id": f"arwu:{year}:{_slugify(name)}",
+                    "name": name.strip(),
+                    "country": table.get(region_v),
+                    "year": year,
+                    "ranking_type": "world",
+                    "rank": _to_int(rank_text),
+                    "rank_display": rank_text,
+                    "score": _to_float(str(table.get(score_v, ""))),
+                    "url": page_url,
+                    "metadata": {
+                        "raw_source": "ARWU",
+                        "extraction_method": "nuxt_payload",
+                        "source_page": page_url,
+                    },
+                }
+            )
+    return rows
+
+
+def _payload_url(html: str, page_url: str) -> str | None:
+    """The payload path is stamped with a build id, so it is read, not guessed."""
+    match = re.search(r'["\'](/_nuxt/static/[^"\']*?/payload\.js)["\']', html)
+    return urljoin(BASE_URL, match.group(1)) if match else None
 
 
 def _year_of_page(page_url: str, requested: int) -> int:
@@ -271,6 +386,31 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
             # was asked for. Those differ whenever the fallback fires.
             page_year = _year_of_page(page_url, year)
             normalized_rows = _extract_rows_from_html_tables(html, page_year, page_url)
+
+            # The rendered table stops at 30. The payload behind it holds the
+            # whole ranking, so prefer it -- but only when it is a superset, so a
+            # payload format change degrades to the smaller table instead of
+            # silently shrinking the crawl.
+            payload_url = _payload_url(html, page_url)
+            if payload_url:
+                print(f"[arwu] payload={payload_url}")
+                payload_js = _request_text(payload_url, session)
+                if payload_js:
+                    payload_rows = _rows_from_payload(payload_js, page_year, page_url)
+                    if len(payload_rows) > len(normalized_rows):
+                        rendered = {r["name"] for r in normalized_rows}
+                        recovered = {r["name"] for r in payload_rows}
+                        missing = rendered - recovered
+                        if missing:
+                            print(f"[arwu] payload is missing {len(missing)} of the rendered "
+                                  f"rows ({sorted(missing)[:3]}...); keeping both")
+                            payload_rows.extend(
+                                r for r in normalized_rows if r["name"] in missing
+                            )
+                        print(f"[arwu] payload rows: {len(payload_rows)} "
+                              f"(rendered table had {len(normalized_rows)})")
+                        normalized_rows = payload_rows
+
             if normalized_rows:
                 resolved_url = page_url
                 resolved_year = page_year
