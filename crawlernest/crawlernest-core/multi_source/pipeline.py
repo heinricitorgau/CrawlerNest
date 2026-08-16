@@ -85,6 +85,33 @@ class MultiSourceRankingPipeline:
             source_id_map,
             run_id=batch_id,
         )
+
+        # Re-ingesting a corrected or larger payload must replace what the
+        # source published, not merge with what it published last time. Without
+        # this, a university that drops out of the payload keeps its old rank
+        # indefinitely, and downstream nothing distinguishes it from one the
+        # source still ranks.
+        #
+        # Needs a batch_id to be safe: with no run id to compare against, every
+        # row would look superseded.
+        superseded_removed = 0
+        if batch_id:
+            for source_code, ranking_source_id in sorted(source_id_map.items()):
+                years_for_source = {
+                    int(row.year)
+                    for row in unified_rows
+                    if row.source == source_code
+                    and row.canonical_university_id is not None
+                    and str(row.ranking_type or "world").lower() == ranking_type.lower()
+                }
+                for year in sorted(years_for_source):
+                    superseded_removed += self.multi_source_repo.prune_superseded_records(
+                        ranking_source_id=ranking_source_id,
+                        ranking_year=year,
+                        ranking_type=ranking_type,
+                        run_id=batch_id,
+                    )
+
         self.multi_source_repo.log_missing_entities(raw_rows, unified_rows)
         self.multi_source_repo.log_merge_diagnostics(diagnostics, batch_id=batch_id)
 

@@ -84,6 +84,44 @@ class MultiSourceRepository:
             )
         self.conn.commit()
 
+    def prune_superseded_records(
+        self,
+        *,
+        ranking_source_id: int,
+        ranking_year: int,
+        ranking_type: str,
+        run_id: str,
+    ) -> int:
+        """Drop this source's rows for this year that the current run did not write.
+
+        The upsert stamps every row it touches with the run id, but it can only
+        touch universities the payload contains. Re-ingesting a smaller or
+        corrected payload therefore leaves the ones that dropped out behind, with
+        their old rank, forever -- and they are indistinguishable downstream from
+        rows the source still publishes.
+
+        This is the same rule the analytics bridge applies to
+        analytics.aggregated_rankings, for the same reason: these tables are
+        current state, and history lives in the run tables.
+
+        Scoped to one source, year and ranking type, so a run cannot delete
+        another source's rows or another year's.
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """
+                DELETE FROM warehouse.ranking_record
+                WHERE ranking_source_id = %s
+                  AND ranking_year = %s
+                  AND ranking_type = %s
+                  AND run_id IS DISTINCT FROM %s
+                """,
+                (ranking_source_id, ranking_year, ranking_type, run_id),
+            )
+            removed = int(cur.rowcount or 0)
+        self.conn.commit()
+        return removed
+
     def upsert_ranking_records(
         self,
         unified_rows: list[UnifiedRankingRecord],
