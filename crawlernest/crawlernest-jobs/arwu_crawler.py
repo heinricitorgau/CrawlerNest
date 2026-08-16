@@ -238,6 +238,19 @@ def _candidate_pages(year: int) -> list[str]:
     ]
 
 
+def _year_of_page(page_url: str, requested: int) -> int:
+    """The year the fetched page is actually for.
+
+    The crawler falls back two years, so asking for 2026 and stamping every row
+    with 2026 records a year the data is not from. That is how
+    arwu_rankings_2026.json came to hold the 2025 table: identical names, ranks
+    and scores to arwu_rankings_2025.json, from the same source_page, under a
+    year label that made it look like a fresh edition.
+    """
+    match = re.search(r"/arwu/(\d{4})", page_url)
+    return int(match.group(1)) if match else requested
+
+
 def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Path:
     output_base = output_dir or DEFAULT_OUTPUT_DIR
     output_base.mkdir(parents=True, exist_ok=True)
@@ -246,6 +259,7 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
     print(f"[arwu] starting crawl for year={year}")
     session = requests.Session()
     resolved_url = None
+    resolved_year = year
     normalized_rows: list[dict[str, Any]] = []
     try:
         for page_url in _candidate_pages(year):
@@ -253,12 +267,24 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
             html = _request_text(page_url, session)
             if not html:
                 continue
-            normalized_rows = _extract_rows_from_html_tables(html, year, page_url)
+            # Rows carry the year of the page they came from, not the year that
+            # was asked for. Those differ whenever the fallback fires.
+            page_year = _year_of_page(page_url, year)
+            normalized_rows = _extract_rows_from_html_tables(html, page_year, page_url)
             if normalized_rows:
                 resolved_url = page_url
+                resolved_year = page_year
                 break
     finally:
         session.close()
+
+    if resolved_year != year:
+        print(f"[arwu] requested {year} but the table came from {resolved_year}; "
+              f"writing it as {resolved_year}")
+        output_path = output_base / f"arwu_rankings_{resolved_year}.json"
+        for row in normalized_rows:
+            row["metadata"]["requested_year"] = year
+            row["metadata"]["fell_back_from"] = f"{BASE_URL}/rankings/arwu/{year}"
 
     if not normalized_rows:
         raise RuntimeError("Unable to locate or parse ARWU rankings table.")

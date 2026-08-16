@@ -20,7 +20,13 @@ for mod in (
     if p not in sys.path:
         sys.path.insert(0, p)
 
-from arwu_crawler import _candidate_pages, _extract_rows_from_html_tables, _to_float, _to_int  # noqa: E402
+from arwu_crawler import (  # noqa: E402
+    _candidate_pages,
+    _extract_rows_from_html_tables,
+    _to_float,
+    _to_int,
+    _year_of_page,
+)
 
 
 class TestArwuParsingHelpers(unittest.TestCase):
@@ -94,3 +100,31 @@ class TestArwuHtmlExtraction(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPageYearIsRecorded(unittest.TestCase):
+    """Rows must carry the year of the page they came from, not the year asked for.
+
+    The crawler falls back two years when a table is not published yet. Stamping
+    the requested year onto rows from an older page is how
+    arwu_rankings_2026.json came to hold the 2025 table -- byte-identical ranks
+    and scores to arwu_rankings_2025.json, from the same source_page, under a
+    label that made it look like a new edition. Ingesting that would have put a
+    year-old third source into the 2026 aggregation and taken those universities
+    to "high" confidence on it.
+    """
+
+    def test_year_comes_from_the_url_that_was_fetched(self):
+        self.assertEqual(_year_of_page("https://x/rankings/arwu/2025", 2026), 2025)
+        self.assertEqual(_year_of_page("https://x/rankings/arwu/2026", 2026), 2026)
+
+    def test_requested_year_is_the_fallback_only_when_the_url_says_nothing(self):
+        self.assertEqual(_year_of_page("https://x/rankings/arwu/", 2026), 2026)
+        self.assertEqual(_year_of_page("", 2024), 2024)
+
+    def test_candidate_pages_walk_backwards(self):
+        pages = _candidate_pages(2026)
+        years = [int(p.rsplit("/", 1)[-1]) for p in pages]
+        self.assertEqual(years, [2026, 2025, 2024],
+                         "the fallback is what makes the year ambiguous; if this "
+                         "order changes the year test above has to change with it")
