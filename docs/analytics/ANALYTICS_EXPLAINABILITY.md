@@ -77,7 +77,7 @@ goes back to being a constant.
 | Condition | Required Caveat |
 | --- | --- |
 | Source has no rows | "&lt;Source&gt; data is not available. No university carries a rank from this source." |
-| Source covers part of the table | "&lt;Source&gt; covers N of M universities. A missing &lt;S&gt; rank means this platform could not match the university to &lt;S&gt;'s table, not that &lt;S&gt; does not rank it." |
+| Source covers part of the table | "&lt;Source&gt; covers N of M universities. A missing &lt;S&gt; rank means either that the &lt;S&gt; data ingested here does not include the university or that this platform could not match it — not that &lt;S&gt; does not rank it." |
 | Source covers the whole table | *(no caveat — there is nothing undisclosed)* |
 | Stale data | "QS ranking data was last ingested at RC-1 packaging (approximately 354 hours ago). Data may not reflect the current published rankings." |
 | Single-year trends | "Year-over-year trend analysis requires data from multiple aggregation runs. Current data covers a single year — no rank delta is available." |
@@ -121,8 +121,8 @@ Caveats are delivered in two places:
      "data": { ... },
      "metadata": {
        "caveats": [
-         "THE (Times Higher Education) covers 1080 of 1499 universities. A missing THE rank means this platform could not match the university to THE's table, not that THE does not rank it.",
-         "ARWU (Academic Ranking of World Universities) data is not available. No university carries a rank from this source.",
+         "THE (Times Higher Education) covers 1080 of 1499 universities. A missing THE rank means either that the THE data ingested here does not include the university or that this platform could not match it — not that THE does not rank it.",
+         "ARWU (Academic Ranking of World Universities) covers 29 of 1499 universities. A missing ARWU rank means either that the ARWU data ingested here does not include the university or that this platform could not match it — not that ARWU does not rank it.",
          "Single-year coverage — no rank delta available."
        ]
      }
@@ -137,16 +137,23 @@ Caveats are delivered in two places:
 Caveats are stated professionally and informatively. They are not apologetic.
 A caveat explains what the limitation is and what the user can rely on.
 
-**Acceptable:** "ARWU data is not available. No university carries a rank from
-this source."
+**Acceptable:** "ARWU covers 29 of 1499 universities." — the number, not an
+adjective, and the reader can see how much weight to give it.
 
-**Not acceptable:** "Sorry, we don't have ARWU data." (too informal)
+**Not acceptable:** "Sorry, we don't have much ARWU data." (too informal, and
+"much" is not a quantity)
 
 **Not acceptable:** "THE does not rank this university." — when the truth is that
-we could not match it. A missing rank has two possible causes and only one of
-them belongs to the source; stating the wrong one moves our gap onto the
-institution. This is the failure the partial-coverage caveat exists to prevent,
-and the same one the agent's provenance checker guards in generated text.
+we did not ingest it or could not match it. A missing rank has three possible
+causes: the source does not rank the university, the snapshot ingested here does
+not reach it, or entity resolution failed. Two of the three are ours, and
+naming the third moves our gap onto the institution.
+
+The ARWU snapshot makes this concrete: it holds that source's top 30, so almost
+every ARWU absence is the second cause. A caveat that offered only the third
+would have been wrong about nearly all of them, which is why the wording names
+both of ours. This is the same failure the agent's provenance checker guards in
+generated text.
 
 **Not acceptable:** Omitting the caveat because the presentation audience
 might react negatively.

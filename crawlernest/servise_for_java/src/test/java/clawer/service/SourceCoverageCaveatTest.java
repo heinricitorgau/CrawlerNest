@@ -58,8 +58,11 @@ class SourceCoverageCaveatTest {
 
         assertTrue(theCaveat.contains("969 of 1499"),
                 "the caveat must give the real coverage, not a description of it: " + theCaveat);
+        assertTrue(theCaveat.contains("does not include the university"),
+                "the caveat must offer the partial-snapshot cause: for ARWU, whose snapshot "
+                        + "holds its top 30, that is the usual reason a rank is missing");
         assertTrue(theCaveat.contains("could not match"),
-                "the caveat must attribute a missing rank to our matching, not to the source");
+                "the caveat must also offer the failed-match cause; both are ours");
         assertTrue(theCaveat.contains("not that THE does not rank it"),
                 "the caveat must rule out the reading that the source declined to rank: " + theCaveat);
     }

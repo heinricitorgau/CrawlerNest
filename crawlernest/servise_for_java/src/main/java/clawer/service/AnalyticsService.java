@@ -440,9 +440,14 @@ public class AnalyticsService {
             if (covered == 0) {
                 caveats.add(entry.getValue() + " data is not available. No university carries a rank from this source.");
             } else if (total > 0 && covered < total) {
+                // Two causes, and naming only one of them was wrong the moment a
+                // partial snapshot was ingested: ARWU's covers its top 30, so most
+                // of its absences are the snapshot's limit rather than a failed
+                // match. Both are ours. Neither is the source declining to rank.
                 caveats.add(String.format(
-                        "%s covers %d of %d universities. A missing %s rank means this platform could not "
-                                + "match the university to %s's table, not that %s does not rank it.",
+                        "%s covers %d of %d universities. A missing %s rank means either that the "
+                                + "%s data ingested here does not include the university or that this "
+                                + "platform could not match it — not that %s does not rank it.",
                         entry.getValue(), covered, total, entry.getKey(), entry.getKey(), entry.getKey()));
             }
         }
