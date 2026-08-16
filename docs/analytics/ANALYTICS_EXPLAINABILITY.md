@@ -66,10 +66,19 @@ Caveats are not optional. They are the honesty contract for analytics output.
 
 ### Required Caveats at RC-1
 
+The two source-coverage rows below are **generated from the warehouse**, not
+written as constants. They previously read "THE data is not available. Analysis
+reflects QS source only", which was true when written and false the day THE was
+ingested for part of the table — a disclosure that is specific, confident and
+wrong. `AnalyticsService.appendSourceCoverageCaveats` counts the non-null ranks
+per source and emits the matching row; `SourceCoverageCaveatTest` fails if that
+goes back to being a constant.
+
 | Condition | Required Caveat |
 | --- | --- |
-| THE unavailable | "THE (Times Higher Education) data is not available. Analysis reflects QS source only." |
-| ARWU unavailable | "ARWU (Academic Ranking of World Universities) data is not available. Analysis reflects QS source only." |
+| Source has no rows | "&lt;Source&gt; data is not available. No university carries a rank from this source." |
+| Source covers part of the table | "&lt;Source&gt; covers N of M universities. A missing &lt;S&gt; rank means this platform could not match the university to &lt;S&gt;'s table, not that &lt;S&gt; does not rank it." |
+| Source covers the whole table | *(no caveat — there is nothing undisclosed)* |
 | Stale data | "QS ranking data was last ingested at RC-1 packaging (approximately 354 hours ago). Data may not reflect the current published rankings." |
 | Single-year trends | "Year-over-year trend analysis requires data from multiple aggregation runs. Current data covers a single year — no rank delta is available." |
 | Incomplete subject coverage | "Subject ranking data is incomplete. Subject analytics are not available in this release." |
@@ -112,7 +121,8 @@ Caveats are delivered in two places:
      "data": { ... },
      "metadata": {
        "caveats": [
-         "THE and ARWU data not available — QS source only.",
+         "THE (Times Higher Education) covers 969 of 1499 universities. A missing THE rank means this platform could not match the university to THE's table, not that THE does not rank it.",
+         "ARWU (Academic Ranking of World Universities) data is not available. No university carries a rank from this source.",
          "Single-year coverage — no rank delta available."
        ]
      }
@@ -127,11 +137,16 @@ Caveats are delivered in two places:
 Caveats are stated professionally and informatively. They are not apologetic.
 A caveat explains what the limitation is and what the user can rely on.
 
-**Acceptable:** "THE and ARWU data are not available in this release. Source
-agreement analysis reflects QS rankings only. Multi-source comparison will
-be available when THE and ARWU are ingested."
+**Acceptable:** "ARWU data is not available. No university carries a rank from
+this source."
 
-**Not acceptable:** "Sorry, we don't have THE and ARWU data." (too informal)
+**Not acceptable:** "Sorry, we don't have ARWU data." (too informal)
+
+**Not acceptable:** "THE does not rank this university." — when the truth is that
+we could not match it. A missing rank has two possible causes and only one of
+them belongs to the source; stating the wrong one moves our gap onto the
+institution. This is the failure the partial-coverage caveat exists to prevent,
+and the same one the agent's provenance checker guards in generated text.
 
 **Not acceptable:** Omitting the caveat because the presentation audience
 might react negatively.

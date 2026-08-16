@@ -389,10 +389,68 @@ public class AnalyticsService {
         }
     }
 
+    /**
+     * Sources in the order the caveats list them, with their display names.
+     *
+     * <p>A List rather than a Map because Map.of does not preserve order, and a
+     * caveats array whose entries move between restarts is hard to diff and hard
+     * to write a contract test against.
+     */
+    private static final List<Map.Entry<String, String>> SOURCE_LABELS = List.of(
+            Map.entry("QS", "QS (Quacquarelli Symonds)"),
+            Map.entry("THE", "THE (Times Higher Education)"),
+            Map.entry("ARWU", "ARWU (Academic Ranking of World Universities)"));
+
+    /**
+     * How many aggregated rows carry a non-null rank for each source.
+     *
+     * <p>Read from the data rather than stated as a constant. These caveats used
+     * to assert "THE data is not available", which was true when written and
+     * became false the day THE was ingested for part of the table — the sort of
+     * disclosure that is worse than none, because it is specific and confident.
+     */
+    private Map<String, Integer> sourceCoverage() {
+        Map<String, Integer> coverage = new LinkedHashMap<>();
+        for (String source : List.of("QS", "THE", "ARWU")) {
+            Integer count = jdbcTemplate.queryForObject("""
+                    SELECT count(*)
+                    FROM analytics.v_aggregated_rankings_latest
+                    WHERE source_ranks_json -> ? IS NOT NULL
+                      AND source_ranks_json -> ? <> 'null'::jsonb
+                    """, Integer.class, source, source);
+            coverage.put(source, count == null ? 0 : count);
+        }
+        return coverage;
+    }
+
+    /**
+     * Disclose each source's coverage, including what a missing rank means.
+     *
+     * <p>A null rank is ambiguous and the ambiguity matters: it can mean the
+     * source does not rank the university, or that this platform could not match
+     * the university to the source's table. Only the second is our doing, and
+     * reporting it as the first would blame the institution for our gap.
+     */
+    public void appendSourceCoverageCaveats(List<String> caveats) {
+        Map<String, Integer> coverage = sourceCoverage();
+        int total = coverage.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+
+        for (Map.Entry<String, String> entry : SOURCE_LABELS) {
+            int covered = coverage.getOrDefault(entry.getKey(), 0);
+            if (covered == 0) {
+                caveats.add(entry.getValue() + " data is not available. No university carries a rank from this source.");
+            } else if (total > 0 && covered < total) {
+                caveats.add(String.format(
+                        "%s covers %d of %d universities. A missing %s rank means this platform could not "
+                                + "match the university to %s's table, not that %s does not rank it.",
+                        entry.getValue(), covered, total, entry.getKey(), entry.getKey(), entry.getKey()));
+            }
+        }
+    }
+
     private List<String> buildTrendCaveats(boolean singleYear, boolean noData, boolean containsModelEstimates) {
         List<String> caveats = new ArrayList<>();
-        caveats.add("THE (Times Higher Education) data is not available. Analysis reflects QS source only.");
-        caveats.add("ARWU (Academic Ranking of World Universities) data is not available. Analysis reflects QS source only.");
+        appendSourceCoverageCaveats(caveats);
         caveats.add("QS ranking data was last ingested at RC-1 packaging. Data may not reflect the current published rankings.");
         if (singleYear && !noData) {
             caveats.add("Year-over-year trend analysis requires data from multiple aggregation runs. Current coverage is a single year — no rank delta is available.");

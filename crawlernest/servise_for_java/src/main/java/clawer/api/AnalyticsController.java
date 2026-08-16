@@ -82,8 +82,9 @@ public class AnalyticsController {
      * Returns source disagreement analysis across all aggregated universities.
      *
      * Identifies universities with the largest rank spread between available
-     * sources. At RC-1, THE and ARWU are unavailable — analysis reflects QS
-     * source only. This is disclosed in the caveats array.
+     * sources. Which sources are actually present, and how much of the table
+     * each one covers, is read from the warehouse and disclosed in the caveats
+     * array rather than asserted here.
      *
      * Includes:
      * - Universities with largest rank spread (top 10)
@@ -96,13 +97,15 @@ public class AnalyticsController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> getSourceDisagreement() {
         Map<String, Object> agreementData = sourceIntelligenceService.getSourceAgreementDiagnostics();
 
-        // Add analytics-specific caveats to the response.
-        List<String> caveats = new ArrayList<>(List.of(
-                "THE (Times Higher Education) data is not available. Disagreement analysis reflects QS source only.",
-                "ARWU (Academic Ranking of World Universities) data is not available. Disagreement analysis reflects QS source only.",
-                "QS ranking data was last ingested at RC-1 packaging. Data may not reflect the current published rankings.",
-                "At RC-1, all universities have single-source (QS-only) coverage. Multi-source disagreement analysis becomes available when THE and ARWU are ingested."
-        ));
+        // Source coverage comes from AnalyticsService so this endpoint and the
+        // trends endpoint cannot describe the same warehouse differently. It used
+        // to be stated here as a constant -- "THE data is not available", "all
+        // universities have single-source coverage" -- which was true when
+        // written and false the day THE was ingested for part of the table.
+        List<String> caveats = new ArrayList<>();
+        analyticsService.appendSourceCoverageCaveats(caveats);
+        caveats.add("QS ranking data was last ingested at RC-1 packaging. Data may not reflect the current published rankings.");
+        caveats.add("Disagreement is only measurable where two or more sources rank the same university. Single-source rows carry no disagreement signal rather than a zero one.");
 
         // Disagreement diagnostics are computed from published ranks only. When
         // the modelled disagreement probability is surfaced here, this flag
