@@ -121,7 +121,7 @@ Caveats are delivered in two places:
      "data": { ... },
      "metadata": {
        "caveats": [
-         "THE (Times Higher Education) covers 969 of 1499 universities. A missing THE rank means this platform could not match the university to THE's table, not that THE does not rank it.",
+         "THE (Times Higher Education) covers 1080 of 1499 universities. A missing THE rank means this platform could not match the university to THE's table, not that THE does not rank it.",
          "ARWU (Academic Ranking of World Universities) data is not available. No university carries a rank from this source.",
          "Single-year coverage — no rank delta available."
        ]
