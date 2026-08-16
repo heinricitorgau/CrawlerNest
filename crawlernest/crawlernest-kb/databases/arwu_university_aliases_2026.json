@@ -1,0 +1,16 @@
+[
+ {
+  "canonical_slug_hint": "UCL",
+  "canonical_university_id": 9,
+  "alias_text": "University College London",
+  "country": "United Kingdom",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Universite Paris-Saclay",
+  "canonical_university_id": 73,
+  "alias_text": "Paris-Saclay University",
+  "country": "France",
+  "source": "ARWU 2026"
+ }
+]
