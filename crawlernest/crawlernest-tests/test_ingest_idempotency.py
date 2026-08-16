@@ -39,12 +39,21 @@ for mod in ("crawlernest-core", "crawlernest-jobs"):
 ISOLATED_YEAR = 1899
 SOURCE = "ARWU"
 
+#: The test owns the universities it resolves against. Borrowing whatever is in
+#: the warehouse passes on a developer machine and fails on a freshly
+#: bootstrapped CI database, where entity resolution finds no profiles at all --
+#: which is exactly how this test first went red.
+FIXTURE_UNIVERSITIES = [
+    ("crawlernest-idem-fixture-a", "Idempotency Fixture A"),
+    ("crawlernest-idem-fixture-b", "Idempotency Fixture B"),
+]
+
 
 def _record(name: str, rank: int) -> dict:
     return {
         "id": f"idem:{ISOLATED_YEAR}:{name.lower().replace(' ', '-')}",
         "name": name,
-        "country": "United States",
+        "country": None,
         "year": ISOLATED_YEAR,
         "ranking_type": "world",
         "rank": rank,
@@ -74,10 +83,40 @@ class TestIngestIsIdempotent(unittest.TestCase):
     def setUp(self):
         self.conn = self.psycopg2.connect(**self.dsn)
         self._clear()
+        self._ensure_fixture_universities()
 
     def tearDown(self):
         self._clear()
+        slugs = [slug for slug, _ in FIXTURE_UNIVERSITIES]
+        with self.conn.cursor() as cur:
+            # Ingestion writes a source mapping per resolved university, and that
+            # references canonical_university, so the profiles cannot go first.
+            cur.execute(
+                "DELETE FROM warehouse.source_university_mapping"
+                " WHERE canonical_university_id IN ("
+                "   SELECT canonical_university_id FROM warehouse.canonical_university"
+                "   WHERE canonical_slug = ANY(%s))",
+                (slugs,),
+            )
+            cur.execute(
+                "DELETE FROM warehouse.canonical_university WHERE canonical_slug = ANY(%s)",
+                (slugs,),
+            )
+        self.conn.commit()
         self.conn.close()
+
+    def _ensure_fixture_universities(self):
+        """Own the profiles resolution needs, so an empty warehouse is not a failure."""
+        with self.conn.cursor() as cur:
+            for slug, display in FIXTURE_UNIVERSITIES:
+                cur.execute(
+                    "INSERT INTO warehouse.canonical_university"
+                    " (canonical_slug, display_name, display_name_normalized)"
+                    " VALUES (%s, %s, %s)"
+                    " ON CONFLICT (canonical_slug) DO UPDATE SET updated_at = CURRENT_TIMESTAMP",
+                    (slug, display, display.lower()),
+                )
+        self.conn.commit()
 
     def _clear(self):
         with self.conn.cursor() as cur:
@@ -128,7 +167,7 @@ class TestIngestIsIdempotent(unittest.TestCase):
 
     def test_the_same_payload_twice_is_a_no_op(self):
         """Used to fail outright on the run_label unique index."""
-        rows = [("Harvard University", 1), ("Stanford University", 2)]
+        rows = [(FIXTURE_UNIVERSITIES[0][1], 1), (FIXTURE_UNIVERSITIES[1][1], 2)]
         self._ingest(rows, "idem-a")
         first, runs_first = self._record_count(), self._run_count()
         self.assertGreater(first, 0, "fixture did not land")
@@ -140,18 +179,20 @@ class TestIngestIsIdempotent(unittest.TestCase):
 
     def test_a_shrinking_payload_removes_what_is_gone(self):
         """The quiet half: a dropped university used to keep its rank forever."""
-        self._ingest([("Harvard University", 1), ("Stanford University", 2)], "idem-a")
+        self._ingest(
+            [(FIXTURE_UNIVERSITIES[0][1], 1), (FIXTURE_UNIVERSITIES[1][1], 2)], "idem-a"
+        )
         self.assertEqual(self._record_count(), 2)
 
-        self._ingest([("Harvard University", 1)], "idem-b")
+        self._ingest([(FIXTURE_UNIVERSITIES[0][1], 1)], "idem-b")
 
         self.assertEqual(self._record_count(), 1,
                          "the university missing from the second payload kept its record")
 
     def test_a_rank_change_is_applied(self):
         """The check that the prune has not simply deleted everything."""
-        self._ingest([("Harvard University", 1)], "idem-a")
-        self._ingest([("Harvard University", 7)], "idem-b")
+        self._ingest([(FIXTURE_UNIVERSITIES[0][1], 1)], "idem-a")
+        self._ingest([(FIXTURE_UNIVERSITIES[0][1], 7)], "idem-b")
 
         with self.conn.cursor() as cur:
             cur.execute(
