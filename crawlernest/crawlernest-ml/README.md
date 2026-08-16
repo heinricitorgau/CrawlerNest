@@ -648,6 +648,39 @@ range — that the disclosure columns are intact, and that no estimate has reach
 again, because the API reads "latest per target" and a re-run that left both
 visible would surface two models at once.
 
+**The row check is about shape, and every way a model goes quietly wrong
+produces rows of the right shape.** `check_serving_quality.py` scores them
+instead, against the published data each target can be checked against.
+Neither model has its label at serving time — that is what they are for — but
+each has something the label orders:
+
+| Target | Ground truth available at serving time | Currently |
+|---|---|---:|
+| `qs_overall_score` | QS withholds the score for ranks 601–1503 and publishes the rank | Spearman **−0.9755** |
+| `qs_the_disagreement` | both sources' ranks are in the warehouse for the universities both rank | ROC-AUC **0.8907** |
+
+The score check also compares against `metrics_json.rank_agreement_spearman`,
+recorded by the training run, so it regresses against a number rather than
+admiring one: served −0.9755 against a recorded 0.9754.
+
+Support is reported split rather than pooled, which turns the flag into a
+claim that can fail. Supported predictions agree with published ranks at
+0.9736 and unsupported ones at 0.8660 — the flag is measuring something. Were
+the two equal, or the unsupported ones better, that would say it is not.
+
+Verified by breaking it, on a copy of the warehouse: shuffling the scores
+between universities drops agreement to 0.00, inverting them fails on the
+sign, setting every support flag true fails on the fraction, and randomising
+the probabilities lands the AUC at 0.51. **All four pass `verify_predictions`
+unchanged** — right shape, right scale, right disclosure columns, wrong
+numbers.
+
+It found one the first time it ran: the live database was serving
+disagreement probabilities from the pre-retrain model, because the model was
+rebuilt on the 1,082-row join and the serving jobs were never re-run against
+it. Visible as 0.8591 where a fresh run gives 0.8907, and invisible to every
+other check in the chain.
+
 Rehearsing this job locally found a bug the live database had been hiding. Four
 snapshot rows are named `N/A`; against a warehouse seeded one row per name they
 all resolved onto a single invented university and the insert aborted on a
