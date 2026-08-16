@@ -184,6 +184,17 @@ jobs:
           python -m ranking_ml.serving.verify_predictions \
             --pg-user test --pg-password test --pg-database clawer
 
+      # verify_predictions checks the shape of the rows; every way a model can
+      # silently become useless produces rows of exactly the right shape. This
+      # scores them against the published data they can be checked against --
+      # rank order for the overall score, observed disagreement for the
+      # probabilities -- which is the only part of the ML chain that had no
+      # guard at all.
+      - name: Score the served predictions
+        run: |
+          python -m ranking_ml.serving.check_serving_quality \
+            --pg-user test --pg-password test --pg-database clawer
+
   matlab-reexecution:
     name: MATLAB sources re-executed (public-repo runner)
     runs-on: ubuntu-latest
