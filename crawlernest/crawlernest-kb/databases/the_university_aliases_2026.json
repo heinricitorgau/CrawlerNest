@@ -1,0 +1,786 @@
+[
+ {
+  "canonical_slug_hint": "Binghamton University SUNY",
+  "canonical_university_id": 1016,
+  "alias_text": "SUNY Binghamton University",
+  "country": "United States",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Catania University",
+  "canonical_university_id": 902,
+  "alias_text": "University of Catania",
+  "country": "Italy",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Don State Technical University",
+  "canonical_university_id": 1402,
+  "alias_text": "Don State Technical University",
+  "country": "Russia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "East China Normal University",
+  "canonical_university_id": 500,
+  "alias_text": "East China Normal University",
+  "country": "China (mainland)",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "East China University of Science and Technology",
+  "canonical_university_id": 643,
+  "alias_text": "East China University of Science and Technology",
+  "country": "China (mainland)",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Essex, University of",
+  "canonical_university_id": 469,
+  "alias_text": "University of Essex",
+  "country": "United Kingdom",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Far Eastern Federal University",
+  "canonical_university_id": 635,
+  "alias_text": "Far Eastern Federal University",
+  "country": "Russia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Gadjah Mada University",
+  "canonical_university_id": 239,
+  "alias_text": "Universitas Gadjah Mada",
+  "country": "Indonesia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Huazhong University of Science and Technology",
+  "canonical_university_id": 299,
+  "alias_text": "Huazhong University of Science and Technology",
+  "country": "China (mainland)",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Humboldt-Universität zu Berlin",
+  "canonical_university_id": 127,
+  "alias_text": "Humboldt University of Berlin",
+  "country": "Germany",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Isfahan University of Technology",
+  "canonical_university_id": 488,
+  "alias_text": "Isfahan University of Technology",
+  "country": "Iran",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Istanbul University",
+  "canonical_university_id": 623,
+  "alias_text": "Istanbul University",
+  "country": "Turkey",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Kazan (Volga region) Federal University",
+  "canonical_university_id": 398,
+  "alias_text": "Kazan Federal University",
+  "country": "Russia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Lincoln University",
+  "canonical_university_id": 369,
+  "alias_text": "Lincoln University (New Zealand)",
+  "country": "New Zealand",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Miami University",
+  "canonical_university_id": 1262,
+  "alias_text": "University of Miami",
+  "country": "United States",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Nagoya University",
+  "canonical_university_id": 154,
+  "alias_text": "Nagoya University",
+  "country": "Japan",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Nanjing University of Science and Technology",
+  "canonical_university_id": 562,
+  "alias_text": "Nanjing University of Science and Technology (NJUST)",
+  "country": "China (mainland)",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "National Taiwan University of Science and Technology (Taiwan Tech)",
+  "canonical_university_id": 389,
+  "alias_text": "National Taiwan University of Science and Technology (Taiwan Tech)",
+  "country": "Taiwan",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Ohio University",
+  "canonical_university_id": 1073,
+  "alias_text": "Ohio University (Main campus)",
+  "country": "United States",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Osaka University",
+  "canonical_university_id": 86,
+  "alias_text": "The University of Osaka",
+  "country": "Japan",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Sabanci University",
+  "canonical_university_id": 517,
+  "alias_text": "Sabancı University",
+  "country": "Turkey",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "The Ohio State University",
+  "canonical_university_id": 207,
+  "alias_text": "Ohio State University (Main campus)",
+  "country": "United States",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "The University of Adelaide",
+  "canonical_university_id": 82,
+  "alias_text": "Adelaide University",
+  "country": "Australia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad Adolfo Ibáñez",
+  "canonical_university_id": 576,
+  "alias_text": "Adolfo Ibáñez University",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad Alberto Hurtado",
+  "canonical_university_id": 1439,
+  "alias_text": "Alberto Hurtado University",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad Austral",
+  "canonical_university_id": 522,
+  "alias_text": "Austral University",
+  "country": "Argentina",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad Austral de Chile",
+  "canonical_university_id": 1109,
+  "alias_text": "Austral University of Chile",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad Bernardo O'Higgins",
+  "canonical_university_id": 1447,
+  "alias_text": "Bernardo O’Higgins University",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad Carlos III de Madrid (UC3M)",
+  "canonical_university_id": 285,
+  "alias_text": "Carlos III University of Madrid",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad Central de Venezuela",
+  "canonical_university_id": 692,
+  "alias_text": "Central University of Venezuela",
+  "country": "Venezuela",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad Diego Portales (UDP)",
+  "canonical_university_id": 1113,
+  "alias_text": "Diego Portales University",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad EAFIT",
+  "canonical_university_id": 925,
+  "alias_text": "EAFIT University",
+  "country": "Colombia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad ICESI",
+  "canonical_university_id": 1114,
+  "alias_text": "Icesi University",
+  "country": "Colombia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Alcalá (Madrid)",
+  "canonical_university_id": 626,
+  "alias_text": "University of Alcalá",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Antioquia",
+  "canonical_university_id": 795,
+  "alias_text": "University of Antioquia",
+  "country": "Colombia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Castilla-La Mancha",
+  "canonical_university_id": 1124,
+  "alias_text": "University of Castilla-La Mancha",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Chile",
+  "canonical_university_id": 141,
+  "alias_text": "University of Chile",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Concepción",
+  "canonical_university_id": 639,
+  "alias_text": "University of Concepción",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Costa Rica",
+  "canonical_university_id": 496,
+  "alias_text": "University of Costa Rica",
+  "country": "Costa Rica",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Cuenca",
+  "canonical_university_id": 1469,
+  "alias_text": "University of Cuenca",
+  "country": "Ecuador",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Córdoba",
+  "canonical_university_id": 986,
+  "alias_text": "University of Córdoba",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Guadalajara (UDG)",
+  "canonical_university_id": 1125,
+  "alias_text": "University of Guadalajara",
+  "country": "Mexico",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Guanajuato",
+  "canonical_university_id": 1471,
+  "alias_text": "University of Guanajuato",
+  "country": "Mexico",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de La Frontera (UFRO)",
+  "canonical_university_id": 1126,
+  "alias_text": "University of La Frontera",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de La Sabana",
+  "canonical_university_id": 987,
+  "alias_text": "University of La Sabana",
+  "country": "Colombia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de La Serena",
+  "canonical_university_id": 1473,
+  "alias_text": "University of La Serena",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de León",
+  "canonical_university_id": 988,
+  "alias_text": "University of León",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Medellín",
+  "canonical_university_id": 1474,
+  "alias_text": "University of Medellín",
+  "country": "Colombia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Oviedo",
+  "canonical_university_id": 1129,
+  "alias_text": "University of Oviedo",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Santiago de Chile (USACH)",
+  "canonical_university_id": 458,
+  "alias_text": "University of Santiago, Chile (USACH)",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Sonora",
+  "canonical_university_id": 1476,
+  "alias_text": "University of Sonora",
+  "country": "Mexico",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Talca",
+  "canonical_university_id": 1131,
+  "alias_text": "University of Talca",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Tarapaca",
+  "canonical_university_id": 1333,
+  "alias_text": "University of Tarapacá",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Valladolid",
+  "canonical_university_id": 879,
+  "alias_text": "University of Valladolid",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Valparaíso (UV)",
+  "canonical_university_id": 1334,
+  "alias_text": "University of Valparaíso",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Zaragoza",
+  "canonical_university_id": 543,
+  "alias_text": "University of Zaragoza",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de los Andes - Chile",
+  "canonical_university_id": 990,
+  "alias_text": "University of the Andes, Chile",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad del Bío-Bío",
+  "canonical_university_id": 1335,
+  "alias_text": "University of Bío-Bío",
+  "country": "Chile",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad del Cauca",
+  "canonical_university_id": 1478,
+  "alias_text": "University of Cauca",
+  "country": "Colombia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad del Rosario",
+  "canonical_university_id": 774,
+  "alias_text": "Del Rosario University",
+  "country": "Colombia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal Fluminense",
+  "canonical_university_id": 1136,
+  "alias_text": "Fluminense Federal University",
+  "country": "Brazil",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Goiás",
+  "canonical_university_id": 1482,
+  "alias_text": "Federal University of Goiás",
+  "country": "Brazil",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Pelotas",
+  "canonical_university_id": 1341,
+  "alias_text": "Federal University of Pelotas",
+  "country": "Brazil",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Santa Maria",
+  "canonical_university_id": 1342,
+  "alias_text": "Federal University of Santa Maria",
+  "country": "Brazil",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de São Carlos (UFSCar)",
+  "canonical_university_id": 1138,
+  "alias_text": "Federal University of São Carlos",
+  "country": "Brazil",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Uberlândia",
+  "canonical_university_id": 1483,
+  "alias_text": "Federal University of Uberlândia",
+  "country": "Brazil",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Viçosa (UFV)",
+  "canonical_university_id": 1343,
+  "alias_text": "Federal University of Viçosa",
+  "country": "Brazil",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade de Brasília",
+  "canonical_university_id": 755,
+  "alias_text": "University of Brasília",
+  "country": "Brazil",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade de Santiago de Compostela",
+  "canonical_university_id": 656,
+  "alias_text": "University of Santiago de Compostela",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade de São Paulo",
+  "canonical_university_id": 92,
+  "alias_text": "University of São Paulo",
+  "country": "Brazil",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade de Vigo",
+  "canonical_university_id": 931,
+  "alias_text": "University of Vigo",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universitas Brawijaya",
+  "canonical_university_id": 830,
+  "alias_text": "University of Brawijaya",
+  "country": "Indonesia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universitas Hasanuddin",
+  "canonical_university_id": 1142,
+  "alias_text": "Hasanuddin University",
+  "country": "Indonesia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universitas Indonesia",
+  "canonical_university_id": 206,
+  "alias_text": "University of Indonesia",
+  "country": "Indonesia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universitat Pompeu Fabra (Barcelona)",
+  "canonical_university_id": 266,
+  "alias_text": "Pompeu Fabra University",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universitat Rovira i Virgili",
+  "canonical_university_id": 735,
+  "alias_text": "Rovira i Virgili University",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universitat de Barcelona",
+  "canonical_university_id": 166,
+  "alias_text": "University of Barcelona",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universitat de Lleida (University of Lleida)",
+  "canonical_university_id": 1144,
+  "alias_text": "University of Lleida",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universitat de Valencia",
+  "canonical_university_id": 444,
+  "alias_text": "University of Valencia",
+  "country": "Spain",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universiti Malaya (UM)",
+  "canonical_university_id": 60,
+  "alias_text": "University of Malaya",
+  "country": "Malaysia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "University at Albany SUNY",
+  "canonical_university_id": 882,
+  "alias_text": "SUNY University at Albany",
+  "country": "United States",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "University of British Columbia",
+  "canonical_university_id": 38,
+  "alias_text": "University of British Columbia",
+  "country": "Canada",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "University of East London",
+  "canonical_university_id": 935,
+  "alias_text": "University of East London",
+  "country": "United Kingdom",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "University of Jordan",
+  "canonical_university_id": 366,
+  "alias_text": "The University of Jordan",
+  "country": "Jordan",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "University of Lisbon",
+  "canonical_university_id": 260,
+  "alias_text": "University of Lisbon",
+  "country": "Portugal",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "University of Naples Parthenope",
+  "canonical_university_id": 1162,
+  "alias_text": "Parthenope University of Naples",
+  "country": "Italy",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "University of Silesia in Katowice",
+  "canonical_university_id": 1378,
+  "alias_text": "University of Silesia in Katowice",
+  "country": "Poland",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "University of Virginia",
+  "canonical_university_id": 296,
+  "alias_text": "University of Virginia (Main campus)",
+  "country": "United States",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "University of Wroclaw",
+  "canonical_university_id": 891,
+  "alias_text": "University of Wrocław",
+  "country": "Poland",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Università Vita-Salute San Raffaele",
+  "canonical_university_id": 387,
+  "alias_text": "Vita-Salute San Raffaele University",
+  "country": "Italy",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Bremen",
+  "canonical_university_id": 591,
+  "alias_text": "University of Bremen",
+  "country": "Germany",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Hamburg",
+  "canonical_university_id": 191,
+  "alias_text": "University of Hamburg",
+  "country": "Germany",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Innsbruck",
+  "canonical_university_id": 309,
+  "alias_text": "University of Innsbruck",
+  "country": "Austria",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Konstanz",
+  "canonical_university_id": 465,
+  "alias_text": "University of Konstanz",
+  "country": "Germany",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Mannheim",
+  "canonical_university_id": 484,
+  "alias_text": "University of Mannheim",
+  "country": "Germany",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Potsdam",
+  "canonical_university_id": 473,
+  "alias_text": "University of Potsdam",
+  "country": "Germany",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Regensburg",
+  "canonical_university_id": 746,
+  "alias_text": "University of Regensburg",
+  "country": "Germany",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Siegen",
+  "canonical_university_id": 1184,
+  "alias_text": "University of Siegen",
+  "country": "Germany",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Stuttgart",
+  "canonical_university_id": 313,
+  "alias_text": "University of Stuttgart",
+  "country": "Germany",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université Claude Bernard Lyon 1",
+  "canonical_university_id": 560,
+  "alias_text": "Claude Bernard University Lyon 1",
+  "country": "France",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université Jean Moulin Lyon 3",
+  "canonical_university_id": 1387,
+  "alias_text": "Jean Moulin University – Lyon 3",
+  "country": "France",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université Mohammed V de Rabat",
+  "canonical_university_id": 1186,
+  "alias_text": "Mohammed V University of Rabat",
+  "country": "Morocco",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université Paris 1 Panthéon-Sorbonne",
+  "canonical_university_id": 282,
+  "alias_text": "Panthéon-Sorbonne University – Paris 1",
+  "country": "France",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université Paris-Nanterre",
+  "canonical_university_id": 1187,
+  "alias_text": "Paris Nanterre University",
+  "country": "France",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Fribourg",
+  "canonical_university_id": 541,
+  "alias_text": "University of Fribourg",
+  "country": "Switzerland",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Lille",
+  "canonical_university_id": 733,
+  "alias_text": "University of Lille",
+  "country": "France",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Liège",
+  "canonical_university_id": 397,
+  "alias_text": "University of Liège",
+  "country": "Belgium",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Montpellier",
+  "canonical_university_id": 447,
+  "alias_text": "Montpellier University",
+  "country": "France",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Sousse",
+  "canonical_university_id": 1191,
+  "alias_text": "University of Sousse",
+  "country": "Tunisia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Tunis",
+  "canonical_university_id": 1193,
+  "alias_text": "University of Tunis",
+  "country": "Tunisia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Tunis El Manar",
+  "canonical_university_id": 777,
+  "alias_text": "University of Tunis El Manar",
+  "country": "Tunisia",
+  "source": "THE 2026"
+ },
+ {
+  "canonical_slug_hint": "Yonsei University",
+  "canonical_university_id": 56,
+  "alias_text": "Yonsei University (Seoul campus)",
+  "country": "South Korea",
+  "source": "THE 2026"
+ }
+]
