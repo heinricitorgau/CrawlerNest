@@ -196,8 +196,11 @@ estimate is publishable.
 ## Phase 3 results — cross-source disagreement
 
 Full detail in the [model card](model_cards/disagreement.md). QS and THE both
-rank 820 of the same universities (exact name match), and they frequently
-disagree about them.
+rank 1,082 of the same universities, and they frequently disagree about them.
+The pairing comes from the warehouse — entity resolution seeded with 112
+reviewed aliases, ambiguous cases settled by hand — rather than being
+re-derived here from a name key, which reached 820. On the 818 both methods
+place, they pick the same THE entity every time.
 
 The trap here was the same shape as Phase 2's, one level up. Each source's rank
 is close to a deterministic function of its own component scores, so a
@@ -209,9 +212,9 @@ institutions at QS ingest time, before THE data arrives.
 
 | Feature set | Model | ROC-AUC | PR-AUC |
 |---|---|---:|---:|
-| **QS only** | **gradient boosting** | **0.8133** | **0.4696** |
+| **QS only** | **gradient boosting** | **0.8262** | **0.5196** |
 | QS only | logistic regression | 0.7307 | 0.3198 |
-| both sources *(ceiling)* | gradient boosting | 0.8902 | 0.7048 |
+| both sources *(ceiling)* | gradient boosting | 0.9048 | 0.7693 |
 | chance | — | 0.5000 | 0.2000 |
 
 ![Disagreement diagnostics](artifacts/eda/disagreement_diagnostics.png)
@@ -521,7 +524,7 @@ PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python \
     --pg-user test --pg-password test --pg-database clawer
 ```
 
-It trains on the 820 universities QS and THE both rank, then scores **all 1,503
+It trains on the 1,082 universities QS and THE both rank, then scores **all 1,503
 QS universities** — including the 683 THE has never covered. That is where the
 probability is useful: a contested institution can be flagged at QS ingest time
 rather than after a second source arrives, which in this deployment it never has.
@@ -666,7 +669,7 @@ Two kinds of guard, because they fail differently:
 
 | Kind | Checked how | Examples |
 |---|---|---|
-| **Invariant** | exactly, and first | `rows_labelled` = 600, `matched` = 820, `positives` = 164 |
+| **Invariant** | exactly, and first | `rows_labelled` = 600, `matched` = 1,082, `positives` = 217 |
 | **Metric** | against a direction and tolerance | `linear_renorm` RMSE (±0.05), weight-recovery error (±0.0005), disagreement ROC-AUC (±0.02) |
 
 Invariants come first because they describe the *data*: if the training set

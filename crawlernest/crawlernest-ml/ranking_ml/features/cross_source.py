@@ -47,9 +47,45 @@ THE_FEATURE_NAMES: tuple[str, ...] = tuple(
 )
 
 
+#: The warehouse's reviewed QS<->THE pairing, exported from
+#: warehouse.ranking_record. See load_pairing for why this exists.
+DEFAULT_PAIRING = _REPO_ROOT / "crawlernest" / "crawlernest-kb" / "databases" / "qs_the_pairing_2026.json"
+
+
 def normalise_name(name: Any) -> str:
     """Lowercase, letters only. Collapses 'The University of X' style variation."""
     return re.sub(r"[^a-z]", "", str(name or "").lower())
+
+
+def load_pairing(path: Path | str | None = None) -> dict[str, str]:
+    """Which QS university is which THE university, as the warehouse decided.
+
+    Joining on a normalised name recovers 820 of the 1,503 QS universities. The
+    warehouse reaches 1,080 for the same two snapshots, because its entity
+    resolver is seeded with reviewed aliases -- ``Universidade de São Paulo`` is
+    ``University of São Paulo``, ``Osaka University`` is ``The University of
+    Osaka`` -- and because a human went through the ambiguous cases.
+
+    Reading that decision here rather than re-deriving it keeps one answer to
+    "which institution is this" instead of two that agree today and drift
+    tomorrow. Checked when this was introduced: on the 818 universities both
+    methods place, they choose the same THE entity every time, so this adds rows
+    rather than correcting them.
+
+    Exported to a file rather than queried, because the ML jobs train from
+    committed snapshots with no database. A missing file is not an error -- the
+    name join still works, with the smaller overlap it always had.
+    """
+    pairing_path = Path(path) if path else DEFAULT_PAIRING
+    if not pairing_path.is_file():
+        return {}
+    with pairing_path.open(encoding="utf-8") as handle:
+        rows = json.load(handle)
+    return {
+        str(row["qs_name"]): str(row["the_name"])
+        for row in rows
+        if row.get("qs_name") and row.get("the_name")
+    }
 
 
 def load_the_snapshot(path: Path | str | None = None) -> list[dict[str, Any]]:
@@ -89,8 +125,13 @@ class CrossSourceFrame:
 def build_cross_source_frame(
     qs_path: Path | str | None = None,
     the_path: Path | str | None = None,
+    pairing_path: Path | str | None = None,
 ) -> CrossSourceFrame:
-    """Inner-join QS and THE on normalised name, keeping both sides' features.
+    """Inner-join QS and THE, keeping both sides' features.
+
+    The join key is the reviewed pairing where one exists and a normalised name
+    otherwise, so the pairs a human confirmed are used and everything else falls
+    back to the behaviour this had before.
 
     Percentiles are computed against each source's **full** population, not the
     overlap, so a university's standing means "top x% of what QS ranked" rather
@@ -98,11 +139,16 @@ def build_cross_source_frame(
     """
     qs_records = load_snapshot(qs_path or DEFAULT_SNAPSHOT)
     the_records = load_the_snapshot(the_path)
+    pairing = load_pairing(pairing_path)
+    # A key the two sides can meet on that no normalised name can collide with.
+    paired_key = {name: f"pair::{index}" for index, name in enumerate(sorted(pairing))}
+    the_paired_key = {pairing[name]: key for name, key in paired_key.items()}
 
     qs_rows = []
     for record in qs_records:
         metrics = record.get("table_metrics") or {}
-        row = {"key": normalise_name(record.get("name")), "qs_name": record.get("name")}
+        name = record.get("name")
+        row = {"key": paired_key.get(str(name)) or normalise_name(name), "qs_name": name}
         row["qs_rank"] = _to_rank(record.get("rank"))
         for name in QS_INDICATORS:
             row[name] = _to_float(metrics.get(name))
@@ -112,7 +158,8 @@ def build_cross_source_frame(
     the_rows = []
     for record in the_records:
         raw = (record.get("metadata") or {}).get("raw_row") or {}
-        row = {"key": normalise_name(record.get("name")), "the_name": record.get("name")}
+        name = record.get("name")
+        row = {"key": the_paired_key.get(str(name)) or normalise_name(name), "the_name": name}
         row["the_rank"] = _to_rank(record.get("rank"))
         for pillar, label in zip(THE_PILLARS, THE_FEATURE_NAMES):
             row[label] = _to_float(raw.get(pillar))
