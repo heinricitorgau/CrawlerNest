@@ -4,6 +4,8 @@
 [![ML Tests](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/ml-tests.yml/badge.svg)](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/ml-tests.yml)
 [![Data Quality](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/data-quality.yml/badge.svg)](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/data-quality.yml)
 [![Release Smoke](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/release-smoke.yml/badge.svg)](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/release-smoke.yml)
+[![API Tests](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/api-tests.yml/badge.svg)](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/api-tests.yml)
+[![Python Tests](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/python-tests.yml/badge.svg)](https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform/actions/workflows/python-tests.yml)
 
 An end-to-end university data infrastructure and web platform. It aggregates global and subject rankings from QS, THE, and ARWU into a single warehouse, exposes an explainability-first API, and delivers a Next.js frontend for browsing, comparing, and saving universities.
 
@@ -192,6 +194,40 @@ own data directly from the ranking sources:
 | Local troubleshooting | [docs/LOCAL_TROUBLESHOOTING.md](docs/LOCAL_TROUBLESHOOTING.md) |
 | Local LLM (ds4) | [docs/DS4_LOCAL_MODEL.md](docs/DS4_LOCAL_MODEL.md) — natural-language answers for recommendation, ranking, lookup, and data-query tasks via a local or remote ds4 model (env config, remote host + SSH-tunnel/auth setup) |
 | All docs | [docs/README.md](docs/README.md) |
+
+---
+
+## Continuous Integration
+
+Six workflows, ten jobs. What each one is worth depends on whether it can fail,
+so that is what this table records rather than a list of names.
+
+| Workflow | What it actually executes |
+|---|---|
+| **Agent Tests** | 126 tests over the web-agent generation layer, then the faithfulness eval across all 55 golden cases. Both mechanical verification signals — the faithfulness rules and the provenance/absence/completeness checker — are scored as detectors, with false positives on clean text reported separately from recall. |
+| **ML Tests** | Three jobs. Feature-layer invariants and a metrics regression gate that retrains both models from the committed snapshot and fails on a real drop. A serving job that writes predictions to a throwaway PostgreSQL and verifies the rows. A MATLAB job that installs MATLAB, re-executes `run_qs_eda.m`, and compares the fresh output both against Python and against the committed artifacts. |
+| **Python Tests** | Two jobs. Fixture mode with no services, and a PostgreSQL job that runs the opt-in database tests — the aggregation maths, source-weight consistency, and the superseded-row prune. Also runs weekly on a schedule, because one failure here was caused by time passing rather than by a commit. |
+| **API Tests** | The Spring Boot suite against a real PostgreSQL service, 92 tests, with the surefire reports uploaded as artifacts. |
+| **Release Smoke** | Two jobs. Build artefacts — Java compile, Next.js build, Python syntax, readonly fixtures — and an analytics-bridge job that bootstraps PostgreSQL, seeds six universities, runs the warehouse→analytics bridge twice, starts Spring Boot, and checks that `/api/v1/rankings` serves what was written, followed by the endpoint liveness checks. |
+| **Data Quality** | Validates the golden regression dataset and the CI fixture files, then runs the ranking-regression and failure-summary runners in fixture mode — no database, no network. |
+
+Two things this deliberately does *not* claim:
+
+- **A skip is not a pass.** Several of these checks used to skip silently — the
+  PostgreSQL tests had no database, the API endpoint checks had no server, the
+  MATLAB sources were never re-executed. Each now runs somewhere that cannot skip
+  it, and the jobs that legitimately skip say so in their names.
+- **Green means the checks ran, not that the system is correct.** The gaps that
+  remain are recorded as limits in
+  [`crawlernest-ml/README.md`](crawlernest/crawlernest-ml/README.md), not hidden
+  behind a passing badge.
+
+The full local suite, including the opt-in PostgreSQL tests:
+
+```bash
+CRAWLERNEST_RUN_PG_TESTS=1 CRAWLERNEST_PG_PASSWORD=test \
+  python3 crawlernest/crawlernest-tests/run_tests.py
+```
 
 ---
 
