@@ -1,5 +1,47 @@
 [
  {
+  "canonical_slug_hint": "Czech University of Life Sciences in Prague",
+  "canonical_university_id": 711,
+  "alias_text": "Czech University of Life Sciences Prague",
+  "country": "Czechia",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Nantes Université",
+  "canonical_university_id": 892,
+  "alias_text": "Nantes University",
+  "country": "France",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Northeastern University",
+  "canonical_university_id": 393,
+  "alias_text": "Northeastern University (Boston)",
+  "country": "United States",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Renmin (People's) University of China",
+  "canonical_university_id": 624,
+  "alias_text": "Renmin University of China",
+  "country": "China (mainland)",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Saveetha Institute of Medical And Technical Sciences (SIMATS)",
+  "canonical_university_id": 976,
+  "alias_text": "Saveetha Institute of Medical and Technical Sciences (Deemed to be University)",
+  "country": "India",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Soochow University",
+  "canonical_university_id": 649,
+  "alias_text": "Soochow University (Suzhou)",
+  "country": "China (mainland)",
+  "source": "ARWU 2026"
+ },
+ {
   "canonical_slug_hint": "UCL",
   "canonical_university_id": 9,
   "alias_text": "University College London",
@@ -7,10 +49,143 @@
   "source": "ARWU 2026"
  },
  {
+  "canonical_slug_hint": "Ulm University",
+  "canonical_university_id": 554,
+  "alias_text": "University of Ulm",
+  "country": "Germany",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Buenos Aires (UBA)",
+  "canonical_university_id": 71,
+  "alias_text": "University of Buenos Aires",
+  "country": "Argentina",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Pernambuco (UFPE)",
+  "canonical_university_id": 1137,
+  "alias_text": "Federal University of Pernambuco",
+  "country": "Brazil",
+  "source": "ARWU 2026"
+ },
+ {
   "canonical_slug_hint": "Universite Paris-Saclay",
   "canonical_university_id": 73,
   "alias_text": "Paris-Saclay University",
   "country": "France",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "University of Brescia",
+  "canonical_university_id": 697,
+  "alias_text": "Brescia University",
+  "country": "Italy",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "University of Hawaiʻi at Mānoa",
+  "canonical_university_id": 485,
+  "alias_text": "University of Hawaii at Manoa",
+  "country": "United States",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "University of Palermo",
+  "canonical_university_id": 888,
+  "alias_text": "University of Palermo (Italy)",
+  "country": "Italy",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Heidelberg",
+  "canonical_university_id": 84,
+  "alias_text": "Heidelberg University",
+  "country": "Germany",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Jena",
+  "canonical_university_id": 524,
+  "alias_text": "University of Jena",
+  "country": "Germany",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Universität Leipzig",
+  "canonical_university_id": 527,
+  "alias_text": "University of Leipzig",
+  "country": "Germany",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Université Laval",
+  "canonical_university_id": 421,
+  "alias_text": "Laval University",
+  "country": "Canada",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Université PSL",
+  "canonical_university_id": 24,
+  "alias_text": "PSL University",
+  "country": "France",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Lorraine",
+  "canonical_university_id": 847,
+  "alias_text": "University of Lorraine",
+  "country": "France",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Montpellier",
+  "canonical_university_id": 447,
+  "alias_text": "University of Montpellier",
+  "country": "France",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Montréal",
+  "canonical_university_id": 161,
+  "alias_text": "University of Montreal",
+  "country": "Canada",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Poitiers",
+  "canonical_university_id": 1189,
+  "alias_text": "University of Poitiers",
+  "country": "France",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Rennes",
+  "canonical_university_id": 734,
+  "alias_text": "University of Rennes",
+  "country": "France",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Sherbrooke",
+  "canonical_university_id": 893,
+  "alias_text": "University of Sherbrooke",
+  "country": "Canada",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Université de Strasbourg",
+  "canonical_university_id": 456,
+  "alias_text": "University of Strasbourg",
+  "country": "France",
+  "source": "ARWU 2026"
+ },
+ {
+  "canonical_slug_hint": "Verona University",
+  "canonical_university_id": 778,
+  "alias_text": "University of Verona",
+  "country": "Italy",
   "source": "ARWU 2026"
  }
 ]
