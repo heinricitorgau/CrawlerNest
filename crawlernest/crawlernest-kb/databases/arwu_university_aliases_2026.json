@@ -1,191 +1,654 @@
 [
  {
+  "canonical_slug_hint": "Albert-Ludwigs-Universitaet Freiburg",
+  "canonical_university_id": 211,
+  "alias_text": "University of Freiburg",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Albert Ludwig is Freiburg's founding patron; same institution, legal vs short name",
+  "arwu_rank": "101-150"
+ },
+ {
+  "canonical_slug_hint": "Christian-Albrechts-University zu Kiel",
+  "canonical_university_id": 613,
+  "alias_text": "Kiel University",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Christian Albrecht is Kiel's founder; same institution",
+  "arwu_rank": "201-300"
+ },
+ {
+  "canonical_slug_hint": "Goethe-University Frankfurt am Main",
+  "canonical_university_id": 308,
+  "alias_text": "Goethe University Frankfurt",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "'am Main' disambiguates the city, not the university",
+  "arwu_rank": "151-200"
+ },
+ {
+  "canonical_slug_hint": "Justus-Liebig-University Giessen",
+  "canonical_university_id": 443,
+  "alias_text": "University of Giessen",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Justus Liebig is Giessen's patron; same institution",
+  "arwu_rank": "401-500"
+ },
+ {
+  "canonical_slug_hint": "Lomonosov Moscow State University",
+  "canonical_university_id": 94,
+  "alias_text": "Moscow State University",
+  "country": "Russia",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Lomonosov is MSU's patron; ARWU uses the short form",
+  "arwu_rank": "151-200"
+ },
+ {
+  "canonical_slug_hint": "Martin-Luther-Universität Halle-Wittenberg",
+  "canonical_university_id": 676,
+  "alias_text": "University of Halle-Wittenberg",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Martin Luther is Halle-Wittenberg's patron; same institution",
+  "arwu_rank": "401-500"
+ },
+ {
+  "canonical_slug_hint": "National University of Sciences & Technology (NUST) Islamabad",
+  "canonical_university_id": 350,
+  "alias_text": "National University of Sciences & Technology Pakistan",
+  "country": "Pakistan",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "NUST is in Islamabad; ARWU tags it with the country instead",
+  "arwu_rank": "801-900"
+ },
+ {
+  "canonical_slug_hint": "Paris Lodron University of Salzburg",
+  "canonical_university_id": 604,
+  "alias_text": "University of Salzburg",
+  "country": "Austria",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Paris Lodron is Salzburg's founder; same institution",
+  "arwu_rank": "901-1000"
+ },
+ {
+  "canonical_slug_hint": "Philipps-Universität Marburg",
+  "canonical_university_id": 820,
+  "alias_text": "University of Marburg",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Philipp I is Marburg's founder; same institution",
+  "arwu_rank": "301-400"
+ },
+ {
+  "canonical_slug_hint": "Radboud University",
+  "canonical_university_id": 272,
+  "alias_text": "Radboud University Nijmegen",
+  "country": "Netherlands",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Nijmegen is Radboud's city; single campus",
+  "arwu_rank": "151-200"
+ },
+ {
+  "canonical_slug_hint": "Rutgers University–New Brunswick",
+  "canonical_university_id": 327,
+  "alias_text": "Rutgers, The State University of New Jersey - New Brunswick",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "both name the New Brunswick campus; Rutgers-Newark stays separate",
+  "arwu_rank": "101-150"
+ },
+ {
+  "canonical_slug_hint": "Tokyo Institute of Technology (Tokyo Tech)",
+  "canonical_university_id": 85,
+  "alias_text": "Institute of Science Tokyo",
+  "country": "Japan",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "successor institution: Tokyo Tech merged with Tokyo Medical and Dental University in 2024. This is a merger, not a rename, and is the one pair here whose identity is arguable. It is included because leaving it out reports Tokyo Tech as unranked by ARWU, which is the more misleading of the two errors.",
+  "arwu_rank": "151-200"
+ },
+ {
+  "canonical_slug_hint": "Universidad Rey Juan Carlos",
+  "canonical_university_id": 1120,
+  "alias_text": "King Juan Carlos University",
+  "country": "Spain",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "'Rey' is 'King'; same institution",
+  "arwu_rank": "901-1000"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual de Campinas (Unicamp)",
+  "canonical_university_id": 232,
+  "alias_text": "University of Campinas",
+  "country": "Brazil",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Unicamp is the state university; PUC-Campinas is a different school",
+  "arwu_rank": "401-500"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do Paraná - UFPR",
+  "canonical_university_id": 1139,
+  "alias_text": "Federal University of Parana",
+  "country": "Brazil",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "'- UFPR' is the abbreviation tag; Pontificia Catolica do Parana is a different school",
+  "arwu_rank": "801-900"
+ },
+ {
+  "canonical_slug_hint": "University Duesseldorf",
+  "canonical_university_id": 881,
+  "alias_text": "Heinrich Heine University Duesseldorf",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Heinrich Heine is Duesseldorf's patron; QS carries the name without it",
+  "arwu_rank": "201-300"
+ },
+ {
+  "canonical_slug_hint": "University of Montana Missoula",
+  "canonical_university_id": 1496,
+  "alias_text": "The University of Montana",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "UM is in Missoula; Montana State Bozeman is a separate ARWU entity and stays separate",
+  "arwu_rank": "801-900"
+ },
+ {
+  "canonical_slug_hint": "University of Tromsø The Arctic University of Norway",
+  "canonical_university_id": 629,
+  "alias_text": "UiT The Arctic University of Norway",
+  "country": "Norway",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "UiT is the university's own abbreviation for Tromso",
+  "arwu_rank": "501-600"
+ },
+ {
+  "canonical_slug_hint": "Université Paul Sabatier Toulouse III",
+  "canonical_university_id": 581,
+  "alias_text": "Paul Sabatier University (Toulouse 3)",
+  "country": "France",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Toulouse III written in arabic inside a parenthetical the normaliser strips",
+  "arwu_rank": "301-400"
+ },
+ {
+  "canonical_slug_hint": "Université Toulouse 1 Capitole",
+  "canonical_university_id": 1001,
+  "alias_text": "Toulouse Capitole University",
+  "country": "France",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "Toulouse 1 Capitole; the numeral is dropped in ARWU's English form",
+  "arwu_rank": "401-500"
+ },
+ {
+  "canonical_slug_hint": "Université catholique de Louvain (UCLouvain)",
+  "canonical_university_id": 204,
+  "alias_text": "Catholic University of Louvain",
+  "country": "Belgium",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "UCLouvain is the French-language university; KU Leuven is a separate ARWU entity",
+  "arwu_rank": "201-300"
+ },
+ {
+  "canonical_slug_hint": "William & Mary",
+  "canonical_university_id": 1023,
+  "alias_text": "College of William and Mary",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "curated",
+  "reason": "William & Mary is the institution's current styling of the same name",
+  "arwu_rank": "801-900"
+ },
+ {
+  "canonical_slug_hint": "Ain Shams University in Cairo (ASU, Cairo)",
+  "canonical_university_id": 589,
+  "alias_text": "Ain Shams University",
+  "country": "Egypt",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "701-800"
+ },
+ {
   "canonical_slug_hint": "Czech University of Life Sciences in Prague",
   "canonical_university_id": 711,
   "alias_text": "Czech University of Life Sciences Prague",
   "country": "Czechia",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "901-1000"
+ },
+ {
+  "canonical_slug_hint": "Louisiana State University",
+  "canonical_university_id": 911,
+  "alias_text": "Louisiana State University, Baton Rouge",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "401-500"
+ },
+ {
+  "canonical_slug_hint": "Manipal Academy of Higher Education, Manipal, Karnataka, India",
+  "canonical_university_id": 913,
+  "alias_text": "Manipal Academy of Higher Education",
+  "country": "India",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "701-800"
  },
  {
   "canonical_slug_hint": "Nantes Université",
   "canonical_university_id": 892,
   "alias_text": "Nantes University",
   "country": "France",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "601-700"
+ },
+ {
+  "canonical_slug_hint": "North Carolina State University",
+  "canonical_university_id": 310,
+  "alias_text": "North Carolina State University at Raleigh",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "201-300"
  },
  {
   "canonical_slug_hint": "Northeastern University",
   "canonical_university_id": 393,
   "alias_text": "Northeastern University (Boston)",
   "country": "United States",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "201-300"
+ },
+ {
+  "canonical_slug_hint": "Northumbria University at Newcastle",
+  "canonical_university_id": 534,
+  "alias_text": "Northumbria University",
+  "country": "United Kingdom",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "801-900"
+ },
+ {
+  "canonical_slug_hint": "Pennsylvania State University",
+  "canonical_university_id": 90,
+  "alias_text": "Pennsylvania State University, University Park",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "101-150"
+ },
+ {
+  "canonical_slug_hint": "Purdue University",
+  "canonical_university_id": 91,
+  "alias_text": "Purdue University, West Lafayette",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "100"
+ },
+ {
+  "canonical_slug_hint": "Queen's University at Kingston",
+  "canonical_university_id": 193,
+  "alias_text": "Queen's University",
+  "country": "Canada",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "201-300"
  },
  {
   "canonical_slug_hint": "Renmin (People's) University of China",
   "canonical_university_id": 624,
   "alias_text": "Renmin University of China",
   "country": "China (mainland)",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "301-400"
  },
  {
   "canonical_slug_hint": "Saveetha Institute of Medical And Technical Sciences (SIMATS)",
   "canonical_university_id": 976,
   "alias_text": "Saveetha Institute of Medical and Technical Sciences (Deemed to be University)",
   "country": "India",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "501-600"
  },
  {
   "canonical_slug_hint": "Soochow University",
   "canonical_university_id": 649,
   "alias_text": "Soochow University (Suzhou)",
   "country": "China (mainland)",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "101-150"
+ },
+ {
+  "canonical_slug_hint": "Stony Brook University, State University of New York",
+  "canonical_university_id": 457,
+  "alias_text": "Stony Brook University",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "151-200"
+ },
+ {
+  "canonical_slug_hint": "Technische Universität Berlin (TU Berlin)",
+  "canonical_university_id": 148,
+  "alias_text": "Technical University of Berlin",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "201-300"
+ },
+ {
+  "canonical_slug_hint": "Technische Universität Braunschweig",
+  "canonical_university_id": 753,
+  "alias_text": "Technical University of Braunschweig",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "701-800"
+ },
+ {
+  "canonical_slug_hint": "Technische Universität Dresden",
+  "canonical_university_id": 234,
+  "alias_text": "Dresden University of Technology",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "151-200"
+ },
+ {
+  "canonical_slug_hint": "The Ohio State University",
+  "canonical_university_id": 207,
+  "alias_text": "Ohio State University, Columbus",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "93"
+ },
+ {
+  "canonical_slug_hint": "Trinity College Dublin, The University of Dublin",
+  "canonical_university_id": 87,
+  "alias_text": "Trinity College Dublin",
+  "country": "Ireland",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "201-300"
  },
  {
   "canonical_slug_hint": "UCL",
   "canonical_university_id": 9,
   "alias_text": "University College London",
   "country": "United Kingdom",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "17"
  },
  {
   "canonical_slug_hint": "Ulm University",
   "canonical_university_id": 554,
   "alias_text": "University of Ulm",
   "country": "Germany",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "401-500"
  },
  {
   "canonical_slug_hint": "Universidad de Buenos Aires (UBA)",
   "canonical_university_id": 71,
   "alias_text": "University of Buenos Aires",
   "country": "Argentina",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "201-300"
  },
  {
   "canonical_slug_hint": "Universidade Federal de Pernambuco (UFPE)",
   "canonical_university_id": 1137,
   "alias_text": "Federal University of Pernambuco",
   "country": "Brazil",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "901-1000"
  },
  {
-  "canonical_slug_hint": "Universite Paris-Saclay",
-  "canonical_university_id": 73,
-  "alias_text": "Paris-Saclay University",
-  "country": "France",
-  "source": "ARWU 2026"
+  "canonical_slug_hint": "Universita' degli Studi di Ferrara",
+  "canonical_university_id": 880,
+  "alias_text": "University of Ferrara",
+  "country": "Italy",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "601-700"
  },
  {
   "canonical_slug_hint": "University of Brescia",
   "canonical_university_id": 697,
   "alias_text": "Brescia University",
   "country": "Italy",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "601-700"
  },
  {
   "canonical_slug_hint": "University of Hawaiʻi at Mānoa",
   "canonical_university_id": 485,
   "alias_text": "University of Hawaii at Manoa",
   "country": "United States",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "401-500"
+ },
+ {
+  "canonical_slug_hint": "University of New Mexico",
+  "canonical_university_id": 797,
+  "alias_text": "The University of New Mexico, Albuquerque",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "501-600"
+ },
+ {
+  "canonical_slug_hint": "University of Oklahoma",
+  "canonical_university_id": 707,
+  "alias_text": "University of Oklahoma, Norman",
+  "country": "United States",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "401-500"
  },
  {
   "canonical_slug_hint": "University of Palermo",
   "canonical_university_id": 888,
   "alias_text": "University of Palermo (Italy)",
   "country": "Italy",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "501-600"
+ },
+ {
+  "canonical_slug_hint": "Università degli Studi di Pavia",
+  "canonical_university_id": 438,
+  "alias_text": "University of Pavia",
+  "country": "Italy",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "401-500"
+ },
+ {
+  "canonical_slug_hint": "Università degli Studi di Perugia",
+  "canonical_university_id": 844,
+  "alias_text": "University of Perugia",
+  "country": "Italy",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "501-600"
  },
  {
   "canonical_slug_hint": "Universität Heidelberg",
   "canonical_university_id": 84,
   "alias_text": "Heidelberg University",
   "country": "Germany",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "59"
  },
  {
   "canonical_slug_hint": "Universität Jena",
   "canonical_university_id": 524,
   "alias_text": "University of Jena",
   "country": "Germany",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "401-500"
  },
  {
   "canonical_slug_hint": "Universität Leipzig",
   "canonical_university_id": 527,
   "alias_text": "University of Leipzig",
   "country": "Germany",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "201-300"
+ },
+ {
+  "canonical_slug_hint": "Universität Rostock",
+  "canonical_university_id": 846,
+  "alias_text": "University of Rostock",
+  "country": "Germany",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "501-600"
  },
  {
   "canonical_slug_hint": "Université Laval",
   "canonical_university_id": 421,
   "alias_text": "Laval University",
   "country": "Canada",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "501-600"
  },
  {
   "canonical_slug_hint": "Université PSL",
   "canonical_university_id": 24,
   "alias_text": "PSL University",
   "country": "France",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "33"
+ },
+ {
+  "canonical_slug_hint": "Université Paris-Saclay",
+  "canonical_university_id": 73,
+  "alias_text": "Paris-Saclay University",
+  "country": "France",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "13"
  },
  {
   "canonical_slug_hint": "Université de Lorraine",
   "canonical_university_id": 847,
   "alias_text": "University of Lorraine",
   "country": "France",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "301-400"
  },
  {
   "canonical_slug_hint": "Université de Montpellier",
   "canonical_university_id": 447,
   "alias_text": "University of Montpellier",
   "country": "France",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "151-200"
  },
  {
   "canonical_slug_hint": "Université de Montréal",
   "canonical_university_id": 161,
   "alias_text": "University of Montreal",
   "country": "Canada",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "151-200"
  },
  {
   "canonical_slug_hint": "Université de Poitiers",
   "canonical_university_id": 1189,
   "alias_text": "University of Poitiers",
   "country": "France",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "901-1000"
  },
  {
   "canonical_slug_hint": "Université de Rennes",
   "canonical_university_id": 734,
   "alias_text": "University of Rennes",
   "country": "France",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "401-500"
  },
  {
   "canonical_slug_hint": "Université de Sherbrooke",
   "canonical_university_id": 893,
   "alias_text": "University of Sherbrooke",
   "country": "Canada",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "601-700"
  },
  {
   "canonical_slug_hint": "Université de Strasbourg",
   "canonical_university_id": 456,
   "alias_text": "University of Strasbourg",
   "country": "France",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "101-150"
+ },
+ {
+  "canonical_slug_hint": "Vellore Institute of Technology (VIT), Vellore, India",
+  "canonical_university_id": 798,
+  "alias_text": "Vellore Institute of Technology",
+  "country": "India",
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "601-700"
  },
  {
   "canonical_slug_hint": "Verona University",
   "canonical_university_id": 778,
   "alias_text": "University of Verona",
   "country": "Italy",
-  "source": "ARWU 2026"
+  "source": "ARWU 2026",
+  "method": "rule",
+  "arwu_rank": "601-700"
  }
 ]
