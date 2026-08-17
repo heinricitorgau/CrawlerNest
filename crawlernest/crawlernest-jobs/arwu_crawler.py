@@ -275,13 +275,21 @@ def _split_top_level(blob: str) -> list[str]:
 
 #: Entries appear in two syntaxes. Most are object literals; a couple of dozen
 #: are runs of assignments to one object. Both carry the same fields.
+# A minified JavaScript identifier may contain $ as well as _, and the minifier
+# reaches them: after a, b, ... z it emits _, $, aa, ab, and later am_, am$, an$.
+# \w covers the underscore but not the dollar, so a single $ anywhere in an
+# entry's variable names broke the whole match and dropped that university.
+# It cost 326 of 3,001 entries, spread evenly across every rank band -- which is
+# what made it look like a short table rather than a parsing miss.
+_NAME = r"[\w$]+"
 _LITERAL_ENTRY = re.compile(
-    r"ranking:(\w+),univNameEn:(\w+),univUp:\w+,univLogo:\w+,"
-    r"region:(\w+),regionLogo:\w+,regionRanking:\w+,univCode:\w+,score:(\w+)"
+    rf"ranking:({_NAME}),univNameEn:({_NAME}),univUp:{_NAME},univLogo:{_NAME},"
+    rf"region:({_NAME}),regionLogo:{_NAME},regionRanking:{_NAME},univCode:{_NAME},score:({_NAME})"
 )
 _ASSIGNED_ENTRY = re.compile(
-    r"\.ranking=(\w+);\w+\.univNameEn=(\w+);\w+\.univUp=\w+;\w+\.univLogo=\w+;"
-    r"\w+\.region=(\w+);\w+\.regionLogo=\w+;\w+\.regionRanking=\w+;\w+\.univCode=\w+;\w+\.score=(\w+)"
+    rf"\.ranking=({_NAME});{_NAME}\.univNameEn=({_NAME});{_NAME}\.univUp={_NAME};"
+    rf"{_NAME}\.univLogo={_NAME};{_NAME}\.region=({_NAME});{_NAME}\.regionLogo={_NAME};"
+    rf"{_NAME}\.regionRanking={_NAME};{_NAME}\.univCode={_NAME};{_NAME}\.score=({_NAME})"
 )
 
 
