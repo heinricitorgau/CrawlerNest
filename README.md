@@ -32,7 +32,7 @@ The system is data-first: crawlers and pipelines write canonical records into Po
 
 ## What It Does
 
-- **Multi-source rankings** — 1,499 universities with all three sources ingested: QS 1,499, THE 1,080, ARWU 637
+- **Multi-source rankings** — 1,499 universities with all three sources ingested: QS 1,499, THE 1,080, ARWU 686
 - **Subject rankings** — QS 2026 subject data for Computer Science, Electrical Engineering, Business & Management
 - **Explainability** — every ranking and recommendation comes with a source comparison, confidence level, and evidence chain
 - **Recommendations** — filter universities by region, rank tier, and subject; export a named plan
@@ -262,9 +262,9 @@ CRAWLERNEST_RUN_PG_TESTS=1 CRAWLERNEST_PG_PASSWORD=test \
 
 CrawlerNest v0.1 is an operational MVP — reproducible and demonstrable, not a production deployment.
 
-- All three ranking sources are ingested: QS 1,499, THE 1,080, ARWU 637
-- 558 universities reach three sources (confidence high); 340 remain single-source (low)
-- Entity resolution still has gaps — 419 universities carry no THE rank and 334 ARWU entities are unmatched. What rules can do safely has been done; the rest are renames, abbreviation-only forms and campus qualifiers that need a human, one at a time
+- All three ranking sources are ingested: QS 1,499, THE 1,080, ARWU 686
+- 573 universities reach three sources (confidence high); 306 remain single-source (low)
+- Entity resolution still has gaps — 419 universities carry no THE rank and 291 ARWU entities are unmatched. What rules can do safely has been done; the rest are renames, abbreviation-only forms and campus qualifiers that need a human, one at a time
 - A missing rank is disclosed as **our** gap — not ingested, or not matched — rather than as the source declining to rank the university
 - The agent page defaults to a mock provider and does not write to the database
 

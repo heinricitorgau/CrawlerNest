@@ -122,7 +122,7 @@ Caveats are delivered in two places:
      "metadata": {
        "caveats": [
          "THE (Times Higher Education) covers 1080 of 1499 universities. A missing THE rank means either that the THE data ingested here does not include the university or that this platform could not match it — not that THE does not rank it.",
-         "ARWU (Academic Ranking of World Universities) covers 637 of 1499 universities. A missing ARWU rank means either that the ARWU data ingested here does not include the university or that this platform could not match it — not that ARWU does not rank it.",
+         "ARWU (Academic Ranking of World Universities) covers 686 of 1499 universities. A missing ARWU rank means either that the ARWU data ingested here does not include the university or that this platform could not match it — not that ARWU does not rank it.",
          "Single-year coverage — no rank delta available."
        ]
      }
@@ -137,7 +137,7 @@ Caveats are delivered in two places:
 Caveats are stated professionally and informatively. They are not apologetic.
 A caveat explains what the limitation is and what the user can rely on.
 
-**Acceptable:** "ARWU covers 637 of 1499 universities." — the number, not an
+**Acceptable:** "ARWU covers 686 of 1499 universities." — the number, not an
 adjective, and the reader can see how much weight to give it.
 
 **Not acceptable:** "Sorry, we don't have much ARWU data." (too informal, and
@@ -149,15 +149,17 @@ causes: the source does not rank the university, the snapshot ingested here does
 not reach it, or entity resolution failed. Two of the three are ours, and
 naming the third moves our gap onto the institution.
 
-ARWU makes this concrete, and the balance has shifted twice. The first snapshot
-held that source's top 30, so almost every absence was the second cause; a
-caveat offering only the third would have been wrong about nearly all of them.
-The snapshot now holds 897 rows of the roughly 1,000 ARWU publishes, so most
-absences are the first cause — the university is outside ARWU's table — with
-the rest split between the other two. The wording names both of ours because
-which one dominates changes with the data, and a caveat that has to be rewritten
-every time the data moves is one that will eventually be wrong. This is the same
-failure the agent's provenance checker guards in generated text.
+ARWU makes this concrete, and the balance has shifted three times. The first
+snapshot held that source's top 30, so almost every absence was the second cause;
+a caveat offering only the third would have been wrong about nearly all of them.
+The snapshot then reached 897 rows, and the second cause receded. It now holds
+all 1,000 rows ARWU publishes, which retires that cause entirely: every absence
+is now either a university ARWU does not rank or one this platform failed to
+match, and 291 of the 1,000 entities are still unmatched. The wording names both
+of ours because which one dominates changes with the data — it has changed three
+times here — and a caveat that must be rewritten every time the data moves is one
+that will eventually be wrong. This is the same failure the agent's provenance
+checker guards in generated text.
 
 **Not acceptable:** Omitting the caveat because the presentation audience
 might react negatively.

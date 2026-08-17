@@ -40,6 +40,8 @@ def run_all_tests():
         "test_multi_source_pipeline",
         "test_arwu_crawler",
         "test_analytics_bridge_weights",
+        # Structural half runs anywhere; warehouse half is PostgreSQL-gated.
+        "test_alias_files",
         # Need PostgreSQL; skip themselves unless CRAWLERNEST_RUN_PG_TESTS=1.
         "test_analytics_bridge_prune",
         "test_ingest_idempotency",
