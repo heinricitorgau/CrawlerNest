@@ -193,6 +193,22 @@
       }
     },
     {
+      "id": "arwu:2026:kyoto-university",
+      "name": "Kyoto University",
+      "country": "Japan",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 43,
+      "rank_display": "43",
+      "score": 34.9,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:swiss-federal-institute-of-technology-lausanne",
       "name": "Swiss Federal Institute of Technology Lausanne",
       "country": "Switzerland",
@@ -385,6 +401,22 @@
       }
     },
     {
+      "id": "arwu:2026:university-of-geneva",
+      "name": "University of Geneva",
+      "country": "Switzerland",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 55,
+      "rank_display": "55",
+      "score": 33.1,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:universit-paris-cit",
       "name": "Université Paris Cité",
       "country": "France",
@@ -465,6 +497,22 @@
       }
     },
     {
+      "id": "arwu:2026:sun-yat-sen-university",
+      "name": "Sun Yat-sen University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 62,
+      "rank_display": "62",
+      "score": 32.1,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:the-university-of-hong-kong",
       "name": "The University of Hong Kong",
       "country": "China-Hong Kong",
@@ -529,6 +577,22 @@
       }
     },
     {
+      "id": "arwu:2026:king-s-college-london",
+      "name": "King's College London",
+      "country": "United Kingdom",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 67,
+      "rank_display": "67",
+      "score": 31.1,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:university-of-southern-california",
       "name": "University of Southern California",
       "country": "United States",
@@ -536,7 +600,7 @@
       "ranking_type": "world",
       "rank": 68,
       "rank_display": "68",
-      "score": 901.0,
+      "score": 30.7,
       "url": "https://www.shanghairanking.com/rankings/arwu/2026",
       "metadata": {
         "raw_source": "ARWU",
@@ -601,6 +665,38 @@
       "rank": 72,
       "rank_display": "72",
       "score": 30.1,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:mcgill-university",
+      "name": "McGill University",
+      "country": "Canada",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 73,
+      "rank_display": "73",
+      "score": 30.0,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:the-university-of-queensland",
+      "name": "The University of Queensland",
+      "country": "Australia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 73,
+      "rank_display": "73",
+      "score": 30.0,
       "url": "https://www.shanghairanking.com/rankings/arwu/2026",
       "metadata": {
         "raw_source": "ARWU",
@@ -708,6 +804,22 @@
       "id": "arwu:2026:aarhus-university",
       "name": "Aarhus University",
       "country": "Denmark",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 81,
+      "rank_display": "81",
+      "score": 29.1,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:the-university-of-new-south-wales",
+      "name": "The University of New South Wales",
+      "country": "Australia",
       "year": 2026,
       "ranking_type": "world",
       "rank": 81,
@@ -937,6 +1049,22 @@
       "rank": 95,
       "rank_display": "95",
       "score": 27.5,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:harbin-institute-of-technology",
+      "name": "Harbin Institute of Technology",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 97,
+      "rank_display": "97",
+      "score": 27.4,
       "url": "https://www.shanghairanking.com/rankings/arwu/2026",
       "metadata": {
         "raw_source": "ARWU",
@@ -1188,6 +1316,22 @@
       "id": "arwu:2026:leiden-university",
       "name": "Leiden University",
       "country": "Netherlands",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 101,
+      "rank_display": "101-150",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:lund-university",
+      "name": "Lund University",
+      "country": "Sweden",
       "year": 2026,
       "ranking_type": "world",
       "rank": 101,
@@ -1459,6 +1603,22 @@
     {
       "id": "arwu:2026:the-chinese-university-of-hong-kong",
       "name": "The Chinese University of Hong Kong",
+      "country": "China-Hong Kong",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 101,
+      "rank_display": "101-150",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:the-hong-kong-polytechnic-university",
+      "name": "The Hong Kong Polytechnic University",
       "country": "China-Hong Kong",
       "year": 2026,
       "ranking_type": "world",
@@ -1745,6 +1905,22 @@
       }
     },
     {
+      "id": "arwu:2026:xiamen-university",
+      "name": "Xiamen University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 101,
+      "rank_display": "101-150",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:aix-marseille-university",
       "name": "Aix Marseille University",
       "country": "France",
@@ -1937,6 +2113,22 @@
       }
     },
     {
+      "id": "arwu:2026:king-saud-university",
+      "name": "King Saud University",
+      "country": "Saudi Arabia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 151,
+      "rank_display": "151-200",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:michigan-state-university",
       "name": "Michigan State University",
       "country": "United States",
@@ -1988,6 +2180,22 @@
       "id": "arwu:2026:ntnu-norwegian-university-of-science-and-technology",
       "name": "NTNU - Norwegian University of Science and Technology",
       "country": "Norway",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 151,
+      "rank_display": "151-200",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:peking-union-medical-college",
+      "name": "Peking Union Medical College",
+      "country": "China",
       "year": 2026,
       "ranking_type": "world",
       "rank": 151,
@@ -2273,6 +2481,22 @@
       }
     },
     {
+      "id": "arwu:2026:university-of-goettingen",
+      "name": "University of Goettingen",
+      "country": "Germany",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 151,
+      "rank_display": "151-200",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:university-of-gothenburg",
       "name": "University of Gothenburg",
       "country": "Sweden",
@@ -2545,6 +2769,22 @@
       }
     },
     {
+      "id": "arwu:2026:beijing-university-of-technology",
+      "name": "Beijing University of Technology",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 201,
+      "rank_display": "201-300",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:capital-medical-university",
       "name": "Capital Medical University",
       "country": "China",
@@ -2564,6 +2804,22 @@
       "id": "arwu:2026:cardiff-university",
       "name": "Cardiff University",
       "country": "United Kingdom",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 201,
+      "rank_display": "201-300",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:catholic-university-of-louvain",
+      "name": "Catholic University of Louvain",
+      "country": "Belgium",
       "year": 2026,
       "ranking_type": "world",
       "rank": 201,
@@ -2801,6 +3057,22 @@
       }
     },
     {
+      "id": "arwu:2026:huazhong-agricultural-university",
+      "name": "Huazhong Agricultural University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 201,
+      "rank_display": "201-300",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:institut-polytechnique-de-paris",
       "name": "Institut Polytechnique de Paris",
       "country": "France",
@@ -2884,6 +3156,22 @@
       "id": "arwu:2026:kiel-university",
       "name": "Kiel University",
       "country": "Germany",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 201,
+      "rank_display": "201-300",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:king-abdullah-university-of-science-and-technology",
+      "name": "King Abdullah University of Science and Technology",
+      "country": "Saudi Arabia",
       "year": 2026,
       "ranking_type": "world",
       "rank": 201,
@@ -3043,6 +3331,22 @@
     {
       "id": "arwu:2026:nanjing-university-of-aeronautics-and-astronautics",
       "name": "Nanjing University of Aeronautics and Astronautics",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 201,
+      "rank_display": "201-300",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:nanjing-university-of-science-technology",
+      "name": "Nanjing University of Science & Technology",
       "country": "China",
       "year": 2026,
       "ranking_type": "world",
@@ -3329,6 +3633,22 @@
       }
     },
     {
+      "id": "arwu:2026:swinburne-university-of-technology",
+      "name": "Swinburne University of Technology",
+      "country": "Australia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 201,
+      "rank_display": "201-300",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:technical-university-of-berlin",
       "name": "Technical University of Berlin",
       "country": "Germany",
@@ -3457,6 +3777,22 @@
       }
     },
     {
+      "id": "arwu:2026:university-of-antwerp",
+      "name": "University of Antwerp",
+      "country": "Belgium",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 201,
+      "rank_display": "201-300",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:university-of-bologna",
       "name": "University of Bologna",
       "country": "Italy",
@@ -3571,6 +3907,22 @@
     {
       "id": "arwu:2026:university-of-erlangen-nuremberg",
       "name": "University of Erlangen-Nuremberg",
+      "country": "Germany",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 201,
+      "rank_display": "201-300",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-hamburg",
+      "name": "University of Hamburg",
       "country": "Germany",
       "year": 2026,
       "ranking_type": "world",
@@ -3857,6 +4209,38 @@
       }
     },
     {
+      "id": "arwu:2026:virginia-polytechnic-institute-and-state-university",
+      "name": "Virginia Polytechnic Institute and State University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 201,
+      "rank_display": "201-300",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:vrije-universiteit-brussel",
+      "name": "Vrije Universiteit Brussel",
+      "country": "Belgium",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 201,
+      "rank_display": "201-300",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:western-university",
       "name": "Western University",
       "country": "Canada",
@@ -4100,6 +4484,22 @@
       "id": "arwu:2026:florida-state-university",
       "name": "Florida State University",
       "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 301,
+      "rank_display": "301-400",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:fujian-medical-university",
+      "name": "Fujian Medical University",
+      "country": "China",
       "year": 2026,
       "ranking_type": "world",
       "rank": 301,
@@ -4385,6 +4785,22 @@
       }
     },
     {
+      "id": "arwu:2026:maastricht-university",
+      "name": "Maastricht University",
+      "country": "Netherlands",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 301,
+      "rank_display": "301-400",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:macquarie-university",
       "name": "Macquarie University",
       "country": "Australia",
@@ -4561,6 +4977,22 @@
       }
     },
     {
+      "id": "arwu:2026:princess-nourah-bint-abdulrahman-university",
+      "name": "Princess Nourah bint Abdulrahman University",
+      "country": "Saudi Arabia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 301,
+      "rank_display": "301-400",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:qingdao-university",
       "name": "Qingdao University",
       "country": "China",
@@ -4628,6 +5060,22 @@
       "id": "arwu:2026:ruhr-university-bochum",
       "name": "Ruhr University Bochum",
       "country": "Germany",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 301,
+      "rank_display": "301-400",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:sao-paulo-state-university",
+      "name": "Sao Paulo State University",
+      "country": "Brazil",
       "year": 2026,
       "ranking_type": "world",
       "rank": 301,
@@ -4899,6 +5347,22 @@
     {
       "id": "arwu:2026:university-of-houston",
       "name": "University of Houston",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 301,
+      "rank_display": "301-400",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-illinois-chicago",
+      "name": "University of Illinois Chicago",
       "country": "United States",
       "year": 2026,
       "ranking_type": "world",
@@ -5185,6 +5649,22 @@
       }
     },
     {
+      "id": "arwu:2026:university-of-stuttgart",
+      "name": "University of Stuttgart",
+      "country": "Germany",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 301,
+      "rank_display": "301-400",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:university-of-tasmania",
       "name": "University of Tasmania",
       "country": "Australia",
@@ -5444,6 +5924,22 @@
       "id": "arwu:2026:aalto-university",
       "name": "Aalto University",
       "country": "Finland",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 401,
+      "rank_display": "401-500",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:albert-einstein-college-of-medicine",
+      "name": "Albert Einstein College of Medicine",
+      "country": "United States",
       "year": 2026,
       "ranking_type": "world",
       "rank": 401,
@@ -5729,6 +6225,22 @@
       }
     },
     {
+      "id": "arwu:2026:harbin-engineering-university",
+      "name": "Harbin Engineering University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 401,
+      "rank_display": "401-500",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:hefei-university-of-technology",
       "name": "Hefei University of Technology",
       "country": "China",
@@ -5780,6 +6292,22 @@
       "id": "arwu:2026:iowa-state-university",
       "name": "Iowa State University",
       "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 401,
+      "rank_display": "401-500",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:king-khalid-university",
+      "name": "King Khalid University",
+      "country": "Saudi Arabia",
       "year": 2026,
       "ranking_type": "world",
       "rank": 401,
@@ -5972,6 +6500,22 @@
       "id": "arwu:2026:national-yang-ming-chiao-tung-university",
       "name": "National Yang Ming Chiao Tung University",
       "country": "China-Taiwan",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 401,
+      "rank_display": "401-500",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:north-china-electric-power-university",
+      "name": "North China Electric Power University",
+      "country": "China",
       "year": 2026,
       "ranking_type": "world",
       "rank": 401,
@@ -6225,9 +6769,41 @@
       }
     },
     {
+      "id": "arwu:2026:taif-university",
+      "name": "Taif University",
+      "country": "Saudi Arabia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 401,
+      "rank_display": "401-500",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:taiyuan-university-of-technology",
       "name": "Taiyuan University of Technology",
       "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 401,
+      "rank_display": "401-500",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:temple-university",
+      "name": "Temple University",
+      "country": "United States",
       "year": 2026,
       "ranking_type": "world",
       "rank": 401,
@@ -6513,6 +7089,22 @@
       }
     },
     {
+      "id": "arwu:2026:university-of-halle-wittenberg",
+      "name": "University of Halle-Wittenberg",
+      "country": "Germany",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 401,
+      "rank_display": "401-500",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:university-of-hawaii-at-manoa",
       "name": "University of Hawaii at Manoa",
       "country": "United States",
@@ -6564,6 +7156,22 @@
       "id": "arwu:2026:university-of-konstanz",
       "name": "University of Konstanz",
       "country": "Germany",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 401,
+      "rank_display": "401-500",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-liege",
+      "name": "University of Liege",
+      "country": "Belgium",
       "year": 2026,
       "ranking_type": "world",
       "rank": 401,
@@ -6756,6 +7364,22 @@
       "id": "arwu:2026:university-of-seville",
       "name": "University of Seville",
       "country": "Spain",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 401,
+      "rank_display": "401-500",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-south-carolina-columbia",
+      "name": "University of South Carolina, Columbia",
+      "country": "United States",
       "year": 2026,
       "ranking_type": "world",
       "rank": 401,
@@ -7025,6 +7649,22 @@
       }
     },
     {
+      "id": "arwu:2026:china-medical-university-shenyang",
+      "name": "China Medical University (Shenyang)",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 501,
+      "rank_display": "501-600",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:china-university-of-mining-and-technology-beijing",
       "name": "China University of Mining and Technology-Beijing",
       "country": "China",
@@ -7060,6 +7700,54 @@
       "id": "arwu:2026:eotvos-lorand-university",
       "name": "Eotvos Lorand University",
       "country": "Hungary",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 501,
+      "rank_display": "501-600",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:federal-university-of-minas-gerais",
+      "name": "Federal University of Minas Gerais",
+      "country": "Brazil",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 501,
+      "rank_display": "501-600",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:federal-university-of-rio-de-janeiro",
+      "name": "Federal University of Rio de Janeiro",
+      "country": "Brazil",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 501,
+      "rank_display": "501-600",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:federal-university-of-rio-grande-do-sul",
+      "name": "Federal University of Rio Grande do Sul",
+      "country": "Brazil",
       "year": 2026,
       "ranking_type": "world",
       "rank": 501,
@@ -7201,6 +7889,22 @@
       }
     },
     {
+      "id": "arwu:2026:king-abdulaziz-university",
+      "name": "King Abdulaziz University",
+      "country": "Saudi Arabia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 501,
+      "rank_display": "501-600",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:kobe-university",
       "name": "Kobe University",
       "country": "Japan",
@@ -7220,6 +7924,22 @@
       "id": "arwu:2026:laval-university",
       "name": "Laval University",
       "country": "Canada",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 501,
+      "rank_display": "501-600",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:liverpool-john-moores-university",
+      "name": "Liverpool John Moores University",
+      "country": "United Kingdom",
       "year": 2026,
       "ranking_type": "world",
       "rank": 501,
@@ -7505,6 +8225,22 @@
       }
     },
     {
+      "id": "arwu:2026:sichuan-agricultural-university",
+      "name": "Sichuan Agricultural University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 501,
+      "rank_display": "501-600",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:st-petersburg-university",
       "name": "St Petersburg University",
       "country": "Russia",
@@ -7764,6 +8500,22 @@
       "id": "arwu:2026:university-of-california-merced",
       "name": "University of California, Merced",
       "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 501,
+      "rank_display": "501-600",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-campania-luigi-vanvitelli",
+      "name": "University of Campania Luigi Vanvitelli",
+      "country": "Italy",
       "year": 2026,
       "ranking_type": "world",
       "rank": 501,
@@ -8049,6 +8801,22 @@
       }
     },
     {
+      "id": "arwu:2026:university-of-rostock",
+      "name": "University of Rostock",
+      "country": "Germany",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 501,
+      "rank_display": "501-600",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:university-of-santiago-compostela",
       "name": "University of Santiago Compostela",
       "country": "Spain",
@@ -8321,6 +9089,22 @@
       }
     },
     {
+      "id": "arwu:2026:zhejiang-normal-university",
+      "name": "Zhejiang Normal University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 501,
+      "rank_display": "501-600",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:zhejiang-sci-tech-university",
       "name": "Zhejiang Sci-Tech University",
       "country": "China",
@@ -8356,6 +9140,22 @@
       "id": "arwu:2026:alexandria-university",
       "name": "Alexandria University",
       "country": "Egypt",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:al-imam-mohammad-ibn-saud-islamic-university",
+      "name": "Al-Imam Mohammad Ibn Saud Islamic University",
+      "country": "Saudi Arabia",
       "year": 2026,
       "ranking_type": "world",
       "rank": 601,
@@ -8564,6 +9364,22 @@
       "id": "arwu:2026:chulalongkorn-university",
       "name": "Chulalongkorn University",
       "country": "Thailand",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:chung-ang-university",
+      "name": "Chung-Ang University",
+      "country": "South Korea",
       "year": 2026,
       "ranking_type": "world",
       "rank": 601,
@@ -8849,9 +9665,41 @@
       }
     },
     {
+      "id": "arwu:2026:kansas-state-university",
+      "name": "Kansas State University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:khalifa-university",
       "name": "Khalifa University",
       "country": "United Arab Emirates",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:king-fahd-university-of-petroleum-and-minerals",
+      "name": "King Fahd University of Petroleum and Minerals",
+      "country": "Saudi Arabia",
       "year": 2026,
       "ranking_type": "world",
       "rank": 601,
@@ -9089,6 +9937,310 @@
       }
     },
     {
+      "id": "arwu:2026:shandong-normal-university",
+      "name": "Shandong Normal University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:shandong-university-of-science-and-technology",
+      "name": "Shandong University of Science and Technology",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:shanghai-normal-university",
+      "name": "Shanghai Normal University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:shanghai-ocean-university",
+      "name": "Shanghai Ocean University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:shanghai-university-of-traditional-chinese-medicine",
+      "name": "Shanghai University of Traditional Chinese Medicine",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:shanxi-medical-university",
+      "name": "Shanxi Medical University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:southwest-medical-university",
+      "name": "Southwest Medical University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:suzhou-university-of-science-and-technology",
+      "name": "Suzhou University of Science and Technology",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:technical-university-of-dortmund",
+      "name": "Technical University of Dortmund",
+      "country": "Germany",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:the-university-of-texas-at-arlington",
+      "name": "The University of Texas at Arlington",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:thomas-jefferson-university",
+      "name": "Thomas Jefferson University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:tiangong-university",
+      "name": "Tiangong University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:tianjin-university-of-technology",
+      "name": "Tianjin University of Technology",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:tokyo-university-of-science",
+      "name": "Tokyo University of Science",
+      "country": "Japan",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:umea-university",
+      "name": "Umea University",
+      "country": "Sweden",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:united-arab-emirates-university",
+      "name": "United Arab Emirates University",
+      "country": "United Arab Emirates",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:universit-della-svizzera-italiana",
+      "name": "Università Della Svizzera Italiana",
+      "country": "Switzerland",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-arkansas-at-fayetteville",
+      "name": "University of Arkansas at Fayetteville",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-augsburg",
+      "name": "University of Augsburg",
+      "country": "Germany",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:university-of-clermont-auvergne",
       "name": "University of Clermont Auvergne",
       "country": "France",
@@ -9153,6 +10305,22 @@
       }
     },
     {
+      "id": "arwu:2026:university-of-haifa",
+      "name": "University of Haifa",
+      "country": "Israel",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:university-of-health-sciences-turkey",
       "name": "University of Health Sciences Turkey",
       "country": "Türkiye",
@@ -9188,6 +10356,22 @@
       "id": "arwu:2026:university-of-johannesburg",
       "name": "University of Johannesburg",
       "country": "South Africa",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-jyvaskyla",
+      "name": "University of Jyvaskyla",
+      "country": "Finland",
       "year": 2026,
       "ranking_type": "world",
       "rank": 601,
@@ -9300,6 +10484,22 @@
       "id": "arwu:2026:university-of-new-hampshire",
       "name": "University of New Hampshire",
       "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 601,
+      "rank_display": "601-700",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-parma",
+      "name": "University of Parma",
+      "country": "Italy",
       "year": 2026,
       "ranking_type": "world",
       "rank": 601,
@@ -9585,6 +10785,22 @@
       }
     },
     {
+      "id": "arwu:2026:anhui-university-of-technology",
+      "name": "Anhui University of Technology",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 701,
+      "rank_display": "701-800",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:ankara-university",
       "name": "Ankara University",
       "country": "Türkiye",
@@ -9857,6 +11073,22 @@
       }
     },
     {
+      "id": "arwu:2026:guangxi-medical-university",
+      "name": "Guangxi Medical University",
+      "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 701,
+      "rank_display": "701-800",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:guangzhou-university-of-chinese-medicine",
       "name": "Guangzhou University of Chinese Medicine",
       "country": "China",
@@ -10065,6 +11297,22 @@
       }
     },
     {
+      "id": "arwu:2026:king-faisal-university",
+      "name": "King Faisal University",
+      "country": "Saudi Arabia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 701,
+      "rank_display": "701-800",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:kitasato-university",
       "name": "Kitasato University",
       "country": "Japan",
@@ -10100,6 +11348,22 @@
       "id": "arwu:2026:kunming-medical-university",
       "name": "Kunming Medical University",
       "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 701,
+      "rank_display": "701-800",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:manipal-academy-of-higher-education",
+      "name": "Manipal Academy of Higher Education",
+      "country": "India",
       "year": 2026,
       "ranking_type": "world",
       "rank": 701,
@@ -10340,6 +11604,54 @@
       "id": "arwu:2026:polytechnic-university-of-turin",
       "name": "Polytechnic University of Turin",
       "country": "Italy",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 701,
+      "rank_display": "701-800",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:prince-sattam-bin-abdulaziz-university",
+      "name": "Prince Sattam Bin Abdulaziz University",
+      "country": "Saudi Arabia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 701,
+      "rank_display": "701-800",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:qassim-university",
+      "name": "Qassim University",
+      "country": "Saudi Arabia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 701,
+      "rank_display": "701-800",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:qingdao-agricultural-university",
+      "name": "Qingdao Agricultural University",
+      "country": "China",
       "year": 2026,
       "ranking_type": "world",
       "rank": 701,
@@ -10625,6 +11937,22 @@
       }
     },
     {
+      "id": "arwu:2026:university-of-extremadura",
+      "name": "University of Extremadura",
+      "country": "Spain",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 701,
+      "rank_display": "701-800",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:university-of-greenwich",
       "name": "University of Greenwich",
       "country": "United Kingdom",
@@ -10897,6 +12225,22 @@
       }
     },
     {
+      "id": "arwu:2026:west-virginia-university",
+      "name": "West Virginia University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 701,
+      "rank_display": "701-800",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:wuhan-university-of-science-and-technology",
       "name": "Wuhan University of Science and Technology",
       "country": "China",
@@ -11140,6 +12484,22 @@
       "id": "arwu:2026:city-university-of-macau",
       "name": "City University of Macau",
       "country": "China-Macau",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 801,
+      "rank_display": "801-900",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:college-of-william-and-mary",
+      "name": "College of William and Mary",
+      "country": "United States",
       "year": 2026,
       "ranking_type": "world",
       "rank": 801,
@@ -11425,6 +12785,22 @@
       }
     },
     {
+      "id": "arwu:2026:jaume-i-university",
+      "name": "Jaume I University",
+      "country": "Spain",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 801,
+      "rank_display": "801-900",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:kaohsiung-medical-university",
       "name": "Kaohsiung Medical University",
       "country": "China-Taiwan",
@@ -11460,6 +12836,22 @@
       "id": "arwu:2026:kindai-university",
       "name": "Kindai University",
       "country": "Japan",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 801,
+      "rank_display": "801-900",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:konkuk-university",
+      "name": "Konkuk University",
+      "country": "South Korea",
       "year": 2026,
       "ranking_type": "world",
       "rank": 801,
@@ -11681,9 +13073,41 @@
       }
     },
     {
+      "id": "arwu:2026:ohio-university",
+      "name": "Ohio University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 801,
+      "rank_display": "801-900",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:palack-university-olomouc",
       "name": "Palacký University Olomouc",
       "country": "Czech Republic",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 801,
+      "rank_display": "801-900",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:pukyong-national-university",
+      "name": "Pukyong National University",
+      "country": "South Korea",
       "year": 2026,
       "ranking_type": "world",
       "rank": 801,
@@ -11873,6 +13297,22 @@
       }
     },
     {
+      "id": "arwu:2026:the-catholic-university-of-korea",
+      "name": "The Catholic University of Korea",
+      "country": "South Korea",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 801,
+      "rank_display": "801-900",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:the-hong-kong-university-of-science-and-technology-guangzhou",
       "name": "The Hong Kong University of Science and Technology (Guangzhou)",
       "country": "China",
@@ -11908,6 +13348,22 @@
       "id": "arwu:2026:tianjin-university-of-science-and-technology",
       "name": "Tianjin University of Science and Technology",
       "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 801,
+      "rank_display": "801-900",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:tilburg-university",
+      "name": "Tilburg University",
+      "country": "Netherlands",
       "year": 2026,
       "ranking_type": "world",
       "rank": 801,
@@ -12193,6 +13649,22 @@
       }
     },
     {
+      "id": "arwu:2026:university-of-north-carolina-at-charlotte",
+      "name": "University of North Carolina at Charlotte",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 801,
+      "rank_display": "801-900",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:university-of-oklahoma-health-sciences-center",
       "name": "University of Oklahoma Health Sciences Center",
       "country": "United States",
@@ -12452,6 +13924,22 @@
       "id": "arwu:2026:adam-mickiewicz-university",
       "name": "Adam Mickiewicz University",
       "country": "Poland",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:ajou-university",
+      "name": "Ajou University",
+      "country": "South Korea",
       "year": 2026,
       "ranking_type": "world",
       "rank": 901,
@@ -12737,6 +14225,22 @@
       }
     },
     {
+      "id": "arwu:2026:federal-university-of-ceara",
+      "name": "Federal University of Ceara",
+      "country": "Brazil",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:federal-university-of-pernambuco",
       "name": "Federal University of Pernambuco",
       "country": "Brazil",
@@ -12961,6 +14465,22 @@
       }
     },
     {
+      "id": "arwu:2026:jazan-university",
+      "name": "Jazan University",
+      "country": "Saudi Arabia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:jiangxi-normal-university",
       "name": "Jiangxi Normal University",
       "country": "China",
@@ -12980,6 +14500,22 @@
       "id": "arwu:2026:jimei-university",
       "name": "Jimei University",
       "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:johannes-kepler-university-linz",
+      "name": "Johannes Kepler University Linz",
+      "country": "Austria",
       "year": 2026,
       "ranking_type": "world",
       "rank": 901,
@@ -13265,6 +14801,22 @@
       }
     },
     {
+      "id": "arwu:2026:northern-border-university",
+      "name": "Northern Border University",
+      "country": "Saudi Arabia",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:qingdao-university-of-technology",
       "name": "Qingdao University of Technology",
       "country": "China",
@@ -13329,9 +14881,41 @@
       }
     },
     {
+      "id": "arwu:2026:shahid-beheshti-university-of-medical-sciences",
+      "name": "Shahid Beheshti University of Medical Sciences",
+      "country": "Iran",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:shanghai-university-of-finance-and-economics",
       "name": "Shanghai University of Finance and Economics",
       "country": "China",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:sharif-university-of-technology",
+      "name": "Sharif University of Technology",
+      "country": "Iran",
       "year": 2026,
       "ranking_type": "world",
       "rank": 901,
@@ -13393,9 +14977,41 @@
       }
     },
     {
+      "id": "arwu:2026:tarbiat-modares-university",
+      "name": "Tarbiat Modares University",
+      "country": "Iran",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:the-royal-veterinary-college",
       "name": "The Royal Veterinary College",
       "country": "United Kingdom",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:umm-al-qura-university",
+      "name": "Umm Al-Qura University",
+      "country": "Saudi Arabia",
       "year": 2026,
       "ranking_type": "world",
       "rank": 901,
@@ -13460,6 +15076,22 @@
       "id": "arwu:2026:university-of-crete",
       "name": "University of Crete",
       "country": "Greece",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-eastern-piedmont",
+      "name": "University of Eastern Piedmont",
+      "country": "Italy",
       "year": 2026,
       "ranking_type": "world",
       "rank": 901,
@@ -13745,6 +15377,22 @@
       }
     },
     {
+      "id": "arwu:2026:worcester-polytechnic-institute",
+      "name": "Worcester Polytechnic Institute",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 901,
+      "rank_display": "901-1000",
+      "score": null,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:wroclaw-university-of-science-and-technology",
       "name": "Wroclaw University of Science and Technology",
       "country": "Poland",
@@ -13889,6 +15537,22 @@
       }
     },
     {
+      "id": "arwu:2026:stanford-university",
+      "name": "Stanford University",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 2,
+      "rank_display": "2",
+      "score": 80.2,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:massachusetts-institute-of-technology",
       "name": "Massachusetts Institute of Technology",
       "country": "United States",
@@ -13953,6 +15617,22 @@
       }
     },
     {
+      "id": "arwu:2026:university-of-oxford",
+      "name": "University of Oxford",
+      "country": "United Kingdom",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 7,
+      "rank_display": "7",
+      "score": 62.1,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:columbia-university",
       "name": "Columbia University",
       "country": "United States",
@@ -13961,6 +15641,22 @@
       "rank": 8,
       "rank_display": "8",
       "score": 58.0,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-chicago",
+      "name": "University of Chicago",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 9,
+      "rank_display": "9",
+      "score": 57.2,
       "url": "https://www.shanghairanking.com/rankings/arwu/2026",
       "metadata": {
         "raw_source": "ARWU",
@@ -14057,6 +15753,22 @@
       "rank": 14,
       "rank_display": "14",
       "score": 50.2,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
+      "id": "arwu:2026:university-of-washington",
+      "name": "University of Washington",
+      "country": "United States",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 16,
+      "rank_display": "16",
+      "score": 49.6,
       "url": "https://www.shanghairanking.com/rankings/arwu/2026",
       "metadata": {
         "raw_source": "ARWU",
@@ -14184,7 +15896,7 @@
       "ranking_type": "world",
       "rank": 24,
       "rank_display": "24",
-      "score": 16.4,
+      "score": 45.2,
       "url": "https://www.shanghairanking.com/rankings/arwu/2026",
       "metadata": {
         "raw_source": "ARWU",
@@ -14200,7 +15912,7 @@
       "ranking_type": "world",
       "rank": 24,
       "rank_display": "24",
-      "score": 16.4,
+      "score": 45.2,
       "url": "https://www.shanghairanking.com/rankings/arwu/2026",
       "metadata": {
         "raw_source": "ARWU",
@@ -14257,6 +15969,22 @@
       }
     },
     {
+      "id": "arwu:2026:imperial-college-london",
+      "name": "Imperial College London",
+      "country": "United Kingdom",
+      "year": 2026,
+      "ranking_type": "world",
+      "rank": 29,
+      "rank_display": "29",
+      "score": 41.2,
+      "url": "https://www.shanghairanking.com/rankings/arwu/2026",
+      "metadata": {
+        "raw_source": "ARWU",
+        "extraction_method": "nuxt_payload",
+        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
+      }
+    },
+    {
       "id": "arwu:2026:the-university-of-tokyo",
       "name": "The University of Tokyo",
       "country": "Japan",
@@ -14271,146 +15999,6 @@
         "extraction_method": "nuxt_payload",
         "source_page": "https://www.shanghairanking.com/rankings/arwu/2026"
       }
-    },
-    {
-      "id": "https://www.shanghairanking.com/universities/stanford-university",
-      "name": "Stanford University",
-      "country": "United States",
-      "year": 2026,
-      "ranking_type": "world",
-      "rank": 2,
-      "rank_display": "2",
-      "score": 80.2,
-      "url": "https://www.shanghairanking.com/universities/stanford-university",
-      "metadata": {
-        "raw_source": "ARWU",
-        "extraction_method": "html_table",
-        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026",
-        "raw_row": [
-          "2",
-          "Stanford University Stanford University United States",
-          "2",
-          "80.2",
-          "46.8",
-          "86.3",
-          "87.6",
-          "91.4",
-          "66.7",
-          "58.6"
-        ]
-      }
-    },
-    {
-      "id": "https://www.shanghairanking.com/universities/university-of-oxford",
-      "name": "University of Oxford",
-      "country": "United Kingdom",
-      "year": 2026,
-      "ranking_type": "world",
-      "rank": 7,
-      "rank_display": "7",
-      "score": 62.1,
-      "url": "https://www.shanghairanking.com/universities/university-of-oxford",
-      "metadata": {
-        "raw_source": "ARWU",
-        "extraction_method": "html_table",
-        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026",
-        "raw_row": [
-          "7",
-          "University of Oxford University of Oxford United Kingdom",
-          "2",
-          "62.1",
-          "51.3",
-          "58.5",
-          "57.4",
-          "61.7",
-          "71.0",
-          "47.0"
-        ]
-      }
-    },
-    {
-      "id": "https://www.shanghairanking.com/universities/university-of-chicago",
-      "name": "University of Chicago",
-      "country": "United States",
-      "year": 2026,
-      "ranking_type": "world",
-      "rank": 9,
-      "rank_display": "9",
-      "score": 57.2,
-      "url": "https://www.shanghairanking.com/universities/university-of-chicago",
-      "metadata": {
-        "raw_source": "ARWU",
-        "extraction_method": "html_table",
-        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026",
-        "raw_row": [
-          "9",
-          "University of Chicago University of Chicago United States",
-          "7",
-          "57.2",
-          "59.5",
-          "89.0",
-          "36.0",
-          "48.1",
-          "49.9",
-          "42.8"
-        ]
-      }
-    },
-    {
-      "id": "https://www.shanghairanking.com/universities/university-of-washington",
-      "name": "University of Washington",
-      "country": "United States",
-      "year": 2026,
-      "ranking_type": "world",
-      "rank": 16,
-      "rank_display": "16",
-      "score": 49.6,
-      "url": "https://www.shanghairanking.com/universities/university-of-washington",
-      "metadata": {
-        "raw_source": "ARWU",
-        "extraction_method": "html_table",
-        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026",
-        "raw_row": [
-          "16",
-          "University of Washington University of Washington United States",
-          "13",
-          "49.6",
-          "25.8",
-          "35.5",
-          "55.5",
-          "57.5",
-          "63.5",
-          "25.7"
-        ]
-      }
-    },
-    {
-      "id": "https://www.shanghairanking.com/universities/imperial-college-london",
-      "name": "Imperial College London",
-      "country": "United Kingdom",
-      "year": 2026,
-      "ranking_type": "world",
-      "rank": 29,
-      "rank_display": "29",
-      "score": 41.2,
-      "url": "https://www.shanghairanking.com/universities/imperial-college-london",
-      "metadata": {
-        "raw_source": "ARWU",
-        "extraction_method": "html_table",
-        "source_page": "https://www.shanghairanking.com/rankings/arwu/2026",
-        "raw_row": [
-          "29",
-          "Imperial College London Imperial College London United Kingdom",
-          "4",
-          "41.2",
-          "12.4",
-          "30.6",
-          "44.7",
-          "38.1",
-          "58.6",
-          "38.3"
-        ]
-      }
     }
   ],
   "metadata": {
@@ -14418,6 +16006,6 @@
     "ranking_type": "world",
     "ranking_year": 2026,
     "resolved_page_url": "https://www.shanghairanking.com/rankings/arwu/2026",
-    "valid_rank_count": 897
+    "valid_rank_count": 1000
   }
 }

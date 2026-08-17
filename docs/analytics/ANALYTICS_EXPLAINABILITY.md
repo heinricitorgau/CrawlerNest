@@ -122,7 +122,7 @@ Caveats are delivered in two places:
      "metadata": {
        "caveats": [
          "THE (Times Higher Education) covers 1080 of 1499 universities. A missing THE rank means either that the THE data ingested here does not include the university or that this platform could not match it — not that THE does not rank it.",
-         "ARWU (Academic Ranking of World Universities) covers 582 of 1499 universities. A missing ARWU rank means either that the ARWU data ingested here does not include the university or that this platform could not match it — not that ARWU does not rank it.",
+         "ARWU (Academic Ranking of World Universities) covers 637 of 1499 universities. A missing ARWU rank means either that the ARWU data ingested here does not include the university or that this platform could not match it — not that ARWU does not rank it.",
          "Single-year coverage — no rank delta available."
        ]
      }
@@ -137,7 +137,7 @@ Caveats are delivered in two places:
 Caveats are stated professionally and informatively. They are not apologetic.
 A caveat explains what the limitation is and what the user can rely on.
 
-**Acceptable:** "ARWU covers 582 of 1499 universities." — the number, not an
+**Acceptable:** "ARWU covers 637 of 1499 universities." — the number, not an
 adjective, and the reader can see how much weight to give it.
 
 **Not acceptable:** "Sorry, we don't have much ARWU data." (too informal, and
