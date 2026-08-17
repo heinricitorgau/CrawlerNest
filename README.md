@@ -13,9 +13,24 @@ The system is data-first: crawlers and pipelines write canonical records into Po
 
 ---
 
+## Contents
+
+- [What It Does](#what-it-does)
+- [What it looks like](#what-it-looks-like)
+- [Architecture](#architecture)
+- [Modelling layer](#modelling-layer)
+- [Repository Layout](#repository-layout)
+- [Getting Started](#getting-started)
+- [Documentation](#documentation)
+- [Continuous Integration](#continuous-integration)
+- [Current State](#current-state)
+- [License](#license)
+
+---
+
 ## What It Does
 
-- **Global rankings** — 1,499 universities aggregated from QS 2026 (THE and ARWU adapters included)
+- **Multi-source rankings** — 1,499 universities with all three sources ingested: QS 1,499, THE 1,080, ARWU 582
 - **Subject rankings** — QS 2026 subject data for Computer Science, Electrical Engineering, Business & Management
 - **Explainability** — every ranking and recommendation comes with a source comparison, confidence level, and evidence chain
 - **Recommendations** — filter universities by region, rank tier, and subject; export a named plan
@@ -139,6 +154,16 @@ tests/                      integration tests
 
 ## Getting Started
 
+**Prerequisites**
+
+| Dependency | Version |
+|---|---|
+| Python | 3.11+ |
+| PostgreSQL | 14+ |
+| Java JDK | 17 |
+| Node.js | ≥ 20.9 |
+| Maven | bundled via `mvnw` |
+
 First-time setup (fresh clone → runnable, one command):
 
 ```bash
@@ -205,9 +230,9 @@ so that is what this table records rather than a list of names.
 | Workflow | What it actually executes |
 |---|---|
 | **Agent Tests** | 126 tests over the web-agent generation layer, then the faithfulness eval across all 55 golden cases. Both mechanical verification signals — the faithfulness rules and the provenance/absence/completeness checker — are scored as detectors, with false positives on clean text reported separately from recall. |
-| **ML Tests** | Three jobs. Feature-layer invariants and a metrics regression gate that retrains both models from the committed snapshot and fails on a real drop. A serving job that writes predictions to a throwaway PostgreSQL and verifies the rows. A MATLAB job that installs MATLAB, re-executes `run_qs_eda.m`, and compares the fresh output both against Python and against the committed artifacts. |
-| **Python Tests** | Two jobs. Fixture mode with no services, and a PostgreSQL job that runs the opt-in database tests — the aggregation maths, source-weight consistency, and the superseded-row prune. Also runs weekly on a schedule, because one failure here was caused by time passing rather than by a commit. |
-| **API Tests** | The Spring Boot suite against a real PostgreSQL service, 92 tests, with the surefire reports uploaded as artifacts. |
+| **ML Tests** | Three jobs. Feature-layer invariants and a metrics regression gate that retrains both models from the committed snapshot and fails on a real drop. A serving job that writes predictions to a throwaway PostgreSQL, verifies the rows, then *scores* them against the published data each target can be checked against — rank order for the estimated scores, observed disagreement for the probabilities. A MATLAB job that installs MATLAB, re-executes `run_qs_eda.m`, and compares the fresh output both against Python and against the committed artifacts. |
+| **Python Tests** | Two jobs. Fixture mode with no services, and a PostgreSQL job that runs the opt-in database tests — the aggregation maths, source-weight consistency, the superseded-row prune, and ingest idempotency. Also runs weekly on a schedule, because one failure here was caused by time passing rather than by a commit. |
+| **API Tests** | The Spring Boot suite against a real PostgreSQL service, 97 tests, with the surefire reports uploaded as artifacts. |
 | **Release Smoke** | Two jobs. Build artefacts — Java compile, Next.js build, Python syntax, readonly fixtures — and an analytics-bridge job that bootstraps PostgreSQL, seeds six universities, runs the warehouse→analytics bridge twice, starts Spring Boot, and checks that `/api/v1/rankings` serves what was written, followed by the endpoint liveness checks. |
 | **Data Quality** | Validates the golden regression dataset and the CI fixture files, then runs the ranking-regression and failure-summary runners in fixture mode — no database, no network. |
 
@@ -235,8 +260,21 @@ CRAWLERNEST_RUN_PG_TESTS=1 CRAWLERNEST_PG_PASSWORD=test \
 
 CrawlerNest v0.1 is an operational MVP — reproducible and demonstrable, not a production deployment.
 
-- THE and ARWU are in stable degraded state (data unavailable); QS 2026 is fully ingested
-- All universities show as single-source; confidence is always "low" under the current RC-1 posture
+- All three ranking sources are ingested: QS 1,499, THE 1,080, ARWU 582
+- 508 universities reach three sources (confidence high); 345 remain single-source (low)
+- Entity resolution still has gaps — 419 universities carry no THE rank and 293 ARWU entities are unmatched. What rules can do safely has been done; the rest are renames, abbreviation-only forms and campus qualifiers that need a human, one at a time
+- A missing rank is disclosed as **our** gap — not ingested, or not matched — rather than as the source declining to rank the university
 - The agent page defaults to a mock provider and does not write to the database
 
 Release notes: [docs/release/RELEASE_NOTES_v0.1.md](docs/release/RELEASE_NOTES_v0.1.md)
+
+---
+
+## License
+
+[Apache License 2.0](LICENSE).
+
+The ranking data this platform ingests belongs to QS, Times Higher Education and
+ShanghaiRanking, and is not covered by that licence. The committed snapshots are
+here so the pipeline and the models are reproducible; anything you publish from
+them is subject to each source's own terms.

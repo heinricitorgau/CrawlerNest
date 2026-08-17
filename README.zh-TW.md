@@ -13,6 +13,21 @@
 
 ---
 
+## 目錄
+
+- [功能概覽](#功能概覽)
+- [系統架構](#系統架構)
+- [多來源彙整](#多來源彙整)
+- [建模層](#建模層)
+- [目錄結構](#目錄結構)
+- [開始使用](#開始使用)
+- [文件索引](#文件索引)
+- [持續整合](#持續整合)
+- [目前狀態](#目前狀態)
+- [授權條款](#授權條款)
+
+---
+
 ## 功能概覽
 
 - **多來源排名** — 1,499 所大學，三個來源實際匯入：QS 1,499 筆、THE 1,080 筆、ARWU 582 筆
@@ -132,6 +147,16 @@ tests/                      整合測試
 
 ## 開始使用
 
+**前置需求**
+
+| 相依項目 | 版本 |
+|---|---|
+| Python | 3.11+ |
+| PostgreSQL | 14+ |
+| Java JDK | 17 |
+| Node.js | ≥ 20.9 |
+| Maven | 由 `mvnw` 內含 |
+
 → **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)** — 完整本機設定教學（PostgreSQL、Python、Java、Node.js、資料 pipeline）
 
 第一次設定完成後，之後只需：
@@ -202,3 +227,13 @@ CrawlerNest v0.1 是 operational MVP——可重現、可展示，尚非生產�
 - Agent 頁面預設使用 mock provider，不會寫入資料庫
 
 發佈說明：[docs/release/RELEASE_NOTES_v0.1.md](docs/release/RELEASE_NOTES_v0.1.md)
+
+---
+
+## 授權條款
+
+[Apache License 2.0](LICENSE)。
+
+本平台匯入的排名資料屬於 QS、Times Higher Education 與 ShanghaiRanking，**不在
+該授權範圍內**。已提交的快照存在於此是為了讓 pipeline 與模型可重現；若要對外發布
+由這些資料衍生的內容，仍須遵守各來源自身的條款。
