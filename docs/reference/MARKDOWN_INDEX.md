@@ -57,6 +57,7 @@ If someone is new to the repo, this is the fastest path:
 | `docs/foundation/TESTING_GUIDE.md` | Testing, validation, and maintenance guidance. |
 | `docs/agent/AI_DEV_WORKFLOW.md` | AI-assisted development workflow and crawlernest-agents integration notes. |
 | `docs/agent/AGENT_MODEL_INTEGRATION.md` | Readonly agent model provider bridge architecture, supported providers, env vars, fallback behavior, and safety boundaries. |
+| `docs/COMMIT_LOG.md` | Generated full commit history (all branches) with per-commit file and line-change statistics. |
 
 ## 3. Architecture And Platform Design
 

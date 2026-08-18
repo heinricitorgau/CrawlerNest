@@ -27,6 +27,7 @@ layout, data movement, operations, and endpoint coverage.
 | [OPERATIONAL_RUNBOOK.md](operational/OPERATIONAL_RUNBOOK.md) | Startup, smoke checks, daily jobs, snapshots, diagnostics, rollback. |
 | [API_SURFACE.md](API_SURFACE.md) | Product, diagnostics, health, freshness, and explainability endpoint catalog. |
 | [PROJECT_STATE_REVIEW.md](PROJECT_STATE_REVIEW.md) | Current maturity, inventory, risks, readiness, and next-phase priorities. |
+| [COMMIT_LOG.md](COMMIT_LOG.md) | Full commit history across all branches with per-commit file/line change statistics. |
 | [CI_PIPELINES.md](release/CI_PIPELINES.md) | GitHub Actions workflow summary and troubleshooting notes. |
 | [SCHEDULED_OPERATIONS.md](operational/SCHEDULED_OPERATIONS.md) | Cron and scheduled pipeline automation details. |
 | [PYTHON_ENVIRONMENT.md](PYTHON_ENVIRONMENT.md) | Python venv, psycopg2, PEP 668, and runtime consistency notes. |
