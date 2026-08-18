@@ -15,10 +15,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # The MATLAB freshness guard compares commit timestamps for
-          # matlab/*.m against artifacts/eda_matlab/. A shallow clone has
-          # neither in its history, and the guard would report "cannot tell"
-          # rather than silently passing.
+          # The MATLAB freshness guard compares, per port, the commit
+          # timestamps of its .m sources against its artifact directory. A
+          # shallow clone has none of them in its history, and the guard would
+          # report "cannot tell" rather than silently passing.
           fetch-depth: 0
 
       - name: Set up Python
@@ -123,10 +123,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # The MATLAB freshness guard compares commit timestamps for
-          # matlab/*.m against artifacts/eda_matlab/. A shallow clone has
-          # neither in its history, and the guard would report "cannot tell"
-          # rather than silently passing.
+          # The MATLAB freshness guard compares, per port, the commit
+          # timestamps of its .m sources against its artifact directory. A
+          # shallow clone has none of them in its history, and the guard would
+          # report "cannot tell" rather than silently passing.
           fetch-depth: 0
 
       - name: Set up Python
@@ -221,8 +221,8 @@ jobs:
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v2
         with:
-          # run_qs_eda.m calls pca and corr; both are Statistics and Machine
-          # Learning Toolbox, not base MATLAB.
+          # The ports call pca, corr, tiedrank, knnsearch and prctile; all are
+          # Statistics and Machine Learning Toolbox, not base MATLAB.
           products: Statistics_and_Machine_Learning_Toolbox
 
       - name: Set up Python
@@ -236,26 +236,35 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-ml.txt
 
-      # Writes to a scratch directory, never over the committed artifacts, so
-      # the comparison below has two independent things to compare.
-      - name: Re-run run_qs_eda.m
+      # Every registered port is re-executed, each into its own scratch
+      # subdirectory named after the artifact directory it mirrors, never over
+      # the committed artifacts -- so the comparison below has two independent
+      # things to compare. train_disagreement_classifier.m is deliberately not
+      # here: its metrics depend on a fold split whose RNG cannot be aligned
+      # with scikit-learn's, so there is nothing to assert at 1e-9. The
+      # deterministic half of Phase 3 is build_cross_source_data.m, which is.
+      - name: Re-run the MATLAB ports
         uses: matlab-actions/run-command@v2
         with:
           command: |
             addpath("crawlernest/crawlernest-ml/matlab");
-            run_qs_eda(OutDir="/tmp/eda_matlab_fresh");
+            root = "/tmp/matlab_fresh";
+            run_qs_eda(OutDir = root + "/eda_matlab");
+            recover_qs_weights(OutDir = root + "/weights_matlab");
+            qs_support_flagger(OutDir = root + "/support_matlab");
+            build_cross_source_data(OutDir = root + "/cross_source_matlab");
 
       - name: Show what MATLAB produced
-        run: ls -l /tmp/eda_matlab_fresh
+        run: ls -lR /tmp/matlab_fresh
 
-      # --matlab-dir is the run that just happened, so the Python comparison is
-      # against freshly executed sources rather than committed CSVs.
-      # --committed-dir additionally asserts the two agree, which is the
-      # statement the git-ordering guard could only approximate.
+      # --fresh-root points at the run that just happened, so the Python
+      # comparison is against freshly executed sources rather than committed
+      # CSVs, and the committed artifacts are additionally asserted to match
+      # what those sources produce -- the statement the git-ordering guard
+      # could only approximate.
       - name: Parity against freshly executed sources
         env:
           PYTHONPATH: crawlernest/crawlernest-ml
         run: |
           python -m ranking_ml.evaluation.check_matlab_parity \
-            --matlab-dir /tmp/eda_matlab_fresh \
-            --committed-dir crawlernest/crawlernest-ml/artifacts/eda_matlab
+            --fresh-root /tmp/matlab_fresh

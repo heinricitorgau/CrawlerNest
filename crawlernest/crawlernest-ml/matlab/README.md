@@ -1,14 +1,21 @@
-# MATLAB port of the QS indicator EDA
+# MATLAB port of the QS modelling layer
 
-A MATLAB reimplementation of [`ranking_ml/eda/run_eda.py`](../ranking_ml/eda/run_eda.py),
-reading the same committed snapshot and producing the same three figures and
-four numeric tables. Tested on MATLAB **R2026a**; no toolboxes beyond
-Statistics and Machine Learning (`pca`, `corr`) are used.
+MATLAB reimplementations of the Python analyses in `ranking_ml/`, reading the
+same committed snapshots and producing the same numbers. Tested on MATLAB
+**R2026a**; no toolboxes beyond Statistics and Machine Learning are used.
 
-It exists as a *port*, not a rewrite: the point is that two independent
-implementations agree on the numbers the Phase 2 modelling decisions rest on. A
-parity check runs at the end of every run and prints the largest deviation from
-the Python output.
+| Port | MATLAB | Python | Artifacts |
+|---|---|---|---|
+| Phase 1 EDA | `run_qs_eda.m` | `eda/run_eda.py` | `artifacts/eda_matlab/` |
+| Phase 2 weight recovery | `recover_qs_weights.m` | `models/overall_score.py` | `artifacts/weights_matlab/` |
+| Support flag | `qs_support_flagger.m` | `models/support.py` | `artifacts/support_matlab/` |
+| Phase 3 dataset | `build_cross_source_data.m` | `features/cross_source.py` | `artifacts/cross_source_matlab/` |
+| Phase 3 classifier | `train_disagreement_classifier.m` | `training/train_disagreement.py` | none — see below |
+
+They exist as *ports*, not rewrites: the point is that two independent
+implementations agree on the numbers the modelling decisions rest on. Each
+script prints its own parity check against the Python output, and
+`check_matlab_parity` re-checks every one of them in CI.
 
 ## Running it
 
@@ -17,6 +24,12 @@ From the MATLAB prompt:
 ```matlab
 cd crawlernest/crawlernest-ml/matlab
 results = run_qs_eda();
+weights = recover_qs_weights();
+support = qs_support_flagger();
+
+[X, y, info] = build_cross_source_data();
+qsOnly = train_disagreement_classifier(X, y, Name="qs_only");
+ceiling = train_disagreement_classifier([X info.theFeatures], y, Name="both_sources");
 ```
 
 Headless, from a Windows shell:
@@ -29,9 +42,11 @@ Options:
 
 | Call | Effect |
 |---|---|
-| `run_qs_eda(Snapshot="...json")` | analyse a different crawl snapshot |
-| `run_qs_eda(OutDir="...")` | write somewhere other than `artifacts/eda_matlab/` |
+| `<script>(Snapshot="...json")` | analyse a different crawl snapshot |
+| `<script>(OutDir="...")` | write somewhere other than the default artifact directory |
 | `run_qs_eda(SaveFigures=false)` | on-screen only, writes nothing |
+| `<script>(SaveOutput=false)` | same, for the other three |
+| `train_disagreement_classifier(X, y, Seed=3)` | a different stratified fold split |
 
 No database, no network, no pipeline run: the input is
 `crawlernest/crawlernest-kb/databases/last_crawl_snapshot.json`, which is
@@ -60,11 +75,18 @@ about.
 ## Files
 
 ```
-load_qs_snapshot.m   snapshot JSON -> 1503x9 indicator matrix, y, rank, names
-qs_to_float.m        QS cell -> double; "n/a" and off-scale values -> NaN
-qs_to_rank.m         published rank -> double; "901-950" -> midpoint
-run_qs_eda.m         the analysis, the figures, and the parity check
+load_qs_snapshot.m               snapshot JSON -> 1503x9 indicator matrix, y, rank, names
+qs_to_float.m                    QS cell -> double; "n/a" and off-scale values -> NaN
+qs_to_rank.m                     published rank -> double; "901-950" -> midpoint
+run_qs_eda.m                     Phase 1 figures, tables and parity check
+recover_qs_weights.m             Phase 2 weight recovery and the published-weight baseline
+qs_support_flagger.m             distance-to-training-data flag
+build_cross_source_data.m        QS/THE join, percentile gap, disagreement label
+train_disagreement_classifier.m  stratified CV, logistic and boosted models
 ```
+
+The first three are shared by everything else, so a change to one of them can
+move any artifact; the freshness guard treats them as a source for every port.
 
 `rank` is loaded but kept out of the feature matrix. QS derives the rank *from*
 the overall score, so using it as a feature would leak the target — the same
@@ -84,12 +106,12 @@ hard-coded reference values, not at the level of the computation:
     "target mean / std"                        3.3333e-07
 ```
 
-Anything above `1e-3` raises a warning. Treat it as a real signal — it means one
-of the two ports has drifted, and the figures should not be used until that is
-explained.
+Anything above the script's tolerance raises a warning. Treat it as a real
+signal — it means one of the two ports has drifted, and the figures should not
+be used until that is explained.
 
-Three places where MATLAB and scikit-learn defaults differ, all handled
-explicitly in `run_qs_eda.m`:
+Four places where MATLAB and scikit-learn defaults differ, all handled
+explicitly in the sources:
 
 - **Standardisation.** `StandardScaler` uses the population standard deviation
   (ddof=0). MATLAB's `std(X)` uses the sample one. The PCA input uses
@@ -99,6 +121,12 @@ explicitly in `run_qs_eda.m`:
 - **Component signs.** PCA component signs are arbitrary and MATLAB and sklearn
   do not agree on them. Both components are flipped to a positive loading sum,
   so reruns and the Python figure orient the same way.
+- **Percentile convention.** `numpy.percentile` and `pandas.quantile` place
+  order statistics at `(i-1)/(n-1)`; MATLAB's `prctile` places them at
+  `(i-0.5)/n`. This is a methodological difference, not rounding, and it bit
+  twice: it moved the support threshold by 4.8e-3 (four universities across the
+  supported/unsupported line) and it shifted the disagreement label's gap
+  cutoff. Both ports interpolate explicitly instead of calling `prctile`.
 
 ## Deliberate visual differences
 
@@ -110,27 +138,43 @@ neither colormap:
 
 ## Parity is checked, not asserted
 
-The claim that this port computes the same numbers is verified on every push:
+The claim that these ports compute the same numbers is verified on every push:
 
 ```bash
 PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python \
     -m ranking_ml.evaluation.check_matlab_parity
 ```
 
-It compares the committed CSVs in `../artifacts/eda_matlab/` against a fresh
-Python run at a tolerance of 1e-9. Measured agreement is 7.2e-16 on the
-correlations, 7.1e-14 on the covariate-shift means, and exact on missingness —
-machine precision, which is what the same formulas over the same inputs should
+It compares the committed CSVs in every artifact directory against a fresh
+Python run at a tolerance of 1e-9. Measured agreement:
+
+| Port | Worst difference |
+|---|---|
+| eda | 7.1e-14 (covariate-shift means; correlations 7.2e-16, missingness exact) |
+| weights | 9.2e-16 |
+| support | 2.8e-14 |
+| cross_source | 2.8e-16 |
+
+Machine precision, which is what the same formulas over the same inputs should
 give. The step runs in `.github/workflows/ml-tests.yml` and needs no MATLAB,
 because this side is committed output.
 
+Each entry point is registered in `check_matlab_parity.PORTS` as a `.m` file, an
+artifact directory, the CSVs to compare, and the Python function that recomputes
+them. Adding a port means adding one entry — the guard, the CLI and the
+reporting all follow from the registry. The guard also asks its ordering
+question **per port**, which an earlier version did not: it compared every `.m`
+file against `artifacts/eda_matlab/` alone, so adding a second entry point
+failed the check because a new source was newer than an artifact directory it
+has nothing to do with.
+
 **That is also its limit.** Editing a `.m` file without re-running it leaves the
 CSVs stale, and stale CSVs still match. The check now asks git about the ordering
-as well — it fails if a `.m` was committed after the artifacts, or if one is
-modified in the working tree while the artifacts are not — so the sequence that
-produces a stale artifact is caught even though the sources are not re-executed.
-**Re-run `run_qs_eda.m` and commit the regenerated `../artifacts/eda_matlab/`
-after any change here.**
+as well — it fails if a port's `.m` was committed after its artifacts, or if one
+is modified in the working tree while its artifacts are not — so the sequence
+that produces a stale artifact is caught even though the sources are not
+re-executed. **Re-run the affected script and commit its regenerated artifact
+directory after any change here.**
 
 ### How the sources are re-executed in CI
 
@@ -148,30 +192,49 @@ every push:
   with:
     command: |
       addpath("crawlernest/crawlernest-ml/matlab");
-      run_qs_eda(OutDir="/tmp/eda_matlab_fresh");
+      root = "/tmp/matlab_fresh";
+      run_qs_eda(OutDir = root + "/eda_matlab");
+      recover_qs_weights(OutDir = root + "/weights_matlab");
+      qs_support_flagger(OutDir = root + "/support_matlab");
+      build_cross_source_data(OutDir = root + "/cross_source_matlab");
 ```
 
-The toolbox is not optional: `run_qs_eda.m` calls `pca` and `corr`, neither of
-which is in base MATLAB.
+The toolbox is not optional: the ports call `pca`, `corr`, `tiedrank`,
+`knnsearch` and `prctile`, none of which is in base MATLAB.
 
-Output goes to a scratch directory rather than over `../artifacts/eda_matlab/`,
-so the parity check has two independent things to compare. It is then run with
-`--matlab-dir` on the fresh output — making the Python comparison one against
-sources that just executed — and `--committed-dir` on the repository's copy,
-which asserts the sources still produce what is committed. A numeric comparison
-rather than `git diff --exit-code`, because the PNGs differ in encoding between
-runs while the numbers do not.
-
-Before this, the sources were verified by hand on R2026a: re-running
-`run_qs_eda.m` reproduced all three CSVs **byte for byte**, with only the PNGs
-differing.
+Output goes to a scratch directory rather than over the committed artifacts, so
+the parity check has two independent things to compare. It is then run with
+`--fresh-root` pointing at that directory, which makes the Python comparison one
+against sources that just executed *and* asserts that the committed artifacts
+are what those sources produce. A numeric comparison rather than
+`git diff --exit-code`, because the PNGs differ in encoding between runs while
+the numbers do not. Measured locally on R2026a, every fresh-versus-committed
+column comes back `0.000e+00`.
 
 The ordering guard stays. It runs in the fast job, needs no MATLAB, and still
-catches the sequence that makes an artifact stale. **Re-run `run_qs_eda.m` and
-commit the regenerated `../artifacts/eda_matlab/` after any change here.**
+catches the sequence that makes an artifact stale.
 
 ## What this does *not* cover
 
-Only the Phase 1 EDA. The Phase 2 weight recovery, the support flag, and the
-Phase 3 cross-source disagreement classifier remain Python-only — see the
+**The disagreement classifier's metrics are not parity-checked.** Its dataset
+is — matched population, gap threshold, positive count and which source is
+favoured all agree exactly — but ROC-AUC and PR-AUC are not comparable at 1e-9,
+for two reasons that cannot be engineered away:
+
+- The stratified fold split uses MATLAB's RNG, which cannot be aligned with
+  scikit-learn's `random_state`.
+- MATLAB's `LogitBoost` stands in for scikit-learn's `GradientBoostingClassifier`.
+  They are the same family, not the same algorithm, and `templateTree` has no
+  `MaxDepth`, so `MaxNumSplits=7` is a proxy for `max_depth=3`.
+
+What can be claimed is that the two agree within the spread across fold seeds.
+Over seeds 0–4 the MATLAB one-sided model gives ROC-AUC 0.7375 ± 0.0040
+(logistic) and 0.8334 ± 0.0062 (boosting); Python reports 0.7340 and 0.8262,
+both inside that range. Asserting more than that in CI would produce a flaky
+check, so `train_disagreement_classifier.m` is listed in
+`check_matlab_parity.UNCHECKED_SOURCES` — an explicit decision rather than an
+oversight.
+
+Nothing else in `ranking_ml/` is ported: the serving write path, the metrics
+regression gate and the LLM faithfulness checker stay Python-only. See the
 [ML README](../README.md) and the model cards.
