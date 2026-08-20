@@ -1,0 +1,82 @@
+name: Commit log
+
+# Regenerates docs/COMMIT_LOG.md after anything lands on main, and pushes the
+# result. The document lists every commit with its change statistics, so it goes
+# stale the moment it is written; keeping it current by hand meant it was
+# accurate for exactly as long as nobody committed.
+#
+# The one commit this can never record is its own. Updating the log is a commit,
+# and it does not exist while the log is being rendered. So the file is current
+# as of the push that triggered the run, and the bot commit itself appears the
+# next time anything lands. That lag is structural, not a bug to chase.
+
+on:
+  push:
+    branches: ["main"]
+    # The bot commit touches this file and nothing else, so ignoring it here is
+    # what stops the workflow triggering itself. GITHUB_TOKEN pushes also do not
+    # start new runs, which is a second guard behind this one -- but relying on
+    # that alone would break the moment someone swapped in a PAT.
+    paths-ignore:
+      - "docs/COMMIT_LOG.md"
+
+permissions:
+  contents: write
+
+# Two merges landing close together would otherwise race to push. Queue them
+# rather than cancelling: a cancelled run leaves the log a commit behind with
+# nothing scheduled to fix it.
+concurrency:
+  group: commit-log
+  cancel-in-progress: false
+
+jobs:
+  regenerate:
+    name: regenerate docs/COMMIT_LOG.md
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # The generator runs `git log --all`. A shallow clone would report a
+          # handful of commits and rewrite the document down to them.
+          fetch-depth: 0
+
+      # No dependencies: the generator is standard library only, and every
+      # runner image ships python3.
+      - name: Regenerate
+        run: python3 scripts/generate_commit_log.py
+
+      - name: Commit and push if it changed
+        run: |
+          if git diff --quiet -- docs/COMMIT_LOG.md; then
+            echo "docs/COMMIT_LOG.md is already current; nothing to push."
+            exit 0
+          fi
+
+          echo "Changes to publish:"
+          git --no-pager diff --stat -- docs/COMMIT_LOG.md
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/COMMIT_LOG.md
+          git commit -m "docs: regenerate the commit log"
+
+          # main moves under us if another merge lands while this runs. Rebase
+          # onto whatever arrived and regenerate, so the pushed document
+          # describes the history it is actually landing on.
+          for attempt in 1 2 3; do
+            if git push; then
+              echo "pushed on attempt $attempt"
+              exit 0
+            fi
+            echo "push rejected, rebasing and regenerating (attempt $attempt)"
+            git pull --rebase --quiet
+            python3 scripts/generate_commit_log.py
+            git add docs/COMMIT_LOG.md
+            git diff --cached --quiet || git commit --amend --no-edit
+          done
+
+          echo "could not push after 3 attempts" >&2
+          exit 1
