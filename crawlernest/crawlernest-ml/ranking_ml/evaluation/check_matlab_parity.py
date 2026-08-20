@@ -86,10 +86,15 @@ SHARED_SOURCES: tuple[str, ...] = (
     "qs_to_rank.m",
 )
 
-#: Entry points that produce no artifact, listed so that "not checked" is a
+#: Entry points whose output is not compared, listed so that "not checked" is a
 #: recorded decision rather than something nobody noticed. See the module
-#: docstring for why the classifier's metrics are not comparable at 1e-9.
-UNCHECKED_SOURCES: tuple[str, ...] = ("train_disagreement_classifier.m",)
+#: docstring for why the classifier's metrics are not comparable at 1e-9;
+#: the diagnostics figure draws those same metrics, and a PNG has nothing this
+#: module could compare numerically in any case.
+UNCHECKED_SOURCES: tuple[str, ...] = (
+    "train_disagreement_classifier.m",
+    "plot_disagreement_diagnostics.m",
+)
 
 
 @dataclass(frozen=True)
