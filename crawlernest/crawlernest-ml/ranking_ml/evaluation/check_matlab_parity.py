@@ -21,9 +21,13 @@ So:
 - It catches the Python side drifting away from a verified reference.
 - It catches a MATLAB re-run that produces different numbers.
 - It cannot itself catch someone editing a ``.m`` file and never re-running it,
-  because stale CSVs still match. :func:`check_artifacts_are_current` covers
-  that by asking git whether the sources moved after the artifacts did, which
-  catches the ordinary mistake but proves nothing about the numbers.
+  because stale CSVs still match. :func:`compare_artifact_dirs` covers that, by
+  running the sources and comparing what they produce against what is committed.
+  :func:`check_artifacts_are_current` asks git the weaker question of commit
+  ordering; it is **reported as a warning, not enforced**, because it fails a
+  source commit that provably does not change its artifact and such a commit has
+  no regenerated output to commit in response. Should the ``matlab-reexecution``
+  job ever be removed, those warnings must go back to being failures.
 
 Since the repository became public, MathWorks' free GitHub-hosted MATLAB is
 available to it, and the ``matlab-reexecution`` job in ``ml-tests.yml`` runs the
@@ -525,15 +529,35 @@ def main() -> int:
 
     fresh_root = Path(args.fresh_root) if args.fresh_root else None
 
-    failures = check_artifacts_are_current(ports)
+    failures: list[str] = []
+
+    # The ordering question is a proxy, and a lossy one: it fails a source commit
+    # that provably does not change its artifact, and such a commit cannot be made
+    # to pass, because there is no regenerated output to commit. That is not
+    # hypothetical -- adding a field to a returned struct triggered it, with every
+    # numeric comparison passing and the re-executed sources reproducing the
+    # committed artifact exactly.
+    #
+    # So it is reported, not enforced. The gate is compare_artifact_dirs below,
+    # which runs the sources and compares what they produce -- it answers directly
+    # what this can only approximate, and it runs on every push now that the
+    # repository is public. If the matlab-reexecution job is ever removed, these
+    # warnings have to go back to being failures: nothing else would catch a .m
+    # file that was edited and never re-run.
+    staleness = check_artifacts_are_current(ports)
     print("### are the committed artifacts current with the .m sources?")
-    print("    " + ("no -- see below" if failures else "yes"))
+    print("    " + ("git ordering says no -- see below" if staleness else "yes"))
     print(f"    not compared: {', '.join(UNCHECKED_SOURCES)} (see module docstring)")
+    for warning in staleness:
+        print(f"    [warn] {warning}")
 
     if fresh_root:
         print("\n### do the .m sources still produce the committed artifacts?")
         for port in ports:
             failures.extend(compare_artifact_dirs(port, fresh_root / Path(port.artifacts).name))
+    elif staleness:
+        print("\n    No --fresh-root given, so the warnings above are unverified here.")
+        print("    The matlab-reexecution job settles them by running the sources.")
 
     for port in ports:
         computed = port.build()
