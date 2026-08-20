@@ -29,7 +29,11 @@ function results = train_disagreement_classifier(X, y, options)
 %   PR-AUC is the honest headline on this problem: the positive rate is 0.20, so
 %   ROC-AUC flatters an imbalanced label while precision-recall does not.
 %
-%   See also BUILD_CROSS_SOURCE_DATA.
+%   Both models return calibrated probabilities, so `results.probaBoosted` can be
+%   scored with Brier and drawn on a reliability diagram -- see
+%   PLOT_DISAGREEMENT_DIAGNOSTICS.
+%
+%   See also BUILD_CROSS_SOURCE_DATA, PLOT_DISAGREEMENT_DIAGNOSTICS.
 
 arguments
     X double
@@ -94,6 +98,15 @@ for fold = 1:options.Folds
         LearnRate=0.05, ...
         Learners=templateTree(MaxNumSplits=7), ...
         ClassNames=[0; 1]);
+
+    % predict returns a raw ensemble score, not a probability: untransformed it
+    % spans roughly [-8, +2] here, and treating that as a probability makes the
+    % Brier score and the calibration curve meaningless. LogitBoost models
+    % F(x) = 0.5 * log(p / (1-p)), so p = 1 / (1 + exp(-2F)) -- which MATLAB
+    % exposes as the "doublelogit" transform. Chosen from the algorithm's own
+    % formulation, not by which number came closest to the Python run.
+    % Rank-based metrics are unaffected: the transform is monotone.
+    boostedModel.ScoreTransform = "doublelogit";
     [~, boostedScore] = predict(boostedModel, XTest);
     probaBoosted(testMask) = boostedScore(:, 2);
 end
@@ -104,19 +117,22 @@ scores = [probaLogistic, probaBoosted];
 
 rocAuc = zeros(2, 1);
 prAuc = zeros(2, 1);
+brier = zeros(2, 1);
 for k = 1:2
     [~, ~, ~, rocAuc(k)] = perfcurve(y, scores(:, k), 1);
     prAuc(k) = average_precision(y, scores(:, k));
+    brier(k) = mean((scores(:, k) - y) .^ 2);
 end
 
-metrics = table(models', rocAuc, prAuc, ...
-    VariableNames=["model", "roc_auc", "pr_auc"]);
+metrics = table(models', rocAuc, prAuc, brier, ...
+    VariableNames=["model", "roc_auc", "pr_auc", "brier"]);
 
 if options.Verbose
     fprintf("\n%s  (n=%d, %d features, positive rate %.4f, %d-fold stratified)\n", ...
         options.Name, n, size(X, 2), positiveRate, options.Folds);
     for k = 1:2
-        fprintf("  %-18s ROC-AUC %.4f   PR-AUC %.4f\n", models(k), rocAuc(k), prAuc(k));
+        fprintf("  %-18s ROC-AUC %.4f   PR-AUC %.4f   Brier %.4f\n", ...
+            models(k), rocAuc(k), prAuc(k), brier(k));
     end
 end
 
