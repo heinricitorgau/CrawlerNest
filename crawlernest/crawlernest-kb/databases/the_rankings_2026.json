@@ -1632,7 +1632,7 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2025-02/Overview%20-%20University%20Logo.png?itok=xa_CqKMC",
+          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2026-06/HKU%20logo_800x800.png?itok=aOrzkzBp",
           "enhanced": true
         }
       }
@@ -2188,7 +2188,7 @@
           "scores_international_outlook_rank": "67",
           "iid": "i-91511981",
           "record_type": "master_account",
-          "member_level": "0",
+          "member_level": "11",
           "url": "/world-university-rankings/university-british-columbia",
           "nid": 486,
           "location": "Canada",
@@ -2201,8 +2201,8 @@
           "unaccredited": false,
           "disabled": false,
           "apply_link": "https://www.timeshighereducation.com/student/register-interest/applyboard?utm_medium=thewebsite&utm_campaign=cta-link&utm_source=rankings&iid=i-91511981",
-          "logo_url": null,
-          "enhanced": false
+          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2026-06/UBC%20Crest_800x800.png?itok=IVJWU90o",
+          "enhanced": true
         }
       }
     },
@@ -6366,8 +6366,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/migrated_institution_logos/um_triangles_200_x_200_pixels.jpg?itok=Qi1yP0Cr",
-          "enhanced": true
+          "logo_url": null,
+          "enhanced": false
         }
       }
     },
@@ -11927,7 +11927,7 @@
           "scores_international_outlook_rank": "180",
           "iid": "i-91582771",
           "record_type": "master_account",
-          "member_level": "6",
+          "member_level": "11",
           "url": "/world-university-rankings/western-university",
           "nid": 690,
           "location": "Canada",
@@ -12359,8 +12359,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": null,
-          "enhanced": false
+          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2026-06/GU_Logo_Core%20Stacked_red_rgb.png?itok=KaDr4xMt",
+          "enhanced": true
         }
       }
     },
@@ -17009,7 +17009,7 @@
           "scores_international_outlook_rank": "143",
           "iid": "i-86765204",
           "record_type": "master_account",
-          "member_level": "11",
+          "member_level": "0",
           "url": "/world-university-rankings/edith-cowan-university",
           "nid": 922,
           "location": "Australia",
@@ -17021,8 +17021,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2025-03/ECU-LOGO_PRIMARY_RGB.png?itok=bNIBD1tf",
-          "enhanced": true
+          "logo_url": null,
+          "enhanced": false
         }
       }
     },
@@ -17055,7 +17055,7 @@
           "scores_international_outlook_rank": "1031",
           "iid": "i-80294743",
           "record_type": "master_account",
-          "member_level": "0",
+          "member_level": "11",
           "url": "/world-university-rankings/hokkaido-university",
           "nid": 747,
           "location": "Japan",
@@ -17067,8 +17067,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": null,
-          "enhanced": false
+          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2026-06/logomark6.png?itok=s5snp540",
+          "enhanced": true
         }
       }
     },
@@ -20871,8 +20871,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2025-08/01_NYCU_University%20logo.png?itok=dUWYtBr2",
-          "enhanced": true
+          "logo_url": null,
+          "enhanced": false
         }
       }
     },
@@ -27204,8 +27204,8 @@
           "unaccredited": false,
           "disabled": false,
           "apply_link": "https://www.timeshighereducation.com/student/register-interest/siuk?utm_medium=thewebsite&utm_campaign=cta-link&utm_source=rankings&iid=i-22394063",
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2025-03/profile-logo-default.png?itok=yBZuAP2B",
-          "enhanced": true
+          "logo_url": null,
+          "enhanced": false
         }
       }
     },
@@ -32017,19 +32017,19 @@
     },
     {
       "id": "625914",
-      "name": "Management & Science University (MSU)",
+      "name": "Management and Science University",
       "country": "Malaysia",
       "year": 2026,
       "ranking_type": "world",
       "rank": 601,
       "score": 39.0,
-      "url": "https://www.timeshighereducation.com/world-university-rankings/management-science-university-msu",
+      "url": "https://www.timeshighereducation.com/world-university-rankings/management-and-science-university",
       "metadata": {
         "raw_source": "THE",
         "raw_row": {
           "rank_order": "6830",
           "rank": "601–800",
-          "name": "Management & Science University (MSU)",
+          "name": "Management and Science University",
           "scores_overall": "39.0–43.5",
           "scores_overall_rank": "6830",
           "scores_teaching": "33.2",
@@ -32045,14 +32045,14 @@
           "iid": "i-65381673",
           "record_type": "master_account",
           "member_level": "0",
-          "url": "/world-university-rankings/management-science-university-msu",
+          "url": "/world-university-rankings/management-and-science-university",
           "nid": 625914,
           "location": "Malaysia",
           "stats_number_students": "4,038",
           "stats_student_staff_ratio": "7.5",
           "stats_pc_intl_students": "58%",
           "stats_female_male_ratio": "61 : 39",
-          "aliases": "Management & Science University (MSU) msu",
+          "aliases": "Management and Science University msu",
           "closed": false,
           "unaccredited": false,
           "disabled": false,
@@ -33062,7 +33062,7 @@
           "scores_international_outlook_rank": "911",
           "iid": "i-24001294",
           "record_type": "master_account",
-          "member_level": "1",
+          "member_level": "0",
           "url": "/world-university-rankings/paderborn-university",
           "nid": 589334,
           "location": "Germany",
@@ -33074,8 +33074,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/migrated_institution_logos/paderborn_logo_sg.png?itok=TIi-nnBS",
-          "enhanced": true
+          "logo_url": null,
+          "enhanced": false
         }
       }
     },
@@ -39122,7 +39122,7 @@
           "scores_international_outlook_rank": "1594",
           "iid": "i-80202991",
           "record_type": "master_account",
-          "member_level": "6",
+          "member_level": "0",
           "url": "/world-university-rankings/chonnam-national-university",
           "nid": 131702,
           "location": "South Korea",
@@ -39134,8 +39134,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/migrated_institution_logos/logo_18.png?itok=vMmDUpNM",
-          "enhanced": true
+          "logo_url": null,
+          "enhanced": false
         }
       }
     },
@@ -40877,7 +40877,7 @@
           "scores_international_outlook_rank": "1424",
           "iid": "i-01158411",
           "record_type": "master_account",
-          "member_level": "0",
+          "member_level": "11",
           "url": "/world-university-rankings/jeonbuk-national-university",
           "nid": 131273,
           "location": "South Korea",
@@ -40889,8 +40889,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": null,
-          "enhanced": false
+          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2026-07/Jeonbuk%20National%20University_Logo.png.png?itok=_389_SsF",
+          "enhanced": true
         }
       }
     },
@@ -45042,8 +45042,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": null,
-          "enhanced": false
+          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2025-03/profile-logo-default.png?itok=yBZuAP2B",
+          "enhanced": true
         }
       }
     },
@@ -52888,8 +52888,8 @@
           "closed": false,
           "unaccredited": false,
           "disabled": false,
-          "logo_url": null,
-          "enhanced": false
+          "logo_url": "https://www.timeshighereducation.com/cms-academic/sites/default/files/styles/medium/public/2026-07/LOGO-UNS-01.png?itok=W-j_YWhk",
+          "enhanced": true
         }
       }
     },
@@ -77628,19 +77628,19 @@
     },
     {
       "id": "625833",
-      "name": "Instituto Tecnológico Metropolitano",
+      "name": "Institución Universitaria ITM",
       "country": "Colombia",
       "year": 2026,
       "ranking_type": "world",
       "rank": 1501,
       "score": 10.3,
-      "url": "https://www.timeshighereducation.com/world-university-rankings/instituto-tecnologico-metropolitano",
+      "url": "https://www.timeshighereducation.com/world-university-rankings/institucion-universitaria-itm",
       "metadata": {
         "raw_source": "THE",
         "raw_row": {
           "rank_order": "16720",
           "rank": "1501+",
-          "name": "Instituto Tecnológico Metropolitano",
+          "name": "Institución Universitaria ITM",
           "scores_overall": "10.3–27.2",
           "scores_overall_rank": "16720",
           "scores_teaching": "12.9",
@@ -77656,14 +77656,14 @@
           "iid": "i-81902301",
           "record_type": "master_account",
           "member_level": "0",
-          "url": "/world-university-rankings/instituto-tecnologico-metropolitano",
+          "url": "/world-university-rankings/institucion-universitaria-itm",
           "nid": 625833,
           "location": "Colombia",
           "stats_number_students": "25,069",
           "stats_student_staff_ratio": "19.7",
           "stats_pc_intl_students": "0%",
           "stats_female_male_ratio": "43 : 57",
-          "aliases": "Instituto Tecnológico Metropolitano",
+          "aliases": "Institución Universitaria ITM",
           "closed": false,
           "unaccredited": false,
           "disabled": false,
