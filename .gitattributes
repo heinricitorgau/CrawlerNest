@@ -1,3 +1,34 @@
+# ---------------------------------------------------------------------------
+# Line endings
+# ---------------------------------------------------------------------------
+# Development happens on Linux/WSL, so the repository stores LF and checks out
+# LF everywhere. Without this, a tool that writes CRLF -- Python's text mode on
+# Windows turns every \n into \r\n -- commits a whole-file diff that hides the
+# handful of lines that actually changed.
+#
+# text=auto still lets git detect binary content, so images, .joblib models and
+# .sqlite3 databases are left alone. The explicit `binary` lines below say so
+# anyway, because being wrong about one of those corrupts it silently.
+
+* text=auto eol=lf
+
+# Windows launchers: cmd.exe mis-parses a batch file with LF endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Never touched, never diffed as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.joblib binary
+*.db binary
+*.sqlite3 binary
+*.xlsx binary
+*.zip binary
+
 # Trim the downloadable source archive (GitHub "Download ZIP" / git archive)
 # to a runnable package: pipeline, API, web, schemas, and start scripts.
 # git clone still delivers the full repository including everything below.
