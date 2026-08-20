@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-08-18，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-08-20，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：291
-- **期間**：2026-03-16 ~ 2026-08-17
+- **Commit 總數**：299
+- **期間**：2026-03-16 ~ 2026-08-20
 - **主分支**：`main`
 
 ## 欄位說明
@@ -26,13 +26,23 @@ git -c safe.directory='*' log --all --date=short --shortstat \
 
 repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.directory='*'` 會出現 `dubious ownership` 錯誤。
 
+本檔由 `scripts/generate_commit_log.py` 產生；請勿手動編輯。
+
 ---
 
 ## 2026-08
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `449980c` | 2026-08-17 | heinricitorgau | 11 | +446 / −0 | update **[HEAD -> main, origin/main, origin/HEAD]** |
+| `3c61988` | 2026-08-20 | KAO,EN-TSAI | — | — | Merge pull request #13 from heinricitorgau/docs/commit-log **[main]** |
+| `ca4ed73` | 2026-08-20 | heinricitorgau | 1 | +29 / −5 | Report the artifact-ordering check instead of enforcing it **[docs/commit-log]** |
+| `50050cf` | 2026-08-20 | heinricitorgau | 3 | +128 / −0 | Make the disagreement inference use the shared cross-source builder |
+| `08daf6e` | 2026-08-20 | heinricitorgau | 5 | +226 / −7 | Reproduce the Phase 3 diagnostics figure in MATLAB |
+| `5b84ab1` | 2026-08-18 | heinricitorgau | 52 | +9523 / −9492 | Store and check out LF everywhere, and renormalise |
+| `dcf06d6` | 2026-08-18 | KAO,EN-TSAI | — | — | Merge pull request #12 from heinricitorgau/docs/commit-log |
+| `d3d4991` | 2026-08-18 | heinricitorgau | 13 | +1237 / −241 | Port Phase 3 to MATLAB and generalise the parity guard |
+| `5a88eaf` | 2026-08-18 | heinricitorgau | 3 | +364 / −0 | docs: add a generated commit log with per-commit change statistics |
+| `449980c` | 2026-08-17 | heinricitorgau | 11 | +446 / −0 | update |
 | `170f0e2` | 2026-08-17 | heinricitorgau | 8 | +945 / −55 | Seed 43 more ARWU aliases; ARWU coverage 637 -> 686 |
 | `952224a` | 2026-08-17 | heinricitorgau | 5 | +1793 / −197 | Allow $ in minified names; ARWU extraction 897 -> 1000 |
 | `339fc69` | 2026-08-17 | heinricitorgau | 2 | +4 / −0 | Link the two READMEs to each other |
@@ -84,9 +94,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 | `d027bce` | 2026-08-12 | heinricitorgau | 8 | +250 / −16 | test(ml): verify the MATLAB EDA port against the Python one |
 | `56d0380` | 2026-08-12 | heinricitorgau | 5 | +558 / −4 | ci: guard the modelling layer with feature tests and a metrics gate |
 | `1238178` | 2026-08-09 | heinricitorgau | 12 | +743 / −12 | feat(ml): store estimates in analytics.ml_predictions and serve them |
-| `07901c4` | 2026-08-09 | heinricitorgau | 11 | +717 / −0 | Add MATLAB port of the QS indicator EDA **[matlab-eda-port]** |
-| `8e18beb` | 2026-08-09 | heinricitorgau | 6 | +134 / −4 | fix: correct subject rankings assertion and make API tests DB-independent **[origin/claude/hungry-kapitsa-3f33a5, claude/hungry-kapitsa-3f33a5]** |
-| `1900f04` | 2026-08-09 | heinricitorgau | 4 | +163 / −6 | feat(api): add the model-estimate caveat to the analytics honesty contract **[claude/magical-mclean-340eb1]** |
+| `07901c4` | 2026-08-09 | heinricitorgau | 11 | +717 / −0 | Add MATLAB port of the QS indicator EDA |
+| `8e18beb` | 2026-08-09 | heinricitorgau | 6 | +134 / −4 | fix: correct subject rankings assertion and make API tests DB-independent |
+| `1900f04` | 2026-08-09 | heinricitorgau | 4 | +163 / −6 | feat(api): add the model-estimate caveat to the analytics honesty contract |
 | `2800602` | 2026-08-09 | heinricitorgau | 8 | +1122 / −13 | feat(ml): add the cross-source disagreement classifier and score the faithfulness checker |
 | `8a10e05` | 2026-08-09 | heinricitorgau | 12 | +1062 / −10 | feat(ml): train and evaluate the QS overall-score estimator |
 | `9118c94` | 2026-08-09 | heinricitorgau | 14 | +957 / −0 | feat(ml): add the modelling layer's feature contract and EDA |
@@ -317,7 +327,7 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 | `b2f19cb` | 2026-03-23 | Heinrici Torgau | 8 | +273 / −11 | up |
 | `e034a7b` | 2026-03-23 | Heinrici Torgau | 143 | +4312 / −377 | add function |
 | `0772307` | 2026-03-23 | Heinrici Torgau | 18 | +709 / −0 | add Entity Resolution System |
-| `1edd8d7` | 2026-03-23 | Heinrici Torgau | 11 | +500 / −33 |  f |
+| `1edd8d7` | 2026-03-23 | Heinrici Torgau | 11 | +500 / −33 | f |
 | `ddf2b14` | 2026-03-23 | Heinrici Torgau | 3 | +23 / −0 | update readme whitepaper test-guide |
 | `5e322db` | 2026-03-23 | Heinrici Torgau | 24 | +837 / −121 | add speed |
 | `7771201` | 2026-03-22 | Heinrici Torgau | 57 | +2407 / −3247 | update all |
@@ -355,8 +365,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 291 |
-| 檔案變更累計 | 5770 |
-| 新增行數累計 | +1160433 |
-| 刪除行數累計 | −421310 |
-| 淨增行數 | +739123 |
+| Commit 數 | 299 |
+| 檔案變更累計 | 5847 |
+| 新增行數累計 | +1171940 |
+| 刪除行數累計 | −431055 |
+| 淨增行數 | +740885 |
