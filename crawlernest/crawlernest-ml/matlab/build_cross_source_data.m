@@ -13,6 +13,10 @@ function [X, y, info] = build_cross_source_data(options)
 %   training run needs, including THE's five pillar scores in INFO.theFeatures
 %   -- the two-sided ceiling model is fitted from [X INFO.theFeatures].
 %
+%   INFO.qsIndex holds the row each match came from in the full 1,503-row QS
+%   matrix, so a caller can separate the matched universities from the rest
+%   without re-deriving the join or matching on names.
+%
 %   ## The join
 %
 %   Matching on a normalised name (letters only, lowercased) recovers 820 of the
@@ -109,6 +113,7 @@ favouredBy = repmat("THE", n, 1);
 favouredBy(qsPercentile(qsMatched) < thePercentile(theMatched)) = "QS";
 
 info = struct( ...
+    "qsIndex", qsMatched, ...
     "qsName", qs.name(qsMatched), ...
     "theName", theNames(theMatched), ...
     "qsRank", qs.rank(qsMatched), ...
