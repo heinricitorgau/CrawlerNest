@@ -340,6 +340,115 @@ def _slugify_canonical_name(display_name: str) -> str:
     return slug.strip("-")
 
 
+def _find_existing_canonical(cur: Any, display_name: str) -> Optional[int]:
+    """
+    Find an existing canonical university under any spelling already on record.
+
+    Slug equality alone is not enough. A school normally enters the warehouse
+    under one source's display name and is reached from the other sources
+    through warehouse.university_alias, so a name like "Ain Shams University"
+    misses on slug while resolving perfectly well to
+    "Ain Shams University in Cairo (ASU, Cairo)". Seeding on a slug miss split
+    every such school into a duplicate entity and quietly undid the alias rows
+    that were doing the work.
+    """
+    from entity_resolution.normalizer import (  # noqa: E402
+        expanded_transliteration,
+        normalize_university_name,
+    )
+
+    canonical_slug = _slugify_canonical_name(display_name)
+    if canonical_slug:
+        cur.execute(
+            """
+            SELECT canonical_university_id
+            FROM warehouse.canonical_university
+            WHERE canonical_slug = %s
+            """,
+            (canonical_slug,),
+        )
+        row = cur.fetchone()
+        if row is not None:
+            return int(row[0])
+
+    lookup_keys = {
+        _normalize_display_name_for_canonical(display_name),
+        normalize_university_name(display_name),
+        expanded_transliteration(display_name),
+    }
+    lookup_keys.discard("")
+    if not lookup_keys:
+        return None
+    keys = sorted(lookup_keys)
+
+    cur.execute(
+        """
+        SELECT canonical_university_id
+        FROM warehouse.canonical_university
+        WHERE display_name_normalized = ANY(%s)
+        ORDER BY canonical_university_id ASC
+        LIMIT 1
+        """,
+        (keys,),
+    )
+    row = cur.fetchone()
+    if row is not None:
+        return int(row[0])
+
+    cur.execute(
+        """
+        SELECT canonical_university_id
+        FROM warehouse.university_alias
+        WHERE alias_normalized = ANY(%s)
+        ORDER BY canonical_university_id ASC, alias_id ASC
+        LIMIT 1
+        """,
+        (keys,),
+    )
+    row = cur.fetchone()
+    return int(row[0]) if row is not None else None
+
+
+def _resolver_finds_existing_canonical(
+    resolver: Any,
+    display_name: str,
+    country_hint: Any,
+) -> Optional[int]:
+    """
+    Ask the resolver the pipeline itself uses whether this name already exists.
+
+    Only deterministic stages count. A fuzzy hit is a hypothesis, and skipping
+    on one would silently drop a genuinely new university. Seeding a possible
+    duplicate splits one school's sources and understates its confidence;
+    skipping a real school states a match that was never reviewed. Between the
+    two, understating is the honest failure.
+    """
+    from entity_resolution import EntityRecord  # noqa: E402
+
+    country = str(country_hint or "").strip().lower() or None
+    result = resolver.resolve_one(
+        EntityRecord(
+            source_name="seed-canonical-from-missing",
+            source_entity_id=display_name,
+            university_name=display_name,
+            country_hint=country,
+        )
+    )
+    if result.canonical_university_id is None:
+        return None
+    if result.matching_method.startswith(("fuzzy", "embedding")):
+        return None
+    return int(result.canonical_university_id)
+
+
+def _build_seed_resolver(conn: Any) -> Optional[Any]:
+    from entity_resolution import EntityResolver  # noqa: E402
+    from entity_resolution.repository import EntityResolutionRepository  # noqa: E402
+
+    profiles = EntityResolutionRepository(conn).load_canonical_profiles()
+    return EntityResolver(profiles) if profiles else None
+
+
 def seed_canonical_from_missing_entities(
     *,
     source_code: str,
@@ -354,6 +463,11 @@ def seed_canonical_from_missing_entities(
     seeded = 0
     skipped = 0
     failed = 0
+
+    # Built once, before any insert. It therefore only knows the canonical set
+    # as it stood at the start; _find_existing_canonical below runs on the live
+    # cursor and catches anything seeded during this same run.
+    seed_resolver = _build_seed_resolver(conn)
 
     try:
         with conn.cursor() as cur:
@@ -382,16 +496,13 @@ def seed_canonical_from_missing_entities(
 
                 display_name_normalized = _normalize_display_name_for_canonical(display_name)
 
-                cur.execute(
-                    """
-                    SELECT canonical_university_id
-                    FROM warehouse.canonical_university
-                    WHERE canonical_slug = %s
-                    """,
-                    (canonical_slug,),
-                )
-                existing = cur.fetchone()
-                if existing is not None:
+                if seed_resolver is not None and _resolver_finds_existing_canonical(
+                    seed_resolver, display_name, country_hint
+                ) is not None:
+                    skipped += 1
+                    continue
+
+                if _find_existing_canonical(cur, display_name) is not None:
                     skipped += 1
                     continue
 
