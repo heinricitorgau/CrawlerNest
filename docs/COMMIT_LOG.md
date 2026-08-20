@@ -2,7 +2,7 @@
 
 產生於 2026-08-20，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：300
+- **Commit 總數**：302
 - **期間**：2026-03-16 ~ 2026-08-20
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `7d87cc5` | 2026-08-20 | heinricitorgau | 3 | +400 / −13 | Regenerate the commit log from CI instead of by hand **[main]** |
+| `246dffa` | 2026-08-20 | heinricitorgau | 1 | +735 / −0 | Add the read-only entity-resolution backlog dry run **[main]** |
+| `4f9c241` | 2026-08-20 | github-actions[bot] | 1 | +8 / −7 | docs: regenerate the commit log |
+| `7d87cc5` | 2026-08-20 | heinricitorgau | 3 | +400 / −13 | Regenerate the commit log from CI instead of by hand |
 | `3c61988` | 2026-08-20 | KAO,EN-TSAI | — | — | Merge pull request #13 from heinricitorgau/docs/commit-log |
 | `ca4ed73` | 2026-08-20 | heinricitorgau | 1 | +29 / −5 | Report the artifact-ordering check instead of enforcing it **[docs/commit-log]** |
 | `50050cf` | 2026-08-20 | heinricitorgau | 3 | +128 / −0 | Make the disagreement inference use the shared cross-source builder |
@@ -366,8 +368,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 300 |
-| 檔案變更累計 | 5850 |
-| 新增行數累計 | +1172340 |
-| 刪除行數累計 | −431068 |
-| 淨增行數 | +741272 |
+| Commit 數 | 302 |
+| 檔案變更累計 | 5852 |
+| 新增行數累計 | +1173083 |
+| 刪除行數累計 | −431075 |
+| 淨增行數 | +742008 |
