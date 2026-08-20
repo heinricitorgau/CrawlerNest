@@ -11,6 +11,7 @@ same committed snapshots and producing the same numbers. Tested on MATLAB
 | Support flag | `qs_support_flagger.m` | `models/support.py` | `artifacts/support_matlab/` |
 | Phase 3 dataset | `build_cross_source_data.m` | `features/cross_source.py` | `artifacts/cross_source_matlab/` |
 | Phase 3 classifier | `train_disagreement_classifier.m` | `training/train_disagreement.py` | none — see below |
+| Phase 3 diagnostics | `plot_disagreement_diagnostics.m` | `training/train_disagreement.py` | `artifacts/cross_source_matlab/` |
 
 They exist as *ports*, not rewrites: the point is that two independent
 implementations agree on the numbers the modelling decisions rest on. Each
@@ -30,6 +31,7 @@ support = qs_support_flagger();
 [X, y, info] = build_cross_source_data();
 qsOnly = train_disagreement_classifier(X, y, Name="qs_only");
 ceiling = train_disagreement_classifier([X info.theFeatures], y, Name="both_sources");
+plot_disagreement_diagnostics(y, qsOnly.probaBoosted);
 ```
 
 Headless, from a Windows shell:
@@ -83,6 +85,7 @@ recover_qs_weights.m             Phase 2 weight recovery and the published-weigh
 qs_support_flagger.m             distance-to-training-data flag
 build_cross_source_data.m        QS/THE join, percentile gap, disagreement label
 train_disagreement_classifier.m  stratified CV, logistic and boosted models
+plot_disagreement_diagnostics.m  ROC, precision-recall and reliability panels
 ```
 
 The first three are shared by everything else, so a change to one of them can
@@ -226,6 +229,17 @@ for two reasons that cannot be engineered away:
 - MATLAB's `LogitBoost` stands in for scikit-learn's `GradientBoostingClassifier`.
   They are the same family, not the same algorithm, and `templateTree` has no
   `MaxDepth`, so `MaxNumSplits=7` is a proxy for `max_depth=3`.
+
+`plot_disagreement_diagnostics.m` draws those same metrics, so it is not
+compared either — and a PNG has nothing to compare numerically in any case. It
+takes a **probability**, not a raw score: the boosted model's untransformed
+ensemble score spans roughly `[-8, +2]`, which leaves the Brier score and the
+whole reliability panel meaningless. `train_disagreement_classifier.m` applies
+LogitBoost's `doublelogit` transform (`p = 1/(1+exp(-2F))`, from the algorithm's
+own formulation) so `results.probaBoosted` is safe to pass; anything outside
+`[0,1]` is rejected rather than plotted. ROC and precision-recall are rank-based
+and would survive an uncalibrated score, which is precisely why the reliability
+panel is the one that catches it.
 
 What can be claimed is that the two agree within the spread across fold seeds.
 Over seeds 0–4 the MATLAB one-sided model gives ROC-AUC 0.7375 ± 0.0040

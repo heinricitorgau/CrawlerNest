@@ -42,6 +42,13 @@ crawlernest/crawlernest-kb/qs_universes/**/raw_snapshot.json
 crawlernest/crawlernest-kb/qs_universes/**/normalized_snapshot.json
 crawlernest/crawlernest-kb/qs_universes/**/standardized_rows.json
 
+# Model output, not a parity reference. predict_qs_disagreement.m refits
+# LogitBoost on every run with no fixed seed, so the probabilities move slightly
+# each time; committing it would produce a diff on every re-run that says
+# nothing. Everything else under crawlernest-ml/artifacts/ is committed because
+# check_matlab_parity compares against it.
+crawlernest/crawlernest-ml/artifacts/cross_source_matlab/predicted_disagreements.csv
+
 # Local databases
 *.db
 *.db.bak
