@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-08-20，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-08-21，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：302
-- **期間**：2026-03-16 ~ 2026-08-20
+- **Commit 總數**：311
+- **期間**：2026-03-16 ~ 2026-08-21
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,7 +34,16 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `246dffa` | 2026-08-20 | heinricitorgau | 1 | +735 / −0 | Add the read-only entity-resolution backlog dry run **[main]** |
+| `608ab2c` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #14 from heinricitorgau/fix/entity-resolution-blocking **[main]** |
+| `6798057` | 2026-08-21 | heinricitorgau | 1 | +6 / −2 | Stop pinning a constant run id, which made the prune inert **[fix/entity-resolution-blocking]** |
+| `73736db` | 2026-08-21 | heinricitorgau | 1 | +7000 / −1000 | Refresh the ARWU 2026 crawl output |
+| `5f89da9` | 2026-08-21 | heinricitorgau | 2 | +184 / −5 | Keep the ARWU source row, in the shape everything downstream expects |
+| `e1950cd` | 2026-08-21 | heinricitorgau | 12 | +1255 / −0 | Give the fuzzy-match backlog a review screen |
+| `de9e240` | 2026-08-21 | heinricitorgau | 9 | +788 / −0 | Let a reviewer overrule the fuzzy matcher, durably |
+| `58ef9fa` | 2026-08-21 | heinricitorgau | 1 | +42 / −42 | Refresh the THE 2026 crawl output |
+| `10d184e` | 2026-08-21 | heinricitorgau | 6 | +444 / −28 | Make entity resolution reach the names it was already close to |
+| `43bc57c` | 2026-08-20 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `246dffa` | 2026-08-20 | heinricitorgau | 1 | +735 / −0 | Add the read-only entity-resolution backlog dry run |
 | `4f9c241` | 2026-08-20 | github-actions[bot] | 1 | +8 / −7 | docs: regenerate the commit log |
 | `7d87cc5` | 2026-08-20 | heinricitorgau | 3 | +400 / −13 | Regenerate the commit log from CI instead of by hand |
 | `3c61988` | 2026-08-20 | KAO,EN-TSAI | — | — | Merge pull request #13 from heinricitorgau/docs/commit-log |
@@ -368,8 +377,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 302 |
-| 檔案變更累計 | 5852 |
-| 新增行數累計 | +1173083 |
-| 刪除行數累計 | −431075 |
-| 淨增行數 | +742008 |
+| Commit 數 | 311 |
+| 檔案變更累計 | 5885 |
+| 新增行數累計 | +1182811 |
+| 刪除行數累計 | −432159 |
+| 淨增行數 | +750652 |
