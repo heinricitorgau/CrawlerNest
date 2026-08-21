@@ -49,13 +49,23 @@ from entity_resolution.resolver import ResolverThresholds  # noqa: E402
 # Stages that need no fuzzy scoring at all: the core normalizer / curated alias
 # catalogue alone would have matched these. Recovering them carries no
 # similarity risk, which is why they are reported separately.
-FREE_WIN_METHODS = frozenset({"exact", "normalized", "exact_display", "normalized_display"})
+FREE_WIN_METHODS = frozenset(
+    {
+        "exact",
+        "normalized",
+        "exact_display",
+        "normalized_display",
+        "normalized_transliterated",
+        "normalized_display_transliterated",
+    }
+)
 
 # Column names differ between the two backlog layouts; probed in this order.
 RAW_NAME_COLUMNS = ("raw_name", "university_name")
 NORMALIZED_NAME_COLUMNS = ("normalized_name", "normalized_university_name")
 SOURCE_COLUMNS = ("source_code", "source")
 COUNTRY_COLUMNS = ("country_hint", "country", "country_name")
+TIMESTAMP_COLUMNS = ("created_at", "extracted_at")
 
 # Present only on the preview layout, where a row is a miss just when the
 # status says so. missing_entity_log is a miss log, so every row counts.
@@ -90,7 +100,9 @@ class TableProfile:
     normalized_name_column: Optional[str]
     source_column: Optional[str]
     country_column: Optional[str]
+    timestamp_column: Optional[str]
     has_status_filter: bool
+    since_days: int = 0
 
     @property
     def qualified_name(self) -> str:
@@ -98,9 +110,17 @@ class TableProfile:
 
     @property
     def where_clause(self) -> str:
-        if not self.has_status_filter:
-            return ""
-        return f"WHERE {STATUS_COLUMN} = '{STATUS_UNRESOLVED_VALUE}'"
+        conditions: list[str] = []
+        if self.has_status_filter:
+            conditions.append(f"{STATUS_COLUMN} = '{STATUS_UNRESOLVED_VALUE}'")
+        # missing_entity_log is append-only: a name matched by a later run still
+        # has its old miss rows sitting there. Without a window the backlog
+        # looks progressively worse than it is.
+        if self.since_days > 0 and self.timestamp_column:
+            conditions.append(
+                f"{self.timestamp_column} > CURRENT_TIMESTAMP - INTERVAL '{int(self.since_days)} days'"
+            )
+        return f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
 
 @dataclass(frozen=True)
@@ -163,7 +183,7 @@ def connect_readonly(args: argparse.Namespace) -> Any:
     return conn
 
 
-def build_table_profile(conn: Any, schema: str, table: str) -> TableProfile:
+def build_table_profile(conn: Any, schema: str, table: str, since_days: int = 0) -> TableProfile:
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -194,7 +214,9 @@ def build_table_profile(conn: Any, schema: str, table: str) -> TableProfile:
         normalized_name_column=first_present(NORMALIZED_NAME_COLUMNS),
         source_column=first_present(SOURCE_COLUMNS),
         country_column=first_present(COUNTRY_COLUMNS),
+        timestamp_column=first_present(TIMESTAMP_COLUMNS),
         has_status_filter=STATUS_COLUMN in columns,
+        since_days=max(0, int(since_days)),
     )
 
 
@@ -438,6 +460,12 @@ def print_report(
     print("CrawlerNest - entity resolution backlog dry run (READ ONLY, nothing written)")
     print(line)
     print(f"target          : {profile.qualified_name}")
+    if profile.since_days > 0 and profile.timestamp_column:
+        print(f"window          : last {profile.since_days} days by {profile.timestamp_column}")
+    elif profile.since_days > 0:
+        print("window          : requested but this table has no timestamp column; using all rows")
+    else:
+        print("window          : all rows (append-only log may include already-fixed names)")
     print(f"canonical       : {canonical_profile_count} profiles, {alias_count} aliases")
     print(f"backlog         : {len(assessments)} distinct names / {covered_rows} rows assessed")
     if covered_rows != total_backlog_rows:
@@ -652,6 +680,16 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         "--json-out", default=None, help="also write the full report as JSON to this path"
     )
     parser.add_argument(
+        "--since-days",
+        type=int,
+        default=0,
+        help=(
+            "only assess rows logged in the last N days (0 = all). "
+            "missing_entity_log is append-only, so without a window a name "
+            "matched by a later run still counts against the backlog."
+        ),
+    )
+    parser.add_argument(
         "--quiet", action="store_true", help="suppress the progress counter on stderr"
     )
     return parser.parse_args(argv)
@@ -672,7 +710,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     conn = connect_readonly(args)
     try:
-        profile = build_table_profile(conn, schema, table)
+        profile = build_table_profile(conn, schema, table, since_days=args.since_days)
         total_backlog_rows = count_backlog_rows(conn, profile)
         names = load_unresolved_names(conn, profile, args.limit)
         if not args.quiet:

@@ -10,6 +10,7 @@ if str(CORE_DIR) not in sys.path:
 from entity_resolution import CanonicalProfile, EntityResolver  # noqa: E402
 from multi_source import MultiSourceRankingPipeline  # noqa: E402
 from multi_source.adapters import ARWUAdapter, THEAdapter  # noqa: E402
+from multi_source.reviews import MappingReview  # noqa: E402
 from multi_source.types import StandardizedRankingRecord  # noqa: E402
 from ranking_aggregation import RankingAggregator, RankingRecordInput  # noqa: E402
 
@@ -23,9 +24,24 @@ class FakeMultiSourceRepository:
         #: prunes the wrong scope, is visible here and not only in the
         #: PostgreSQL tests.
         self.prune_calls = []
+        #: Standing human decisions from warehouse.mapping_review. Empty by
+        #: default, so the other tests describe a database with nothing
+        #: reviewed yet.
+        self.mapping_reviews = {}
+        #: Entities retired because a reviewer rejected them. Recorded because
+        #: the mapping upsert skips rejected rows, so without this call the old
+        #: row survives asserting the rejected match.
+        self.deactivated_keys = []
 
     def upsert_ranking_sources(self, sources):
         return {code: idx for idx, (code, _, _) in enumerate(sources, start=1)}
+
+    def load_mapping_reviews(self, source_id_map):
+        return dict(self.mapping_reviews)
+
+    def deactivate_rejected_mappings(self, rejected_keys, source_id_map):
+        self.deactivated_keys.extend(rejected_keys)
+        return len(rejected_keys)
 
     def upsert_source_university_mappings(self, unified_rows, source_id_map):
         self.unified_rows.extend(unified_rows)
@@ -339,6 +355,143 @@ class TestSupersededRecordsArePruned(unittest.TestCase):
         self.assertEqual(
             repo.prune_calls, [], "pruning without a run id would empty the table"
         )
+
+
+class TestMappingReviewsReachAggregation(unittest.TestCase):
+    """
+    A decision is only worth anything if it lands before ranking_record is
+    built. These drive the real pipeline rather than the rule in isolation,
+    because the whole risk is that the hook sits in the wrong place.
+    """
+
+    def _pipeline(self):
+        resolver = EntityResolver(
+            [
+                CanonicalProfile(
+                    canonical_university_id=1,
+                    display_name="University of Oxford",
+                    country_hint="united kingdom",
+                    aliases=("Oxford",),
+                ),
+                CanonicalProfile(
+                    canonical_university_id=2,
+                    display_name="University of Cambridge",
+                    country_hint="united kingdom",
+                    aliases=("Cambridge",),
+                ),
+            ]
+        )
+        repo = FakeMultiSourceRepository()
+        agg_repo = FakeAggregationRepository()
+        return (
+            MultiSourceRankingPipeline(
+                resolver=resolver, multi_source_repo=repo, aggregation_repo=agg_repo
+            ),
+            repo,
+            agg_repo,
+        )
+
+    def _records(self):
+        return [
+            StandardizedRankingRecord("QS", "qs:oxford", "University of Oxford", "United Kingdom", 2026, "world", 3, None),
+            StandardizedRankingRecord("THE", "the:oxford", "Oxford", "United Kingdom", 2026, "world", 1, None),
+            StandardizedRankingRecord("ARWU", "arwu:oxford", "University of Oxford", "United Kingdom", 2026, "world", 7, None),
+        ]
+
+    def test_a_rejection_withdraws_the_source_from_aggregation(self):
+        pipeline, repo, agg_repo = self._pipeline()
+        repo.mapping_reviews = {
+            ("THE", "the:oxford"): MappingReview(
+                source_code="THE",
+                source_entity_id="the:oxford",
+                decision="rejected",
+                decided_by="reviewer",
+            )
+        }
+
+        summary = pipeline.ingest_records(
+            self._records(), batch_id="review-test", run_label_prefix="review-test"
+        )
+
+        self.assertEqual(1, summary.unresolved_count)
+        self.assertEqual(2, summary.matched_count)
+        self.assertEqual(1, summary.mapping_reviews["rejected"])
+
+        outputs = agg_repo.outputs_by_scope[(2026, "global", "global")]
+        oxford = next(row for row in outputs if row.canonical_university_id == 1)
+        self.assertNotIn(
+            "THE",
+            {code for code, rank in (oxford.source_ranks or {}).items() if rank is not None},
+            "a rejected match must not keep crediting the source",
+        )
+
+    def test_a_rejection_retires_the_stale_mapping_row(self):
+        pipeline, repo, _agg = self._pipeline()
+        repo.mapping_reviews = {
+            ("THE", "the:oxford"): MappingReview(
+                source_code="THE",
+                source_entity_id="the:oxford",
+                decision="rejected",
+                decided_by="reviewer",
+            )
+        }
+
+        pipeline.ingest_records(
+            self._records(), batch_id="review-test", run_label_prefix="review-test"
+        )
+
+        # The upsert skips it, so without an explicit retirement the mapping
+        # table keeps offering the rejected pair up for review forever.
+        self.assertEqual([("THE", "the:oxford")], repo.deactivated_keys)
+
+    def test_nothing_is_retired_when_no_decision_rejects(self):
+        pipeline, repo, _agg = self._pipeline()
+        repo.mapping_reviews = {
+            ("THE", "the:oxford"): MappingReview(
+                source_code="THE",
+                source_entity_id="the:oxford",
+                decision="confirmed",
+                decided_canonical_university_id=1,
+                decided_by="reviewer",
+            )
+        }
+
+        pipeline.ingest_records(
+            self._records(), batch_id="review-test", run_label_prefix="review-test"
+        )
+
+        self.assertEqual([], repo.deactivated_keys)
+
+    def test_a_remap_moves_the_rank_to_the_reviewed_university(self):
+        pipeline, repo, agg_repo = self._pipeline()
+        repo.mapping_reviews = {
+            ("THE", "the:oxford"): MappingReview(
+                source_code="THE",
+                source_entity_id="the:oxford",
+                decision="remapped",
+                decided_canonical_university_id=2,
+                decided_by="reviewer",
+            )
+        }
+
+        summary = pipeline.ingest_records(
+            self._records(), batch_id="review-test", run_label_prefix="review-test"
+        )
+
+        self.assertEqual(0, summary.unresolved_count)
+        self.assertEqual(1, summary.mapping_reviews["remapped"])
+
+        written = {(row.source, row.canonical_university_id) for row in repo.unified_rows}
+        self.assertIn(("THE", 2), written)
+        self.assertNotIn(("THE", 1), written)
+
+    def test_no_decisions_leaves_the_run_unchanged(self):
+        pipeline, _repo, _agg = self._pipeline()
+        summary = pipeline.ingest_records(
+            self._records(), batch_id="review-test", run_label_prefix="review-test"
+        )
+        self.assertEqual(3, summary.matched_count)
+        self.assertEqual(0, summary.mapping_reviews["applied"])
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ from ranking_aggregation.repository import RankingAggregationRepository
 
 from .integrator import IntegrationDiagnostics, integrate_sources
 from .repository import MultiSourceRepository
+from .reviews import MappingReviewApplication, apply_mapping_reviews
 from .types import StandardizedRankingRecord, UnifiedRankingRecord
 
 logger = logging.getLogger("MultiSourceRankingPipeline")
@@ -35,6 +36,8 @@ class MultiSourceIngestionSummary:
     rows_updated: int = 0
     years_aggregated: list[int] = field(default_factory=list)
     aggregated_row_count: int = 0
+    # A human override that nobody can see is worse than no override at all.
+    mapping_reviews: dict[str, object] = field(default_factory=dict)
 
 
 class MultiSourceRankingPipeline:
@@ -79,7 +82,30 @@ class MultiSourceRankingPipeline:
         unified_rows, diagnostics = integrate_sources(raw_rows, resolver=self.resolver)
         source_defs = self._collect_source_defs(raw_rows)
         source_id_map = self.multi_source_repo.upsert_ranking_sources(source_defs)
+
+        # Human decisions outrank the resolver, and have to be applied here:
+        # before the mapping upsert, whose ON CONFLICT would overwrite them, and
+        # before the ranking_record upsert, which is what actually credits a
+        # source to a university. Applied any later and a decision is both
+        # transient and ineffective.
+        unified_rows, review_application = apply_mapping_reviews(
+            unified_rows,
+            self.multi_source_repo.load_mapping_reviews(source_id_map),
+        )
+        if review_application.applied:
+            logger.info(
+                "applied %s human mapping reviews (confirmed=%s remapped=%s rejected=%s)",
+                review_application.applied,
+                review_application.confirmed,
+                review_application.remapped,
+                review_application.rejected,
+            )
+
         self.multi_source_repo.upsert_source_university_mappings(unified_rows, source_id_map)
+        if review_application.rejected_keys:
+            self.multi_source_repo.deactivate_rejected_mappings(
+                review_application.rejected_keys, source_id_map
+            )
         rows_written = self.multi_source_repo.upsert_ranking_records(
             unified_rows,
             source_id_map,
@@ -159,6 +185,7 @@ class MultiSourceRankingPipeline:
             rows_updated=0,
             years_aggregated=aggregated_years,
             aggregated_row_count=aggregated_row_count,
+            mapping_reviews=review_application.to_dict(),
         )
         universe_counts: dict[tuple[int, str, str], int] = {}
         for row in unified_rows:

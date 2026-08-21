@@ -72,3 +72,52 @@ def tokenize_for_blocking(name: str) -> tuple[str, ...]:
     if not n:
         return ()
     return tuple(sorted(set(n.split())))
+
+
+# Letters that one source writes with a diacritic and another spells out.
+# normalize_university_name() folds diacritics through NFKD, so "München"
+# becomes "munchen" while a source writing "Muenchen" stays "muenchen".
+# Neither spelling is wrong; they simply never meet.
+TRANSLITERATION_EXPANSIONS = {
+    "ä": "ae", "Ä": "ae",
+    "ö": "oe", "Ö": "oe",
+    "ü": "ue", "Ü": "ue",
+    "ß": "ss",
+    "æ": "ae", "Æ": "ae",
+    "ø": "oe", "Ø": "oe",
+}
+
+# Distinct letters rather than a base plus a combining mark, so NFKD leaves
+# them alone and they survive normalization as themselves.
+SINGLE_LETTER_FOLDS = {
+    "ı": "i", "İ": "i",
+    "ł": "l", "Ł": "l",
+    "đ": "d", "Đ": "d",
+    "ð": "d", "Ð": "d",
+    "þ": "th", "Þ": "th",
+}
+
+_TRANSLITERATION_MAP = {**TRANSLITERATION_EXPANSIONS, **SINGLE_LETTER_FOLDS}
+_TRANSLITERATION_CHARS = frozenset(_TRANSLITERATION_MAP)
+
+
+def expanded_transliteration(name: str) -> str:
+    """
+    Normalized key for `name` under the spelled-out transliteration convention.
+
+    Returns "" when there is nothing to expand or the result is identical to
+    normalize_university_name(name), so callers can skip the extra key.
+
+    normalize_university_name() is deliberately left untouched: the C engine in
+    crawlernest-normalization/ mirrors it byte for byte, and the warehouse
+    stores keys it produced. This is an additional index key, not a
+    replacement.
+    """
+    if not name:
+        return ""
+    source = str(name)
+    if not any(ch in _TRANSLITERATION_CHARS for ch in source):
+        return ""
+    expanded = "".join(_TRANSLITERATION_MAP.get(ch, ch) for ch in source)
+    key = normalize_university_name(expanded)
+    return key if key and key != normalize_university_name(source) else ""
