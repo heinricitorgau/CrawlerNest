@@ -371,19 +371,40 @@ class DBWriter:
         table = self._get_schema_prefix("universities")
         embedding_payload = Json(embedding) if embedding is not None else None
 
+        # The source's own identifier for this university. The column existed
+        # and this insert never listed it, so the value arrived on every crawl
+        # and was dropped every time. It is the natural key for QS: entity
+        # mappings are keyed on it, and warehouse.subject_ranking_record has a
+        # foreign key into those mappings, so losing it means a later ingest
+        # re-keys and strands the subject rankings.
+        #
+        # The crawler fills University.path; University.qs_profile_path exists
+        # beside it and nothing ever assigns it. Both are read here, in the same
+        # order every other caller reads them.
+        qs_profile_path = str(
+            getattr(uni, "qs_profile_path", "") or getattr(uni, "path", "") or ""
+        ).strip()
+
         self.cur.execute(
             f"""
             INSERT INTO {table} (
-                school_slug, display_name, canonical_name, country_id, embedding
-            ) VALUES ({p}, {p}, {p}, {p}, {p})
+                school_slug, display_name, canonical_name, country_id, embedding,
+                qs_profile_path
+            ) VALUES ({p}, {p}, {p}, {p}, {p}, {p})
             ON CONFLICT(school_slug) DO UPDATE SET
                 display_name = EXCLUDED.display_name,
                 canonical_name = EXCLUDED.canonical_name,
                 country_id = COALESCE(EXCLUDED.country_id, {table}.country_id),
-                embedding = COALESCE(EXCLUDED.embedding, {table}.embedding)
+                embedding = COALESCE(EXCLUDED.embedding, {table}.embedding),
+                -- A crawl that did not capture the path must not erase a stored
+                -- one; only a non-empty incoming value replaces it.
+                qs_profile_path = COALESCE(
+                    NULLIF(EXCLUDED.qs_profile_path, ''),
+                    {table}.qs_profile_path
+                )
             RETURNING university_id
             """,
-            (slug, uni.name, uni.name, country_id, embedding_payload),
+            (slug, uni.name, uni.name, country_id, embedding_payload, qs_profile_path),
         )
         university_id = int(self.cur.fetchone()[0])
         self._university_id_cache[slug] = university_id
