@@ -2,7 +2,7 @@
 
 產生於 2026-08-21，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：311
+- **Commit 總數**：329
 - **期間**：2026-03-16 ~ 2026-08-21
 - **主分支**：`main`
 
@@ -34,8 +34,26 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `608ab2c` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #14 from heinricitorgau/fix/entity-resolution-blocking **[main]** |
-| `6798057` | 2026-08-21 | heinricitorgau | 1 | +6 / −2 | Stop pinning a constant run id, which made the prune inert **[fix/entity-resolution-blocking]** |
+| `3d6c08f` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #15 from heinricitorgau/fix/entity-resolution-blocking **[main]** |
+| `900c5e9` | 2026-08-21 | heinricitorgau | 2 | +30 / −30 | Retrain the disagreement model on the corrected pairing **[fix/entity-resolution-blocking]** |
+| `a7dc734` | 2026-08-21 | heinricitorgau | 1 | +7 / −7 | Re-run build_cross_source_data.m against the corrected pairing |
+| `2c15519` | 2026-08-21 | heinricitorgau | 1 | +77 / −24 | Point the analytics smoke at the path that now exists |
+| `4f38d3e` | 2026-08-21 | heinricitorgau | 1 | +29 / −2 | Fold review_queue.sql into mapping_review_queue.sql |
+| `17bd1e6` | 2026-08-21 | heinricitorgau | 1 | +6 / −21 | Re-export the pairing after clearing the review backlog |
+| `36d587a` | 2026-08-21 | heinricitorgau | 1 | +6 / −1 | Keep the whole note, commas and all |
+| `cea607d` | 2026-08-21 | heinricitorgau | 3 | +32 / −7 | Put the decision slot where the eye already is |
+| `d79fec7` | 2026-08-21 | heinricitorgau | 1 | +213 / −0 | Make re-exporting the QS-THE pairing a script, not a one-off |
+| `bb54267` | 2026-08-21 | heinricitorgau | 3 | +538 / −0 | Add batch tooling for the entity-resolution backlog |
+| `290ae7b` | 2026-08-21 | heinricitorgau | 1 | +230 / −15 | Re-export the QS-THE pairing the warehouse now holds |
+| `1fdeedd` | 2026-08-21 | heinricitorgau | 3 | +177 / −1 | Take the current rank, not the best one ever recorded |
+| `5a3066f` | 2026-08-21 | heinricitorgau | 1 | +2 / −2 | Stop labelling three different stages [4/4] |
+| `830234d` | 2026-08-21 | heinricitorgau | 3 | +133 / −16 | Persist the QS profile path instead of dropping it |
+| `92a7bf8` | 2026-08-21 | heinricitorgau | 4 | +484 / −165 | Give warehouse.ranking_record one writer |
+| `f7c42f8` | 2026-08-21 | heinricitorgau | 1 | +29 / −23 | Let the QS multi-source sync fail loudly |
+| `c603d55` | 2026-08-21 | heinricitorgau | 1 | +4 / −1 | Stop pinning the QS run id too |
+| `7fb3e23` | 2026-08-21 | github-actions[bot] | 1 | +18 / −9 | docs: regenerate the commit log |
+| `608ab2c` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #14 from heinricitorgau/fix/entity-resolution-blocking |
+| `6798057` | 2026-08-21 | heinricitorgau | 1 | +6 / −2 | Stop pinning a constant run id, which made the prune inert |
 | `73736db` | 2026-08-21 | heinricitorgau | 1 | +7000 / −1000 | Refresh the ARWU 2026 crawl output |
 | `5f89da9` | 2026-08-21 | heinricitorgau | 2 | +184 / −5 | Keep the ARWU source row, in the shape everything downstream expects |
 | `e1950cd` | 2026-08-21 | heinricitorgau | 12 | +1255 / −0 | Give the fuzzy-match backlog a review screen |
@@ -377,8 +395,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 311 |
-| 檔案變更累計 | 5885 |
-| 新增行數累計 | +1182811 |
-| 刪除行數累計 | −432159 |
-| 淨增行數 | +750652 |
+| Commit 數 | 329 |
+| 檔案變更累計 | 5914 |
+| 新增行數累計 | +1184826 |
+| 刪除行數累計 | −432483 |
+| 淨增行數 | +752343 |
