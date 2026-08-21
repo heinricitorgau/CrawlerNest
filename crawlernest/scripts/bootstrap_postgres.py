@@ -17,6 +17,8 @@ SCHEMA_ORDER = [
     SCHEMA_DIR / "postgresql_schema.sql",
     SCHEMA_DIR / "entity_resolution_postgresql.sql",
     SCHEMA_DIR / "multi_source_postgresql.sql",
+    # After multi_source: references warehouse.ranking_source.
+    SCHEMA_DIR / "mapping_review_postgresql.sql",
     SCHEMA_DIR / "subject_ranking_postgresql.sql",
     SCHEMA_DIR / "ranking_aggregation_postgresql.sql",
     SCHEMA_DIR / "recommendation_postgresql.sql",

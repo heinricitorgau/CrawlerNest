@@ -7,7 +7,11 @@ import re
 from typing import Callable, Optional
 
 from .alias_catalog import curated_alias_variants
-from .normalizer import normalize_university_name, tokenize_for_blocking
+from .normalizer import (
+    expanded_transliteration,
+    normalize_university_name,
+    tokenize_for_blocking,
+)
 from .types import CanonicalProfile, EntityRecord, ResolutionResult
 
 EmbeddingMatcher = Callable[[EntityRecord, list[CanonicalProfile]], Optional[tuple[int, float, str]]]
@@ -72,6 +76,12 @@ class EntityResolver:
                     normalized_display_candidates[norm_key].append((profile.canonical_university_id, profile.display_name))
                     for tok in tokenize_for_blocking(display_variant):
                         self._token_inverted[tok].add(profile.canonical_university_id)
+                self._index_transliteration(
+                    normalized_display_candidates,
+                    display_variant,
+                    profile.canonical_university_id,
+                    profile.display_name,
+                )
 
             aliases = {
                 *profile.aliases,
@@ -92,6 +102,12 @@ class EntityResolver:
                         normalized_alias_candidates[norm_key].append((profile.canonical_university_id, alias_variant))
                         for tok in tokenize_for_blocking(alias_variant):
                             self._token_inverted[tok].add(profile.canonical_university_id)
+                    self._index_transliteration(
+                        normalized_alias_candidates,
+                        alias_variant,
+                        profile.canonical_university_id,
+                        alias_variant,
+                    )
             if profile.country_hint:
                 for country_variant in self._country_variants(profile.country_hint):
                     self._country_index[country_variant].add(profile.canonical_university_id)
@@ -101,6 +117,29 @@ class EntityResolver:
         self._raw_alias_index = self._finalize_unique_index(raw_alias_candidates)
         self._normalized_alias_index = self._finalize_unique_index(normalized_alias_candidates)
 
+    def _index_transliteration(
+        self,
+        candidates: dict[str, list[tuple[int, str]]],
+        text: str,
+        canonical_id: int,
+        matched_alias: str,
+    ) -> None:
+        """
+        Also index `text` under the spelled-out transliteration convention, so
+        "München" is reachable from a source that writes "Muenchen".
+
+        Any key that ends up pointing at more than one canonical university is
+        dropped by _finalize_unique_index, so an expansion that collides with
+        an unrelated name silently disables itself rather than merging two
+        universities.
+        """
+        expanded_key = expanded_transliteration(text)
+        if not expanded_key:
+            return
+        candidates[expanded_key].append((canonical_id, matched_alias))
+        for tok in expanded_key.split():
+            self._token_inverted[tok].add(canonical_id)
+
     def resolve_batch(self, records: list[EntityRecord]) -> list[ResolutionResult]:
         return [self.resolve_one(r) for r in records]
 
@@ -108,6 +147,16 @@ class EntityResolver:
         raw_name = (record.university_name or "").strip()
         raw_key = raw_name.lower()
         norm_name = normalize_university_name(raw_name)
+
+        # The record may itself be written under either convention, so both
+        # keys are tried. The suffix keeps the two apart in the reported
+        # method, which is how the transliteration path stays measurable.
+        norm_expanded = expanded_transliteration(raw_name)
+        norm_lookups: tuple[tuple[str, str], ...] = (
+            ((norm_name, ""),)
+            if not norm_expanded
+            else ((norm_name, ""), (norm_expanded, "_transliterated"))
+        )
 
         # Stage 1: Exact
         exact = self._raw_alias_index.get(raw_key)
@@ -132,8 +181,10 @@ class EntityResolver:
             )
 
         # Stage 2: Normalized alias exact
-        norm_exact = self._normalized_alias_index.get(norm_name)
-        if norm_exact:
+        for lookup_key, method_suffix in norm_lookups:
+            norm_exact = self._normalized_alias_index.get(lookup_key)
+            if not norm_exact:
+                continue
             cid, matched_alias = norm_exact
             return ResolutionResult(
                 source_name=record.source_name,
@@ -141,7 +192,7 @@ class EntityResolver:
                 canonical_university_id=cid,
                 matched_alias=matched_alias,
                 confidence_score=0.98,
-                matching_method="normalized",
+                matching_method=f"normalized{method_suffix}",
                 candidate_count=1,
                 metadata=self._build_metadata(
                     record=record,
@@ -176,8 +227,10 @@ class EntityResolver:
             )
 
         # Stage 4: Normalized canonical display-name match
-        normalized_display = self._normalized_display_name_index.get(norm_name)
-        if normalized_display:
+        for lookup_key, method_suffix in norm_lookups:
+            normalized_display = self._normalized_display_name_index.get(lookup_key)
+            if not normalized_display:
+                continue
             cid, matched_alias = normalized_display
             return ResolutionResult(
                 source_name=record.source_name,
@@ -185,7 +238,7 @@ class EntityResolver:
                 canonical_university_id=cid,
                 matched_alias=matched_alias,
                 confidence_score=0.97,
-                matching_method="normalized_display",
+                matching_method=f"normalized_display{method_suffix}",
                 candidate_count=1,
                 metadata=self._build_metadata(
                     record=record,
@@ -309,9 +362,19 @@ class EntityResolver:
         return out
 
     def _candidate_ids(self, record: EntityRecord, normalized_name: str) -> list[int]:
-        # Token blocking
-        token_sets = [self._token_inverted.get(tok, set()) for tok in tokenize_for_blocking(normalized_name)]
-        token_union: set[int] = set().union(*token_sets) if token_sets else set(self._profiles_by_id.keys())
+        # Token blocking. The per-candidate hit count is kept so that the
+        # max_fuzzy_candidates cap below keeps the best-overlapping candidates
+        # instead of an arbitrary slice of a set.
+        query_tokens = set(tokenize_for_blocking(normalized_name))
+        expanded_query = expanded_transliteration(record.university_name)
+        if expanded_query:
+            query_tokens.update(expanded_query.split())
+
+        token_hits: dict[int, int] = defaultdict(int)
+        for tok in query_tokens:
+            for cid in self._token_inverted.get(tok, ()):
+                token_hits[cid] += 1
+        token_union: set[int] = set(token_hits) if query_tokens else set(self._profiles_by_id.keys())
 
         # Country blocking (if provided).
         # Fix R3: if the intersection is empty (country stored in a different format),
@@ -327,7 +390,10 @@ class EntityResolver:
 
         if not token_union:
             return []
-        ids = list(token_union)
+        # Rank before truncating. `list(set)` ordering is arbitrary, so the old
+        # slice could drop the correct candidate for any name whose token
+        # neighbourhood exceeds the cap - which is most US universities.
+        ids = sorted(token_union, key=lambda cid: (-token_hits.get(cid, 0), cid))
         return ids[: self.max_fuzzy_candidates]
 
     def _fuzzy_best_match(
