@@ -52,6 +52,11 @@ REJECTED = "rejected"
 REMAPPED = "remapped"
 VALID_DECISIONS = (CONFIRMED, REJECTED, REMAPPED)
 
+#: The skeleton's placeholder, and the things people write in its place while
+#: still thinking. All mean "not judged yet", so the line is skipped rather
+#: than failing the batch around it.
+UNDECIDED = frozenset({"", "?", "??", "???", "-", "--", "todo", "TODO"})
+
 
 @dataclass(frozen=True)
 class Decision:
@@ -86,7 +91,7 @@ def parse_decisions(path: Path) -> list[Decision]:
                 continue
             if cells[0].lower() in {"source_entity_id", "entity_id"}:
                 continue  # header
-            if len(cells) < 2 or cells[1] == "":
+            if len(cells) < 2 or cells[1] in UNDECIDED:
                 # An id with no decision is an entry not yet judged, which is
                 # what a freshly generated skeleton is made of. Skipping lets a
                 # half-finished file apply the half that is finished. A
