@@ -6,6 +6,7 @@ from typing import Any
 from ranking_aggregation.types import RankingRecordInput
 
 from .integrator import IntegrationDiagnostics
+from .reviews import MappingReview
 from .types import StandardizedRankingRecord, UnifiedRankingRecord
 
 
@@ -45,6 +46,64 @@ class MultiSourceRepository:
         self.conn.commit()
         return {str(code): int(source_id) for source_id, code in rows}
 
+    def load_mapping_reviews(self, source_id_map: dict[str, int]) -> dict[tuple[str, str], MappingReview]:
+        """
+        Read the standing human decisions for the sources in this run.
+
+        Read-only by design: the pipeline never writes warehouse.mapping_review.
+        Returns {} when the table is absent so that a database bootstrapped
+        before this schema landed still ingests rather than crashing.
+        """
+        if not source_id_map:
+            return {}
+
+        code_by_id = {int(source_id): str(code) for code, source_id in source_id_map.items()}
+
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = 'warehouse'
+                  AND table_name = 'mapping_review'
+                LIMIT 1
+                """
+            )
+            if cur.fetchone() is None:
+                return {}
+
+            cur.execute(
+                """
+                SELECT
+                    ranking_source_id,
+                    source_entity_id,
+                    decision,
+                    decided_canonical_university_id,
+                    decided_by,
+                    note
+                FROM warehouse.mapping_review
+                WHERE ranking_source_id = ANY(%s)
+                """,
+                (sorted(code_by_id),),
+            )
+            rows = cur.fetchall()
+
+        reviews: dict[tuple[str, str], MappingReview] = {}
+        for source_id, entity_id, decision, decided_id, decided_by, note in rows:
+            source_code = code_by_id.get(int(source_id))
+            if source_code is None:
+                continue
+            review = MappingReview(
+                source_code=source_code,
+                source_entity_id=str(entity_id),
+                decision=str(decision),
+                decided_canonical_university_id=None if decided_id is None else int(decided_id),
+                decided_by=str(decided_by or "unknown"),
+                note=None if note is None else str(note),
+            )
+            reviews[review.key] = review
+        return reviews
+
     def upsert_source_university_mappings(self, unified_rows: list[UnifiedRankingRecord], source_id_map: dict[str, int]) -> None:
         params: list[tuple[Any, ...]] = []
         for row in unified_rows:
@@ -78,11 +137,58 @@ class MultiSourceRepository:
                     match_method = EXCLUDED.match_method,
                     confidence_score = EXCLUDED.confidence_score,
                     metadata = EXCLUDED.metadata,
+                    -- A row this run writes is live by definition; without this
+                    -- an entity rejected once could never be reinstated by a
+                    -- later confirm or remap.
+                    is_active = TRUE,
                     last_seen_at = CURRENT_TIMESTAMP
                 """,
                 params,
             )
         self.conn.commit()
+
+    def deactivate_rejected_mappings(
+        self,
+        rejected_keys: list[tuple[str, str]] | tuple[tuple[str, str], ...],
+        source_id_map: dict[str, int],
+    ) -> int:
+        """
+        Retire the mappings a reviewer threw out.
+
+        upsert_source_university_mappings skips rows whose canonical id is None,
+        so a rejected entity is simply never written again and its old row
+        survives untouched -- still asserting the match a person just rejected.
+        The ranking records are already gone by then, so nothing user-facing is
+        wrong, but the mapping table would keep offering the same rejected pair
+        up for review forever.
+
+        canonical_university_id is NOT NULL in this table, so the row is
+        deactivated rather than blanked.
+        """
+        params = [
+            (source_id_map[source_code], source_entity_id)
+            for source_code, source_entity_id in rejected_keys
+            if source_code in source_id_map
+        ]
+        if not params:
+            return 0
+        deactivated = 0
+        with self.conn.cursor() as cur:
+            for ranking_source_id, source_entity_id in params:
+                cur.execute(
+                    """
+                    UPDATE warehouse.source_university_mapping
+                    SET is_active = FALSE,
+                        last_seen_at = CURRENT_TIMESTAMP
+                    WHERE ranking_source_id = %s
+                      AND source_entity_id = %s
+                      AND is_active
+                    """,
+                    (ranking_source_id, source_entity_id),
+                )
+                deactivated += max(0, cur.rowcount)
+        self.conn.commit()
+        return deactivated
 
     def prune_superseded_records(
         self,

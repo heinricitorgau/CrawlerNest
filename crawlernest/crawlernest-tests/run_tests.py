@@ -41,6 +41,7 @@ def run_all_tests():
         # Entity resolution: also unregistered until now, so the normalizer and
         # the resolver's blocking/threshold logic were unguarded in CI.
         "test_entity_resolution",
+        "test_mapping_reviews",
         "test_arwu_crawler",
         "test_analytics_bridge_weights",
         # Structural half runs anywhere; warehouse half is PostgreSQL-gated.
