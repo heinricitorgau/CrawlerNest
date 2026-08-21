@@ -168,6 +168,39 @@ def _pick_country_from_texts(texts: list[str], institution_name: str) -> str | N
     return None
 
 
+def _raw_row(
+    *,
+    name: str,
+    location: Any,
+    rank_display: Any,
+    score_text: Any,
+) -> dict[str, Any]:
+    """The row as ARWU published it, kept verbatim beside the normalized fields.
+
+    This is the only downstream record of what the source itself called an
+    institution. It survives into warehouse.source_university_mapping.metadata,
+    which is what the entity-review screen reads to show a reviewer the source
+    name and country next to the university the resolver matched them to; that
+    screen looks for raw_row.name and raw_row.location specifically.
+
+    Both extraction paths build it here so a row from the rendered table and a
+    row from the payload have one shape. THE's crawler stores its whole source
+    row under the same key, hence the matching field names.
+    """
+    def _clean(value: Any) -> str | None:
+        if value is None:
+            return None
+        text = str(value).strip()
+        return text or None
+
+    return {
+        "name": name,
+        "location": _clean(location),
+        "rank": _clean(rank_display),
+        "score": _clean(score_text),
+    }
+
+
 def _extract_rows_from_html_tables(html: str, year: int, page_url: str) -> list[dict[str, Any]]:
     parser = _CellAwareTableExtractor()
     parser.feed(html)
@@ -200,11 +233,14 @@ def _extract_rows_from_html_tables(html: str, year: int, page_url: str) -> list[
             if links:
                 profile_link = urljoin(BASE_URL, links[0])
 
+            score_text = None
             score = None
             if score_idx is not None and score_idx < len(row):
-                score = _to_float(row[score_idx].get("text"))
+                score_text = row[score_idx].get("text")
+                score = _to_float(score_text)
             country = _pick_country_from_texts(texts[1:] if len(texts) > 1 else texts, institution_name)
             source_id = profile_link or f"arwu:{year}:{_slugify(institution_name)}"
+            rank_display = str(row[rank_idx].get("text", "")).strip() or str(rank)
 
             normalized_rows.append(
                 {
@@ -217,14 +253,22 @@ def _extract_rows_from_html_tables(html: str, year: int, page_url: str) -> list[
                     # ARWU bands its tail ("401-500"), and the band is what it
                     # published. Both paths carry it so rows from the rendered
                     # table and rows from the payload have one shape.
-                    "rank_display": str(row[rank_idx].get("text", "")).strip() if rank_idx is not None else str(rank),
+                    "rank_display": rank_display,
                     "score": score,
                     "url": profile_link or page_url,
                     "metadata": {
                         "raw_source": "ARWU",
                         "extraction_method": "html_table",
                         "source_page": page_url,
-                        "raw_row": [cell.get("text", "") for cell in row],
+                        "raw_row": _raw_row(
+                            name=institution_name,
+                            location=country,
+                            rank_display=rank_display,
+                            score_text=score_text,
+                        ),
+                        # The cells behind the parse, kept for when a column
+                        # moves and the normalized fields stop making sense.
+                        "raw_cells": [cell.get("text", "") for cell in row],
                     },
                 }
             )
@@ -349,6 +393,12 @@ def _rows_from_payload(payload_js: str, year: int, page_url: str) -> list[dict[s
                         "raw_source": "ARWU",
                         "extraction_method": "nuxt_payload",
                         "source_page": page_url,
+                        "raw_row": _raw_row(
+                            name=name.strip(),
+                            location=table.get(region_v),
+                            rank_display=rank_text,
+                            score_text=table.get(score_v),
+                        ),
                     },
                 }
             )
