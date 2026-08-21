@@ -1135,11 +1135,6 @@
   "the_id": "131774"
  },
  {
-  "qs_name": "Indian Institute of Technology Roorkee (IITR)",
-  "the_name": "Indian Institute of Technology Ropar",
-  "the_id": "625269"
- },
- {
   "qs_name": "Inha University",
   "the_name": "Inha University",
   "the_id": "949"
@@ -1925,11 +1920,6 @@
   "the_id": "878"
  },
  {
-  "qs_name": "National Research Tomsk Polytechnic University",
-  "the_name": "Perm National Research Polytechnic University",
-  "the_id": "587694"
- },
- {
   "qs_name": "National Sun Yat-sen University",
   "the_name": "National Sun Yat-Sen University",
   "the_id": "728"
@@ -2183,11 +2173,6 @@
   "qs_name": "Peking University",
   "the_name": "Peking University",
   "the_id": "514"
- },
- {
-  "qs_name": "Perm State National Research University",
-  "the_name": "Belgorod State National Research University",
-  "the_id": "587850"
  },
  {
   "qs_name": "Peter the Great St. Petersburg Polytechnic University",
@@ -2940,6 +2925,11 @@
   "the_id": "511"
  },
  {
+  "qs_name": "The National Research University \"Belgorod State University\"",
+  "the_name": "Belgorod State National Research University",
+  "the_id": "587850"
+ },
+ {
   "qs_name": "The National University of Science and Technology MISIS",
   "the_name": "National University of Science and Technology (MISiS)",
   "the_id": "131519"
@@ -3078,11 +3068,6 @@
   "qs_name": "Tokyo Institute of Technology (Tokyo Tech)",
   "the_name": "Institute of Science Tokyo",
   "the_id": "733829"
- },
- {
-  "qs_name": "Tokyo Medical and Dental University (TMDU)",
-  "the_name": "Tokyo Medical University",
-  "the_id": "609450"
  },
  {
   "qs_name": "Tokyo Metropolitan University",
@@ -4510,7 +4495,7 @@
   "the_id": "559"
  },
  {
-  "qs_name": "University of Massachusetts Boston",
+  "qs_name": "University of Massachusetts Amherst",
   "the_name": "University of Massachusetts",
   "the_id": "528"
  },
