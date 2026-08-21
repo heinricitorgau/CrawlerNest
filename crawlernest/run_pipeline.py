@@ -133,7 +133,9 @@ from recommendation_engine import (  # noqa: E402
 from ranking_aggregation.repository import RankingAggregationRepository  # noqa: E402
 from crawlernest.db.analytics_bridge import ( # noqa: E402
     AnalyticsBridgeSummary,
+    aggregate_legacy_analytics as aggregate_legacy_analytics_conn,
     count_analytics_latest_view as count_analytics_latest_view_conn,
+    seed_legacy_entities as seed_legacy_entities_conn,
     sync_legacy_rankings_to_analytics as sync_legacy_rankings_to_analytics_conn,
 )
 try:
@@ -1215,6 +1217,116 @@ def sync_qs_multi_source_rankings(
         conn.close()
 
 
+def sync_qs_from_legacy(
+    *,
+    ranking_year: int,
+    source_code: str = "QS",
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+    ranking_type: str = "world",
+    universe_type: str = "global",
+    universe_key: str = "global",
+    enable_aggregation: bool = False,
+) -> Any:
+    """Ingest a source's legacy warehouse.rankings rows through the multi-source pipeline.
+
+    This is the single writer of warehouse.ranking_record for QS. The crawl
+    lands in the legacy tables, this reads them, the entity resolver decides
+    what each row belongs to, and the analytics aggregation runs afterwards
+    over what this wrote.
+
+    Aggregation is off by default because the caller runs the bridge's
+    aggregation immediately after, and doing it twice would create two
+    aggregation runs for one ingest.
+    """
+    from multi_source.legacy_source import load_legacy_ranking_records
+
+    # Timestamped, and never a constant. prune_superseded_records finds the
+    # rows this run did not write by comparing run_id, so an id that repeats
+    # between runs leaves stale records looking current -- and ingest_records
+    # skips the prune entirely when there is no run id at all.
+    run_id = (
+        f"{source_code.lower()}-legacy-{ranking_type}-{ranking_year}-"
+        f"{dt.datetime.now(dt.timezone.utc).replace(microsecond=0).strftime('%Y-%m-%dT%H:%M:%SZ')}"
+    )
+
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    try:
+        pipeline = _build_multi_source_pipeline(conn)
+        standardized = load_legacy_ranking_records(
+            conn,
+            source_code=source_code,
+            ranking_year=ranking_year,
+            ranking_type=ranking_type,
+            universe_type=universe_type,
+            universe_key=universe_key,
+        )
+        if not standardized:
+            raise RuntimeError(
+                f"No {source_code} rows in warehouse.rankings for {ranking_year}. "
+                "The crawl writes the legacy tables before this reads them, so an "
+                "empty result means the crawl or the legacy write did not happen."
+            )
+        return pipeline.ingest_records(
+            standardized,
+            batch_id=run_id,
+            run_label_prefix=f"{source_code.lower()}_legacy_ingest",
+            ranking_type=ranking_type,
+            enable_aggregation=enable_aggregation,
+        )
+    finally:
+        conn.close()
+
+
+def seed_legacy_entities(
+    *,
+    ranking_year: int,
+    source_code: str = "QS",
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> Any:
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    try:
+        return seed_legacy_entities_conn(
+            conn,
+            ranking_year=ranking_year,
+            source_code=source_code,
+        )
+    finally:
+        conn.close()
+
+
+def aggregate_legacy_analytics(
+    *,
+    ranking_year: int,
+    source_code: str = "QS",
+    universe_type: str = "global",
+    universe_key: str = "global",
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+) -> AnalyticsBridgeSummary:
+    conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
+    try:
+        return aggregate_legacy_analytics_conn(
+            conn,
+            ranking_year=ranking_year,
+            source_code=source_code,
+            universe_type=universe_type,
+            universe_key=universe_key,
+        )
+    finally:
+        conn.close()
+
+
 def sync_legacy_rankings_to_analytics(
     *,
     ranking_year: int,
@@ -1767,8 +1879,9 @@ def _handle_run_command(args: argparse.Namespace) -> int:
         universities=crawl_result.universities,
         normalize_universities=normalize_universities,
         write_universities=write_universities,
-        sync_qs_multi_source_rankings=sync_qs_multi_source_rankings,
-        sync_legacy_rankings_to_analytics=sync_legacy_rankings_to_analytics,
+        sync_qs_from_legacy=sync_qs_from_legacy,
+        seed_legacy_entities=seed_legacy_entities,
+        aggregate_legacy_analytics=aggregate_legacy_analytics,
         count_analytics_latest_view=count_analytics_latest_view,
     )
 
