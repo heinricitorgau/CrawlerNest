@@ -107,13 +107,18 @@ def parse_decisions(path: Path) -> list[Decision]:
                         f"{path}:{line_number}: canonical_id must be a number, got {cells[2]!r}"
                     ) from None
 
+            # Everything past the canonical id is the note, rejoined: a
+            # reason worth writing down usually has a comma in it, and a
+            # truncated explanation is worse than none.
+            note = ", ".join(cells[3:]).strip() if len(cells) >= 4 else ""
+
             out.append(
                 Decision(
                     line_number=line_number,
                     source_entity_id=cells[0],
                     decision=cells[1].lower(),
                     canonical_id=canonical_id,
-                    note=(cells[3] if len(cells) >= 4 and cells[3] != "" else None),
+                    note=note or None,
                 )
             )
     if not out:
