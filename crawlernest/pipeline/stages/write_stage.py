@@ -85,7 +85,10 @@ def execute_run_write_stage(
             pg_database=args.pg_database,
             pg_user=args.pg_user,
             pg_password=args.pg_password,
-            batch_id=f"qs-run-{args.ranking_year}",
+            # No batch_id: sync_qs_multi_source_rankings stamps a timestamped
+            # one. A constant id per year left rows from an earlier run that
+            # the current payload no longer covers looking current, because
+            # prune_superseded_records finds them by run_id difference.
         )
         print(
             "[multi-source] "
