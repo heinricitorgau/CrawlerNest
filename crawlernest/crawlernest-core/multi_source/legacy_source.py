@@ -54,6 +54,19 @@ def load_legacy_ranking_records(
     with conn.cursor() as cur:
         cur.execute(
             """
+            -- Newest wins. warehouse.rankings is append-only -- insert_ranking
+            -- has no ON CONFLICT -- so a re-crawl leaves several rows for one
+            -- university and this picks between them.
+            --
+            -- The bridge this replaced ordered by rank_start ASC, which picks
+            -- the best rank ever recorded rather than the current one: a
+            -- university that slipped down the table kept its old, better
+            -- position forever, and no amount of re-crawling would correct it.
+            -- ranking_record is current state; history lives in the run tables.
+            --
+            -- created_at carries the meaning; ranking_id, a serial, breaks ties
+            -- within a batch that shares a timestamp. Rows predating the
+            -- created_at column sort last, which is where undated rows belong.
             WITH deduped AS (
                 SELECT DISTINCT ON (
                     r.university_id, r.ranking_source, r.ranking_year, r.ranking_type
@@ -66,7 +79,7 @@ def load_legacy_ranking_records(
                     r.ranking_source,
                     r.ranking_year,
                     r.ranking_type,
-                    r.rank_start ASC NULLS LAST,
+                    r.created_at DESC NULLS LAST,
                     r.ranking_id DESC
             )
             SELECT
