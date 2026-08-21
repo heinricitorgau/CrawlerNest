@@ -136,7 +136,11 @@ def run_the_rankings_ingestion(
         pg_database=pg_database,
         pg_user=pg_user,
         pg_password=pg_password,
-        batch_id=f"the-{ranking_year}",
+        # No batch_id: ingest_rankings_payload stamps a timestamped one.
+        # A constant id per year silently disabled prune_superseded_records,
+        # which drops rows the current run did not write by comparing run_id --
+        # nothing is ever distinct from a value every row already carries. A
+        # university that stopped matching kept its old rank indefinitely.
     )
 
     aggregated_rows = int(getattr(ingest_summary, "aggregated_row_count", 0) or 0)
@@ -203,7 +207,7 @@ def run_arwu_rankings_ingestion(
         pg_database=pg_database,
         pg_user=pg_user,
         pg_password=pg_password,
-        batch_id=f"arwu-{ranking_year}",
+        # No batch_id, for the same reason as the THE ingestion above.
     )
 
     aggregated_rows = int(getattr(ingest_summary, "aggregated_row_count", 0) or 0)
