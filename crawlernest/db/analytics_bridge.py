@@ -58,22 +58,66 @@ class AnalyticsBridgeSummary:
     superseded_rankings_removed: int = 0
 
 
-def sync_legacy_rankings_to_analytics(
+@dataclass(frozen=True)
+class LegacySeedSummary:
+    ranking_source_count: int
+    canonical_university_count: int
+    canonical_university_link_count: int
+
+
+def seed_legacy_entities(
     conn: Any,
+    *,
+    ranking_year: int,
+    source_code: str = "QS",
+) -> LegacySeedSummary:
+    """Seed the entities everything downstream needs before it can resolve.
+
+    warehouse.canonical_university has to exist before the multi-source
+    resolver loads its profiles, so this runs first in a pipeline run and the
+    ranking_record write follows it.
+    """
+    source_code = str(source_code or "QS").strip().upper()
+    source_name = SOURCE_NAME_MAP.get(source_code, source_code)
+
+    try:
+        with conn.cursor() as cur:
+            ranking_source_count = _seed_ranking_source(
+                cur,
+                source_code=source_code,
+                source_name=source_name,
+                source_version=str(ranking_year),
+            )
+            canonical_university_count = _seed_canonical_universities(cur)
+            canonical_university_link_count = _seed_canonical_university_links(cur)
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+
+    return LegacySeedSummary(
+        ranking_source_count=ranking_source_count,
+        canonical_university_count=canonical_university_count,
+        canonical_university_link_count=canonical_university_link_count,
+    )
+
+
+def aggregate_legacy_analytics(
+    conn: Any,
+    *,
     ranking_year: int,
     source_code: str = "QS",
     universe_type: str = "global",
     universe_key: str = "global",
 ) -> AnalyticsBridgeSummary:
-    """Sync legacy warehouse.rankings rows into analytics-ready native tables.
+    """Aggregate whatever warehouse.ranking_record currently holds.
 
-    The bridge is intentionally idempotent: re-running for the same
-    source/year/universe updates deterministic rows instead of duplicating them.
+    Reads that table; never writes it. The multi-source pipeline is its only
+    writer, so this has to run after the ingest rather than before it.
     """
     source_code = str(source_code or "QS").strip().upper()
     universe_type = _normalize_scope(universe_type, default="global")
     universe_key = _normalize_scope(universe_key, default="global")
-    source_name = SOURCE_NAME_MAP.get(source_code, source_code)
     run_label = (
         f"legacy_bridge_{AGGREGATION_METHOD_VERSION}_{ranking_year}_"
         f"{source_code.lower()}_{universe_type}_{universe_key}"
@@ -85,22 +129,14 @@ def sync_legacy_rankings_to_analytics(
         "method": AGGREGATION_METHOD_VERSION,
         "normalization": "1.0 / rank_position",
         "missing_source_handling": "renormalize_by_available_weight",
-        "seeded_from": "warehouse.rankings",
+        "seeded_from": "warehouse.ranking_record",
     }
 
     try:
         with conn.cursor() as cur:
             _ensure_aggregation_run_conflict_target(cur)
 
-            ranking_source_count = _seed_ranking_source(
-                cur,
-                source_code=source_code,
-                source_name=source_name,
-                source_version=str(ranking_year),
-            )
-            canonical_university_count = _seed_canonical_universities(cur)
-            canonical_university_link_count = _seed_canonical_university_links(cur)
-            ranking_record_count = _sync_ranking_records(
+            ranking_record_count = _count_ranking_records(
                 cur,
                 ranking_year=ranking_year,
                 source_code=source_code,
@@ -143,15 +179,99 @@ def sync_legacy_rankings_to_analytics(
         raise
 
     return AnalyticsBridgeSummary(
-        ranking_source_count=ranking_source_count,
-        canonical_university_count=canonical_university_count,
-        canonical_university_link_count=canonical_university_link_count,
+        ranking_source_count=0,
+        canonical_university_count=0,
+        canonical_university_link_count=0,
         ranking_record_count=ranking_record_count,
         aggregation_run_id=aggregation_run_id,
         aggregated_rankings_count=aggregated_rankings_count,
         latest_view_count=latest_view_count,
         superseded_rankings_removed=superseded_rankings_removed,
     )
+
+
+def sync_legacy_rankings_to_analytics(
+    conn: Any,
+    ranking_year: int,
+    source_code: str = "QS",
+    universe_type: str = "global",
+    universe_key: str = "global",
+) -> AnalyticsBridgeSummary:
+    """Seed the legacy entities, then aggregate.
+
+    No longer writes warehouse.ranking_record. That table had two writers with
+    two run_id conventions -- this bridge, joining canonical_slug =
+    school_slug, and the multi-source pipeline, resolving through the entity
+    resolver -- running one after the other in a single pipeline run, each
+    undoing part of the other's work. The multi-source pipeline is now its only
+    writer, and reads warehouse.rankings through
+    multi_source.legacy_source.load_legacy_ranking_records.
+
+    A pipeline run calls seed_legacy_entities and aggregate_legacy_analytics
+    directly, with the ingest between them. This wrapper keeps the two-phase
+    call available for scripts and tests that do not write in between.
+
+    The bridge stays idempotent: re-running for the same source, year and
+    universe updates deterministic rows rather than duplicating them.
+    """
+    seed = seed_legacy_entities(
+        conn,
+        ranking_year=ranking_year,
+        source_code=source_code,
+    )
+    aggregated = aggregate_legacy_analytics(
+        conn,
+        ranking_year=ranking_year,
+        source_code=source_code,
+        universe_type=universe_type,
+        universe_key=universe_key,
+    )
+    return AnalyticsBridgeSummary(
+        ranking_source_count=seed.ranking_source_count,
+        canonical_university_count=seed.canonical_university_count,
+        canonical_university_link_count=seed.canonical_university_link_count,
+        ranking_record_count=aggregated.ranking_record_count,
+        aggregation_run_id=aggregated.aggregation_run_id,
+        aggregated_rankings_count=aggregated.aggregated_rankings_count,
+        latest_view_count=aggregated.latest_view_count,
+        superseded_rankings_removed=aggregated.superseded_rankings_removed,
+    )
+
+
+def _count_ranking_records(
+    cur: Any,
+    *,
+    ranking_year: int,
+    source_code: str,
+    universe_type: str,
+    universe_key: str,
+) -> int:
+    """How many rows this aggregation is working from.
+
+    Replaces the write count the bridge used to report. The number means the
+    same thing to the aggregation run -- its input size -- but it is now read
+    from the table rather than being the count of rows just written into it.
+    """
+    cur.execute(
+        """
+        SELECT COUNT(*)
+        FROM warehouse.ranking_record rr
+        JOIN warehouse.ranking_source rs
+          ON rs.ranking_source_id = rr.ranking_source_id
+        WHERE rr.ranking_year = %(ranking_year)s
+          AND rs.source_code = %(source_code)s
+          AND rr.universe_type = %(universe_type)s
+          AND rr.universe_key = %(universe_key)s
+        """,
+        {
+            "ranking_year": ranking_year,
+            "source_code": source_code,
+            "universe_type": universe_type,
+            "universe_key": universe_key,
+        },
+    )
+    row = cur.fetchone()
+    return int(row[0] or 0) if row else 0
 
 
 def count_analytics_latest_view(
@@ -278,115 +398,6 @@ def _seed_canonical_university_links(cur: Any) -> int:
         )
         SELECT COUNT(*) FROM upserted
         """
-    )
-    return int(cur.fetchone()[0] or 0)
-
-
-def _sync_ranking_records(
-    cur: Any,
-    *,
-    ranking_year: int,
-    source_code: str,
-    universe_type: str,
-    universe_key: str,
-) -> int:
-    cur.execute(
-        """
-        WITH deduped_rankings AS (
-            SELECT DISTINCT ON (
-                r.university_id,
-                r.ranking_source,
-                r.ranking_year,
-                r.ranking_type
-            )
-                r.*
-            FROM warehouse.rankings r
-            WHERE r.ranking_year = %(ranking_year)s
-            ORDER BY
-                r.university_id,
-                r.ranking_source,
-                r.ranking_year,
-                r.ranking_type,
-                r.rank_start ASC NULLS LAST,
-                r.ranking_id DESC
-        ),
-        upserted AS (
-            INSERT INTO warehouse.ranking_record (
-                canonical_university_id,
-                ranking_source_id,
-                ranking_year,
-                ranking_type,
-                universe_type,
-                universe_key,
-                rank_position,
-                score,
-                score_scale,
-                source_version,
-                source_url,
-                metadata,
-                run_id,
-                updated_at
-            )
-            SELECT
-                cu.canonical_university_id,
-                rs.ranking_source_id,
-                r.ranking_year,
-                COALESCE(NULLIF(r.ranking_type, ''), 'world'),
-                %(universe_type)s,
-                %(universe_key)s,
-                COALESCE(r.rank_start, r.rank_end),
-                r.score,
-                100,
-                r.ranking_year::text,
-                r.source_url,
-                jsonb_build_object(
-                    'seeded_from', 'warehouse.rankings',
-                    'legacy_ranking_id', r.ranking_id,
-                    'legacy_university_id', r.university_id,
-                    'rank_end', r.rank_end,
-                    'metrics_json', r.metrics_json
-                ),
-                %(run_id)s,
-                CURRENT_TIMESTAMP
-            FROM deduped_rankings r
-            JOIN warehouse.universities u
-              ON u.university_id = r.university_id
-            JOIN warehouse.canonical_university cu
-              ON cu.canonical_slug = u.school_slug
-            JOIN warehouse.ranking_source rs
-              ON rs.source_code = %(source_code)s
-            WHERE r.ranking_year = %(ranking_year)s
-              AND upper(r.ranking_source) = %(source_code)s
-              AND COALESCE(r.rank_start, r.rank_end) IS NOT NULL
-            ON CONFLICT (
-                canonical_university_id,
-                ranking_source_id,
-                ranking_year,
-                ranking_type,
-                universe_type,
-                universe_key
-            )
-            DO UPDATE SET
-                rank_position = EXCLUDED.rank_position,
-                score = EXCLUDED.score,
-                score_scale = EXCLUDED.score_scale,
-                source_version = EXCLUDED.source_version,
-                source_url = COALESCE(EXCLUDED.source_url, warehouse.ranking_record.source_url),
-                metadata = COALESCE(warehouse.ranking_record.metadata, '{}'::jsonb)
-                    || EXCLUDED.metadata,
-                run_id = EXCLUDED.run_id,
-                updated_at = CURRENT_TIMESTAMP
-            RETURNING ranking_record_id
-        )
-        SELECT COUNT(*) FROM upserted
-        """,
-        {
-            "ranking_year": ranking_year,
-            "universe_type": universe_type,
-            "universe_key": universe_key,
-            "run_id": f"legacy_bridge_{ranking_year}_{source_code.lower()}",
-            "source_code": source_code,
-        },
     )
     return int(cur.fetchone()[0] or 0)
 

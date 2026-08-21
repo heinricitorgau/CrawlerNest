@@ -20,10 +20,29 @@ def execute_run_write_stage(
     universities: list[Any],
     normalize_universities: Callable[[list[Any]], list[Any]],
     write_universities: Callable[..., tuple[int, int, int]],
-    sync_qs_multi_source_rankings: Callable[..., Any],
-    sync_legacy_rankings_to_analytics: Callable[..., Any] | None = None,
+    sync_qs_from_legacy: Callable[..., Any],
+    seed_legacy_entities: Callable[..., Any] | None = None,
+    aggregate_legacy_analytics: Callable[..., Any] | None = None,
     count_analytics_latest_view: Callable[..., int] | None = None,
 ) -> WriteStageResult:
+    """
+    Crawl output lands in the legacy tables, then flows through one writer.
+
+    The order below is the point of this stage. warehouse.ranking_record used
+    to be written twice per run -- once by the analytics bridge joining
+    canonical_slug = school_slug, once by the multi-source pipeline resolving
+    the crawled payload -- each with its own run_id convention, the second
+    pruning what the first wrote. Now:
+
+        write_universities        legacy tables: the crawl's landing zone
+        seed_legacy_entities      canonical_university, which the resolver reads
+        sync_qs_from_legacy       reads legacy, resolves, writes ranking_record
+        aggregate_legacy_analytics reads ranking_record, writes aggregated_rankings
+
+    Seeding has to precede the ingest because the resolver loads canonical
+    profiles at construction; aggregation has to follow it because it reads the
+    rows the ingest just wrote.
+    """
     checkpoint_file = Path(args.checkpoint_file)
 
     print("[2/4] Normalizing fields (Python baseline)...")
@@ -48,9 +67,46 @@ def execute_run_write_stage(
     print(f"Inserted: {inserted}, Skipped(resume): {skipped}, Failed: {failed}")
     print(f"Checkpoint: {checkpoint_file}")
 
-    if sync_legacy_rankings_to_analytics is not None:
-        print("[4/4] Syncing legacy rankings into analytics-native tables...")
-        analytics_summary = sync_legacy_rankings_to_analytics(
+    if seed_legacy_entities is not None:
+        print("[4/4] Seeding canonical entities from the legacy tables...")
+        seed_summary = seed_legacy_entities(
+            ranking_year=args.ranking_year,
+            source_code="QS",
+            pg_host=args.pg_host,
+            pg_port=args.pg_port,
+            pg_database=args.pg_database,
+            pg_user=args.pg_user,
+            pg_password=args.pg_password,
+        )
+        print(f"[analytics] seeded ranking_source: {seed_summary.ranking_source_count}")
+        print(f"[analytics] seeded canonical_university: {seed_summary.canonical_university_count}")
+        print(f"[analytics] seeded canonical_university_link: {seed_summary.canonical_university_link_count}")
+
+    # Deliberately unguarded. This used to be wrapped in a bare
+    # `except Exception` that printed "[warn] QS multi-source sync skipped" and
+    # carried on. That was survivable only while the bridge wrote
+    # ranking_record too, so the rankings API stayed populated and the loss
+    # showed up nowhere. It is the only writer now: if it raises, the run has
+    # produced no QS ranking records at all, and saying so is the only useful
+    # behaviour.
+    summary = sync_qs_from_legacy(
+        ranking_year=args.ranking_year,
+        source_code="QS",
+        pg_host=args.pg_host,
+        pg_port=args.pg_port,
+        pg_database=args.pg_database,
+        pg_user=args.pg_user,
+        pg_password=args.pg_password,
+    )
+    print(
+        "[multi-source] "
+        f"rows={summary.standardized_count} matched={summary.matched_count} "
+        f"unresolved={summary.unresolved_count} duplicates={summary.duplicate_input_count}"
+    )
+
+    if aggregate_legacy_analytics is not None:
+        print("[4/4] Aggregating analytics from warehouse.ranking_record...")
+        analytics_summary = aggregate_legacy_analytics(
             ranking_year=args.ranking_year,
             source_code="QS",
             universe_type="global",
@@ -61,10 +117,7 @@ def execute_run_write_stage(
             pg_user=args.pg_user,
             pg_password=args.pg_password,
         )
-        print(f"[analytics] seeded ranking_source: {analytics_summary.ranking_source_count}")
-        print(f"[analytics] seeded canonical_university: {analytics_summary.canonical_university_count}")
-        print(f"[analytics] seeded canonical_university_link: {analytics_summary.canonical_university_link_count}")
-        print(f"[analytics] synced ranking_record: {analytics_summary.ranking_record_count}")
+        print(f"[analytics] ranking_record rows aggregated: {analytics_summary.ranking_record_count}")
         print(f"[analytics] created aggregation_run: {analytics_summary.aggregation_run_id}")
         print(f"[analytics] aggregated_rankings count: {analytics_summary.aggregated_rankings_count}")
         print(f"[analytics] latest view count: {analytics_summary.latest_view_count}")
@@ -74,36 +127,6 @@ def execute_run_write_stage(
                 f"for year={args.ranking_year}, source=QS, universe=global/global. "
                 "The product rankings API will return empty results."
             )
-
-    # Deliberately unguarded. This used to be wrapped in a bare
-    # `except Exception` that printed "[warn] QS multi-source sync skipped" and
-    # carried on, so a failure here cost QS its entity mappings, its
-    # source_university_mapping rows and its half of the multi-source
-    # aggregation while the run still reported success. The legacy bridge above
-    # keeps writing ranking_record either way, which is what made the loss
-    # invisible: the rankings API stayed populated.
-    #
-    # If this raises, the run has not done what it says it does, and the only
-    # useful behaviour is to say so.
-    summary = sync_qs_multi_source_rankings(
-        normalized,
-        ranking_year=args.ranking_year,
-        pg_host=args.pg_host,
-        pg_port=args.pg_port,
-        pg_database=args.pg_database,
-        pg_user=args.pg_user,
-        pg_password=args.pg_password,
-        # No batch_id: sync_qs_multi_source_rankings stamps a timestamped
-        # one. A constant id per year left rows from an earlier run that
-        # the current payload no longer covers looking current, because
-        # prune_superseded_records finds them by run_id difference.
-    )
-    print(
-        "[multi-source] "
-        f"rows={summary.standardized_count} matched={summary.matched_count} "
-        f"unresolved={summary.unresolved_count} duplicates={summary.duplicate_input_count} "
-        f"aggregated_years={summary.years_aggregated}"
-    )
 
     if count_analytics_latest_view is not None:
         latest_view_count = count_analytics_latest_view(
