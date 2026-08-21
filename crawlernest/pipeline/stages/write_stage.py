@@ -68,7 +68,7 @@ def execute_run_write_stage(
     print(f"Checkpoint: {checkpoint_file}")
 
     if seed_legacy_entities is not None:
-        print("[4/4] Seeding canonical entities from the legacy tables...")
+        print("[analytics] Seeding canonical entities from the legacy tables...")
         seed_summary = seed_legacy_entities(
             ranking_year=args.ranking_year,
             source_code="QS",
@@ -105,7 +105,7 @@ def execute_run_write_stage(
     )
 
     if aggregate_legacy_analytics is not None:
-        print("[4/4] Aggregating analytics from warehouse.ranking_record...")
+        print("[analytics] Aggregating from warehouse.ranking_record...")
         analytics_summary = aggregate_legacy_analytics(
             ranking_year=args.ranking_year,
             source_code="QS",
