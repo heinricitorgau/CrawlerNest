@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import sys
 from pathlib import Path
@@ -11,14 +12,20 @@ import psycopg2
 
 
 MODULE_ROOT = Path(__file__).resolve().parents[1]
-if str(MODULE_ROOT) not in sys.path:
-    sys.path.insert(0, str(MODULE_ROOT))
+for _path in (MODULE_ROOT, MODULE_ROOT / "crawlernest-core"):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
-from db.analytics_bridge import sync_legacy_rankings_to_analytics  # noqa: E402
+from db.analytics_bridge import (  # noqa: E402
+    aggregate_legacy_analytics,
+    seed_legacy_entities,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Smoke test legacy rankings -> analytics bridge")
+    parser = argparse.ArgumentParser(
+        description="Smoke test the legacy tables -> analytics path, end to end"
+    )
     parser.add_argument("--host", default="localhost")
     parser.add_argument("--port", type=int, default=5432)
     parser.add_argument("--database", default="clawer")
@@ -46,20 +53,16 @@ def main() -> int:
         password=args.password,
     )
     try:
-        first = sync_legacy_rankings_to_analytics(
-            conn,
-            ranking_year=args.year,
-            source_code=args.source_code,
-            universe_type=args.universe_type,
-            universe_key=args.universe_key,
-        )
-        second = sync_legacy_rankings_to_analytics(
-            conn,
-            ranking_year=args.year,
-            source_code=args.source_code,
-            universe_type=args.universe_type,
-            universe_key=args.universe_key,
-        )
+        # The whole path, twice. warehouse.ranking_record has one writer now --
+        # the multi-source pipeline, reading the legacy tables -- so the bridge
+        # alone no longer fills it, and a smoke test that only called the bridge
+        # would assert against a table nothing had written.
+        #
+        # Seed first: the resolver loads canonical profiles when it is built.
+        # Aggregate last: it reads the rows the ingest just wrote.
+        first = _run_once(conn, args)
+        second = _run_once(conn, args)
+
         ranking_record_count = _count_ranking_records(
             conn,
             year=args.year,
@@ -76,25 +79,75 @@ def main() -> int:
     finally:
         conn.close()
 
-    if second.ranking_record_count != first.ranking_record_count:
+    # Idempotency across the whole path, not just the bridge: re-running must
+    # update the same rows rather than adding to them or dropping any.
+    if second != first:
         raise RuntimeError(
-            "Bridge rerun changed synced row count unexpectedly: "
-            f"first={first.ranking_record_count}, second={second.ranking_record_count}"
+            f"Rerunning the path changed its counts: first={first}, second={second}"
         )
     if ranking_record_count <= 0:
-        raise RuntimeError("warehouse.ranking_record has 0 rows after bridge sync")
+        raise RuntimeError("warehouse.ranking_record has 0 rows after the ingest")
     if latest_view_count <= 0:
-        raise RuntimeError("analytics.v_aggregated_rankings_latest has 0 rows after bridge sync")
+        raise RuntimeError("analytics.v_aggregated_rankings_latest has 0 rows after aggregation")
 
     api_count = _fetch_api_item_count(args.api_url)
     if api_count <= 0:
         raise RuntimeError(f"{args.api_url} returned 0 ranking items")
 
-    print("[smoke] sync rerun: ok")
+    print(f"[smoke] rerun is idempotent: {first}")
     print(f"[smoke] warehouse.ranking_record count: {ranking_record_count}")
     print(f"[smoke] analytics.v_aggregated_rankings_latest count: {latest_view_count}")
     print(f"[smoke] /api/v1/rankings item count: {api_count}")
     return 0
+
+
+def _run_once(conn, args) -> tuple[int, int, int]:
+    """Seed, ingest, aggregate. Returns the counts each phase reports."""
+    from multi_source.legacy_source import load_legacy_ranking_records
+    from pipeline.utils.postgres import build_multi_source_pipeline
+
+    seed = seed_legacy_entities(
+        conn, ranking_year=args.year, source_code=args.source_code
+    )
+
+    standardized = load_legacy_ranking_records(
+        conn,
+        source_code=args.source_code,
+        ranking_year=args.year,
+        universe_type=args.universe_type,
+        universe_key=args.universe_key,
+    )
+    ingested = 0
+    if standardized:
+        pipeline = build_multi_source_pipeline(conn)
+        summary = pipeline.ingest_records(
+            standardized,
+            # Unique per pass, deliberately. A constant run id makes
+            # prune_superseded_records a no-op, so a smoke test using one would
+            # leave the delete it is meant to cover unexercised. Two passes over
+            # the same payload rewrite every row, so nothing is pruned and the
+            # counts still have to match.
+            batch_id=(
+                f"smoke-{args.source_code.lower()}-{args.year}-"
+                f"{dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')}"
+            ),
+            run_label_prefix="smoke_analytics_bridge",
+            enable_aggregation=False,
+        )
+        ingested = int(getattr(summary, "matched_count", 0) or 0)
+
+    aggregated = aggregate_legacy_analytics(
+        conn,
+        ranking_year=args.year,
+        source_code=args.source_code,
+        universe_type=args.universe_type,
+        universe_key=args.universe_key,
+    )
+    return (
+        seed.canonical_university_count,
+        ingested,
+        aggregated.aggregated_rankings_count,
+    )
 
 
 def _count_ranking_records(
