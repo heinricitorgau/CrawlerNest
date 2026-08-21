@@ -78,3 +78,9 @@ build/
 # crawlernest/scripts/build_lobster_runtime.sh from crawlernest/. It was
 # committed by mistake and has been removed; never commit the built package.
 deployment-support/
+
+# Entity-resolution review working files. mapping_review_skeleton.sql
+# regenerates the queue from the warehouse, and the decisions themselves live
+# in warehouse.mapping_review once applied, so the file in between is scratch.
+decisions.csv
+decisions.csv.*
