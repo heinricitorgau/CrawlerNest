@@ -269,6 +269,38 @@ Ordered by `saved_at DESC`. Returns only records owned by the session user.
 
 ---
 
+## Entity Review API (internal)
+
+Internal review of fuzzy entity-resolution matches, at `/api/v1/admin/mapping-reviews`. Proxied by Next.js under `/api/admin/mapping-reviews`, with the review screen at `/admin/entity-review`.
+
+| Method | Path | Auth required | Purpose |
+|---|---|---|---|
+| `GET` | `/api/v1/admin/mapping-reviews?status=pending\|decided&limit=N` | Reviewer | List fuzzy matches awaiting or having received a verdict |
+| `GET` | `/api/v1/admin/mapping-reviews/canonical-search?q=…` | Reviewer | Find a canonical university to remap onto |
+| `POST` | `/api/v1/admin/mapping-reviews` | Reviewer | Record a verdict |
+
+**Authorization:** an e-mail allowlist, set through `crawlernest.reviewer.emails` (environment: `CRAWLERNEST_REVIEWER_EMAILS`, comma-separated). It **fails closed** — with the property unset nobody is a reviewer. A role column on `warehouse.app_user` was avoided deliberately: that table takes public signups, so a role flag there would be one bad default away from granting a visitor write access to ranking data. Non-reviewers get 403 whether or not they are signed in, so the endpoint cannot be used to enumerate who holds review rights.
+
+**Request body for `POST`:**
+
+```json
+{
+  "rankingSourceId": 402,
+  "sourceEntityId": "846",
+  "decision": "rejected",
+  "decidedCanonicalUniversityId": null,
+  "note": "NOVA is a separate institution."
+}
+```
+
+`decision` is one of `confirmed`, `remapped`, `rejected`. A rejection must not name a university; the other two must. Only the identity of the pair and the verdict are taken from the client — what was reviewed (matched university, method, score) is read server-side from the live mapping row, so the stored evidence cannot be forged.
+
+**Writes exactly one table.** `warehouse.mapping_review` is API-owned. No pipeline table is touched and no pipeline run is triggered, so this does not breach the read-only analytics contract. A decision therefore **does not take effect when it is saved** — the pipeline reads and applies it on the next source ingestion. Every response carries a `caveats` array saying so.
+
+See [Analytics Explainability](analytics/ANALYTICS_EXPLAINABILITY.md) for why a rejection lowering coverage is a correction rather than a regression.
+
+---
+
 ## Frontend Proxy Notes
 
 Next.js proxy routes live under:
