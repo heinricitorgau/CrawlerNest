@@ -42,6 +42,8 @@ def run_all_tests():
         # the resolver's blocking/threshold logic were unguarded in CI.
         "test_entity_resolution",
         "test_mapping_reviews",
+        # Needs PostgreSQL; skips itself unless CRAWLERNEST_RUN_PG_TESTS=1.
+        "test_legacy_source",
         "test_arwu_crawler",
         "test_analytics_bridge_weights",
         # Structural half runs anywhere; warehouse half is PostgreSQL-gated.
