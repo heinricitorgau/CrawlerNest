@@ -38,14 +38,16 @@ def load_legacy_ranking_records(
     Deduplicated the same way the bridge deduplicated: one row per university,
     source, year and ranking type, preferring the best rank.
 
-    `source_entity_id` reuses whatever id this source already has on record for
-    the university, and only falls back to school_slug when there is none.
-    Re-keying is not free: warehouse.subject_ranking_record carries a foreign
-    key to source_university_mapping, so QS subject rankings hang off the ids
-    an earlier ingest created. Those ids are QS profile paths, which the crawl
-    holds in memory and no warehouse column preserves -- warehouse.universities
-    has a qs_profile_path column, but nothing populates it -- so they can only
-    be recovered from the mapping table itself.
+    `source_entity_id` is the source's own identifier for the university, read
+    from warehouse.universities.qs_profile_path. Re-keying is not free:
+    warehouse.subject_ranking_record carries a foreign key to
+    source_university_mapping, so QS subject rankings hang off the ids an
+    earlier ingest created, and changing the scheme strands them.
+
+    Two fallbacks behind it, in order. The id this source already has on record
+    in source_university_mapping, which covers universities written before
+    qs_profile_path was persisted; then school_slug, for a university neither
+    knows about yet.
     """
     normalized_source = str(source_code or "QS").strip().upper()
 
@@ -68,7 +70,11 @@ def load_legacy_ranking_records(
                     r.ranking_id DESC
             )
             SELECT
-                COALESCE(existing.source_entity_id, u.school_slug) AS source_entity_id,
+                COALESCE(
+                    NULLIF(u.qs_profile_path, ''),
+                    existing.source_entity_id,
+                    u.school_slug
+                ) AS source_entity_id,
                 u.display_name,
                 c.country_name,
                 COALESCE(r.rank_start, r.rank_end) AS rank_position,
@@ -85,9 +91,10 @@ def load_legacy_ranking_records(
               ON u.university_id = r.university_id
             LEFT JOIN warehouse.countries c
               ON c.country_id = u.country_id
-            -- The id this source already has on record for the university, so
-            -- an ingest updates the existing mapping instead of creating a
-            -- second one beside it and stranding whatever references the first.
+            -- Fallback for universities written before qs_profile_path was
+            -- persisted: the id this source already has on record, so an
+            -- ingest updates the existing mapping instead of creating a second
+            -- one beside it and stranding whatever references the first.
             LEFT JOIN LATERAL (
                 SELECT m.source_entity_id
                 FROM warehouse.canonical_university cu
