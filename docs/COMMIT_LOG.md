@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-08-21，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-08-22，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：329
-- **期間**：2026-03-16 ~ 2026-08-21
+- **Commit 總數**：332
+- **期間**：2026-03-16 ~ 2026-08-22
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,8 +34,11 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `3d6c08f` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #15 from heinricitorgau/fix/entity-resolution-blocking **[main]** |
-| `900c5e9` | 2026-08-21 | heinricitorgau | 2 | +30 / −30 | Retrain the disagreement model on the corrected pairing **[fix/entity-resolution-blocking]** |
+| `aeda786` | 2026-08-22 | KAO,EN-TSAI | — | — | Merge pull request #16 from heinricitorgau/test/inference-batch-invariants **[main]** |
+| `fb4289a` | 2026-08-22 | heinricitorgau | 3 | +214 / −2 | Cover the one MATLAB port parity cannot reach **[test/inference-batch-invariants]** |
+| `be32c9d` | 2026-08-21 | github-actions[bot] | 1 | +26 / −8 | docs: regenerate the commit log |
+| `3d6c08f` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #15 from heinricitorgau/fix/entity-resolution-blocking |
+| `900c5e9` | 2026-08-21 | heinricitorgau | 2 | +30 / −30 | Retrain the disagreement model on the corrected pairing |
 | `a7dc734` | 2026-08-21 | heinricitorgau | 1 | +7 / −7 | Re-run build_cross_source_data.m against the corrected pairing |
 | `2c15519` | 2026-08-21 | heinricitorgau | 1 | +77 / −24 | Point the analytics smoke at the path that now exists |
 | `4f38d3e` | 2026-08-21 | heinricitorgau | 1 | +29 / −2 | Fold review_queue.sql into mapping_review_queue.sql |
@@ -65,7 +68,7 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 | `4f9c241` | 2026-08-20 | github-actions[bot] | 1 | +8 / −7 | docs: regenerate the commit log |
 | `7d87cc5` | 2026-08-20 | heinricitorgau | 3 | +400 / −13 | Regenerate the commit log from CI instead of by hand |
 | `3c61988` | 2026-08-20 | KAO,EN-TSAI | — | — | Merge pull request #13 from heinricitorgau/docs/commit-log |
-| `ca4ed73` | 2026-08-20 | heinricitorgau | 1 | +29 / −5 | Report the artifact-ordering check instead of enforcing it **[docs/commit-log]** |
+| `ca4ed73` | 2026-08-20 | heinricitorgau | 1 | +29 / −5 | Report the artifact-ordering check instead of enforcing it |
 | `50050cf` | 2026-08-20 | heinricitorgau | 3 | +128 / −0 | Make the disagreement inference use the shared cross-source builder |
 | `08daf6e` | 2026-08-20 | heinricitorgau | 5 | +226 / −7 | Reproduce the Phase 3 diagnostics figure in MATLAB |
 | `5b84ab1` | 2026-08-18 | heinricitorgau | 52 | +9523 / −9492 | Store and check out LF everywhere, and renormalise |
@@ -395,8 +398,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 329 |
-| 檔案變更累計 | 5914 |
-| 新增行數累計 | +1184826 |
-| 刪除行數累計 | −432483 |
-| 淨增行數 | +752343 |
+| Commit 數 | 332 |
+| 檔案變更累計 | 5918 |
+| 新增行數累計 | +1185066 |
+| 刪除行數累計 | −432493 |
+| 淨增行數 | +752573 |
