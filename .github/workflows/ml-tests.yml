@@ -243,6 +243,11 @@ jobs:
       # here: its metrics depend on a fold split whose RNG cannot be aligned
       # with scikit-learn's, so there is nothing to assert at 1e-9. The
       # deterministic half of Phase 3 is build_cross_source_data.m, which is.
+      #
+      # predict_qs_disagreement.m is run but is not a registered port: it has no
+      # committed artifact, so there is nothing for the parity module to diff.
+      # It is here for the structural check further down, which needs a fresh
+      # batch to look at and no baseline.
       - name: Re-run the MATLAB ports
         uses: matlab-actions/run-command@v2
         with:
@@ -253,6 +258,7 @@ jobs:
             recover_qs_weights(OutDir = root + "/weights_matlab");
             qs_support_flagger(OutDir = root + "/support_matlab");
             build_cross_source_data(OutDir = root + "/cross_source_matlab");
+            predict_qs_disagreement(OutputCSV = root + "/cross_source_matlab/predicted_disagreements.csv");
 
       - name: Show what MATLAB produced
         run: ls -lR /tmp/matlab_fresh
@@ -268,3 +274,16 @@ jobs:
         run: |
           python -m ranking_ml.evaluation.check_matlab_parity \
             --fresh-root /tmp/matlab_fresh
+
+      # predict_qs_disagreement.m has no committed artifact to compare against --
+      # its output is gitignored -- so the parity module cannot cover it. What
+      # can be asserted without a baseline is the shape of the batch, which is
+      # where this port went wrong before: an earlier version scored 262
+      # universities THE had already ranked, and a model asked to predict
+      # something already observed looks confident and means nothing.
+      - name: Inference batch is exactly the unmatched universities
+        env:
+          PYTHONPATH: crawlernest/crawlernest-ml
+        run: |
+          python -m ranking_ml.evaluation.check_inference_batch \
+            --batch /tmp/matlab_fresh/cross_source_matlab/predicted_disagreements.csv
