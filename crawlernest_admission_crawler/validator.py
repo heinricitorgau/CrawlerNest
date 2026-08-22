@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
+
+from crawlernest_admission_crawler.models import DEGREE_LEVELS, UNKNOWN_DEGREE_LEVEL
+from crawlernest_admission_crawler.source_identity import admission_source_entity_id
 
 REQUIRED_FIELDS = (
     "university_name",
@@ -18,6 +21,11 @@ MIN_IELTS = 0.0
 MAX_IELTS = 9.0
 MIN_TOEFL = 0
 MAX_TOEFL = 120
+MIN_DUOLINGO = 10
+MAX_DUOLINGO = 160
+MIN_GPA = 0.0
+MAX_GPA = 4.0
+VALID_DEGREE_LEVELS = frozenset({*DEGREE_LEVELS, UNKNOWN_DEGREE_LEVEL})
 
 
 @dataclass(slots=True)
@@ -106,12 +114,46 @@ def validate_admission_staging_rows(staging_file: Path) -> AdmissionStagingValid
                 if toefl is None or toefl < MIN_TOEFL or toefl > MAX_TOEFL:
                     row_errors.append("invalid_toefl_requirement")
 
+            # Checked here as well as by ck_admission_record_ranges, so a bad
+            # value is reported against its staging line rather than aborting
+            # an ingest halfway with a constraint violation.
+            if payload.get("duolingo_requirement") is not None:
+                duolingo = _as_int(payload.get("duolingo_requirement"))
+                if duolingo is None or duolingo < MIN_DUOLINGO or duolingo > MAX_DUOLINGO:
+                    row_errors.append("invalid_duolingo_requirement")
+
+            if payload.get("gpa_requirement") is not None:
+                gpa = _as_float(payload.get("gpa_requirement"))
+                if gpa is None or gpa < MIN_GPA or gpa > MAX_GPA:
+                    row_errors.append("invalid_gpa_requirement")
+
+            if payload.get("degree_level") is not None:
+                if payload.get("degree_level") not in VALID_DEGREE_LEVELS:
+                    row_errors.append("invalid_degree_level")
+
+            if payload.get("application_deadline") is not None:
+                deadline = payload.get("application_deadline")
+                if not isinstance(deadline, str):
+                    row_errors.append("invalid_application_deadline")
+                else:
+                    try:
+                        date.fromisoformat(deadline)
+                    except ValueError:
+                        row_errors.append("invalid_application_deadline_isoformat")
+
             if row_errors:
                 invalid_row_count += 1
                 _maybe_add_sample(error_samples, line_number, row_errors, payload)
                 continue
 
-            dedupe_key = (normalized_university_name, source_url)
+            # Matches uq_admission_record_source_entity. Keying on
+            # normalized_university_name, as this used to, both rejected rows
+            # the warehouse would happily hold and changed shape whenever the
+            # resolver changed its mind about a name.
+            dedupe_key = (
+                admission_source_entity_id(source_url),
+                str(payload.get("degree_level") or UNKNOWN_DEGREE_LEVEL),
+            )
             if dedupe_key in seen_keys:
                 duplicate_row_count += 1
                 _maybe_add_sample(duplicate_samples, line_number, ["duplicate_row"], payload)

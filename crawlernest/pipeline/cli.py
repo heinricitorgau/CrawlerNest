@@ -186,7 +186,33 @@ def build_parser(
 
     crawl_admission_parser = subparsers.add_parser(
         "crawl-admission",
-        help="Run the admission crawler engine and export mock records to JSON",
+        help="Crawl the configured university admission pages and export the extracted records",
+    )
+    crawl_admission_parser.add_argument(
+        "--snapshot-dir",
+        default="",
+        help=(
+            "Read checked-in HTML from this directory. Defaults to the "
+            "snapshots beside the crawler; this command does not touch the "
+            "network unless --live is passed."
+        ),
+    )
+    crawl_admission_parser.add_argument(
+        "--live",
+        action="store_true",
+        help="Fetch the real pages instead of the snapshots. Rate-limited.",
+    )
+    crawl_admission_parser.add_argument(
+        "--only",
+        nargs="*",
+        metavar="KEY",
+        help="Restrict to these university keys (e.g. --only oxford mit)",
+    )
+    crawl_admission_parser.add_argument(
+        "--rate-limit",
+        type=float,
+        default=1.0,
+        help="Seconds between requests when fetching live",
     )
     crawl_admission_parser.add_argument(
         "--output-file",
@@ -323,7 +349,7 @@ def build_parser(
     )
     write_admission_warehouse_parser.add_argument(
         "--landing-table",
-        default="admission_records_preview",
+        default="admission_record",
         help="Target table for admission warehouse landing writes",
     )
     write_admission_warehouse_parser.add_argument("--pg-host", default="localhost")
@@ -334,10 +360,10 @@ def build_parser(
 
     resolve_admission_entities_parser = subparsers.add_parser(
         "resolve-admission-entities",
-        help="Resolve admission preview rows against canonical_university and university_alias using deterministic exact match",
+        help="Resolve admission rows to canonical universities with the shared EntityResolver, applying standing mapping reviews",
     )
     resolve_admission_entities_parser.add_argument("--target-schema", default="warehouse")
-    resolve_admission_entities_parser.add_argument("--target-table", default="admission_records_preview")
+    resolve_admission_entities_parser.add_argument("--target-table", default="admission_record")
     resolve_admission_entities_parser.add_argument("--pg-host", default="localhost")
     resolve_admission_entities_parser.add_argument("--pg-port", type=int, default=5432)
     resolve_admission_entities_parser.add_argument("--pg-database", default="clawer")
@@ -349,7 +375,7 @@ def build_parser(
         help="Read-only report of unresolved admission entities grouped by normalized university name",
     )
     unresolved_admission_entities_parser.add_argument("--target-schema", default="warehouse")
-    unresolved_admission_entities_parser.add_argument("--target-table", default="admission_records_preview")
+    unresolved_admission_entities_parser.add_argument("--target-table", default="admission_record")
     unresolved_admission_entities_parser.add_argument("--limit", type=int, default=20)
     unresolved_admission_entities_parser.add_argument(
         "--output-file",
@@ -367,7 +393,7 @@ def build_parser(
         help="Refresh deterministic admission entity resolution, then regenerate the unresolved admission report",
     )
     refresh_admission_resolution_parser.add_argument("--target-schema", default="warehouse")
-    refresh_admission_resolution_parser.add_argument("--target-table", default="admission_records_preview")
+    refresh_admission_resolution_parser.add_argument("--target-table", default="admission_record")
     refresh_admission_resolution_parser.add_argument(
         "--limit",
         type=int,
@@ -416,7 +442,7 @@ def build_parser(
     )
     rebuild_preview_and_resolve_parser.add_argument(
         "--admission-landing-table",
-        default="admission_records_preview",
+        default="admission_record",
         help="Target table for admission preview landing writes",
     )
     rebuild_preview_and_resolve_parser.add_argument(
@@ -443,7 +469,7 @@ def build_parser(
     convergence_preview_parser.add_argument("--ranking-schema", default="warehouse")
     convergence_preview_parser.add_argument("--ranking-table", default="ranking_records_preview")
     convergence_preview_parser.add_argument("--admission-schema", default="warehouse")
-    convergence_preview_parser.add_argument("--admission-table", default="admission_records_preview")
+    convergence_preview_parser.add_argument("--admission-table", default="admission_record")
     convergence_preview_parser.add_argument(
         "--limit",
         type=int,
@@ -475,7 +501,7 @@ def build_parser(
     canonical_detail_preview_parser.add_argument("--ranking-schema", default="warehouse")
     canonical_detail_preview_parser.add_argument("--ranking-table", default="ranking_records_preview")
     canonical_detail_preview_parser.add_argument("--admission-schema", default="warehouse")
-    canonical_detail_preview_parser.add_argument("--admission-table", default="admission_records_preview")
+    canonical_detail_preview_parser.add_argument("--admission-table", default="admission_record")
     canonical_detail_preview_parser.add_argument("--pg-host", default="localhost")
     canonical_detail_preview_parser.add_argument("--pg-port", type=int, default=5432)
     canonical_detail_preview_parser.add_argument("--pg-database", default="clawer")

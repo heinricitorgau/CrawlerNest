@@ -103,7 +103,7 @@ public class UniversityPreviewRepository {
                             WHERE rrp.canonical_university_id = cu.canonical_university_id
                         ) OR EXISTS (
                             SELECT 1
-                            FROM warehouse.admission_records_preview arp
+                            FROM warehouse.admission_record arp
                             WHERE arp.canonical_university_id = cu.canonical_university_id
                         ) THEN 0
                         ELSE 1
@@ -141,7 +141,7 @@ public class UniversityPreviewRepository {
                             WHERE rrp.canonical_university_id = cu.canonical_university_id
                         ) OR EXISTS (
                             SELECT 1
-                            FROM warehouse.admission_records_preview arp
+                            FROM warehouse.admission_record arp
                             WHERE arp.canonical_university_id = cu.canonical_university_id
                         ) THEN 0
                         ELSE 1
@@ -181,7 +181,7 @@ public class UniversityPreviewRepository {
                             WHERE rrp.canonical_university_id = cu.canonical_university_id
                         ) OR EXISTS (
                             SELECT 1
-                            FROM warehouse.admission_records_preview arp
+                            FROM warehouse.admission_record arp
                             WHERE arp.canonical_university_id = cu.canonical_university_id
                         ) THEN 0
                         ELSE 1
@@ -222,7 +222,7 @@ public class UniversityPreviewRepository {
                             WHERE rrp.canonical_university_id = cu.canonical_university_id
                         ) OR EXISTS (
                             SELECT 1
-                            FROM warehouse.admission_records_preview arp
+                            FROM warehouse.admission_record arp
                             WHERE arp.canonical_university_id = cu.canonical_university_id
                         ) THEN 0
                         ELSE 1
@@ -322,7 +322,7 @@ public class UniversityPreviewRepository {
                     MIN(ielts_requirement) AS best_ielts_requirement,
                     MIN(toefl_requirement)::INTEGER AS best_toefl_requirement,
                     MAX(extracted_at) AS latest_extracted_at
-                FROM warehouse.admission_records_preview
+                FROM warehouse.admission_record
                 WHERE canonical_university_id = ?
                 """,
                 (rs, rowNum) -> {

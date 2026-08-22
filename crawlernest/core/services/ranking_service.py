@@ -83,7 +83,7 @@ class RankingService:
                         SELECT
                             canonical_university_id,
                             MIN(country) AS country
-                        FROM warehouse.admission_records_preview
+                        FROM warehouse.admission_record
                         WHERE canonical_university_id IS NOT NULL
                         GROUP BY canonical_university_id
                     ),

@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from crawlernest_admission_crawler.models import WarehouseReadyAdmissionRow
+from crawlernest_admission_crawler.models import (
+    UNKNOWN_DEGREE_LEVEL,
+    WarehouseReadyAdmissionRow,
+)
 from crawlernest_admission_crawler.postgres_driver import get_psycopg2
+from crawlernest_admission_crawler.source_identity import admission_source_entity_id
 
 
 def load_staging_rows_from_jsonl(staging_file: Path) -> list[dict[str, Any]]:
@@ -52,6 +56,10 @@ def load_staging_rows_from_postgres(
                     ielts_requirement,
                     toefl_requirement,
                     extracted_at,
+                    duolingo_requirement,
+                    gpa_requirement,
+                    application_deadline,
+                    degree_level,
                     raw_payload
                 FROM {table_name}
                 ORDER BY normalized_university_name ASC, source_url ASC
@@ -70,7 +78,11 @@ def load_staging_rows_from_postgres(
             "ielts_requirement": row[4],
             "toefl_requirement": row[5],
             "extracted_at": row[6].isoformat() if hasattr(row[6], "isoformat") else str(row[6]),
-            "raw_payload": row[7],
+            "duolingo_requirement": row[7],
+            "gpa_requirement": row[8],
+            "application_deadline": row[9].isoformat() if hasattr(row[9], "isoformat") else row[9],
+            "degree_level": row[10],
+            "raw_payload": row[11],
         }
         for row in result_rows
     ]
@@ -88,6 +100,11 @@ def map_staging_rows_to_warehouse_rows(rows: list[dict[str, Any]]) -> list[Wareh
                 ielts_requirement=_optional_float(row.get("ielts_requirement")),
                 toefl_requirement=_optional_int(row.get("toefl_requirement")),
                 extracted_at=datetime.fromisoformat(str(row["extracted_at"])),
+                source_entity_id=admission_source_entity_id(str(row["source_url"])),
+                duolingo_requirement=_optional_int(row.get("duolingo_requirement")),
+                gpa_requirement=_optional_float(row.get("gpa_requirement")),
+                application_deadline=_optional_date(row.get("application_deadline")),
+                degree_level=str(row.get("degree_level") or UNKNOWN_DEGREE_LEVEL),
                 canonical_university_id=None,
                 entity_resolution_status="unresolved",
                 raw_payload=row.get("raw_payload") if isinstance(row.get("raw_payload"), dict) else None,
@@ -123,6 +140,19 @@ def _optional_text(value: Any) -> str | None:
         return None
     text = str(value).strip()
     return text or None
+
+
+def _optional_date(value: Any) -> date | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    text = str(value).strip()
+    if not text:
+        return None
+    return date.fromisoformat(text)
 
 
 def _optional_float(value: Any) -> float | None:

@@ -93,18 +93,28 @@ CREATE TABLE IF NOT EXISTS warehouse.ranking_records_preview (
     source_resolution_status TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS warehouse.admission_records_preview (
+CREATE TABLE IF NOT EXISTS warehouse.admission_record (
     id BIGSERIAL PRIMARY KEY,
+    source_code TEXT NOT NULL DEFAULT 'university_site',
+    source_entity_id TEXT NOT NULL DEFAULT '',
+    source_url TEXT NOT NULL,
     university_name TEXT NOT NULL,
     normalized_university_name TEXT NOT NULL,
-    source_url TEXT NOT NULL,
     country TEXT,
-    ielts_requirement DOUBLE PRECISION,
-    toefl_requirement INTEGER,
-    extracted_at TIMESTAMPTZ NOT NULL,
     canonical_university_id BIGINT,
     entity_resolution_status TEXT NOT NULL,
-    raw_payload JSONB
+    degree_level TEXT NOT NULL DEFAULT 'unknown',
+    ielts_requirement DOUBLE PRECISION,
+    toefl_requirement INTEGER,
+    duolingo_requirement INTEGER,
+    gpa_requirement DOUBLE PRECISION,
+    application_deadline DATE,
+    raw_payload JSONB,
+    extracted_at TIMESTAMPTZ NOT NULL,
+    ingested_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_admission_record_source_entity
+        UNIQUE (source_code, source_entity_id, degree_level)
 );
 
 CREATE TABLE IF NOT EXISTS warehouse.ranking_source (

@@ -41,8 +41,22 @@ def run_admission_sample_export(
     *,
     normalized_output_path: Path | None = None,
     staging_output_path: Path | None = None,
+    snapshot_dir: Path | None = None,
+    live: bool = False,
+    only: list[str] | None = None,
+    rate_limit_seconds: float = 1.0,
 ) -> tuple[Path, int, Path | None, Path | None]:
-    records = AdmissionCrawlerEngine().run()
+    """Crawl the configured universities and export the records.
+
+    No longer a sample: the engine drives the real crawler now. The name is
+    kept because run_pipeline dispatches both crawl commands through here.
+    """
+    records = AdmissionCrawlerEngine(
+        snapshot_dir=snapshot_dir,
+        live=live,
+        only=only,
+        rate_limit_seconds=rate_limit_seconds,
+    ).run()
     write_records_to_json(records, output_path)
     normalized_path: Path | None = None
     staging_path: Path | None = None

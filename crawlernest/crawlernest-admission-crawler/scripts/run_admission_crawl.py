@@ -17,6 +17,14 @@ Output
 For each university, writes:
   crawl_outputs/<key>.json       — full CrawlReport (JSON)
   crawl_outputs/summary.json     — aggregate table of all runs
+
+This script reports on the crawl; it does not feed the warehouse. The extracted
+values reach staging through the pipeline instead, which drives the same
+crawler through crawlernest_admission_crawler.crawl_bridge:
+
+    python3 -m crawlernest.run_pipeline crawl-admission --write-staging
+
+That command is offline by default and takes --live to fetch real pages.
 """
 
 from __future__ import annotations

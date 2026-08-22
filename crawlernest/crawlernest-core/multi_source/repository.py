@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Sequence
 
 from ranking_aggregation.types import RankingRecordInput
 
@@ -43,21 +43,66 @@ class MultiSourceRepository:
                 (source_codes,),
             )
             rows = cur.fetchall()
+            self._mirror_into_entity_source(cur, sources)
         self.conn.commit()
         return {str(code): int(source_id) for source_id, code in rows}
 
-    def load_mapping_reviews(self, source_id_map: dict[str, int]) -> dict[tuple[str, str], MappingReview]:
+    @staticmethod
+    def _mirror_into_entity_source(cur: Any, sources: list[tuple[str, str, str | None]]) -> None:
+        """
+        Register the same codes in warehouse.entity_source.
+
+        warehouse.mapping_review.source_code carries a foreign key to that
+        table, so a source that is known here but not there cannot be reviewed:
+        the first decision filed against it fails on the constraint. Mirroring
+        at registration time is what keeps the two in step -- the alternative,
+        seeding entity_source from the schema file, only covers sources that
+        already existed when the database was bootstrapped.
+
+        Tolerates the table being absent so that a database bootstrapped before
+        this schema landed still ingests rather than crashing, which is the
+        same allowance load_mapping_reviews makes.
+        """
+        cur.execute(
+            """
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_schema = 'warehouse'
+              AND table_name = 'entity_source'
+            LIMIT 1
+            """
+        )
+        if cur.fetchone() is None:
+            return
+
+        cur.executemany(
+            """
+            INSERT INTO warehouse.entity_source (source_code, source_kind, display_name)
+            VALUES (%s, 'ranking', %s)
+            ON CONFLICT (source_code)
+            DO UPDATE SET display_name = EXCLUDED.display_name
+            """,
+            [(code, name) for code, name, _version in sources if code],
+        )
+
+    def load_mapping_reviews(self, source_codes: Sequence[str]) -> dict[tuple[str, str], MappingReview]:
         """
         Read the standing human decisions for the sources in this run.
+
+        Keyed by source_code, which is what MappingReview.key has always been.
+        The table used to be keyed by ranking_source_id, so this had to invert
+        a code-to-id map on the way in and again on the way out; since the
+        review table was generalised to cover non-ranking sources -- admission
+        pages resolve against the same canonical universities and go through
+        the same screen -- the two ends finally speak the same language.
 
         Read-only by design: the pipeline never writes warehouse.mapping_review.
         Returns {} when the table is absent so that a database bootstrapped
         before this schema landed still ingests rather than crashing.
         """
-        if not source_id_map:
+        codes = sorted({str(code) for code in source_codes if code})
+        if not codes:
             return {}
-
-        code_by_id = {int(source_id): str(code) for code, source_id in source_id_map.items()}
 
         with self.conn.cursor() as cur:
             cur.execute(
@@ -75,26 +120,23 @@ class MultiSourceRepository:
             cur.execute(
                 """
                 SELECT
-                    ranking_source_id,
+                    source_code,
                     source_entity_id,
                     decision,
                     decided_canonical_university_id,
                     decided_by,
                     note
                 FROM warehouse.mapping_review
-                WHERE ranking_source_id = ANY(%s)
+                WHERE source_code = ANY(%s)
                 """,
-                (sorted(code_by_id),),
+                (codes,),
             )
             rows = cur.fetchall()
 
         reviews: dict[tuple[str, str], MappingReview] = {}
-        for source_id, entity_id, decision, decided_id, decided_by, note in rows:
-            source_code = code_by_id.get(int(source_id))
-            if source_code is None:
-                continue
+        for source_code, entity_id, decision, decided_id, decided_by, note in rows:
             review = MappingReview(
-                source_code=source_code,
+                source_code=str(source_code),
                 source_entity_id=str(entity_id),
                 decision=str(decision),
                 decided_canonical_university_id=None if decided_id is None else int(decided_id),

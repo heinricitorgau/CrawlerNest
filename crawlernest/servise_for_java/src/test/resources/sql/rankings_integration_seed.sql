@@ -2,7 +2,7 @@ DELETE FROM analytics.aggregated_rankings
 WHERE ranking_year IN (2098, 2099)
    OR canonical_university_id BETWEEN 990001 AND 990040;
 
-DELETE FROM warehouse.admission_records_preview
+DELETE FROM warehouse.admission_record
 WHERE canonical_university_id BETWEEN 990001 AND 990040;
 
 DELETE FROM warehouse.ranking_records_preview
@@ -500,7 +500,8 @@ WHERE ar.ranking_year = 2099
   AND ar.universe_type = 'global'
   AND ar.universe_key = 'global';
 
-INSERT INTO warehouse.admission_records_preview (
+INSERT INTO warehouse.admission_record (
+    source_entity_id,
     university_name,
     normalized_university_name,
     source_url,
@@ -514,6 +515,7 @@ INSERT INTO warehouse.admission_records_preview (
 )
 VALUES
     (
+        'example.edu/admissions/eth-zurich',
         'ETH Zurich',
         'eth zurich',
         'https://example.edu/admissions/eth-zurich',
@@ -526,6 +528,7 @@ VALUES
         '{"source":"integration-test"}'::jsonb
     ),
     (
+        'example.edu/admissions/mit',
         'Massachusetts Institute of Technology',
         'massachusetts institute of technology',
         'https://example.edu/admissions/mit',
@@ -538,6 +541,7 @@ VALUES
         '{"source":"integration-test"}'::jsonb
     ),
     (
+        'example.edu/admissions/delft',
         'Delft University of Technology',
         'delft university of technology',
         'https://example.edu/admissions/delft',
@@ -550,6 +554,7 @@ VALUES
         '{"source":"integration-test"}'::jsonb
     ),
     (
+        'example.edu/admissions/oxford',
         'University of Oxford',
         'university of oxford',
         'https://example.edu/admissions/oxford',
@@ -562,6 +567,7 @@ VALUES
         '{"source":"integration-test"}'::jsonb
     ),
     (
+        'example.edu/admissions/barcelona',
         'University of Barcelona',
         'university of barcelona',
         'https://example.edu/admissions/barcelona',
@@ -573,6 +579,7 @@ VALUES
         'resolved_canonical_exact',
         '{"source":"integration-test"}'::jsonb
     );
+
 
 INSERT INTO analytics.aggregation_runs (
     aggregation_run_id,

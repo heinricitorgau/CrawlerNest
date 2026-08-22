@@ -311,7 +311,7 @@ public class RankingController {
                     SELECT
                         canonical_university_id,
                         MIN(NULLIF(country, '')) AS country
-                    FROM warehouse.admission_records_preview
+                    FROM warehouse.admission_record
                     GROUP BY canonical_university_id
                 ),
                 latest_global AS (

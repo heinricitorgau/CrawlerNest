@@ -33,13 +33,13 @@ class MappingReviewServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         service = new MappingReviewService(repository);
-        when(repository.mappingExists(anyInt(), anyString())).thenReturn(true);
+        when(repository.mappingExists(anyString(), anyString())).thenReturn(true);
         when(repository.canonicalExists(anyLong())).thenReturn(true);
     }
 
     private MappingReviewDecisionRequest request(
             String decision, Long decidedCanonicalUniversityId) {
-        return new MappingReviewDecisionRequest(402, "846", decision, decidedCanonicalUniversityId, null);
+        return new MappingReviewDecisionRequest("THE", "846", decision, decidedCanonicalUniversityId, null);
     }
 
     // ─── Accepted verdicts ────────────────────────────────────────────────────
@@ -85,7 +85,7 @@ class MappingReviewServiceTest {
 
     @Test
     void aMissingMappingIsRefused() {
-        when(repository.mappingExists(anyInt(), anyString())).thenReturn(false);
+        when(repository.mappingExists(anyString(), anyString())).thenReturn(false);
         assertNotNull(service.validate(request("rejected", null)));
     }
 
@@ -100,7 +100,7 @@ class MappingReviewServiceTest {
         assertNotNull(service.validate(
                 new MappingReviewDecisionRequest(null, "846", "rejected", null, null)));
         assertNotNull(service.validate(
-                new MappingReviewDecisionRequest(402, " ", "rejected", null, null)));
+                new MappingReviewDecisionRequest("THE", " ", "rejected", null, null)));
         assertNotNull(service.validate(null));
     }
 
@@ -108,7 +108,7 @@ class MappingReviewServiceTest {
     void anOverlongNoteIsRefused() {
         String note = "x".repeat(1001);
         assertNotNull(service.validate(
-                new MappingReviewDecisionRequest(402, "846", "rejected", null, note)));
+                new MappingReviewDecisionRequest("THE", "846", "rejected", null, note)));
     }
 
     // ─── Storage ──────────────────────────────────────────────────────────────
@@ -116,15 +116,15 @@ class MappingReviewServiceTest {
     @Test
     void savingNormalizesTheDecisionAndRecordsTheReviewer() {
         when(repository.saveDecision(
-                anyInt(), anyString(), anyString(), isNull(), anyString(), isNull()))
+                anyString(), anyString(), anyString(), isNull(), anyString(), isNull()))
                 .thenReturn(1);
 
         Map<String, Object> result = service.save(
-                new MappingReviewDecisionRequest(402, "846", " Rejected ", null, null),
+                new MappingReviewDecisionRequest("THE", "846", " Rejected ", null, null),
                 "reviewer@example.test");
 
         verify(repository).saveDecision(
-                eq(402), eq("846"), eq("rejected"), isNull(), eq("reviewer@example.test"), isNull());
+                eq("THE"), eq("846"), eq("rejected"), isNull(), eq("reviewer@example.test"), isNull());
         assertEquals(Boolean.TRUE, result.get("stored"));
         assertEquals("rejected", result.get("decision"));
     }
@@ -134,7 +134,7 @@ class MappingReviewServiceTest {
         // The screen would otherwise imply the warehouse changed on save, when
         // nothing changes until the next ingestion reads the decision.
         when(repository.saveDecision(
-                anyInt(), anyString(), anyString(), isNull(), anyString(), isNull()))
+                anyString(), anyString(), anyString(), isNull(), anyString(), isNull()))
                 .thenReturn(1);
         when(repository.findPending(anyInt())).thenReturn(List.of());
         when(repository.countPending()).thenReturn(0);

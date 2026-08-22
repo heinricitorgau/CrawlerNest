@@ -42,6 +42,15 @@ def run_all_tests():
         # the resolver's blocking/threshold logic were unguarded in CI.
         "test_entity_resolution",
         "test_mapping_reviews",
+        # Mirrors a backfill in crawlernest-schema/admission_postgresql.sql;
+        # unregistered, a drift between the two would go unnoticed.
+        "test_admission_source_identity",
+        # Admission rows resolving through the shared EntityResolver, and the
+        # review rule still overriding it across the two row types.
+        "test_admission_entity_resolution",
+        # The crawler-to-staging bridge, including that a snapshot run stays
+        # offline rather than falling back to live university sites.
+        "test_admission_crawl_bridge",
         # Needs PostgreSQL; skips itself unless CRAWLERNEST_RUN_PG_TESTS=1.
         "test_legacy_source",
         "test_arwu_crawler",
