@@ -38,7 +38,13 @@ function results = predict_qs_disagreement(options)
     % 1. 分出 THE 已排名（訓練集）與從未涵蓋（推論批次）的大學
     covered = false(numel(qs.name), 1);
     covered(info.qsIndex) = true;
-    uncovered = ~covered;
+
+    % QS 有幾列帶著名次卻沒有機構名（name 是 "N/A"）。倉儲的寫入端直接拒收它們
+    % （"skip invalid university placeholder row"），這裡也不該替它們預測——
+    % 對一個不存在的機構輸出爭議機率，那個數字沒有指涉對象。
+    placeholder = ismember(lower(strtrim(string(qs.name))), ["", "n/a", "na", "-", "--"]);
+
+    uncovered = ~covered & ~placeholder;
 
     X_uncovered = qs.X(uncovered, :);
     uncovered_names = qs.name(uncovered);
@@ -48,7 +54,8 @@ function results = predict_qs_disagreement(options)
     fprintf('Total QS population: %d\n', numel(qs.name));
     fprintf('THE-ranked (training set): %d  (%d via the reviewed pairing)\n', ...
         sum(covered), info.pairedCount);
-    fprintf('THE-unranked (inference batch): %d\n', sum(uncovered));
+    fprintf('THE-unranked (inference batch): %d  (%d placeholder rows dropped)\n', ...
+        sum(uncovered), sum(placeholder & ~covered));
     fprintf('Label: percentile gap > %.4f (%d positives, %.1f%%)\n', ...
         info.threshold, sum(y), 100 * mean(y));
 
