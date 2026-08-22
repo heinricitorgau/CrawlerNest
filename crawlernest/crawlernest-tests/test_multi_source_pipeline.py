@@ -32,11 +32,24 @@ class FakeMultiSourceRepository:
         #: the mapping upsert skips rejected rows, so without this call the old
         #: row survives asserting the rejected match.
         self.deactivated_keys = []
+        #: Source codes the pipeline asked for reviews under.
+        self.review_lookup_codes = []
 
     def upsert_ranking_sources(self, sources):
         return {code: idx for idx, (code, _, _) in enumerate(sources, start=1)}
 
-    def load_mapping_reviews(self, source_id_map):
+    def load_mapping_reviews(self, source_codes):
+        # The real repository queries warehouse.mapping_review by source_code.
+        # A caller still passing the old {code: ranking_source_id} map would
+        # work here by accident and fail only against PostgreSQL, so the shape
+        # is checked rather than ignored.
+        if isinstance(source_codes, dict) or not all(
+            isinstance(code, str) for code in source_codes
+        ):
+            raise TypeError(
+                f"load_mapping_reviews expects source codes, got {source_codes!r}"
+            )
+        self.review_lookup_codes = sorted(source_codes)
         return dict(self.mapping_reviews)
 
     def deactivate_rejected_mappings(self, rejected_keys, source_id_map):

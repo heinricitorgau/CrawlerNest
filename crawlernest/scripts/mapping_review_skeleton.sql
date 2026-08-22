@@ -29,7 +29,7 @@ SELECT string_agg(line, E'\n' ORDER BY confidence_score, source_code, source_ent
 FROM (
     SELECT
         m.confidence_score,
-        rs.source_code,
+        m.source_code,
         m.source_entity_id,
         -- The decision goes in the `?` slot on the id line. Nothing in the
         -- comments is meant to be edited, so the canonical id is written as
@@ -38,7 +38,7 @@ FROM (
         -- that the parser actually reads.
         format(
             E'# [%s] %s  %s (%s)\n#      -> %s  [canonical %s | %s]\n%s, ?',
-            rs.source_code,
+            m.source_code,
             to_char(m.confidence_score, 'FM0.0000'),
             COALESCE(
                 m.metadata #>> '{raw_row,name}',
@@ -51,15 +51,13 @@ FROM (
             COALESCE(c.country_name, 'unknown'),
             m.source_entity_id
         ) AS line
-    FROM warehouse.source_university_mapping m
-    JOIN warehouse.ranking_source rs
-        ON rs.ranking_source_id = m.ranking_source_id
+    FROM warehouse.v_entity_mapping m
     JOIN warehouse.canonical_university cu
         ON cu.canonical_university_id = m.canonical_university_id
     LEFT JOIN warehouse.countries c
         ON c.country_id = cu.country_id
     LEFT JOIN warehouse.mapping_review r
-        ON r.ranking_source_id = m.ranking_source_id
+        ON r.source_code = m.source_code
        AND r.source_entity_id = m.source_entity_id
     WHERE m.is_active
       AND m.match_method IN ('fuzzy', 'fuzzy_review')

@@ -1,4 +1,4 @@
-DELETE FROM warehouse.admission_records_preview
+DELETE FROM warehouse.admission_record
 WHERE canonical_university_id = 990102
    OR normalized_university_name IN ('MIT');
 

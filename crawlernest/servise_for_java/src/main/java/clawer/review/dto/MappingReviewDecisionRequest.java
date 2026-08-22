@@ -9,7 +9,7 @@ package clawer.review.dto;
  * forged or fall out of step with what the pipeline actually did.
  */
 public record MappingReviewDecisionRequest(
-        Integer rankingSourceId,
+        String sourceCode,
         String sourceEntityId,
         String decision,
         Long decidedCanonicalUniversityId,

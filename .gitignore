@@ -63,6 +63,14 @@ crawlernest/crawlernest-ranking-crawler/
 # Ignored so a local checkout placed here is never committed back in.
 crawlernest/crawlernest-mini-agent/
 
+# Pipeline export artifacts. Every file here is regenerated:
+# `run_pipeline crawl-admission` / `crawl-ranking` write the JSON and JSONL,
+# and `ingest-*-staging --write-target sqlite` writes the .sqlite3 stores.
+# Nothing in it has ever been tracked. The *.sqlite3 and my_* rules below
+# already covered most of the directory; the export files were the gap, so the
+# whole directory is ignored rather than chasing each new output name.
+crawlernest-samples/
+
 # Personal runtime outputs
 my_*.json
 my_*.jsonl

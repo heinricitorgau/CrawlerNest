@@ -73,8 +73,8 @@ public class MappingReviewService {
         if (request == null) {
             return "Request body is required.";
         }
-        if (request.rankingSourceId() == null) {
-            return "rankingSourceId is required.";
+        if (request.sourceCode() == null || request.sourceCode().isBlank()) {
+            return "sourceCode is required.";
         }
         if (request.sourceEntityId() == null || request.sourceEntityId().isBlank()) {
             return "sourceEntityId is required.";
@@ -92,7 +92,7 @@ public class MappingReviewService {
         if (request.note() != null && request.note().length() > MAX_NOTE_LENGTH) {
             return "note is too long. Limit is " + MAX_NOTE_LENGTH + " characters.";
         }
-        if (!repository.mappingExists(request.rankingSourceId(), request.sourceEntityId())) {
+        if (!repository.mappingExists(request.sourceCode(), request.sourceEntityId())) {
             return "No such source mapping.";
         }
         if (request.decidedCanonicalUniversityId() != null
@@ -105,7 +105,7 @@ public class MappingReviewService {
     public Map<String, Object> save(MappingReviewDecisionRequest request, String reviewerEmail) {
         String decision = normalizeDecision(request.decision());
         int rows = repository.saveDecision(
-                request.rankingSourceId(),
+                request.sourceCode(),
                 request.sourceEntityId(),
                 decision,
                 request.decidedCanonicalUniversityId(),
@@ -114,6 +114,7 @@ public class MappingReviewService {
         return Map.of(
                 "stored", rows > 0,
                 "decision", decision,
+                "sourceCode", request.sourceCode(),
                 "sourceEntityId", request.sourceEntityId(),
                 "appliesOn", "next source ingestion",
                 "caveats", CAVEATS);

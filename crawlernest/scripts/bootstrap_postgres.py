@@ -21,6 +21,9 @@ SCHEMA_ORDER = [
     SCHEMA_DIR / "mapping_review_postgresql.sql",
     SCHEMA_DIR / "subject_ranking_postgresql.sql",
     SCHEMA_DIR / "ranking_aggregation_postgresql.sql",
+    # After mapping_review: references warehouse.entity_source.
+    # Before recommendation: its view reads warehouse.admission_record.
+    SCHEMA_DIR / "admission_postgresql.sql",
     SCHEMA_DIR / "recommendation_postgresql.sql",
 ]
 
@@ -88,6 +91,58 @@ def _is_duplicate_error(exc: Exception) -> bool:
     )
 
 
+#: Both admission table names existing at once means the rename in
+#: admission_postgresql.sql cannot run. PostgreSQL raises 42P07 for it, which
+#: is a duplicate-table error, which the loop below deliberately swallows --
+#: so the migration would report success while leaving every row behind in the
+#: old table and every reader pointed at the empty new one.
+#:
+#: The usual cause is the Java integration tests: their fixtures run
+#: CREATE TABLE IF NOT EXISTS warehouse.admission_record against this same
+#: database. If that stray table is empty, drop it and re-run.
+ADMISSION_TABLE_NAMES = ("admission_record", "admission_records_preview")
+
+
+def _assert_no_admission_table_collision(cur) -> None:
+    cur.execute(
+        """
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'warehouse'
+          AND table_name = ANY(%s)
+        """,
+        (list(ADMISSION_TABLE_NAMES),),
+    )
+    present = {row[0] for row in cur.fetchall()}
+    if len(present) < 2:
+        return
+
+    cur.execute("SELECT count(*) FROM warehouse.admission_record")
+    new_count = int(cur.fetchone()[0] or 0)
+    cur.execute("SELECT count(*) FROM warehouse.admission_records_preview")
+    old_count = int(cur.fetchone()[0] or 0)
+
+    raise SystemExit(
+        f"""Refusing to migrate: warehouse.admission_record ({new_count} rows) and
+warehouse.admission_records_preview ({old_count} rows) both exist, so the
+rename cannot run.
+
+  The usual cause is a stray table left by the Java integration tests, whose
+  fixtures create it in this database.
+
+  If warehouse.admission_record is the empty stray and
+  warehouse.admission_records_preview holds the real rows, drop it and re-run
+  this command:
+
+      psql -d <db> -c 'DROP TABLE warehouse.admission_record CASCADE'
+
+  CASCADE is needed because analytics.v_recommendation_candidates_latest reads
+  it; this command rebuilds that view.
+
+  See docs/migrations/ADMISSION_SCHEMA_CONVERGENCE.md"""
+    )
+
+
 def _reset_schemas(cur) -> None:
     cur.execute("DROP SCHEMA IF EXISTS analytics CASCADE")
     cur.execute("DROP SCHEMA IF EXISTS staging CASCADE")
@@ -118,6 +173,8 @@ def bootstrap_postgres(
                 _reset_schemas(cur)
                 conn.commit()
                 print("[ok] reset analytics/staging/warehouse schemas")
+            _assert_no_admission_table_collision(cur)
+            conn.rollback()
             for path in SCHEMA_ORDER:
                 sql = path.read_text(encoding="utf-8")
                 applied = 0

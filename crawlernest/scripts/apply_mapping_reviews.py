@@ -69,7 +69,6 @@ class Decision:
 
 @dataclass(frozen=True)
 class Pending:
-    ranking_source_id: int
     source_code: str
     source_entity_id: str
     source_name: str
@@ -131,13 +130,17 @@ def load_pending(conn: Any) -> dict[str, list[Pending]]:
 
     A list per key: entity ids are only unique within a source, and silently
     picking one of two would write a decision against the wrong source.
+
+    Read from warehouse.v_entity_mapping rather than
+    warehouse.source_university_mapping, so that a source which is not a
+    ranking -- admission pages, whose mappings land in
+    warehouse.source_mapping -- is reviewable through this same file format.
     """
     with conn.cursor() as cur:
         cur.execute(
             """
             SELECT
-                m.ranking_source_id,
-                rs.source_code,
+                m.source_code,
                 m.source_entity_id,
                 COALESCE(
                     m.metadata #>> '{raw_row,name}',
@@ -149,13 +152,11 @@ def load_pending(conn: Any) -> dict[str, list[Pending]]:
                 m.match_method,
                 m.confidence_score,
                 r.decision
-            FROM warehouse.source_university_mapping m
-            JOIN warehouse.ranking_source rs
-                ON rs.ranking_source_id = m.ranking_source_id
+            FROM warehouse.v_entity_mapping m
             JOIN warehouse.canonical_university cu
                 ON cu.canonical_university_id = m.canonical_university_id
             LEFT JOIN warehouse.mapping_review r
-                ON r.ranking_source_id = m.ranking_source_id
+                ON r.source_code = m.source_code
                AND r.source_entity_id = m.source_entity_id
             WHERE m.is_active
               AND m.match_method IN ('fuzzy', 'fuzzy_review')
@@ -166,15 +167,14 @@ def load_pending(conn: Any) -> dict[str, list[Pending]]:
     pending: dict[str, list[Pending]] = {}
     for row in rows:
         entry = Pending(
-            ranking_source_id=int(row[0]),
-            source_code=str(row[1]),
-            source_entity_id=str(row[2]),
-            source_name=str(row[3]),
-            canonical_university_id=int(row[4]),
-            canonical_name=str(row[5]),
-            match_method=str(row[6]),
-            confidence_score=float(row[7]),
-            existing_decision=None if row[8] is None else str(row[8]),
+            source_code=str(row[0]),
+            source_entity_id=str(row[1]),
+            source_name=str(row[2]),
+            canonical_university_id=int(row[3]),
+            canonical_name=str(row[4]),
+            match_method=str(row[5]),
+            confidence_score=float(row[6]),
+            existing_decision=None if row[7] is None else str(row[7]),
         )
         pending.setdefault(entry.source_entity_id, []).append(entry)
     return pending
@@ -203,7 +203,7 @@ def resolve(
     """
     resolved: list[tuple[Decision, Pending, Optional[int]]] = []
     problems: list[str] = []
-    seen: set[tuple[int, str]] = set()
+    seen: set[tuple[str, str]] = set()
 
     for decision in decisions:
         where = f"line {decision.line_number} ({decision.source_entity_id})"
@@ -221,7 +221,7 @@ def resolve(
             continue
         match = candidates[0]
 
-        key = (match.ranking_source_id, match.source_entity_id)
+        key = (match.source_code, match.source_entity_id)
         if key in seen:
             problems.append(f"{where}: decided twice in this file")
             continue
@@ -304,6 +304,11 @@ def write(
     reviewed_* is copied from the live mapping row inside the statement rather
     than taken from the file, so the recorded evidence always describes what
     the resolver actually produced.
+
+    ranking_source_id is filled in by a LEFT JOIN rather than carried from the
+    file. It is a legacy column kept for one release so the source_code
+    migration stays revertible; a non-ranking source has no id to record and
+    correctly leaves it NULL.
     """
     written = 0
     with conn.cursor() as cur:
@@ -311,13 +316,15 @@ def write(
             cur.execute(
                 """
                 INSERT INTO warehouse.mapping_review (
-                    ranking_source_id, source_entity_id, reviewed_source_name,
+                    source_code, ranking_source_id, source_entity_id,
+                    reviewed_source_name,
                     reviewed_canonical_university_id, reviewed_match_method,
                     reviewed_confidence_score, decision,
                     decided_canonical_university_id, decided_by, note
                 )
                 SELECT
-                    m.ranking_source_id,
+                    m.source_code,
+                    rs.ranking_source_id,
                     m.source_entity_id,
                     COALESCE(
                         m.metadata #>> '{raw_row,name}',
@@ -328,9 +335,11 @@ def write(
                     m.match_method,
                     m.confidence_score,
                     %s, %s, %s, %s
-                FROM warehouse.source_university_mapping m
-                WHERE m.ranking_source_id = %s AND m.source_entity_id = %s
-                ON CONFLICT (ranking_source_id, source_entity_id)
+                FROM warehouse.v_entity_mapping m
+                LEFT JOIN warehouse.ranking_source rs
+                    ON rs.source_code = m.source_code
+                WHERE m.source_code = %s AND m.source_entity_id = %s
+                ON CONFLICT (source_code, source_entity_id)
                 DO UPDATE SET
                     decision = EXCLUDED.decision,
                     decided_canonical_university_id = EXCLUDED.decided_canonical_university_id,
@@ -343,7 +352,7 @@ def write(
                     target,
                     decided_by,
                     decision.note,
-                    match.ranking_source_id,
+                    match.source_code,
                     match.source_entity_id,
                 ),
             )
@@ -357,9 +366,9 @@ def remaining(conn: Any) -> int:
         cur.execute(
             """
             SELECT COUNT(*)
-            FROM warehouse.source_university_mapping m
+            FROM warehouse.v_entity_mapping m
             LEFT JOIN warehouse.mapping_review r
-                ON r.ranking_source_id = m.ranking_source_id
+                ON r.source_code = m.source_code
                AND r.source_entity_id = m.source_entity_id
             WHERE m.is_active
               AND m.match_method IN ('fuzzy', 'fuzzy_review')

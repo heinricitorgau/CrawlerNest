@@ -55,14 +55,14 @@ from site_profiles.default import DEFAULT_ADMISSION_KEYWORDS
 _MIN_VISIBLE_WORDS = 50
 
 _TAG_RE = re.compile(r"<[^>]+>")
+# The only values admission_text_extractor._DEGREE_MAP resolves to. It used to
+# also accept graduate / phd / masters / bachelor, which the extractor cannot
+# produce -- so the wider set never rejected anything, and it disagreed with
+# ck_admission_record_degree_level in the warehouse schema.
 _VALID_DEGREE_LEVELS = {
     "undergraduate",
     "postgraduate",
-    "graduate",
     "doctoral",
-    "phd",
-    "masters",
-    "bachelor",
 }
 
 

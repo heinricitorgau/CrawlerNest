@@ -1,4 +1,4 @@
-DELETE FROM warehouse.admission_records_preview
+DELETE FROM warehouse.admission_record
 WHERE canonical_university_id BETWEEN 990001 AND 990030;
 
 DELETE FROM warehouse.ranking_records_preview
