@@ -340,8 +340,12 @@ def _refresh_admission_resolution(
         "after_distinct_university_count": after_full_summary["row_count"],
         "resolved_row_count": resolution_summary["resolved_row_count"],
         "unresolved_row_count": resolution_summary["unresolved_row_count"],
-        "canonical_exact_match_count": resolution_summary["canonical_exact_match_count"],
-        "alias_exact_match_count": resolution_summary["alias_exact_match_count"],
+        "exact_match_count": resolution_summary["exact_match_count"],
+        "normalized_match_count": resolution_summary["normalized_match_count"],
+        "fuzzy_match_count": resolution_summary["fuzzy_match_count"],
+        "review_pending_count": resolution_summary["review_pending_count"],
+        "retired_mapping_count": resolution_summary["retired_mapping_count"],
+        "human_decision_applied_count": resolution_summary["human_decision_applied_count"],
         "display_rows": after_display_summary["rows"],
         "output_file": after_display_summary["output_file"],
     }
@@ -458,7 +462,7 @@ def _cmd_write_admission_warehouse_preview(args: argparse.Namespace) -> int:
         "[write-admission-warehouse-preview] "
         f"rows={summary['row_count']} "
         f"inserted={summary['inserted_row_count']} "
-        f"skipped_existing={summary['skipped_existing_row_count']}"
+        f"updated={summary['updated_row_count']}"
     )
     print(f"[write-admission-warehouse-preview] target={summary['target_location']}")
     print(f"[write-admission-warehouse-preview] table={summary['table_name']}")
@@ -485,9 +489,13 @@ def _cmd_resolve_admission_entities(args: argparse.Namespace) -> int:
         "[resolve-admission-entities] "
         f"total={summary['total_rows']} "
         f"resolved={summary['resolved_row_count']} "
-        f"unresolved={summary['unresolved_row_count']} "
-        f"canonical_exact={summary['canonical_exact_match_count']} "
-        f"alias_exact={summary['alias_exact_match_count']}"
+        f"no_canonical={summary['unresolved_row_count']} "
+        f"exact={summary['exact_match_count']} "
+        f"normalized={summary['normalized_match_count']} "
+        f"fuzzy={summary['fuzzy_match_count']} "
+        f"awaiting_review={summary['review_pending_count']} "
+        f"retired={summary['retired_mapping_count']} "
+        f"human_decisions_applied={summary['human_decision_applied_count']}"
     )
     print(f"[resolve-admission-entities] target={summary['target_table']}")
     return 0
@@ -553,9 +561,13 @@ def _cmd_refresh_admission_resolution(args: argparse.Namespace) -> int:
         f"before_distinct={summary['before_distinct_university_count']} "
         f"after_distinct={summary['after_distinct_university_count']} "
         f"resolved={summary['resolved_row_count']} "
-        f"unresolved={summary['unresolved_row_count']} "
-        f"canonical_exact={summary['canonical_exact_match_count']} "
-        f"alias_exact={summary['alias_exact_match_count']}"
+        f"no_canonical={summary['unresolved_row_count']} "
+        f"exact={summary['exact_match_count']} "
+        f"normalized={summary['normalized_match_count']} "
+        f"fuzzy={summary['fuzzy_match_count']} "
+        f"awaiting_review={summary['review_pending_count']} "
+        f"retired={summary['retired_mapping_count']} "
+        f"human_decisions_applied={summary['human_decision_applied_count']}"
     )
     if summary["display_rows"]:
         print("normalized_university_name | occurrence_count")

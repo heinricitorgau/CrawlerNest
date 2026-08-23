@@ -61,20 +61,11 @@ CREATE TABLE IF NOT EXISTS analytics.recommendation_results (
     UNIQUE (recommendation_run_id, result_position)
 );
 
-CREATE TABLE IF NOT EXISTS warehouse.admission_records_preview (
-    id BIGSERIAL PRIMARY KEY,
-    university_name TEXT NOT NULL,
-    normalized_university_name TEXT NOT NULL,
-    source_url TEXT NOT NULL,
-    country TEXT NULL,
-    ielts_requirement DOUBLE PRECISION NULL,
-    toefl_requirement INTEGER NULL,
-    extracted_at TIMESTAMPTZ NOT NULL,
-    canonical_university_id BIGINT NULL,
-    entity_resolution_status TEXT NOT NULL,
-    raw_payload JSONB NULL,
-    UNIQUE (normalized_university_name, source_url)
-);
+-- The admission table used to be defined here, as
+-- warehouse.admission_records_preview. It is a warehouse fact table, not a
+-- recommendation artifact, and it now lives in admission_postgresql.sql --
+-- loaded first, and renamed there to warehouse.admission_record. The view
+-- below still reads it, now through columns rather than raw_payload keys.
 
 DROP VIEW IF EXISTS analytics.v_recommendation_candidates_latest;
 
@@ -96,14 +87,20 @@ WITH admission_summary AS (
       ON ar.university_id = cul.university_id
     GROUP BY cul.canonical_university_id
 ),
-admission_preview_summary AS (
+crawled_admission_summary AS (
     SELECT
         canonical_university_id,
+        MIN(duolingo_requirement) AS duolingo_min,
+        MIN(gpa_requirement) AS crawled_gpa_min,
+        MIN(ielts_requirement) AS crawled_ielts_min,
+        MIN(toefl_requirement) AS crawled_toefl_min,
+        COUNT(*) FILTER (WHERE ielts_requirement IS NOT NULL) AS crawled_ielts_observation_count,
+        MIN(application_deadline) AS application_deadline,
         (
             ARRAY_AGG(raw_payload ORDER BY id DESC)
             FILTER (WHERE raw_payload IS NOT NULL)
         )[1] AS latest_raw_payload
-    FROM warehouse.admission_records_preview
+    FROM warehouse.admission_record
     WHERE canonical_university_id IS NOT NULL
     GROUP BY canonical_university_id
 ),
@@ -134,13 +131,14 @@ SELECT
     ar.aggregation_method_version,
     COALESCE(srs.source_ranks_json, '{}'::jsonb) AS source_ranks_json,
     COALESCE(srs.source_scores_json, '{}'::jsonb) AS source_scores_json,
-    ads.gpa_min,
-    ads.ielts_min,
-    ads.toefl_min,
-    NULLIF(COALESCE(aps.latest_raw_payload->>'duolingo_requirement', aps.latest_raw_payload->>'duolingo'), '')::numeric AS duolingo_min,
-    COALESCE(aps.latest_raw_payload->>'deadline', ads.application_deadline_text) AS application_deadline_text,
+    COALESCE(ads.gpa_min, aps.crawled_gpa_min) AS gpa_min,
+    COALESCE(ads.ielts_min, aps.crawled_ielts_min) AS ielts_min,
+    COALESCE(ads.toefl_min, aps.crawled_toefl_min) AS toefl_min,
+    aps.duolingo_min,
+    COALESCE(aps.application_deadline::text, ads.application_deadline_text) AS application_deadline_text,
     COALESCE(aps.latest_raw_payload->'deadline_candidates', '[]'::jsonb) AS deadline_candidates_json,
-    COALESCE(ads.ielts_observation_count, 0) AS ielts_observation_count,
+    COALESCE(ads.ielts_observation_count, 0)
+        + COALESCE(aps.crawled_ielts_observation_count, 0) AS ielts_observation_count,
     COALESCE(ads.admission_record_count, 0) AS admission_record_count
 FROM analytics.v_aggregated_rankings_latest ar
 JOIN warehouse.canonical_university cu
@@ -149,7 +147,7 @@ LEFT JOIN warehouse.countries c
   ON c.country_id = cu.country_id
 LEFT JOIN admission_summary ads
   ON ads.canonical_university_id = ar.canonical_university_id
-LEFT JOIN admission_preview_summary aps
+LEFT JOIN crawled_admission_summary aps
   ON aps.canonical_university_id = ar.canonical_university_id
 LEFT JOIN source_rank_summary srs
   ON srs.canonical_university_id = ar.canonical_university_id

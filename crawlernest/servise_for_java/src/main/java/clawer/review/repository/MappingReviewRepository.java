@@ -19,10 +19,19 @@ import java.util.List;
 @Repository
 public class MappingReviewRepository {
 
+    /**
+     * Reads warehouse.v_entity_mapping rather than
+     * warehouse.source_university_mapping.
+     *
+     * <p>That view unions the ranking mappings with warehouse.source_mapping,
+     * where non-ranking sources land, under one source_code vocabulary. A
+     * university admission page is not a ranking and has no
+     * ranking_source_id, but it names universities and so needs the same
+     * review as any other source.
+     */
     private static final String CANDIDATE_SELECT = """
             SELECT
-                m.ranking_source_id,
-                rs.source_code,
+                m.source_code,
                 m.source_entity_id,
                 COALESCE(
                     m.metadata #>> '{raw_row,name}',
@@ -40,15 +49,13 @@ public class MappingReviewRepository {
                 (m.metadata ->> 'suspicious_merge')::boolean AS suspicious_merge,
                 (m.metadata ->> 'candidate_count_hint')::int AS candidate_count_hint,
                 r.decision AS existing_decision
-            FROM warehouse.source_university_mapping m
-            JOIN warehouse.ranking_source rs
-                ON rs.ranking_source_id = m.ranking_source_id
+            FROM warehouse.v_entity_mapping m
             JOIN warehouse.canonical_university cu
                 ON cu.canonical_university_id = m.canonical_university_id
             LEFT JOIN warehouse.countries c
                 ON c.country_id = cu.country_id
             LEFT JOIN warehouse.mapping_review r
-                ON r.ranking_source_id = m.ranking_source_id
+                ON r.source_code = m.source_code
                AND r.source_entity_id = m.source_entity_id
             WHERE m.is_active
               AND m.match_method IN ('fuzzy', 'fuzzy_review')
@@ -94,9 +101,9 @@ public class MappingReviewRepository {
         Integer count = jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*)
-                FROM warehouse.source_university_mapping m
+                FROM warehouse.v_entity_mapping m
                 LEFT JOIN warehouse.mapping_review r
-                    ON r.ranking_source_id = m.ranking_source_id
+                    ON r.source_code = m.source_code
                    AND r.source_entity_id = m.source_entity_id
                 WHERE m.is_active
                   AND m.match_method IN ('fuzzy', 'fuzzy_review')
@@ -106,15 +113,15 @@ public class MappingReviewRepository {
         return count == null ? 0 : count;
     }
 
-    public boolean mappingExists(int rankingSourceId, String sourceEntityId) {
+    public boolean mappingExists(String sourceCode, String sourceEntityId) {
         Integer count = jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*)
-                FROM warehouse.source_university_mapping
-                WHERE ranking_source_id = ? AND source_entity_id = ?
+                FROM warehouse.v_entity_mapping
+                WHERE source_code = ? AND source_entity_id = ?
                 """,
                 Integer.class,
-                rankingSourceId,
+                sourceCode,
                 sourceEntityId);
         return count != null && count > 0;
     }
@@ -156,9 +163,13 @@ public class MappingReviewRepository {
      * <p>The reviewed_* columns are copied from the live mapping row inside the
      * same statement rather than taken from the request, so the snapshot always
      * describes what the resolver actually produced.
+     *
+     * <p>ranking_source_id is resolved by a LEFT JOIN, not sent by the client.
+     * It is a legacy column kept for one release so the source_code migration
+     * stays revertible, and a non-ranking source correctly leaves it NULL.
      */
     public int saveDecision(
-            int rankingSourceId,
+            String sourceCode,
             String sourceEntityId,
             String decision,
             Long decidedCanonicalUniversityId,
@@ -167,6 +178,7 @@ public class MappingReviewRepository {
         return jdbcTemplate.update(
                 """
                 INSERT INTO warehouse.mapping_review (
+                    source_code,
                     ranking_source_id,
                     source_entity_id,
                     reviewed_source_name,
@@ -179,7 +191,8 @@ public class MappingReviewRepository {
                     note
                 )
                 SELECT
-                    m.ranking_source_id,
+                    m.source_code,
+                    rs.ranking_source_id,
                     m.source_entity_id,
                     COALESCE(
                         m.metadata #>> '{raw_row,name}',
@@ -193,9 +206,11 @@ public class MappingReviewRepository {
                     ?,
                     ?,
                     ?
-                FROM warehouse.source_university_mapping m
-                WHERE m.ranking_source_id = ? AND m.source_entity_id = ?
-                ON CONFLICT (ranking_source_id, source_entity_id)
+                FROM warehouse.v_entity_mapping m
+                LEFT JOIN warehouse.ranking_source rs
+                    ON rs.source_code = m.source_code
+                WHERE m.source_code = ? AND m.source_entity_id = ?
+                ON CONFLICT (source_code, source_entity_id)
                 DO UPDATE SET
                     decision = EXCLUDED.decision,
                     decided_canonical_university_id = EXCLUDED.decided_canonical_university_id,
@@ -207,7 +222,7 @@ public class MappingReviewRepository {
                 decidedCanonicalUniversityId,
                 decidedBy,
                 note,
-                rankingSourceId,
+                sourceCode,
                 sourceEntityId);
     }
 
@@ -219,7 +234,6 @@ public class MappingReviewRepository {
         java.math.BigDecimal confidence = rs.getBigDecimal("confidence_score");
 
         return new MappingReviewCandidate(
-                rs.getInt("ranking_source_id"),
                 rs.getString("source_code"),
                 rs.getString("source_entity_id"),
                 rs.getString("source_name"),

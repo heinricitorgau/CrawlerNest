@@ -14,9 +14,15 @@ MultiSourceRankingPipeline.ingest_records applies them before either upsert.
 """
 
 from dataclasses import dataclass, field, replace
-from typing import Optional
+from typing import Any, Callable, Optional, TypeVar
 
 from .types import UnifiedRankingRecord
+
+#: Any frozen record carrying the fields a decision overwrites:
+#: canonical_university_id, matched_alias, confidence_score, matching_method
+#: and metadata. UnifiedRankingRecord is one; entity_resolution's
+#: ResolutionResult, which the admission pipeline resolves into, is another.
+ResolvedRow = TypeVar("ResolvedRow")
 
 CONFIRMED = "confirmed"
 REJECTED = "rejected"
@@ -82,7 +88,12 @@ class MappingReviewApplication:
         }
 
 
-def _audit_metadata(row: UnifiedRankingRecord, review: MappingReview) -> dict[str, object]:
+def _ranking_source_of(row: Any) -> str:
+    """Where a ranking record carries its source code."""
+    return row.source
+
+
+def _audit_metadata(row: Any, review: MappingReview) -> dict[str, object]:
     metadata = dict(row.metadata or {})
     metadata["human_review"] = {
         "decision": review.decision,
@@ -96,9 +107,11 @@ def _audit_metadata(row: UnifiedRankingRecord, review: MappingReview) -> dict[st
 
 
 def apply_mapping_reviews(
-    unified_rows: list[UnifiedRankingRecord],
+    unified_rows: list[ResolvedRow],
     reviews: dict[tuple[str, str], MappingReview],
-) -> tuple[list[UnifiedRankingRecord], MappingReviewApplication]:
+    *,
+    source_of: Callable[[Any], str] = _ranking_source_of,
+) -> tuple[list[ResolvedRow], MappingReviewApplication]:
     """
     Overlay standing human decisions on a batch of resolved rows.
 
@@ -108,17 +121,24 @@ def apply_mapping_reviews(
     withdrawing a wrong source credit -- no delete, no separate cleanup.
 
     Rows without a decision are returned untouched.
+
+    ``source_of`` reads the source code off a row. It exists because the
+    admission pipeline resolves into entity_resolution's ResolutionResult,
+    which spells that field ``source_name`` rather than ``source``. The rule
+    itself does not vary by source: a reviewer deciding whether a name is a
+    given university is answering the same question either way, and two
+    implementations of that rule would eventually disagree.
     """
     if not reviews:
         return list(unified_rows), MappingReviewApplication(rows_considered=len(unified_rows))
 
-    out: list[UnifiedRankingRecord] = []
+    out: list[ResolvedRow] = []
     seen_keys: set[tuple[str, str]] = set()
     rejected_keys: list[tuple[str, str]] = []
     confirmed = rejected = remapped = invalid = 0
 
     for row in unified_rows:
-        review = reviews.get((row.source, row.source_entity_id))
+        review = reviews.get((source_of(row), row.source_entity_id))
         if review is None:
             out.append(row)
             continue

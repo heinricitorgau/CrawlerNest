@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -106,6 +106,9 @@ def _row_to_staging_payload(row: NormalizedAdmissionRow) -> dict[str, object]:
     extracted_at = payload.get("extracted_at")
     if isinstance(extracted_at, datetime):
         payload["extracted_at"] = extracted_at.isoformat()
+    deadline = payload.get("application_deadline")
+    if isinstance(deadline, (datetime, date)):
+        payload["application_deadline"] = deadline.isoformat()
     return payload
 
 
@@ -132,8 +135,12 @@ def _ingest_to_sqlite(sqlite_db_file: Path, rows: list[dict[str, Any]]) -> tuple
                 ielts_requirement REAL NULL,
                 toefl_requirement INTEGER NULL,
                 extracted_at TEXT NOT NULL,
+                duolingo_requirement INTEGER NULL,
+                gpa_requirement REAL NULL,
+                application_deadline TEXT NULL,
+                degree_level TEXT NOT NULL DEFAULT 'unknown',
                 raw_payload TEXT NULL,
-                UNIQUE(normalized_university_name, source_url)
+                UNIQUE(source_url, degree_level)
             )
             """
         )
@@ -150,8 +157,12 @@ def _ingest_to_sqlite(sqlite_db_file: Path, rows: list[dict[str, Any]]) -> tuple
                     ielts_requirement,
                     toefl_requirement,
                     extracted_at,
+                    duolingo_requirement,
+                    gpa_requirement,
+                    application_deadline,
+                    degree_level,
                     raw_payload
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     row["university_name"],
@@ -161,6 +172,10 @@ def _ingest_to_sqlite(sqlite_db_file: Path, rows: list[dict[str, Any]]) -> tuple
                     row.get("ielts_requirement"),
                     row.get("toefl_requirement"),
                     row["extracted_at"],
+                    row.get("duolingo_requirement"),
+                    row.get("gpa_requirement"),
+                    row.get("application_deadline"),
+                    row.get("degree_level") or "unknown",
                     json.dumps(row.get("raw_payload"), ensure_ascii=False) if row.get("raw_payload") is not None else None,
                 ),
             )
@@ -208,9 +223,13 @@ def _ingest_to_postgres(
                         ielts_requirement,
                         toefl_requirement,
                         extracted_at,
+                        duolingo_requirement,
+                        gpa_requirement,
+                        application_deadline,
+                        degree_level,
                         raw_payload
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb)
-                    ON CONFLICT (normalized_university_name, source_url) DO NOTHING
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                    ON CONFLICT (source_url, degree_level) DO NOTHING
                     RETURNING 1
                     """,
                     (
@@ -221,6 +240,10 @@ def _ingest_to_postgres(
                         row.get("ielts_requirement"),
                         row.get("toefl_requirement"),
                         datetime.fromisoformat(str(row["extracted_at"])),
+                        row.get("duolingo_requirement"),
+                        row.get("gpa_requirement"),
+                        row.get("application_deadline"),
+                        row.get("degree_level") or "unknown",
                         json.dumps(row.get("raw_payload"), ensure_ascii=False)
                         if row.get("raw_payload") is not None
                         else None,
@@ -255,8 +278,12 @@ def _ensure_postgres_staging_table(
             ielts_requirement DOUBLE PRECISION NULL,
             toefl_requirement INTEGER NULL,
             extracted_at TIMESTAMPTZ NOT NULL,
+            duolingo_requirement INTEGER NULL,
+            gpa_requirement DOUBLE PRECISION NULL,
+            application_deadline DATE NULL,
+            degree_level TEXT NOT NULL DEFAULT 'unknown',
             raw_payload JSONB NULL,
-            UNIQUE (normalized_university_name, source_url)
+            UNIQUE (source_url, degree_level)
         )
         """
     )
