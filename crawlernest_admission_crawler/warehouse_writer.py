@@ -1,19 +1,37 @@
+"""Write resolved admission rows into warehouse.admission_record.
+
+The upsert replaces what the source currently says rather than declining to
+touch what it said last time. The previous version used
+``ON CONFLICT DO NOTHING``, which meant a page crawled a hundred times stayed
+at whatever the first crawl found -- and entry requirements change every year,
+so a frozen row is worse than a missing one. This is the same rule
+warehouse.ranking_record follows.
+"""
+
 from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
+from typing import Any
 
-from crawlernest_admission_crawler.models import WarehouseReadyAdmissionRow
+from crawlernest_admission_crawler.models import (
+    UNKNOWN_DEGREE_LEVEL,
+    WarehouseReadyAdmissionRow,
+)
 from crawlernest_admission_crawler.postgres_driver import get_psycopg2
+from crawlernest_admission_crawler.source_identity import (
+    SOURCE_CODE,
+    admission_source_entity_id,
+)
 
 
 @dataclass(slots=True)
 class WarehouseLandingWriteSummary:
     row_count: int
     inserted_row_count: int
-    skipped_existing_row_count: int
+    updated_row_count: int
     before_row_count: int
     after_row_count: int
     target_location: str
@@ -30,22 +48,26 @@ def load_warehouse_preview_rows(preview_file: Path) -> list[WarehouseReadyAdmiss
     for item in payload:
         if not isinstance(item, dict):
             raise ValueError("warehouse preview artifact rows must be JSON objects")
+        source_url = str(item["source_url"])
         rows.append(
             WarehouseReadyAdmissionRow(
                 university_name=str(item["university_name"]),
                 normalized_university_name=str(item["normalized_university_name"]),
-                source_url=str(item["source_url"]),
+                source_url=source_url,
                 country=item.get("country"),
-                ielts_requirement=(
-                    None if item.get("ielts_requirement") is None else float(item["ielts_requirement"])
-                ),
-                toefl_requirement=(
-                    None if item.get("toefl_requirement") is None else int(item["toefl_requirement"])
-                ),
+                ielts_requirement=_optional_float(item.get("ielts_requirement")),
+                toefl_requirement=_optional_int(item.get("toefl_requirement")),
                 extracted_at=datetime.fromisoformat(str(item["extracted_at"])),
-                canonical_university_id=(
-                    None if item.get("canonical_university_id") is None else int(item["canonical_university_id"])
+                source_entity_id=(
+                    str(item["source_entity_id"])
+                    if item.get("source_entity_id")
+                    else admission_source_entity_id(source_url)
                 ),
+                duolingo_requirement=_optional_int(item.get("duolingo_requirement")),
+                gpa_requirement=_optional_float(item.get("gpa_requirement")),
+                application_deadline=_optional_date(item.get("application_deadline")),
+                degree_level=str(item.get("degree_level") or UNKNOWN_DEGREE_LEVEL),
+                canonical_university_id=_optional_int(item.get("canonical_university_id")),
                 entity_resolution_status=str(item.get("entity_resolution_status", "unresolved")),
                 raw_payload=item.get("raw_payload") if isinstance(item.get("raw_payload"), dict) else None,
             )
@@ -62,7 +84,7 @@ def write_warehouse_landing_rows(
     pg_user: str,
     pg_password: str,
     schema_name: str = "warehouse",
-    table_name: str = "admission_records_preview",
+    table_name: str = "admission_record",
 ) -> WarehouseLandingWriteSummary:
     psycopg2 = get_psycopg2()
     conn = psycopg2.connect(
@@ -73,23 +95,15 @@ def write_warehouse_landing_rows(
         password=pg_password,
     )
     try:
-        before_row_count = _count_rows(
-            conn,
-            schema_name=schema_name,
-            table_name=table_name,
-        )
-        inserted, skipped_existing = _insert_rows(
+        before_row_count = _count_rows(conn, schema_name=schema_name, table_name=table_name)
+        inserted, updated = _upsert_rows(
             conn,
             schema_name=schema_name,
             table_name=table_name,
             rows=rows,
         )
         conn.commit()
-        after_row_count = _count_rows(
-            conn,
-            schema_name=schema_name,
-            table_name=table_name,
-        )
+        after_row_count = _count_rows(conn, schema_name=schema_name, table_name=table_name)
     except Exception:
         conn.rollback()
         raise
@@ -99,21 +113,23 @@ def write_warehouse_landing_rows(
     verified_inserted = after_row_count - before_row_count
     if verified_inserted < 0:
         raise RuntimeError(
-            f"warehouse preview row count decreased unexpectedly for {schema_name}.{table_name}: "
+            f"admission row count decreased unexpectedly for {schema_name}.{table_name}: "
             f"before={before_row_count}, after={after_row_count}"
         )
+    # Only the inserts move the row count; the updates are what the upsert
+    # exists for. Comparing the total written against the delta, as this used
+    # to, would fail every run that corrected an existing row.
     if verified_inserted != inserted:
         raise RuntimeError(
-            f"warehouse preview write summary mismatch for {schema_name}.{table_name}: "
+            f"admission write summary mismatch for {schema_name}.{table_name}: "
             f"writer_inserted={inserted}, verified_inserted={verified_inserted}, "
             f"before={before_row_count}, after={after_row_count}"
         )
-    skipped_existing = max(0, len(rows) - verified_inserted)
 
     return WarehouseLandingWriteSummary(
         row_count=len(rows),
-        inserted_row_count=verified_inserted,
-        skipped_existing_row_count=skipped_existing,
+        inserted_row_count=inserted,
+        updated_row_count=updated,
         before_row_count=before_row_count,
         after_row_count=after_row_count,
         target_location=f"postgresql://{pg_host}:{pg_port}/{pg_database}#{schema_name}.{table_name}",
@@ -126,80 +142,116 @@ def warehouse_landing_summary_to_dict(summary: WarehouseLandingWriteSummary) -> 
     return asdict(summary)
 
 
-def _insert_rows(
+def _upsert_rows(
     conn: "psycopg2.extensions.connection",
     *,
     schema_name: str,
     table_name: str,
     rows: list[WarehouseReadyAdmissionRow],
 ) -> tuple[int, int]:
+    """Insert or replace each row. Returns (inserted, updated).
+
+    ``xmax = 0`` is true only for a tuple this statement inserted, which is how
+    an upsert reports which branch it took without a second round trip.
+    """
     inserted = 0
-    skipped_existing = 0
+    updated = 0
     with conn.cursor() as cur:
-        _ensure_table(cur, schema_name=schema_name, table_name=table_name)
+        _require_table(cur, schema_name=schema_name, table_name=table_name)
         for row in rows:
             cur.execute(
                 f"""
                 INSERT INTO {schema_name}.{table_name} (
+                    source_code,
+                    source_entity_id,
+                    source_url,
                     university_name,
                     normalized_university_name,
-                    source_url,
                     country,
-                    ielts_requirement,
-                    toefl_requirement,
-                    extracted_at,
                     canonical_university_id,
                     entity_resolution_status,
-                    raw_payload
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
-                ON CONFLICT (normalized_university_name, source_url) DO NOTHING
-                RETURNING 1
+                    degree_level,
+                    ielts_requirement,
+                    toefl_requirement,
+                    duolingo_requirement,
+                    gpa_requirement,
+                    application_deadline,
+                    raw_payload,
+                    extracted_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)
+                ON CONFLICT (source_code, source_entity_id, degree_level)
+                DO UPDATE SET
+                    source_url = EXCLUDED.source_url,
+                    university_name = EXCLUDED.university_name,
+                    normalized_university_name = EXCLUDED.normalized_university_name,
+                    country = EXCLUDED.country,
+                    canonical_university_id = EXCLUDED.canonical_university_id,
+                    entity_resolution_status = EXCLUDED.entity_resolution_status,
+                    ielts_requirement = EXCLUDED.ielts_requirement,
+                    toefl_requirement = EXCLUDED.toefl_requirement,
+                    duolingo_requirement = EXCLUDED.duolingo_requirement,
+                    gpa_requirement = EXCLUDED.gpa_requirement,
+                    application_deadline = EXCLUDED.application_deadline,
+                    raw_payload = EXCLUDED.raw_payload,
+                    extracted_at = EXCLUDED.extracted_at,
+                    updated_at = CURRENT_TIMESTAMP
+                RETURNING (xmax = 0) AS was_inserted
                 """,
                 (
+                    SOURCE_CODE,
+                    row.source_entity_id or admission_source_entity_id(row.source_url),
+                    row.source_url,
                     row.university_name,
                     row.normalized_university_name,
-                    row.source_url,
                     row.country,
-                    row.ielts_requirement,
-                    row.toefl_requirement,
-                    row.extracted_at,
                     row.canonical_university_id,
                     row.entity_resolution_status,
+                    row.degree_level or UNKNOWN_DEGREE_LEVEL,
+                    row.ielts_requirement,
+                    row.toefl_requirement,
+                    row.duolingo_requirement,
+                    row.gpa_requirement,
+                    row.application_deadline,
                     json.dumps(row.raw_payload, ensure_ascii=False) if row.raw_payload is not None else None,
+                    row.extracted_at,
                 ),
             )
-            if cur.fetchone() is not None:
+            result = cur.fetchone()
+            if result is not None and result[0]:
                 inserted += 1
             else:
-                skipped_existing += 1
-    return inserted, skipped_existing
+                updated += 1
+    return inserted, updated
 
 
-def _ensure_table(
+def _require_table(
     cur: "psycopg2.extensions.cursor",
     *,
     schema_name: str,
     table_name: str,
 ) -> None:
-    cur.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
+    """Fail loudly rather than conjuring a table.
+
+    This used to CREATE TABLE IF NOT EXISTS with its own copy of the DDL. A
+    second definition of a table is a second definition to keep in step, and
+    the one that loses is whichever the writer creates first on a fresh
+    database -- silently, without the columns and constraints the schema file
+    would have given it.
+    """
     cur.execute(
-        f"""
-        CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} (
-            id BIGSERIAL PRIMARY KEY,
-            university_name TEXT NOT NULL,
-            normalized_university_name TEXT NOT NULL,
-            source_url TEXT NOT NULL,
-            country TEXT NULL,
-            ielts_requirement DOUBLE PRECISION NULL,
-            toefl_requirement INTEGER NULL,
-            extracted_at TIMESTAMPTZ NOT NULL,
-            canonical_university_id BIGINT NULL,
-            entity_resolution_status TEXT NOT NULL,
-            raw_payload JSONB NULL,
-            UNIQUE (normalized_university_name, source_url)
-        )
         """
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = %s AND table_name = %s
+        LIMIT 1
+        """,
+        (schema_name, table_name),
     )
+    if cur.fetchone() is None:
+        raise RuntimeError(
+            f"{schema_name}.{table_name} does not exist. Run: "
+            "python3 -m crawlernest.run_pipeline bootstrap-postgres"
+        )
 
 
 def _count_rows(
@@ -209,7 +261,26 @@ def _count_rows(
     table_name: str,
 ) -> int:
     with conn.cursor() as cur:
-        _ensure_table(cur, schema_name=schema_name, table_name=table_name)
+        _require_table(cur, schema_name=schema_name, table_name=table_name)
         cur.execute(f"SELECT COUNT(*) FROM {schema_name}.{table_name}")
         row = cur.fetchone()
     return 0 if row is None else int(row[0])
+
+
+def _optional_date(value: Any) -> date | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    text = str(value).strip()
+    return date.fromisoformat(text) if text else None
+
+
+def _optional_float(value: Any) -> float | None:
+    return None if value is None else float(value)
+
+
+def _optional_int(value: Any) -> int | None:
+    return None if value is None else int(value)

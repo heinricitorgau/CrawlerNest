@@ -1,4 +1,4 @@
-DELETE FROM warehouse.admission_records_preview
+DELETE FROM warehouse.admission_record
 WHERE canonical_university_id = 990102
    OR normalized_university_name IN ('MIT');
 
@@ -93,7 +93,8 @@ INSERT INTO warehouse.ranking_records_preview (
         'direct_source_only'
     );
 
-INSERT INTO warehouse.admission_records_preview (
+INSERT INTO warehouse.admission_record (
+    source_entity_id,
     university_name,
     normalized_university_name,
     source_url,
@@ -105,6 +106,7 @@ INSERT INTO warehouse.admission_records_preview (
     entity_resolution_status,
     raw_payload
 ) VALUES (
+    'example.edu/admissions/mit',
     'MIT',
     'MIT',
     'https://example.edu/admissions/mit',
@@ -116,3 +118,4 @@ INSERT INTO warehouse.admission_records_preview (
     'resolved_alias_exact',
     '{"source":"integration-test"}'::jsonb
 );
+

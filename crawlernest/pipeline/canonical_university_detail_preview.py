@@ -77,7 +77,7 @@ def build_canonical_university_detail_preview(
     ranking_schema: str = "warehouse",
     ranking_table: str = "ranking_records_preview",
     admission_schema: str = "warehouse",
-    admission_table: str = "admission_records_preview",
+    admission_table: str = "admission_record",
 ) -> CanonicalUniversityDetailPreview:
     if psycopg2 is None:
         raise RuntimeError("psycopg2 is required for canonical university detail preview")

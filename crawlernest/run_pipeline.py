@@ -1995,6 +1995,10 @@ def _run_sample_crawl_export(
     *,
     normalized_output_file: str | None = None,
     staging_output_file: str | None = None,
+    snapshot_dir: str | None = None,
+    live: bool = False,
+    only: list[str] | None = None,
+    rate_limit_seconds: float = 1.0,
 ) -> tuple[Path, int, Path | None, Path | None]:
     workspace_root = Path(__file__).resolve().parent.parent
     if str(workspace_root) not in sys.path:
@@ -2027,6 +2031,10 @@ def _run_sample_crawl_export(
             output_path,
             normalized_output_path=normalized_path,
             staging_output_path=staging_path,
+            snapshot_dir=Path(snapshot_dir) if snapshot_dir else None,
+            live=live,
+            only=only,
+            rate_limit_seconds=rate_limit_seconds,
         )
     raise ValueError(f"Unsupported sample crawl command: {command}")
 
@@ -2359,6 +2367,10 @@ def _cmd_crawl_admission(args: argparse.Namespace) -> int:
         staging_output_file=(
             args.staging_output_file if getattr(args, "write_staging", False) else None
         ),
+        snapshot_dir=str(getattr(args, "snapshot_dir", "") or ""),
+        live=bool(getattr(args, "live", False)),
+        only=list(getattr(args, "only", None) or []) or None,
+        rate_limit_seconds=float(getattr(args, "rate_limit", 1.0)),
     )
     print(f"[crawl-admission] exported={count} output={output_path}")
     if normalized_path is not None:
@@ -2412,7 +2424,7 @@ def _cmd_rebuild_preview_and_resolve(args: argparse.Namespace) -> int:
         "[rebuild-preview-and-resolve] admission_preview "
         f"rows={admission_summary['row_count']} "
         f"inserted={admission_summary['inserted_row_count']} "
-        f"skipped_existing={admission_summary['skipped_existing_row_count']}"
+        f"updated={admission_summary['updated_row_count']}"
     )
     print(
         "[rebuild-preview-and-resolve] ranking_resolution "
@@ -2483,7 +2495,7 @@ def _cmd_preview_canonical_university_detail(args: argparse.Namespace) -> int:
             ranking_schema=str(getattr(args, "ranking_schema", "warehouse")),
             ranking_table=str(getattr(args, "ranking_table", "ranking_records_preview")),
             admission_schema=str(getattr(args, "admission_schema", "warehouse")),
-            admission_table=str(getattr(args, "admission_table", "admission_records_preview")),
+            admission_table=str(getattr(args, "admission_table", "admission_record")),
             pg_host=str(args.pg_host),
             pg_port=int(args.pg_port),
             pg_database=str(args.pg_database),

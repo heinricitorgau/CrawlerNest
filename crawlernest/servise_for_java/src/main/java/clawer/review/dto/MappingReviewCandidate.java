@@ -7,9 +7,12 @@ package clawer.review.dto;
  * what the source called it, what the resolver matched it to, and the signals
  * behind that guess. The two country fields are kept separate on purpose -- a
  * mismatch between them is the single strongest hint that the match is wrong.
+ *
+ * <p>The pair is identified by sourceCode, not by a ranking source id: a
+ * source that is not a ranking has no such id, and reviewing it is the same
+ * job either way.
  */
 public record MappingReviewCandidate(
-        int rankingSourceId,
         String sourceCode,
         String sourceEntityId,
         String sourceName,

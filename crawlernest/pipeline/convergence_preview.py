@@ -51,7 +51,7 @@ def build_convergence_preview(
     ranking_schema: str = "warehouse",
     ranking_table: str = "ranking_records_preview",
     admission_schema: str = "warehouse",
-    admission_table: str = "admission_records_preview",
+    admission_table: str = "admission_record",
     limit: int = 50,
 ) -> list[ConvergencePreviewRow]:
     if psycopg2 is None:

@@ -24,7 +24,7 @@ def get_unresolved_admission_entities(
     pg_user: str,
     pg_password: str,
     target_schema: str = "warehouse",
-    target_table: str = "admission_records_preview",
+    target_table: str = "admission_record",
     limit: int = 20,
 ) -> list[UnresolvedAdmissionRow]:
     psycopg2 = get_psycopg2()

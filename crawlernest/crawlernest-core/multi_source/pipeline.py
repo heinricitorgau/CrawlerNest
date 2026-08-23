@@ -90,7 +90,7 @@ class MultiSourceRankingPipeline:
         # transient and ineffective.
         unified_rows, review_application = apply_mapping_reviews(
             unified_rows,
-            self.multi_source_repo.load_mapping_reviews(source_id_map),
+            self.multi_source_repo.load_mapping_reviews(sorted(source_id_map)),
         )
         if review_application.applied:
             logger.info(

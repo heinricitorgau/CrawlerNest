@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ReviewCandidate {
-  rankingSourceId: number;
   sourceCode: string;
   sourceEntityId: string;
   sourceName: string;
@@ -44,7 +43,7 @@ type LoadState =
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function candidateKey(candidate: ReviewCandidate): string {
-  return `${candidate.rankingSourceId}:${candidate.sourceEntityId}`;
+  return `${candidate.sourceCode}:${candidate.sourceEntityId}`;
 }
 
 function formatScore(score: number | null): string {
@@ -314,7 +313,7 @@ export default function EntityReviewPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          rankingSourceId: candidate.rankingSourceId,
+          sourceCode: candidate.sourceCode,
           sourceEntityId: candidate.sourceEntityId,
           decision,
           decidedCanonicalUniversityId:

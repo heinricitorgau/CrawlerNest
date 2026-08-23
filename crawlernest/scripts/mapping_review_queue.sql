@@ -20,8 +20,7 @@
 -- writes the same queue as a decisions file for apply_mapping_reviews.py.
 
 SELECT
-    m.ranking_source_id,
-    rs.source_code,
+    m.source_code,
     m.source_entity_id,
     COALESCE(
         m.metadata #>> '{raw_row,name}',
@@ -36,37 +35,33 @@ SELECT
     m.confidence_score,
     (m.metadata ->> 'token_overlap')::double precision  AS token_overlap,
     (m.metadata ->> 'candidate_count_hint')::int        AS candidates_considered
-FROM warehouse.source_university_mapping m
-JOIN warehouse.ranking_source rs
-    ON rs.ranking_source_id = m.ranking_source_id
+FROM warehouse.v_entity_mapping m
 JOIN warehouse.canonical_university cu
     ON cu.canonical_university_id = m.canonical_university_id
 LEFT JOIN warehouse.countries c
     ON c.country_id = cu.country_id
 LEFT JOIN warehouse.mapping_review r
-    ON r.ranking_source_id = m.ranking_source_id
+    ON r.source_code = m.source_code
    AND r.source_entity_id = m.source_entity_id
 WHERE m.is_active
   AND m.match_method IN ('fuzzy', 'fuzzy_review')
   AND r.mapping_review_id IS NULL
-ORDER BY m.confidence_score ASC, rs.source_code, m.source_entity_id;
+ORDER BY m.confidence_score ASC, m.source_code, m.source_entity_id;
 
 
 -- How much is left, per source and method, with subtotals. Worth having
 -- separately from the listing: after a batch the useful question is how many
 -- remain, and counting rows by eye stops working somewhere around twenty.
 SELECT
-    COALESCE(rs.source_code, 'ALL')      AS source_code,
+    COALESCE(m.source_code, 'ALL')       AS source_code,
     COALESCE(m.match_method, 'all')      AS match_method,
     count(*)                             AS pending
-FROM warehouse.source_university_mapping m
-JOIN warehouse.ranking_source rs
-    ON rs.ranking_source_id = m.ranking_source_id
+FROM warehouse.v_entity_mapping m
 LEFT JOIN warehouse.mapping_review r
-    ON r.ranking_source_id = m.ranking_source_id
+    ON r.source_code = m.source_code
    AND r.source_entity_id = m.source_entity_id
 WHERE m.is_active
   AND m.match_method IN ('fuzzy', 'fuzzy_review')
   AND r.mapping_review_id IS NULL
-GROUP BY ROLLUP (rs.source_code, m.match_method)
-ORDER BY rs.source_code NULLS LAST, m.match_method NULLS LAST;
+GROUP BY ROLLUP (m.source_code, m.match_method)
+ORDER BY m.source_code NULLS LAST, m.match_method NULLS LAST;
