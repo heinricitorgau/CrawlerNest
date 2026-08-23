@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-08-22，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-08-23，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：332
-- **期間**：2026-03-16 ~ 2026-08-22
+- **Commit 總數**：336
+- **期間**：2026-03-16 ~ 2026-08-23
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,8 +34,12 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `aeda786` | 2026-08-22 | KAO,EN-TSAI | — | — | Merge pull request #16 from heinricitorgau/test/inference-batch-invariants **[main]** |
-| `fb4289a` | 2026-08-22 | heinricitorgau | 3 | +214 / −2 | Cover the one MATLAB port parity cannot reach **[test/inference-batch-invariants]** |
+| `eef516c` | 2026-08-23 | KAO,EN-TSAI | — | — | Merge pull request #17 from heinricitorgau/feat/admission-ranking-convergence **[main]** |
+| `85c5889` | 2026-08-22 | heinricitorgau | 57 | +3425 / −447 | Converge the admission pipeline onto the ranking entity-resolution stack **[feat/admission-ranking-convergence]** |
+| `92099fa` | 2026-08-22 | heinricitorgau | 5 | +439 / −11 | Cover plot_disagreement_diagnostics.m against sklearn, and fix its binning **[ml/diagnostics-parity]** |
+| `1dcd8aa` | 2026-08-22 | github-actions[bot] | 1 | +14 / −11 | docs: regenerate the commit log |
+| `aeda786` | 2026-08-22 | KAO,EN-TSAI | — | — | Merge pull request #16 from heinricitorgau/test/inference-batch-invariants |
+| `fb4289a` | 2026-08-22 | heinricitorgau | 3 | +214 / −2 | Cover the one MATLAB port parity cannot reach |
 | `be32c9d` | 2026-08-21 | github-actions[bot] | 1 | +26 / −8 | docs: regenerate the commit log |
 | `3d6c08f` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #15 from heinricitorgau/fix/entity-resolution-blocking |
 | `900c5e9` | 2026-08-21 | heinricitorgau | 2 | +30 / −30 | Retrain the disagreement model on the corrected pairing |
@@ -398,8 +402,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 332 |
-| 檔案變更累計 | 5918 |
-| 新增行數累計 | +1185066 |
-| 刪除行數累計 | −432493 |
-| 淨增行數 | +752573 |
+| Commit 數 | 336 |
+| 檔案變更累計 | 5981 |
+| 新增行數累計 | +1188944 |
+| 刪除行數累計 | −432962 |
+| 淨增行數 | +755982 |
