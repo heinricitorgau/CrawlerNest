@@ -115,6 +115,11 @@ source_rank_summary AS (
     FROM warehouse.ranking_record rr
     JOIN warehouse.ranking_source rs
       ON rs.ranking_source_id = rr.ranking_source_id
+    -- warehouse.ranking_record is keyed per source, year and universe, so any read
+    -- of it has to pin a universe. The same predicate is carried by
+    -- crawlernest/pipeline/ranking_scope.py and by the preview queries in
+    -- clawer/repository/UniversityPreviewRepository.java; change one, change all
+    -- three. See docs/migrations/RANKING_SCHEMA_CONVERGENCE.md.
     WHERE rr.ranking_type = 'world'
       AND rr.universe_type = 'global'
       AND rr.universe_key = 'global'

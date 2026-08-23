@@ -30,21 +30,41 @@ CREATE TABLE IF NOT EXISTS warehouse.university_alias (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS warehouse.ranking_records_preview (
-    id BIGSERIAL PRIMARY KEY,
-    university_name TEXT NOT NULL,
-    normalized_university_name TEXT NOT NULL,
-    source TEXT NOT NULL,
-    rank INTEGER NOT NULL,
-    year INTEGER NOT NULL,
-    source_url TEXT,
-    extracted_at TIMESTAMPTZ NOT NULL,
+-- The preview repository reads warehouse.ranking_record, which names its source
+-- through warehouse.ranking_source rather than carrying a source TEXT column, so
+-- both tables have to exist here. Shapes mirror rankings_integration_setup.sql.
+CREATE TABLE IF NOT EXISTS warehouse.ranking_source (
+    ranking_source_id SMALLSERIAL PRIMARY KEY,
+    source_code TEXT NOT NULL UNIQUE,
+    source_name TEXT NOT NULL,
+    source_version TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    metadata JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS warehouse.ranking_record (
+    ranking_record_id BIGSERIAL PRIMARY KEY,
+    canonical_university_id BIGINT NOT NULL
+        REFERENCES warehouse.canonical_university(canonical_university_id),
+    ranking_source_id SMALLINT NOT NULL
+        REFERENCES warehouse.ranking_source(ranking_source_id),
+    source_mapping_id BIGINT,
     ranking_year INTEGER NOT NULL,
-    universe_type TEXT NOT NULL,
-    universe_key TEXT NOT NULL,
-    canonical_university_id BIGINT,
-    entity_resolution_status TEXT NOT NULL,
-    source_resolution_status TEXT NOT NULL
+    ranking_type TEXT NOT NULL DEFAULT 'world',
+    universe_type TEXT NOT NULL DEFAULT 'global',
+    universe_key TEXT NOT NULL DEFAULT 'global',
+    rank_position INTEGER,
+    score NUMERIC(8,4),
+    score_scale NUMERIC(8,4),
+    source_version TEXT,
+    source_url TEXT,
+    metadata JSONB,
+    ingested_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    run_id TEXT,
+    CHECK (rank_position IS NULL OR rank_position > 0),
+    CHECK (score IS NULL OR score >= 0)
 );
 
 CREATE TABLE IF NOT EXISTS warehouse.admission_record (

@@ -99,8 +99,11 @@ public class UniversityPreviewRepository {
                     CASE
                         WHEN EXISTS (
                             SELECT 1
-                            FROM warehouse.ranking_records_preview rrp
+                            FROM warehouse.ranking_record rrp
                             WHERE rrp.canonical_university_id = cu.canonical_university_id
+                              AND rrp.ranking_type = 'world'
+                              AND rrp.universe_type = 'global'
+                              AND rrp.universe_key = 'global'
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -137,8 +140,11 @@ public class UniversityPreviewRepository {
                     CASE
                         WHEN EXISTS (
                             SELECT 1
-                            FROM warehouse.ranking_records_preview rrp
+                            FROM warehouse.ranking_record rrp
                             WHERE rrp.canonical_university_id = cu.canonical_university_id
+                              AND rrp.ranking_type = 'world'
+                              AND rrp.universe_type = 'global'
+                              AND rrp.universe_key = 'global'
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -177,8 +183,11 @@ public class UniversityPreviewRepository {
                     CASE
                         WHEN EXISTS (
                             SELECT 1
-                            FROM warehouse.ranking_records_preview rrp
+                            FROM warehouse.ranking_record rrp
                             WHERE rrp.canonical_university_id = cu.canonical_university_id
+                              AND rrp.ranking_type = 'world'
+                              AND rrp.universe_type = 'global'
+                              AND rrp.universe_key = 'global'
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -218,8 +227,11 @@ public class UniversityPreviewRepository {
                     CASE
                         WHEN EXISTS (
                             SELECT 1
-                            FROM warehouse.ranking_records_preview rrp
+                            FROM warehouse.ranking_record rrp
                             WHERE rrp.canonical_university_id = cu.canonical_university_id
+                              AND rrp.ranking_type = 'world'
+                              AND rrp.universe_type = 'global'
+                              AND rrp.universe_key = 'global'
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -266,21 +278,33 @@ public class UniversityPreviewRepository {
 
         RankingPreviewSummaryDTO rankingSummary = jdbcTemplate.queryForObject(
                 """
-                WITH ranking_summary AS (
+                WITH ranking_scope AS (
+                    SELECT
+                        src.source_code AS source,
+                        rr.ranking_year,
+                        rr.rank_position
+                    FROM warehouse.ranking_record rr
+                    JOIN warehouse.ranking_source src
+                      ON src.ranking_source_id = rr.ranking_source_id
+                    WHERE rr.canonical_university_id = ?
+                      AND rr.rank_position IS NOT NULL
+                      AND rr.ranking_type = 'world'
+                      AND rr.universe_type = 'global'
+                      AND rr.universe_key = 'global'
+                ),
+                ranking_summary AS (
                     SELECT
                         COUNT(*)::INTEGER AS row_count,
                         COUNT(DISTINCT source)::INTEGER AS source_count,
                         ARRAY_AGG(DISTINCT source ORDER BY source) AS sources,
                         ARRAY_AGG(DISTINCT ranking_year ORDER BY ranking_year) AS ranking_years,
-                        MIN(rank)::INTEGER AS best_rank
-                    FROM warehouse.ranking_records_preview
-                    WHERE canonical_university_id = ?
+                        MIN(rank_position)::INTEGER AS best_rank
+                    FROM ranking_scope
                 ),
                 ranking_best AS (
                     SELECT source, ranking_year
-                    FROM warehouse.ranking_records_preview
-                    WHERE canonical_university_id = ?
-                    ORDER BY rank ASC, ranking_year DESC, source ASC
+                    FROM ranking_scope
+                    ORDER BY rank_position ASC, ranking_year DESC, source ASC
                     LIMIT 1
                 )
                 SELECT
@@ -309,7 +333,6 @@ public class UniversityPreviewRepository {
                     dto.setBestRankingYear((Integer) rs.getObject("best_ranking_year"));
                     return dto;
                 },
-                identity.canonicalUniversityId(),
                 identity.canonicalUniversityId()
         );
 

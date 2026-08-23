@@ -2,9 +2,8 @@ DELETE FROM warehouse.admission_record
 WHERE canonical_university_id = 990102
    OR normalized_university_name IN ('MIT');
 
-DELETE FROM warehouse.ranking_records_preview
-WHERE canonical_university_id IN (990102, 990103)
-   OR normalized_university_name IN ('MIT', 'Oxford');
+DELETE FROM warehouse.ranking_record
+WHERE canonical_university_id IN (990102, 990103);
 
 DELETE FROM warehouse.university_alias
 WHERE canonical_university_id = 990102;
@@ -47,50 +46,42 @@ INSERT INTO warehouse.university_alias (
 )
 ON CONFLICT DO NOTHING;
 
-INSERT INTO warehouse.ranking_records_preview (
-    university_name,
-    normalized_university_name,
-    source,
-    rank,
-    year,
-    source_url,
-    extracted_at,
+-- warehouse.ranking_source is shared with the real database on a developer machine,
+-- so the source row is inserted idempotently and referenced by code rather than by a
+-- hardcoded id (ranking_source_id is a SMALLSERIAL and differs between databases).
+INSERT INTO warehouse.ranking_source (source_code, source_name)
+VALUES ('QS', 'QS World University Rankings')
+ON CONFLICT (source_code) DO NOTHING;
+
+INSERT INTO warehouse.ranking_record (
+    canonical_university_id,
+    ranking_source_id,
     ranking_year,
+    ranking_type,
     universe_type,
     universe_key,
-    canonical_university_id,
-    entity_resolution_status,
-    source_resolution_status
+    rank_position,
+    source_url
 ) VALUES
     (
-        'MIT',
-        'MIT',
-        'QS',
-        1,
-        2026,
-        'https://example.edu/rankings/mit',
-        '2026-04-14T10:00:00Z',
-        2026,
-        'global',
-        'global',
         990102,
-        'resolved',
-        'direct_source_only'
+        (SELECT ranking_source_id FROM warehouse.ranking_source WHERE source_code = 'QS'),
+        2026,
+        'world',
+        'global',
+        'global',
+        1,
+        'https://example.edu/rankings/mit'
     ),
     (
-        'Oxford',
-        'Oxford',
-        'QS',
-        2,
-        2026,
-        'https://example.edu/rankings/oxford',
-        '2026-04-14T10:00:00Z',
-        2026,
-        'global',
-        'global',
         990103,
-        'resolved',
-        'direct_source_only'
+        (SELECT ranking_source_id FROM warehouse.ranking_source WHERE source_code = 'QS'),
+        2026,
+        'world',
+        'global',
+        'global',
+        2,
+        'https://example.edu/rankings/oxford'
     );
 
 INSERT INTO warehouse.admission_record (

@@ -5,6 +5,13 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from crawlernest.pipeline.ranking_scope import (
+    DEFAULT_RANKING_SCHEMA,
+    DEFAULT_RANKING_TABLE,
+    DEFAULT_SCOPE_PARAMS,
+    scope_predicate,
+)
+
 try:
     import psycopg2
 except ImportError:  # pragma: no cover - handled by caller
@@ -48,8 +55,8 @@ def build_convergence_preview(
     pg_database: str,
     pg_user: str,
     pg_password: str,
-    ranking_schema: str = "warehouse",
-    ranking_table: str = "ranking_records_preview",
+    ranking_schema: str = DEFAULT_RANKING_SCHEMA,
+    ranking_table: str = DEFAULT_RANKING_TABLE,
     admission_schema: str = "warehouse",
     admission_table: str = "admission_record",
     limit: int = 50,
@@ -68,29 +75,41 @@ def build_convergence_preview(
         _ensure_required_table(conn, schema_name=ranking_schema, table_name=ranking_table)
         _ensure_required_table(conn, schema_name=admission_schema, table_name=admission_table)
 
+        ranking_scope_sql = scope_predicate("rr", indent=" " * 22)
+
         with conn.cursor() as cur:
             cur.execute(
                 f"""
-                WITH ranking_summary AS (
+                WITH ranking_scope AS (
                     SELECT
                         rr.canonical_university_id,
-                        COUNT(*)::INTEGER AS row_count,
-                        COUNT(DISTINCT rr.source)::INTEGER AS source_count,
-                        ARRAY_AGG(DISTINCT rr.source ORDER BY rr.source) AS sources,
-                        ARRAY_AGG(DISTINCT rr.ranking_year ORDER BY rr.ranking_year) AS ranking_years,
-                        MIN(rr.rank)::INTEGER AS best_rank
+                        src.source_code AS source,
+                        rr.ranking_year,
+                        rr.rank_position
                     FROM {ranking_schema}.{ranking_table} rr
-                    WHERE rr.canonical_university_id IS NOT NULL
-                    GROUP BY rr.canonical_university_id
+                    JOIN warehouse.ranking_source src
+                      ON src.ranking_source_id = rr.ranking_source_id
+                    WHERE rr.rank_position IS NOT NULL
+                      AND {ranking_scope_sql}
+                ),
+                ranking_summary AS (
+                    SELECT
+                        canonical_university_id,
+                        COUNT(*)::INTEGER AS row_count,
+                        COUNT(DISTINCT source)::INTEGER AS source_count,
+                        ARRAY_AGG(DISTINCT source ORDER BY source) AS sources,
+                        ARRAY_AGG(DISTINCT ranking_year ORDER BY ranking_year) AS ranking_years,
+                        MIN(rank_position)::INTEGER AS best_rank
+                    FROM ranking_scope
+                    GROUP BY canonical_university_id
                 ),
                 ranking_best AS (
-                    SELECT DISTINCT ON (rr.canonical_university_id)
-                        rr.canonical_university_id,
-                        rr.source AS best_source,
-                        rr.ranking_year AS best_ranking_year
-                    FROM {ranking_schema}.{ranking_table} rr
-                    WHERE rr.canonical_university_id IS NOT NULL
-                    ORDER BY rr.canonical_university_id, rr.rank ASC, rr.ranking_year DESC, rr.source ASC
+                    SELECT DISTINCT ON (canonical_university_id)
+                        canonical_university_id,
+                        source AS best_source,
+                        ranking_year AS best_ranking_year
+                    FROM ranking_scope
+                    ORDER BY canonical_university_id, rank_position ASC, ranking_year DESC, source ASC
                 ),
                 admission_summary AS (
                     SELECT
@@ -140,7 +159,7 @@ def build_convergence_preview(
                     cu.canonical_university_id ASC
                 LIMIT %s
                 """,
-                (max(1, limit),),
+                (*DEFAULT_SCOPE_PARAMS, max(1, limit)),
             )
             raw_rows = cur.fetchall()
     finally:

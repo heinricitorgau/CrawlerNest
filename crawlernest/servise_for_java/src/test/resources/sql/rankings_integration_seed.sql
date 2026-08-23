@@ -5,9 +5,6 @@ WHERE ranking_year IN (2098, 2099)
 DELETE FROM warehouse.admission_record
 WHERE canonical_university_id BETWEEN 990001 AND 990040;
 
-DELETE FROM warehouse.ranking_records_preview
-WHERE canonical_university_id BETWEEN 990001 AND 990040;
-
 DELETE FROM analytics.aggregation_runs
 WHERE ranking_year IN (2098, 2099)
    OR run_label = 'ranking_api_integration_test';
@@ -464,42 +461,6 @@ SET aggregated_rank = EXCLUDED.aggregated_rank,
     trust_explain = EXCLUDED.trust_explain,
     updated_at = CURRENT_TIMESTAMP;
 
-INSERT INTO warehouse.ranking_records_preview (
-    university_name,
-    normalized_university_name,
-    source,
-    rank,
-    year,
-    source_url,
-    extracted_at,
-    ranking_year,
-    universe_type,
-    universe_key,
-    canonical_university_id,
-    entity_resolution_status,
-    source_resolution_status
-)
-SELECT
-    cu.display_name,
-    cu.display_name_normalized,
-    'QS',
-    ar.display_rank,
-    ar.ranking_year,
-    'https://example.edu/rankings/' || cu.canonical_slug,
-    CURRENT_TIMESTAMP,
-    ar.ranking_year,
-    ar.universe_type,
-    ar.universe_key,
-    ar.canonical_university_id,
-    'resolved',
-    'direct_source_only'
-FROM analytics.aggregated_rankings ar
-JOIN warehouse.canonical_university cu
-  ON cu.canonical_university_id = ar.canonical_university_id
-WHERE ar.ranking_year = 2099
-  AND ar.universe_type = 'global'
-  AND ar.universe_key = 'global';
-
 INSERT INTO warehouse.admission_record (
     source_entity_id,
     university_name,
@@ -579,7 +540,6 @@ VALUES
         'resolved_canonical_exact',
         '{"source":"integration-test"}'::jsonb
     );
-
 
 INSERT INTO analytics.aggregation_runs (
     aggregation_run_id,

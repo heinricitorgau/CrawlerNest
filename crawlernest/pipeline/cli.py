@@ -467,7 +467,7 @@ def build_parser(
         help="Read-only preview of ranking and admission data converged by canonical university identity",
     )
     convergence_preview_parser.add_argument("--ranking-schema", default="warehouse")
-    convergence_preview_parser.add_argument("--ranking-table", default="ranking_records_preview")
+    convergence_preview_parser.add_argument("--ranking-table", default="ranking_record")
     convergence_preview_parser.add_argument("--admission-schema", default="warehouse")
     convergence_preview_parser.add_argument("--admission-table", default="admission_record")
     convergence_preview_parser.add_argument(
@@ -499,7 +499,7 @@ def build_parser(
         help=f"Optional JSON output file for canonical university detail preview (example default: {default_canonical_detail_preview})",
     )
     canonical_detail_preview_parser.add_argument("--ranking-schema", default="warehouse")
-    canonical_detail_preview_parser.add_argument("--ranking-table", default="ranking_records_preview")
+    canonical_detail_preview_parser.add_argument("--ranking-table", default="ranking_record")
     canonical_detail_preview_parser.add_argument("--admission-schema", default="warehouse")
     canonical_detail_preview_parser.add_argument("--admission-table", default="admission_record")
     canonical_detail_preview_parser.add_argument("--pg-host", default="localhost")

@@ -170,3 +170,45 @@ CREATE INDEX IF NOT EXISTS idx_missing_entity_source_created
 
 CREATE INDEX IF NOT EXISTS idx_source_ingestion_source_started
     ON analytics.source_ingestion_log(source_code, started_at);
+
+-- ---------------------------------------------------------
+-- Retire warehouse.ranking_records_preview
+-- ---------------------------------------------------------
+--
+-- The preview table was the landing zone of a parallel pipeline
+-- (staging -> ranking_records_preview -> aggregated_rankings_preview). That
+-- chain stopped running: warehouse.ranking_record is written by
+-- pipeline/commands/canonical.py and holds every ranking row, while the preview
+-- table sat at zero rows and its own downstream table no longer exists.
+--
+-- Readers kept pointing at the empty table, so every ranking summary the API
+-- served came back null for universities that were in fact ranked. They now
+-- read warehouse.ranking_record, which is keyed per source, year and universe
+-- and therefore needs an explicit scope -- see crawlernest/pipeline/ranking_scope.py.
+--
+-- No CREATE TABLE for the preview table ever lived in a schema file: it was
+-- conjured by _ensure_table() in the warehouse writer and by the Java test
+-- fixtures. Both have been removed, so this drop stays dropped.
+--
+-- Refuses rather than destroying anything if rows somehow arrived after the
+-- readers moved, on the same principle as the admission rename guard.
+DO $$
+DECLARE
+    leftover BIGINT;
+BEGIN
+    IF to_regclass('warehouse.ranking_records_preview') IS NULL THEN
+        RETURN;
+    END IF;
+
+    EXECUTE 'SELECT COUNT(*) FROM warehouse.ranking_records_preview' INTO leftover;
+
+    IF leftover > 0 THEN
+        RAISE EXCEPTION
+            'warehouse.ranking_records_preview still holds % row(s). Nothing should write it; '
+            'move those rows into warehouse.ranking_record before dropping the table.',
+            leftover;
+    END IF;
+
+    DROP TABLE warehouse.ranking_records_preview;
+END
+$$;

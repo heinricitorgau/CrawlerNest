@@ -5,6 +5,12 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from crawlernest.pipeline.ranking_scope import (
+    DEFAULT_RANKING_SCHEMA,
+    DEFAULT_RANKING_TABLE,
+    DEFAULT_SCOPE_PARAMS,
+    scope_predicate,
+)
 from crawlernest_ranking_crawler.normalize import normalize_university_name
 
 try:
@@ -74,8 +80,8 @@ def build_canonical_university_detail_preview(
     pg_password: str,
     canonical_university_id: int | None = None,
     university_name: str | None = None,
-    ranking_schema: str = "warehouse",
-    ranking_table: str = "ranking_records_preview",
+    ranking_schema: str = DEFAULT_RANKING_SCHEMA,
+    ranking_table: str = DEFAULT_RANKING_TABLE,
     admission_schema: str = "warehouse",
     admission_table: str = "admission_record",
 ) -> CanonicalUniversityDetailPreview:
@@ -353,18 +359,23 @@ def _load_ranking_summary(
     ranking_schema: str,
     ranking_table: str,
 ) -> RankingSummary | None:
+    scope_sql = scope_predicate("rr", indent=" " * 10)
     cur.execute(
         f"""
         SELECT
             COUNT(*)::INTEGER AS row_count,
-            COUNT(DISTINCT source)::INTEGER AS source_count,
-            ARRAY_AGG(DISTINCT source ORDER BY source) AS sources,
-            ARRAY_AGG(DISTINCT ranking_year ORDER BY ranking_year) AS ranking_years,
-            MIN(rank)::INTEGER AS best_rank
-        FROM {ranking_schema}.{ranking_table}
-        WHERE canonical_university_id = %s
+            COUNT(DISTINCT src.source_code)::INTEGER AS source_count,
+            ARRAY_AGG(DISTINCT src.source_code ORDER BY src.source_code) AS sources,
+            ARRAY_AGG(DISTINCT rr.ranking_year ORDER BY rr.ranking_year) AS ranking_years,
+            MIN(rr.rank_position)::INTEGER AS best_rank
+        FROM {ranking_schema}.{ranking_table} rr
+        JOIN warehouse.ranking_source src
+          ON src.ranking_source_id = rr.ranking_source_id
+        WHERE rr.canonical_university_id = %s
+          AND rr.rank_position IS NOT NULL
+          AND {scope_sql}
         """,
-        (canonical_university_id,),
+        (canonical_university_id, *DEFAULT_SCOPE_PARAMS),
     )
     row = cur.fetchone()
     if row is None or int(row[0] or 0) == 0:
@@ -372,13 +383,17 @@ def _load_ranking_summary(
 
     cur.execute(
         f"""
-        SELECT source, ranking_year
-        FROM {ranking_schema}.{ranking_table}
-        WHERE canonical_university_id = %s
-        ORDER BY rank ASC, ranking_year DESC, source ASC
+        SELECT src.source_code, rr.ranking_year
+        FROM {ranking_schema}.{ranking_table} rr
+        JOIN warehouse.ranking_source src
+          ON src.ranking_source_id = rr.ranking_source_id
+        WHERE rr.canonical_university_id = %s
+          AND rr.rank_position IS NOT NULL
+          AND {scope_sql}
+        ORDER BY rr.rank_position ASC, rr.ranking_year DESC, src.source_code ASC
         LIMIT 1
         """,
-        (canonical_university_id,),
+        (canonical_university_id, *DEFAULT_SCOPE_PARAMS),
     )
     best_row = cur.fetchone()
     return RankingSummary(

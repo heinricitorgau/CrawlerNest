@@ -2493,7 +2493,7 @@ def _cmd_preview_canonical_university_detail(args: argparse.Namespace) -> int:
             university_name=str(getattr(args, "university_name", "") or ""),
             output_file=str(getattr(args, "output_file", "") or ""),
             ranking_schema=str(getattr(args, "ranking_schema", "warehouse")),
-            ranking_table=str(getattr(args, "ranking_table", "ranking_records_preview")),
+            ranking_table=str(getattr(args, "ranking_table", "ranking_record")),
             admission_schema=str(getattr(args, "admission_schema", "warehouse")),
             admission_table=str(getattr(args, "admission_table", "admission_record")),
             pg_host=str(args.pg_host),
