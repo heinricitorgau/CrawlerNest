@@ -83,6 +83,39 @@ def assert_no_admission_table_collision(cur) -> None:
     )
 
 
+def assert_ranking_preview_is_empty(cur) -> None:
+    """Refuse to drop warehouse.ranking_records_preview while it holds rows.
+
+    multi_source_postgresql.sql drops that table unconditionally. The guard is
+    here rather than in the file because a dollar-quoted block cannot survive
+    _split_sql_statements, which splits on every ';'.
+
+    Nothing writes the table any more -- the landing chain that did was deleted
+    -- so rows in it mean something unexpected is still running, and losing them
+    silently is worse than refusing.
+    """
+    cur.execute(
+        """
+        SELECT count(*)
+        FROM information_schema.tables
+        WHERE table_schema = 'warehouse'
+          AND table_name = 'ranking_records_preview'
+        """
+    )
+    if int(cur.fetchone()[0] or 0) == 0:
+        return
+    cur.execute("SELECT count(*) FROM warehouse.ranking_records_preview")
+    leftover = int(cur.fetchone()[0] or 0)
+    if leftover == 0:
+        return
+    raise RuntimeError(
+        f"warehouse.ranking_records_preview still holds {leftover} row(s) and is "
+        "about to be dropped. Nothing should write it; move those rows into "
+        "warehouse.ranking_record first. "
+        "See docs/migrations/RANKING_SCHEMA_CONVERGENCE.md"
+    )
+
+
 def ensure_postgres_schema(
     pg_host: Optional[str],
     pg_port: int,
@@ -116,6 +149,7 @@ def ensure_postgres_schema(
     try:
         with conn.cursor() as cur:
             assert_no_admission_table_collision(cur)
+            assert_ranking_preview_is_empty(cur)
             conn.rollback()
             for path in schema_paths:
                 if not path.exists():
@@ -157,6 +191,10 @@ def ensure_subject_ranking_postgres_schema(
     ]
     try:
         with conn.cursor() as cur:
+            # multi_source_postgresql.sql is in this list too, and it drops
+            # warehouse.ranking_records_preview.
+            assert_ranking_preview_is_empty(cur)
+            conn.rollback()
             for path in schema_paths:
                 if not path.exists():
                     continue

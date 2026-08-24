@@ -110,10 +110,36 @@ write. That is why the table existed at all — **no schema file ever defined it
 It is now `_require_table`, which raises and names `bootstrap-postgres`, matching
 what the admission migration did to its counterpart.
 
-**The drop refuses rather than destroying.** The `DO` block in
-`multi_source_postgresql.sql` raises if the table is non-empty instead of
-dropping it, so a database where something did write rows fails loudly rather
-than losing them.
+**A schema file cannot contain a dollar-quoted block, and `psql` will not tell
+you.** The guard against dropping a non-empty table was first written as a
+`DO $$ … $$` block in `multi_source_postgresql.sql`. Both appliers
+(`bootstrap_postgres.py` and `pipeline/utils/schema.py`) run
+`_split_sql_statements`, which truncates every line at `--` and splits on every
+`;`. A procedural block has semicolons inside it, so it reaches psycopg2 as
+several fragments and dies with `unterminated dollar-quoted string`.
+
+`psql` handles it perfectly, which is exactly what makes it dangerous: applying
+the file by hand succeeds and the live database gets migrated, so the change
+looks verified. Only `bootstrap-postgres` breaks — that is, only a fresh clone,
+which is the one case nobody runs while iterating. Reproduced against an empty
+database, fixed, and re-reproduced clean.
+
+ADMISSION_SCHEMA_CONVERGENCE.md states this constraint ("no `DO $$ … $$` blocks
+in any schema file") under its own Traps section. It is worth reading the applier
+constraints *before* writing a schema file, not after.
+
+**The drop refuses rather than destroying — from Python.** The schema file now
+carries a plain `DROP TABLE IF EXISTS`, and the non-empty check lives in
+`assert_ranking_preview_is_empty()`, called by both appliers before any file
+runs — mirroring `assert_no_admission_table_collision()`. Applying the `.sql` by
+hand bypasses it, the same caveat the admission rename carries.
+
+`ensure_subject_ranking_postgres_schema()` needed the guard too: it applies
+`multi_source_postgresql.sql` from its own shorter file list and called no
+precondition at all.
+
+Verified both ways — a stray table holding one row is refused with the row still
+in place; the same table empty is dropped and the bootstrap completes.
 
 ---
 

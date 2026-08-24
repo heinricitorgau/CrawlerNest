@@ -143,6 +143,40 @@ rename cannot run.
     )
 
 
+def _assert_ranking_preview_is_empty(cur) -> None:
+    """Refuse to drop warehouse.ranking_records_preview while it holds rows.
+
+    multi_source_postgresql.sql drops that table unconditionally. The guard is
+    here rather than in the file because a dollar-quoted block cannot survive
+    _split_sql_statements, which splits on every ';'.
+    """
+    cur.execute(
+        """
+        SELECT count(*)
+        FROM information_schema.tables
+        WHERE table_schema = 'warehouse'
+          AND table_name = 'ranking_records_preview'
+        """
+    )
+    if int(cur.fetchone()[0] or 0) == 0:
+        return
+
+    cur.execute("SELECT count(*) FROM warehouse.ranking_records_preview")
+    leftover = int(cur.fetchone()[0] or 0)
+    if leftover == 0:
+        return
+
+    raise SystemExit(
+        f"""Refusing to drop: warehouse.ranking_records_preview still holds {leftover} row(s).
+
+  Nothing writes that table any more -- the landing chain that did was deleted --
+  so rows in it mean something unexpected is still running. Move them into
+  warehouse.ranking_record before re-running this command.
+
+  See docs/migrations/RANKING_SCHEMA_CONVERGENCE.md"""
+    )
+
+
 def _reset_schemas(cur) -> None:
     cur.execute("DROP SCHEMA IF EXISTS analytics CASCADE")
     cur.execute("DROP SCHEMA IF EXISTS staging CASCADE")
@@ -174,6 +208,7 @@ def bootstrap_postgres(
                 conn.commit()
                 print("[ok] reset analytics/staging/warehouse schemas")
             _assert_no_admission_table_collision(cur)
+            _assert_ranking_preview_is_empty(cur)
             conn.rollback()
             for path in SCHEMA_ORDER:
                 sql = path.read_text(encoding="utf-8")

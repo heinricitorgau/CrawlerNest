@@ -190,25 +190,16 @@ CREATE INDEX IF NOT EXISTS idx_source_ingestion_source_started
 -- conjured by _ensure_table() in the warehouse writer and by the Java test
 -- fixtures. Both have been removed, so this drop stays dropped.
 --
--- Refuses rather than destroying anything if rows somehow arrived after the
--- readers moved, on the same principle as the admission rename guard.
-DO $$
-DECLARE
-    leftover BIGINT;
-BEGIN
-    IF to_regclass('warehouse.ranking_records_preview') IS NULL THEN
-        RETURN;
-    END IF;
-
-    EXECUTE 'SELECT COUNT(*) FROM warehouse.ranking_records_preview' INTO leftover;
-
-    IF leftover > 0 THEN
-        RAISE EXCEPTION
-            'warehouse.ranking_records_preview still holds % row(s). Nothing should write it; '
-            'move those rows into warehouse.ranking_record before dropping the table.',
-            leftover;
-    END IF;
-
-    DROP TABLE warehouse.ranking_records_preview;
-END
-$$;
+-- The non-empty guard lives in Python, not here: both schema appliers split this
+-- file on every ';' and truncate each line at '--', so a dollar-quoted
+-- procedural block arrives at psycopg2 as several fragments and dies with
+-- "unterminated dollar-quoted string". psql tolerates it, which is why applying
+-- this file by hand succeeds and only a fresh bootstrap breaks. No schema file
+-- may contain one; see the applier constraints in
+-- docs/migrations/ADMISSION_SCHEMA_CONVERGENCE.md.
+--
+-- assert_ranking_preview_is_empty() in pipeline/utils/schema.py and
+-- bootstrap_postgres.py refuses before this file runs if the table still holds
+-- rows. Applying this .sql by hand bypasses that check, exactly as it does for
+-- the admission rename.
+DROP TABLE IF EXISTS warehouse.ranking_records_preview;
