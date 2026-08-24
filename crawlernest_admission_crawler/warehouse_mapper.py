@@ -126,11 +126,22 @@ def write_warehouse_preview(rows: list[WarehouseReadyAdmissionRow], output_file:
 
 
 def _to_jsonable(value: Any) -> Any:
+    """Render a warehouse row as JSON-safe values.
+
+    ``datetime`` is checked before ``date`` because it is a subclass of it;
+    reversing the two would truncate ``extracted_at`` to a bare day. The
+    ``date`` branch exists for ``application_deadline``, which became a real
+    column when the requirement fields came out of raw_payload -- until then
+    nothing here was ever a bare date, and json.dumps refused the first one it
+    saw.
+    """
     if isinstance(value, dict):
         return {str(key): _to_jsonable(item) for key, item in value.items()}
     if isinstance(value, list):
         return [_to_jsonable(item) for item in value]
     if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
         return value.isoformat()
     return value
 

@@ -7,6 +7,7 @@ joined them, and the two things that are easy to get wrong once it exists:
 letting a page the crawler could not read become a row that claims a
 university has no requirements, and letting an "offline" run reach the network.
 """
+import json
 import sys
 import unittest
 from datetime import datetime, timezone
@@ -24,6 +25,10 @@ from crawlernest_admission_crawler.crawl_bridge import (  # noqa: E402
     to_pipeline_record,
 )
 from crawlernest_admission_crawler.normalize import normalize_admission_records  # noqa: E402
+from crawlernest_admission_crawler.warehouse_mapper import (  # noqa: E402
+    map_staging_rows_to_warehouse_rows,
+    warehouse_rows_to_jsonable,
+)
 
 SNAPSHOT_DIR = PACKAGE_ROOT / "crawlernest-admission-crawler" / "crawl_snapshots"
 EXTRACTED_AT = datetime(2026, 8, 22, tzinfo=timezone.utc)
@@ -188,6 +193,51 @@ class TestOfflineCrawl(unittest.TestCase):
     def test_summary_is_serialisable(self):
         payload = bridge_summary_to_dict(self.summary)
         self.assertEqual(len(self.records), payload["usable_record_count"])
+
+
+class TestWarehousePreviewIsSerialisable(unittest.TestCase):
+    """The JSON preview artifact rebuild-preview-and-resolve reads.
+
+    application_deadline became a real column when the requirement fields came
+    out of raw_payload. It arrives as a datetime.date, which is not a datetime
+    and which json.dumps refuses, so writing the preview raised
+    "Object of type date is not JSON serializable" -- and every command that
+    reads that artifact failed with a missing file.
+    """
+
+    def _staging_row(self, deadline="2025-10-15"):
+        return {
+            "university_name": "University of Oxford",
+            "normalized_university_name": "University Of Oxford",
+            "source_url": "https://www.ox.ac.uk/admissions/graduate/tests",
+            "country": "United Kingdom",
+            "ielts_requirement": 7.0,
+            "toefl_requirement": 110,
+            "extracted_at": "2026-08-22T00:00:00+00:00",
+            "duolingo_requirement": 125,
+            "gpa_requirement": 3.5,
+            "application_deadline": deadline,
+            "degree_level": "postgraduate",
+            "raw_payload": None,
+        }
+
+    def test_a_row_with_a_deadline_survives_json_dumps(self):
+        rows = map_staging_rows_to_warehouse_rows([self._staging_row()])
+        json.dumps(warehouse_rows_to_jsonable(rows))
+
+    def test_the_deadline_renders_as_an_iso_date(self):
+        rows = map_staging_rows_to_warehouse_rows([self._staging_row()])
+        self.assertEqual("2025-10-15", warehouse_rows_to_jsonable(rows)[0]["application_deadline"])
+
+    def test_extracted_at_keeps_its_time(self):
+        # datetime is a subclass of date, so checking date first would truncate
+        # this to a bare day.
+        rows = map_staging_rows_to_warehouse_rows([self._staging_row()])
+        self.assertIn("T", warehouse_rows_to_jsonable(rows)[0]["extracted_at"])
+
+    def test_a_row_without_a_deadline_still_serialises(self):
+        rows = map_staging_rows_to_warehouse_rows([self._staging_row(deadline=None)])
+        self.assertIsNone(warehouse_rows_to_jsonable(rows)[0]["application_deadline"])
 
 
 if __name__ == "__main__":
