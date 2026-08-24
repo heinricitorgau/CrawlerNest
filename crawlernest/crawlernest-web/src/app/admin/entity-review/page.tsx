@@ -2,39 +2,20 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import {
+  decisionOutcome,
+  type Decision,
+  type ReviewCandidate,
+  type ReviewPayload,
+} from "@/lib/mappingReview";
+
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-interface ReviewCandidate {
-  rankingSourceId: number;
-  sourceCode: string;
-  sourceEntityId: string;
-  sourceName: string;
-  sourceCountry: string | null;
-  matchedCanonicalUniversityId: number | null;
-  matchedCanonicalName: string | null;
-  matchedCanonicalCountry: string | null;
-  matchMethod: string;
-  confidenceScore: number | null;
-  tokenOverlap: number | null;
-  countryMismatch: boolean | null;
-  suspiciousMerge: boolean | null;
-  candidateCountHint: number | null;
-  existingDecision: string | null;
-}
-
-interface ReviewPayload {
-  items: ReviewCandidate[];
-  totalPending: number;
-  caveats: string[];
-}
 
 interface CanonicalOption {
   canonicalUniversityId: number;
   displayName: string;
   country: string | null;
 }
-
-type Decision = "confirmed" | "rejected" | "remapped";
 
 type LoadState =
   | { status: "loading" }
@@ -218,6 +199,10 @@ function CandidateCard({
         considered
       </p>
 
+      {candidate.existingDecision && (
+        <p className="mt-2 text-xs text-slate-600">Outcome: {decisionOutcome(candidate)}</p>
+      )}
+
       <input
         type="text"
         value={note}
@@ -228,9 +213,11 @@ function CandidateCard({
       />
 
       <div className="mt-3 flex flex-wrap gap-2">
+        {/* Confirming means "keep the reviewed target", so with no target to
+            keep the request can only be refused. Reject and remap still apply. */}
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || candidate.matchedCanonicalUniversityId === null}
           onClick={() =>
             onDecide(candidate, "confirmed", candidate.matchedCanonicalUniversityId, note)
           }
@@ -390,8 +377,13 @@ export default function EntityReviewPage() {
         <>
           <CaveatList caveats={state.data.caveats} />
           <p className="mb-3 text-xs text-slate-500">
-            {state.data.totalPending} match{state.data.totalPending === 1 ? "" : "es"} still awaiting
-            a decision.
+            {status === "pending"
+              ? `${state.data.totalPending} match${
+                  state.data.totalPending === 1 ? "" : "es"
+                } still awaiting a decision.`
+              : `${state.data.totalDecided} verdict${
+                  state.data.totalDecided === 1 ? "" : "s"
+                } on record · ${state.data.totalPending} still awaiting a decision.`}
           </p>
           {state.data.items.length === 0 ? (
             <p className="rounded border border-slate-200 bg-white p-4 text-sm text-slate-500">

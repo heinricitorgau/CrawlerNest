@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -168,5 +169,63 @@ class MappingReviewServiceTest {
 
         service.listPending(0);
         verify(repository).findPending(50);
+    }
+
+    @Test
+    void theDecidedListLimitIsClampedToo() {
+        when(repository.findDecided(anyInt())).thenReturn(List.of());
+
+        service.listDecided(100000);
+        verify(repository).findDecided(200);
+
+        service.listDecided(0);
+        verify(repository).findDecided(50);
+    }
+
+    // ─── The two lists ────────────────────────────────────────────────────────
+
+    @Test
+    void theDecidedListDoesNotComeFromThePendingQueue() {
+        // Applying a decision is what moves the pair out of the queue -- a
+        // rejection retires the mapping row, a confirm or remap rewrites its
+        // match_method -- so a decided list built from the queue is empty by
+        // construction. It read findPending for a long time and showed nothing.
+        when(repository.findDecided(anyInt())).thenReturn(List.of());
+
+        service.listDecided(50);
+
+        verify(repository).findDecided(50);
+        verify(repository, never()).findPending(anyInt());
+    }
+
+    @Test
+    void eachListIsCountedByItsOwnTotal() {
+        when(repository.findPending(anyInt())).thenReturn(List.of());
+        when(repository.findDecided(anyInt())).thenReturn(List.of());
+        when(repository.countPending()).thenReturn(3);
+        when(repository.countDecided()).thenReturn(119);
+
+        // Both totals ride on both payloads: the screen labels the tab the
+        // reviewer is not looking at, and totalPending alone cannot say how
+        // many verdicts stand.
+        for (Map<String, Object> payload : List.of(service.listPending(50), service.listDecided(50))) {
+            assertEquals(3, payload.get("totalPending"));
+            assertEquals(119, payload.get("totalDecided"));
+        }
+    }
+
+    @Test
+    void theDecidedListSaysItIsHistoricalRatherThanCurrent() {
+        // A decided entry is the snapshot the verdict was passed on. Read as
+        // live state it would look like the pipeline had ignored the decision.
+        when(repository.findDecided(anyInt())).thenReturn(List.of());
+
+        Object caveats = service.listDecided(50).get("caveats");
+
+        assertTrue(caveats instanceof List<?>);
+        assertTrue(((List<?>) caveats).stream()
+                .anyMatch(text -> String.valueOf(text).contains("as it stood when it was reviewed")));
+        assertTrue(((List<?>) caveats).stream()
+                .anyMatch(text -> String.valueOf(text).contains("next source ingestion")));
     }
 }

@@ -279,6 +279,63 @@ Internal review of fuzzy entity-resolution matches, at `/api/v1/admin/mapping-re
 | `GET` | `/api/v1/admin/mapping-reviews/canonical-search?q=…` | Reviewer | Find a canonical university to remap onto |
 | `POST` | `/api/v1/admin/mapping-reviews` | Reviewer | Record a verdict |
 
+**The two lists read different tables, and have to.** A verdict is applied by
+the *pipeline*, on the next ingest, by rewriting the very mapping row the verdict
+was passed on: a rejection retires it (`is_active = FALSE`), a confirm or remap
+rewrites `match_method` to `human_confirmed` / `human_remapped`. So the pending
+queue reads `warehouse.source_university_mapping` filtered to live `fuzzy` /
+`fuzzy_review` rows, and the decided list is driven from
+`warehouse.mapping_review` instead. Filtering the mapping table for decided pairs
+returns the empty set by construction — it did exactly that, silently, until
+2026-08-22, with 119 verdicts on record and nothing on the tab.
+
+The `reviewed_*` columns exist for this: they are the verbatim snapshot of what
+the reviewer was looking at, and they outlive the rewrite. A decided entry is
+therefore **historical, not current** — its `matchMethod` and `confidenceScore`
+are the resolver's guess as it stood at review time, and the decided list carries
+an extra caveat saying so. The live mapping row is still joined for the ancillary
+resolver signals the snapshot does not carry (`sourceCountry`, `tokenOverlap`,
+`countryMismatch`, `suspiciousMerge`), which come from the most recent run and are
+simply absent once the row is gone.
+
+**Response shape** (both lists, one row shape):
+
+```json
+{
+  "items": [
+    {
+      "rankingSourceId": 402,
+      "sourceCode": "QS",
+      "sourceEntityId": "846",
+      "sourceName": "NOVA University of Lisbon",
+      "sourceCountry": "Portugal",
+      "matchedCanonicalUniversityId": 260,
+      "matchedCanonicalName": "University of Lisbon",
+      "matchedCanonicalCountry": "Portugal",
+      "matchMethod": "fuzzy_review",
+      "confidenceScore": 0.8213,
+      "tokenOverlap": 0.6,
+      "countryMismatch": false,
+      "suspiciousMerge": true,
+      "candidateCountHint": 4,
+      "existingDecision": "remapped",
+      "decidedCanonicalUniversityId": 777,
+      "decidedCanonicalName": "NOVA University Lisbon"
+    }
+  ],
+  "totalPending": 3,
+  "totalDecided": 119,
+  "caveats": ["…"]
+}
+```
+
+The `matched*` fields are what was reviewed; the `decided*` fields are what the
+reviewer chose instead. On the pending list the latter are null and
+`existingDecision` is null. `decidedCanonicalUniversityId` is also null for a
+*rejection*, which names no university on purpose — tell the two apart by
+`existingDecision`, never by the absence of a target. Both totals ride on both
+payloads so either tab can be labelled without fetching the other.
+
 **Authorization:** an e-mail allowlist, set through `crawlernest.reviewer.emails` (environment: `CRAWLERNEST_REVIEWER_EMAILS`, comma-separated). It **fails closed** — with the property unset nobody is a reviewer. A role column on `warehouse.app_user` was avoided deliberately: that table takes public signups, so a role flag there would be one bad default away from granting a visitor write access to ranking data. Non-reviewers get 403 whether or not they are signed in, so the endpoint cannot be used to enumerate who holds review rights.
 
 **Request body for `POST`:**

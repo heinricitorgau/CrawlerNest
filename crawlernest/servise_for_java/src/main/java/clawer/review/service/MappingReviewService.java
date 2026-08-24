@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @Service
 public class MappingReviewService {
@@ -34,6 +35,20 @@ public class MappingReviewService {
             "A rejection withdraws the source's rank from the matched university. Coverage and confidence may fall as a result, which is a correction, not a regression.",
             "Confidence levels remain derived from source count. A review decides whether a source counts, never how confident the result is.");
 
+    /**
+     * Added to the decided list only.
+     *
+     * <p>A decided entry describes the pair as it stood at review time, because
+     * that snapshot is what the verdict was passed on. The live mapping row has
+     * usually been rewritten since -- that rewrite is the decision taking
+     * effect -- so saying the list is historical is the difference between a
+     * reviewer reading it as an audit trail and mistaking it for current state.
+     */
+    private static final List<String> DECIDED_CAVEATS = Stream.concat(
+            CAVEATS.stream(),
+            Stream.of("Each entry shows the match as it stood when it was reviewed, not as it stands now. Applying a decision rewrites or retires the mapping row it was made about."))
+            .toList();
+
     private final MappingReviewRepository repository;
 
     public MappingReviewService(MappingReviewRepository repository) {
@@ -41,19 +56,25 @@ public class MappingReviewService {
     }
 
     public Map<String, Object> listPending(int limit) {
-        List<MappingReviewCandidate> items = repository.findPending(clampLimit(limit));
         return Map.of(
-                "items", items,
+                "items", repository.findPending(clampLimit(limit)),
                 "totalPending", repository.countPending(),
+                "totalDecided", repository.countDecided(),
                 "caveats", CAVEATS);
     }
 
+    /**
+     * Verdicts already on record, newest first.
+     *
+     * <p>Both totals are reported here as well as on the pending list, so the
+     * screen can label either tab without having to fetch the other one.
+     */
     public Map<String, Object> listDecided(int limit) {
-        List<MappingReviewCandidate> items = repository.findDecided(clampLimit(limit));
         return Map.of(
-                "items", items,
+                "items", repository.findDecided(clampLimit(limit)),
                 "totalPending", repository.countPending(),
-                "caveats", CAVEATS);
+                "totalDecided", repository.countDecided(),
+                "caveats", DECIDED_CAVEATS);
     }
 
     public List<CanonicalOption> searchCanonical(String query, int limit) {
