@@ -30,21 +30,52 @@ CREATE TABLE IF NOT EXISTS warehouse.university_alias (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS warehouse.ranking_records_preview (
-    id BIGSERIAL PRIMARY KEY,
-    university_name TEXT NOT NULL,
-    normalized_university_name TEXT NOT NULL,
-    source TEXT NOT NULL,
-    rank INTEGER NOT NULL,
-    year INTEGER NOT NULL,
-    source_url TEXT,
-    extracted_at TIMESTAMPTZ NOT NULL,
+-- Mirrors warehouse.ranking_source / warehouse.ranking_record from
+-- crawlernest-schema/multi_source_postgresql.sql. CREATE TABLE IF NOT EXISTS
+-- means that against a bootstrapped database these are no-ops and the test runs
+-- on the real tables; the definitions below only materialize on a bare one.
+-- source_mapping_id keeps its type but drops the FK, so this fixture does not
+-- have to stand up warehouse.source_university_mapping as well.
+CREATE TABLE IF NOT EXISTS warehouse.ranking_source (
+    ranking_source_id SMALLSERIAL PRIMARY KEY,
+    source_code TEXT NOT NULL UNIQUE,
+    source_name TEXT NOT NULL,
+    source_version TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    metadata JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS warehouse.ranking_record (
+    ranking_record_id BIGSERIAL PRIMARY KEY,
+    canonical_university_id BIGINT NOT NULL
+        REFERENCES warehouse.canonical_university(canonical_university_id),
+    ranking_source_id SMALLINT NOT NULL
+        REFERENCES warehouse.ranking_source(ranking_source_id),
+    source_mapping_id BIGINT,
     ranking_year INTEGER NOT NULL,
-    universe_type TEXT NOT NULL,
-    universe_key TEXT NOT NULL,
-    canonical_university_id BIGINT,
-    entity_resolution_status TEXT NOT NULL,
-    source_resolution_status TEXT NOT NULL
+    ranking_type TEXT NOT NULL DEFAULT 'world',
+    universe_type TEXT NOT NULL DEFAULT 'global',
+    universe_key TEXT NOT NULL DEFAULT 'global',
+    rank_position INTEGER,
+    score NUMERIC(8,4),
+    score_scale NUMERIC(8,4),
+    source_version TEXT,
+    source_url TEXT,
+    metadata JSONB,
+    ingested_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    run_id TEXT,
+    CHECK (rank_position IS NULL OR rank_position > 0),
+    CHECK (score IS NULL OR score >= 0),
+    CONSTRAINT uq_ranking_record_universe UNIQUE (
+        canonical_university_id,
+        ranking_source_id,
+        ranking_year,
+        ranking_type,
+        universe_type,
+        universe_key
+    )
 );
 
 CREATE TABLE IF NOT EXISTS warehouse.admission_record (

@@ -16,11 +16,11 @@ It writes nothing. The session is opened READ ONLY, so a stray write would be
 refused by PostgreSQL rather than silently applied. Not wired into
 run_pipeline, not registered in crawlernest-tests/run_tests.py, not in CI.
 
-Defaults target analytics.missing_entity_log. The dormant
-warehouse.ranking_records_preview layout is also supported; columns and the
-status filter are detected from information_schema rather than hardcoded:
+Defaults target analytics.missing_entity_log. Columns and the status filter are
+detected from information_schema rather than hardcoded, so any other backlog
+table with a normalized-name column and a status column can be pointed at:
 
-    --schema warehouse --table ranking_records_preview
+    --schema <schema> --table <table>
 """
 
 import argparse

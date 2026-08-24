@@ -49,7 +49,7 @@ def build_convergence_preview(
     pg_user: str,
     pg_password: str,
     ranking_schema: str = "warehouse",
-    ranking_table: str = "ranking_records_preview",
+    ranking_table: str = "ranking_record",
     admission_schema: str = "warehouse",
     admission_table: str = "admission_record",
     limit: int = 50,
@@ -66,31 +66,43 @@ def build_convergence_preview(
     )
     try:
         _ensure_required_table(conn, schema_name=ranking_schema, table_name=ranking_table)
+        # ranking_record stores the source as a FK, so the registry it points at
+        # is as required as the fact table itself.
+        _ensure_required_table(conn, schema_name=ranking_schema, table_name="ranking_source")
         _ensure_required_table(conn, schema_name=admission_schema, table_name=admission_table)
 
         with conn.cursor() as cur:
             cur.execute(
                 f"""
-                WITH ranking_summary AS (
+                WITH ranking_rows AS (
                     SELECT
                         rr.canonical_university_id,
-                        COUNT(*)::INTEGER AS row_count,
-                        COUNT(DISTINCT rr.source)::INTEGER AS source_count,
-                        ARRAY_AGG(DISTINCT rr.source ORDER BY rr.source) AS sources,
-                        ARRAY_AGG(DISTINCT rr.ranking_year ORDER BY rr.ranking_year) AS ranking_years,
-                        MIN(rr.rank)::INTEGER AS best_rank
+                        src.source_code AS source,
+                        rr.ranking_year,
+                        rr.rank_position
                     FROM {ranking_schema}.{ranking_table} rr
-                    WHERE rr.canonical_university_id IS NOT NULL
-                    GROUP BY rr.canonical_university_id
+                    JOIN {ranking_schema}.ranking_source src
+                      ON src.ranking_source_id = rr.ranking_source_id
+                ),
+                ranking_summary AS (
+                    SELECT
+                        canonical_university_id,
+                        COUNT(*)::INTEGER AS row_count,
+                        COUNT(DISTINCT source)::INTEGER AS source_count,
+                        ARRAY_AGG(DISTINCT source ORDER BY source) AS sources,
+                        ARRAY_AGG(DISTINCT ranking_year ORDER BY ranking_year) AS ranking_years,
+                        MIN(rank_position)::INTEGER AS best_rank
+                    FROM ranking_rows
+                    GROUP BY canonical_university_id
                 ),
                 ranking_best AS (
-                    SELECT DISTINCT ON (rr.canonical_university_id)
-                        rr.canonical_university_id,
-                        rr.source AS best_source,
-                        rr.ranking_year AS best_ranking_year
-                    FROM {ranking_schema}.{ranking_table} rr
-                    WHERE rr.canonical_university_id IS NOT NULL
-                    ORDER BY rr.canonical_university_id, rr.rank ASC, rr.ranking_year DESC, rr.source ASC
+                    SELECT DISTINCT ON (canonical_university_id)
+                        canonical_university_id,
+                        source AS best_source,
+                        ranking_year AS best_ranking_year
+                    FROM ranking_rows
+                    WHERE rank_position IS NOT NULL
+                    ORDER BY canonical_university_id, rank_position ASC, ranking_year DESC, source ASC
                 ),
                 admission_summary AS (
                     SELECT
