@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass
+from statistics import mean, pstdev
 from typing import Any
 
 from crawlernest_ranking_crawler.aggregator import AggregatedRankingRow
@@ -31,35 +32,66 @@ class DecisionWriteSummary:
     table_name: str
 
 
-def load_aggregated_rows_from_postgres(conn: Any) -> list[AggregatedRankingRow]:
+def load_aggregated_rows_from_postgres(
+    conn: Any,
+    *,
+    schema_name: str = "analytics",
+    table_name: str = "aggregated_rankings",
+) -> list[AggregatedRankingRow]:
+    """Load aggregated ranking rows for the decision preview.
+
+    This used to read warehouse.aggregated_rankings_preview, the middle table of
+    a landing chain that was dropped along with warehouse.ranking_records_preview
+    (see docs/migrations/RANKING_SCHEMA_CONVERGENCE.md). The published analytics
+    aggregation is the surviving source, so the decision preview reads that.
+
+    It stores less than the preview table did: there is no normalized name, no
+    source count and no standard deviation. The first comes from
+    canonical_university; the other two are recomputed here from
+    source_ranks_json with the arithmetic the deleted chain used -- the mean of
+    the per-source ranks, and their population standard deviation -- so a row
+    built from analytics matches what that chain would have produced. Sources
+    with a null rank are absent from the warehouse for that year and are dropped
+    rather than counted; see the null-valued THE/ARWU keys described in
+    CLAUDE.md.
+    """
     with conn.cursor() as cur:
         cur.execute(
-            """
+            f"""
             SELECT
-                normalized_university_name,
-                ranking_year,
-                aggregated_rank,
-                source_count,
-                std_deviation,
-                aggregation_method,
-                sources
-            FROM warehouse.aggregated_rankings_preview
-            ORDER BY ranking_year, aggregated_rank, normalized_university_name
+                cu.display_name_normalized,
+                ar.ranking_year,
+                ar.source_ranks_json,
+                ar.aggregation_method_version
+            FROM {schema_name}.{table_name} ar
+            JOIN warehouse.canonical_university cu
+              ON cu.canonical_university_id = ar.canonical_university_id
+            WHERE cu.display_name_normalized IS NOT NULL
+              AND cu.display_name_normalized <> ''
+            ORDER BY ar.ranking_year, ar.display_rank, cu.display_name_normalized
             """
         )
         rows = cur.fetchall()
 
     payload: list[AggregatedRankingRow] = []
     for row in rows:
+        sources = {
+            str(source_name).strip().upper(): int(rank)
+            for source_name, rank in dict(row[2] or {}).items()
+            if rank is not None and str(source_name).strip()
+        }
+        ranks = list(sources.values())
+        if not ranks:
+            continue
         payload.append(
             AggregatedRankingRow(
                 normalized_university_name=str(row[0]),
                 ranking_year=int(row[1]),
-                aggregated_rank=float(row[2]),
-                source_count=int(row[3]),
-                std_deviation=float(row[4]),
-                aggregation_method=str(row[5]),
-                sources=dict(row[6] or {}),
+                aggregated_rank=float(mean(ranks)),
+                source_count=len(ranks),
+                std_deviation=float(pstdev(ranks)) if len(ranks) > 1 else 0.0,
+                aggregation_method=str(row[3] or ""),
+                sources=dict(sorted(sources.items())),
             )
         )
     return payload
