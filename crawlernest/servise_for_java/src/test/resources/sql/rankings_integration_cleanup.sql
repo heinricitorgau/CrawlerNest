@@ -1,9 +1,6 @@
 DELETE FROM warehouse.admission_record
 WHERE canonical_university_id BETWEEN 990001 AND 990030;
 
-DELETE FROM warehouse.ranking_records_preview
-WHERE canonical_university_id BETWEEN 990001 AND 990030;
-
 DELETE FROM analytics.aggregated_rankings
 WHERE ranking_year IN (2098, 2099)
    OR canonical_university_id BETWEEN 990001 AND 990030;

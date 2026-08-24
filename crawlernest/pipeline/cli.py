@@ -23,7 +23,6 @@ def build_parser(
     default_ranking_warehouse_preview = workspace_root / "crawlernest-samples" / "ranking_warehouse_preview.json"
     default_aggregated_ranking_preview = workspace_root / "crawlernest-samples" / "aggregated_rankings_preview.json"
     default_decision_ranking_preview = workspace_root / "crawlernest-samples" / "ranking_decision_preview.json"
-    default_unresolved_report = workspace_root / "crawlernest-samples" / "ranking_unresolved_entities.json"
     default_admission_records = workspace_root / "crawlernest-samples" / "admission_records.json"
     default_admission_records_normalized = workspace_root / "crawlernest-samples" / "admission_records_normalized.json"
     default_admission_records_staging = workspace_root / "crawlernest-samples" / "admission_records_staging.jsonl"
@@ -413,27 +412,12 @@ def build_parser(
 
     rebuild_preview_and_resolve_parser = subparsers.add_parser(
         "rebuild-preview-and-resolve",
-        help="Write preview landing rows and run ranking/admission resolution in sequence",
-    )
-    rebuild_preview_and_resolve_parser.add_argument(
-        "--ranking-preview-input-file",
-        default=str(default_ranking_warehouse_preview),
-        help="Preview JSON input file for ranking warehouse writes",
+        help="Write admission preview landing rows and refresh admission resolution",
     )
     rebuild_preview_and_resolve_parser.add_argument(
         "--admission-preview-input-file",
         default=str(default_admission_warehouse_preview),
         help="Preview JSON input file for admission warehouse writes",
-    )
-    rebuild_preview_and_resolve_parser.add_argument(
-        "--ranking-landing-schema",
-        default="warehouse",
-        help="Target schema for ranking preview landing writes",
-    )
-    rebuild_preview_and_resolve_parser.add_argument(
-        "--ranking-landing-table",
-        default="ranking_records_preview",
-        help="Target table for ranking preview landing writes",
     )
     rebuild_preview_and_resolve_parser.add_argument(
         "--admission-landing-schema",
@@ -467,7 +451,7 @@ def build_parser(
         help="Read-only preview of ranking and admission data converged by canonical university identity",
     )
     convergence_preview_parser.add_argument("--ranking-schema", default="warehouse")
-    convergence_preview_parser.add_argument("--ranking-table", default="ranking_records_preview")
+    convergence_preview_parser.add_argument("--ranking-table", default="ranking_record")
     convergence_preview_parser.add_argument("--admission-schema", default="warehouse")
     convergence_preview_parser.add_argument("--admission-table", default="admission_record")
     convergence_preview_parser.add_argument(
@@ -499,7 +483,7 @@ def build_parser(
         help=f"Optional JSON output file for canonical university detail preview (example default: {default_canonical_detail_preview})",
     )
     canonical_detail_preview_parser.add_argument("--ranking-schema", default="warehouse")
-    canonical_detail_preview_parser.add_argument("--ranking-table", default="ranking_records_preview")
+    canonical_detail_preview_parser.add_argument("--ranking-table", default="ranking_record")
     canonical_detail_preview_parser.add_argument("--admission-schema", default="warehouse")
     canonical_detail_preview_parser.add_argument("--admission-table", default="admission_record")
     canonical_detail_preview_parser.add_argument("--pg-host", default="localhost")
@@ -580,71 +564,22 @@ def build_parser(
     preview_ranking_warehouse_parser.add_argument("--pg-user", default="test")
     preview_ranking_warehouse_parser.add_argument("--pg-password", default="")
 
-    write_ranking_warehouse_parser = subparsers.add_parser(
-        "write-ranking-warehouse-preview",
-        help="Write warehouse-ready ranking preview rows into a safe warehouse landing table",
-    )
-    write_ranking_warehouse_parser.add_argument(
-        "--input-source",
-        choices=["preview-json", "jsonl", "postgres"],
-        default="preview-json",
-        help="Where to load warehouse-ready rows from before landing write",
-    )
-    write_ranking_warehouse_parser.add_argument(
-        "--preview-input-file",
-        default=str(default_ranking_warehouse_preview),
-        help="Warehouse preview artifact used when --input-source=preview-json",
-    )
-    write_ranking_warehouse_parser.add_argument(
-        "--staging-input-file",
-        default=str(default_ranking_records_staging),
-        help="JSONL staging file used when --input-source=jsonl",
-    )
-    write_ranking_warehouse_parser.add_argument(
-        "--staging-table",
-        default="ranking_staging_records",
-        help="PostgreSQL staging table used when --input-source=postgres",
-    )
-    write_ranking_warehouse_parser.add_argument(
-        "--landing-schema",
-        default="warehouse",
-        help="Target schema for warehouse landing writes",
-    )
-    write_ranking_warehouse_parser.add_argument(
-        "--landing-table",
-        default="ranking_records_preview",
-        help="Target table for warehouse landing writes",
-    )
-    write_ranking_warehouse_parser.add_argument("--pg-host", default="localhost")
-    write_ranking_warehouse_parser.add_argument("--pg-port", type=int, default=5432)
-    write_ranking_warehouse_parser.add_argument("--pg-database", default="clawer")
-    write_ranking_warehouse_parser.add_argument("--pg-user", default="test")
-    write_ranking_warehouse_parser.add_argument("--pg-password", default="")
-
     aggregate_ranking_preview_parser = subparsers.add_parser(
         "aggregate-ranking-preview",
         help="Aggregate warehouse-ready ranking preview rows into a safe aggregated preview table",
     )
+    # The postgres input source read the ranking landing table, which no longer
+    # exists and no longer has a writer; the JSON artifact is the only source left.
     aggregate_ranking_preview_parser.add_argument(
         "--input-source",
-        choices=["preview-json", "postgres"],
-        default="postgres",
+        choices=["preview-json"],
+        default="preview-json",
         help="Where to load ranking rows from before preview aggregation",
     )
     aggregate_ranking_preview_parser.add_argument(
         "--preview-input-file",
         default=str(default_ranking_warehouse_preview),
-        help="Warehouse preview artifact used when --input-source=preview-json",
-    )
-    aggregate_ranking_preview_parser.add_argument(
-        "--source-schema",
-        default="warehouse",
-        help="Schema containing the warehouse preview source table when --input-source=postgres",
-    )
-    aggregate_ranking_preview_parser.add_argument(
-        "--source-table",
-        default="ranking_records_preview",
-        help="Warehouse preview source table when --input-source=postgres",
+        help="Warehouse preview artifact produced by preview-ranking-warehouse-map",
     )
     aggregate_ranking_preview_parser.add_argument(
         "--target-schema",
@@ -701,67 +636,6 @@ def build_parser(
     decision_ranking_preview_parser.add_argument("--pg-database", default="clawer")
     decision_ranking_preview_parser.add_argument("--pg-user", default="test")
     decision_ranking_preview_parser.add_argument("--pg-password", default="")
-
-    resolve_ranking_entities_parser = subparsers.add_parser(
-        "resolve-ranking-entities",
-        help="Resolve warehouse preview rows to canonical_university_id using deterministic exact matches",
-    )
-    resolve_ranking_entities_parser.add_argument(
-        "--target-schema",
-        default="warehouse",
-        help="Schema containing the ranking preview table",
-    )
-    resolve_ranking_entities_parser.add_argument(
-        "--target-table",
-        default="ranking_records_preview",
-        help="Preview table to update with canonical entity resolution",
-    )
-    resolve_ranking_entities_parser.add_argument("--pg-host", default="localhost")
-    resolve_ranking_entities_parser.add_argument("--pg-port", type=int, default=5432)
-    resolve_ranking_entities_parser.add_argument("--pg-database", default="clawer")
-    resolve_ranking_entities_parser.add_argument("--pg-user", default="test")
-    resolve_ranking_entities_parser.add_argument("--pg-password", default="")
-
-    unresolved_ranking_entities_parser = subparsers.add_parser(
-        "unresolved-ranking-entities",
-        help="Read-only report of unresolved ranking entities grouped by normalized university name",
-    )
-    unresolved_ranking_entities_parser.add_argument("--target-schema", default="warehouse")
-    unresolved_ranking_entities_parser.add_argument("--target-table", default="ranking_records_preview")
-    unresolved_ranking_entities_parser.add_argument("--limit", type=int, default=20)
-    unresolved_ranking_entities_parser.add_argument(
-        "--output-file",
-        default="",
-        help=f"Optional JSON output file for unresolved entity report (example default: {default_unresolved_report})",
-    )
-    unresolved_ranking_entities_parser.add_argument("--pg-host", default="localhost")
-    unresolved_ranking_entities_parser.add_argument("--pg-port", type=int, default=5432)
-    unresolved_ranking_entities_parser.add_argument("--pg-database", default="clawer")
-    unresolved_ranking_entities_parser.add_argument("--pg-user", default="test")
-    unresolved_ranking_entities_parser.add_argument("--pg-password", default="")
-
-    refresh_ranking_resolution_parser = subparsers.add_parser(
-        "refresh-ranking-resolution",
-        help="Refresh deterministic ranking entity resolution, then regenerate the unresolved entity report",
-    )
-    refresh_ranking_resolution_parser.add_argument("--target-schema", default="warehouse")
-    refresh_ranking_resolution_parser.add_argument("--target-table", default="ranking_records_preview")
-    refresh_ranking_resolution_parser.add_argument(
-        "--limit",
-        type=int,
-        default=20,
-        help="How many unresolved universities to print after the refresh",
-    )
-    refresh_ranking_resolution_parser.add_argument(
-        "--output-file",
-        default="",
-        help=f"Optional JSON output file for the refreshed unresolved report (example default: {default_unresolved_report})",
-    )
-    refresh_ranking_resolution_parser.add_argument("--pg-host", default="localhost")
-    refresh_ranking_resolution_parser.add_argument("--pg-port", type=int, default=5432)
-    refresh_ranking_resolution_parser.add_argument("--pg-database", default="clawer")
-    refresh_ranking_resolution_parser.add_argument("--pg-user", default="test")
-    refresh_ranking_resolution_parser.add_argument("--pg-password", default="")
 
     seed_university_alias_parser = subparsers.add_parser(
         "seed-university-alias",

@@ -1,24 +1,19 @@
+"""Load warehouse-ready ranking rows from the preview JSON artifact.
+
+This module also used to write those rows into warehouse.ranking_records_preview,
+a landing table that MultiSourceRankingPipeline superseded when it became the
+sole writer of warehouse.ranking_record. The write half was removed with the
+table; what remains is artifact I/O and touches no database.
+"""
+
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 
-from crawlernest_ranking_crawler.postgres_driver import get_psycopg2
 from crawlernest_ranking_crawler.warehouse_mapper import WarehouseReadyRankingRow
-
-
-@dataclass(slots=True)
-class WarehouseLandingWriteSummary:
-    row_count: int
-    inserted_row_count: int
-    skipped_existing_row_count: int
-    before_row_count: int
-    after_row_count: int
-    target_location: str
-    table_name: str
-    mode: str
 
 
 def load_warehouse_preview_rows(preview_file: Path) -> list[WarehouseReadyRankingRow]:
@@ -52,199 +47,9 @@ def load_warehouse_preview_rows(preview_file: Path) -> list[WarehouseReadyRankin
     return rows
 
 
-def write_warehouse_landing_rows(
-    rows: list[WarehouseReadyRankingRow],
-    *,
-    pg_host: str,
-    pg_port: int,
-    pg_database: str,
-    pg_user: str,
-    pg_password: str,
-    schema_name: str = "warehouse",
-    table_name: str = "ranking_records_preview",
-) -> WarehouseLandingWriteSummary:
-    try:
-        psycopg2 = get_psycopg2()
-    except ImportError as exc:
-        raise RuntimeError("psycopg2 is required for warehouse landing writes") from exc
-
-    conn = psycopg2.connect(
-        host=pg_host,
-        port=pg_port,
-        database=pg_database,
-        user=pg_user,
-        password=pg_password,
-    )
-    try:
-        before_row_count = _count_rows(
-            conn,
-            schema_name=schema_name,
-            table_name=table_name,
-        )
-        inserted, skipped_existing = _insert_rows(
-            conn,
-            schema_name=schema_name,
-            table_name=table_name,
-            rows=rows,
-        )
-        conn.commit()
-        after_row_count = _count_rows(
-            conn,
-            schema_name=schema_name,
-            table_name=table_name,
-        )
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        dsn_parameters = conn.get_dsn_parameters()
-        conn.close()
-
-    verified_inserted = after_row_count - before_row_count
-    if verified_inserted < 0:
-        raise RuntimeError(
-            f"warehouse preview row count decreased unexpectedly for {schema_name}.{table_name}: "
-            f"before={before_row_count}, after={after_row_count}"
-        )
-    if verified_inserted != inserted:
-        raise RuntimeError(
-            f"warehouse preview write summary mismatch for {schema_name}.{table_name}: "
-            f"writer_inserted={inserted}, verified_inserted={verified_inserted}, "
-            f"before={before_row_count}, after={after_row_count}"
-        )
-    skipped_existing = max(0, len(rows) - verified_inserted)
-
-    return WarehouseLandingWriteSummary(
-        row_count=len(rows),
-        inserted_row_count=verified_inserted,
-        skipped_existing_row_count=skipped_existing,
-        before_row_count=before_row_count,
-        after_row_count=after_row_count,
-        target_location=f"postgresql://{pg_host}:{pg_port}/{pg_database}#{schema_name}.{table_name}",
-        table_name=f"{schema_name}.{table_name}",
-        mode="persistent",
-    )
-
-
-def warehouse_landing_summary_to_dict(summary: WarehouseLandingWriteSummary) -> dict[str, object]:
-    return asdict(summary)
-
-
 def preview_row_to_jsonable(row: WarehouseReadyRankingRow) -> dict[str, object]:
     payload = asdict(row)
     extracted_at = payload.get("extracted_at")
     if isinstance(extracted_at, datetime):
         payload["extracted_at"] = extracted_at.isoformat()
     return payload
-
-
-def _insert_rows(
-    conn: "psycopg2.extensions.connection",
-    *,
-    schema_name: str,
-    table_name: str,
-    rows: list[WarehouseReadyRankingRow],
-) -> tuple[int, int]:
-    inserted = 0
-    skipped_existing = 0
-    with conn.cursor() as cur:
-        _ensure_table(cur, schema_name=schema_name, table_name=table_name)
-        for row in rows:
-            cur.execute(
-                f"""
-                INSERT INTO {schema_name}.{table_name} (
-                    university_name,
-                    normalized_university_name,
-                    source,
-                    rank,
-                    year,
-                    source_url,
-                    extracted_at,
-                    ranking_year,
-                    universe_type,
-                    universe_key,
-                    canonical_university_id,
-                    entity_resolution_status,
-                    source_resolution_status
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (
-                    normalized_university_name,
-                    source,
-                    ranking_year,
-                    universe_type,
-                    universe_key,
-                    rank
-                ) DO NOTHING
-                RETURNING 1
-                """,
-                (
-                    row.university_name,
-                    row.normalized_university_name,
-                    row.source,
-                    row.rank,
-                    row.year,
-                    row.source_url,
-                    row.extracted_at,
-                    row.ranking_year,
-                    row.universe_type,
-                    row.universe_key,
-                    row.canonical_university_id,
-                    row.entity_resolution_status,
-                    row.source_resolution_status,
-                ),
-            )
-            if cur.fetchone() is not None:
-                inserted += 1
-            else:
-                skipped_existing += 1
-    return inserted, skipped_existing
-
-
-def _ensure_table(
-    cur: "psycopg2.extensions.cursor",
-    *,
-    schema_name: str,
-    table_name: str,
-) -> None:
-    cur.execute(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
-    cur.execute(
-        f"""
-        CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} (
-            id BIGSERIAL PRIMARY KEY,
-            university_name TEXT NOT NULL,
-            normalized_university_name TEXT NOT NULL,
-            source TEXT NOT NULL,
-            rank INTEGER NOT NULL,
-            year INTEGER NOT NULL,
-            source_url TEXT NULL,
-            extracted_at TIMESTAMPTZ NOT NULL,
-            ranking_year INTEGER NOT NULL,
-            universe_type TEXT NOT NULL,
-            universe_key TEXT NOT NULL,
-            canonical_university_id BIGINT NULL,
-            entity_resolution_status TEXT NOT NULL,
-            source_resolution_status TEXT NOT NULL,
-            UNIQUE (
-                normalized_university_name,
-                source,
-                ranking_year,
-                universe_type,
-                universe_key,
-                rank
-            )
-        )
-        """
-    )
-
-
-def _count_rows(
-    conn: "psycopg2.extensions.connection",
-    *,
-    schema_name: str,
-    table_name: str,
-) -> int:
-    with conn.cursor() as cur:
-        _ensure_table(cur, schema_name=schema_name, table_name=table_name)
-        cur.execute(f"SELECT COUNT(*) FROM {schema_name}.{table_name}")
-        row = cur.fetchone()
-    return 0 if row is None else int(row[0])
