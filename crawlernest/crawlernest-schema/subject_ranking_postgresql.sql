@@ -41,6 +41,18 @@ INSERT INTO warehouse.ranking_subject (
         'Electrical Engineering',
         'Engineering and Technology',
         '{"QS": ["Engineering - Electrical and Electronic"]}'::jsonb
+    ),
+    -- Ingested since this list was last touched, and seeded into the running
+    -- warehouse by run-qs-subject rather than by this file -- so a database
+    -- bootstrapped from scratch came up with two subjects while the one the
+    -- tests run against had three. SubjectRankingApiIntegrationTest already
+    -- asserts hasItems("business-management", ...), and passed only because it
+    -- runs against that warehouse.
+    (
+        'business-management',
+        'Business & Management',
+        'Business and Economics',
+        '{"QS": ["Business & Management Studies"]}'::jsonb
     )
 ON CONFLICT (subject_key) DO UPDATE SET
     display_name = EXCLUDED.display_name,
