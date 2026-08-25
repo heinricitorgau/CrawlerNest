@@ -80,29 +80,64 @@ FROM (
 CROSS JOIN warehouse.ranking_source src
 WHERE src.source_code = 'QS';
 
+-- Two degree levels, and between them every requirement column is NULL for at
+-- least one row. That is what a real crawl looks like: an undergraduate page
+-- that publishes a GPA bar and no English test, and a postgraduate page that
+-- does the opposite. A fixture where every column is populated would let a
+-- null-handling regression reach production unnoticed.
+--
+-- The postgraduate row keeps ielts 7.0 / toefl 100 so that the MIN() the preview
+-- endpoint reports is unchanged; the undergraduate row leaves both NULL rather
+-- than undercutting them.
 INSERT INTO warehouse.admission_record (
     source_entity_id,
     university_name,
     normalized_university_name,
     source_url,
     country,
+    degree_level,
     ielts_requirement,
     toefl_requirement,
+    duolingo_requirement,
+    gpa_requirement,
+    application_deadline,
     extracted_at,
     canonical_university_id,
     entity_resolution_status,
     raw_payload
-) VALUES (
-    'example.edu/admissions/mit',
-    'MIT',
-    'MIT',
-    'https://example.edu/admissions/mit',
-    'United States',
-    7.0,
-    100,
-    '2026-04-14T18:06:49Z',
-    990102,
-    'resolved_alias_exact',
-    '{"source":"integration-test"}'::jsonb
-);
+) VALUES
+    (
+        'example.edu/admissions/mit',
+        'MIT',
+        'MIT',
+        'https://example.edu/admissions/mit',
+        'United States',
+        'postgraduate',
+        7.0,
+        100,
+        125,
+        NULL,
+        DATE '2026-01-15',
+        '2026-04-14T18:06:49Z',
+        990102,
+        'resolved_alias_exact',
+        '{"source":"integration-test"}'::jsonb
+    ),
+    (
+        'example.edu/admissions/mit',
+        'MIT',
+        'MIT',
+        'https://example.edu/admissions/mit-undergraduate',
+        'United States',
+        'undergraduate',
+        NULL,
+        NULL,
+        NULL,
+        3.7,
+        DATE '2026-03-01',
+        '2026-04-14T18:06:49Z',
+        990102,
+        'resolved_alias_exact',
+        '{"source":"integration-test"}'::jsonb
+    );
 

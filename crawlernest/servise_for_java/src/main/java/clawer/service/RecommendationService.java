@@ -521,6 +521,10 @@ public class RecommendationService {
         candidate.aggregatedScore = row.getCompositeScore();
         candidate.coverageRatio = row.getCoverageRatio() == null ? 0.0 : row.getCoverageRatio();
         candidate.ieltsMin = row.getIeltsMin();
+        candidate.toeflMin = row.getToeflMin();
+        candidate.duolingoMin = row.getDuolingoMin();
+        candidate.gpaMin = row.getGpaMin();
+        candidate.applicationDeadline = row.getApplicationDeadline();
         candidate.aggregationMethodVersion = row.getAggregationMethodVersion();
         candidate.sourceRanks = row.getSourceRanks();
         return candidate;
@@ -648,6 +652,7 @@ public class RecommendationService {
                 rulesPassed
         );
         applyScopeContext(result, candidate, scopeContext);
+        applyAdmissionRequirements(result, candidate);
         return result;
     }
 
@@ -748,6 +753,7 @@ public class RecommendationService {
                 )
         );
         applyScopeContext(result, candidate, scopeContext);
+        applyAdmissionRequirements(result, candidate);
         return result;
     }
 
@@ -891,6 +897,7 @@ public class RecommendationService {
             result.setExplanation(result.getExplanation() + " Subject signal: " + subjectSignal.reason());
         }
         applyScopeContext(result, candidate, scopeContext);
+        applyAdmissionRequirements(result, candidate);
         return result;
     }
 
@@ -943,6 +950,22 @@ public class RecommendationService {
         result.setGlobalRank(candidate.globalRank);
         result.setScopeRank(scopeContext.isRegion() ? rankedPosition.displayRank() : null);
         result.setAggregatedRank(rankedPosition.compatibilityAggregatedRank());
+    }
+
+    /**
+     * Copies the crawled entry requirements onto the result.
+     *
+     * <p>Only ieltsMin participates in scoring; the rest ride along for display,
+     * so a card can show the full picture without a second round trip. Any of
+     * them may be null when the source published nothing, and null must not be
+     * rendered as zero.
+     */
+    private void applyAdmissionRequirements(RecommendationResult result, Candidate candidate) {
+        result.setIeltsMin(candidate.ieltsMin);
+        result.setToeflMin(candidate.toeflMin);
+        result.setDuolingoMin(candidate.duolingoMin);
+        result.setGpaMin(candidate.gpaMin);
+        result.setApplicationDeadline(candidate.applicationDeadline);
     }
 
     private Double rankingScore(Integer rankValue, Integer targetRank) {
@@ -1809,6 +1832,10 @@ public class RecommendationService {
         private Double aggregatedScore;
         private double coverageRatio;
         private Double ieltsMin;
+        private Integer toeflMin;
+        private Integer duolingoMin;
+        private Double gpaMin;
+        private String applicationDeadline;
         private String aggregationMethodVersion;
         private Map<String, Integer> sourceRanks = new LinkedHashMap<>();
     }

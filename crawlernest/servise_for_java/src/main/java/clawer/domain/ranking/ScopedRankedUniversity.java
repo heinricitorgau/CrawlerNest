@@ -18,6 +18,10 @@ public class ScopedRankedUniversity {
     private Integer sourceCount;
     private Double coverageRatio;
     private Double ieltsMin;
+    private Integer toeflMin;
+    private Integer duolingoMin;
+    private Double gpaMin;
+    private String applicationDeadline;
     private String aggregationMethodVersion;
     private Double trustScore;
     private String trustLevel;
@@ -111,6 +115,39 @@ public class ScopedRankedUniversity {
 
     public void setIeltsMin(Double ieltsMin) {
         this.ieltsMin = ieltsMin;
+    }
+
+    public Integer getToeflMin() {
+        return toeflMin;
+    }
+
+    public void setToeflMin(Integer toeflMin) {
+        this.toeflMin = toeflMin;
+    }
+
+    public Integer getDuolingoMin() {
+        return duolingoMin;
+    }
+
+    public void setDuolingoMin(Integer duolingoMin) {
+        this.duolingoMin = duolingoMin;
+    }
+
+    public Double getGpaMin() {
+        return gpaMin;
+    }
+
+    public void setGpaMin(Double gpaMin) {
+        this.gpaMin = gpaMin;
+    }
+
+    /** ISO-8601 date, or null when no source published one. */
+    public String getApplicationDeadline() {
+        return applicationDeadline;
+    }
+
+    public void setApplicationDeadline(String applicationDeadline) {
+        this.applicationDeadline = applicationDeadline;
     }
 
     public String getAggregationMethodVersion() {

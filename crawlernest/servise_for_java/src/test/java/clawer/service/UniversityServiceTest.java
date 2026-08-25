@@ -1,7 +1,10 @@
 package clawer.service;
 
+import clawer.dto.AdmissionRequirementDTO;
+import clawer.dto.AdmissionRequirementsDTO;
 import clawer.dto.UniversityDTO;
 import clawer.model.University;
+import clawer.repository.AdmissionRecordRepository;
 import clawer.repository.UniversityRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +30,9 @@ class UniversityServiceTest {
     private UniversityRepository universityRepository;
 
     @Mock
+    private AdmissionRecordRepository admissionRecordRepository;
+
+    @Mock
     private JdbcTemplate jdbcTemplate;
 
     @InjectMocks
@@ -35,6 +41,10 @@ class UniversityServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        // Most universities have no crawled admission page, so the no-data shape
+        // is the default here rather than the exception.
+        lenient().when(admissionRecordRepository.findByCanonicalUniversityId(any()))
+                .thenReturn(AdmissionRequirementsDTO.empty());
     }
 
     @Test
@@ -110,5 +120,62 @@ class UniversityServiceTest {
         assertEquals(3, result.getSourceRankings().size());
         assertEquals(List.of("QS", "THE", "ARWU"), result.getSourceRankings().stream().map(r -> r.getSource()).toList());
         assertEquals(3, result.getRankingEvidence().size());
+    }
+
+    @Test
+    void testUniversityWithoutAdmissionRecordReportsNoDataRatherThanNull() {
+        University u1 = new University();
+        u1.setId(1L);
+        u1.setDisplayName("MIT");
+
+        when(universityRepository.findById(1L)).thenReturn(Optional.of(u1));
+
+        UniversityDTO result = universityService.getUniversityById(1L);
+
+        // The UI branches on hasData; a null block or a null summary would make it
+        // read every requirement off a null reference.
+        AdmissionRequirementsDTO admissions = result.getAdmissionRequirements();
+        assertNotNull(admissions);
+        assertFalse(admissions.isHasData());
+        assertEquals(0, admissions.getDegreeLevelCount());
+        assertTrue(admissions.getByDegreeLevel().isEmpty());
+        assertNotNull(admissions.getSummary());
+        assertNull(admissions.getSummary().getIeltsRequirement());
+    }
+
+    @Test
+    void testUniversityWithAdmissionRecordExposesStructuredRequirements() {
+        University u1 = new University();
+        u1.setId(1L);
+        u1.setDisplayName("MIT");
+
+        AdmissionRequirementDTO postgraduate = new AdmissionRequirementDTO();
+        postgraduate.setDegreeLevel("postgraduate");
+        postgraduate.setIeltsRequirement(7.0);
+        postgraduate.setToeflRequirement(100);
+        // duolingo and gpa stay null: the source published neither, and that has
+        // to survive the trip to the client as null rather than 0.
+        postgraduate.setApplicationDeadline("2026-01-15");
+
+        AdmissionRequirementsDTO admissions = new AdmissionRequirementsDTO();
+        admissions.setHasData(true);
+        admissions.setDegreeLevelCount(1);
+        admissions.setByDegreeLevel(List.of(postgraduate));
+        admissions.setSummary(postgraduate);
+
+        when(universityRepository.findById(1L)).thenReturn(Optional.of(u1));
+        when(admissionRecordRepository.findByCanonicalUniversityId(any())).thenReturn(admissions);
+
+        UniversityDTO result = universityService.getUniversityById(1L);
+
+        AdmissionRequirementsDTO actual = result.getAdmissionRequirements();
+        assertTrue(actual.isHasData());
+        assertEquals(1, actual.getDegreeLevelCount());
+        assertEquals("postgraduate", actual.getByDegreeLevel().get(0).getDegreeLevel());
+        assertEquals(7.0, actual.getSummary().getIeltsRequirement());
+        assertEquals(100, actual.getSummary().getToeflRequirement());
+        assertNull(actual.getSummary().getDuolingoRequirement());
+        assertNull(actual.getSummary().getGpaRequirement());
+        assertEquals("2026-01-15", actual.getSummary().getApplicationDeadline());
     }
 }

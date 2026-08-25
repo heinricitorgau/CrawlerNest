@@ -1,7 +1,6 @@
 package clawer.dto;
 
 import java.util.List;
-import java.util.Map;
 
 public class UniversityDTO {
     private Long canonicalUniversityId;
@@ -11,7 +10,7 @@ public class UniversityDTO {
     private AggregatedRankingDTO aggregatedRanking;
     private List<SourceRankingDTO> sourceRankings;
     private List<SourceRankingDTO> rankingEvidence;
-    private Map<String, Object> admissionRequirements;
+    private AdmissionRequirementsDTO admissionRequirements;
     private DataQualityDTO dataQuality;
 
     public UniversityDTO() {}
@@ -37,8 +36,8 @@ public class UniversityDTO {
     public List<SourceRankingDTO> getRankingEvidence() { return rankingEvidence; }
     public void setRankingEvidence(List<SourceRankingDTO> rankingEvidence) { this.rankingEvidence = rankingEvidence; }
 
-    public Map<String, Object> getAdmissionRequirements() { return admissionRequirements; }
-    public void setAdmissionRequirements(Map<String, Object> admissionRequirements) { this.admissionRequirements = admissionRequirements; }
+    public AdmissionRequirementsDTO getAdmissionRequirements() { return admissionRequirements; }
+    public void setAdmissionRequirements(AdmissionRequirementsDTO admissionRequirements) { this.admissionRequirements = admissionRequirements; }
 
     public DataQualityDTO getDataQuality() { return dataQuality; }
     public void setDataQuality(DataQualityDTO dataQuality) { this.dataQuality = dataQuality; }

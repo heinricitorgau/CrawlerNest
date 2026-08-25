@@ -1,5 +1,7 @@
 package clawer.api;
 
+import clawer.dto.AdmissionRequirementDTO;
+import clawer.dto.AdmissionRequirementsDTO;
 import clawer.dto.UniversityDTO;
 import clawer.service.SourceIntelligenceService;
 import clawer.service.UniversityService;
@@ -11,7 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
+import java.util.List;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
@@ -56,5 +60,61 @@ class UniversityControllerTest {
 
         mockMvc.perform(get("/api/v1/universities/999"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testAdmissionRequirementsSerializeWithNullsIntact() throws Exception {
+        AdmissionRequirementDTO postgraduate = new AdmissionRequirementDTO();
+        postgraduate.setDegreeLevel("postgraduate");
+        postgraduate.setIeltsRequirement(7.0);
+        postgraduate.setToeflRequirement(100);
+        postgraduate.setApplicationDeadline("2026-01-15");
+
+        AdmissionRequirementsDTO admissions = new AdmissionRequirementsDTO();
+        admissions.setHasData(true);
+        admissions.setDegreeLevelCount(1);
+        admissions.setByDegreeLevel(List.of(postgraduate));
+        admissions.setSummary(postgraduate);
+
+        UniversityDTO dto = new UniversityDTO();
+        dto.setCanonicalUniversityId(1L);
+        dto.setUniversityName("Test Uni");
+        dto.setAdmissionRequirements(admissions);
+
+        when(universityService.getUniversityById(anyLong())).thenReturn(dto);
+
+        mockMvc.perform(get("/api/v1/universities/1").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.admissionRequirements.hasData").value(true))
+                .andExpect(jsonPath("$.data.admissionRequirements.degreeLevelCount").value(1))
+                .andExpect(jsonPath("$.data.admissionRequirements.summary.ieltsRequirement").value(7.0))
+                .andExpect(jsonPath("$.data.admissionRequirements.summary.toeflRequirement").value(100))
+                .andExpect(jsonPath("$.data.admissionRequirements.summary.applicationDeadline").value("2026-01-15"))
+                // A requirement the source never published must reach the client as
+                // an explicit JSON null. value(nullValue()) rather than doesNotExist(),
+                // which passes for a present-but-null key as well and so would prove
+                // nothing about which of the two the client actually receives.
+                .andExpect(jsonPath("$.data.admissionRequirements.summary.gpaRequirement").value(nullValue()))
+                .andExpect(jsonPath("$.data.admissionRequirements.summary.duolingoRequirement").value(nullValue()))
+                .andExpect(jsonPath("$.data.admissionRequirements.byDegreeLevel[0].degreeLevel").value("postgraduate"));
+    }
+
+    @Test
+    void testAdmissionRequirementsEmptyStateIsAnObjectNotNull() throws Exception {
+        UniversityDTO dto = new UniversityDTO();
+        dto.setCanonicalUniversityId(2L);
+        dto.setUniversityName("No Admissions Uni");
+        dto.setAdmissionRequirements(AdmissionRequirementsDTO.empty());
+
+        when(universityService.getUniversityById(anyLong())).thenReturn(dto);
+
+        mockMvc.perform(get("/api/v1/universities/2").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.admissionRequirements.hasData").value(false))
+                .andExpect(jsonPath("$.data.admissionRequirements.degreeLevelCount").value(0))
+                .andExpect(jsonPath("$.data.admissionRequirements.byDegreeLevel").isArray())
+                .andExpect(jsonPath("$.data.admissionRequirements.byDegreeLevel").isEmpty())
+                .andExpect(jsonPath("$.data.admissionRequirements.summary").exists())
+                .andExpect(jsonPath("$.data.admissionRequirements.summary.ieltsRequirement").value(nullValue()));
     }
 }
