@@ -1,6 +1,6 @@
 import { AGENT_SYSTEM_PROMPT } from "@/lib/agentSystemPrompt";
 
-export type AgentModelProvider = "mock" | "ollama" | "openai";
+export type AgentModelProvider = "mock" | "ollama" | "openai" | "ds4";
 
 export type AgentProviderStatus = {
   configured: boolean;
@@ -25,6 +25,20 @@ type FetchLike = typeof fetch;
 export const MAX_AGENT_MESSAGE_LENGTH = 4000;
 const DEFAULT_TIMEOUT_MS = 15000;
 
+/**
+ * ds4 runs DeepSeek V4 Flash locally, so a cold prefill or a long answer takes
+ * far longer than a hosted API call. 15s would make the provider fall back on
+ * almost every real request. 60s matches WEB_AGENT_DS4_TIMEOUT on the Python
+ * side, so both clients wait the same amount for the same server.
+ *
+ * This is the cost of the non-streaming path: the whole answer has to arrive
+ * inside one timeout, where a streamed response would reset it per chunk.
+ */
+const DS4_TIMEOUT_MS = 60000;
+
+const DS4_DEFAULT_BASE_URL = "http://localhost:8000/v1";
+const DS4_DEFAULT_MODEL = "deepseek-v4-flash";
+
 const SAFE_ERROR =
   "Agent model provider is unavailable. The request stayed readonly and no CrawlerNest data was modified.";
 
@@ -44,7 +58,7 @@ export function validateAgentMessage(message: unknown): string | null {
 
 export function resolveAgentProvider(env: ProviderEnv = process.env): AgentModelProvider | null {
   const raw = (env.AGENT_MODEL_PROVIDER ?? "mock").trim().toLowerCase();
-  if (raw === "mock" || raw === "ollama" || raw === "openai") {
+  if (raw === "mock" || raw === "ollama" || raw === "openai" || raw === "ds4") {
     return raw;
   }
   return null;
@@ -85,6 +99,21 @@ export function getAgentProviderStatus(env: ProviderEnv = process.env): AgentPro
     };
   }
 
+  if (provider === "ds4") {
+    // ds4 needs no credential: it is a local server with no built-in auth, and
+    // an API key only appears when someone fronts it with an auth proxy. So
+    // unlike openai there is nothing here that can be "missing" -- both the
+    // model and the URL have working defaults, and a wrong URL surfaces at call
+    // time as an unreachable provider rather than as a config error.
+    return {
+      configured: true,
+      providerLabel: "ds4",
+      modelName: resolveDs4Model(env),
+      baseUrl: resolveDs4BaseUrl(env),
+      reason: null,
+    };
+  }
+
   const modelName = env.AGENT_MODEL_NAME?.trim() || "";
   return {
     configured: Boolean(env.OPENAI_API_KEY?.trim() && modelName),
@@ -109,8 +138,10 @@ export async function generateAgentChatResponse(
 ): Promise<AgentChatResult> {
   const env = options.env ?? process.env;
   const fetchImpl = options.fetchImpl ?? fetch;
-  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const status = getAgentProviderStatus(env);
+  // A caller-supplied timeout still wins; otherwise each provider gets the
+  // budget its latency actually needs.
+  const timeoutMs = options.timeoutMs ?? resolveTimeoutMs(status.providerLabel, env);
 
   if (!status.configured) {
     return {
@@ -140,6 +171,9 @@ export async function generateAgentChatResponse(
     }
     if (status.providerLabel === "openai") {
       return await callOpenAiProvider(message, status, env, fetchImpl, timeoutMs);
+    }
+    if (status.providerLabel === "ds4") {
+      return await callDs4Provider(message, status, env, fetchImpl, timeoutMs);
     }
   } catch {
     return {
@@ -231,32 +265,139 @@ async function callOpenAiProvider(
   fetchImpl: FetchLike,
   timeoutMs: number
 ): Promise<AgentChatResult> {
-  const baseUrl = status.baseUrl ?? "https://api.openai.com/v1";
+  return callOpenAiCompatibleProvider(message, {
+    providerLabel: "openai",
+    baseUrl: status.baseUrl ?? "https://api.openai.com/v1",
+    modelName: status.modelName,
+    headers: { Authorization: `Bearer ${env.OPENAI_API_KEY ?? ""}` },
+    fetchImpl,
+    timeoutMs,
+  });
+}
+
+/**
+ * Calls a local ds4 server through its OpenAI-compatible /v1 API.
+ *
+ * Non-streaming on purpose: `stream: false` is stated rather than left to the
+ * default, because ds4 can stream and the choice not to is the thing worth
+ * being explicit about.
+ */
+async function callDs4Provider(
+  message: string,
+  status: AgentProviderStatus,
+  env: ProviderEnv,
+  fetchImpl: FetchLike,
+  timeoutMs: number
+): Promise<AgentChatResult> {
+  const apiKey = resolveDs4ApiKey(env);
+  return callOpenAiCompatibleProvider(message, {
+    providerLabel: "ds4",
+    baseUrl: status.baseUrl ?? DS4_DEFAULT_BASE_URL,
+    modelName: status.modelName,
+    // Only sent when ds4 sits behind an auth-terminating proxy. A bare
+    // ds4-server has no authentication, and sending an empty bearer token to
+    // one that does would be indistinguishable from sending none.
+    headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+    stream: false,
+    fetchImpl,
+    timeoutMs,
+  });
+}
+
+/**
+ * Shared request path for every OpenAI-compatible provider.
+ *
+ * openai and ds4 differ only in where they point, whether they carry a
+ * credential, and how long they are given; the request encoding and the
+ * response parsing are identical, so they are written once.
+ */
+async function callOpenAiCompatibleProvider(
+  message: string,
+  options: {
+    providerLabel: string;
+    baseUrl: string;
+    modelName: string | null;
+    headers: Record<string, string>;
+    stream?: boolean;
+    fetchImpl: FetchLike;
+    timeoutMs: number;
+  }
+): Promise<AgentChatResult> {
+  const baseUrl = options.baseUrl;
   const endpoint = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
-  const payload = {
-    model: status.modelName,
+  const payload: Record<string, unknown> = {
+    model: options.modelName,
     temperature: 0.2,
     messages: [
       { role: "system", content: AGENT_SYSTEM_PROMPT },
       { role: "user", content: message },
     ],
   };
+  if (options.stream !== undefined) {
+    payload.stream = options.stream;
+  }
   const json = await postJsonWithTimeout(
     endpoint,
     payload,
-    { Authorization: `Bearer ${env.OPENAI_API_KEY ?? ""}` },
-    fetchImpl,
-    timeoutMs
+    options.headers,
+    options.fetchImpl,
+    options.timeoutMs
   );
   const text = normalizeAgentResponse(extractOpenAiText(json));
   return {
     ok: true,
     text,
-    providerLabel: "openai",
-    modelName: status.modelName,
+    providerLabel: options.providerLabel,
+    modelName: options.modelName,
     baseUrl,
     warnings: [],
   };
+}
+
+/**
+ * Resolves the ds4 endpoint, appending the `/v1` suffix when it is absent.
+ *
+ * The Python integration documents the trailing `/v1` as optional, so a URL
+ * copied from `WEB_AGENT_DS4_BASE_URL` has to work here whichever way it was
+ * written; without this, `http://host:8000` would produce a request to
+ * `/chat/completions` and 404.
+ */
+export function resolveDs4BaseUrl(env: ProviderEnv = process.env): string {
+  const raw =
+    env.AGENT_MODEL_BASE_URL?.trim() ||
+    env.WEB_AGENT_DS4_BASE_URL?.trim() ||
+    DS4_DEFAULT_BASE_URL;
+  const trimmed = raw.replace(/\/+$/, "");
+  return trimmed.endsWith("/v1") ? trimmed : `${trimmed}/v1`;
+}
+
+function resolveDs4Model(env: ProviderEnv): string {
+  return (
+    env.AGENT_MODEL_NAME?.trim() ||
+    env.WEB_AGENT_DS4_MODEL?.trim() ||
+    DS4_DEFAULT_MODEL
+  );
+}
+
+function resolveDs4ApiKey(env: ProviderEnv): string {
+  return env.AGENT_MODEL_API_KEY?.trim() || env.WEB_AGENT_DS4_API_KEY?.trim() || "";
+}
+
+/**
+ * Per-provider request budget.
+ *
+ * WEB_AGENT_DS4_TIMEOUT is read in seconds so one environment variable
+ * configures the Python client and this one identically.
+ */
+function resolveTimeoutMs(providerLabel: string, env: ProviderEnv): number {
+  if (providerLabel !== "ds4") {
+    return DEFAULT_TIMEOUT_MS;
+  }
+  const configured = Number(env.WEB_AGENT_DS4_TIMEOUT?.trim());
+  if (Number.isFinite(configured) && configured > 0) {
+    return Math.round(configured * 1000);
+  }
+  return DS4_TIMEOUT_MS;
 }
 
 async function postJsonWithTimeout(

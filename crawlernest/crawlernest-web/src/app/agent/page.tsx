@@ -9,6 +9,9 @@ import {
   AGENT_SUGGESTED_PROMPTS,
 } from "@/lib/agentSystemPrompt";
 import { AGENT_DEMO_RUBRIC } from "@/lib/agentResponseRubric";
+import { AUTH_MESSAGES, normalizeAuthError } from "@/lib/authMessages";
+import { buildConversationTurns } from "@/lib/conversationTurns";
+import { useAuth } from "@/hooks/useAuthPlaceholder";
 
 type AgentMode = "web" | "dev";
 type TaskKind =
@@ -1588,6 +1591,9 @@ export default function AgentPage() {
   const [showDebug, setShowDebug] = useState(debugFromQuery);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [history, setHistory] = useState<RunEntry[]>([]);
+  const { authenticated, refresh: refreshAuth } = useAuth();
+  const [savePhase, setSavePhase] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
   // Session id is stable for the lifetime of the conversation.  A new UUID is
   // created when the component mounts (one per page load) or when the user
   // explicitly resets the conversation.
@@ -1688,6 +1694,9 @@ export default function AgentPage() {
       error: null,
     };
     setHistory((current) => [...current, pendingEntry]);
+    // The saved copy no longer matches what is on screen.
+    setSavePhase("idle");
+    setSaveError(null);
 
     try {
       const res = await fetch("/api/agent/chat", {
@@ -1748,6 +1757,52 @@ export default function AgentPage() {
     setHistory([]);
     setError(null);
     setSessionId(crypto.randomUUID());
+    setSavePhase("idle");
+    setSaveError(null);
+  }
+
+  async function saveConversation() {
+    const turns = buildConversationTurns(history);
+    if (turns.length === 0) {
+      return;
+    }
+
+    setSavePhase("saving");
+    setSaveError(null);
+
+    try {
+      const res = await fetch("/api/user/conversations", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        // No title: the API derives one from the opening question, so saving
+        // never has to interrupt the user for a name.
+        body: JSON.stringify({ sessionId, turns }),
+      });
+
+      if (res.ok) {
+        setSavePhase("saved");
+        return;
+      }
+
+      // The API's own message is the useful one for a rejected transcript
+      // ("Conversation is too long. Limit is 200 turns."), so surface it rather
+      // than flattening every failure into "could not save".
+      let payload: unknown = null;
+      try {
+        payload = await res.json();
+      } catch {
+        payload = null;
+      }
+      setSaveError(normalizeAuthError(res.status, payload));
+      setSavePhase("error");
+      if (res.status === 401) {
+        void refreshAuth();
+      }
+    } catch {
+      setSaveError(AUTH_MESSAGES.networkError);
+      setSavePhase("error");
+    }
   }
 
   function applyQuickTask(task: (typeof QUICK_TASKS)[number]) {
@@ -1837,12 +1892,45 @@ export default function AgentPage() {
             {history.length > 0 ? (
               <button
                 type="button"
+                onClick={saveConversation}
+                disabled={!authenticated || savePhase === "saving" || savePhase === "saved"}
+                title={
+                  authenticated
+                    ? "Store this transcript on your account"
+                    : "Sign in to keep this conversation"
+                }
+                className={`rounded-full border px-3 py-1 text-sm transition disabled:cursor-not-allowed ${
+                  savePhase === "saved"
+                    ? "border-[#3d7a5a] bg-[#e8f2ec] text-[#1a3d2e]"
+                    : "border-[#d8d3cb] bg-white text-[#6b7068] hover:border-[#3d7a5a] hover:text-[#1a3d2e] disabled:opacity-50"
+                }`}
+              >
+                {!authenticated
+                  ? AUTH_MESSAGES.signInToSave
+                  : savePhase === "saving"
+                    ? AUTH_MESSAGES.saving
+                    : savePhase === "saved"
+                      ? AUTH_MESSAGES.saved
+                      : "Save conversation"}
+              </button>
+            ) : null}
+            {history.length > 0 ? (
+              <button
+                type="button"
                 onClick={resetSession}
                 disabled={loading}
                 className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-sm text-[#6b7068] transition hover:border-[#a33a3a] hover:text-[#a33a3a] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 New conversation
               </button>
+            ) : null}
+            {savePhase === "error" && saveError ? (
+              <span
+                role="status"
+                className="rounded-full border border-[#e2c4bd] bg-[#fbefeb] px-3 py-1 text-sm text-[#8b3a2b]"
+              >
+                {saveError}
+              </span>
             ) : null}
           </div>
           <div>

@@ -43,16 +43,21 @@ response.
 | Mock | `mock` | Default. No external service required. Stable for build, test, and demo. |
 | Ollama | `ollama` | Local model service. Uses native Ollama `/api/chat`. |
 | OpenAI | `openai` | Server-side only. Requires `OPENAI_API_KEY` and `AGENT_MODEL_NAME`. |
+| ds4 | `ds4` | Local DeepSeek V4 Flash via `ds4-server`. OpenAI-compatible `/v1`, no key required. See [DS4_LOCAL_MODEL.md](../DS4_LOCAL_MODEL.md). |
 
 ## Environment Variables
 
 | Variable | Required | Used by | Notes |
 | --- | --- | --- | --- |
-| `AGENT_MODEL_PROVIDER` | No | all | Defaults to `mock`. Valid values: `mock`, `ollama`, `openai`. |
+| `AGENT_MODEL_PROVIDER` | No | all | Defaults to `mock`. Valid values: `mock`, `ollama`, `openai`, `ds4`. |
 | `AGENT_MODEL_NAME` | Yes for Ollama/OpenAI | ollama/openai | Example: `qwen2.5-coder:7b`, `llama3.1`, or an OpenAI model configured by the operator. |
 | `AGENT_MODEL_BASE_URL` | Optional | ollama/openai | Overrides provider base URL. |
 | `OLLAMA_BASE_URL` | Optional | ollama | Defaults to `http://localhost:11434` when Ollama is selected. |
 | `OPENAI_API_KEY` | Yes for OpenAI | openai | Read only on the server. Never forwarded to the browser. |
+| `WEB_AGENT_DS4_BASE_URL` | Optional | ds4 | Defaults to `http://localhost:8000/v1`. The trailing `/v1` is added when absent. Shared with the Python web-agent client. |
+| `WEB_AGENT_DS4_MODEL` | Optional | ds4 | Defaults to `deepseek-v4-flash`. |
+| `WEB_AGENT_DS4_TIMEOUT` | Optional | ds4 | Seconds per request. Defaults to 60, against 15 for the other providers. |
+| `WEB_AGENT_DS4_API_KEY` | Optional | ds4 | Only when `ds4-server` sits behind an auth-terminating proxy; a bare server has no authentication. |
 
 ## Readonly Guarantees
 
@@ -219,6 +224,33 @@ npm run dev
 `OPENAI_API_KEY` must be set only in the server environment. Do not use
 `NEXT_PUBLIC_` for model keys. The key is never returned by `/api/agent/chat` or
 included in frontend code.
+
+## ds4 Setup
+
+Example:
+
+```bash
+export AGENT_MODEL_PROVIDER=ds4
+export WEB_AGENT_DS4_BASE_URL=http://localhost:8000/v1   # or a remote ds4 host
+npm run dev
+```
+
+No key and no model name are needed: `ds4-server` has no authentication of its
+own, and both the URL and the model fall back to the values `ds4-server` uses by
+default. `AGENT_MODEL_BASE_URL` and `AGENT_MODEL_NAME` still take precedence when
+set, so this provider follows the same override order as the others.
+
+The `WEB_AGENT_DS4_*` names are deliberately the ones the Python web-agent client
+already reads, so a single set of exports points both processes at the same
+server. Running `ds4-server` itself is covered in
+[DS4_LOCAL_MODEL.md](../DS4_LOCAL_MODEL.md).
+
+**This route is non-streaming.** It sends `stream: false` and waits for the whole
+answer, which is why its timeout is 60s rather than 15s: a local model that takes
+40s to finish would otherwise fall back on every request. A long generation can
+still exceed even 60s, and when it does the page gets the same
+provider-unavailable message as an unreachable server. Streaming, which would
+reset the clock on each chunk, is not implemented here.
 
 ## Fallback Behavior
 
