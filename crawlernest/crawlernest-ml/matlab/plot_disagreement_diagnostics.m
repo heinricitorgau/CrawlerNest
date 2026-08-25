@@ -1,8 +1,9 @@
-function outPath = plot_disagreement_diagnostics(y, proba, outPath)
+function [outPath, stats] = plot_disagreement_diagnostics(y, proba, outPath, options)
 %PLOT_DISAGREEMENT_DIAGNOSTICS The 3-panel Phase 3 diagnostics, as Python draws them.
 %
 %   plot_disagreement_diagnostics(y, results.probaBoosted)
 %   plot_disagreement_diagnostics(y, proba, "somewhere/else.png")
+%   [~, stats] = plot_disagreement_diagnostics(y, proba, png, StatsCSV="stats.csv")
 %
 %   Panels:
 %     1. ROC curve, with AUC and the chance diagonal
@@ -27,6 +28,7 @@ arguments
     y (:,1) double
     proba (:,1) double
     outPath (1,1) string = default_out_path()
+    options.StatsCSV (1,1) string = ""
 end
 
 if any(proba < 0 | proba > 1)
@@ -103,6 +105,20 @@ sgtitle("Cross-source disagreement, predicted from QS indicators alone (out-of-f
     FontSize=11);
 
 exportgraphics(fig, outPath, Resolution=150);
+
+stats = struct();
+stats.n = numel(y);
+stats.positive_rate = positiveRate;
+stats.roc_auc = auc;
+stats.average_precision = ap;
+stats.brier = brier;
+stats.calibration_predicted = predictedFraction(:)';
+stats.calibration_observed = observedFraction(:)';
+
+if strlength(options.StatsCSV) > 0
+    write_stats_csv(stats, options.StatsCSV);
+end
+
 fprintf("ROC-AUC %.4f   AP %.4f   Brier %.4f\n", auc, ap, brier);
 fprintf("Diagnostic plot saved to: %s\n", outPath);
 end
@@ -158,6 +174,20 @@ function [predictedFraction, observedFraction] = calibration_curve(y, proba, nBi
 %   data that moves the edges by 3.0e-3, so the edges are interpolated
 %   explicitly instead.
 %
+%   Bins are closed on the *right*: sklearn assigns bins with
+%   `np.searchsorted(edges(2:end-1), proba)` at its default side="left", which
+%   puts a value equal to an interior edge in the bin below it. An earlier
+%   version here used [lower, upper) and so put it in the bin above. That is
+%   invisible on the production data -- the edges are interpolated between order
+%   statistics and land on no observation -- but a model emitting tied
+%   probabilities, which any boosted model does, puts whole blocks of rows on an
+%   edge at once. On the committed fixture it moved six of ten bins, one
+%   observed frequency by 0.28. CHECK_DIAGNOSTICS_PARITY is what caught it.
+%
+%   The outer edges are unused, exactly as in sklearn: the first bin takes
+%   everything below edge 2 and the last takes everything above edge nBins, so
+%   min and max cannot fall out through a rounding error.
+%
 %   Empty bins are dropped rather than emitted as NaN, again matching sklearn: a
 %   NaN would break the line where sklearn simply has one point fewer.
 sortedProba = sort(proba);
@@ -167,11 +197,9 @@ edges = interp1((0:n-1)' / (n - 1), sortedProba, linspace(0, 1, nBins + 1))';
 predictedFraction = NaN(nBins, 1);
 observedFraction = NaN(nBins, 1);
 for b = 1:nBins
-    if b == nBins
-        inBin = proba >= edges(b) & proba <= edges(b + 1);
-    else
-        inBin = proba >= edges(b) & proba < edges(b + 1);
-    end
+    aboveLower = b == 1 | proba > edges(b);
+    atOrBelowUpper = b == nBins | proba <= edges(b + 1);
+    inBin = aboveLower & atOrBelowUpper;
     if any(inBin)
         predictedFraction(b) = mean(proba(inBin));
         observedFraction(b) = mean(y(inBin));
@@ -181,4 +209,40 @@ end
 populated = ~isnan(predictedFraction);
 predictedFraction = predictedFraction(populated);
 observedFraction = observedFraction(populated);
+end
+
+
+function write_stats_csv(stats, path)
+%WRITE_STATS_CSV The numbers behind the three panels, in long form.
+%
+%   The panels are a PNG, and no checker can read a PNG. These are the values
+%   that were plotted, at full double precision, so CHECK_DIAGNOSTICS_PARITY can
+%   hold them against what scikit-learn computes from the same (y, proba).
+%
+%   Long form -- metric,index,value -- because two of the seven entries are
+%   curves whose length depends on how many quantile bins came out populated.
+outDir = fileparts(path);
+if strlength(outDir) > 0 && ~isfolder(outDir)
+    mkdir(outDir);
+end
+
+fid = fopen(path, "w");
+if fid < 0
+    error("plot_disagreement_diagnostics:cannotWriteStats", ...
+        "could not open %s for writing", path);
+end
+closeFile = onCleanup(@() fclose(fid));
+
+fprintf(fid, "metric,index,value\n");
+for name = ["n", "positive_rate", "roc_auc", "average_precision", "brier"]
+    fprintf(fid, "%s,0,%.17g\n", name, stats.(name));
+end
+for name = ["calibration_predicted", "calibration_observed"]
+    values = stats.(name);
+    for i = 1:numel(values)
+        fprintf(fid, "%s,%d,%.17g\n", name, i, values(i));
+    end
+end
+
+fprintf("Diagnostic stats saved to: %s\n", path);
 end

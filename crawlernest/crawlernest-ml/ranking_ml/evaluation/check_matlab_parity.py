@@ -90,15 +90,19 @@ SHARED_SOURCES: tuple[str, ...] = (
     "qs_to_rank.m",
 )
 
-#: Entry points whose output is not compared, listed so that "not checked" is a
-#: recorded decision rather than something nobody noticed. See the module
-#: docstring for why the classifier's metrics are not comparable at 1e-9;
-#: the diagnostics figure draws those same metrics, and a PNG has nothing this
-#: module could compare numerically in any case.
+#: Entry points whose output is not compared *here*, listed so that "not checked
+#: by this module" is a recorded decision rather than something nobody noticed.
+#: See the module docstring for why the classifier's metrics are not comparable
+#: at 1e-9. The diagnostics figure draws those same metrics but is not covered by
+#: that objection: given a fixed (y, proba) there is no model and no fold split,
+#: so its numbers are exactly comparable -- just not by this module, which diffs
+#: committed CSVs and would be handed a PNG. ranking_ml.evaluation.check_diagnostics_parity
+#: covers it instead, against a committed fixture.
 UNCHECKED_SOURCES: tuple[str, ...] = (
     "train_disagreement_classifier.m",
     "plot_disagreement_diagnostics.m",
 )
+
 
 
 @dataclass(frozen=True)

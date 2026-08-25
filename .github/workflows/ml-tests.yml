@@ -248,6 +248,10 @@ jobs:
       # committed artifact, so there is nothing for the parity module to diff.
       # It is here for the structural check further down, which needs a fresh
       # batch to look at and no baseline.
+      #
+      # plot_disagreement_diagnostics.m is likewise unregistered -- it draws a
+      # PNG -- and is run here on a committed (y, proba) fixture so the numbers
+      # behind its three panels can be held against sklearn further down.
       - name: Re-run the MATLAB ports
         uses: matlab-actions/run-command@v2
         with:
@@ -259,6 +263,10 @@ jobs:
             qs_support_flagger(OutDir = root + "/support_matlab");
             build_cross_source_data(OutDir = root + "/cross_source_matlab");
             predict_qs_disagreement(OutputCSV = root + "/cross_source_matlab/predicted_disagreements.csv");
+            fixture = readtable("crawlernest/crawlernest-ml/tests/fixtures/diagnostics_fixture.csv");
+            plot_disagreement_diagnostics(fixture.y, fixture.proba, ...
+                root + "/cross_source_matlab/diagnostics.png", ...
+                StatsCSV = root + "/cross_source_matlab/diagnostics_stats.csv");
 
       - name: Show what MATLAB produced
         run: ls -lR /tmp/matlab_fresh
@@ -287,3 +295,16 @@ jobs:
         run: |
           python -m ranking_ml.evaluation.check_inference_batch \
             --batch /tmp/matlab_fresh/cross_source_matlab/predicted_disagreements.csv
+
+      # plot_disagreement_diagnostics.m has no comparable artifact either -- it
+      # draws a PNG -- but its numbers are exactly comparable, because a fixed
+      # (y, proba) involves no model and no fold split. It hand-rolls four
+      # sklearn metrics, two as local helpers whose docstrings make precise
+      # claims about tie handling and quantile conventions, and until now nothing
+      # tested those claims. The first run of this check found one wrong.
+      - name: Diagnostics metrics match scikit-learn
+        env:
+          PYTHONPATH: crawlernest/crawlernest-ml
+        run: |
+          python -m ranking_ml.evaluation.check_diagnostics_parity \
+            --stats /tmp/matlab_fresh/cross_source_matlab/diagnostics_stats.csv
