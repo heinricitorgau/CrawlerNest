@@ -59,6 +59,18 @@ class RankingRowMapper {
         double ieltsMin = rs.getDouble("ielts_min");
         row.setIeltsMin(rs.wasNull() ? null : ieltsMin);
 
+        int toeflMin = rs.getInt("toefl_min");
+        row.setToeflMin(rs.wasNull() ? null : toeflMin);
+
+        int duolingoMin = rs.getInt("duolingo_min");
+        row.setDuolingoMin(rs.wasNull() ? null : duolingoMin);
+
+        double gpaMin = rs.getDouble("gpa_min");
+        row.setGpaMin(rs.wasNull() ? null : gpaMin);
+
+        java.sql.Date applicationDeadline = rs.getDate("application_deadline");
+        row.setApplicationDeadline(applicationDeadline == null ? null : applicationDeadline.toLocalDate().toString());
+
         row.setAggregationMethodVersion(rs.getString("aggregation_method_version"));
         Object rawSourceRanksJson = rs.getObject("source_ranks_json");
         Map<String, Integer> parsedSourceRanks = sourceRankParser.parse(rawSourceRanksJson);

@@ -4,6 +4,7 @@ import clawer.dto.RankingDTO;
 import clawer.dto.SourceRankingDTO;
 import clawer.dto.UniversityDTO;
 import clawer.model.University;
+import clawer.repository.AdmissionRecordRepository;
 import clawer.repository.UniversityRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.data.domain.PageRequest;
@@ -25,10 +26,16 @@ public class UniversityService {
     private static final List<String> SOURCE_PRIORITY = List.of("QS", "THE", "ARWU");
 
     private final UniversityRepository universityRepository;
+    private final AdmissionRecordRepository admissionRecordRepository;
     private final JdbcTemplate jdbcTemplate;
 
-    public UniversityService(UniversityRepository universityRepository, JdbcTemplate jdbcTemplate) {
+    public UniversityService(
+            UniversityRepository universityRepository,
+            AdmissionRecordRepository admissionRecordRepository,
+            JdbcTemplate jdbcTemplate
+    ) {
         this.universityRepository = universityRepository;
+        this.admissionRecordRepository = admissionRecordRepository;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -97,7 +104,7 @@ public class UniversityService {
         dto.setCountry((String) r.get("country_name"));
         hydrateCanonicalRankings(dto, canonicalUniversityId);
 
-        dto.setAdmissionRequirements(Map.of());
+        dto.setAdmissionRequirements(admissionRecordRepository.findByCanonicalUniversityId(dto.getCanonicalUniversityId()));
         clawer.dto.DataQualityDTO quality = new clawer.dto.DataQualityDTO();
         quality.setRecommendationConfidence(0.9);
         quality.setConfidenceLabel("High");
@@ -122,7 +129,7 @@ public class UniversityService {
             dto.setRankingEvidence(List.of());
         }
 
-        dto.setAdmissionRequirements(Map.of());
+        dto.setAdmissionRequirements(admissionRecordRepository.findByCanonicalUniversityId(dto.getCanonicalUniversityId()));
         clawer.dto.DataQualityDTO quality = new clawer.dto.DataQualityDTO();
         quality.setRecommendationConfidence(0.9);
         quality.setConfidenceLabel("High");
@@ -176,7 +183,9 @@ public class UniversityService {
             dto.setRankingEvidence(List.of());
         }
 
-        dto.setAdmissionRequirements(Map.of());
+        dto.setAdmissionRequirements(
+                admissionRecordRepository.findByCanonicalUniversityId(resolveCanonicalUniversityId(university.getId()))
+        );
         clawer.dto.DataQualityDTO quality = new clawer.dto.DataQualityDTO();
         quality.setRecommendationConfidence(0.9);
         quality.setConfidenceLabel("High");

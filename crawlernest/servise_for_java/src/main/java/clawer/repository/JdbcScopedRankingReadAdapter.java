@@ -43,6 +43,10 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                 composite_score,
                 coverage_ratio,
                 ielts_min,
+                toefl_min,
+                duolingo_min,
+                gpa_min,
+                application_deadline,
                 source_count,
                 search_score,
                 source_ranks_json,
@@ -205,12 +209,15 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         StringBuilder sql = new StringBuilder("""
                 WITH admission_summary AS (
                     SELECT
-                        cul.canonical_university_id,
-                        MIN(ar.ielts_min) FILTER (WHERE ar.ielts_min IS NOT NULL) AS ielts_min
-                    FROM warehouse.canonical_university_link cul
-                    JOIN warehouse.admission_requirements ar
-                      ON ar.university_id = cul.university_id
-                    GROUP BY cul.canonical_university_id
+                        ar.canonical_university_id,
+                        MIN(ar.ielts_requirement) AS ielts_min,
+                        MIN(ar.toefl_requirement) AS toefl_min,
+                        MIN(ar.duolingo_requirement) AS duolingo_min,
+                        MIN(ar.gpa_requirement) AS gpa_min,
+                        MIN(ar.application_deadline) AS application_deadline
+                    FROM warehouse.admission_record ar
+                    WHERE ar.canonical_university_id IS NOT NULL
+                    GROUP BY ar.canonical_university_id
                 ),
                 global_reference AS (
                     SELECT
@@ -248,6 +255,10 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                         scoped_ref.composite_score,
                         scoped_ref.coverage_ratio,
                         ads.ielts_min,
+                        ads.toefl_min,
+                        ads.duolingo_min,
+                        ads.gpa_min,
+                        ads.application_deadline,
                         dp.sources AS source_ranks_json,
                         COALESCE(dp.aggregation_explain ->> 'aggregation_method', scoped_ref.aggregation_method_version) AS aggregation_method_version,
                         COALESCE(c.region_name, '') AS region_name,
@@ -342,6 +353,10 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                         composite_score,
                         coverage_ratio,
                         ielts_min,
+                        toefl_min,
+                        duolingo_min,
+                        gpa_min,
+                        application_deadline,
                         source_ranks_json,
                         aggregation_method_version,
                         source_count,
