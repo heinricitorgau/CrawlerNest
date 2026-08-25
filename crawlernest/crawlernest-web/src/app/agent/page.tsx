@@ -9,9 +9,14 @@ import {
   AGENT_SUGGESTED_PROMPTS,
 } from "@/lib/agentSystemPrompt";
 import { AGENT_DEMO_RUBRIC } from "@/lib/agentResponseRubric";
-import { AUTH_MESSAGES, normalizeAuthError } from "@/lib/authMessages";
-import { buildConversationTurns } from "@/lib/conversationTurns";
+import { AUTH_MESSAGES } from "@/lib/authMessages";
+import { buildConversationTurns, runEntriesFromTurns } from "@/lib/conversationTurns";
+import { saveConversation, type ConversationDetail } from "@/lib/conversationsApi";
+import { ConversationHistoryPanel } from "@/components/ConversationHistoryPanel";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
+
+/** Blank line between paragraphs, matching how the chat route splits a reply. */
+const SPLIT_PARAGRAPHS = /\n{2,}/;
 
 type AgentMode = "web" | "dev";
 type TaskKind =
@@ -1594,6 +1599,7 @@ export default function AgentPage() {
   const { authenticated, refresh: refreshAuth } = useAuth();
   const [savePhase, setSavePhase] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   // Session id is stable for the lifetime of the conversation.  A new UUID is
   // created when the component mounts (one per page load) or when the user
   // explicitly resets the conversation.
@@ -1761,7 +1767,7 @@ export default function AgentPage() {
     setSaveError(null);
   }
 
-  async function saveConversation() {
+  async function handleSaveConversation() {
     const turns = buildConversationTurns(history);
     if (turns.length === 0) {
       return;
@@ -1770,39 +1776,74 @@ export default function AgentPage() {
     setSavePhase("saving");
     setSaveError(null);
 
-    try {
-      const res = await fetch("/api/user/conversations", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        // No title: the API derives one from the opening question, so saving
-        // never has to interrupt the user for a name.
-        body: JSON.stringify({ sessionId, turns }),
-      });
-
-      if (res.ok) {
-        setSavePhase("saved");
-        return;
-      }
-
-      // The API's own message is the useful one for a rejected transcript
-      // ("Conversation is too long. Limit is 200 turns."), so surface it rather
-      // than flattening every failure into "could not save".
-      let payload: unknown = null;
-      try {
-        payload = await res.json();
-      } catch {
-        payload = null;
-      }
-      setSaveError(normalizeAuthError(res.status, payload));
-      setSavePhase("error");
-      if (res.status === 401) {
-        void refreshAuth();
-      }
-    } catch {
-      setSaveError(AUTH_MESSAGES.networkError);
-      setSavePhase("error");
+    // No title: the API derives one from the opening question, so saving never
+    // has to interrupt the user for a name.
+    const result = await saveConversation(sessionId, turns);
+    if (result.ok) {
+      setSavePhase("saved");
+      return;
     }
+
+    // The API's own message is the useful one for a rejected transcript
+    // ("Conversation is too long. Limit is 200 turns."), so surface it rather
+    // than flattening every failure into "could not save".
+    setSaveError(result.message);
+    setSavePhase("error");
+    if (result.reason === "unauthenticated") {
+      void refreshAuth();
+    }
+  }
+
+  /**
+   * Puts a stored transcript back on screen so the user can carry on from it.
+   *
+   * The session id is adopted along with the turns. Without that, continuing a
+   * restored chat and saving again would create a second row rather than
+   * updating the one the user just loaded.
+   */
+  function handleLoadConversation(detail: ConversationDetail) {
+    const restored = runEntriesFromTurns(detail.turns, () => crypto.randomUUID());
+
+    setHistory(
+      restored.map((entry) => ({
+        id: entry.id,
+        // Neither mode nor kind is stored: they describe how a request was
+        // routed, not what was said, and only surface behind the debug toggle.
+        mode: "web" as AgentMode,
+        kind: "data_query" as TaskKind,
+        prompt: entry.prompt,
+        response: entry.restoredReply
+          ? ({
+              success: true,
+              data: {
+                taskId: entry.id,
+                status: "restored",
+                message: "Restored from a saved conversation",
+                data: {
+                  explanation: entry.restoredReply,
+                  explanationParagraphs: entry.restoredReply
+                    .split(SPLIT_PARAGRAPHS)
+                    .map((part) => part.trim())
+                    .filter(Boolean),
+                },
+                traces: [],
+                warnings: [],
+              },
+            } as AgentResponse)
+          : null,
+        // A turn saved mid-flight has no reply. Saying so beats the pending
+        // branch, which would show a "generating..." spinner that never resolves.
+        error: entry.restoredReply ? null : "No reply was stored for this turn.",
+      }))
+    );
+
+    setSessionId(detail.sessionId);
+    setError(null);
+    // What is on screen is exactly what is stored, so offering to save it again
+    // would be busywork until the user adds a turn.
+    setSavePhase("saved");
+    setSaveError(null);
+    shouldAutoScrollRef.current = true;
   }
 
   function applyQuickTask(task: (typeof QUICK_TASKS)[number]) {
@@ -1889,10 +1930,19 @@ export default function AgentPage() {
             >
               debug: {showDebug ? "on" : "off"}
             </button>
+            {authenticated ? (
+              <button
+                type="button"
+                onClick={() => setHistoryOpen(true)}
+                className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-sm text-[#6b7068] transition hover:border-[#3d7a5a] hover:text-[#1a3d2e]"
+              >
+                History
+              </button>
+            ) : null}
             {history.length > 0 ? (
               <button
                 type="button"
-                onClick={saveConversation}
+                onClick={handleSaveConversation}
                 disabled={!authenticated || savePhase === "saving" || savePhase === "saved"}
                 title={
                   authenticated
@@ -2674,6 +2724,15 @@ export default function AgentPage() {
           </div>
         </section>
       </div>
+
+      {historyOpen ? (
+        <ConversationHistoryPanel
+          onClose={() => setHistoryOpen(false)}
+          onLoad={handleLoadConversation}
+          onSessionExpired={() => void refreshAuth()}
+          activeSessionId={sessionId}
+        />
+      ) : null}
     </main>
   );
 }

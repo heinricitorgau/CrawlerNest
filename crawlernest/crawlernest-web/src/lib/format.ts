@@ -93,3 +93,46 @@ export function formatDegreeLevel(degreeLevel: string | null | undefined): strin
 
   return degreeLevel.charAt(0).toUpperCase() + degreeLevel.slice(1);
 }
+
+/**
+ * Formats an ISO-8601 timestamp for a "last edited" label.
+ *
+ * Recent entries read as a relative age, because "3 minutes ago" answers the
+ * question a saved-conversation list actually raises -- which of these did I
+ * just touch -- faster than a wall-clock time does. Anything older than a day
+ * falls back to a date, where the exact time stops carrying information.
+ *
+ * Rendered in the viewer's own timezone on purpose: unlike an application
+ * deadline, this describes something the viewer did themselves.
+ */
+export function formatTimestamp(
+  timestamp: string | null | undefined,
+  now: Date = new Date()
+): string {
+  if (!timestamp) {
+    return "Unknown";
+  }
+
+  const parsed = new Date(timestamp);
+  if (Number.isNaN(parsed.getTime())) {
+    return "Unknown";
+  }
+
+  const elapsedMs = now.getTime() - parsed.getTime();
+  const minutes = Math.floor(elapsedMs / 60_000);
+
+  // A clock skew of a few seconds should not read as "in the future".
+  if (minutes < 1) {
+    return "Just now";
+  }
+  if (minutes < 60) {
+    return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  }
+
+  return parsed.toLocaleDateString("en-CA", { dateStyle: "medium" });
+}

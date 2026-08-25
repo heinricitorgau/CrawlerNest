@@ -70,3 +70,51 @@ export function buildConversationTurns(
 
   return turns;
 }
+
+/** A restored history entry, matching the agent page's RunEntry shape. */
+export type RestoredEntry = {
+  id: string;
+  prompt: string;
+  restoredReply: string | null;
+};
+
+/**
+ * The inverse of {@link buildConversationTurns}: pairs a flat transcript back
+ * into the prompt/response entries the chat window renders.
+ *
+ * Assistant turns attach to the user turn before them. A transcript that opens
+ * with an assistant turn -- possible, since a failed first exchange stores its
+ * error -- would otherwise have nowhere to put it, so it becomes an entry with
+ * an empty prompt rather than being dropped.
+ *
+ * Ids are generated here rather than restored: the originals belonged to a
+ * previous run of the page and nothing persists them.
+ */
+export function runEntriesFromTurns(
+  turns: readonly ConversationTurn[],
+  makeId: () => string
+): RestoredEntry[] {
+  const entries: RestoredEntry[] = [];
+
+  for (const turn of turns) {
+    const content = typeof turn.content === "string" ? turn.content.trim() : "";
+    if (!content) {
+      continue;
+    }
+
+    if (turn.role === "user") {
+      entries.push({ id: makeId(), prompt: content, restoredReply: null });
+      continue;
+    }
+
+    const last = entries[entries.length - 1];
+    if (last && last.restoredReply === null) {
+      last.restoredReply = content;
+    } else {
+      // Two assistant turns in a row, or one with no question before it.
+      entries.push({ id: makeId(), prompt: "", restoredReply: content });
+    }
+  }
+
+  return entries;
+}
