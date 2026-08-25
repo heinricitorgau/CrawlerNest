@@ -2,7 +2,7 @@
 
 產生於 2026-08-25，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：353
+- **Commit 總數**：355
 - **期間**：2026-03-16 ~ 2026-08-25
 - **主分支**：`main`
 
@@ -34,10 +34,12 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `249a6ec` | 2026-08-25 | heinricitorgau | 20 | +1909 / −12 | feat(agent): wake the web agent up behind ds4, with a Java-owned save path **[main]** |
+| `09b2c0c` | 2026-08-25 | heinricitorgau | 8 | +1419 / −35 | feat(agent): close the loop with conversation history and restore **[main]** |
+| `ea1b634` | 2026-08-25 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `249a6ec` | 2026-08-25 | heinricitorgau | 20 | +1909 / −12 | feat(agent): wake the web agent up behind ds4, with a Java-owned save path |
 | `3acdcbd` | 2026-08-25 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
 | `ce7ba49` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #22 from heinricitorgau/claude/remove-ranking-records-preview-996301 |
-| `3386c7f` | 2026-08-25 | heinricitorgau | 24 | +1468 / −57 | feat(admissions): surface structured entry requirements end to end **[claude/remove-ranking-records-preview-996301]** |
+| `3386c7f` | 2026-08-25 | heinricitorgau | 24 | +1468 / −57 | feat(admissions): surface structured entry requirements end to end |
 | `4c48513` | 2026-08-25 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `48a2382` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #19 from heinricitorgau/ml/diagnostics-parity |
 | `0200f98` | 2026-08-25 | github-actions[bot] | 1 | +20 / −10 | docs: regenerate the commit log |
@@ -53,7 +55,7 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 | `3a16a53` | 2026-08-23 | github-actions[bot] | 1 | +14 / −10 | docs: regenerate the commit log |
 | `eef516c` | 2026-08-23 | KAO,EN-TSAI | — | — | Merge pull request #17 from heinricitorgau/feat/admission-ranking-convergence |
 | `85c5889` | 2026-08-22 | heinricitorgau | 57 | +3425 / −447 | Converge the admission pipeline onto the ranking entity-resolution stack |
-| `92099fa` | 2026-08-22 | heinricitorgau | 5 | +439 / −11 | Cover plot_disagreement_diagnostics.m against sklearn, and fix its binning **[ml/diagnostics-parity]** |
+| `92099fa` | 2026-08-22 | heinricitorgau | 5 | +439 / −11 | Cover plot_disagreement_diagnostics.m against sklearn, and fix its binning |
 | `1dcd8aa` | 2026-08-22 | github-actions[bot] | 1 | +14 / −11 | docs: regenerate the commit log |
 | `aeda786` | 2026-08-22 | KAO,EN-TSAI | — | — | Merge pull request #16 from heinricitorgau/test/inference-batch-invariants |
 | `fb4289a` | 2026-08-22 | heinricitorgau | 3 | +214 / −2 | Cover the one MATLAB port parity cannot reach |
@@ -419,8 +421,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 353 |
-| 檔案變更累計 | 6086 |
-| 新增行數累計 | +1193925 |
-| 刪除行數累計 | −436053 |
-| 淨增行數 | +757872 |
+| Commit 數 | 355 |
+| 檔案變更累計 | 6095 |
+| 新增行數累計 | +1195353 |
+| 刪除行數累計 | −436095 |
+| 淨增行數 | +759258 |
