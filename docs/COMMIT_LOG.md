@@ -2,7 +2,7 @@
 
 產生於 2026-08-25，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：351
+- **Commit 總數**：353
 - **期間**：2026-03-16 ~ 2026-08-25
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `ce7ba49` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #22 from heinricitorgau/claude/remove-ranking-records-preview-996301 **[main]** |
+| `249a6ec` | 2026-08-25 | heinricitorgau | 20 | +1909 / −12 | feat(agent): wake the web agent up behind ds4, with a Java-owned save path **[main]** |
+| `3acdcbd` | 2026-08-25 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
+| `ce7ba49` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #22 from heinricitorgau/claude/remove-ranking-records-preview-996301 |
 | `3386c7f` | 2026-08-25 | heinricitorgau | 24 | +1468 / −57 | feat(admissions): surface structured entry requirements end to end **[claude/remove-ranking-records-preview-996301]** |
 | `4c48513` | 2026-08-25 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `48a2382` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #19 from heinricitorgau/ml/diagnostics-parity |
@@ -417,8 +419,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 351 |
-| 檔案變更累計 | 6065 |
-| 新增行數累計 | +1192005 |
-| 刪除行數累計 | −436033 |
-| 淨增行數 | +755972 |
+| Commit 數 | 353 |
+| 檔案變更累計 | 6086 |
+| 新增行數累計 | +1193925 |
+| 刪除行數累計 | −436053 |
+| 淨增行數 | +757872 |
