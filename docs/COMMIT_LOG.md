@@ -2,7 +2,7 @@
 
 產生於 2026-08-25，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：348
+- **Commit 總數**：351
 - **期間**：2026-03-16 ~ 2026-08-25
 - **主分支**：`main`
 
@@ -34,10 +34,13 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `48a2382` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #19 from heinricitorgau/ml/diagnostics-parity **[main]** |
+| `ce7ba49` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #22 from heinricitorgau/claude/remove-ranking-records-preview-996301 **[main]** |
+| `3386c7f` | 2026-08-25 | heinricitorgau | 24 | +1468 / −57 | feat(admissions): surface structured entry requirements end to end **[claude/remove-ranking-records-preview-996301]** |
+| `4c48513` | 2026-08-25 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `48a2382` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #19 from heinricitorgau/ml/diagnostics-parity |
 | `0200f98` | 2026-08-25 | github-actions[bot] | 1 | +20 / −10 | docs: regenerate the commit log |
 | `1ba3d96` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #21 from heinricitorgau/claude/remove-ranking-records-preview-996301 |
-| `43217f7` | 2026-08-24 | heinricitorgau | 16 | +209 / −1286 | refactor(warehouse): drop ranking_records_preview end to end **[claude/remove-ranking-records-preview-996301]** |
+| `43217f7` | 2026-08-24 | heinricitorgau | 16 | +209 / −1286 | refactor(warehouse): drop ranking_records_preview end to end |
 | `73de733` | 2026-08-24 | heinricitorgau | — | — | Merge remote-tracking branch 'origin/main' into feat/admission-ranking-convergence **[feat/admission-ranking-convergence]** |
 | `5a0a044` | 2026-08-24 | heinricitorgau | 9 | +545 / −43 | WIP: give the Decided tab its own query **[claude/vigilant-ritchie-494a25]** |
 | `4565f15` | 2026-08-24 | heinricitorgau | 1 | +12 / −0 | Seed business-management from the schema file, like the other two |
@@ -414,8 +417,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 348 |
-| 檔案變更累計 | 6040 |
-| 新增行數累計 | +1190528 |
-| 刪除行數累計 | −435969 |
-| 淨增行數 | +754559 |
+| Commit 數 | 351 |
+| 檔案變更累計 | 6065 |
+| 新增行數累計 | +1192005 |
+| 刪除行數累計 | −436033 |
+| 淨增行數 | +755972 |
