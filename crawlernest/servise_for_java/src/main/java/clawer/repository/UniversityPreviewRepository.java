@@ -99,8 +99,8 @@ public class UniversityPreviewRepository {
                     CASE
                         WHEN EXISTS (
                             SELECT 1
-                            FROM warehouse.ranking_records_preview rrp
-                            WHERE rrp.canonical_university_id = cu.canonical_university_id
+                            FROM warehouse.ranking_record rr
+                            WHERE rr.canonical_university_id = cu.canonical_university_id
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -137,8 +137,8 @@ public class UniversityPreviewRepository {
                     CASE
                         WHEN EXISTS (
                             SELECT 1
-                            FROM warehouse.ranking_records_preview rrp
-                            WHERE rrp.canonical_university_id = cu.canonical_university_id
+                            FROM warehouse.ranking_record rr
+                            WHERE rr.canonical_university_id = cu.canonical_university_id
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -177,8 +177,8 @@ public class UniversityPreviewRepository {
                     CASE
                         WHEN EXISTS (
                             SELECT 1
-                            FROM warehouse.ranking_records_preview rrp
-                            WHERE rrp.canonical_university_id = cu.canonical_university_id
+                            FROM warehouse.ranking_record rr
+                            WHERE rr.canonical_university_id = cu.canonical_university_id
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -218,8 +218,8 @@ public class UniversityPreviewRepository {
                     CASE
                         WHEN EXISTS (
                             SELECT 1
-                            FROM warehouse.ranking_records_preview rrp
-                            WHERE rrp.canonical_university_id = cu.canonical_university_id
+                            FROM warehouse.ranking_record rr
+                            WHERE rr.canonical_university_id = cu.canonical_university_id
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -266,21 +266,34 @@ public class UniversityPreviewRepository {
 
         RankingPreviewSummaryDTO rankingSummary = jdbcTemplate.queryForObject(
                 """
-                WITH ranking_summary AS (
+                WITH ranking_rows AS (
+                    SELECT
+                        src.source_code AS source,
+                        rr.ranking_year,
+                        rr.rank_position
+                    FROM warehouse.ranking_record rr
+                    JOIN warehouse.ranking_source src
+                      ON src.ranking_source_id = rr.ranking_source_id
+                    WHERE rr.canonical_university_id = ?
+                ),
+                ranking_summary AS (
                     SELECT
                         COUNT(*)::INTEGER AS row_count,
                         COUNT(DISTINCT source)::INTEGER AS source_count,
                         ARRAY_AGG(DISTINCT source ORDER BY source) AS sources,
                         ARRAY_AGG(DISTINCT ranking_year ORDER BY ranking_year) AS ranking_years,
-                        MIN(rank)::INTEGER AS best_rank
-                    FROM warehouse.ranking_records_preview
-                    WHERE canonical_university_id = ?
+                        MIN(rank_position)::INTEGER AS best_rank
+                    FROM ranking_rows
                 ),
+                -- rank_position is nullable on ranking_record (the preview table
+                -- it replaced had rank NOT NULL), so an unranked row must not
+                -- win the best-rank slot and hand back a best_source with a
+                -- null best_rank beside it.
                 ranking_best AS (
                     SELECT source, ranking_year
-                    FROM warehouse.ranking_records_preview
-                    WHERE canonical_university_id = ?
-                    ORDER BY rank ASC, ranking_year DESC, source ASC
+                    FROM ranking_rows
+                    WHERE rank_position IS NOT NULL
+                    ORDER BY rank_position ASC, ranking_year DESC, source ASC
                     LIMIT 1
                 )
                 SELECT
@@ -309,7 +322,6 @@ public class UniversityPreviewRepository {
                     dto.setBestRankingYear((Integer) rs.getObject("best_ranking_year"));
                     return dto;
                 },
-                identity.canonicalUniversityId(),
                 identity.canonicalUniversityId()
         );
 

@@ -75,7 +75,7 @@ def build_canonical_university_detail_preview(
     canonical_university_id: int | None = None,
     university_name: str | None = None,
     ranking_schema: str = "warehouse",
-    ranking_table: str = "ranking_records_preview",
+    ranking_table: str = "ranking_record",
     admission_schema: str = "warehouse",
     admission_table: str = "admission_record",
 ) -> CanonicalUniversityDetailPreview:
@@ -95,6 +95,9 @@ def build_canonical_university_detail_preview(
         _ensure_required_table(conn, schema_name="warehouse", table_name="canonical_university")
         _ensure_required_table(conn, schema_name="warehouse", table_name="university_alias")
         _ensure_required_table(conn, schema_name=ranking_schema, table_name=ranking_table)
+        # ranking_record stores the source as a FK, so the registry it points at
+        # is as required as the fact table itself.
+        _ensure_required_table(conn, schema_name=ranking_schema, table_name="ranking_source")
         _ensure_required_table(conn, schema_name=admission_schema, table_name=admission_table)
 
         with conn.cursor() as cur:
@@ -357,12 +360,14 @@ def _load_ranking_summary(
         f"""
         SELECT
             COUNT(*)::INTEGER AS row_count,
-            COUNT(DISTINCT source)::INTEGER AS source_count,
-            ARRAY_AGG(DISTINCT source ORDER BY source) AS sources,
-            ARRAY_AGG(DISTINCT ranking_year ORDER BY ranking_year) AS ranking_years,
-            MIN(rank)::INTEGER AS best_rank
-        FROM {ranking_schema}.{ranking_table}
-        WHERE canonical_university_id = %s
+            COUNT(DISTINCT src.source_code)::INTEGER AS source_count,
+            ARRAY_AGG(DISTINCT src.source_code ORDER BY src.source_code) AS sources,
+            ARRAY_AGG(DISTINCT rr.ranking_year ORDER BY rr.ranking_year) AS ranking_years,
+            MIN(rr.rank_position)::INTEGER AS best_rank
+        FROM {ranking_schema}.{ranking_table} rr
+        JOIN {ranking_schema}.ranking_source src
+          ON src.ranking_source_id = rr.ranking_source_id
+        WHERE rr.canonical_university_id = %s
         """,
         (canonical_university_id,),
     )
@@ -370,12 +375,18 @@ def _load_ranking_summary(
     if row is None or int(row[0] or 0) == 0:
         return None
 
+    # rank_position is nullable on ranking_record, unlike the NOT NULL rank on
+    # the preview table this replaced, so an unranked row must not take the best
+    # slot and report a best_source with no best_rank beside it.
     cur.execute(
         f"""
-        SELECT source, ranking_year
-        FROM {ranking_schema}.{ranking_table}
-        WHERE canonical_university_id = %s
-        ORDER BY rank ASC, ranking_year DESC, source ASC
+        SELECT src.source_code, rr.ranking_year
+        FROM {ranking_schema}.{ranking_table} rr
+        JOIN {ranking_schema}.ranking_source src
+          ON src.ranking_source_id = rr.ranking_source_id
+        WHERE rr.canonical_university_id = %s
+          AND rr.rank_position IS NOT NULL
+        ORDER BY rr.rank_position ASC, rr.ranking_year DESC, src.source_code ASC
         LIMIT 1
         """,
         (canonical_university_id,),
