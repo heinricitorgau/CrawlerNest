@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuthPlaceholder";
 import { AUTH_MESSAGES } from "@/lib/authMessages";
 import { RC1_STANDARD_CAVEATS } from "@/lib/caveatMessages";
 import { sourceAvailabilityConfig } from "@/lib/analyticsPresentation";
+import { AdmissionRequirementBadges } from "@/components/AdmissionRequirementBadges";
 import { AdmissionSignalBadge } from "@/components/AdmissionSignalBadge";
 import { PlanComparisonMatrix } from "@/components/PlanComparisonMatrix";
 import RecommendationExplanation from "@/components/RecommendationExplanation";
@@ -49,7 +50,9 @@ type ShortlistItem = {
 };
 
 type ComparisonItem = ShortlistItem & {
-  ieltsMin?: number;
+  // null when the university publishes no IELTS bar, undefined when it is not in
+  // the current recommendation response at all. Both mean "nothing to compare".
+  ieltsMin?: number | null;
   matchingScore?: number;
 };
 
@@ -65,10 +68,16 @@ type RecommendationItem = {
   universityName: string;
   country: string;
   aggregatedRank: number;
-  gpaRequirement?: number;
-  ieltsMin: number;
-  toeflRequirement?: number;
-  duolingoRequirement?: number;
+  // Entry requirements as /api/v1/recommendations emits them: always present,
+  // null when the crawled source published no value. gpaRequirement,
+  // toeflRequirement and duolingoRequirement used to sit here as optionals that
+  // no endpoint ever populated; these are the names the API actually sends.
+  ieltsMin: number | null;
+  toeflMin: number | null;
+  duolingoMin: number | null;
+  gpaMin: number | null;
+  /** ISO-8601 date, `yyyy-MM-dd`. */
+  applicationDeadline: string | null;
   matchingScore: number;
   recommendationConfidence: number;
   explanation: string;
@@ -1281,7 +1290,7 @@ export function RecommendationPageContent() {
   const bestIelts = useMemo(() => {
     const values = comparisonItems
       .map((item) => item.ieltsMin)
-      .filter((value): value is number => value !== undefined);
+      .filter((value): value is number => value !== undefined && value !== null);
 
     if (values.length === 0) {
       return null;
@@ -1323,7 +1332,7 @@ export function RecommendationPageContent() {
 
     const ieltsComparable = comparisonItems.filter(
       (item): item is ComparisonItem & { ieltsMin: number } =>
-        item.ieltsMin !== undefined
+        item.ieltsMin !== undefined && item.ieltsMin !== null
     );
     if (ieltsComparable.length >= 2) {
       const sortedByIelts = [...ieltsComparable].sort(
@@ -1852,9 +1861,7 @@ export function RecommendationPageContent() {
                             : "text-[#6b7068]"
                         }`}
                       >
-                        {item.ieltsMin !== undefined
-                          ? formatIelts(item.ieltsMin)
-                          : "Not available"}
+                        {formatIelts(item.ieltsMin)}
                       </td>
                       <td
                         className={`px-4 py-4 ${
@@ -3168,6 +3175,22 @@ function Section({
                 <SummaryItem
                   label="Recommendation Confidence"
                   value={formatConfidence(item.recommendationConfidence)}
+                />
+              </div>
+
+              <div className="mt-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                  Entry Requirements
+                </div>
+                <AdmissionRequirementBadges
+                  className="mt-2"
+                  requirements={{
+                    ieltsRequirement: item.ieltsMin,
+                    toeflRequirement: item.toeflMin,
+                    duolingoRequirement: item.duolingoMin,
+                    gpaRequirement: item.gpaMin,
+                    applicationDeadline: item.applicationDeadline,
+                  }}
                 />
               </div>
 

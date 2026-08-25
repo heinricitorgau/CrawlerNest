@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchJson } from "@/lib/api";
-import { formatRank, formatRankingScore } from "@/lib/format";
+import { formatDegreeLevel, formatRank, formatRankingScore } from "@/lib/format";
+import { AdmissionRequirementBadges } from "@/components/AdmissionRequirementBadges";
 import type {
+  AdmissionRequirement,
+  AdmissionRequirements,
   UniversityDetail,
   UniversityDetailResponse,
 } from "@/types/university";
@@ -109,6 +112,64 @@ function buildRankingEvidenceSummary(evidence: UniversityDetail["sourceRankings"
     agreementLevel: "weak" as const,
     note: "Large disagreement across sources — interpret carefully.",
   };
+}
+
+function AdmissionRequirementsBlock({ admissions }: { admissions?: AdmissionRequirements }) {
+  // The API always sends this block, but a cached response from before it existed
+  // would not, so treat a missing block the same as an empty one.
+  if (!admissions || !admissions.hasData) {
+    return (
+      <p className="p-4 text-slate-400 italic text-sm">
+        No admission requirements have been collected for this university yet.
+      </p>
+    );
+  }
+
+  const levels = admissions.byDegreeLevel.length > 0 ? admissions.byDegreeLevel : [admissions.summary];
+
+  return (
+    <div className="space-y-6">
+      {levels.map((level, index) => (
+        <AdmissionLevelRow
+          key={level.degreeLevel ?? `level-${index}`}
+          level={level}
+          showHeading={levels.length > 1}
+        />
+      ))}
+    </div>
+  );
+}
+
+function AdmissionLevelRow({
+  level,
+  showHeading,
+}: {
+  level: AdmissionRequirement;
+  showHeading: boolean;
+}) {
+  return (
+    <div>
+      {showHeading && (
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+          {formatDegreeLevel(level.degreeLevel)}
+        </h3>
+      )}
+      <AdmissionRequirementBadges
+        requirements={level}
+        emptyMessage="The source for this level did not publish any entry requirements."
+      />
+      {level.sourceUrl && (
+        <a
+          href={level.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block mt-3 text-xs text-slate-500 underline hover:text-slate-700"
+        >
+          Source
+        </a>
+      )}
+    </div>
+  );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -427,17 +488,7 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
             </Section>
 
             <Section title="Admission Requirements">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {Object.entries(detail.admissionRequirements || {}).map(([key, val]) => (
-                  <div key={key} className="p-4 bg-slate-50 rounded border border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">{key}</p>
-                    <p className="text-sm font-semibold text-slate-800">{String(val) || "N/A"}</p>
-                  </div>
-                ))}
-                {Object.keys(detail.admissionRequirements || {}).length === 0 && (
-                  <p className="p-4 text-slate-400 italic text-sm">No structured requirements found.</p>
-                )}
-              </div>
+              <AdmissionRequirementsBlock admissions={detail.admissionRequirements} />
             </Section>
           </div>
 

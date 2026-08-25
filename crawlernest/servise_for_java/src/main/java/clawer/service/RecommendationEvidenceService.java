@@ -180,12 +180,10 @@ public class RecommendationEvidenceService {
 
     private Map<String, Object> buildIeltsEvidence(long canonicalUniversityId, Double ieltsScore) {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
-                SELECT MIN(ar.ielts_min) AS ielts_min
-                FROM warehouse.canonical_university_link cul
-                JOIN warehouse.admission_requirements ar
-                  ON ar.university_id = cul.university_id
-                WHERE cul.canonical_university_id = ?
-                  AND ar.ielts_min IS NOT NULL
+                SELECT MIN(ar.ielts_requirement) AS ielts_min
+                FROM warehouse.admission_record ar
+                WHERE ar.canonical_university_id = ?
+                  AND ar.ielts_requirement IS NOT NULL
                 """, canonicalUniversityId);
 
         Double ieltsMin = null;

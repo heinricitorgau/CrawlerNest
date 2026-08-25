@@ -1,4 +1,14 @@
-import { formatScore, formatRank, formatRankingScore, formatIelts } from "@/lib/format";
+import {
+  formatScore,
+  formatRank,
+  formatRankingScore,
+  formatIelts,
+  formatToefl,
+  formatDuolingo,
+  formatGpa,
+  formatDeadline,
+  formatDegreeLevel,
+} from "@/lib/format";
 
 describe("formatScore", () => {
   it("formats a regular score to 1 decimal place", () => {
@@ -89,5 +99,73 @@ describe("formatIelts", () => {
 
   it("returns 'Not available' for NaN", () => {
     expect(formatIelts(NaN)).toBe("Not available");
+  });
+});
+
+describe("formatToefl", () => {
+  it("formats a TOEFL score as a whole number", () => {
+    expect(formatToefl(92)).toBe("92");
+  });
+
+  it.each([null, undefined, NaN])("returns 'Not available' for %p", (value) => {
+    expect(formatToefl(value as number | null | undefined)).toBe("Not available");
+  });
+});
+
+describe("formatDuolingo", () => {
+  it("formats a Duolingo score as a whole number", () => {
+    expect(formatDuolingo(120)).toBe("120");
+  });
+
+  it.each([null, undefined, NaN])("returns 'Not available' for %p", (value) => {
+    expect(formatDuolingo(value as number | null | undefined)).toBe("Not available");
+  });
+});
+
+describe("formatGpa", () => {
+  it("keeps a one-decimal GPA as written", () => {
+    expect(formatGpa(3.5)).toBe("3.5");
+  });
+
+  it("keeps two decimals when the source published them", () => {
+    expect(formatGpa(3.45)).toBe("3.45");
+  });
+
+  it("does not invent trailing precision for a whole number", () => {
+    expect(formatGpa(4)).toBe("4");
+  });
+
+  it.each([null, undefined, NaN])("returns 'Not available' for %p", (value) => {
+    expect(formatGpa(value as number | null | undefined)).toBe("Not available");
+  });
+});
+
+describe("formatDeadline", () => {
+  it("formats an ISO date", () => {
+    expect(formatDeadline("2026-01-15")).toBe("15 Jan 2026");
+  });
+
+  it("does not shift the date into the viewer's timezone", () => {
+    // Parsed as local time this would render 31 Dec 2025 anywhere west of UTC,
+    // moving the deadline a day earlier than the university published it.
+    expect(formatDeadline("2026-01-01")).toBe("1 Jan 2026");
+  });
+
+  it.each([null, undefined, "", "not-a-date"])(
+    "returns 'Not available' for %p",
+    (value) => {
+      expect(formatDeadline(value as string | null | undefined)).toBe("Not available");
+    }
+  );
+});
+
+describe("formatDegreeLevel", () => {
+  it("capitalises a degree level", () => {
+    expect(formatDegreeLevel("postgraduate")).toBe("Postgraduate");
+  });
+
+  it("falls back to 'All levels' when the entry spans every level", () => {
+    expect(formatDegreeLevel(null)).toBe("All levels");
+    expect(formatDegreeLevel("")).toBe("All levels");
   });
 });
