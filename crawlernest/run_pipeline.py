@@ -35,12 +35,7 @@ try:
         _refresh_admission_resolution,
         _write_admission_warehouse_preview,
     )
-    # _rebuild_preview_and_resolve spans both groups, so it still needs these two.
-    from pipeline.commands.ranking import (
-        COMMANDS as _RANKING_COMMANDS,
-        _resolve_ranking_entities,
-        _write_ranking_warehouse_preview,
-    )
+    from pipeline.commands.ranking import COMMANDS as _RANKING_COMMANDS
     from pipeline.utils.artifacts import save_json_artifact
     from pipeline.utils.postgres import (
         build_multi_source_pipeline as _build_multi_source_pipeline,
@@ -65,11 +60,7 @@ except ModuleNotFoundError:  # pragma: no cover - package import compatibility
         _refresh_admission_resolution,
         _write_admission_warehouse_preview,
     )
-    from .pipeline.commands.ranking import (  # noqa: F401
-        COMMANDS as _RANKING_COMMANDS,
-        _resolve_ranking_entities,
-        _write_ranking_warehouse_preview,
-    )
+    from .pipeline.commands.ranking import COMMANDS as _RANKING_COMMANDS  # noqa: F401
     from .pipeline.utils.artifacts import save_json_artifact  # noqa: F401
     from .pipeline.utils.postgres import (  # noqa: F401
         build_multi_source_pipeline as _build_multi_source_pipeline,
@@ -2041,10 +2032,7 @@ def _run_sample_crawl_export(
 
 def _rebuild_preview_and_resolve(
     *,
-    ranking_preview_input_file: str,
     admission_preview_input_file: str,
-    ranking_landing_schema: str,
-    ranking_landing_table: str,
     admission_landing_schema: str,
     admission_landing_table: str,
     pg_host: str,
@@ -2055,23 +2043,13 @@ def _rebuild_preview_and_resolve(
     refresh_limit: int,
     refresh_output_file: str,
 ) -> dict[str, Any]:
-    try:
-        ranking_summary = _write_ranking_warehouse_preview(
-            input_source="preview-json",
-            preview_input_file=ranking_preview_input_file,
-            staging_input_file="",
-            staging_table="",
-            landing_schema=ranking_landing_schema,
-            landing_table=ranking_landing_table,
-            pg_host=pg_host,
-            pg_port=pg_port,
-            pg_database=pg_database,
-            pg_user=pg_user,
-            pg_password=pg_password,
-        )
-    except Exception as exc:
-        raise RuntimeError(f"Step 1 failed: write-ranking-warehouse-preview: {exc}") from exc
+    """Rebuild the admission landing rows and re-resolve them.
 
+    This used to rebuild the ranking landing rows too, but ranking ingestion
+    converged on MultiSourceRankingPipeline, which writes warehouse.ranking_record
+    and resolves entities in the same pass. Only the admission half still has a
+    separate landing-then-resolve shape.
+    """
     try:
         admission_summary = _write_admission_warehouse_preview(
             input_source="preview-json",
@@ -2087,20 +2065,7 @@ def _rebuild_preview_and_resolve(
             pg_password=pg_password,
         )
     except Exception as exc:
-        raise RuntimeError(f"Step 2 failed: write-admission-warehouse-preview: {exc}") from exc
-
-    try:
-        ranking_resolution_summary = _resolve_ranking_entities(
-            target_schema=ranking_landing_schema,
-            target_table=ranking_landing_table,
-            pg_host=pg_host,
-            pg_port=pg_port,
-            pg_database=pg_database,
-            pg_user=pg_user,
-            pg_password=pg_password,
-        )
-    except Exception as exc:
-        raise RuntimeError(f"Step 3 failed: resolve-ranking-entities: {exc}") from exc
+        raise RuntimeError(f"Step 1 failed: write-admission-warehouse-preview: {exc}") from exc
 
     try:
         admission_resolution_summary = _refresh_admission_resolution(
@@ -2115,12 +2080,10 @@ def _rebuild_preview_and_resolve(
             pg_password=pg_password,
         )
     except Exception as exc:
-        raise RuntimeError(f"Step 4 failed: refresh-admission-resolution: {exc}") from exc
+        raise RuntimeError(f"Step 2 failed: refresh-admission-resolution: {exc}") from exc
 
     return {
-        "ranking_preview_summary": ranking_summary,
         "admission_preview_summary": admission_summary,
-        "ranking_resolution_summary": ranking_resolution_summary,
         "admission_resolution_summary": admission_resolution_summary,
         "success": True,
     }
@@ -2391,10 +2354,7 @@ def _cmd_rebuild_preview_and_resolve(args: argparse.Namespace) -> int:
     )
     try:
         summary = _rebuild_preview_and_resolve(
-            ranking_preview_input_file=str(args.ranking_preview_input_file),
             admission_preview_input_file=str(args.admission_preview_input_file),
-            ranking_landing_schema=str(args.ranking_landing_schema),
-            ranking_landing_table=str(args.ranking_landing_table),
             admission_landing_schema=str(args.admission_landing_schema),
             admission_landing_table=str(args.admission_landing_table),
             pg_host=str(args.pg_host),
@@ -2409,28 +2369,14 @@ def _cmd_rebuild_preview_and_resolve(args: argparse.Namespace) -> int:
         print(f"[rebuild-preview-and-resolve] aborted: {exc}")
         return 1
 
-    ranking_summary = summary["ranking_preview_summary"]
     admission_summary = summary["admission_preview_summary"]
-    ranking_resolution_summary = summary["ranking_resolution_summary"]
     admission_resolution_summary = summary["admission_resolution_summary"]
 
-    print(
-        "[rebuild-preview-and-resolve] ranking_preview "
-        f"rows={ranking_summary['row_count']} "
-        f"inserted={ranking_summary['inserted_row_count']} "
-        f"skipped_existing={ranking_summary['skipped_existing_row_count']}"
-    )
     print(
         "[rebuild-preview-and-resolve] admission_preview "
         f"rows={admission_summary['row_count']} "
         f"inserted={admission_summary['inserted_row_count']} "
         f"updated={admission_summary['updated_row_count']}"
-    )
-    print(
-        "[rebuild-preview-and-resolve] ranking_resolution "
-        f"total={ranking_resolution_summary['total_rows']} "
-        f"resolved={ranking_resolution_summary['resolved_row_count']} "
-        f"unresolved={ranking_resolution_summary['unresolved_row_count']}"
     )
     print(
         "[rebuild-preview-and-resolve] admission_resolution "
@@ -2493,7 +2439,7 @@ def _cmd_preview_canonical_university_detail(args: argparse.Namespace) -> int:
             university_name=str(getattr(args, "university_name", "") or ""),
             output_file=str(getattr(args, "output_file", "") or ""),
             ranking_schema=str(getattr(args, "ranking_schema", "warehouse")),
-            ranking_table=str(getattr(args, "ranking_table", "ranking_records_preview")),
+            ranking_table=str(getattr(args, "ranking_table", "ranking_record")),
             admission_schema=str(getattr(args, "admission_schema", "warehouse")),
             admission_table=str(getattr(args, "admission_table", "admission_record")),
             pg_host=str(args.pg_host),

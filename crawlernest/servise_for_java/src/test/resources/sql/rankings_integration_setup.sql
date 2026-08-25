@@ -76,23 +76,6 @@ CREATE TABLE IF NOT EXISTS warehouse.ranking_decision_preview (
         UNIQUE (normalized_university_name, ranking_year)
 );
 
-CREATE TABLE IF NOT EXISTS warehouse.ranking_records_preview (
-    id BIGSERIAL PRIMARY KEY,
-    university_name TEXT NOT NULL,
-    normalized_university_name TEXT NOT NULL,
-    source TEXT NOT NULL,
-    rank INTEGER NOT NULL,
-    year INTEGER NOT NULL,
-    source_url TEXT,
-    extracted_at TIMESTAMPTZ NOT NULL,
-    ranking_year INTEGER NOT NULL,
-    universe_type TEXT NOT NULL,
-    universe_key TEXT NOT NULL,
-    canonical_university_id BIGINT,
-    entity_resolution_status TEXT NOT NULL,
-    source_resolution_status TEXT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS warehouse.admission_record (
     id BIGSERIAL PRIMARY KEY,
     source_code TEXT NOT NULL DEFAULT 'university_site',
@@ -144,7 +127,7 @@ CREATE TABLE IF NOT EXISTS warehouse.source_university_mapping (
 );
 
 -- Source-comparison and evidence queries read warehouse.ranking_record directly. The
--- fixtures deliberately leave it empty (those endpoints fall back to the preview tables),
+-- fixtures deliberately leave it empty so those endpoints exercise their no-data path,
 -- but the table must exist or the context fails on a database the pipeline has not built.
 CREATE TABLE IF NOT EXISTS warehouse.ranking_record (
     ranking_record_id BIGSERIAL PRIMARY KEY,

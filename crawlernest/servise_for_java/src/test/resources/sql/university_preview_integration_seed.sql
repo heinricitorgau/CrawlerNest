@@ -2,9 +2,11 @@ DELETE FROM warehouse.admission_record
 WHERE canonical_university_id = 990102
    OR normalized_university_name IN ('MIT');
 
-DELETE FROM warehouse.ranking_records_preview
-WHERE canonical_university_id IN (990102, 990103)
-   OR normalized_university_name IN ('MIT', 'Oxford');
+-- ranking_record has no normalized_university_name; canonical id is the only
+-- handle on a seeded row. The seeded warehouse.ranking_source rows are left
+-- alone: on a bootstrapped database they are real registry rows, not fixtures.
+DELETE FROM warehouse.ranking_record
+WHERE canonical_university_id IN (990102, 990103);
 
 DELETE FROM warehouse.university_alias
 WHERE canonical_university_id = 990102;
@@ -47,51 +49,36 @@ INSERT INTO warehouse.university_alias (
 )
 ON CONFLICT DO NOTHING;
 
-INSERT INTO warehouse.ranking_records_preview (
-    university_name,
-    normalized_university_name,
-    source,
-    rank,
-    year,
-    source_url,
-    extracted_at,
+INSERT INTO warehouse.ranking_source (source_code, source_name)
+VALUES ('QS', 'QS World University Rankings')
+ON CONFLICT (source_code) DO NOTHING;
+
+INSERT INTO warehouse.ranking_record (
+    canonical_university_id,
+    ranking_source_id,
     ranking_year,
+    ranking_type,
     universe_type,
     universe_key,
-    canonical_university_id,
-    entity_resolution_status,
-    source_resolution_status
-) VALUES
-    (
-        'MIT',
-        'MIT',
-        'QS',
-        1,
-        2026,
-        'https://example.edu/rankings/mit',
-        '2026-04-14T10:00:00Z',
-        2026,
-        'global',
-        'global',
-        990102,
-        'resolved',
-        'direct_source_only'
-    ),
-    (
-        'Oxford',
-        'Oxford',
-        'QS',
-        2,
-        2026,
-        'https://example.edu/rankings/oxford',
-        '2026-04-14T10:00:00Z',
-        2026,
-        'global',
-        'global',
-        990103,
-        'resolved',
-        'direct_source_only'
-    );
+    rank_position,
+    source_url
+)
+SELECT
+    seed.canonical_university_id,
+    src.ranking_source_id,
+    seed.ranking_year,
+    'world',
+    'global',
+    'global',
+    seed.rank_position,
+    seed.source_url
+FROM (
+    VALUES
+        (990102::BIGINT, 2026, 1, 'https://example.edu/rankings/mit'),
+        (990103::BIGINT, 2026, 2, 'https://example.edu/rankings/oxford')
+) AS seed (canonical_university_id, ranking_year, rank_position, source_url)
+CROSS JOIN warehouse.ranking_source src
+WHERE src.source_code = 'QS';
 
 INSERT INTO warehouse.admission_record (
     source_entity_id,
