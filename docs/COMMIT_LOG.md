@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-08-23，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-08-25，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：336
-- **期間**：2026-03-16 ~ 2026-08-23
+- **Commit 總數**：346
+- **期間**：2026-03-16 ~ 2026-08-25
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,8 +34,18 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `eef516c` | 2026-08-23 | KAO,EN-TSAI | — | — | Merge pull request #17 from heinricitorgau/feat/admission-ranking-convergence **[main]** |
-| `85c5889` | 2026-08-22 | heinricitorgau | 57 | +3425 / −447 | Converge the admission pipeline onto the ranking entity-resolution stack **[feat/admission-ranking-convergence]** |
+| `1ba3d96` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #21 from heinricitorgau/claude/remove-ranking-records-preview-996301 **[main]** |
+| `43217f7` | 2026-08-24 | heinricitorgau | 16 | +209 / −1286 | refactor(warehouse): drop ranking_records_preview end to end **[claude/remove-ranking-records-preview-996301]** |
+| `73de733` | 2026-08-24 | heinricitorgau | — | — | Merge remote-tracking branch 'origin/main' into feat/admission-ranking-convergence **[feat/admission-ranking-convergence]** |
+| `5a0a044` | 2026-08-24 | heinricitorgau | 9 | +545 / −43 | WIP: give the Decided tab its own query **[claude/vigilant-ritchie-494a25]** |
+| `4565f15` | 2026-08-24 | heinricitorgau | 1 | +12 / −0 | Seed business-management from the schema file, like the other two |
+| `14689f6` | 2026-08-24 | heinricitorgau | 2 | +61 / −0 | Render a bare date as ISO, not as a TypeError |
+| `966da20` | 2026-08-24 | heinricitorgau | 4 | +116 / −26 | Move the preview-drop guard out of SQL, where it could not run |
+| `f6b5966` | 2026-08-24 | heinricitorgau | 9 | +93 / −1468 | Delete the ranking preview write chain |
+| `c29b7fd` | 2026-08-23 | heinricitorgau | 16 | +514 / −164 | Point the ranking readers at the table that has the rows |
+| `3a16a53` | 2026-08-23 | github-actions[bot] | 1 | +14 / −10 | docs: regenerate the commit log |
+| `eef516c` | 2026-08-23 | KAO,EN-TSAI | — | — | Merge pull request #17 from heinricitorgau/feat/admission-ranking-convergence |
+| `85c5889` | 2026-08-22 | heinricitorgau | 57 | +3425 / −447 | Converge the admission pipeline onto the ranking entity-resolution stack |
 | `92099fa` | 2026-08-22 | heinricitorgau | 5 | +439 / −11 | Cover plot_disagreement_diagnostics.m against sklearn, and fix its binning **[ml/diagnostics-parity]** |
 | `1dcd8aa` | 2026-08-22 | github-actions[bot] | 1 | +14 / −11 | docs: regenerate the commit log |
 | `aeda786` | 2026-08-22 | KAO,EN-TSAI | — | — | Merge pull request #16 from heinricitorgau/test/inference-batch-invariants |
@@ -402,8 +412,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 336 |
-| 檔案變更累計 | 5981 |
-| 新增行數累計 | +1188944 |
-| 刪除行數累計 | −432962 |
-| 淨增行數 | +755982 |
+| Commit 數 | 346 |
+| 檔案變更累計 | 6039 |
+| 新增行數累計 | +1190508 |
+| 刪除行數累計 | −435959 |
+| 淨增行數 | +754549 |
