@@ -1,125 +1,5 @@
 {
   "entries": {
-    "QS|2026|region|north-america": {
-      "source": "QS",
-      "ranking_year": 2026,
-      "universe_type": "region",
-      "universe_key": "north-america",
-      "ranking_page_url": "https://www.topuniversities.com/north-america-university-rankings",
-      "ranking_id": "3990755",
-      "ranking_id_candidates": [
-        "3990755"
-      ],
-      "subregion_id": "",
-      "resolved_ranking_page_url": "https://www.topuniversities.com/north-america-university-rankings",
-      "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T17:07:40.188889Z"
-    },
-    "QS|2026|region|arab-region": {
-      "source": "QS",
-      "ranking_year": 2026,
-      "universe_type": "region",
-      "universe_key": "arab-region",
-      "ranking_page_url": "https://www.topuniversities.com/arab-region-university-rankings",
-      "ranking_id": "3990755",
-      "ranking_id_candidates": [
-        "3990755"
-      ],
-      "subregion_id": "",
-      "resolved_ranking_page_url": "https://www.topuniversities.com/arab-region-university-rankings",
-      "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T16:52:33.780096Z"
-    },
-    "QS|2026|global|global": {
-      "source": "QS",
-      "ranking_year": 2026,
-      "universe_type": "global",
-      "universe_key": "global",
-      "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
-      "ranking_id": "3990755",
-      "ranking_id_candidates": [
-        "3990755"
-      ],
-      "subregion_id": "",
-      "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
-      "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-04-02T00:00:00Z"
-    },
-    "QS|2026|region|europe": {
-      "source": "QS",
-      "ranking_year": 2026,
-      "universe_type": "region",
-      "universe_key": "europe",
-      "ranking_page_url": "https://www.topuniversities.com/europe-university-rankings",
-      "ranking_id": "3990755",
-      "ranking_id_candidates": [
-        "3990755"
-      ],
-      "subregion_id": "",
-      "resolved_ranking_page_url": "https://www.topuniversities.com/europe-university-rankings",
-      "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T16:37:31.470648Z"
-    },
-    "QS|2026|region|asia": {
-      "source": "QS",
-      "ranking_year": 2026,
-      "universe_type": "region",
-      "universe_key": "asia",
-      "ranking_page_url": "https://www.topuniversities.com/asia-university-rankings",
-      "ranking_id": "3990755",
-      "ranking_id_candidates": [
-        "3990755"
-      ],
-      "subregion_id": "",
-      "resolved_ranking_page_url": "https://www.topuniversities.com/asia-university-rankings",
-      "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T16:42:32.014519Z"
-    },
-    "QS|2026|region|latin-america": {
-      "source": "QS",
-      "ranking_year": 2026,
-      "universe_type": "region",
-      "universe_key": "latin-america",
-      "ranking_page_url": "https://www.topuniversities.com/latin-america-university-rankings",
-      "ranking_id": "3990755",
-      "ranking_id_candidates": [
-        "3990755"
-      ],
-      "subregion_id": "",
-      "resolved_ranking_page_url": "https://www.topuniversities.com/latin-america-university-rankings",
-      "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T16:47:35.593339Z"
-    },
-    "QS|2026|region|oceania": {
-      "source": "QS",
-      "ranking_year": 2026,
-      "universe_type": "region",
-      "universe_key": "oceania",
-      "ranking_page_url": "https://www.topuniversities.com/oceania-university-rankings",
-      "ranking_id": "3990755",
-      "ranking_id_candidates": [
-        "3990755"
-      ],
-      "subregion_id": "",
-      "resolved_ranking_page_url": "https://www.topuniversities.com/oceania-university-rankings",
-      "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T16:57:33.885104Z"
-    },
-    "QS|2026|region|africa": {
-      "source": "QS",
-      "ranking_year": 2026,
-      "universe_type": "region",
-      "universe_key": "africa",
-      "ranking_page_url": "https://www.topuniversities.com/africa-university-rankings",
-      "ranking_id": "3990755",
-      "ranking_id_candidates": [
-        "3990755"
-      ],
-      "subregion_id": "",
-      "resolved_ranking_page_url": "https://www.topuniversities.com/africa-university-rankings",
-      "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T17:02:33.980939Z"
-    },
     "QS|2026|subject|computer-science": {
       "source": "QS",
       "ranking_year": 2026,
@@ -150,20 +30,245 @@
       "api_url": "https://www.topuniversities.com/rankings/endpoint",
       "resolved_at": "2026-03-30T17:09:10.177901Z"
     },
+    "QS|2026|region|europe": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "region",
+      "universe_key": "europe",
+      "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "ranking_id": "4153156",
+      "ranking_id_candidates": [
+        "4153156"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T06:48:09.747446Z"
+    },
+    "QS|2026|global|global": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "global",
+      "universe_key": "global",
+      "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "ranking_id": "4153156",
+      "ranking_id_candidates": [
+        "4153156"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T06:47:00.137964Z"
+    },
+    "QS|2026|region|asia": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "region",
+      "universe_key": "asia",
+      "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "ranking_id": "4153156",
+      "ranking_id_candidates": [
+        "4153156"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T06:53:44.120140Z"
+    },
+    "QS|2026|region|latin-america": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "region",
+      "universe_key": "latin-america",
+      "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "ranking_id": "4153156",
+      "ranking_id_candidates": [
+        "4153156"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T06:55:11.372550Z"
+    },
+    "QS|2026|region|arab-region": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "region",
+      "universe_key": "arab-region",
+      "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "ranking_id": "4153156",
+      "ranking_id_candidates": [
+        "4153156"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T06:56:37.549579Z"
+    },
+    "QS|2026|region|oceania": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "region",
+      "universe_key": "oceania",
+      "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "ranking_id": "4153156",
+      "ranking_id_candidates": [
+        "4153156"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T07:01:41.493068Z"
+    },
+    "QS|2026|region|africa": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "region",
+      "universe_key": "africa",
+      "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "ranking_id": "4153156",
+      "ranking_id_candidates": [
+        "4153156"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T07:06:30.070606Z"
+    },
+    "QS|2026|region|north-america": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "region",
+      "universe_key": "north-america",
+      "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "ranking_id": "4153156",
+      "ranking_id_candidates": [
+        "4153156"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T07:11:10.489171Z"
+    },
+    "QS|2026|regional|europe": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "regional",
+      "universe_key": "europe",
+      "ranking_page_url": "https://www.topuniversities.com/europe-university-rankings",
+      "ranking_id": "4104407",
+      "ranking_id_candidates": [
+        "4104407"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/europe-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T07:16:12.655422Z"
+    },
+    "QS|2026|regional|asia": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "regional",
+      "universe_key": "asia",
+      "ranking_page_url": "https://www.topuniversities.com/asia-university-rankings",
+      "ranking_id": "4085811",
+      "ranking_id_candidates": [
+        "4085811"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/asia-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T07:21:56.436439Z"
+    },
+    "QS|2026|regional|arab-region": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "regional",
+      "universe_key": "arab-region",
+      "ranking_page_url": "https://www.topuniversities.com/arab-region-university-rankings",
+      "ranking_id": "4074940",
+      "ranking_id_candidates": [
+        "4074940"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/arab-region-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T07:26:30.467617Z"
+    },
+    "QS|2026|regional|sub-saharan-africa": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "regional",
+      "universe_key": "sub-saharan-africa",
+      "ranking_page_url": "https://www.topuniversities.com/sub-saharan-africa-university-rankings",
+      "ranking_id": "4104268",
+      "ranking_id_candidates": [
+        "4104268"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/sub-saharan-africa-university-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T07:30:46.602352Z"
+    },
+    "QS|2026|regional|caribbean": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "regional",
+      "universe_key": "caribbean",
+      "ranking_page_url": "https://www.topuniversities.com/latin-america-caribbean-rankings",
+      "ranking_id": "4070898",
+      "ranking_id_candidates": [
+        "4070898"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/latin-america-caribbean-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T07:35:02.410637Z"
+    },
+    "QS|2026|regional|central-america": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "regional",
+      "universe_key": "central-america",
+      "ranking_page_url": "https://www.topuniversities.com/latin-america-central-america-rankings",
+      "ranking_id": "4070899",
+      "ranking_id_candidates": [
+        "4070899"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/latin-america-central-america-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T07:41:06.088902Z"
+    },
+    "QS|2026|regional|south-america": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "universe_type": "regional",
+      "universe_key": "south-america",
+      "ranking_page_url": "https://www.topuniversities.com/latin-america-south-america-rankings",
+      "ranking_id": "4070900",
+      "ranking_id_candidates": [
+        "4070900"
+      ],
+      "subregion_id": "",
+      "resolved_ranking_page_url": "https://www.topuniversities.com/latin-america-south-america-rankings",
+      "api_url": "https://www.topuniversities.com/rankings/endpoint",
+      "resolved_at": "2026-09-02T07:41:28.960230Z"
+    },
     "QS|2026|special|sustainability": {
       "source": "QS",
       "ranking_year": 2026,
       "universe_type": "special",
       "universe_key": "sustainability",
       "ranking_page_url": "https://www.topuniversities.com/sustainability-rankings",
-      "ranking_id": "3990755",
+      "ranking_id": "4090509",
       "ranking_id_candidates": [
-        "3990755"
+        "4090509"
       ],
       "subregion_id": "",
       "resolved_ranking_page_url": "https://www.topuniversities.com/sustainability-rankings",
       "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T17:10:09.916041Z"
+      "resolved_at": "2026-09-02T07:50:03.057241Z"
     },
     "QS|2026|special|mba": {
       "source": "QS",
@@ -171,29 +276,14 @@
       "universe_type": "special",
       "universe_key": "mba",
       "ranking_page_url": "https://www.topuniversities.com/mba-rankings/global",
-      "ranking_id": "3990755",
+      "ranking_id": "4070241",
       "ranking_id_candidates": [
-        "3990755"
+        "4070241"
       ],
       "subregion_id": "",
       "resolved_ranking_page_url": "https://www.topuniversities.com/mba-rankings/global",
       "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T17:11:10.283266Z"
-    },
-    "QS|2026|special|business-masters": {
-      "source": "QS",
-      "ranking_year": 2026,
-      "universe_type": "special",
-      "universe_key": "business-masters",
-      "ranking_page_url": "https://www.topuniversities.com/business-masters-rankings",
-      "ranking_id": "3990755",
-      "ranking_id_candidates": [
-        "3990755"
-      ],
-      "subregion_id": "",
-      "resolved_ranking_page_url": "https://www.topuniversities.com/business-masters-rankings",
-      "api_url": "https://www.topuniversities.com/rankings/endpoint",
-      "resolved_at": "2026-03-30T17:11:29.998769Z"
+      "resolved_at": "2026-09-02T07:52:53.091784Z"
     }
   }
 }

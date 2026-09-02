@@ -2,8 +2,13 @@
   "detail_fallback_triggered": false,
   "detail_deferred_paths": [],
   "detail_forbidden_count": 0,
-  "failure_classification": "upstream_blocked",
-  "failure_message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/4023765 (HTTP 403)",
+  "failure_classification": "fetch_failed",
+  "failure_message": "QS request failed at https://www.topuniversities.com/rankings/api/ranking/4023765 (HTTP 404)",
+  "block_reason": "",
+  "block_evidence": {},
+  "http_backend": "curl_cffi",
+  "http_impersonate": "chrome124",
+  "ranking_scope": "regional_ranking",
   "ranking_id_source": "direct",
   "used_resolution_cache": false,
   "resolved_ranking_id": "4023765",
@@ -14,7 +19,7 @@
   "page_resolution_skipped": true,
   "page_resolution_attempted": false,
   "subregion_id": "",
-  "resolution_cache_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
+  "resolution_cache_path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.claude/worktrees/crawler-performance-coverage-0a4655/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
   "universe": {
     "universe_type": "subject",
     "universe_key": "engineering-technology",
@@ -23,11 +28,13 @@
     "ranking_page_url": null,
     "region_name": null,
     "fetch_details": false,
-    "enable_aggregation": true
+    "enable_aggregation": true,
+    "ranking_scope": "regional_ranking"
   },
-  "live_fetch_classification": "upstream_blocked",
-  "live_fetch_message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/4023765 (HTTP 403)",
+  "live_fetch_classification": "fetch_failed",
+  "live_fetch_message": "QS request failed at https://www.topuniversities.com/rankings/api/ranking/4023765 (HTTP 404)",
+  "live_fetch_block_reason": "",
   "used_snapshot_fallback": false,
-  "snapshot_fallback_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universes/2026/subject/engineering-technology/raw_snapshot.json",
-  "run_backing": "live_blocked_no_fallback"
+  "snapshot_fallback_path": "",
+  "run_backing": "live"
 }

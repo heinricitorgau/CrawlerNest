@@ -532,7 +532,7 @@
     }
   },
   {
-    "university_name": "KAIST - Korea Advanced Institute of Science & Technology",
+    "university_name": "KAIST",
     "country": "South Korea",
     "rank": "29",
     "score": "78.2",
@@ -540,7 +540,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/kaist-korea-advanced-institute-science-technology",
+    "detail_url": "/universities/kaist",
     "table_metrics": {
       "Overall Score": "78.2",
       "Employer Reputation": "77.8",
@@ -1178,7 +1178,7 @@
     }
   },
   {
-    "university_name": "University of Technology Sydney",
+    "university_name": "The University of Technology Sydney (UTS)",
     "country": "Australia",
     "rank": "63",
     "score": "72.6",
@@ -1186,7 +1186,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/university-technology-sydney",
+    "detail_url": "/universities/university-technology-sydney-uts",
     "table_metrics": {
       "Overall Score": "72.6",
       "Employer Reputation": "64.4",
@@ -1558,7 +1558,7 @@
     }
   },
   {
-    "university_name": "The University of Warwick",
+    "university_name": "University of Warwick",
     "country": "United Kingdom",
     "rank": "83",
     "score": "70.7",
@@ -1737,7 +1737,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/vienna-university-technology",
+    "detail_url": "/universities/technische-universitat-wien",
     "table_metrics": {
       "Overall Score": "69.4",
       "Employer Reputation": "61.6",
@@ -1767,15 +1767,15 @@
     }
   },
   {
-    "university_name": "The University of Adelaide",
-    "country": "Australia",
+    "university_name": "N/A",
+    "country": "N A",
     "rank": "94",
     "score": "69.2",
     "source": "QS",
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/university-adelaide",
+    "detail_url": null,
     "table_metrics": {
       "Overall Score": "69.2",
       "Employer Reputation": "65",
@@ -2071,7 +2071,7 @@
     }
   },
   {
-    "university_name": "Indian Institute of Science",
+    "university_name": "Indian Institute of Science (IISc) Bangalore",
     "country": "India",
     "rank": "110",
     "score": "67.3",
@@ -2079,7 +2079,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/indian-institute-science",
+    "detail_url": "/universities/indian-institute-science-iisc-bangalore",
     "table_metrics": {
       "Overall Score": "67.3",
       "Employer Reputation": "69.3",
@@ -2478,7 +2478,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/pontificia-universidad-católica-de-chile-uc",
+    "detail_url": "/universities/pontificia-universidad-catolica-de-chile-uc",
     "table_metrics": {
       "Overall Score": "66.4",
       "Employer Reputation": "86.1",
@@ -2717,7 +2717,7 @@
     }
   },
   {
-    "university_name": "Universitat Politècnica de Catalunya · BarcelonaTech (UPC)",
+    "university_name": "Universitat Politècnica de Catalunya - BarcelonaTech (UPC)",
     "country": "Spain",
     "rank": "144",
     "score": "65.6",
@@ -3314,7 +3314,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/universidad-politecnica-de-madrid",
+    "detail_url": "/universities/universidad-politecnica-de-madrid-upm",
     "table_metrics": {
       "Overall Score": "64.1",
       "Employer Reputation": "67.2",
@@ -3447,7 +3447,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/moscow-institute-physics-technology-mipt-moscow-phystech",
+    "detail_url": "/universities/moscow-institute-physics-technology-mipt/moscow-phystech",
     "table_metrics": {
       "Overall Score": "63.7",
       "Employer Reputation": "75.1",
@@ -3458,7 +3458,7 @@
     }
   },
   {
-    "university_name": "Osaka University",
+    "university_name": "The University of Osaka",
     "country": "Japan",
     "rank": "183",
     "score": "63.6",
@@ -3466,7 +3466,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/osaka-university",
+    "detail_url": "/universities/university-osaka",
     "table_metrics": {
       "Overall Score": "63.6",
       "Employer Reputation": "68.1",
@@ -4370,7 +4370,7 @@
     }
   },
   {
-    "university_name": "Universidad de los Andes",
+    "university_name": "Universidad de los Andes - Colombia",
     "country": "Colombia",
     "rank": "231",
     "score": "n/a",
@@ -4378,7 +4378,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/universidad-de-los-andes",
+    "detail_url": "/universities/universidad-de-los-andes-colombia",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "80",
@@ -4845,7 +4845,7 @@
     }
   },
   {
-    "university_name": "Bogaziçi Üniversitesi",
+    "university_name": "Boğaziçi University",
     "country": "Turkey",
     "rank": "256",
     "score": "n/a",
@@ -4853,7 +4853,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/bogazici-universitesi",
+    "detail_url": "/universities/bogazici-university",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "71.2",
@@ -5423,7 +5423,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/universitat-pompeu-fabra",
+    "detail_url": "/universities/universitat-pompeu-fabra-barcelona",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "64",
@@ -5833,7 +5833,7 @@
     }
   },
   {
-    "university_name": "Chandigarh University",
+    "university_name": "Chandigarh University (Punjab)",
     "country": "India",
     "rank": "308",
     "score": "n/a",
@@ -5841,7 +5841,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/chandigarh-university",
+    "detail_url": "/universities/chandigarh-university-punjab",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "67",
@@ -8949,7 +8949,7 @@
     }
   },
   {
-    "university_name": "National Sun Yat-sen University",
+    "university_name": "National Sun Yat-sen University (NSYSU)",
     "country": "Taiwan",
     "rank": "472",
     "score": "n/a",
@@ -8957,7 +8957,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/national-sun-yat-sen-university",
+    "detail_url": "/universities/national-sun-yat-sen-university-nsysu",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "57.5",
@@ -10697,7 +10697,7 @@
     }
   },
   {
-    "university_name": "Lulea University",
+    "university_name": "Lulea University of Technology",
     "country": "Sweden",
     "rank": "564",
     "score": "n/a",
@@ -10705,7 +10705,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/lulea-university",
+    "detail_url": "/universities/lulea-university-technology",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "45.5",
@@ -11039,7 +11039,7 @@
     }
   },
   {
-    "university_name": "University POLITEHNICA of Bucharest",
+    "university_name": "National University of Science and Technology POLITEHNICA Bucharest",
     "country": "Romania",
     "rank": "582",
     "score": "n/a",
@@ -11047,7 +11047,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/university-politehnica-bucharest",
+    "detail_url": "/universities/national-university-science-technology-politehnica-bucharest",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "54.8",
@@ -11438,7 +11438,7 @@
     }
   },
   {
-    "university_name": "Al-Farabi Kazakh National University",
+    "university_name": "Farabi University (former Al - Farabi Kazakh National University)",
     "country": "Kazakhstan",
     "rank": "603",
     "score": "n/a",
@@ -11446,7 +11446,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/al-farabi-kazakh-national-university",
+    "detail_url": "/universities/farabi-university-former-al-farabi-kazakh-national-university",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "62",
@@ -12122,7 +12122,7 @@
     }
   },
   {
-    "university_name": "University of Kaiserslautern-Landau(RPTU)",
+    "university_name": "University of Kaiserslautern-Landau (RPTU)",
     "country": "Germany",
     "rank": "639",
     "score": "n/a",
@@ -12130,7 +12130,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/university-kaiserslautern-landaurptu",
+    "detail_url": "/universities/university-kaiserslautern-landau-rptu",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "37.4",
@@ -12788,7 +12788,7 @@
   },
   {
     "university_name": "Skolkovo Institute of Science and Technology Skoltech",
-    "country": "N A",
+    "country": "Russia",
     "rank": "674",
     "score": "n/a",
     "source": "QS",
@@ -13528,7 +13528,7 @@
     }
   },
   {
-    "university_name": "International Islamic University, Islamabad (IIU)",
+    "university_name": "International Islamic University, Islamabad (IIU).",
     "country": "Pakistan",
     "rank": "713",
     "score": "n/a",
@@ -13661,7 +13661,7 @@
     }
   },
   {
-    "university_name": "Panjab University",
+    "university_name": "Panjab University, Chandigarh",
     "country": "India",
     "rank": "720",
     "score": "n/a",
@@ -13669,7 +13669,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/panjab-university",
+    "detail_url": "/universities/panjab-university-chandigarh",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "51.6",
@@ -14611,7 +14611,7 @@
     }
   },
   {
-    "university_name": "Ghulam Ishaq Khan Institute of Engineering Sciences and Technology",
+    "university_name": "Ghulam Ishaq Khan (GIK), Institute of Engineering Sciences and Technology",
     "country": "Pakistan",
     "rank": "770",
     "score": "n/a",
@@ -14619,7 +14619,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/ghulam-ishaq-khan-institute-engineering-sciences-technology",
+    "detail_url": "/universities/ghulam-ishaq-khan-gik-institute-engineering-sciences-technology",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "58.3",
@@ -14744,7 +14744,7 @@
     }
   },
   {
-    "university_name": "Islamic Azad University",
+    "university_name": "Islamic Azad University.",
     "country": "Iran",
     "rank": "777",
     "score": "n/a",
@@ -14915,7 +14915,7 @@
     }
   },
   {
-    "university_name": "Lappeenranta-Lahti University of Technology LUT",
+    "university_name": "LUT University",
     "country": "Finland",
     "rank": "786",
     "score": "n/a",
@@ -14923,7 +14923,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/lappeenranta-lahti-university-technology-lut",
+    "detail_url": "/universities/lut-university",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "40.3",
@@ -15884,7 +15884,7 @@
     }
   },
   {
-    "university_name": "University of Texas at San Antonio",
+    "university_name": "The University of Texas at San Antonio",
     "country": "United States",
     "rank": "837",
     "score": "n/a",
@@ -15960,7 +15960,7 @@
     }
   },
   {
-    "university_name": "Université de Valenciennes et du Hainaut-Cambrésis",
+    "university_name": "Université Polytechnique Hauts‑de‑France",
     "country": "France",
     "rank": "841",
     "score": "n/a",
@@ -15968,7 +15968,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/universite-de-valenciennes-et-du-hainaut-cambresis",
+    "detail_url": "/universities/universite-polytechnique-hauts-de-france",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "40.9",
@@ -15979,7 +15979,7 @@
     }
   },
   {
-    "university_name": "Université Paris 13 Nord",
+    "university_name": "Université Sorbonne Paris Nord",
     "country": "France",
     "rank": "842",
     "score": "n/a",
@@ -15987,7 +15987,7 @@
     "universe_type": "subject",
     "universe_key": "computer-science",
     "year": 2026,
-    "detail_url": "/universities/universite-paris-13-nord",
+    "detail_url": "/universities/universite-sorbonne-paris-nord",
     "table_metrics": {
       "Overall Score": "n/a",
       "Employer Reputation": "48",
