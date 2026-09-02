@@ -65,6 +65,19 @@ class CrawlBridgeSummary:
     skipped_by_status: dict[str, int]
 
 
+@dataclass(frozen=True)
+class _UrlWork:
+    """One candidate URL plus the profile it came from.
+
+    Results come back positionally, so the profile has to travel with the URL --
+    reading it from a loop variable would attribute records to whichever
+    university happened to be last.
+    """
+
+    profile: Any
+    url: str
+
+
 #: Flat module names the crawler package defines that something else already
 #: on sys.path also defines. Only ``models`` collides today
 #: (crawlernest-core/models.py), and run_pipeline imports that one during its
@@ -111,6 +124,8 @@ def crawl_admission_records(
     snapshot_dir: Path | None = None,
     only: Iterable[str] | None = None,
     rate_limit_seconds: float = 1.0,
+    max_workers: int = 0,
+    serial: bool = False,
 ) -> tuple[list[AdmissionRecord], CrawlBridgeSummary]:
     """Crawl the configured universities and return pipeline-shaped records.
 
@@ -132,6 +147,10 @@ def crawl_admission_records(
         )
         from site_profiles.universities import UNIVERSITY_PROFILES  # noqa: E402
 
+    # crawlernest-crawler-core only joins sys.path in _ensure_crawler_importable
+    # above, so this cannot be a module-level import.
+    from host_scheduler import DEFAULT_MAX_WORKERS, run_grouped_by_host  # noqa: E402
+
     keys = list(UNIVERSITY_PROFILES) if only is None else [k for k in UNIVERSITY_PROFILES if k in set(only)]
     crawler = UniversityAdmissionCrawler(
         snapshot_dir=snapshot_dir,
@@ -139,11 +158,16 @@ def crawl_admission_records(
     )
 
     records: list[AdmissionRecord] = []
-    urls_attempted = 0
     skipped = 0
     skipped_by_status: dict[str, int] = {}
     extracted_at = datetime.now(timezone.utc)
 
+    # Build every unit of work first, then schedule it. Crawling used to be two
+    # nested loops -- universities, then their URLs -- which put all 23 requests
+    # on one thread in one line, so the wall clock was the sum of 23 round trips
+    # plus 23 courtesy delays. The work actually spans 11 independent hosts with
+    # at most 3 URLs each, so the floor is one host's chain, not the whole list.
+    work: list[_UrlWork] = []
     for key in keys:
         profile = UNIVERSITY_PROFILES[key]
         candidate_urls = profile.candidate_urls
@@ -165,28 +189,38 @@ def crawl_admission_records(
                     skipped_by_status.get("no_snapshot", 0) + missing
                 )
             candidate_urls = offline
-        if not candidate_urls:
-            continue
+        for url in candidate_urls:
+            work.append(_UrlWork(profile=profile, url=url))
 
-        for crawled in crawler.crawl(
-            university_name=profile.name,
-            base_url=profile.base_url,
-            candidate_urls=candidate_urls,
-        ):
-            urls_attempted += 1
-            summary = crawled.extraction_summary
-            if summary is None or not summary.is_usable:
-                skipped += 1
-                status = crawled.crawl_status or "unknown"
-                skipped_by_status[status] = skipped_by_status.get(status, 0) + 1
-                continue
-            records.append(
-                to_pipeline_record(
-                    crawled,
-                    country=profile.country or None,
-                    extracted_at=extracted_at,
-                )
+    crawled_records = run_grouped_by_host(
+        work,
+        lambda item: crawler.crawl_one(
+            university_name=item.profile.name,
+            base_url=item.profile.base_url,
+            url=item.url,
+        ),
+        url_of=lambda item: item.url,
+        max_workers=max_workers or DEFAULT_MAX_WORKERS,
+        # Snapshot runs touch no network, so threads buy nothing and only make
+        # log interleaving nondeterministic in CI.
+        serial=serial or snapshot_dir is not None,
+    )
+
+    urls_attempted = len(crawled_records)
+    for item, crawled in zip(work, crawled_records):
+        summary = crawled.extraction_summary
+        if summary is None or not summary.is_usable:
+            skipped += 1
+            status = crawled.crawl_status or "unknown"
+            skipped_by_status[status] = skipped_by_status.get(status, 0) + 1
+            continue
+        records.append(
+            to_pipeline_record(
+                crawled,
+                country=item.profile.country or None,
+                extracted_at=extracted_at,
             )
+        )
 
     return records, CrawlBridgeSummary(
         universities_attempted=len(keys),

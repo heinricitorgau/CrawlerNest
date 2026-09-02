@@ -32,6 +32,15 @@ def run_all_tests():
 
     test_modules = [
         "test_fetcher",
+        # Backend selection and the header policy that goes with it. Sending the
+        # hand-built browser header set through an impersonated stack re-triggers
+        # the Cloudflare challenge the stack exists to avoid.
+        "test_transport",
+        # The QS block probe's verdict. Its first version judged each variant by
+        # its final step alone, which turned "cleared Cloudflare then hit a dead
+        # ranking id" into "blocked by Cloudflare" -- and recommended the wrong
+        # remedy off the live evidence.
+        "test_probe_qs_block",
         "test_extractor",
         "test_db_writer",
         # Aggregation: these existed but no runner loaded them, so a change to
@@ -51,6 +60,15 @@ def run_all_tests():
         # The crawler-to-staging bridge, including that a snapshot run stays
         # offline rather than falling back to live university sites.
         "test_admission_crawl_bridge",
+        # The shared crawler-core primitives: per-host rate limiting, the
+        # non-retriable-exception rule that stops a 403 being re-sent, and the
+        # host scheduler the admissions crawl now runs on.
+        "test_crawler_core",
+        # Both sat unregistered for months. test_qs_universe_invariants was
+        # failing that whole time -- region/europe/standardized_rows.json is an
+        # empty artifact from a Cloudflare-blocked run -- and nobody saw it.
+        "test_qs_universe_invariants",
+        "test_qs_resolution_strategy",
         # Needs PostgreSQL; skips itself unless CRAWLERNEST_RUN_PG_TESTS=1.
         "test_legacy_source",
         "test_arwu_crawler",

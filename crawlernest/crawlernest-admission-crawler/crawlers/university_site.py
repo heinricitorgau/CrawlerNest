@@ -42,6 +42,7 @@ for _p in (_CRAWLER_DIR, _CORE_DIR):
 
 from base import BaseCrawler
 from extractors.admission_requirements import build_admission_record
+from http_client import HttpClient
 from extractors.admission_text_extractor import extract_with_diagnostics
 from models import AdmissionRecord
 from site_profiles.default import DEFAULT_ADMISSION_KEYWORDS
@@ -126,10 +127,18 @@ class UniversityAdmissionCrawler(BaseCrawler):
         snapshot_dir: Path | str | None = None,
         rate_limit_seconds: float = 1.0,
     ) -> None:
+        # rate_limit_seconds used to be accepted and then dropped: this call did
+        # not pass an http_client, so BaseCrawler built HttpClient() with the
+        # default min_interval_seconds=0.0. Every caller asking for a courtesy
+        # delay got none, and the crawler went at eleven university sites as fast
+        # as the network allowed. The limiter is per host, so honouring it here
+        # does not serialise unrelated sites.
         super().__init__(
             name="crawlernest.admission.university_site",
+            http_client=HttpClient(min_interval_seconds=rate_limit_seconds),
             snapshot_dir=snapshot_dir,
         )
+        self.rate_limit_seconds = rate_limit_seconds
         self._snapshot_dir = Path(snapshot_dir) if snapshot_dir else None
 
     # ── Public entry point ────────────────────────────────────────────────────
@@ -153,35 +162,47 @@ class UniversityAdmissionCrawler(BaseCrawler):
             List of :class:`AdmissionRecord`, one per attempted URL.
         """
         urls = candidate_urls or self._default_candidates(base_url)
-        records: list[AdmissionRecord] = []
-        base_host = (urlparse(base_url).hostname or "").lower().strip()
+        return [
+            self.crawl_one(university_name=university_name, base_url=base_url, url=url)
+            for url in urls
+        ]
 
-        for url in urls:
-            if base_host and not self._is_allowed_candidate_url(base_host=base_host, url=url):
-                self.logger.warning("Skipping non-allowlisted candidate URL %s for base host %s", url, base_host)
-                records.append(
-                    build_admission_record(
-                        university_name=university_name,
-                        source_url=url,
-                        degree_level="",
-                        requirements={},
-                        notes="crawl_status=blocked; skipped non-allowlisted host candidate",
-                        crawl_status="blocked",
-                        flagged_fields=["source_host_mismatch"],
-                    )
-                )
-                continue
-            self.logger.info("Crawling %s for %s", url, university_name)
-            record = self._crawl_url(university_name=university_name, url=url)
-            records.append(record)
-            self.logger.info(
-                "  crawl_status=%s is_usable=%s fields=%s",
-                record.crawl_status,
-                record.extraction_summary.is_usable if record.extraction_summary else "?",
-                list(record.requirements.keys()),
+    def crawl_one(
+        self,
+        *,
+        university_name: str,
+        base_url: str,
+        url: str,
+    ) -> AdmissionRecord:
+        """Crawl a single candidate URL, allowlist check included.
+
+        Split out of :meth:`crawl` so callers can schedule URLs themselves --
+        specifically so the bridge can run different *hosts* concurrently while
+        keeping one host's URLs serial. :meth:`crawl` is now that loop, run
+        in order on one thread, and behaves exactly as it did.
+        """
+        base_host = (urlparse(base_url).hostname or "").lower().strip()
+        if base_host and not self._is_allowed_candidate_url(base_host=base_host, url=url):
+            self.logger.warning("Skipping non-allowlisted candidate URL %s for base host %s", url, base_host)
+            return build_admission_record(
+                university_name=university_name,
+                source_url=url,
+                degree_level="",
+                requirements={},
+                notes="crawl_status=blocked; skipped non-allowlisted host candidate",
+                crawl_status="blocked",
+                flagged_fields=["source_host_mismatch"],
             )
 
-        return records
+        self.logger.info("Crawling %s for %s", url, university_name)
+        record = self._crawl_url(university_name=university_name, url=url)
+        self.logger.info(
+            "  crawl_status=%s is_usable=%s fields=%s",
+            record.crawl_status,
+            record.extraction_summary.is_usable if record.extraction_summary else "?",
+            list(record.requirements.keys()),
+        )
+        return record
 
     # ── Per-URL crawl ─────────────────────────────────────────────────────────
 

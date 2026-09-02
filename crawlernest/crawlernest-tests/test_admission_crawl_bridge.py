@@ -192,3 +192,48 @@ class TestOfflineCrawl(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRateLimitIsWiredThrough(unittest.TestCase):
+    """rate_limit_seconds used to be accepted and silently dropped.
+
+    UniversityAdmissionCrawler.__init__ took the argument but called super()
+    without an http_client, so BaseCrawler built HttpClient() with the default
+    min_interval_seconds=0.0. Every caller asking for a courtesy delay got none,
+    and the crawl went at eleven real university sites as fast as the network
+    allowed.
+    """
+
+    def _crawler(self, seconds):
+        from crawlernest_admission_crawler.crawl_bridge import (
+            _crawler_imports,
+            _ensure_crawler_importable,
+        )
+
+        _ensure_crawler_importable()
+        with _crawler_imports():
+            from crawlers.university_site import UniversityAdmissionCrawler
+
+        return UniversityAdmissionCrawler(rate_limit_seconds=seconds)
+
+    def test_the_argument_reaches_the_http_client(self):
+        crawler = self._crawler(2.5)
+        self.assertEqual(crawler.http_client.rate_limiter.min_interval_seconds, 2.5)
+
+    def test_zero_is_honoured_too(self):
+        crawler = self._crawler(0.0)
+        self.assertEqual(crawler.http_client.rate_limiter.min_interval_seconds, 0.0)
+
+
+class TestSnapshotRunsStaySerial(unittest.TestCase):
+    """Threads buy nothing when no request leaves the process."""
+
+    def test_a_snapshot_crawl_produces_the_same_records_either_way(self):
+        records_a, summary_a = crawl_admission_records(snapshot_dir=SNAPSHOT_DIR)
+        records_b, summary_b = crawl_admission_records(snapshot_dir=SNAPSHOT_DIR, serial=True)
+        self.assertEqual(len(records_a), len(records_b))
+        self.assertEqual(summary_a.urls_attempted, summary_b.urls_attempted)
+        self.assertEqual(
+            [r.source_url for r in records_a],
+            [r.source_url for r in records_b],
+        )

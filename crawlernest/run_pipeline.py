@@ -380,6 +380,31 @@ def save_standardized_rows(path: Path, rows: Iterable[Any]) -> None:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
+def _qs_run_status(*, failure_classification: str, standardized_count: int, run_backing: str) -> str:
+    """What actually happened, for run_status.json's ``status`` field.
+
+    This used to be the literal string "ok" on every run that reached the end of
+    the happy path, with the failure classification written beside it. A run that
+    Cloudflare blocked and that produced zero rows was therefore recorded as
+    ``{"status": "ok", "failure_classification": "upstream_blocked"}`` -- two
+    fields contradicting each other, and the checked-in europe artifact is
+    exactly that.
+
+    It is not only cosmetic. _load_known_good_qs_snapshot gates the snapshot
+    fallback on ``status == "ok"``, so a blocked run's artifact was eligible to
+    become the "known good" source another run falls back to. A snapshot-backed
+    run is also not a source for the next fallback: letting one feed the next
+    chains stale data forward while every artifact still claims to be fine.
+    """
+    classification = str(failure_classification or "").strip()
+    backing = str(run_backing or "").strip()
+    if standardized_count <= 0:
+        return "failed" if classification else "empty"
+    if classification or backing not in ("", "live"):
+        return "degraded"
+    return "ok"
+
+
 def _qs_universe_artifact_dir(base_dir: Path, ranking_year: int, universe_type: str, universe_key: str) -> Path:
     return base_dir / str(ranking_year) / str(universe_type) / str(universe_key)
 
@@ -425,6 +450,7 @@ def _apply_qs_snapshot_fallback(
     failure_message = str(updated_meta.get("failure_message", "") or "").strip()
     updated_meta.setdefault("live_fetch_classification", failure_classification or "live_ok")
     updated_meta.setdefault("live_fetch_message", failure_message)
+    updated_meta.setdefault("live_fetch_block_reason", str(updated_meta.get("block_reason", "") or ""))
     updated_meta.setdefault("used_snapshot_fallback", False)
     updated_meta.setdefault("snapshot_fallback_path", "")
     updated_meta.setdefault("run_backing", "live")
@@ -1389,7 +1415,9 @@ def _build_qs_universe_crawler(
     }
     if spec.universe_type == "global":
         return spec, QSGlobalCrawler(**crawler_kwargs)
-    if spec.universe_type == "region":
+    if spec.universe_type in ("region", "regional"):
+        # Both are region-shaped crawls. They differ in ranking_scope, which the
+        # spec carries and build_config passes on, not in how they are driven.
         return spec, QSRegionCrawler(**crawler_kwargs)
     if spec.universe_type == "subject":
         return spec, QSSubjectCrawler(**crawler_kwargs)
@@ -1519,7 +1547,11 @@ def run_qs_universe_ingestion(
     save_json_artifact(
         universe_dir / "run_status.json",
         {
-            "status": "ok",
+            "status": _qs_run_status(
+                failure_classification=str(crawl_meta.get("failure_classification", "") or ""),
+                standardized_count=len(standardized),
+                run_backing=str(crawl_meta.get("run_backing", "") or ""),
+            ),
             "failure_classification": str(crawl_meta.get("failure_classification", "") or ""),
             "message": str(crawl_meta.get("failure_message", "") or ""),
             "run_id": run_id,
