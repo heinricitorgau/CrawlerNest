@@ -40,11 +40,19 @@ public class MappingReviewService {
         this.repository = repository;
     }
 
+    /**
+     * Both lists carry both totals.
+     *
+     * <p>The screen shows the two tab counts side by side whichever tab is
+     * open, so serving only the count belonging to the tab being read would
+     * make the other one go stale the moment a decision is recorded.
+     */
     public Map<String, Object> listPending(int limit) {
         List<MappingReviewCandidate> items = repository.findPending(clampLimit(limit));
         return Map.of(
                 "items", items,
                 "totalPending", repository.countPending(),
+                "totalDecided", repository.countDecided(),
                 "caveats", CAVEATS);
     }
 
@@ -53,6 +61,7 @@ public class MappingReviewService {
         return Map.of(
                 "items", items,
                 "totalPending", repository.countPending(),
+                "totalDecided", repository.countDecided(),
                 "caveats", CAVEATS);
     }
 

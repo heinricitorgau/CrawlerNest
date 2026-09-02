@@ -2,38 +2,23 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import {
+  decisionOutcome,
+  type Decision,
+  type ReviewCandidate,
+  type ReviewPayload,
+} from "@/lib/mappingReview";
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface ReviewCandidate {
-  sourceCode: string;
-  sourceEntityId: string;
-  sourceName: string;
-  sourceCountry: string | null;
-  matchedCanonicalUniversityId: number | null;
-  matchedCanonicalName: string | null;
-  matchedCanonicalCountry: string | null;
-  matchMethod: string;
-  confidenceScore: number | null;
-  tokenOverlap: number | null;
-  countryMismatch: boolean | null;
-  suspiciousMerge: boolean | null;
-  candidateCountHint: number | null;
-  existingDecision: string | null;
-}
-
-interface ReviewPayload {
-  items: ReviewCandidate[];
-  totalPending: number;
-  caveats: string[];
-}
+// ReviewCandidate / ReviewPayload / Decision live in @/lib/mappingReview so the
+// decided-tab wording can be unit tested without rendering the page.
 
 interface CanonicalOption {
   canonicalUniversityId: number;
   displayName: string;
   country: string | null;
 }
-
-type Decision = "confirmed" | "rejected" | "remapped";
 
 type LoadState =
   | { status: "loading" }
@@ -216,6 +201,16 @@ function CandidateCard({
         {formatScore(candidate.tokenOverlap)} · {candidate.candidateCountHint ?? "?"} candidates
         considered
       </p>
+
+      {candidate.existingDecision !== null && (
+        // On the decided tab the fields above are the snapshot taken when the
+        // verdict was recorded, so without this line the card shows what was
+        // reviewed and never what was decided -- which for a remap is the
+        // whole content of the verdict.
+        <p className="mt-1 text-xs text-slate-500">
+          Verdict: {decisionOutcome(candidate)}
+        </p>
+      )}
 
       <input
         type="text"
