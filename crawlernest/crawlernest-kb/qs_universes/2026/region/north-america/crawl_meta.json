@@ -2,32 +2,39 @@
   "detail_fallback_triggered": false,
   "detail_deferred_paths": [],
   "detail_forbidden_count": 0,
-  "failure_classification": "upstream_blocked",
-  "failure_message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/3990755 (HTTP 403)",
+  "failure_classification": "",
+  "failure_message": "",
+  "block_reason": "",
+  "block_evidence": {},
+  "http_backend": "curl_cffi",
+  "http_impersonate": "chrome124",
+  "ranking_scope": "world_slice",
   "ranking_id_source": "cache",
   "used_resolution_cache": true,
-  "resolved_ranking_id": "3990755",
+  "resolved_ranking_id": "4153156",
   "ranking_id_candidates": [
-    "3990755"
+    "4153156"
   ],
-  "resolved_ranking_page_url": "https://www.topuniversities.com/north-america-university-rankings",
+  "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
   "page_resolution_skipped": true,
   "page_resolution_attempted": false,
   "subregion_id": "",
-  "resolution_cache_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
+  "resolution_cache_path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.claude/worktrees/crawler-performance-coverage-0a4655/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
   "universe": {
     "universe_type": "region",
     "universe_key": "north-america",
-    "label": "QS North America University Rankings",
+    "label": "QS World Rankings — North America",
     "ranking_id": null,
-    "ranking_page_url": "https://www.topuniversities.com/north-america-university-rankings",
+    "ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
     "region_name": "North America",
     "fetch_details": false,
-    "enable_aggregation": true
+    "enable_aggregation": true,
+    "ranking_scope": "world_slice"
   },
-  "live_fetch_classification": "upstream_blocked",
-  "live_fetch_message": "QS blocked request to https://www.topuniversities.com/rankings/api/ranking/3990755 (HTTP 403)",
-  "used_snapshot_fallback": true,
-  "snapshot_fallback_path": "/Users/test/Desktop/crawlernest/crawlernest/crawlernest-kb/qs_universes/2026/region/north-america/raw_snapshot.json",
-  "run_backing": "fallback_snapshot"
+  "live_fetch_classification": "live_ok",
+  "live_fetch_message": "",
+  "live_fetch_block_reason": "",
+  "used_snapshot_fallback": false,
+  "snapshot_fallback_path": "",
+  "run_backing": "live"
 }
