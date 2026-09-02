@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-08-25，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-09-02，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：355
-- **期間**：2026-03-16 ~ 2026-08-25
+- **Commit 總數**：361
+- **期間**：2026-03-16 ~ 2026-09-02
 - **主分支**：`main`
 
 ## 欄位說明
@@ -30,11 +30,22 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 ---
 
+## 2026-09
+
+| Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
+|---|---|---|---|---|---|
+| `3b8bd39` | 2026-09-02 | heinricitorgau | — | — | Merge origin/main: pick up the bot-regenerated commit log **[main]** |
+| `1338ccf` | 2026-09-02 | heinricitorgau | 1 | +109 / −0 | Fix flaky API Tests CI failure: order-dependent pipeline table check |
+| `c79858a` | 2026-09-02 | heinricitorgau | 6 | +0 / −0 | update **[feat/admission-ranking-convergence]** |
+| `fe65d0a` | 2026-09-02 | heinricitorgau | 68 | +173148 / −264407 | Re-crawl all 21 QS universes for 2026 |
+| `1b5bfe2` | 2026-09-02 | heinricitorgau | 24 | +3821 / −162 | Fix QS crawler: TLS transport, ranking id resolution, admissions concurrency |
+
 ## 2026-08
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `09b2c0c` | 2026-08-25 | heinricitorgau | 8 | +1419 / −35 | feat(agent): close the loop with conversation history and restore **[main]** |
+| `8d01ac2` | 2026-08-25 | github-actions[bot] | 1 | +11 / −9 | docs: regenerate the commit log |
+| `09b2c0c` | 2026-08-25 | heinricitorgau | 8 | +1419 / −35 | feat(agent): close the loop with conversation history and restore |
 | `ea1b634` | 2026-08-25 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `249a6ec` | 2026-08-25 | heinricitorgau | 20 | +1909 / −12 | feat(agent): wake the web agent up behind ds4, with a Java-owned save path |
 | `3acdcbd` | 2026-08-25 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
@@ -45,7 +56,7 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 | `0200f98` | 2026-08-25 | github-actions[bot] | 1 | +20 / −10 | docs: regenerate the commit log |
 | `1ba3d96` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #21 from heinricitorgau/claude/remove-ranking-records-preview-996301 |
 | `43217f7` | 2026-08-24 | heinricitorgau | 16 | +209 / −1286 | refactor(warehouse): drop ranking_records_preview end to end |
-| `73de733` | 2026-08-24 | heinricitorgau | — | — | Merge remote-tracking branch 'origin/main' into feat/admission-ranking-convergence **[feat/admission-ranking-convergence]** |
+| `73de733` | 2026-08-24 | heinricitorgau | — | — | Merge remote-tracking branch 'origin/main' into feat/admission-ranking-convergence |
 | `5a0a044` | 2026-08-24 | heinricitorgau | 9 | +545 / −43 | WIP: give the Decided tab its own query **[claude/vigilant-ritchie-494a25]** |
 | `4565f15` | 2026-08-24 | heinricitorgau | 1 | +12 / −0 | Seed business-management from the schema file, like the other two |
 | `14689f6` | 2026-08-24 | heinricitorgau | 2 | +61 / −0 | Render a bare date as ISO, not as a TypeError |
@@ -421,8 +432,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 355 |
-| 檔案變更累計 | 6095 |
-| 新增行數累計 | +1195353 |
-| 刪除行數累計 | −436095 |
-| 淨增行數 | +759258 |
+| Commit 數 | 361 |
+| 檔案變更累計 | 6195 |
+| 新增行數累計 | +1372442 |
+| 刪除行數累計 | −700673 |
+| 淨增行數 | +671769 |
