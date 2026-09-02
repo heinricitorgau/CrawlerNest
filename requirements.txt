@@ -8,6 +8,12 @@
 # Networking / crawling
 aiohttp==3.13.3
 requests==2.32.5
+# Chrome TLS/HTTP2 fingerprint. Load-bearing, not optional: Cloudflare serves
+# every QS ranking request from the requests/aiohttp stack a "Just a moment"
+# interstitial, and serves an impersonated one no challenge at all. Without this
+# the ranking pipeline runs blocked and falls back to snapshots.
+# See crawlernest/crawlernest-extractors/transport.py.
+curl_cffi==0.16.1
 
 # PostgreSQL
 psycopg2-binary==2.9.11

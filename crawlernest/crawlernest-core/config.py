@@ -48,8 +48,27 @@ class Config:
     request_delay_jitter_ratio: float = 0.2
     max_concurrent_requests: int = 1  # QS robots.txt requires 10s wait, disable concurrency to respect this
 
-    # QS list API: try REST path first vs generic /rankings/endpoint first (both may be tried; order affects success latency).
-    qs_endpoint_order: Literal["api_first", "endpoint_first"] = "api_first"
+    # QS list API: which of the two known URL shapes to try first. Both are still
+    # attempted. /rankings/api/ranking/{nid} currently answers 404 for every nid,
+    # including freshly resolved ones, while /rankings/endpoint?nid=... returns the
+    # ranking JSON -- so trying the REST path first spends one dead request per nid
+    # at a 10s crawl-delay before reaching the one that works.
+    qs_endpoint_order: Literal["api_first", "endpoint_first"] = "endpoint_first"
+
+    # HTTP stack. Empty means "read CRAWLERNEST_HTTP_BACKEND, else auto". A probe
+    # against topuniversities.com showed the plain requests/aiohttp stack is
+    # served a Cloudflare interstitial on every QS ranking request regardless of
+    # User-Agent or cookie warm-up, while a Chrome TLS/HTTP2 fingerprint is not
+    # challenged at all -- see crawlernest-extractors/transport.py.
+    http_backend: str = ""       # "" | "auto" | "requests" | "curl_cffi"
+    http_impersonate: str = ""   # curl_cffi profile, e.g. "chrome124"
+
+    # Which kind of ranking this run is fetching -- see qs_universe_registry.
+    # "world_slice" universes share the world ranking's id on purpose and are
+    # narrowed by region_name; "regional_ranking" universes each own their id.
+    # The cache's shared-id check has to know which, or it rejects every world
+    # slice as a collision.
+    ranking_scope: str = "regional_ranking"
     # Legacy knobs (kept for config file compatibility; ranking fetches use qs_network_retry_* only).
     qs_transient_retry_max_attempts: int = 3
     qs_transient_retry_backoff_seconds: float = 3.0

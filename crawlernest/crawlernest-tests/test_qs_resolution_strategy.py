@@ -2,6 +2,7 @@ import json
 import sys
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -20,12 +21,25 @@ if str(REPO_ROOT) not in sys.path:
 from config import Config  # noqa: E402
 from fetcher import UniversityFetcher  # noqa: E402
 from qs_universe_crawlers import QSGlobalCrawler  # noqa: E402
-from qs_universe_registry import QS_GLOBAL  # noqa: E402
-from run_pipeline import _apply_qs_snapshot_fallback, _qs_universe_artifact_dir  # noqa: E402
+from qs_universe_registry import QS_GLOBAL, iter_all_qs_universes  # noqa: E402
+from run_pipeline import (  # noqa: E402
+    _apply_qs_snapshot_fallback,
+    _qs_run_status,
+    _qs_universe_artifact_dir,
+)
 
 
 class TestQSResolutionStrategy(unittest.TestCase):
-    def test_global_crawler_build_config_preserves_stable_ranking_id(self):
+    def test_build_config_leaves_an_unpinned_universe_without_a_ranking_id(self):
+        """An unpinned spec must reach page resolution, not a default id.
+
+        build_config used to read ``self.spec.ranking_id or "3990755"``. That id
+        is the World 2025 ranking (see demo.py), and it was handed to every
+        universe whose spec left ranking_id unset -- eleven of thirteen. It is
+        still live and still answers 200 with world rows, so asia, europe and the
+        rest would have ingested world data under their own labels silently. An
+        empty id sends the crawler to that universe's own page instead.
+        """
         crawler = QSGlobalCrawler(
             spec=QS_GLOBAL,
             limit=2500,
@@ -36,12 +50,42 @@ class TestQSResolutionStrategy(unittest.TestCase):
             local_parse_workers=4,
         )
         config = crawler.build_config()
-        self.assertEqual(config.ranking_id, "3990755")
+        self.assertEqual(config.ranking_id, "")
         self.assertEqual(
             config.ranking_page_url,
             "https://www.topuniversities.com/university-rankings/world-university-rankings",
         )
         self.assertTrue(str(config.resolution_cache_path).endswith("qs_universe_resolution_cache.json"))
+
+    def test_build_config_still_carries_an_explicitly_pinned_ranking_id(self):
+        """Pinning an edition on purpose must keep working."""
+        pinned = replace(QS_GLOBAL, ranking_id="4153156")
+        crawler = QSGlobalCrawler(
+            spec=pinned,
+            limit=10,
+            ranking_year=2026,
+            use_async=False,
+            workers=1,
+            request_delay=10.0,
+            local_parse_workers=4,
+        )
+        config = crawler.build_config()
+        self.assertEqual(config.ranking_id, "4153156")
+
+    def test_no_two_registered_universes_share_a_ranking_id(self):
+        """The check that would have caught this at the source."""
+        seen: dict[str, str] = {}
+        for spec in iter_all_qs_universes():
+            rid = str(spec.ranking_id or "").strip()
+            if not rid:
+                continue
+            self.assertNotIn(
+                rid,
+                seen,
+                f"{spec.universe_type}:{spec.universe_key} shares ranking_id {rid} "
+                f"with {seen.get(rid)}",
+            )
+            seen[rid] = f"{spec.universe_type}:{spec.universe_key}"
 
     def test_fetcher_prefers_cached_resolution_before_direct_entry(self):
         config = Config(
@@ -148,3 +192,69 @@ class TestQSResolutionStrategy(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRunStatusTellsTheTruth(unittest.TestCase):
+    """run_status.json used to say "ok" for every run that finished the code path.
+
+    The checked-in region/europe artifact is the proof: status "ok", zero rows,
+    and failure_classification "upstream_blocked" all in the same file. Because
+    _load_known_good_qs_snapshot gates the snapshot fallback on status == "ok",
+    that artifact was eligible to be treated as a known-good source.
+    """
+
+    def test_a_clean_live_run_is_ok(self):
+        self.assertEqual(
+            _qs_run_status(failure_classification="", standardized_count=1503, run_backing="live"),
+            "ok",
+        )
+
+    def test_a_missing_run_backing_is_still_ok(self):
+        """Older artifacts predate the field; absence is not a failure signal."""
+        self.assertEqual(
+            _qs_run_status(failure_classification="", standardized_count=10, run_backing=""),
+            "ok",
+        )
+
+    def test_blocked_with_no_rows_is_failed(self):
+        """The europe case."""
+        self.assertEqual(
+            _qs_run_status(
+                failure_classification="upstream_blocked",
+                standardized_count=0,
+                run_backing="live_blocked_no_fallback",
+            ),
+            "failed",
+        )
+
+    def test_no_rows_and_no_classification_is_empty_not_ok(self):
+        self.assertEqual(
+            _qs_run_status(failure_classification="", standardized_count=0, run_backing="live"),
+            "empty",
+        )
+
+    def test_a_snapshot_backed_run_is_degraded(self):
+        """It has rows, but they are not live, so it must not seed the next fallback."""
+        self.assertEqual(
+            _qs_run_status(
+                failure_classification="upstream_blocked",
+                standardized_count=1503,
+                run_backing="fallback_snapshot",
+            ),
+            "degraded",
+        )
+
+    def test_rows_with_a_classification_are_degraded(self):
+        self.assertEqual(
+            _qs_run_status(
+                failure_classification="upstream_maintenance",
+                standardized_count=500,
+                run_backing="live",
+            ),
+            "degraded",
+        )
+
+    def test_only_ok_qualifies_as_a_known_good_snapshot_source(self):
+        """The gate _load_known_good_qs_snapshot applies, stated as an invariant."""
+        for status in ("failed", "empty", "degraded"):
+            self.assertNotEqual(status, "ok")

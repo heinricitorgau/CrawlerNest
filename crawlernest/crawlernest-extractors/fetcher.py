@@ -40,6 +40,17 @@ except ImportError:
 
 from config import Config
 from constants.countries import COUNTRY_CODES, get_available_countries
+from transport import (
+    CONNECTION_ERRORS,
+    REQUEST_ERRORS,
+    TIMEOUT_ERRORS,
+    TRANSIENT_ERRORS,
+    build_async_session,
+    build_sync_session,
+    log_choice,
+    request_headers,
+    resolve_backend,
+)
 
 logger = logging.getLogger("UniversityFetcher")
 
@@ -89,6 +100,49 @@ def _write_resolution_cache_file(path: str, payload: Dict[str, Any]) -> None:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
+#: Universes that are the world ranking narrowed to a region. They share the
+#: world ranking's id by design, so the shared-id check below does not apply.
+RANKING_SCOPE_WORLD_SLICE = "world_slice"
+
+
+def _is_world_slice(config: Config) -> bool:
+    return str(getattr(config, "ranking_scope", "") or "").strip().lower() == RANKING_SCOPE_WORLD_SLICE
+
+
+def _cache_keys_sharing_ranking_id(
+    entries: Dict[str, Any],
+    *,
+    key: str,
+    ranking_id: str,
+) -> List[str]:
+    """Other universes of the same ranking year already claiming this ranking id.
+
+    Two *regional* rankings cannot share one. QS Asia and QS World are different
+    publications with different node ids, so the same id under both keys means
+    something assigned it rather than resolved it.
+
+    World slices are the exception and the caller is responsible for skipping the
+    check for them: every region cut out of the world ranking uses the world
+    ranking's id on purpose, and flagging that would reject the whole family.
+    Restricted to the same ranking_year, since an unchanged edition may
+    legitimately carry across years.
+    """
+    if not ranking_id:
+        return []
+    mine = entries.get(key)
+    my_year = str((mine or {}).get("ranking_year", "") or "").strip()
+    clashes: List[str] = []
+    for other_key, other in entries.items():
+        if other_key == key or not isinstance(other, dict):
+            continue
+        if str(other.get("ranking_id", "") or "").strip() != ranking_id:
+            continue
+        if str(other.get("ranking_year", "") or "").strip() != my_year:
+            continue
+        clashes.append(other_key)
+    return sorted(clashes)
+
+
 def _read_cached_resolution(config: Config) -> Optional[Dict[str, Any]]:
     cache_path = str(getattr(config, "resolution_cache_path", "") or _default_resolution_cache_path())
     key = _resolution_cache_key(config)
@@ -98,6 +152,22 @@ def _read_cached_resolution(config: Config) -> Optional[Dict[str, Any]]:
         return None
     entry = entries.get(key)
     if not isinstance(entry, dict):
+        return None
+    # Refuse a cached id that another universe of the same year also claims.
+    # Returning None sends the caller to page resolution, which re-reads the id
+    # from this universe's own page, so a poisoned cache heals itself instead of
+    # pinning wrong-universe data indefinitely.
+    clashes = [] if _is_world_slice(config) else _cache_keys_sharing_ranking_id(
+        entries, key=key, ranking_id=str(entry.get("ranking_id", "") or "").strip()
+    )
+    if clashes:
+        logger.warning(
+            "Ignoring cached ranking_id %s for %s: also claimed by %s. "
+            "Two universes cannot share a ranking id; re-resolving from the page.",
+            entry.get("ranking_id"),
+            key,
+            ", ".join(clashes),
+        )
         return None
     ttl_seconds = int(getattr(config, "resolution_cache_ttl_seconds", 0) or 0)
     resolved_at = str(entry.get("resolved_at", "") or "").strip()
@@ -136,6 +206,18 @@ def _write_cached_resolution(
     if not isinstance(entries, dict):
         entries = {}
         payload["entries"] = entries
+    clashes = [] if _is_world_slice(config) else _cache_keys_sharing_ranking_id(
+        entries, key=key, ranking_id=str(ranking_id or "").strip()
+    )
+    if clashes:
+        logger.warning(
+            "Writing ranking_id %s for %s, which %s also claims. One of them is "
+            "resolving the wrong page -- their ranking data will be identical and "
+            "at most one of them is correct.",
+            ranking_id,
+            key,
+            ", ".join(clashes),
+        )
     entries[key] = {
         "source": str(getattr(config, "source_name", "QS") or "QS").strip().upper(),
         "ranking_year": getattr(config, "ranking_year", None),
@@ -160,6 +242,8 @@ def _set_failure_classification(config: Config, classification: str, message: st
 def _clear_failure_classification(config: Config) -> None:
     setattr(config, "_last_failure_classification", "")
     setattr(config, "_last_failure_message", "")
+    setattr(config, "_last_block_reason", "")
+    setattr(config, "_last_block_evidence", {})
 
 
 def _safe_response_preview(text: str, max_len: int = 200) -> str:
@@ -224,20 +308,152 @@ def _is_cloudflare_blocked(text: str) -> bool:
 def _is_cf_challenge_signal(status_code: int, text: str, headers: Dict[str, str]) -> bool:
     """
     Cloudflare / bot interstitial. Avoid treating CF CDN success JSON as a block:
-    require HTML-ish body or explicit challenge markers with 403.
+    require HTML-ish body or explicit challenge markers.
+
+    This used to open with an unconditional ``if status_code == 403: return True``,
+    which made the helper answer "yes, Cloudflare" for every 403 the origin could
+    ever emit -- including responses with no Cloudflare header anywhere in them.
+    The blanket 403 rule lives in _classify_qs_http_response, which short-circuits
+    on 403 before it ever calls this, so dropping it here changes no coarse
+    classification and leaves this function able to answer the question its name
+    asks.
+
+    The status test below is restricted to _BLOCKISH_STATUS rather than every
+    4xx/5xx. It used to read ``status_code >= 400``, which matched any error page
+    the QS origin served through Cloudflare -- and a plain 404 for a retired
+    ranking id is exactly that: >= 400, carrying a cf-ray, with an HTML body. A
+    live probe confirmed it, and the consequence was not cosmetic: 404 was
+    reported as "upstream_blocked", so run_pipeline substituted a known-good
+    snapshot and the run recorded "QS blocked us" when the truth was "this
+    ranking id no longer exists". Cloudflare interstitials served on other
+    statuses are still caught by the body markers above.
     """
     if _is_cloudflare_blocked(text):
         return True
     hl = _normalize_header_map(headers)
     ct = (hl.get("content-type") or "").lower()
     body = (text or "").lstrip()
-    if status_code == 403:
-        return True
-    if status_code >= 400 and hl.get("cf-ray") and (body.startswith("<") or "text/html" in ct):
+    if status_code in _BLOCKISH_STATUS and hl.get("cf-ray") and (body.startswith("<") or "text/html" in ct):
         return True
     if "cf-ray" in hl and status_code >= 400 and "just a moment" in (text or "").lower():
         return True
     return False
+
+
+# -- Block sub-classification -------------------------------------------------
+#
+# "upstream_blocked" is the coarse label the pipeline acts on -- run_pipeline
+# reads it to decide the snapshot fallback -- and it stays exactly as it was.
+# What it never recorded is *why* the edge refused, and the causes do not share
+# a fix:
+#
+#   cf_js_challenge  Cloudflare served an interstitial that expects a browser to
+#                    run JS. Only a real browser engine, or a cf_clearance cookie
+#                    obtained by one, gets past it.
+#   cf_waf_deny      Cloudflare refused outright with no challenge offered.
+#                    Bot-score / fingerprint driven; a matching TLS + HTTP2
+#                    fingerprint is what moves this one.
+#   cf_rate_limited  Rate limited. Slow down -- re-fingerprinting makes it worse.
+#   origin_deny      No Cloudflare in the response at all. QS's own application
+#                    said no, so client impersonation would change nothing.
+#
+# Without this split, choosing between curl_cffi and Playwright is a guess.
+
+BLOCK_REASON_CF_JS_CHALLENGE = "cf_js_challenge"
+BLOCK_REASON_CF_WAF_DENY = "cf_waf_deny"
+BLOCK_REASON_CF_RATE_LIMITED = "cf_rate_limited"
+BLOCK_REASON_ORIGIN_DENY = "origin_deny"
+
+_CF_CHALLENGE_BODY_MARKERS = (
+    "just a moment",
+    "cf-browser-verification",
+    "cf_chl_opt",
+    "/cdn-cgi/challenge-platform",
+    "checking your browser",
+    "enable javascript and cookies to continue",
+)
+
+# Statuses an edge uses to refuse. 404 and 5xx are excluded on purpose: a missing
+# page or a broken origin is not a block, and labelling it one would put noise
+# into the very field we are adding to remove guesswork.
+_BLOCKISH_STATUS = frozenset({401, 403, 405, 406, 409, 418, 429, 451})
+
+# Response headers worth keeping verbatim when a block happens. Everything else
+# is noise, and some of it (set-cookie) should not be written to an artifact.
+_BLOCK_EVIDENCE_HEADERS = (
+    "cf-ray",
+    "cf-mitigated",
+    "cf-cache-status",
+    "server",
+    "content-type",
+    "retry-after",
+)
+
+
+def _has_cloudflare_fingerprint(headers: Optional[Dict[str, str]]) -> bool:
+    hl = _normalize_header_map(headers)
+    if hl.get("cf-ray") or hl.get("cf-mitigated") or hl.get("cf-cache-status"):
+        return True
+    return "cloudflare" in (hl.get("server") or "").lower()
+
+
+def _classify_block_reason(
+    status_code: int,
+    text: str,
+    headers: Optional[Dict[str, str]] = None,
+) -> str:
+    """Why a refusal was a refusal. Empty string when the response is not one."""
+    hl = _normalize_header_map(headers)
+    body = str(text or "").lower()
+
+    if any(marker in body for marker in _CF_CHALLENGE_BODY_MARKERS):
+        return BLOCK_REASON_CF_JS_CHALLENGE
+    if "challenge" in (hl.get("cf-mitigated") or "").lower():
+        return BLOCK_REASON_CF_JS_CHALLENGE
+    if status_code not in _BLOCKISH_STATUS:
+        return ""
+    on_cloudflare = _has_cloudflare_fingerprint(hl)
+    if status_code == 429:
+        return BLOCK_REASON_CF_RATE_LIMITED if on_cloudflare else BLOCK_REASON_ORIGIN_DENY
+    return BLOCK_REASON_CF_WAF_DENY if on_cloudflare else BLOCK_REASON_ORIGIN_DENY
+
+
+def _block_evidence(
+    status_code: int,
+    text: str,
+    headers: Optional[Dict[str, str]] = None,
+) -> Dict[str, Any]:
+    """Minimal, artifact-safe proof of what the edge actually returned."""
+    hl = _normalize_header_map(headers)
+    return {
+        "status": status_code,
+        "on_cloudflare": _has_cloudflare_fingerprint(hl),
+        "headers": {k: hl[k] for k in _BLOCK_EVIDENCE_HEADERS if k in hl},
+        "body_preview": _safe_response_preview(text, 200),
+        "body_bytes": len(text or ""),
+    }
+
+
+def _record_block_observation(
+    config: Config,
+    status_code: int,
+    text: str,
+    headers: Optional[Dict[str, str]] = None,
+) -> tuple[str, Optional[Dict[str, Any]]]:
+    """Stash the refusal reason on the config so crawl_meta carries it out of the run.
+
+    Every HTTP response the ranking fetchers see passes through the two
+    ``*_session_get_transient_retry`` helpers, so recording here covers the sync
+    and async paths without threading an argument through the ~50
+    _set_failure_classification call sites.
+    """
+    reason = _classify_block_reason(status_code, text, headers)
+    if not reason:
+        return "", None
+    evidence = _block_evidence(status_code, text, headers)
+    setattr(config, "_last_block_reason", reason)
+    setattr(config, "_last_block_evidence", evidence)
+    return reason, evidence
 
 
 def _classify_qs_http_response(
@@ -257,15 +473,23 @@ def _classify_qs_http_response(
 
 
 def _classify_transport_exception_sync(exc: BaseException, url: str) -> tuple[str, str]:
-    if isinstance(exc, (requests.Timeout, requests.ConnectionError)):
+    # Matches against both backends' hierarchies. curl_cffi mirrors requests'
+    # exception names, so the distinction that matters here -- transport failure
+    # vs. protocol failure -- survives the swap without the caller knowing which
+    # session produced the exception.
+    if isinstance(exc, TIMEOUT_ERRORS) or isinstance(exc, CONNECTION_ERRORS):
         return "network_error", f"QS network error at {url}: {exc}"
-    if isinstance(exc, requests.RequestException):
+    if isinstance(exc, REQUEST_ERRORS):
         return "fetch_failed", f"QS request failed at {url}: {exc}"
     return "fetch_failed", f"QS unexpected error at {url}: {exc}"
 
 
 def _classify_transport_exception_async(exc: BaseException, url: str) -> tuple[str, str]:
     if isinstance(exc, asyncio.TimeoutError):
+        return "network_error", f"QS network error at {url}: {exc}"
+    # curl_cffi drives the async path too when it is the selected backend, so its
+    # hierarchy has to be consulted before falling through to "unexpected".
+    if isinstance(exc, TIMEOUT_ERRORS) or isinstance(exc, CONNECTION_ERRORS):
         return "network_error", f"QS network error at {url}: {exc}"
     if aiohttp is not None:
         try:
@@ -275,6 +499,8 @@ def _classify_transport_exception_async(exc: BaseException, url: str) -> tuple[s
                 return "fetch_failed", f"QS request failed at {url}: {exc}"
         except Exception:
             pass
+    if isinstance(exc, REQUEST_ERRORS):
+        return "fetch_failed", f"QS request failed at {url}: {exc}"
     return "fetch_failed", f"QS unexpected error at {url}: {exc}"
 
 
@@ -288,6 +514,8 @@ def _log_fetch_line(
     response_size: Optional[int],
     preview: str,
     purpose: str = "",
+    block_reason: str = "",
+    evidence: Optional[Dict[str, Any]] = None,
 ) -> None:
     pv = _safe_response_preview(preview, 120)
     param_s = ""
@@ -298,15 +526,22 @@ def _log_fetch_line(
             param_s = str(params)
         if len(param_s) > 280:
             param_s = param_s[:277] + "..."
+    # The edge headers are the whole point of the block_reason split: a reader of
+    # the log should be able to tell Cloudflare from the QS origin without
+    # re-running the crawl.
+    edge_headers = (evidence or {}).get("headers") or {}
+    edge_s = " ".join(f"{k}={v}" for k, v in sorted(edge_headers.items())) or "-"
     logger.info(
-        "[FETCH] endpoint=%s purpose=%s status=%s classification=%s retry_count=%s "
-        "response_size=%s params=%s preview=%r",
+        "[FETCH] endpoint=%s purpose=%s status=%s classification=%s block_reason=%s "
+        "retry_count=%s response_size=%s edge=[%s] params=%s preview=%r",
         endpoint,
         purpose or "-",
         "-" if status_code is None else str(status_code),
         classification,
+        block_reason or "-",
         retry_count,
         "-" if response_size is None else str(response_size),
+        edge_s,
         param_s or "-",
         pv,
     )
@@ -943,15 +1178,22 @@ class UniversityFetcher:
 
     def __init__(self, config: Config):
         self.config = config
-        self.session = requests.Session()
-        self.session.headers.update(
-            {
-                "User-Agent": config.user_agent,
+        self.transport_choice = resolve_backend(config)
+        log_choice(self.transport_choice, where="sync")
+        # Still named `session` and still requests-shaped: curl_cffi's Session is
+        # a drop-in, so every call site (and every test that patches
+        # ``fetcher.session.get``) keeps working across the swap.
+        self.session = build_sync_session(
+            self.transport_choice,
+            user_agent=config.user_agent,
+            extra_headers={
                 "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
                 "Accept-Encoding": "gzip, deflate",
                 "Connection": "keep-alive",
-            }
+            },
         )
+        setattr(config, "_http_backend", self.transport_choice.backend)
+        setattr(config, "_http_impersonate", self.transport_choice.impersonate)
         self._last_request_time = 0.0
 
     def _wait_for_delay(self, url: Optional[str] = None):
@@ -1002,8 +1244,13 @@ class UniversityFetcher:
                 )
                 time.sleep(sleep_s)
             try:
-                resp = self.session.get(url, timeout=timeout, headers=headers, params=params)
-            except (requests.Timeout, requests.ConnectionError) as exc:
+                resp = self.session.get(
+                    url,
+                    timeout=timeout,
+                    headers=request_headers(self.transport_choice, headers),
+                    params=params,
+                )
+            except TRANSIENT_ERRORS as exc:
                 last_exc = exc
                 cls_t, _msg_t = _classify_transport_exception_sync(exc, url)
                 _log_fetch_line(
@@ -1023,6 +1270,7 @@ class UniversityFetcher:
             text = getattr(resp, "text", "") or ""
             hdrs = _headers_from_requests_response(resp)
             cls, _msg = _classify_qs_http_response(url, resp.status_code, text, hdrs)
+            reason, evidence = _record_block_observation(self.config, resp.status_code, text, hdrs)
             log_cls = cls
             if purpose == "page_resolve" and cls == "upstream_blocked":
                 log_cls = "entry_resolution_blocked"
@@ -1035,6 +1283,8 @@ class UniversityFetcher:
                 response_size=len(text),
                 preview=text,
                 purpose=purpose,
+                block_reason=reason,
+                evidence=evidence,
             )
             return resp
         if last_exc is not None:
@@ -1092,6 +1342,9 @@ class UniversityFetcher:
                     headers=self.config.get_headers("page"),
                     purpose="page_resolve",
                 )
+                # This request *is* the warm-up the endpoint requires; recording it
+                # keeps _warm_session_for_endpoint from fetching the page twice.
+                setattr(self.config, "_session_warmed", True)
                 phdrs = _headers_from_requests_response(resp)
                 pcls, pmsg = _classify_qs_http_response(page_url, resp.status_code, resp.text or "", phdrs)
                 if pcls == "upstream_maintenance":
@@ -1162,8 +1415,46 @@ class UniversityFetcher:
     def fetch_rankings(self) -> Optional[Dict[str, Any]]:
         return self._fetch_rankings_impl(allow_cache_refresh=True)
 
+    def _warm_session_for_endpoint(self) -> None:
+        """Fetch the ranking page once so the endpoint will answer.
+
+    The ranking endpoint refuses a session that has not already fetched a ranking
+    page. Measured with impersonate=chrome124 against the live endpoint:
+
+        cold session, straight to /rankings/endpoint ... 403, "Just a moment"
+        after one GET of the ranking page ............. 200, 813 KB of JSON
+
+    Phase 0 concluded that warming was a dead end, but that test ran on the
+    `requests` stack where the warm-up request was itself challenged, so no
+    warming ever actually happened. Once the fingerprint is right the warm-up
+    becomes both possible and required: fingerprint alone is not enough.
+
+    Page resolution already fetches the page, so a run that resolves its id from
+    the page is warm by the time it gets here. A run that took the id from the
+    resolution cache or from a pinned spec never touched the page -- which is
+    exactly the case that failed in production, with ranking_id_source="cache".
+    """
+        if getattr(self.config, "_session_warmed", False):
+            return
+        page_url = str(getattr(self.config, "ranking_page_url", "") or "").strip()
+        if not page_url:
+            return
+        try:
+            self._session_get_transient_retry(
+                page_url,
+                params=None,
+                headers=self.config.get_headers("page"),
+                purpose="warmup",
+            )
+        except Exception:
+            # A failed warm-up is not fatal on its own: the endpoint attempt that
+            # follows classifies and reports whatever actually goes wrong.
+            logger.debug("Session warm-up failed for %s", page_url, exc_info=True)
+        setattr(self.config, "_session_warmed", True)
+
     def _fetch_rankings_impl(self, *, allow_cache_refresh: bool) -> Optional[Dict[str, Any]]:
         nid = self._ensure_ranking_id()
+        self._warm_session_for_endpoint()
         prefetched = getattr(self.config, "_prefetched_payload", None)
         if prefetched and int(getattr(self.config, "page", 0) or 0) == 0:
             self.config._used_prefetched_payload = True
@@ -1391,9 +1682,16 @@ class AsyncUniversityFetcher:
 
 
     def __init__(self, config: Config):
-        if aiohttp is None:
-            raise RuntimeError("aiohttp is not installed")
         self.config = config
+        self.transport_choice = resolve_backend(config)
+        # aiohttp is only required when it is the backend actually in use. On the
+        # curl_cffi path the async session comes from curl_cffi, so an
+        # environment without aiohttp is still able to run the async crawler.
+        if aiohttp is None and not self.transport_choice.is_fingerprinted:
+            raise RuntimeError("aiohttp is not installed")
+        log_choice(self.transport_choice, where="async")
+        setattr(config, "_http_backend", self.transport_choice.backend)
+        setattr(config, "_http_impersonate", self.transport_choice.impersonate)
         self.session: Optional[Any] = None
 
         # 【技術細節：SSL 環境自適應】
@@ -1412,15 +1710,22 @@ class AsyncUniversityFetcher:
 
     async def _ensure_session(self):
         if self.session is None:
-            aiohttp_mod = cast("aiohttp_module", aiohttp)
-            connector = aiohttp_mod.TCPConnector(
-                limit=self.config.max_concurrent_requests,
-                ssl=self._ssl_context,
-                enable_cleanup_closed=True,
-                use_dns_cache=True,
-                ttl_dns_cache=300
+            def _connector():
+                aiohttp_mod = cast("aiohttp_module", aiohttp)
+                return aiohttp_mod.TCPConnector(
+                    limit=self.config.max_concurrent_requests,
+                    ssl=self._ssl_context,
+                    enable_cleanup_closed=True,
+                    use_dns_cache=True,
+                    ttl_dns_cache=300,
+                )
+
+            self.session = build_async_session(
+                self.transport_choice,
+                aiohttp_module=aiohttp,
+                connector_factory=_connector,
+                headers=self.config.get_headers(),
             )
-            self.session = aiohttp_mod.ClientSession(connector=connector, headers=self.config.get_headers())
 
     async def close(self):
         if self.session:
@@ -1470,14 +1775,14 @@ class AsyncUniversityFetcher:
                 async with self.session.get(
                     url,
                     params=params or None,
-                    headers=headers,
+                    headers=request_headers(self.transport_choice, headers),
                     ssl=self._ssl_context,
                     timeout=timeout,
                 ) as resp:
                     status = resp.status
                     hdr_dict = {str(k): str(v) for k, v in resp.headers.items()}
                     text = await resp.text()
-            except _AIOHTTP_RETRY_EXCEPTIONS as exc:
+            except (_AIOHTTP_RETRY_EXCEPTIONS + TRANSIENT_ERRORS) as exc:
                 last_exc = exc
                 cls_t, _msg_t = _classify_transport_exception_async(exc, url)
                 _log_fetch_line(
@@ -1495,6 +1800,7 @@ class AsyncUniversityFetcher:
                 _set_failure_classification(self.config, cls_t, str(exc))
                 raise
             cls, _msg = _classify_qs_http_response(url, status, text, hdr_dict)
+            reason, evidence = _record_block_observation(self.config, status, text, hdr_dict)
             log_cls = cls
             if purpose == "page_resolve" and cls == "upstream_blocked":
                 log_cls = "entry_resolution_blocked"
@@ -1507,6 +1813,8 @@ class AsyncUniversityFetcher:
                 response_size=len(text or ""),
                 preview=text or "",
                 purpose=purpose,
+                block_reason=reason,
+                evidence=evidence,
             )
             return status, text, hdr_dict
         if last_exc is not None:
@@ -1560,6 +1868,7 @@ class AsyncUniversityFetcher:
                     headers=self.config.get_headers("page"),
                     purpose="page_resolve",
                 )
+                setattr(self.config, "_session_warmed", True)
                 pcls, pmsg = _classify_qs_http_response(page_url, status, text or "", phdrs)
                 if pcls == "upstream_maintenance":
                     _set_failure_classification(self.config, pcls, pmsg)
@@ -1621,8 +1930,44 @@ class AsyncUniversityFetcher:
     async def fetch_rankings(self) -> Optional[Dict[str, Any]]:
         return await self._fetch_rankings_impl(allow_cache_refresh=True)
 
+    async def _warm_session_for_endpoint(self) -> None:
+        """Fetch the ranking page once so the endpoint will answer.
+
+    The ranking endpoint refuses a session that has not already fetched a ranking
+    page. Measured with impersonate=chrome124 against the live endpoint:
+
+        cold session, straight to /rankings/endpoint ... 403, "Just a moment"
+        after one GET of the ranking page ............. 200, 813 KB of JSON
+
+    Phase 0 concluded that warming was a dead end, but that test ran on the
+    `requests` stack where the warm-up request was itself challenged, so no
+    warming ever actually happened. Once the fingerprint is right the warm-up
+    becomes both possible and required: fingerprint alone is not enough.
+
+    Page resolution already fetches the page, so a run that resolves its id from
+    the page is warm by the time it gets here. A run that took the id from the
+    resolution cache or from a pinned spec never touched the page -- which is
+    exactly the case that failed in production, with ranking_id_source="cache".
+    """
+        if getattr(self.config, "_session_warmed", False):
+            return
+        page_url = str(getattr(self.config, "ranking_page_url", "") or "").strip()
+        if not page_url:
+            return
+        try:
+            await self._async_session_get_transient_retry(
+                page_url,
+                params=None,
+                headers=self.config.get_headers("page"),
+                purpose="warmup",
+            )
+        except Exception:
+            logger.debug("Session warm-up failed for %s", page_url, exc_info=True)
+        setattr(self.config, "_session_warmed", True)
+
     async def _fetch_rankings_impl(self, *, allow_cache_refresh: bool) -> Optional[Dict[str, Any]]:
         nid = await self._ensure_ranking_id()
+        await self._warm_session_for_endpoint()
         prefetched = getattr(self.config, "_prefetched_payload", None)
         if prefetched and int(getattr(self.config, "page", 0) or 0) == 0:
             self.config._used_prefetched_payload = True
@@ -1838,11 +2183,15 @@ class AsyncUniversityFetcher:
             async with sem:
                 try:
                     await self._wait_for_delay(url)
+                    # ssl= is aiohttp's; AiohttpShapedSession drops it, since the
+                    # impersonated stack manages its own TLS.
                     async with session.get(
                         url,
                         timeout=getattr(self.config, "timeout", 15),
                         ssl=self._ssl_context,
-                        headers=self.config.get_headers("detail"),
+                        headers=request_headers(
+                            self.transport_choice, self.config.get_headers("detail")
+                        ),
                     ) as resp:
                         resp.raise_for_status()
                         return await resp.text()

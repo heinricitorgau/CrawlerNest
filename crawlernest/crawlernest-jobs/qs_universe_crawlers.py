@@ -19,6 +19,15 @@ def _persist_resolution_cache(config: Config) -> None:
     ranking_id = str(getattr(config, "ranking_id", "") or "").strip()
     if not cache_path or not ranking_id:
         return
+    # Only an id actually read off this universe's ranking page earns a cache
+    # entry. fetcher._ensure_ranking_id already writes one on page resolution;
+    # this second writer used to persist whatever config.ranking_id happened to
+    # hold, including a hardcoded default, and the next run then trusted it as
+    # "resolved" and skipped page resolution entirely. That is how one wrong id
+    # became permanent.
+    source = str(getattr(config, "_ranking_id_source", "") or "").strip()
+    if source != "page_resolution":
+        return
     universe_type = str(getattr(config, "universe_type", "") or "").strip().lower()
     universe_key = str(getattr(config, "universe_key", "") or "").strip().lower()
     ranking_year = str(getattr(config, "ranking_year", "") or "").strip()
@@ -82,13 +91,20 @@ class BaseQSUniverseCrawler:
         effective_request_delay = self.request_delay
         if self.spec.universe_type == "region" and self.spec.universe_key == "europe":
             effective_request_delay = max(effective_request_delay, 12.0)
-        preferred_ranking_id = self.spec.ranking_id or "3990755"
+        # No fallback id. A universe without a pinned ranking_id must resolve one
+        # from its own ranking page. This used to default to "3990755", which
+        # silently gave eleven of thirteen universes the same id -- and that id
+        # still answers 200 with WORLD ranking rows, so asia/europe/africa runs
+        # would have ingested world data under their own labels without a single
+        # error. An empty id fails loudly instead.
+        preferred_ranking_id = str(self.spec.ranking_id or "").strip()
         return Config(
             ranking_id=preferred_ranking_id,
             ranking_page_url=self.spec.ranking_page_url,
             region_name=self.spec.region_name,
             universe_type=self.spec.universe_type,
             universe_key=self.spec.universe_key,
+            ranking_scope=getattr(self.spec, "ranking_scope", "regional_ranking"),
             progress_label=f"{self.spec.universe_type}/{self.spec.universe_key}",
             ranking_year=self.ranking_year,
             ranking_limit=self.limit,
@@ -128,6 +144,20 @@ class BaseQSUniverseCrawler:
             "detail_forbidden_count": int(getattr(config, "_detail_forbidden_count", 0) or 0),
             "failure_classification": str(getattr(config, "_last_failure_classification", "") or ""),
             "failure_message": str(getattr(config, "_last_failure_message", "") or ""),
+            # Which kind of refusal, and the edge headers that prove it. Without
+            # these two, "upstream_blocked" cannot tell Cloudflare apart from the
+            # QS origin, and the fix for one is not the fix for the other.
+            "block_reason": str(getattr(config, "_last_block_reason", "") or ""),
+            "block_evidence": dict(getattr(config, "_last_block_evidence", {}) or {}),
+            # Which HTTP stack produced this run. A snapshot-backed run and a
+            # blocked live run look alike in the other fields; this says whether
+            # the request even had a chance of getting through.
+            "http_backend": str(getattr(config, "_http_backend", "") or ""),
+            "http_impersonate": str(getattr(config, "_http_impersonate", "") or ""),
+            # world_slice rows carry world ranks; regional_ranking rows carry
+            # that region's own 1..N. Consumers cannot tell them apart from the
+            # rows alone, so the run has to say which it produced.
+            "ranking_scope": str(getattr(config, "ranking_scope", "") or ""),
             "ranking_id_source": str(getattr(config, "_ranking_id_source", "") or ""),
             "used_resolution_cache": bool(getattr(config, "_used_resolution_cache", False)),
             "resolved_ranking_id": str(getattr(config, "ranking_id", "") or ""),

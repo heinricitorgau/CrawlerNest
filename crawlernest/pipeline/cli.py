@@ -899,7 +899,10 @@ def build_parser(
     qs_universes_parser.add_argument(
         "--universe-type",
         default="all",
-        choices=["all", "global", "region", "subject", "special"],
+        # "regional" is QS's standalone regional rankings; "region" is the world
+        # ranking sliced by region. Two different datasets -- see
+        # qs_universe_registry.ranking_scope.
+        choices=["all", "global", "region", "regional", "subject", "special"],
     )
     qs_universes_parser.add_argument("--universe-key", default=None)
     qs_universes_parser.add_argument("--ranking-year", type=int, default=default_ranking_year)
