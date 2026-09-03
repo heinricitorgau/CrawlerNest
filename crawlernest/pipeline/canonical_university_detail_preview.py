@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from crawlernest.pipeline.ranking_scope import DEFAULT_SCOPE_PARAMS, scope_predicate
 from crawlernest_ranking_crawler.normalize import normalize_university_name
 
 try:
@@ -356,6 +357,11 @@ def _load_ranking_summary(
     ranking_schema: str,
     ranking_table: str,
 ) -> RankingSummary | None:
+    # See ranking_scope.py: without this, a university ranked in one of the
+    # region/regional/subject/special universes the QS crawler also writes to
+    # this table gets folded into the same row_count/best_rank as its actual
+    # world ranking.
+    scope_sql = scope_predicate("rr", indent=" " * 10)
     cur.execute(
         f"""
         SELECT
@@ -368,8 +374,9 @@ def _load_ranking_summary(
         JOIN {ranking_schema}.ranking_source src
           ON src.ranking_source_id = rr.ranking_source_id
         WHERE rr.canonical_university_id = %s
+          AND {scope_sql}
         """,
-        (canonical_university_id,),
+        (canonical_university_id, *DEFAULT_SCOPE_PARAMS),
     )
     row = cur.fetchone()
     if row is None or int(row[0] or 0) == 0:
@@ -386,10 +393,11 @@ def _load_ranking_summary(
           ON src.ranking_source_id = rr.ranking_source_id
         WHERE rr.canonical_university_id = %s
           AND rr.rank_position IS NOT NULL
+          AND {scope_sql}
         ORDER BY rr.rank_position ASC, rr.ranking_year DESC, src.source_code ASC
         LIMIT 1
         """,
-        (canonical_university_id,),
+        (canonical_university_id, *DEFAULT_SCOPE_PARAMS),
     )
     best_row = cur.fetchone()
     return RankingSummary(
