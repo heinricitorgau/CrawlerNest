@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-09-02，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-09-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：364
-- **期間**：2026-03-16 ~ 2026-09-02
+- **Commit 總數**：367
+- **期間**：2026-03-16 ~ 2026-09-03
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,7 +34,10 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `7c39325` | 2026-09-02 | heinricitorgau | — | — | Merge origin/main: the commit-log bot's run for the previous push **[main]** |
+| `24cf49e` | 2026-09-03 | heinricitorgau | — | — | Merge claude/mapping-review-decided-tab **[main]** |
+| `87259e2` | 2026-09-03 | heinricitorgau | 8 | +371 / −3 | Scope every ranking summary to the world ranking |
+| `749e1e0` | 2026-09-02 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
+| `7c39325` | 2026-09-02 | heinricitorgau | — | — | Merge origin/main: the commit-log bot's run for the previous push |
 | `993ed73` | 2026-09-02 | heinricitorgau | 7 | +435 / −40 | Give the Decided tab a query that can return something |
 | `c28472a` | 2026-09-02 | github-actions[bot] | 1 | +21 / −10 | docs: regenerate the commit log |
 | `3b8bd39` | 2026-09-02 | heinricitorgau | — | — | Merge origin/main: pick up the bot-regenerated commit log |
@@ -435,8 +438,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 364 |
-| 檔案變更累計 | 6203 |
-| 新增行數累計 | +1372898 |
-| 刪除行數累計 | −700723 |
-| 淨增行數 | +672175 |
+| Commit 數 | 367 |
+| 檔案變更累計 | 6212 |
+| 新增行數累計 | +1373279 |
+| 刪除行數累計 | −700733 |
+| 淨增行數 | +672546 |
