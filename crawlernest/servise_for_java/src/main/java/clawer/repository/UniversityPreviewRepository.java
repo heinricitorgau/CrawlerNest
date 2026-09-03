@@ -17,6 +17,27 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+/**
+ * Reads a university's ranking and admission summary for the preview screen.
+ *
+ * <p>Every ranking-record query here filters {@code ranking_type = 'world'
+ * AND universe_type = 'global' AND universe_key = 'global'}. warehouse.ranking_record
+ * is keyed per universe -- a university appears once per ranking source *and*
+ * once per universe it was ranked in -- and the QS crawler now writes
+ * {@code region:*}, {@code regional:*}, {@code subject:*} and {@code special:*}
+ * universes into this same table alongside {@code world}. Without the filter, a
+ * university's row_count and best_rank fold all of those in with its actual
+ * world ranking. Verified live: MIT alone carries ranking_record rows across
+ * five different ranking_type values.
+ *
+ * <p>The three literals are duplicated, not shared, because a Java method
+ * cannot import a Python module: the authoritative copy and the reasoning
+ * behind it live in {@code crawlernest/pipeline/ranking_scope.py}, which the
+ * Python readers of this same table (convergence_preview.py,
+ * canonical_university_detail_preview.py) both import. Change one, change all
+ * three -- the same rule this codebase already applies to the caveat strings
+ * duplicated between AnalyticsService and AnalyticsController.
+ */
 @Repository
 public class UniversityPreviewRepository {
     private final JdbcTemplate jdbcTemplate;
@@ -101,6 +122,9 @@ public class UniversityPreviewRepository {
                             SELECT 1
                             FROM warehouse.ranking_record rr
                             WHERE rr.canonical_university_id = cu.canonical_university_id
+                              AND rr.ranking_type = 'world'
+                              AND rr.universe_type = 'global'
+                              AND rr.universe_key = 'global'
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -139,6 +163,9 @@ public class UniversityPreviewRepository {
                             SELECT 1
                             FROM warehouse.ranking_record rr
                             WHERE rr.canonical_university_id = cu.canonical_university_id
+                              AND rr.ranking_type = 'world'
+                              AND rr.universe_type = 'global'
+                              AND rr.universe_key = 'global'
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -179,6 +206,9 @@ public class UniversityPreviewRepository {
                             SELECT 1
                             FROM warehouse.ranking_record rr
                             WHERE rr.canonical_university_id = cu.canonical_university_id
+                              AND rr.ranking_type = 'world'
+                              AND rr.universe_type = 'global'
+                              AND rr.universe_key = 'global'
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -220,6 +250,9 @@ public class UniversityPreviewRepository {
                             SELECT 1
                             FROM warehouse.ranking_record rr
                             WHERE rr.canonical_university_id = cu.canonical_university_id
+                              AND rr.ranking_type = 'world'
+                              AND rr.universe_type = 'global'
+                              AND rr.universe_key = 'global'
                         ) OR EXISTS (
                             SELECT 1
                             FROM warehouse.admission_record arp
@@ -275,6 +308,9 @@ public class UniversityPreviewRepository {
                     JOIN warehouse.ranking_source src
                       ON src.ranking_source_id = rr.ranking_source_id
                     WHERE rr.canonical_university_id = ?
+                      AND rr.ranking_type = 'world'
+                      AND rr.universe_type = 'global'
+                      AND rr.universe_key = 'global'
                 ),
                 ranking_summary AS (
                     SELECT

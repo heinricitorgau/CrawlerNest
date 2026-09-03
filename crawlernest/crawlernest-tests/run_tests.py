@@ -64,6 +64,10 @@ def run_all_tests():
         # non-retriable-exception rule that stops a 403 being re-sent, and the
         # host scheduler the admissions crawl now runs on.
         "test_crawler_core",
+        # The ranking_type/universe_type/universe_key scope that keeps a
+        # university's ranking summary from mixing in the region/regional/
+        # subject/special universes the QS crawler now also writes.
+        "test_ranking_scope",
         # Both sat unregistered for months. test_qs_universe_invariants was
         # failing that whole time -- region/europe/standardized_rows.json is an
         # empty artifact from a Cloudflare-blocked run -- and nobody saw it.
