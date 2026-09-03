@@ -80,6 +80,34 @@ FROM (
 CROSS JOIN warehouse.ranking_source src
 WHERE src.source_code = 'QS';
 
+-- Oxford also appears in a non-world universe, at a *better* rank_position
+-- than its world one (2). This is exactly the shape UniversityPreviewApiIntegrationTest
+-- .oxfordRankingSummaryIgnoresNonWorldUniverses() exists to catch: an unscoped
+-- MIN(rank_position) across both rows would report Oxford's best_rank as 1,
+-- crediting it with a rank it never held in the world ranking that this
+-- endpoint's field name promises. See ranking_scope.py.
+INSERT INTO warehouse.ranking_record (
+    canonical_university_id,
+    ranking_source_id,
+    ranking_year,
+    ranking_type,
+    universe_type,
+    universe_key,
+    rank_position,
+    source_url
+)
+SELECT
+    990103,
+    src.ranking_source_id,
+    2026,
+    'region:europe',
+    'region',
+    'europe',
+    1,
+    'https://example.edu/rankings/oxford-europe'
+FROM warehouse.ranking_source src
+WHERE src.source_code = 'QS';
+
 -- Two degree levels, and between them every requirement column is NULL for at
 -- least one row. That is what a real crawl looks like: an undergraduate page
 -- that publishes a GPA bar and no English test, and a postgraduate page that

@@ -64,6 +64,27 @@ class UniversityPreviewApiIntegrationTest {
                 .andExpect(jsonPath("$.data.admissionSummary.bestToeflRequirement").value(100));
     }
 
+    /**
+     * Guards the exact bug ranking_scope.py exists to prevent: without the
+     * ranking_type/universe_type/universe_key filter, this endpoint's
+     * "bestRank" mixes in whichever other universe a university also appears
+     * in. The seed gives Oxford a rank_position of 1 in region:europe -- one
+     * better than its actual world rank of 2 -- so an unscoped MIN(rank_position)
+     * would report bestRank 1 and rowCount 2. Scoped to the world ranking only,
+     * it must report the world numbers and nothing else.
+     */
+    @Test
+    void oxfordRankingSummaryIgnoresNonWorldUniverses() throws Exception {
+        mockMvc.perform(get("/api/v1/preview/universities")
+                        .param("canonicalUniversityId", "990103")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.rankingSummary.rowCount").value(1))
+                .andExpect(jsonPath("$.data.rankingSummary.sourceCount").value(1))
+                .andExpect(jsonPath("$.data.rankingSummary.bestRank").value(2))
+                .andExpect(jsonPath("$.data.rankingSummary.bestSource").value("QS"));
+    }
+
     @Test
     void missingQueryParametersReturnBadRequest() throws Exception {
         mockMvc.perform(get("/api/v1/preview/universities")

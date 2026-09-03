@@ -5,6 +5,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from crawlernest.pipeline.ranking_scope import DEFAULT_SCOPE_PARAMS, scope_predicate
+
 try:
     import psycopg2
 except ImportError:  # pragma: no cover - handled by caller
@@ -71,6 +73,12 @@ def build_convergence_preview(
         _ensure_required_table(conn, schema_name=ranking_schema, table_name="ranking_source")
         _ensure_required_table(conn, schema_name=admission_schema, table_name=admission_table)
 
+        # Same predicate UniversityPreviewRepository.java and
+        # canonical_university_detail_preview.py apply -- see ranking_scope.py
+        # for why an unscoped read now mixes in region/regional/subject/special
+        # universes alongside the world ranking this summary promises.
+        ranking_scope_sql = scope_predicate("rr", indent=" " * 22)
+
         with conn.cursor() as cur:
             cur.execute(
                 f"""
@@ -83,6 +91,7 @@ def build_convergence_preview(
                     FROM {ranking_schema}.{ranking_table} rr
                     JOIN {ranking_schema}.ranking_source src
                       ON src.ranking_source_id = rr.ranking_source_id
+                    WHERE {ranking_scope_sql}
                 ),
                 ranking_summary AS (
                     SELECT
@@ -152,7 +161,7 @@ def build_convergence_preview(
                     cu.canonical_university_id ASC
                 LIMIT %s
                 """,
-                (max(1, limit),),
+                (*DEFAULT_SCOPE_PARAMS, max(1, limit)),
             )
             raw_rows = cur.fetchall()
     finally:
