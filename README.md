@@ -262,9 +262,10 @@ CRAWLERNEST_RUN_PG_TESTS=1 CRAWLERNEST_PG_PASSWORD=test \
 
 CrawlerNest v0.1 is an operational MVP — reproducible and demonstrable, not a production deployment.
 
-- All three ranking sources are ingested: QS 1,499, THE 1,080, ARWU 686
-- 573 universities reach three sources (confidence high); 306 remain single-source (low)
-- Entity resolution still has gaps — 419 universities carry no THE rank and 291 ARWU entities are unmatched. What rules can do safely has been done; the rest are renames, abbreviation-only forms and campus qualifiers that need a human, one at a time
+- All three ranking sources are ingested for 2026: QS covers 1,503 universities, THE 1,637, ARWU 838, across a global universe of 2,098
+- 618 universities reach three sources (confidence high), 644 reach two, and 836 remain single-source (low)
+- Coverage is partial, not complete — 461 universities carry no THE rank and 1,260 carry no ARWU rank. Every 2026 ranking record now resolves to a canonical university, so what remains is snapshot scope rather than unmatched entities
+- Model estimates are stored separately and never enter `analytics.aggregated_rankings`: 795 estimated overall scores (295 of them outside the model's training support, and disclosed as such) and 1,484 disagreement probabilities
 - A missing rank is disclosed as **our** gap — not ingested, or not matched — rather than as the source declining to rank the university
 - The agent page defaults to a mock provider and does not write to the database
 
