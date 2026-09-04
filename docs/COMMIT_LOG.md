@@ -2,7 +2,7 @@
 
 產生於 2026-09-04，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：374
+- **Commit 總數**：376
 - **期間**：2026-03-16 ~ 2026-09-04
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `f17d7da` | 2026-09-04 | heinricitorgau | 2 | +22 / −10 | Correct the two documents that still describe a warehouse we no longer have **[main]** |
+| `42f0f4f` | 2026-09-04 | heinricitorgau | 9 | +279 / −113 | Stop the summary generators re-emitting a warehouse that no longer exists **[main]** |
+| `a844293` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `f17d7da` | 2026-09-04 | heinricitorgau | 2 | +22 / −10 | Correct the two documents that still describe a warehouse we no longer have |
 | `75278f3` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `12a783f` | 2026-09-04 | heinricitorgau | 7 | +125 / −8 | Say when an estimate is unsupported, instead of only recording that it is |
 | `ff0a616` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
@@ -445,8 +447,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 374 |
-| 檔案變更累計 | 6254 |
-| 新增行數累計 | +1377295 |
-| 刪除行數累計 | −699428 |
-| 淨增行數 | +677867 |
+| Commit 數 | 376 |
+| 檔案變更累計 | 6264 |
+| 新增行數累計 | +1377583 |
+| 刪除行數累計 | −699548 |
+| 淨增行數 | +678035 |
