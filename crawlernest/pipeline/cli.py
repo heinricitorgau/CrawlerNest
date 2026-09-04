@@ -681,6 +681,16 @@ def build_parser(
     )
     seed_canonical_missing_parser.add_argument("--source", default="THE")
     seed_canonical_missing_parser.add_argument("--ranking-year", type=int, default=default_ranking_year)
+    seed_canonical_missing_parser.add_argument(
+        "--exclude-universe",
+        action="append",
+        default=None,
+        metavar="RANKING_TYPE",
+        help=(
+            "Skip a universe's unresolved names (e.g. special:mba, whose rows are "
+            "business schools rather than universities). Repeatable."
+        ),
+    )
     seed_canonical_missing_parser.add_argument("--pg-host", default="localhost")
     seed_canonical_missing_parser.add_argument("--pg-port", type=int, default=5432)
     seed_canonical_missing_parser.add_argument("--pg-database", default="clawer")
