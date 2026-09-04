@@ -2,7 +2,7 @@
 
 產生於 2026-09-04，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：366
+- **Commit 總數**：368
 - **期間**：2026-03-16 ~ 2026-09-04
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `708f751` | 2026-09-04 | heinricitorgau | 1 | +48 / −0 | Retire aggregated rows whose university has dropped out of the universe **[main]** |
+| `54d55f2` | 2026-09-04 | heinricitorgau | 16 | +454 / −16 | Pin the web agent to the 2026 snapshot it actually queries **[main]** |
+| `0204417` | 2026-09-04 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
+| `708f751` | 2026-09-04 | heinricitorgau | 1 | +48 / −0 | Retire aggregated rows whose university has dropped out of the universe |
 | `2620a11` | 2026-09-04 | heinricitorgau | 1 | +15 / −20 | Judge the THE and ARWU fuzzy backlog the canonical reseed produced |
 | `24eae13` | 2026-09-04 | github-actions[bot] | 1 | +13 / −17 | docs: regenerate the commit log |
 | `75daa7c` | 2026-09-04 | heinricitorgau | 31 | +2863 / −230 | Retrain the ML layer on the re-crawled 2026 QS data and the widened pairing |
@@ -437,8 +439,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 366 |
-| 檔案變更累計 | 6205 |
-| 新增行數累計 | +1375588 |
-| 刪除行數累計 | −699310 |
-| 淨增行數 | +676278 |
+| Commit 數 | 368 |
+| 檔案變更累計 | 6222 |
+| 新增行數累計 | +1376052 |
+| 刪除行數累計 | −699333 |
+| 淨增行數 | +676719 |
