@@ -109,6 +109,36 @@ class RankingAggregationRepository:
         self.conn.commit()
 
     def upsert_aggregated_rankings(self, run_id: int, outputs: list[AggregatedRankingOutput]) -> None:
+        """Write one universe's aggregated rows, and retire the ones it no longer has.
+
+        The upsert alone is not enough. A university that loses its last source
+        credit -- a reviewer rejects the mapping, the source drops it, the
+        resolver re-points it -- simply stops appearing in ``outputs``, and
+        without the delete below its previous row survives, still asserting a
+        rank from a source that no longer ranks it.
+
+        Two things conspire to hide that. ``aggregation_runs`` rows are keyed by
+        run_label, so an ingest with a recurring label reuses the same
+        aggregation_run_id; and the row keeps whichever run_id last touched it.
+        A stale row therefore carries the *current* run's id, and
+        v_aggregated_rankings_latest -- which filters to the latest run -- cannot
+        tell it apart from a row that run actually wrote. Found this way: two
+        universities kept a THE rank through /api/v1/rankings after the mapping
+        that gave it to them was reviewed away.
+
+        The delete is scoped to this universe and this method version, which is
+        exactly what one call covers: _refresh_aggregations groups by
+        (year, universe_type, universe_key) and aggregates every source at once,
+        so ``outputs`` is the complete membership of that universe rather than
+        one source's contribution to it. An empty ``outputs`` deletes nothing --
+        aggregating no rows is not evidence that a universe is empty.
+        """
+        if not outputs:
+            return
+
+        first = outputs[0]
+        kept = [row.canonical_university_id for row in outputs]
+
         with self.conn.cursor() as cur:
             for row in outputs:
                 cur.execute(
@@ -156,6 +186,24 @@ class RankingAggregationRepository:
                         row.aggregation_method_version,
                     ),
                 )
+
+            cur.execute(
+                """
+                DELETE FROM analytics.aggregated_rankings
+                 WHERE ranking_year = %s
+                   AND universe_type = %s
+                   AND universe_key = %s
+                   AND aggregation_method_version = %s
+                   AND canonical_university_id <> ALL(%s)
+                """,
+                (
+                    first.year,
+                    first.universe_type,
+                    first.universe_key,
+                    first.aggregation_method_version,
+                    kept,
+                ),
+            )
         self.conn.commit()
 
     def finish_aggregation_run(self, run_id: int, output_record_count: int, status: str = "finished") -> None:
