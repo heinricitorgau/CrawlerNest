@@ -2,7 +2,7 @@
 
 產生於 2026-09-04，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：370
+- **Commit 總數**：372
 - **期間**：2026-03-16 ~ 2026-09-04
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `00d88d4` | 2026-09-04 | heinricitorgau | 20 | +1069 / −56 | Wire the modelling layer into the agent, and stop the caveats lying about coverage **[main]** |
+| `12a783f` | 2026-09-04 | heinricitorgau | 7 | +125 / −8 | Say when an estimate is unsupported, instead of only recording that it is **[main]** |
+| `ff0a616` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `00d88d4` | 2026-09-04 | heinricitorgau | 20 | +1069 / −56 | Wire the modelling layer into the agent, and stop the caveats lying about coverage |
 | `966e1b8` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `54d55f2` | 2026-09-04 | heinricitorgau | 16 | +454 / −16 | Pin the web agent to the 2026 snapshot it actually queries |
 | `0204417` | 2026-09-04 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
@@ -441,8 +443,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 370 |
-| 檔案變更累計 | 6243 |
-| 新增行數累計 | +1377130 |
-| 刪除行數累計 | −699396 |
-| 淨增行數 | +677734 |
+| Commit 數 | 372 |
+| 檔案變更累計 | 6251 |
+| 新增行數累計 | +1377264 |
+| 刪除行數累計 | −699411 |
+| 淨增行數 | +677853 |
