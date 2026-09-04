@@ -77,6 +77,7 @@ class RecommendationExplainer(GroundedExplainer):
         ("gpa", "gpa"),
         ("riskProfile", "risk_profile"),
         ("preferredRankingSource", "preferred_source"),
+        ("rankingYear", "ranking_year"),
     ]
 
     def explain(

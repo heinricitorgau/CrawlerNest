@@ -10,6 +10,14 @@ block, and deterministic fallback.
 Honesty contract (repo CLAUDE.md, "No black-box scores"): the model writes
 explanation only. Ranks, scores, confidence, and counts stay exactly as the
 deterministic layer produced them, and caveats are preserved verbatim.
+
+That contract has a temporal half, added here because it cannot be enforced
+downstream: the warehouse is a single-year snapshot, and a trend claim invents
+no figure, no caveat and no institution, so nothing in ``faithfulness.py``
+reaches it. :meth:`GroundedExplainer._explain` therefore states the shape of
+the corpus at the top of every evidence block and appends the no-trend rule to
+every explainer's constraints -- see ``dataset_context.py``. Subclasses get
+both for free and must not restate either.
 """
 
 from __future__ import annotations
@@ -18,6 +26,10 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
+from crawlernest.agent.web_agent.generation.dataset_context import (
+    DATASET_CONSTRAINTS,
+    build_dataset_header,
+)
 from crawlernest.agent.web_agent.generation.judge import LlmJudge
 from crawlernest.agent.web_agent.generation.models import GenerationResult, PromptPayload
 from crawlernest.agent.web_agent.generation.response_generator import WebResponseGenerator
@@ -92,11 +104,17 @@ class GroundedExplainer:
         items: list[dict[str, Any]] | None = None,
         caveats: list[str] | None = None,
     ) -> ExplanationResult:
+        # The corpus description leads the evidence, and the same enriched block
+        # is what verification checks the answer against: the dataset year is a
+        # fact of the evidence, so an explanation naming it must not read as an
+        # invented figure.
+        grounded_block = f"{build_dataset_header()}\n\n{evidence_block}"
+
         prompt = PromptPayload(
             system_instruction=self.system_instruction,
             user_message=query.strip() or default_query,
-            context_block=evidence_block,
-            response_constraints=list(self.constraints),
+            context_block=grounded_block,
+            response_constraints=[*self.constraints, *DATASET_CONSTRAINTS],
         )
         result: GenerationResult = self._generator.generate_response(
             prompt=prompt,
@@ -119,7 +137,7 @@ class GroundedExplainer:
             explanation=result.reply_text,
             items=items,
             caveats=caveats,
-            evidence=evidence_block,
+            evidence=grounded_block,
             judge=self._judge if self._judge.is_configured else None,
         )
         warning = " ".join(w for w in (result.warning, outcome.warning) if w) or None

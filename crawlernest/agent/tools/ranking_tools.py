@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from crawlernest.core.dataset import DATASET_YEAR
 from crawlernest.core.services.ranking_service import RankingQuery, RankingService
 from crawlernest.core.services.university_service import UniversityService
 
@@ -430,7 +431,7 @@ class RankingTools:
             prefer_prompt_entity=False,
         )
         query = RankingQuery(
-            year=int(resolved_context.get("year", 2026)),
+            year=int(resolved_context.get("year", DATASET_YEAR)),
             scope=str(resolved_context.get("scope", "global")),
             page=int(resolved_context.get("page", 1)),
             page_size=int(resolved_context.get("page_size", 20)),

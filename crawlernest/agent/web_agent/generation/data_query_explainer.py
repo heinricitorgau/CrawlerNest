@@ -61,6 +61,7 @@ class DataQueryExplainer(GroundedExplainer):
         ("compositeScore", "composite_score"),
         ("primarySource", "primary_source"),
         ("sourceCount", "source_count"),
+        ("rankingYear", "ranking_year"),
     ]
 
     def explain(

@@ -5,7 +5,7 @@ the evidence. This asks a different question: whether the explanation
 misrepresents the *status* of that evidence. The two are independent, and the
 second was the gap.
 
-Measured on the 55-case golden set, the judge misses six failures the rules
+Measured on the 57-case golden set, the judge misses six failures the rules
 cannot express, and all six are of one kind: an estimate credited to the ranking
 source, missing data reported as the source declining to rank, our coverage gap
 blamed on the institution, an ingestion point described as current, one page of

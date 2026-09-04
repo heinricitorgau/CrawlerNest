@@ -69,6 +69,7 @@ class ComparisonExplainer(GroundedExplainer):
         (("ieltsMin", "ieltsRequirement"), "ielts_min"),
         ("toeflRequirement", "toefl_req"),
         ("gpaRequirement", "gpa_req"),
+        ("rankingYear", "ranking_year"),
     ]
 
     def explain(
