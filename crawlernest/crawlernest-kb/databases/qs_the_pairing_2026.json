@@ -220,6 +220,11 @@
   "the_id": "730295"
  },
  {
+  "qs_name": "Amity University - Rajasthan",
+  "the_name": "Amity University Rajasthan, Jaipur",
+  "the_id": "718346"
+ },
+ {
   "qs_name": "An-Najah National University",
   "the_name": "An-Najah National University",
   "the_id": "624453"
@@ -1260,11 +1265,6 @@
   "the_id": "621408"
  },
  {
-  "qs_name": "Federal Institute of Education, Science and Technology of Parana",
-  "the_name": "Federal Institute of Education, Science and Technology of São Paulo",
-  "the_id": "720726"
- },
- {
   "qs_name": "Federal University of Mato Grosso do Sul",
   "the_name": "Federal University of Mato Grosso do Sul",
   "the_id": "621771"
@@ -1886,8 +1886,8 @@
  },
  {
   "qs_name": "JSS Academy of Higher Education & Research",
-  "the_name": "KLE Academy of Higher Education and Research",
-  "the_id": "621678"
+  "the_name": "JSS Academy of Higher Education and Research",
+  "the_id": "587919"
  },
  {
   "qs_name": "Jadavpur University",
@@ -2161,13 +2161,13 @@
  },
  {
   "qs_name": "Kerman University of Medical Sciences",
-  "the_name": "Hormozgan University of Medical Sciences",
-  "the_id": "724836"
+  "the_name": "Kerman University of Medical Sciences",
+  "the_id": "622245"
  },
  {
   "qs_name": "Kermanshah University of Medical Sciences",
-  "the_name": "Mashhad University of Medical Sciences",
-  "the_id": "624726"
+  "the_name": "Kermanshah University of Medical Sciences",
+  "the_id": "622266"
  },
  {
   "qs_name": "Khalifa University",
@@ -3936,8 +3936,8 @@
  },
  {
   "qs_name": "Shahid Beheshti University of Medical Sciences (SBMU)",
-  "the_name": "Shahid Sadoughi University of Medical Sciences",
-  "the_id": "715399"
+  "the_name": "Shahid Beheshti University of Medical Sciences",
+  "the_id": "621396"
  },
  {
   "qs_name": "Shahid Chamran University of Ahvaz",
@@ -4446,8 +4446,8 @@
  },
  {
   "qs_name": "Tehran University of Medical Sciences",
-  "the_name": "Shiraz University of Medical Sciences",
-  "the_id": "641855"
+  "the_name": "Tehran University of Medical Sciences",
+  "the_id": "931"
  },
  {
   "qs_name": "Teikyo University",
@@ -6973,11 +6973,6 @@
   "qs_name": "University of Primorska",
   "the_name": "University of Primorska",
   "the_id": "661106"
- },
- {
-  "qs_name": "University of Rajasthan, Jaipur",
-  "the_name": "Amity University Rajasthan, Jaipur",
-  "the_id": "718346"
  },
  {
   "qs_name": "University of Rajshahi",
