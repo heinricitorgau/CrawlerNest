@@ -2,8 +2,15 @@
 
 Two facts about this release are load-bearing and were, until now, re-asserted
 independently by every caller that needed them: the warehouse holds ranking data
-for exactly one year, and QS is the only source ingested (see the repo
-``CLAUDE.md`` -- THE and ARWU exist in the schemas as null-valued keys).
+for exactly one year, and which sources are actually in it.
+
+The second fact changed and nothing noticed. QS was the only ingested source for
+most of this project's life, and a good deal of prose still says so -- the repo
+``CLAUDE.md`` among it. As of the 2026-09-04 ingest the warehouse also carries
+1,637 THE and 838 ARWU ranks for 2026. Coverage is partial and QS remains far the
+largest, but "QS only" is no longer a true thing to tell a user or a model, which
+is why :data:`DATASET_SOURCES` is read from here rather than written out wherever
+it is needed.
 
 Stating them here rather than in each service fixes the default-year drift. Each
 caller that needed a year picked its own: a literal ``2026`` in ``RankingQuery``,
@@ -29,7 +36,9 @@ from __future__ import annotations
 #: every generated explanation is pinned to it.
 DATASET_YEAR = 2026
 
-#: Ranking sources actually ingested. THE and ARWU appear throughout the
-#: schemas as planned sources carrying null data and are deliberately absent
-#: here -- this tuple is what is loaded, not what is anticipated.
-DATASET_SOURCES = ("QS",)
+#: Ranking sources actually ingested, largest coverage first. This tuple is what
+#: is loaded, not what is anticipated: a source belongs here once the warehouse
+#: holds ranks from it, and coverage being partial is not a reason to omit it --
+#: claiming a source is absent while the API serves its figures is the worse
+#: error of the two.
+DATASET_SOURCES = ("QS", "THE", "ARWU")

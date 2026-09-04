@@ -32,8 +32,6 @@ def run_all_tests():
     REPO_ROOT = ROOT.parent
     if str(REPO_ROOT) not in sys.path:
         sys.path.insert(0, str(REPO_ROOT))
-
-
     # Add the current directory (tests) to path too
     sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
     
@@ -99,6 +97,13 @@ def run_all_tests():
         # pytest) because a wrong default year is a warehouse-shaped bug, and
         # this is the runner the warehouse tests live in.
         "test_dataset_context",
+        # The ML read path's disclosure guard: estimates cannot leave
+        # ml_tools without isEstimated and the caveat, which is what keeps
+        # faith-105 catchable. Offline -- MlService is stubbed.
+        "test_ml_tools",
+        # The caveat strings agree across Python, Java, TypeScript and the
+        # explainability doc. Two of them had already drifted.
+        "test_caveat_contract",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.

@@ -79,10 +79,11 @@ goes back to being a constant.
 | Source has no rows | "&lt;Source&gt; data is not available. No university carries a rank from this source." |
 | Source covers part of the table | "&lt;Source&gt; covers N of M universities. A missing &lt;S&gt; rank means either that the &lt;S&gt; data ingested here does not include the university or that this platform could not match it — not that &lt;S&gt; does not rank it." |
 | Source covers the whole table | *(no caveat — there is nothing undisclosed)* |
-| Stale data | "QS ranking data was last ingested at RC-1 packaging (approximately 354 hours ago). Data may not reflect the current published rankings." |
+| Snapshot age | "QS ranking data is a point-in-time snapshot of the 2026 published tables. Figures may not reflect rankings republished since this snapshot was ingested." |
 | Single-year trends | "Year-over-year trend analysis requires data from multiple aggregation runs. Current data covers a single year — no rank delta is available." |
 | Incomplete subject coverage | "Subject ranking data is incomplete. Subject analytics are not available in this release." |
 | Response carries a modelled value | "Some values in this response are model estimates produced by CrawlerNest, not figures published by the ranking source. Estimated values are labelled as estimates, carry a support flag, and never replace a published rank." |
+| Response carries a disagreement probability | "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against." |
 
 ### Model estimates
 
@@ -105,10 +106,26 @@ Three rules govern them:
    supported estimate is one the model has seen comparable cases for; it is not
    a claim about the estimate's error.
 
-The caveat string has a single definition, `AnalyticsService.ESTIMATED_SCORE_CAVEAT`.
-`AnalyticsController` references that constant rather than repeating it, and
-`AnalyticsCaveatContractTest` reads this document and fails if the text here
-drifts from the code.
+The caveat string has a single definition per language:
+`AnalyticsService.ESTIMATED_SCORE_CAVEAT` (Java, referenced by
+`AnalyticsController` and `RecommendationEvidenceService` rather than repeated),
+`ESTIMATED_VALUE_CAVEAT` in `crawlernest/core/caveats.py` (Python), and
+`CAVEAT_MODEL_ESTIMATE` in `caveatMessages.ts` (frontend). Two tests hold them
+together: `AnalyticsCaveatContractTest` reads this document and fails if the text
+here drifts from the Java constant, and `test_caveat_contract.py` checks all four
+copies against each other.
+
+A disagreement probability carries a second caveat as well. The general one says
+a value is an estimate; it does not cover the specific misreading, which is that
+"0.99 disagreement" sounds like an observed conflict. Most universities the
+classifier scores carry no THE rank for anything to have conflicted with.
+
+The Python read path enforces the pairing structurally rather than by
+convention: `agent/tools/ml_tools.py` returns rows and caveats in one
+`EstimateEvidence` object and has no method that yields bare rows. Every row also
+keeps `isEstimated`, which is what arms the `estimate_credited_to_source` rule in
+`provenance.py` — golden case faith-105 is unfaithful in a way no faithfulness
+rule reaches, and that flag is the only reason it is caught.
 
 ### Caveat Delivery
 

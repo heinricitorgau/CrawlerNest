@@ -123,7 +123,7 @@ function SnapshotEvidenceSection({ items }: { items: SnapshotUniversity[] }) {
       ))}
       <div className="mt-2">
         <div className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b3a2b]">
-          RC-1 Data Caveats
+          Data Caveats
         </div>
         <ul className="space-y-0.5">
           {RC1_STANDARD_CAVEATS.map((c, i) => (

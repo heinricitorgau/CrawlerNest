@@ -455,7 +455,7 @@ export default function AnalyticsPage() {
                     </div>
                     {!available && (
                       <div className="mt-2 text-xs text-slate-500">
-                        Not available at RC-1.
+                        No ranks ingested from this source.
                       </div>
                     )}
                   </div>
@@ -473,7 +473,7 @@ export default function AnalyticsPage() {
         <section className="mb-8">
           <SectionHeader
             title="Operational Posture"
-            sub="System self-assessment: source availability, confidence distribution, and data posture at RC-1"
+            sub="System self-assessment: source coverage, confidence distribution, and data posture"
           />
           {disagreementState.status === "loading" && <LoadingBlock />}
           {disagreement && (
@@ -498,9 +498,10 @@ export default function AnalyticsPage() {
                   })}
                 </div>
                 <p className="mt-3 text-xs text-slate-500">
-                  THE and ARWU data are not available at RC-1. All universities in this dataset
-                  are QS-sourced only. Multi-source agreement analysis will improve when these
-                  sources are added.
+                  QS, THE and ARWU are all ingested, with partial coverage: most universities
+                  carry a QS rank and far fewer carry THE or ARWU. Where a university has only
+                  one source, no agreement analysis is possible for it. A missing rank is a gap
+                  in what was ingested and matched here, not the source declining to rank it.
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -523,7 +524,7 @@ export default function AnalyticsPage() {
         <section className="mb-8">
           <SectionHeader
             title="Analytics Caveats"
-            sub="Known data limitations at RC-1. Read before interpreting any analytics."
+            sub="Known data limitations. Read before interpreting any analytics."
           />
           {(trendsState.status === "loading" || disagreementState.status === "loading") && (
             <LoadingBlock />
