@@ -99,13 +99,25 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   to make output look better.
 - **No black-box scores.** Confidence is derived mechanically from source count
   (3 sources = high, 2 = medium, 1 = low). Do not set confidence manually.
-- Caveat strings are currently hardcoded in two places —
-  `clawer/service/AnalyticsService.java` and `clawer/api/AnalyticsController.java` —
-  and mirrored in the explainability doc. A change to one usually requires
-  changing all three.
-- Only the QS source is implemented (`crawlernest_ranking_crawler/sources/qs.py`).
-  THE and ARWU appear throughout schemas and configs as planned sources with
-  null data; code must handle their absence.
+- **Caveat strings have one definition per language, and a test that they
+  agree.** `crawlernest/core/caveats.py` (Python), `AnalyticsService` constants
+  (Java, referenced by `AnalyticsController` and `RecommendationEvidenceService`
+  rather than repeated), `crawlernest-web/src/lib/caveatMessages.ts` (frontend),
+  and `docs/analytics/ANALYTICS_EXPLAINABILITY.md` (prose). Change one and
+  `crawlernest-tests/test_caveat_contract.py` tells you which of the others
+  drifted — it matches exact substrings, so a reworded copy fails.
+- **The ranking crawler implements QS only**
+  (`crawlernest_ranking_crawler/sources/qs.py`), but the warehouse is no longer
+  QS-only: as of the 2026-09-04 ingest it carries 9,530 QS, 1,637 THE and 838
+  ARWU ranks for 2026. Coverage is partial, so code must still handle a missing
+  source rank — but as *our* gap, never as the source declining to rank. Read
+  the ingested set from `crawlernest/core/dataset.py:DATASET_SOURCES`; do not
+  write "QS only" into new code or copy.
+- Model estimates (`analytics.ml_predictions`, populated: 795 overall-score and
+  1,484 disagreement rows) are read through `crawlernest/core/services/ml_service.py`
+  and `crawlernest/agent/tools/ml_tools.py`. Every row keeps `isEstimated` —
+  that field, not the caveat text, is what arms the `estimate_credited_to_source`
+  provenance rule. Never surface a predicted value without it.
 
 ## Key docs
 

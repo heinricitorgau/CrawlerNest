@@ -49,6 +49,8 @@ jobs:
             crawlernest/crawlernest-tests/test_agent_api_explain.py \
             crawlernest/crawlernest-tests/test_ds4_comparison_and_plan_explainers.py \
             crawlernest/crawlernest-tests/test_dataset_context.py \
+            crawlernest/crawlernest-tests/test_ml_tools.py \
+            crawlernest/crawlernest-tests/test_caveat_contract.py \
             -q
 
       # Mechanical faithfulness eval over the golden dataset: verifies the

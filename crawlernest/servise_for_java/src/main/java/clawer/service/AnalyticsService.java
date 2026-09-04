@@ -45,6 +45,50 @@ public class AnalyticsService {
     public static final String ESTIMATED_SCORE_CAVEAT =
             "Some values in this response are model estimates produced by CrawlerNest, not figures published by the ranking source. Estimated values are labelled as estimates, carry a support flag, and never replace a published rank.";
 
+    /**
+     * Snapshot disclosure for the ranking data.
+     *
+     * Previously named an age -- "last ingested at RC-1 packaging (approximately
+     * 354 hours ago)" -- which was accurate when written and overstated the data's
+     * age by roughly two weeks once the 2026 re-crawl landed on 2026-09-04. An age
+     * written into a constant is a disclosure with an expiry date, so this states
+     * that the data is a snapshot without claiming a distance from it.
+     */
+    public static final String SNAPSHOT_CAVEAT =
+            "QS ranking data is a point-in-time snapshot of the 2026 published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
+
+    /**
+     * Per-source coverage disclosures, for callers that need them as constants.
+     *
+     * {@link #appendSourceCoverageCaveats} remains the preferred path because it
+     * counts the warehouse rather than asserting a shape. These exist for the
+     * surfaces that cannot run a query -- the frontend's caveatMessages.ts mirrors
+     * them, and Python's crawlernest/core/caveats.py holds the third copy.
+     *
+     * Both previously said the source "is not available at RC-1", which stopped
+     * being true when THE (1,637 ranks) and ARWU (838) were ingested for 2026.
+     */
+    public static final String THE_PARTIAL_CAVEAT =
+            "THE (Times Higher Education) covers part of this dataset. A missing THE rank means either that the THE data ingested here does not include the university or that this platform could not match it. It does not mean THE declines to rank it.";
+
+    public static final String ARWU_PARTIAL_CAVEAT =
+            "ARWU (Academic Ranking of World Universities) covers part of this dataset. A missing ARWU rank means either that the ARWU data ingested here does not include the university or that this platform could not match it. It does not mean ARWU declines to rank it.";
+
+    /** The set every recommendation and analytics surface carries. */
+    public static final List<String> STANDARD_CAVEATS =
+            List.of(SNAPSHOT_CAVEAT, THE_PARTIAL_CAVEAT, ARWU_PARTIAL_CAVEAT);
+
+    /**
+     * Disclosure for a surfaced disagreement probability.
+     *
+     * Separate from {@link #ESTIMATED_SCORE_CAVEAT} because that one does not
+     * cover the likeliest misreading: "0.99 disagreement" reads as a measured
+     * conflict, and most universities the classifier scores carry no THE rank for
+     * anything to have conflicted with.
+     */
+    public static final String DISAGREEMENT_ESTIMATE_CAVEAT =
+            "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against.";
+
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
 
@@ -456,7 +500,7 @@ public class AnalyticsService {
     private List<String> buildTrendCaveats(boolean singleYear, boolean noData, boolean containsModelEstimates) {
         List<String> caveats = new ArrayList<>();
         appendSourceCoverageCaveats(caveats);
-        caveats.add("QS ranking data was last ingested at RC-1 packaging. Data may not reflect the current published rankings.");
+        caveats.add(SNAPSHOT_CAVEAT);
         if (singleYear && !noData) {
             caveats.add("Year-over-year trend analysis requires data from multiple aggregation runs. Current coverage is a single year — no rank delta is available.");
         }
@@ -476,10 +520,12 @@ public class AnalyticsService {
      * figures, and a caveat that appears when it does not apply teaches readers
      * to skip the caveats array.
      *
-     * Today every caller passes {@code false}: {@code analytics.ml_predictions}
-     * does not exist yet, so no endpoint can carry an estimate. The flag flips
-     * where estimates are joined in, and the contract and its tests are in place
-     * before the first estimate can reach a response rather than after.
+     * {@code analytics.ml_predictions} is populated as of the 2026-09-04 run --
+     * 795 overall-score estimates and 1,484 disagreement probabilities -- so the
+     * flag is now reachable rather than hypothetical. Callers that join an
+     * estimate in must pass {@code true}; the Python read path in
+     * {@code agent/tools/ml_tools.py} enforces the same pairing structurally, by
+     * returning the caveats with the rows rather than beside them.
      */
     public static void appendModelEstimateCaveat(List<String> caveats, boolean containsModelEstimates) {
         if (containsModelEstimates) {

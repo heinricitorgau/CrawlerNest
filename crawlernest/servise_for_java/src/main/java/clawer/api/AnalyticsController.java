@@ -52,8 +52,8 @@ public class AnalyticsController {
      * data with rank_delta = null and single_year_only = true.
      *
      * Caveats are always included in the response metadata:
-     * - THE and ARWU unavailable at RC-1
-     * - QS data stale since RC-1 packaging
+     * - per-source coverage, counted from the warehouse rather than asserted
+     * - the ranking data is a point-in-time snapshot
      * - Single-year limitation when applicable
      */
     @GetMapping("/ranking-trends")
@@ -104,7 +104,7 @@ public class AnalyticsController {
         // written and false the day THE was ingested for part of the table.
         List<String> caveats = new ArrayList<>();
         analyticsService.appendSourceCoverageCaveats(caveats);
-        caveats.add("QS ranking data was last ingested at RC-1 packaging. Data may not reflect the current published rankings.");
+        caveats.add(AnalyticsService.SNAPSHOT_CAVEAT);
         caveats.add("Disagreement is only measurable where two or more sources rank the same university. Single-source rows carry no disagreement signal rather than a zero one.");
 
         // Disagreement diagnostics are computed from published ranks only. When

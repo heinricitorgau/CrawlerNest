@@ -39,8 +39,9 @@ def build_dataset_header() -> str:
     return "\n".join(
         (
             f"Dataset year: the warehouse holds {DATASET_YEAR} ranking data and no other year.",
-            f"Ingested sources: {', '.join(DATASET_SOURCES)}. Any other source is a "
-            "null-valued key, not a figure.",
+            f"Ingested sources: {', '.join(DATASET_SOURCES)}, with partial coverage. A "
+            "university missing a rank from one of them is missing it here; that is not "
+            "the source declining to rank it.",
             "This is a single-year snapshot. Inferring any cross-year trend, movement, "
             "improvement or decline from it is forbidden.",
         )

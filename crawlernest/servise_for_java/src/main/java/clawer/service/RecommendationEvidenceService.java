@@ -22,11 +22,12 @@ public class RecommendationEvidenceService {
 
     private static final List<String> SOURCES = List.of("QS", "THE", "ARWU");
 
-    private static final List<String> RC1_STANDARD_CAVEATS = List.of(
-            "QS ranking data was last ingested at RC-1 packaging. Data may not reflect the current published rankings.",
-            "THE (Times Higher Education) data is not available at RC-1. Rankings reflect QS source only.",
-            "ARWU (Academic Ranking of World Universities) data is not available at RC-1. Rankings reflect QS source only."
-    );
+    /**
+     * One definition, in AnalyticsService. This used to be a third copy of the
+     * same three strings and had drifted: it still said THE and ARWU were
+     * unavailable after both were ingested for 2026.
+     */
+    private static final List<String> STANDARD_CAVEATS = AnalyticsService.STANDARD_CAVEATS;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -53,7 +54,7 @@ public class RecommendationEvidenceService {
         int sourceCount = (int) sourceCoverage.get("source_count");
         Map<String, Object> confidenceEvidence = buildConfidenceEvidence(ranking, ieltsEvidence, sourceCount);
 
-        List<String> caveats = new ArrayList<>(RC1_STANDARD_CAVEATS);
+        List<String> caveats = new ArrayList<>(STANDARD_CAVEATS);
         if (Boolean.TRUE.equals(ieltsEvidence.get("ielts_min_missing"))) {
             caveats.add("No IELTS requirement was found in stored admission data for this university. Language fit cannot be assessed.");
         }
@@ -75,7 +76,7 @@ public class RecommendationEvidenceService {
             if (Boolean.FALSE.equals(subjectEvidence.get("has_data"))) {
                 caveats.add("No subject ranking row was found for this university and subject. A neutral fallback was applied.");
             }
-            caveats.add("Subject rankings are QS-sourced only at RC-1. THE and ARWU subject data is not available.");
+            caveats.add("Subject rankings are QS-sourced only. THE and ARWU subject data is not available.");
         }
 
         response.put("caveats", caveats);
