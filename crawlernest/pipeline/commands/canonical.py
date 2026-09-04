@@ -23,7 +23,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Sequence
 
 try:
     from pipeline.bootstrap import resolve_repo_paths
@@ -462,7 +462,21 @@ def seed_canonical_from_missing_entities(
     pg_database: Optional[str],
     pg_user: Optional[str],
     pg_password: Optional[str],
+    exclude_ranking_types: Optional[Sequence[str]] = None,
 ) -> dict[str, Any]:
+    """Promote unresolved source names into canonical universities.
+
+    ``ranking_year`` narrows the log to one edition. It used to be accepted and
+    then ignored, which meant asking for 2026 seeded every name the source had
+    ever failed to resolve, including editions since withdrawn.
+
+    ``exclude_ranking_types`` keeps universes out of the seed whose rows are not
+    universities. ``special:mba`` is the case that forces this to exist: QS's
+    MBA table lists business schools -- Bayes, Aston, Alberta School of Business
+    -- alongside the universities that own them, and every one it cannot resolve
+    would otherwise become a canonical *university* and surface as one through
+    /api/v1/rankings.
+    """
     conn = _connect_postgres(pg_host, pg_port, pg_database, pg_user, pg_password)
     seeded = 0
     skipped = 0
@@ -475,15 +489,18 @@ def seed_canonical_from_missing_entities(
 
     try:
         with conn.cursor() as cur:
+            excluded = [str(t).strip() for t in (exclude_ranking_types or []) if str(t).strip()]
             cur.execute(
                 """
                 SELECT DISTINCT raw_name, country_hint
                 FROM analytics.missing_entity_log
                 WHERE source_code = %s
+                  AND ranking_year = %s
                   AND COALESCE(raw_name, '') <> ''
+                  AND (%s::text[] IS NULL OR NOT (ranking_type = ANY(%s::text[])))
                 ORDER BY raw_name ASC, country_hint ASC NULLS LAST
                 """,
-                (source_code,),
+                (source_code, ranking_year, excluded or None, excluded or None),
             )
             missing_rows = cur.fetchall()
 
@@ -1157,6 +1174,7 @@ def _cmd_seed_canonical_from_missing(args: argparse.Namespace) -> int:
         pg_database=args.pg_database,
         pg_user=args.pg_user,
         pg_password=args.pg_password,
+        exclude_ranking_types=getattr(args, "exclude_universe", None),
     )
     print(
         f"[seed-canonical-from-missing] seeded={summary['seeded']} "
