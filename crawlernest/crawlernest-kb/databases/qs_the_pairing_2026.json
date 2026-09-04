@@ -1,5 +1,10 @@
 [
  {
+  "qs_name": "\"Dunarea de Jos\" University of Galati",
+  "the_name": "Dunarea de Jos University of Galati",
+  "the_id": "691291"
+ },
+ {
   "qs_name": "AGH University of Krakow",
   "the_name": "AGH University of Krakow",
   "the_id": "131429"
@@ -20,6 +25,16 @@
   "the_id": "589"
  },
  {
+  "qs_name": "Abdul Wali Khan University Mardan",
+  "the_name": "Abdul Wali Khan University Mardan",
+  "the_id": "693130"
+ },
+ {
+  "qs_name": "Abdullah Gül University",
+  "the_name": "Abdullah Gül University",
+  "the_id": "587745"
+ },
+ {
   "qs_name": "Aberystwyth University",
   "the_name": "Aberystwyth University",
   "the_id": "741"
@@ -30,9 +45,19 @@
   "the_id": "589115"
  },
  {
+  "qs_name": "Acharya Nagarjuna University",
+  "the_name": "Acharya Nagarjuna University",
+  "the_id": "587874"
+ },
+ {
   "qs_name": "Adam Mickiewicz University, Poznań",
   "the_name": "Adam Mickiewicz University, Poznań",
   "the_id": "131738"
+ },
+ {
+  "qs_name": "Ahmadu Bello University, Zaria",
+  "the_name": "Ahmadu Bello University",
+  "the_id": "707846"
  },
  {
   "qs_name": "Ain Shams University in Cairo (ASU, Cairo)",
@@ -50,9 +75,39 @@
   "the_id": "131532"
  },
  {
+  "qs_name": "Akita University",
+  "the_name": "Akita University",
+  "the_id": "609471"
+ },
+ {
+  "qs_name": "Aksaray University",
+  "the_name": "Aksaray University",
+  "the_id": "624789"
+ },
+ {
   "qs_name": "Al Ain University",
   "the_name": "Al Ain University",
   "the_id": "700574"
+ },
+ {
+  "qs_name": "Al Baha University",
+  "the_name": "Al-Baha University",
+  "the_id": "709412"
+ },
+ {
+  "qs_name": "Al Furat Al Awsat Technical University",
+  "the_name": "Al-Furat Al-Awsat Technical University",
+  "the_id": "675459"
+ },
+ {
+  "qs_name": "Al Nahrain University",
+  "the_name": "Al-Nahrain University",
+  "the_id": "696559"
+ },
+ {
+  "qs_name": "Al al-Bayt University",
+  "the_name": "Al al-Bayt University",
+  "the_id": "715804"
  },
  {
   "qs_name": "Al-Ahliyya Amman University",
@@ -75,9 +130,24 @@
   "the_id": "131293"
  },
  {
+  "qs_name": "Al-Hussein bin Talal University",
+  "the_name": "Al-Hussein Bin Talal University",
+  "the_id": "710704"
+ },
+ {
+  "qs_name": "Al-Muthanna University",
+  "the_name": "Al-Muthanna University",
+  "the_id": "622839"
+ },
+ {
   "qs_name": "Al-Quds University",
   "the_name": "Al-Quds University",
   "the_id": "623568"
+ },
+ {
+  "qs_name": "Al-Zaytoonah University of Jordan",
+  "the_name": "Al-Zaytoonah University of Jordan",
+  "the_id": "626193"
  },
  {
   "qs_name": "Albert-Ludwigs-Universitaet Freiburg",
@@ -105,9 +175,24 @@
   "the_id": "980"
  },
  {
+  "qs_name": "Allameh Tabataba'i University",
+  "the_name": "Allameh Tabataba ’i University",
+  "the_id": "131542"
+ },
+ {
   "qs_name": "Altai State University",
   "the_name": "Altai State University",
   "the_id": "587730"
+ },
+ {
+  "qs_name": "Alzahra University",
+  "the_name": "Alzahra University",
+  "the_id": "622260"
+ },
+ {
+  "qs_name": "American International University-Bangladesh (AIUB)",
+  "the_name": "American International University – Bangladesh",
+  "the_id": "715558"
  },
  {
   "qs_name": "American University",
@@ -130,6 +215,11 @@
   "the_id": "131497"
  },
  {
+  "qs_name": "Amity University - Kolkata",
+  "the_name": "Amity University - Kolkata",
+  "the_id": "730295"
+ },
+ {
   "qs_name": "An-Najah National University",
   "the_name": "An-Najah National University",
   "the_id": "624453"
@@ -138,6 +228,21 @@
   "qs_name": "Anadolu University",
   "the_name": "Anadolu University",
   "the_id": "131583"
+ },
+ {
+  "qs_name": "Anglia Ruskin University",
+  "the_name": "Anglia Ruskin University (ARU)",
+  "the_id": "131623"
+ },
+ {
+  "qs_name": "Anhui University",
+  "the_name": "Anhui University",
+  "the_id": "623325"
+ },
+ {
+  "qs_name": "Ankara Yildirim Beyazit University",
+  "the_name": "Ankara Yildirim Beyazit University",
+  "the_id": "715420"
  },
  {
   "qs_name": "Anna University",
@@ -158,6 +263,16 @@
   "qs_name": "Arab Academy for Science, Technology and Maritime Transport (AASTMT)",
   "the_name": "Arab Academy for Science, Technology and Maritime Transport",
   "the_id": "704825"
+ },
+ {
+  "qs_name": "Arabian Gulf University",
+  "the_name": "Arabian Gulf University",
+  "the_id": "131792"
+ },
+ {
+  "qs_name": "Arak University",
+  "the_name": "Arak University",
+  "the_id": "622269"
  },
  {
   "qs_name": "Aristotle University of Thessaloniki",
@@ -185,6 +300,11 @@
   "the_id": "816"
  },
  {
+  "qs_name": "Aswan University",
+  "the_name": "Aswan University",
+  "the_id": "644084"
+ },
+ {
   "qs_name": "Ataturk University",
   "the_name": "Atatürk University",
   "the_id": "624942"
@@ -203,6 +323,11 @@
   "qs_name": "Atma Jaya Catholic University of Indonesia",
   "the_name": "Atma Jaya Catholic University of Indonesia",
   "the_id": "718676"
+ },
+ {
+  "qs_name": "Atılım University",
+  "the_name": "Atılım University",
+  "the_id": "131628"
  },
  {
   "qs_name": "Auburn University",
@@ -225,6 +350,11 @@
   "the_id": "502"
  },
  {
+  "qs_name": "Azarbaijan Shahid Madani University (ASMU)",
+  "the_name": "Azarbaijan Shahid Madani University",
+  "the_id": "644540"
+ },
+ {
   "qs_name": "Azerbaijan State Oil and Industry University",
   "the_name": "Azerbaijan State Oil and Industry University",
   "the_id": "670611"
@@ -233,6 +363,21 @@
   "qs_name": "Azerbaijan State University of Economics",
   "the_name": "Azerbaijan State University of Economics",
   "the_id": "647939"
+ },
+ {
+  "qs_name": "Azerbaijan Technical University",
+  "the_name": "Azerbaijan Technical University (AzTU)",
+  "the_id": "710321"
+ },
+ {
+  "qs_name": "B.S. Abdur Rahman Crescent Institute of Science & Technology",
+  "the_name": "B. S. Abdur Rahman Crescent Institute of Science and Technology",
+  "the_id": "670524"
+ },
+ {
+  "qs_name": "BNUT - Babol Noshirvani University of Technology",
+  "the_name": "Babol Noshirvani University of Technology",
+  "the_id": "621564"
  },
  {
   "qs_name": "BRAC University",
@@ -245,9 +390,19 @@
   "the_id": "131789"
  },
  {
+  "qs_name": "Badji Mokhtar-Annaba University",
+  "the_name": "Badji Mokhtar University – Annaba",
+  "the_id": "648725"
+ },
+ {
   "qs_name": "Bahauddin Zakariya University",
   "the_name": "Bahauddin Zakariya University",
   "the_id": "587643"
+ },
+ {
+  "qs_name": "Bahçesehir University",
+  "the_name": "Bahçeşehir University",
+  "the_id": "131573"
  },
  {
   "qs_name": "Baku State University",
@@ -255,9 +410,19 @@
   "the_id": "131448"
  },
  {
+  "qs_name": "Balochistan University of Information Technology, Engineering and Management Sciences (BUITEMS)",
+  "the_name": "Balochistan University of Information Technology, Engineering and Management Sciences (BUITEMS)",
+  "the_id": "131607"
+ },
+ {
   "qs_name": "Banaras Hindu University",
   "the_name": "Banaras Hindu University",
   "the_id": "623298"
+ },
+ {
+  "qs_name": "Bangladesh Agricultural University",
+  "the_name": "Bangladesh Agricultural University (BAU)",
+  "the_id": "673872"
  },
  {
   "qs_name": "Bangladesh University of Engineering and Technology",
@@ -325,6 +490,26 @@
   "the_id": "131328"
  },
  {
+  "qs_name": "Beni-Suef University",
+  "the_name": "Beni-Suef University",
+  "the_id": "131552"
+ },
+ {
+  "qs_name": "Bharathiar University",
+  "the_name": "Bharathiar University",
+  "the_id": "624435"
+ },
+ {
+  "qs_name": "Bharathidasan University",
+  "the_name": "Bharathidasan University",
+  "the_id": "624273"
+ },
+ {
+  "qs_name": "Bialystok University of Technology",
+  "the_name": "Bialystok University of Technology",
+  "the_id": "660944"
+ },
+ {
   "qs_name": "Bilkent University",
   "the_name": "Bilkent University",
   "the_id": "668"
@@ -345,9 +530,19 @@
   "the_id": "131761"
  },
  {
+  "qs_name": "Birla Institute of Technology, Ranchi",
+  "the_name": "Birla Institute of Technology",
+  "the_id": "621675"
+ },
+ {
   "qs_name": "Birmingham City University",
   "the_name": "Birmingham City University",
   "the_id": "131612"
+ },
+ {
+  "qs_name": "Bogomolets National Medical University",
+  "the_name": "Bogomolets National Medical University",
+  "the_id": "730192"
  },
  {
   "qs_name": "Bond University",
@@ -368,6 +563,11 @@
   "qs_name": "Bournemouth University",
   "the_name": "Bournemouth University",
   "the_id": "131397"
+ },
+ {
+  "qs_name": "Boğaziçi University",
+  "the_name": "Boğaziçi University",
+  "the_id": "772"
  },
  {
   "qs_name": "Brandeis University",
@@ -400,9 +600,39 @@
   "the_id": "719"
  },
  {
+  "qs_name": "Bu Ali Sina University",
+  "the_name": "Bu-Ali Sina University",
+  "the_id": "624336"
+ },
+ {
+  "qs_name": "Bucharest University of Economic Studies",
+  "the_name": "Bucharest University of Economic Studies",
+  "the_id": "632463"
+ },
+ {
   "qs_name": "Budapest University of Technology and Economics",
   "the_name": "Budapest University of Technology and Economics",
   "the_id": "131330"
+ },
+ {
+  "qs_name": "Burapha University",
+  "the_name": "Burapha University",
+  "the_id": "623172"
+ },
+ {
+  "qs_name": "Burdur Mehmet Akif Ersoy University",
+  "the_name": "Burdur Mehmet Akif Ersoy University",
+  "the_id": "670377"
+ },
+ {
+  "qs_name": "Bursa Technical University",
+  "the_name": "Bursa Technical University",
+  "the_id": "710327"
+ },
+ {
+  "qs_name": "Bursa Uludağ University",
+  "the_name": "Bursa Uludağ University",
+  "the_id": "624633"
  },
  {
   "qs_name": "CEU Universities",
@@ -440,6 +670,21 @@
   "the_id": "131578"
  },
  {
+  "qs_name": "Capital Medical University",
+  "the_name": "Capital Medical University",
+  "the_id": "131688"
+ },
+ {
+  "qs_name": "Capital University of Science and Technology Islamabad",
+  "the_name": "Capital University of Science and Technology",
+  "the_id": "692890"
+ },
+ {
+  "qs_name": "Cardiff Metropolitan University",
+  "the_name": "Cardiff Metropolitan University",
+  "the_id": "131715"
+ },
+ {
   "qs_name": "Cardiff University",
   "the_name": "Cardiff University",
   "the_id": "671"
@@ -465,6 +710,11 @@
   "the_id": "131466"
  },
  {
+  "qs_name": "Central European University",
+  "the_name": "Central European University",
+  "the_id": "1035"
+ },
+ {
   "qs_name": "Central Michigan University",
   "the_name": "Central Michigan University",
   "the_id": "593036"
@@ -480,6 +730,11 @@
   "the_id": "589367"
  },
  {
+  "qs_name": "Central University of Haryana",
+  "the_name": "Central University of Haryana",
+  "the_id": "734714"
+ },
+ {
   "qs_name": "Chalmers University of Technology",
   "the_name": "Chalmers University of Technology",
   "the_id": "695"
@@ -490,9 +745,24 @@
   "the_id": "992"
  },
  {
+  "qs_name": "Chang'an University",
+  "the_name": "Chang’an University",
+  "the_id": "643160"
+ },
+ {
+  "qs_name": "Changzhou University",
+  "the_name": "Changzhou University",
+  "the_id": "624948"
+ },
+ {
   "qs_name": "Chaoyang University of Technology",
   "the_name": "Chaoyang University of Technology",
   "the_id": "131639"
+ },
+ {
+  "qs_name": "Charité - Universitätsmedizin Berlin",
+  "the_name": "Charité - Universitätsmedizin Berlin",
+  "the_id": "131692"
  },
  {
   "qs_name": "Charles Darwin University",
@@ -510,6 +780,16 @@
   "the_id": "799"
  },
  {
+  "qs_name": "Chaudhary Charan Singh University, Meerut",
+  "the_name": "Chaudhary Charan Singh University - Meerut",
+  "the_id": "726489"
+ },
+ {
+  "qs_name": "Chengdu University",
+  "the_name": "Chengdu University",
+  "the_id": "622899"
+ },
+ {
   "qs_name": "Chiang Mai University",
   "the_name": "Chiang Mai University",
   "the_id": "997"
@@ -520,9 +800,24 @@
   "the_id": "937"
  },
  {
+  "qs_name": "China Medical University",
+  "the_name": "China Medical University, Taiwan",
+  "the_id": "933"
+ },
+ {
+  "qs_name": "China Pharmaceutical University",
+  "the_name": "China Pharmaceutical University",
+  "the_id": "624234"
+ },
+ {
   "qs_name": "China University of Petroleum, Beijing",
   "the_name": "China University of Petroleum, Beijing",
   "the_id": "131744"
+ },
+ {
+  "qs_name": "Chinese Culture University",
+  "the_name": "Chinese Culture University",
+  "the_id": "623859"
  },
  {
   "qs_name": "Chitkara University",
@@ -543,6 +838,11 @@
   "qs_name": "Chonnam National University",
   "the_name": "Chonnam National University",
   "the_id": "131702"
+ },
+ {
+  "qs_name": "Chosun University",
+  "the_name": "Chosun University",
+  "the_id": "623973"
  },
  {
   "qs_name": "Chulalongkorn University",
@@ -570,9 +870,24 @@
   "the_id": "131405"
  },
  {
+  "qs_name": "Chuo University",
+  "the_name": "Chuo University",
+  "the_id": "589244"
+ },
+ {
+  "qs_name": "City St George’s, University of London",
+  "the_name": "City St George's, University of London",
+  "the_id": "733856"
+ },
+ {
   "qs_name": "City University of Hong Kong (CityUHK)",
   "the_name": "City University of Hong Kong",
   "the_id": "657"
+ },
+ {
+  "qs_name": "City University of Macau",
+  "the_name": "City University of Macau",
+  "the_id": "724703"
  },
  {
   "qs_name": "Clark University",
@@ -583,6 +898,11 @@
   "qs_name": "Clarkson University",
   "the_name": "Clarkson University",
   "the_id": "593486"
+ },
+ {
+  "qs_name": "Cochin University of Science and Technology",
+  "the_name": "Cochin University of Science and Technology",
+  "the_id": "131318"
  },
  {
   "qs_name": "Colorado School of Mines",
@@ -598,6 +918,11 @@
   "qs_name": "Comenius University Bratislava",
   "the_name": "Comenius University Bratislava",
   "the_id": "131488"
+ },
+ {
+  "qs_name": "Communication University of China",
+  "the_name": "Communication University of China",
+  "the_id": "625068"
  },
  {
   "qs_name": "Complutense University of Madrid",
@@ -635,6 +960,11 @@
   "the_id": "821"
  },
  {
+  "qs_name": "Cyprus University of Technology",
+  "the_name": "Cyprus University of Technology",
+  "the_id": "131619"
+ },
+ {
   "qs_name": "Czech Technical University in Prague",
   "the_name": "Czech Technical University in Prague",
   "the_id": "131322"
@@ -643,6 +973,11 @@
   "qs_name": "Czech University of Life Sciences in Prague",
   "the_name": "Czech University of Life Sciences Prague (CZU)",
   "the_id": "587883"
+ },
+ {
+  "qs_name": "DIT University",
+  "the_name": "DIT University",
+  "the_id": "624909"
  },
  {
   "qs_name": "Daegu Gyeongbuk Institute of Science and Technology (DGIST)",
@@ -665,9 +1000,19 @@
   "the_id": "941"
  },
  {
+  "qs_name": "Damanhour University",
+  "the_name": "Damanhour University",
+  "the_id": "709718"
+ },
+ {
   "qs_name": "Damascus University",
   "the_name": "Damascus University",
   "the_id": "709682"
+ },
+ {
+  "qs_name": "Damietta University",
+  "the_name": "Damietta University",
+  "the_id": "646151"
  },
  {
   "qs_name": "Dankook University",
@@ -700,9 +1045,34 @@
   "the_id": "568"
  },
  {
+  "qs_name": "Delhi Technological University",
+  "the_name": "Delhi Technological University",
+  "the_id": "655115"
+ },
+ {
+  "qs_name": "Delta University for Science and Technology",
+  "the_name": "Delta University for Science and Technology",
+  "the_id": "703538"
+ },
+ {
+  "qs_name": "Democritus University of Thrace (DUTH)",
+  "the_name": "Democritus University of Thrace",
+  "the_id": "623433"
+ },
+ {
+  "qs_name": "Dhofar University",
+  "the_name": "Dhofar University",
+  "the_id": "709457"
+ },
+ {
   "qs_name": "Diponegoro University",
   "the_name": "Diponegoro University",
   "the_id": "589100"
+ },
+ {
+  "qs_name": "Dnipro University of Technology",
+  "the_name": "Dnipro University of Technology",
+  "the_id": "730612"
  },
  {
   "qs_name": "Don State Technical University",
@@ -718,6 +1088,21 @@
   "qs_name": "Doshisha University",
   "the_name": "Doshisha University",
   "the_id": "589211"
+ },
+ {
+  "qs_name": "Dow University of Health Sciences",
+  "the_name": "Dow University of Health Sciences",
+  "the_id": "623523"
+ },
+ {
+  "qs_name": "Dr B R Ambedkar National Institute of Technology Jalandhar",
+  "the_name": "Dr B.R. Ambedkar National Institute of Technology Jalandhar",
+  "the_id": "707725"
+ },
+ {
+  "qs_name": "Dr. M. G. R. Educational and Research Institute",
+  "the_name": "Dr. M.G.R. Educational and Research Institute",
+  "the_id": "624969"
  },
  {
   "qs_name": "Drexel University",
@@ -743,6 +1128,11 @@
   "qs_name": "Duy Tan University",
   "the_name": "Duy Tan University",
   "the_id": "670449"
+ },
+ {
+  "qs_name": "Duzce University",
+  "the_name": "Duzce University",
+  "the_id": "622842"
  },
  {
   "qs_name": "EGE UNIVERSITY",
@@ -780,6 +1170,11 @@
   "the_id": "587619"
  },
  {
+  "qs_name": "Edge Hill University",
+  "the_name": "Edge Hill University",
+  "the_id": "131691"
+ },
+ {
   "qs_name": "Edinburgh Napier University",
   "the_name": "Edinburgh Napier University",
   "the_id": "131529"
@@ -790,6 +1185,16 @@
   "the_id": "922"
  },
  {
+  "qs_name": "Egypt Japan University of Science & Technology",
+  "the_name": "Egypt-Japan University of Science and Technology (E-JUST)",
+  "the_id": "685084"
+ },
+ {
+  "qs_name": "Ehime University",
+  "the_name": "Ehime University",
+  "the_id": "131814"
+ },
+ {
   "qs_name": "Eindhoven University of Technology",
   "the_name": "Eindhoven University of Technology",
   "the_id": "579"
@@ -798,6 +1203,11 @@
   "qs_name": "Emory University",
   "the_name": "Emory University",
   "the_id": "539"
+ },
+ {
+  "qs_name": "Empress Catherine II Saint Petersburg Mining University",
+  "the_name": "Empress Catherine II Saint Petersburg Mining University",
+  "the_id": "131618"
  },
  {
   "qs_name": "Erasmus University Rotterdam",
@@ -820,6 +1230,11 @@
   "the_id": "624540"
  },
  {
+  "qs_name": "Eskisehir Technical University",
+  "the_name": "Eskişehir Technical University",
+  "the_id": "709538"
+ },
+ {
   "qs_name": "Essex, University of",
   "the_name": "University of Essex",
   "the_id": "674"
@@ -840,9 +1255,34 @@
   "the_id": "131577"
  },
  {
+  "qs_name": "Fayoum University",
+  "the_name": "Fayoum University",
+  "the_id": "621408"
+ },
+ {
+  "qs_name": "Federal Institute of Education, Science and Technology of Parana",
+  "the_name": "Federal Institute of Education, Science and Technology of São Paulo",
+  "the_id": "720726"
+ },
+ {
+  "qs_name": "Federal University of Mato Grosso do Sul",
+  "the_name": "Federal University of Mato Grosso do Sul",
+  "the_id": "621771"
+ },
+ {
   "qs_name": "Federal University of Minas Gerais (UFMG)",
   "the_name": "Federal University of Minas Gerais",
   "the_id": "131770"
+ },
+ {
+  "qs_name": "Federal University of Technology, Minna",
+  "the_name": "Federal University of Technology, Minna",
+  "the_id": "718263"
+ },
+ {
+  "qs_name": "Federation University Australia",
+  "the_name": "Federation University Australia",
+  "the_id": "648719"
  },
  {
   "qs_name": "Feng Chia University",
@@ -890,9 +1330,34 @@
   "the_id": "700"
  },
  {
+  "qs_name": "Fujian Agriculture and Forestry University",
+  "the_name": "Fujian Agriculture and Forestry University",
+  "the_id": "624978"
+ },
+ {
   "qs_name": "Future University in Egypt",
   "the_name": "Future University in Egypt",
   "the_id": "699268"
+ },
+ {
+  "qs_name": "Fuzhou University",
+  "the_name": "Fuzhou University",
+  "the_id": "624006"
+ },
+ {
+  "qs_name": "Fırat University",
+  "the_name": "Firat University",
+  "the_id": "624366"
+ },
+ {
+  "qs_name": "GLA University",
+  "the_name": "GLA University",
+  "the_id": "719262"
+ },
+ {
+  "qs_name": "Gachon University",
+  "the_name": "Gachon University",
+  "the_id": "624927"
  },
  {
   "qs_name": "Gadjah Mada University",
@@ -900,14 +1365,29 @@
   "the_id": "623652"
  },
  {
+  "qs_name": "Galgotias University",
+  "the_name": "Galgotias University",
+  "the_id": "623811"
+ },
+ {
   "qs_name": "Gdańsk University of Technology",
   "the_name": "Gdańsk University of Technology",
   "the_id": "131337"
  },
  {
+  "qs_name": "Gdynia Maritime University",
+  "the_name": "Gdynia Maritime University",
+  "the_id": "661043"
+ },
+ {
   "qs_name": "Gebze Technical University (GTU)",
   "the_name": "Gebze Technical University",
   "the_id": "624369"
+ },
+ {
+  "qs_name": "George Emil Palade University of Medicine, Pharmacy, Science, and Technology of Targu Mures",
+  "the_name": "George Emil Palade University of Medicine, Pharmacy, Science, and Technology of Targu Mures",
+  "the_id": "676605"
  },
  {
   "qs_name": "George Mason University",
@@ -950,6 +1430,11 @@
   "the_id": "570"
  },
  {
+  "qs_name": "Ghulam Ishaq Khan (GIK), Institute of Engineering Sciences and Technology",
+  "the_name": "Ghulam Ishaq Khan Institute of Engineering Sciences and Technology",
+  "the_id": "131654"
+ },
+ {
   "qs_name": "Gifu University",
   "the_name": "Gifu University",
   "the_id": "131324"
@@ -958,6 +1443,11 @@
   "qs_name": "Glasgow Caledonian University",
   "the_name": "Glasgow Caledonian University",
   "the_id": "131275"
+ },
+ {
+  "qs_name": "Goa University",
+  "the_name": "Goa University",
+  "the_id": "719220"
  },
  {
   "qs_name": "Goethe-University Frankfurt am Main",
@@ -970,6 +1460,16 @@
   "the_id": "131449"
  },
  {
+  "qs_name": "Government College University Lahore",
+  "the_name": "Government College University Lahore",
+  "the_id": "624462"
+ },
+ {
+  "qs_name": "Government College University, Faisalabad",
+  "the_name": "Government College University Faisalabad",
+  "the_id": "692167"
+ },
+ {
   "qs_name": "Graz University of Technology",
   "the_name": "Graz University of Technology",
   "the_id": "131362"
@@ -980,9 +1480,24 @@
   "the_id": "825"
  },
  {
+  "qs_name": "Guangdong University of Technology",
+  "the_name": "Guangdong University of Technology",
+  "the_id": "672264"
+ },
+ {
+  "qs_name": "Guangxi Normal University",
+  "the_name": "Guangxi Normal University",
+  "the_id": "623151"
+ },
+ {
   "qs_name": "Gunma University",
   "the_name": "Gunma University",
   "the_id": "589373"
+ },
+ {
+  "qs_name": "Guru Ghasidas Vishwavidyalaya (A Central University)",
+  "the_name": "Guru Ghasidas Vishwavidyalaya",
+  "the_id": "714955"
  },
  {
   "qs_name": "Guru Gobind Singh Indraprastha University",
@@ -993,6 +1508,11 @@
   "qs_name": "Gwangju Institute of Science and Technology (GIST)",
   "the_name": "Gwangju Institute of Science and Technology (GIST)",
   "the_id": "1034"
+ },
+ {
+  "qs_name": "Gyeongsang National University",
+  "the_name": "Gyeongsang National University",
+  "the_id": "624294"
  },
  {
   "qs_name": "HSE University",
@@ -1008,6 +1528,21 @@
   "qs_name": "Hallym University",
   "the_name": "Hallym University",
   "the_id": "589301"
+ },
+ {
+  "qs_name": "Halmstad University",
+  "the_name": "Halmstad University",
+  "the_id": "661660"
+ },
+ {
+  "qs_name": "Hangzhou Dianzi University",
+  "the_name": "Hangzhou Dianzi University (HDU)",
+  "the_id": "684994"
+ },
+ {
+  "qs_name": "Hangzhou Normal University",
+  "the_name": "Hangzhou Normal University",
+  "the_id": "622941"
  },
  {
   "qs_name": "Hanoi University of Science and Technology",
@@ -1030,6 +1565,11 @@
   "the_id": "827"
  },
  {
+  "qs_name": "Harokopio University of Athens",
+  "the_name": "Harokopio University of Athens",
+  "the_id": "707314"
+ },
+ {
   "qs_name": "Harvard University",
   "the_name": "Harvard University",
   "the_id": "466"
@@ -1040,9 +1580,24 @@
   "the_id": "587910"
  },
  {
+  "qs_name": "Hellenic Open University",
+  "the_name": "Hellenic Open University",
+  "the_id": "622875"
+ },
+ {
   "qs_name": "Heriot-Watt University",
   "the_name": "Heriot-Watt University",
   "the_id": "828"
+ },
+ {
+  "qs_name": "Hindustan Institute of Technology and Science, Chennai",
+  "the_name": "Hindustan Institute of Technology and Science",
+  "the_id": "624861"
+ },
+ {
+  "qs_name": "Hirosaki University",
+  "the_name": "Hirosaki University",
+  "the_id": "609222"
  },
  {
   "qs_name": "Hiroshima University",
@@ -1053,6 +1608,11 @@
   "qs_name": "Hitotsubashi University",
   "the_name": "Hitotsubashi University",
   "the_id": "131617"
+ },
+ {
+  "qs_name": "Ho Chi Minh City Open University",
+  "the_name": "Ho Chi Minh City Open University",
+  "the_id": "688693"
  },
  {
   "qs_name": "Hokkaido University",
@@ -1068,6 +1628,16 @@
   "qs_name": "Hong Kong Baptist University",
   "the_name": "Hong Kong Baptist University",
   "the_id": "748"
+ },
+ {
+  "qs_name": "Hosei University",
+  "the_name": "Hosei University",
+  "the_id": "589151"
+ },
+ {
+  "qs_name": "Huaqiao University",
+  "the_name": "Huaqiao University",
+  "the_id": "623787"
  },
  {
   "qs_name": "Huazhong University of Science and Technology",
@@ -1090,6 +1660,16 @@
   "the_id": "981"
  },
  {
+  "qs_name": "I-Shou University",
+  "the_name": "I-Shou University",
+  "the_id": "131739"
+ },
+ {
+  "qs_name": "IMT Atlantique",
+  "the_name": "IMT Atlantique",
+  "the_id": "622476"
+ },
+ {
   "qs_name": "IPB University (aka Bogor Agricultural University)",
   "the_name": "IPB University",
   "the_id": "589274"
@@ -1100,6 +1680,16 @@
   "the_id": "131805"
  },
  {
+  "qs_name": "Ibaraki University",
+  "the_name": "Ibaraki University",
+  "the_id": "609360"
+ },
+ {
+  "qs_name": "Ibn Tofail University",
+  "the_name": "Ibn Tofaïl University",
+  "the_id": "670422"
+ },
+ {
   "qs_name": "Illinois Institute of Technology",
   "the_name": "Illinois Institute of Technology",
   "the_id": "1028"
@@ -1108,6 +1698,11 @@
   "qs_name": "Imam Abdulrahman Bin Faisal University (IAU)",
   "the_name": "Imam Abdulrahman Bin Faisal University",
   "the_id": "131766"
+ },
+ {
+  "qs_name": "Imam Khomeini International University",
+  "the_name": "Imam Khomeini International University",
+  "the_id": "622263"
  },
  {
   "qs_name": "Imam Mohammad Ibn Saud Islamic University – IMSIU",
@@ -1125,9 +1720,24 @@
   "the_id": "472"
  },
  {
+  "qs_name": "Incheon National University",
+  "the_name": "Incheon National University",
+  "the_id": "623847"
+ },
+ {
   "qs_name": "Indian Institute of Science",
   "the_name": "Indian Institute of Science",
   "the_id": "926"
+ },
+ {
+  "qs_name": "Indian Institute of Science Education and Research (IISER) Pune",
+  "the_name": "Indian Institute of Science Education and Research, Pune",
+  "the_id": "131377"
+ },
+ {
+  "qs_name": "Indian Institute of Technology Gandhinagar (IITGN)",
+  "the_name": "Indian Institute of Technology Gandhinagar",
+  "the_id": "648707"
  },
  {
   "qs_name": "Indian Institute of Technology Indore",
@@ -1135,9 +1745,19 @@
   "the_id": "131774"
  },
  {
+  "qs_name": "Indraprastha Institute of Information Technology, Delhi",
+  "the_name": "Indraprastha Institute of Information Technology Delhi",
+  "the_id": "637730"
+ },
+ {
   "qs_name": "Inha University",
   "the_name": "Inha University",
   "the_id": "949"
+ },
+ {
+  "qs_name": "Institución Universitaria ITM",
+  "the_name": "Institución Universitaria ITM",
+  "the_id": "625833"
  },
  {
   "qs_name": "Institut Polytechnique de Paris",
@@ -1155,9 +1775,24 @@
   "the_id": "131446"
  },
  {
+  "qs_name": "Institute of Space Technology",
+  "the_name": "Institute of Space Technology",
+  "the_id": "622356"
+ },
+ {
   "qs_name": "Instituto Politécnico Nacional (IPN)",
   "the_name": "Instituto Politécnico Nacional (IPN)",
   "the_id": "623448"
+ },
+ {
+  "qs_name": "International Hellenic University",
+  "the_name": "International Hellenic University",
+  "the_id": "685042"
+ },
+ {
+  "qs_name": "International Institute of Information Technology - Hyderabad (IIIT-H)",
+  "the_name": "International Institute of Information Technology, Hyderabad",
+  "the_id": "689092"
  },
  {
   "qs_name": "International Islamic University, Islamabad (IIU)",
@@ -1165,9 +1800,19 @@
   "the_id": "625050"
  },
  {
+  "qs_name": "Ionian University",
+  "the_name": "Ionian University",
+  "the_id": "661040"
+ },
+ {
   "qs_name": "Iowa State University",
   "the_name": "Iowa State University",
   "the_id": "648"
+ },
+ {
+  "qs_name": "Iqra University",
+  "the_name": "Iqra University",
+  "the_id": "685021"
  },
  {
   "qs_name": "Iran University of Science and Technology",
@@ -1200,6 +1845,11 @@
   "the_id": "670641"
  },
  {
+  "qs_name": "Istanbul Gelisim University",
+  "the_name": "Istanbul Gelisim University",
+  "the_id": "622281"
+ },
+ {
   "qs_name": "Istanbul Technical University",
   "the_name": "Istanbul Technical University",
   "the_id": "750"
@@ -1208,6 +1858,16 @@
   "qs_name": "Istanbul University",
   "the_name": "Istanbul University",
   "the_id": "993"
+ },
+ {
+  "qs_name": "Istanbul University-Cerrahpasa",
+  "the_name": "Istanbul University-Cerrahpaşa",
+  "the_id": "705875"
+ },
+ {
+  "qs_name": "Istinye University",
+  "the_name": "İstinye University",
+  "the_id": "670500"
  },
  {
   "qs_name": "Ivan Franko National University of Lviv",
@@ -1223,6 +1883,11 @@
   "qs_name": "Izmir Institute of Technology (IZTECH)",
   "the_name": "Izmir Institute of Technology",
   "the_id": "587835"
+ },
+ {
+  "qs_name": "JSS Academy of Higher Education & Research",
+  "the_name": "KLE Academy of Higher Education and Research",
+  "the_id": "621678"
  },
  {
   "qs_name": "Jadavpur University",
@@ -1250,9 +1915,39 @@
   "the_id": "621534"
  },
  {
+  "qs_name": "Jan Evangelista Purkyne University",
+  "the_name": "Jan Evangelista Purkyně University",
+  "the_id": "660767"
+ },
+ {
+  "qs_name": "Jan Kochanowski University of Kielce",
+  "the_name": "Jan Kochanowski University in Kielce",
+  "the_id": "661136"
+ },
+ {
+  "qs_name": "Jashore University of Science & Technology",
+  "the_name": "Jashore University of Science and Technology",
+  "the_id": "718874"
+ },
+ {
+  "qs_name": "Jawaharlal Nehru Technological University Anantapur, Ananthapuramu",
+  "the_name": "Jawaharlal Nehru Technological University Anantapur (JNTUA)",
+  "the_id": "587907"
+ },
+ {
   "qs_name": "Jawaharlal Nehru University",
   "the_name": "Jawaharlal Nehru University",
   "the_id": "985"
+ },
+ {
+  "qs_name": "Jaypee University of Information Technology",
+  "the_name": "Jaypee University of Information Technology",
+  "the_id": "624582"
+ },
+ {
+  "qs_name": "Jazan University",
+  "the_name": "Jazan University",
+  "the_id": "628446"
  },
  {
   "qs_name": "Jeju National University",
@@ -1265,9 +1960,29 @@
   "the_id": "131273"
  },
  {
+  "qs_name": "Jianghan University",
+  "the_name": "Jianghan University",
+  "the_id": "692626"
+ },
+ {
   "qs_name": "Jiangnan University",
   "the_name": "Jiangnan University",
   "the_id": "624168"
+ },
+ {
+  "qs_name": "Jiangsu Normal University",
+  "the_name": "Jiangsu Normal University",
+  "the_id": "624261"
+ },
+ {
+  "qs_name": "Jiangsu University",
+  "the_name": "Jiangsu University",
+  "the_id": "131581"
+ },
+ {
+  "qs_name": "Jiangxi Normal University",
+  "the_name": "Jiangxi Normal University (JXNU)",
+  "the_id": "624429"
  },
  {
   "qs_name": "Jinan University (China)",
@@ -1283,6 +1998,11 @@
   "qs_name": "Johannes Kepler University Linz",
   "the_name": "Johannes Kepler University of Linz",
   "the_id": "726"
+ },
+ {
+  "qs_name": "John Paul II Catholic University of Lublin",
+  "the_name": "The John Paul II Catholic University of Lublin",
+  "the_id": "661046"
  },
  {
   "qs_name": "Johns Hopkins University",
@@ -1305,6 +2025,11 @@
   "the_id": "131300"
  },
  {
+  "qs_name": "K. N. Toosi University of Technology",
+  "the_name": "K.N. Toosi University of Technology",
+  "the_id": "131757"
+ },
+ {
   "qs_name": "KAIST - Korea Advanced Institute of Science & Technology",
   "the_name": "Korea Advanced Institute of Science and Technology (KAIST)",
   "the_id": "558"
@@ -1325,9 +2050,34 @@
   "the_id": "531"
  },
  {
+  "qs_name": "Kadir Has University",
+  "the_name": "Kadir Has University",
+  "the_id": "647933"
+ },
+ {
+  "qs_name": "Kafrelsheikh University",
+  "the_name": "Kafrelsheikh University",
+  "the_id": "131548"
+ },
+ {
+  "qs_name": "Kagawa University",
+  "the_name": "Kagawa University",
+  "the_id": "609456"
+ },
+ {
   "qs_name": "Kagoshima University",
   "the_name": "Kagoshima University",
   "the_id": "609282"
+ },
+ {
+  "qs_name": "Kalasalingam Academy of Research and Education",
+  "the_name": "Kalasalingam Academy of Research and Education",
+  "the_id": "622206"
+ },
+ {
+  "qs_name": "Kanagawa University",
+  "the_name": "Kanagawa University",
+  "the_id": "609294"
  },
  {
   "qs_name": "Kanazawa University",
@@ -1340,9 +2090,34 @@
   "the_id": "623622"
  },
  {
+  "qs_name": "Kansai University",
+  "the_name": "Kansai University",
+  "the_id": "589283"
+ },
+ {
   "qs_name": "Kansas State University",
   "the_name": "Kansas State University",
   "the_id": "831"
+ },
+ {
+  "qs_name": "Kaohsiung Medical University",
+  "the_name": "Kaohsiung Medical University",
+  "the_id": "131495"
+ },
+ {
+  "qs_name": "Karabuk University",
+  "the_name": "Karabük University",
+  "the_id": "634440"
+ },
+ {
+  "qs_name": "Karadeniz Technical University.",
+  "the_name": "Karadeniz Technical University",
+  "the_id": "622848"
+ },
+ {
+  "qs_name": "Karunya Institute of Technology & Sciences",
+  "the_name": "Karunya Institute of Technology and Sciences",
+  "the_id": "622209"
  },
  {
   "qs_name": "Kasetsart University",
@@ -1385,9 +2160,24 @@
   "the_id": "624543"
  },
  {
+  "qs_name": "Kerman University of Medical Sciences",
+  "the_name": "Hormozgan University of Medical Sciences",
+  "the_id": "724836"
+ },
+ {
+  "qs_name": "Kermanshah University of Medical Sciences",
+  "the_name": "Mashhad University of Medical Sciences",
+  "the_id": "624726"
+ },
+ {
   "qs_name": "Khalifa University",
   "the_name": "Khalifa University",
   "the_id": "622542"
+ },
+ {
+  "qs_name": "Kharazmi University",
+  "the_name": "Kharazmi University",
+  "the_id": "624744"
  },
  {
   "qs_name": "Kharkiv National University of Radio Electronics",
@@ -1408,6 +2198,11 @@
   "qs_name": "Khulna University of Engineering and Technology",
   "the_name": "Khulna University of Engineering and Technology (KUET)",
   "the_id": "662302"
+ },
+ {
+  "qs_name": "Khwaja Fareed University of Engineering and Information Technology",
+  "the_name": "Khwaja Fareed University of Engineering and Information Technology",
+  "the_id": "703346"
  },
  {
   "qs_name": "Kindai University (Kinki University)",
@@ -1450,14 +2245,39 @@
   "the_id": "938"
  },
  {
+  "qs_name": "King Saud bin Abdulaziz University For Health Sciences",
+  "the_name": "King Saud bin Abdulaziz University for Health Sciences",
+  "the_id": "624918"
+ },
+ {
   "qs_name": "King's College London",
   "the_name": "King’s College London",
   "the_id": "520"
  },
  {
+  "qs_name": "Kitasato University",
+  "the_name": "Kitasato University",
+  "the_id": "609606"
+ },
+ {
   "qs_name": "Kobe University",
   "the_name": "Kobe University",
   "the_id": "833"
+ },
+ {
+  "qs_name": "Kochi University",
+  "the_name": "Kochi University",
+  "the_id": "589316"
+ },
+ {
+  "qs_name": "Kochi University of Technology (KUT)",
+  "the_name": "Kochi University of Technology",
+  "the_id": "609543"
+ },
+ {
+  "qs_name": "Kohat University of Science & Technology",
+  "the_name": "Kohat University of Science and Technology",
+  "the_id": "721620"
  },
  {
   "qs_name": "Konkuk University",
@@ -1468,6 +2288,11 @@
   "qs_name": "Kookmin University",
   "the_name": "Kookmin University",
   "the_id": "624924"
+ },
+ {
+  "qs_name": "Kore University of Enna",
+  "the_name": "Kore University of Enna",
+  "the_id": "638540"
  },
  {
   "qs_name": "Korea University",
@@ -1500,6 +2325,11 @@
   "the_id": "587742"
  },
  {
+  "qs_name": "Kyiv National University of Construction and Architecture (KNUCA)",
+  "the_name": "Kyiv National University of Construction and Architecture",
+  "the_id": "730407"
+ },
+ {
   "qs_name": "Kyoto Institute of Technology",
   "the_name": "Kyoto Institute of Technology",
   "the_id": "609345"
@@ -1530,9 +2360,24 @@
   "the_id": "131724"
  },
  {
+  "qs_name": "Kırşehir Ahi Evran University",
+  "the_name": "Kırşehir Ahi Evran University",
+  "the_id": "722755"
+ },
+ {
+  "qs_name": "L'Institut Agro (L'Institut Agro Dijon, L'Institut Agro Montpellier, L'Institut Agro Rennes-Angers)",
+  "the_name": "Institut Agro",
+  "the_id": "690022"
+ },
+ {
   "qs_name": "L.N. Gumilyov Eurasian National University (ENU)",
   "the_name": "L.N. Gumilyov Eurasian National University",
   "the_id": "131441"
+ },
+ {
+  "qs_name": "LUT University",
+  "the_name": "LUT University",
+  "the_id": "1026"
  },
  {
   "qs_name": "La Trobe University",
@@ -1540,14 +2385,34 @@
   "the_id": "835"
  },
  {
+  "qs_name": "Ladoke Akintola University of Technology",
+  "the_name": "Ladoke Akintola University of Technology",
+  "the_id": "721001"
+ },
+ {
+  "qs_name": "Lahore College for Women University",
+  "the_name": "Lahore College for Women University (LCWU)",
+  "the_id": "645974"
+ },
+ {
   "qs_name": "Lahore University of Management Sciences (LUMS)",
   "the_name": "Lahore University of Management Sciences",
   "the_id": "131604"
  },
  {
+  "qs_name": "Lakehead University",
+  "the_name": "Lakehead University",
+  "the_id": "622965"
+ },
+ {
   "qs_name": "Lancaster University",
   "the_name": "Lancaster University",
   "the_id": "595"
+ },
+ {
+  "qs_name": "Latvia University of Life Sciences and Technologies",
+  "the_name": "Latvia University of Life Sciences and Technologies",
+  "the_id": "661025"
  },
  {
   "qs_name": "Lebanese American University",
@@ -1580,9 +2445,19 @@
   "the_id": "543"
  },
  {
+  "qs_name": "Leuphana Universität Lüneburg",
+  "the_name": "Leuphana University of Lüneburg",
+  "the_id": "638525"
+ },
+ {
   "qs_name": "Lincoln University",
   "the_name": "Lincoln University (New Zealand)",
   "the_id": "589199"
+ },
+ {
+  "qs_name": "Lincoln University College",
+  "the_name": "Lincoln University College",
+  "the_id": "131527"
  },
  {
   "qs_name": "Lingnan University, Hong Kong",
@@ -1593,6 +2468,11 @@
   "qs_name": "Linköping University",
   "the_name": "Linköping University",
   "the_id": "789"
+ },
+ {
+  "qs_name": "Liverpool Hope University",
+  "the_name": "Liverpool Hope University",
+  "the_id": "589541"
  },
  {
   "qs_name": "Liverpool John Moores University",
@@ -1620,6 +2500,11 @@
   "the_id": "131793"
  },
  {
+  "qs_name": "Lorestan University",
+  "the_name": "Lorestan University",
+  "the_id": "681397"
+ },
+ {
   "qs_name": "Loughborough University",
   "the_name": "Loughborough University",
   "the_id": "837"
@@ -1628,6 +2513,11 @@
   "qs_name": "Louisiana State University",
   "the_name": "Louisiana State University",
   "the_id": "131540"
+ },
+ {
+  "qs_name": "Lovely Professional University (LPU)",
+  "the_name": "Lovely Professional University",
+  "the_id": "622896"
  },
  {
   "qs_name": "Lublin University of Technology",
@@ -1655,6 +2545,16 @@
   "the_id": "131716"
  },
  {
+  "qs_name": "M'Hamed Bougara University of Boumerdes",
+  "the_name": "M’Hamed Bougara University of Boumerdès",
+  "the_id": "649079"
+ },
+ {
+  "qs_name": "MAHSA University",
+  "the_name": "Mahsa University",
+  "the_id": "733581"
+ },
+ {
   "qs_name": "MATE Hungarian University of Agriculture and Life Sciences",
   "the_name": "Hungarian University of Agriculture and Life Sciences",
   "the_id": "715198"
@@ -1680,9 +2580,39 @@
   "the_id": "703"
  },
  {
+  "qs_name": "Madan Mohan Malaviya University of Technology",
+  "the_name": "Madan Mohan Malaviya University of Technology",
+  "the_id": "724870"
+ },
+ {
+  "qs_name": "Mae Fah Luang University",
+  "the_name": "Mae Fah Luang University",
+  "the_id": "587664"
+ },
+ {
+  "qs_name": "Maejo University",
+  "the_name": "Maejo University",
+  "the_id": "694774"
+ },
+ {
+  "qs_name": "Mahasarakham University",
+  "the_name": "Mahasarakham University",
+  "the_id": "625065"
+ },
+ {
+  "qs_name": "Mahatma Gandhi University, Kottayam",
+  "the_name": "Mahatma Gandhi University",
+  "the_id": "624870"
+ },
+ {
   "qs_name": "Mahidol University",
   "the_name": "Mahidol University",
   "the_id": "838"
+ },
+ {
+  "qs_name": "Majmaah University",
+  "the_name": "Majmaah University",
+  "the_id": "688831"
  },
  {
   "qs_name": "Makerere University",
@@ -1690,9 +2620,19 @@
   "the_id": "131749"
  },
  {
+  "qs_name": "Malaviya National Institute of Technology, Jaipur",
+  "the_name": "Malaviya National Institute of Technology",
+  "the_id": "724022"
+ },
+ {
   "qs_name": "Management and Science University",
   "the_name": "Management and Science University",
   "the_id": "625914"
+ },
+ {
+  "qs_name": "Manav Rachna International Institute of Research and Studies (MRIIRS)",
+  "the_name": "Manav Rachna International Institute of Research and Studies",
+  "the_id": "722103"
  },
  {
   "qs_name": "Manchester Metropolitan University",
@@ -1705,9 +2645,19 @@
   "the_id": "131750"
  },
  {
+  "qs_name": "Manipal University Jaipur",
+  "the_name": "Manipal University Jaipur",
+  "the_id": "719281"
+ },
+ {
   "qs_name": "Mansoura University",
   "the_name": "Mansoura University",
   "the_id": "918"
+ },
+ {
+  "qs_name": "Mapúa University",
+  "the_name": "Mapua University",
+  "the_id": "647936"
  },
  {
   "qs_name": "Marmara University",
@@ -1730,6 +2680,16 @@
   "the_id": "839"
  },
  {
+  "qs_name": "Maulana Abul Kalam Azad University of Technology, West Bengal",
+  "the_name": "Maulana Abul Kalam Azad University of Technology, West Bengal",
+  "the_id": "727087"
+ },
+ {
+  "qs_name": "Mawlana Bhashani Science and Technology University",
+  "the_name": "Mawlana Bhashani Science and Technology University",
+  "the_id": "734729"
+ },
+ {
   "qs_name": "Maynooth University",
   "the_name": "Maynooth University",
   "the_id": "843"
@@ -1745,9 +2705,24 @@
   "the_id": "529"
  },
  {
+  "qs_name": "Medical University of Gdańsk",
+  "the_name": "Medical University of Gdańsk",
+  "the_id": "623631"
+ },
+ {
+  "qs_name": "Medical University of Vienna",
+  "the_name": "Medical University of Vienna",
+  "the_id": "889"
+ },
+ {
   "qs_name": "Meiji University",
   "the_name": "Meiji University",
   "the_id": "589097"
+ },
+ {
+  "qs_name": "Meijo University",
+  "the_name": "Meijo University",
+  "the_id": "609996"
  },
  {
   "qs_name": "Memorial University of Newfoundland",
@@ -1765,6 +2740,11 @@
   "the_id": "624087"
  },
  {
+  "qs_name": "Menoufia University",
+  "the_name": "Menoufia University",
+  "the_id": "645425"
+ },
+ {
   "qs_name": "Miami University",
   "the_name": "University of Miami",
   "the_id": "636"
@@ -1780,9 +2760,39 @@
   "the_id": "754"
  },
  {
+  "qs_name": "Middle Technical University (MTU)",
+  "the_name": "Middle Technical University",
+  "the_id": "662293"
+ },
+ {
   "qs_name": "Middlesex University",
   "the_name": "Middlesex University",
   "the_id": "131410"
+ },
+ {
+  "qs_name": "Mie University",
+  "the_name": "Mie University",
+  "the_id": "609249"
+ },
+ {
+  "qs_name": "Mindanao State University - Iligan Institute of Technology",
+  "the_name": "Mindanao State University – Iligan Institute of Technology",
+  "the_id": "670458"
+ },
+ {
+  "qs_name": "Ming Chuan University",
+  "the_name": "Ming Chuan University",
+  "the_id": "131363"
+ },
+ {
+  "qs_name": "Minia University",
+  "the_name": "Minia University",
+  "the_id": "644081"
+ },
+ {
+  "qs_name": "Misr University for Science & Technology (MUST)",
+  "the_name": "Misr University for Science and Technology",
+  "the_id": "718986"
  },
  {
   "qs_name": "Mississippi State University",
@@ -1800,6 +2810,16 @@
   "the_id": "581"
  },
  {
+  "qs_name": "Montana State University",
+  "the_name": "Montana State University",
+  "the_id": "131503"
+ },
+ {
+  "qs_name": "Montanuniversität Leoben",
+  "the_name": "Montanuniversität Leoben",
+  "the_id": "648710"
+ },
+ {
   "qs_name": "Moscow Institute of Physics and Technology (MIPT / Moscow Phystech)",
   "the_name": "Moscow Institute of Physics and Technology (MIPT)",
   "the_id": "973"
@@ -1815,6 +2835,11 @@
   "the_id": "890"
  },
  {
+  "qs_name": "Muroran Institute of Technology",
+  "the_name": "Muroran Institute of Technology",
+  "the_id": "609435"
+ },
+ {
   "qs_name": "Mustansiriyah University",
   "the_name": "Mustansiriyah University",
   "the_id": "634671"
@@ -1823,6 +2848,21 @@
   "qs_name": "Mutah University",
   "the_name": "Mutah University",
   "the_id": "661172"
+ },
+ {
+  "qs_name": "NAZARBAYEV UNIVERSITY",
+  "the_name": "Nazarbayev University",
+  "the_id": "623373"
+ },
+ {
+  "qs_name": "NED University of Engineering and Technology",
+  "the_name": "NED University of Engineering and Technology",
+  "the_id": "131402"
+ },
+ {
+  "qs_name": "Nagaoka University of Technology",
+  "the_name": "Nagaoka University of Technology",
+  "the_id": "589271"
  },
  {
   "qs_name": "Nagasaki University",
@@ -1840,9 +2880,29 @@
   "the_id": "679"
  },
  {
+  "qs_name": "Najran University",
+  "the_name": "Najran University",
+  "the_id": "709730"
+ },
+ {
+  "qs_name": "Nanjing Forestry University",
+  "the_name": "Nanjing Forestry University",
+  "the_id": "623880"
+ },
+ {
+  "qs_name": "Nanjing Medical University",
+  "the_name": "Nanjing Medical University",
+  "the_id": "589109"
+ },
+ {
   "qs_name": "Nanjing Normal University",
   "the_name": "Nanjing Normal University",
   "the_id": "587616"
+ },
+ {
+  "qs_name": "Nanjing Tech University",
+  "the_name": "Nanjing Tech University",
+  "the_id": "587781"
  },
  {
   "qs_name": "Nanjing University",
@@ -1885,6 +2945,11 @@
   "the_id": "841"
  },
  {
+  "qs_name": "National Changhua University of Education",
+  "the_name": "National Changhua University of Education",
+  "the_id": "623853"
+ },
+ {
   "qs_name": "National Cheng Kung University (NCKU)",
   "the_name": "National Cheng Kung University (NCKU)",
   "the_id": "885"
@@ -1893,6 +2958,21 @@
   "qs_name": "National Chengchi University",
   "the_name": "National Chengchi University",
   "the_id": "1004"
+ },
+ {
+  "qs_name": "National Chi Nan University",
+  "the_name": "National Chi Nan University",
+  "the_id": "623856"
+ },
+ {
+  "qs_name": "National Chiayi University",
+  "the_name": "National Chiayi University",
+  "the_id": "623193"
+ },
+ {
+  "qs_name": "National Chinyi University of Technology",
+  "the_name": "National Chin-Yi University of Technology",
+  "the_id": "623883"
  },
  {
   "qs_name": "National Chung Cheng University",
@@ -1908,6 +2988,46 @@
   "qs_name": "National Dong Hwa University",
   "the_name": "National Dong Hwa University",
   "the_id": "623850"
+ },
+ {
+  "qs_name": "National Formosa University",
+  "the_name": "National Formosa University",
+  "the_id": "622911"
+ },
+ {
+  "qs_name": "National Ilan University",
+  "the_name": "National Ilan University",
+  "the_id": "623862"
+ },
+ {
+  "qs_name": "National Institute of Technology Rourkela",
+  "the_name": "National Institute of Technology Rourkela",
+  "the_id": "587715"
+ },
+ {
+  "qs_name": "National Institute of Technology Silchar",
+  "the_name": "National Institute of Technology Silchar",
+  "the_id": "690028"
+ },
+ {
+  "qs_name": "National Institute of Technology Warangal",
+  "the_name": "National Institute of Technology Warangal",
+  "the_id": "724904"
+ },
+ {
+  "qs_name": "National Institute of Technology, Meghalaya",
+  "the_name": "National Institute of Technology Meghalaya",
+  "the_id": "727152"
+ },
+ {
+  "qs_name": "National Institute of Technology, Raipur",
+  "the_name": "National Institute of Technology, Raipur",
+  "the_id": "731307"
+ },
+ {
+  "qs_name": "National Institute of Technology, Srinagar",
+  "the_name": "National Institute of Technology Srinagar",
+  "the_id": "724811"
  },
  {
   "qs_name": "National Institute of Technology, Tiruchirappalli",
@@ -1975,9 +3095,29 @@
   "the_id": "680"
  },
  {
+  "qs_name": "National United University",
+  "the_name": "National United University",
+  "the_id": "623196"
+ },
+ {
+  "qs_name": "National University of Computer and Emerging Sciences",
+  "the_name": "National University of Computer and Emerging Sciences",
+  "the_id": "716621"
+ },
+ {
+  "qs_name": "National University of Kaohsiung",
+  "the_name": "National University of Kaohsiung",
+  "the_id": "624549"
+ },
+ {
   "qs_name": "National University of Life and Environmental sciences of Ukraine",
   "the_name": "National University of Life and Environmental Sciences of Ukraine",
   "the_id": "724837"
+ },
+ {
+  "qs_name": "National University of Mongolia",
+  "the_name": "National University of Mongolia",
+  "the_id": "688759"
  },
  {
   "qs_name": "National University of Sciences & Technology (NUST) Islamabad",
@@ -2005,9 +3145,29 @@
   "the_id": "131656"
  },
  {
+  "qs_name": "Near East University",
+  "the_name": "Near East University",
+  "the_id": "624027"
+ },
+ {
+  "qs_name": "Nelson Mandela University",
+  "the_name": "Nelson Mandela University",
+  "the_id": "703856"
+ },
+ {
+  "qs_name": "Netaji Subhas University of Technology",
+  "the_name": "Netaji Subhas University of Technology",
+  "the_id": "720044"
+ },
+ {
   "qs_name": "New Jersey Institute of Technology (NJIT)",
   "the_name": "New Jersey Institute of Technology",
   "the_id": "845"
+ },
+ {
+  "qs_name": "New Valley University",
+  "the_name": "New Valley University",
+  "the_id": "724372"
  },
  {
   "qs_name": "New York University (NYU)",
@@ -2020,9 +3180,34 @@
   "the_id": "610"
  },
  {
+  "qs_name": "Nguyen Tat Thanh University (NTTU)",
+  "the_name": "Nguyen Tat Thanh University",
+  "the_id": "724772"
+ },
+ {
+  "qs_name": "Nigde Omer Halisdemir University",
+  "the_name": "Niğde Ömer Halisdemir University",
+  "the_id": "624759"
+ },
+ {
+  "qs_name": "Nihon University",
+  "the_name": "Nihon University",
+  "the_id": "609483"
+ },
+ {
   "qs_name": "Niigata University",
   "the_name": "Niigata University",
   "the_id": "131303"
+ },
+ {
+  "qs_name": "Nile University",
+  "the_name": "Nile University",
+  "the_id": "709592"
+ },
+ {
+  "qs_name": "Noakhali Science and Technology University",
+  "the_name": "Noakhali Science and Technology University (NSTU)",
+  "the_id": "734571"
  },
  {
   "qs_name": "North Carolina State University",
@@ -2040,14 +3225,39 @@
   "the_id": "623391"
  },
  {
+  "qs_name": "Northeast Agricultural University",
+  "the_name": "Northeast Agricultural University",
+  "the_id": "625071"
+ },
+ {
+  "qs_name": "Northeast Normal University",
+  "the_name": "Northeast Normal University",
+  "the_id": "587649"
+ },
+ {
   "qs_name": "Northeastern University",
   "the_name": "Northeastern University, US",
   "the_id": "681"
  },
  {
+  "qs_name": "Northeastern University (China)",
+  "the_name": "Northeastern University, China",
+  "the_id": "589202"
+ },
+ {
   "qs_name": "Northern Borders University",
   "the_name": "Northern Border University",
   "the_id": "709700"
+ },
+ {
+  "qs_name": "Northern Illinois University",
+  "the_name": "Northern Illinois University",
+  "the_id": "592415"
+ },
+ {
+  "qs_name": "Northern Technical University",
+  "the_name": "Northern Technical University",
+  "the_id": "675474"
  },
  {
   "qs_name": "Northumbria University at Newcastle",
@@ -2110,6 +3320,16 @@
   "the_id": "587967"
  },
  {
+  "qs_name": "Oakland University",
+  "the_name": "Oakland University",
+  "the_id": "131458"
+ },
+ {
+  "qs_name": "Obafemi Awolowo University",
+  "the_name": "Obafemi Awolowo University",
+  "the_id": "624498"
+ },
+ {
   "qs_name": "Obuda University",
   "the_name": "Obuda University",
   "the_id": "653504"
@@ -2120,9 +3340,34 @@
   "the_id": "131798"
  },
  {
+  "qs_name": "Ochanomizu University",
+  "the_name": "Ochanomizu University",
+  "the_id": "609243"
+ },
+ {
+  "qs_name": "October 6 University ( O6U )",
+  "the_name": "October 6 University",
+  "the_id": "688663"
+ },
+ {
+  "qs_name": "October University for Modern Sciences and Arts (MSA)",
+  "the_name": "October University for Modern Sciences and Arts (MSA)",
+  "the_id": "688654"
+ },
+ {
+  "qs_name": "Odessa I.I.Mechnikov National University",
+  "the_name": "Odesa I.I. Mechnikov National University",
+  "the_id": "710222"
+ },
+ {
   "qs_name": "Ohio University",
   "the_name": "Ohio University (Main campus)",
   "the_id": "131281"
+ },
+ {
+  "qs_name": "Oita University",
+  "the_name": "Oita University",
+  "the_id": "589160"
  },
  {
   "qs_name": "Okayama University",
@@ -2135,6 +3380,46 @@
   "the_id": "131533"
  },
  {
+  "qs_name": "Old Dominion University",
+  "the_name": "Old Dominion University",
+  "the_id": "847"
+ },
+ {
+  "qs_name": "Oles Honchar Dnipro National University",
+  "the_name": "Oles Honchar Dnipro National University",
+  "the_id": "688753"
+ },
+ {
+  "qs_name": "Ondokuz Mayis University",
+  "the_name": "Ondokuz Mayis University",
+  "the_id": "624477"
+ },
+ {
+  "qs_name": "Ontario Tech University",
+  "the_name": "Ontario Tech University",
+  "the_id": "623382"
+ },
+ {
+  "qs_name": "Opole University of Technology",
+  "the_name": "Opole University of Technology",
+  "the_id": "623451"
+ },
+ {
+  "qs_name": "Orebro University",
+  "the_name": "Örebro University",
+  "the_id": "131461"
+ },
+ {
+  "qs_name": "Oregon Health & Science University (OHSU)",
+  "the_name": "Oregon Health and Science University",
+  "the_id": "131454"
+ },
+ {
+  "qs_name": "Osaka Institute of Technology",
+  "the_name": "Osaka Institute of Technology",
+  "the_id": "131359"
+ },
+ {
   "qs_name": "Osaka Metropolitan University",
   "the_name": "Osaka Metropolitan University",
   "the_id": "719862"
@@ -2145,9 +3430,24 @@
   "the_id": "583"
  },
  {
+  "qs_name": "Otto-von-Guericke-Universität Magdeburg",
+  "the_name": "Otto von Guericke University of Magdeburg",
+  "the_id": "131713"
+ },
+ {
   "qs_name": "Oxford Brookes University",
   "the_name": "Oxford Brookes University",
   "the_id": "131653"
+ },
+ {
+  "qs_name": "Ozyegin University",
+  "the_name": "Ozyegin University",
+  "the_id": "589139"
+ },
+ {
+  "qs_name": "Pace University - New York",
+  "the_name": "Pace University-New York",
+  "the_id": "593630"
  },
  {
   "qs_name": "Palacký University Olomouc",
@@ -2170,9 +3470,19 @@
   "the_id": "685387"
  },
  {
+  "qs_name": "Payame Noor University",
+  "the_name": "Payame Noor University",
+  "the_id": "622272"
+ },
+ {
   "qs_name": "Peking University",
   "the_name": "Peking University",
   "the_id": "514"
+ },
+ {
+  "qs_name": "Persian Gulf University",
+  "the_name": "Persian Gulf University",
+  "the_id": "699265"
  },
  {
   "qs_name": "Peter the Great St. Petersburg Polytechnic University",
@@ -2225,6 +3535,11 @@
   "the_id": "131752"
  },
  {
+  "qs_name": "Port Said University",
+  "the_name": "Port Said University",
+  "the_id": "644456"
+ },
+ {
   "qs_name": "Portland State University",
   "the_name": "Portland State University",
   "the_id": "131485"
@@ -2240,9 +3555,19 @@
   "the_id": "622890"
  },
  {
+  "qs_name": "Prague University of Economics and Business",
+  "the_name": "Prague University of Economics and Business (VŠE)",
+  "the_id": "131560"
+ },
+ {
   "qs_name": "Prince Mohammad Bin Fahd university",
   "the_name": "Prince Mohammad Bin Fahd University",
   "the_id": "648692"
+ },
+ {
+  "qs_name": "Prince Sattam Bin Abdulaziz University",
+  "the_name": "Prince Sattam Bin Abdulaziz University",
+  "the_id": "625194"
  },
  {
   "qs_name": "Prince Sultan University",
@@ -2280,6 +3605,11 @@
   "the_id": "940"
  },
  {
+  "qs_name": "Pázmány Péter Catholic University",
+  "the_name": "Pázmány Péter Catholic University",
+  "the_id": "662296"
+ },
+ {
   "qs_name": "Qassim University",
   "the_name": "Qassim University",
   "the_id": "625134"
@@ -2288,6 +3618,11 @@
   "qs_name": "Qatar University",
   "the_name": "Qatar University",
   "the_id": "131534"
+ },
+ {
+  "qs_name": "Qingdao University",
+  "the_name": "Qingdao University",
+  "the_id": "622926"
  },
  {
   "qs_name": "Quaid-i-Azam University",
@@ -2315,6 +3650,16 @@
   "the_id": "758"
  },
  {
+  "qs_name": "RCSI University of Medicine and Health Sciences",
+  "the_name": "RCSI University of Medicine and Health Sciences",
+  "the_id": "1033"
+ },
+ {
+  "qs_name": "REVA University",
+  "the_name": "REVA University",
+  "the_id": "715081"
+ },
+ {
   "qs_name": "RMIT University",
   "the_name": "RMIT University",
   "the_id": "915"
@@ -2335,9 +3680,24 @@
   "the_id": "624"
  },
  {
+  "qs_name": "Ramaiah University of Applied Sciences (RUAS)",
+  "the_name": "M S Ramaiah University of Applied Sciences (RUAS)",
+  "the_id": "624816"
+ },
+ {
+  "qs_name": "Razi University",
+  "the_name": "Razi University",
+  "the_id": "624339"
+ },
+ {
   "qs_name": "Rensselaer Polytechnic Institute",
   "the_name": "Rensselaer Polytechnic Institute",
   "the_id": "608"
+ },
+ {
+  "qs_name": "Reykjavik University",
+  "the_name": "Reykjavík University",
+  "the_id": "131356"
  },
  {
   "qs_name": "Rice University",
@@ -2360,6 +3720,11 @@
   "the_id": "609279"
  },
  {
+  "qs_name": "Riphah International University",
+  "the_name": "Riphah International University",
+  "the_id": "718398"
+ },
+ {
   "qs_name": "Ritsumeikan University",
   "the_name": "Ritsumeikan University",
   "the_id": "131385"
@@ -2373,6 +3738,16 @@
   "qs_name": "Rochester Institute of Technology (RIT)",
   "the_name": "Rochester Institute of Technology",
   "the_id": "131644"
+ },
+ {
+  "qs_name": "Roskilde University",
+  "the_name": "Roskilde University",
+  "the_id": "587943"
+ },
+ {
+  "qs_name": "Rowan University",
+  "the_name": "Rowan University",
+  "the_id": "131313"
  },
  {
   "qs_name": "Royal Holloway, University of London",
@@ -2400,14 +3775,39 @@
   "the_id": "546"
  },
  {
+  "qs_name": "Ryukoku University",
+  "the_name": "Ryukoku University",
+  "the_id": "609264"
+ },
+ {
+  "qs_name": "Rzeszów University of Technology",
+  "the_name": "Rzeszów University of Technology",
+  "the_id": "661133"
+ },
+ {
   "qs_name": "SOAS University of London",
   "the_name": "SOAS University of London",
   "the_id": "970"
  },
  {
+  "qs_name": "SRI VENKATESWARA UNIVERSITY",
+  "the_name": "Sri Venkateswara University",
+  "the_id": "587880"
+ },
+ {
   "qs_name": "SRM Institute of Science and Technology",
   "the_name": "SRM Institute of Science and Technology",
   "the_id": "131575"
+ },
+ {
+  "qs_name": "SRUC (Scotland's Rural College)",
+  "the_name": "SRUC (Scotland’s Rural College)",
+  "the_id": "131269"
+ },
+ {
+  "qs_name": "SWPS University",
+  "the_name": "SWPS University",
+  "the_id": "631086"
  },
  {
   "qs_name": "Saarland University",
@@ -2418,6 +3818,11 @@
   "qs_name": "Sabanci University",
   "the_name": "Sabancı University",
   "the_id": "1021"
+ },
+ {
+  "qs_name": "Saga University",
+  "the_name": "Saga University",
+  "the_id": "609459"
  },
  {
   "qs_name": "Saint Louis University",
@@ -2433,6 +3838,16 @@
   "qs_name": "Sakarya University",
   "the_name": "Sakarya University",
   "the_id": "624642"
+ },
+ {
+  "qs_name": "Sakarya University of Applied Sciences",
+  "the_name": "Sakarya University of Applied Sciences",
+  "the_id": "728887"
+ },
+ {
+  "qs_name": "Salahaddin University-Erbil",
+  "the_name": "Salahaddin University–Erbil",
+  "the_id": "672225"
  },
  {
   "qs_name": "Samara National Research University (Samara University)",
@@ -2460,6 +3875,11 @@
   "the_id": "131645"
  },
  {
+  "qs_name": "Saudi Electronic University",
+  "the_name": "Saudi Electronic University",
+  "the_id": "715228"
+ },
+ {
   "qs_name": "Saveetha Institute of Medical And Technical Sciences (SIMATS)",
   "the_name": "Saveetha Institute of Medical and Technical Sciences",
   "the_id": "624855"
@@ -2485,6 +3905,11 @@
   "the_id": "131620"
  },
  {
+  "qs_name": "Selcuk University",
+  "the_name": "Selçuk University",
+  "the_id": "624627"
+ },
+ {
   "qs_name": "Seoul National University",
   "the_name": "Seoul National University",
   "the_id": "588"
@@ -2495,9 +3920,34 @@
   "the_id": "606465"
  },
  {
+  "qs_name": "Shahed University",
+  "the_name": "Shahed University",
+  "the_id": "625233"
+ },
+ {
+  "qs_name": "Shahid Bahonar University of Kerman",
+  "the_name": "Shahid Bahonar University of Kerman",
+  "the_id": "624735"
+ },
+ {
   "qs_name": "Shahid Beheshti University (SBU)",
   "the_name": "Shahid Beheshti University",
   "the_id": "131498"
+ },
+ {
+  "qs_name": "Shahid Beheshti University of Medical Sciences (SBMU)",
+  "the_name": "Shahid Sadoughi University of Medical Sciences",
+  "the_id": "715399"
+ },
+ {
+  "qs_name": "Shahid Chamran University of Ahvaz",
+  "the_name": "​Shahid Chamran University of Ahvaz",
+  "the_id": "622239"
+ },
+ {
+  "qs_name": "Shahrood University of Technology",
+  "the_name": "Shahrood University of Technology",
+  "the_id": "622242"
  },
  {
   "qs_name": "Shandong University",
@@ -2520,6 +3970,21 @@
   "the_id": "1001"
  },
  {
+  "qs_name": "Shantou University",
+  "the_name": "Shantou University",
+  "the_id": "131502"
+ },
+ {
+  "qs_name": "Shaqra University",
+  "the_name": "Shaqra University",
+  "the_id": "709586"
+ },
+ {
+  "qs_name": "Sharda University",
+  "the_name": "Sharda University",
+  "the_id": "623139"
+ },
+ {
   "qs_name": "Sharif University of Technology",
   "the_name": "Sharif University of Technology",
   "the_id": "802"
@@ -2540,6 +4005,11 @@
   "the_id": "587799"
  },
  {
+  "qs_name": "Shimane University",
+  "the_name": "Shimane University",
+  "the_id": "589307"
+ },
+ {
   "qs_name": "Shinshu University",
   "the_name": "Shinshu University",
   "the_id": "131444"
@@ -2550,9 +4020,29 @@
   "the_id": "589124"
  },
  {
+  "qs_name": "Shiraz University of Technology",
+  "the_name": "Shiraz University of Technology",
+  "the_id": "624747"
+ },
+ {
+  "qs_name": "Shivaji University, Kolhapur",
+  "the_name": "Shivaji University, Kolhapur",
+  "the_id": "623721"
+ },
+ {
+  "qs_name": "Shizuoka University",
+  "the_name": "Shizuoka University",
+  "the_id": "589295"
+ },
+ {
   "qs_name": "Shoolini University of Biotechnology and Management Sciences",
   "the_name": "Shoolini University of Biotechnology and Management Sciences",
   "the_id": "589259"
+ },
+ {
+  "qs_name": "Shree Guru Gobind Singh Tricentenary University",
+  "the_name": "Shree Guru Gobind Singh Tricentenary University",
+  "the_id": "729012"
  },
  {
   "qs_name": "Siberian Federal University, SibFU",
@@ -2563,6 +4053,16 @@
   "qs_name": "Sichuan University",
   "the_name": "Sichuan University",
   "the_id": "1003"
+ },
+ {
+  "qs_name": "Sidi Mohamed Ben Abdellah University",
+  "the_name": "Sidi Mohamed Ben Abdellah University",
+  "the_id": "131760"
+ },
+ {
+  "qs_name": "Sikkim Manipal University",
+  "the_name": "Sikkim Manipal University",
+  "the_id": "624849"
  },
  {
   "qs_name": "Silesian University of Technology",
@@ -2593,6 +4093,11 @@
   "qs_name": "Sogang University",
   "the_name": "Sogang University",
   "the_id": "939"
+ },
+ {
+  "qs_name": "Sohag University",
+  "the_name": "Sohag University",
+  "the_id": "587892"
  },
  {
   "qs_name": "Soochow University (Taiwan)",
@@ -2635,14 +4140,49 @@
   "the_id": "131480"
  },
  {
+  "qs_name": "Southern Medical University",
+  "the_name": "Southern Medical University",
+  "the_id": "645647"
+ },
+ {
   "qs_name": "Southern University of Science and Technology (SUSTech)",
   "the_name": "Southern University of Science and Technology (SUSTech)",
   "the_id": "622866"
  },
  {
+  "qs_name": "Southwest Jiaotong University",
+  "the_name": "Southwest Jiaotong University",
+  "the_id": "131768"
+ },
+ {
+  "qs_name": "Southwest Petroleum University",
+  "the_name": "Southwest Petroleum University",
+  "the_id": "623691"
+ },
+ {
+  "qs_name": "Sri Lanka Institute of Information Technology (SLIIT)",
+  "the_name": "Sri Lanka Institute of Information Technology",
+  "the_id": "688834"
+ },
+ {
+  "qs_name": "Srinakharinwirot University",
+  "the_name": "Srinakharinwirot University",
+  "the_id": "625059"
+ },
+ {
+  "qs_name": "Ss. Cyril and Methodius University in Skopje",
+  "the_name": "Saints Cyril and Methodius University in Skopje",
+  "the_id": "621753"
+ },
+ {
   "qs_name": "Stanford University",
   "the_name": "Stanford University",
   "the_id": "467"
+ },
+ {
+  "qs_name": "State University Kyiv Aviation Institute",
+  "the_name": "State University \"Kyiv Aviation Institute\"",
+  "the_id": "691300"
  },
  {
   "qs_name": "State University of Malang (Universitas Negeri Malang)",
@@ -2680,6 +4220,16 @@
   "the_id": "131354"
  },
  {
+  "qs_name": "Suez University",
+  "the_name": "Suez University",
+  "the_id": "644069"
+ },
+ {
+  "qs_name": "Sukkur IBA University",
+  "the_name": "Sukkur IBA University",
+  "the_id": "676602"
+ },
+ {
   "qs_name": "Sultan Qaboos University",
   "the_name": "Sultan Qaboos University",
   "the_id": "131572"
@@ -2715,6 +4265,11 @@
   "the_id": "857"
  },
  {
+  "qs_name": "Swedish University of Agricultural Sciences",
+  "the_name": "Swedish University of Agricultural Sciences",
+  "the_id": "711"
+ },
+ {
   "qs_name": "Swinburne University of Technology",
   "the_name": "Swinburne University of Technology",
   "the_id": "858"
@@ -2745,14 +4300,29 @@
   "the_id": "131317"
  },
  {
+  "qs_name": "TUHH Hamburg University of Technology",
+  "the_name": "Hamburg University of Technology",
+  "the_id": "625974"
+ },
+ {
   "qs_name": "Taibah University",
   "the_name": "Taibah University",
   "the_id": "625053"
  },
  {
+  "qs_name": "Taif University",
+  "the_name": "Taif University",
+  "the_id": "623286"
+ },
+ {
   "qs_name": "Taipei Medical University (TMU)",
   "the_name": "Taipei Medical University",
   "the_id": "991"
+ },
+ {
+  "qs_name": "Taiz University",
+  "the_name": "Taiz University",
+  "the_id": "719196"
  },
  {
   "qs_name": "Tallinn University",
@@ -2763,6 +4333,11 @@
   "qs_name": "Tallinn University of Technology (TalTech)",
   "the_name": "Tallinn University of Technology",
   "the_id": "131586"
+ },
+ {
+  "qs_name": "Tamil Nadu Agricultural University",
+  "the_name": "Tamil Nadu Agricultural University",
+  "the_id": "621501"
  },
  {
   "qs_name": "Tamkang University",
@@ -2785,9 +4360,24 @@
   "the_id": "131734"
  },
  {
+  "qs_name": "Tarbiat Modares University",
+  "the_name": "Tarbiat Modares University",
+  "the_id": "131463"
+ },
+ {
+  "qs_name": "Tashkent State Technical University",
+  "the_name": "Tashkent State Technical University",
+  "the_id": "670578"
+ },
+ {
   "qs_name": "Technical University of Cluj-Napoca",
   "the_name": "Technical University of Cluj-Napoca",
   "the_id": "670557"
+ },
+ {
+  "qs_name": "Technical University of Crete",
+  "the_name": "Technical University of Crete",
+  "the_id": "685450"
  },
  {
   "qs_name": "Technical University of Darmstadt",
@@ -2815,6 +4405,11 @@
   "the_id": "552"
  },
  {
+  "qs_name": "Technical University of Sofia",
+  "the_name": "Technical University of Sofia",
+  "the_id": "708377"
+ },
+ {
   "qs_name": "Technion - Israel Institute of Technology",
   "the_name": "Technion Israel Institute of Technology",
   "the_id": "685"
@@ -2823,6 +4418,11 @@
   "qs_name": "Technische Universität Berlin (TU Berlin)",
   "the_name": "Technical University of Berlin",
   "the_id": "1022"
+ },
+ {
+  "qs_name": "Technische Universität Ilmenau",
+  "the_name": "Technische Universität Ilmenau",
+  "the_id": "623304"
  },
  {
   "qs_name": "Technological University Dublin",
@@ -2838,6 +4438,21 @@
   "qs_name": "Tecnológico de Monterrey",
   "the_name": "Tecnológico de Monterrey",
   "the_id": "1009"
+ },
+ {
+  "qs_name": "Teesside University",
+  "the_name": "Teesside University",
+  "the_id": "131694"
+ },
+ {
+  "qs_name": "Tehran University of Medical Sciences",
+  "the_name": "Shiraz University of Medical Sciences",
+  "the_id": "641855"
+ },
+ {
+  "qs_name": "Teikyo University",
+  "the_name": "Teikyo University",
+  "the_id": "609231"
  },
  {
   "qs_name": "Tel Aviv University",
@@ -2860,9 +4475,19 @@
   "the_id": "629"
  },
  {
+  "qs_name": "Texas State University",
+  "the_name": "Texas State University",
+  "the_id": "594695"
+ },
+ {
   "qs_name": "Texas Tech University",
   "the_name": "Texas Tech University",
   "the_id": "131276"
+ },
+ {
+  "qs_name": "Tezpur University",
+  "the_name": "Tezpur University",
+  "the_id": "131574"
  },
  {
   "qs_name": "Thammasat University",
@@ -2895,6 +4520,11 @@
   "the_id": "662356"
  },
  {
+  "qs_name": "The Education University of Hong Kong",
+  "the_name": "The Education University of Hong Kong",
+  "the_id": "636465"
+ },
+ {
   "qs_name": "The Hashemite University",
   "the_name": "The Hashemite University",
   "the_id": "587787"
@@ -2920,6 +4550,11 @@
   "the_id": "526"
  },
  {
+  "qs_name": "The Islamia University of Bahawalpur,Pakistan",
+  "the_name": "The Islamia University of Bahawalpur",
+  "the_id": "625047"
+ },
+ {
   "qs_name": "The London School of Economics and Political Science (LSE)",
   "the_name": "London School of Economics and Political Science",
   "the_id": "511"
@@ -2938,6 +4573,11 @@
   "qs_name": "The Ohio State University",
   "the_name": "Ohio State University (Main campus)",
   "the_id": "521"
+ },
+ {
+  "qs_name": "The Open University",
+  "the_name": "The Open University",
+  "the_id": "959"
  },
  {
   "qs_name": "The University of Adelaide",
@@ -2965,9 +4605,19 @@
   "the_id": "500"
  },
  {
+  "qs_name": "The University of Electro-Communications (UEC-Tokyo)",
+  "the_name": "The University of Electro-Communications",
+  "the_id": "609414"
+ },
+ {
   "qs_name": "The University of Georgia",
   "the_name": "University of Georgia (USA)",
   "the_id": "675"
+ },
+ {
+  "qs_name": "The University of Haripur",
+  "the_name": "The University of Haripur",
+  "the_id": "719825"
  },
  {
   "qs_name": "The University of Hong Kong",
@@ -3040,14 +4690,39 @@
   "the_id": "654"
  },
  {
+  "qs_name": "Thiagarajar College of Engineering",
+  "the_name": "Thiagarajar College of Engineering",
+  "the_id": "715402"
+ },
+ {
+  "qs_name": "Tianjin Normal University",
+  "the_name": "Tianjin Normal University",
+  "the_id": "624255"
+ },
+ {
   "qs_name": "Tianjin University",
   "the_name": "Tianjin University",
   "the_id": "975"
  },
  {
+  "qs_name": "Tikrit University",
+  "the_name": "Tikrit University",
+  "the_id": "651572"
+ },
+ {
   "qs_name": "Tilburg University",
   "the_name": "Tilburg University",
   "the_id": "734"
+ },
+ {
+  "qs_name": "Tishk International University",
+  "the_name": "Tishk International University",
+  "the_id": "715252"
+ },
+ {
+  "qs_name": "Toho University",
+  "the_name": "Toho University",
+  "the_id": "609234"
  },
  {
   "qs_name": "Tohoku University",
@@ -3060,9 +4735,24 @@
   "the_id": "131413"
  },
  {
+  "qs_name": "Tokat Gaziosmanpasa University",
+  "the_name": "Tokat Gaziosmanpaşa University",
+  "the_id": "624285"
+ },
+ {
   "qs_name": "Tokushima University",
   "the_name": "Tokushima University",
   "the_id": "131742"
+ },
+ {
+  "qs_name": "Tokyo City University",
+  "the_name": "Tokyo City University",
+  "the_id": "587859"
+ },
+ {
+  "qs_name": "Tokyo Denki University",
+  "the_name": "Tokyo Denki University",
+  "the_id": "589262"
  },
  {
   "qs_name": "Tokyo Institute of Technology (Tokyo Tech)",
@@ -3075,6 +4765,11 @@
   "the_id": "712"
  },
  {
+  "qs_name": "Tokyo University of Agriculture",
+  "the_name": "Tokyo University of Agriculture",
+  "the_id": "609564"
+ },
+ {
   "qs_name": "Tokyo University of Agriculture and Technology",
   "the_name": "Tokyo University of Agriculture and Technology",
   "the_id": "860"
@@ -3083,6 +4778,11 @@
   "qs_name": "Tokyo University of Science",
   "the_name": "Tokyo University of Science",
   "the_id": "131726"
+ },
+ {
+  "qs_name": "Tokyo University of Technology",
+  "the_name": "Tokyo University of Technology",
+  "the_id": "609876"
  },
  {
   "qs_name": "Tomas Bata University in Zlin",
@@ -3110,9 +4810,34 @@
   "the_id": "623367"
  },
  {
+  "qs_name": "Tottori University",
+  "the_name": "Tottori University",
+  "the_id": "131538"
+ },
+ {
+  "qs_name": "Toyo University",
+  "the_name": "Toyo University",
+  "the_id": "131682"
+ },
+ {
+  "qs_name": "Toyohashi University of Technology (TUT)",
+  "the_name": "Toyohashi University of Technology (TUT)",
+  "the_id": "131816"
+ },
+ {
+  "qs_name": "Trakia University",
+  "the_name": "Trakia University",
+  "the_id": "727189"
+ },
+ {
   "qs_name": "Transilvania University of Brasov",
   "the_name": "Transilvania University of Brașov",
   "the_id": "678543"
+ },
+ {
+  "qs_name": "Tribhuvan University",
+  "the_name": "Tribhuvan University",
+  "the_id": "624417"
  },
  {
   "qs_name": "Trinity College Dublin, The University of Dublin",
@@ -3138,6 +4863,11 @@
   "qs_name": "Tunghai University",
   "the_name": "Tunghai University",
   "the_id": "621585"
+ },
+ {
+  "qs_name": "UCAM Universidad Católica San Antonio de Murcia",
+  "the_name": "Universidad Católica San Antonio de Murcia (UCAM)",
+  "the_id": "313017"
  },
  {
   "qs_name": "UCL",
@@ -3168,6 +4898,11 @@
   "qs_name": "UWE Bristol (University of the West of England)",
   "the_name": "UWE Bristol (University of the West of England)",
   "the_id": "131439"
+ },
+ {
+  "qs_name": "Ubon Ratchathani University",
+  "the_name": "Ubon Ratchathani University",
+  "the_id": "688681"
  },
  {
   "qs_name": "Ulm University",
@@ -3235,6 +4970,11 @@
   "the_id": "626166"
  },
  {
+  "qs_name": "Universidad Autónoma de Coahuila (UAdeC)",
+  "the_name": "Universidad Autónoma de Coahuila",
+  "the_id": "625764"
+ },
+ {
   "qs_name": "Universidad Autónoma de Nuevo León",
   "the_name": "Universidad Autónoma de Nuevo León (UANL)",
   "the_id": "131435"
@@ -3270,9 +5010,19 @@
   "the_id": "625752"
  },
  {
+  "qs_name": "Universidad Católica del Maule",
+  "the_name": "Universidad Católica del Maule",
+  "the_id": "621720"
+ },
+ {
   "qs_name": "Universidad Central de Venezuela",
   "the_name": "Central University of Venezuela",
   "the_id": "131683"
+ },
+ {
+  "qs_name": "Universidad Científica del Sur",
+  "the_name": "Universidad Científica del Sur",
+  "the_id": "657488"
  },
  {
   "qs_name": "Universidad Diego Portales (UDP)",
@@ -3280,9 +5030,19 @@
   "the_id": "131418"
  },
  {
+  "qs_name": "Universidad Distrital Francisco José de Caldas",
+  "the_name": "Universidad Distrital Francisco José de Caldas",
+  "the_id": "621504"
+ },
+ {
   "qs_name": "Universidad EAFIT",
   "the_name": "EAFIT University",
   "the_id": "623925"
+ },
+ {
+  "qs_name": "Universidad Francisco De Vitoria",
+  "the_name": "Universidad Francisco de Vitoria",
+  "the_id": "622479"
  },
  {
   "qs_name": "Universidad ICESI",
@@ -3293,6 +5053,11 @@
   "qs_name": "Universidad Industrial de Santander - UIS",
   "the_name": "Universidad Industrial de Santander (UIS)",
   "the_id": "623517"
+ },
+ {
+  "qs_name": "Universidad Mayor",
+  "the_name": "Universidad Mayor",
+  "the_id": "621681"
  },
  {
   "qs_name": "Universidad Nacional Agraria la Molina",
@@ -3318,6 +5083,11 @@
   "qs_name": "Universidad Panamericana (UP)",
   "the_name": "Universidad Panamericana (UP)",
   "the_id": "589358"
+ },
+ {
+  "qs_name": "Universidad Pedagógica y Tecnológica de Colombia",
+  "the_name": "Universidad Pedagogica y Tecnologica de Colombia - UPTC",
+  "the_id": "639359"
  },
  {
   "qs_name": "Universidad Peruana Cayetano Heredia (UPCH)",
@@ -3355,9 +5125,19 @@
   "the_id": "621708"
  },
  {
+  "qs_name": "Universidad Santo Tomás - Chile",
+  "the_name": "Universidad Santo Tomás",
+  "the_id": "685402"
+ },
+ {
   "qs_name": "Universidad Técnica Particular de Loja",
   "the_name": "Universidad Técnica Particular de Loja",
   "the_id": "639068"
+ },
+ {
+  "qs_name": "Universidad Técnica de Manabí",
+  "the_name": "Universidad Técnica de Manabí",
+  "the_id": "719224"
  },
  {
   "qs_name": "Universidad de Alcalá (Madrid)",
@@ -3430,6 +5210,11 @@
   "the_id": "621492"
  },
  {
+  "qs_name": "Universidad de Las Palmas de Gran Canaria",
+  "the_name": "University of Las Palmas de Gran Canaria",
+  "the_id": "633066"
+ },
+ {
   "qs_name": "Universidad de León",
   "the_name": "University of León",
   "the_id": "633021"
@@ -3443,6 +5228,11 @@
   "qs_name": "Universidad de Oviedo",
   "the_name": "University of Oviedo",
   "the_id": "131605"
+ },
+ {
+  "qs_name": "Universidad de San Martín de Porres",
+  "the_name": "University of San Martín de Porres",
+  "the_id": "625353"
  },
  {
   "qs_name": "Universidad de San Nicolás de Hidalgo",
@@ -3520,9 +5310,44 @@
   "the_id": "623592"
  },
  {
+  "qs_name": "Universidade Eduardo Mondlane",
+  "the_name": "Universidade Eduardo Mondlane",
+  "the_id": "717953"
+ },
+ {
   "qs_name": "Universidade Estadual de Campinas (Unicamp)",
   "the_name": "University of Campinas",
   "the_id": "759"
+ },
+ {
+  "qs_name": "Universidade Estadual de Feira de Santana",
+  "the_name": "Universidade Estadual de Feira de Santana (UEFS)",
+  "the_id": "621426"
+ },
+ {
+  "qs_name": "Universidade Estadual de Maringá",
+  "the_name": "Universidade Estadual de Maringá",
+  "the_id": "131470"
+ },
+ {
+  "qs_name": "Universidade Estadual de Santa Cruz",
+  "the_name": "Universidade Estadual de Santa Cruz",
+  "the_id": "639035"
+ },
+ {
+  "qs_name": "Universidade Estadual do Maranhão",
+  "the_name": "Universidade Estadual do Maranhão",
+  "the_id": "625890"
+ },
+ {
+  "qs_name": "Universidade Estadual do Norte Fluminense Darcy Ribeiro",
+  "the_name": "Universidade Estadual do Norte Fluminense Darcy Ribeiro",
+  "the_id": "625545"
+ },
+ {
+  "qs_name": "Universidade Estadual do Oeste do Paraná",
+  "the_name": "Universidade Estadual do Oeste do Paraná (Unioeste)",
+  "the_id": "625686"
  },
  {
   "qs_name": "Universidade Federal Fluminense",
@@ -3545,6 +5370,11 @@
   "the_id": "621432"
  },
  {
+  "qs_name": "Universidade Federal de Ouro Preto",
+  "the_name": "Universidade Federal de Ouro Preto (UFOP)",
+  "the_id": "584778"
+ },
+ {
   "qs_name": "Universidade Federal de Pelotas",
   "the_name": "Federal University of Pelotas",
   "the_id": "623460"
@@ -3563,6 +5393,11 @@
   "qs_name": "Universidade Federal de Santa Maria",
   "the_name": "Federal University of Santa Maria",
   "the_id": "131632"
+ },
+ {
+  "qs_name": "Universidade Federal de Sergipe (UFS)",
+  "the_name": "Universidade Federal de Sergipe",
+  "the_id": "625488"
  },
  {
   "qs_name": "Universidade Federal de São Carlos (UFSCar)",
@@ -3600,6 +5435,11 @@
   "the_id": "131512"
  },
  {
+  "qs_name": "Universidade Lusófona",
+  "the_name": "Universidade Lusófona",
+  "the_id": "725646"
+ },
+ {
   "qs_name": "Universidade de Brasília",
   "the_name": "University of Brasília",
   "the_id": "131799"
@@ -3630,9 +5470,24 @@
   "the_id": "131279"
  },
  {
+  "qs_name": "Universit Sultan Moulay Slimane",
+  "the_name": "Université Sultan Moulay Slimane",
+  "the_id": "710835"
+ },
+ {
+  "qs_name": "Universit de Bretagne Occidentale",
+  "the_name": "Université de Bretagne Occidentale",
+  "the_id": "632004"
+ },
+ {
   "qs_name": "Universita' degli Studi di Ferrara",
   "the_name": "University of Ferrara",
   "the_id": "777"
+ },
+ {
+  "qs_name": "Universitas Ahmad Dahlan",
+  "the_name": "Universitas Ahmad Dahlan",
+  "the_id": "719189"
  },
  {
   "qs_name": "Universitas Airlangga",
@@ -3670,6 +5525,26 @@
   "the_id": "701563"
  },
  {
+  "qs_name": "Universitas Negeri Jakarta",
+  "the_name": "Universitas Negeri Jakarta",
+  "the_id": "724768"
+ },
+ {
+  "qs_name": "Universitas Negeri Padang",
+  "the_name": "Universitas Negeri Padang",
+  "the_id": "726468"
+ },
+ {
+  "qs_name": "Universitas Negeri Semarang",
+  "the_name": "Universitas Negeri Semarang",
+  "the_id": "718584"
+ },
+ {
+  "qs_name": "Universitas Negeri Surabaya (UNESA University)",
+  "the_name": "Universitas Negeri Surabaya",
+  "the_id": "710462"
+ },
+ {
   "qs_name": "Universitas Negeri Yogyakarta",
   "the_name": "Universitas Negeri Yogyakarta",
   "the_id": "622548"
@@ -3695,9 +5570,19 @@
   "the_id": "704789"
  },
  {
+  "qs_name": "Universitas Syiah Kuala",
+  "the_name": "Universitas Syiah Kuala",
+  "the_id": "723780"
+ },
+ {
   "qs_name": "Universitat Autònoma de Barcelona",
   "the_name": "Universitat Autònoma de Barcelona (UAB)",
   "the_id": "666"
+ },
+ {
+  "qs_name": "Universitat Internacional de Catalunya",
+  "the_name": "Universitat Internacional de Catalunya",
+  "the_id": "681874"
  },
  {
   "qs_name": "Universitat Politècnica de Catalunya · BarcelonaTech (UPC)",
@@ -3760,6 +5645,11 @@
   "the_id": "606429"
  },
  {
+  "qs_name": "Universiti Malaysia Kelantan",
+  "the_name": "Universiti Malaysia Kelantan",
+  "the_id": "690031"
+ },
+ {
   "qs_name": "Universiti Malaysia Pahang Al-Sultan Abdullah (UMPSA)",
   "the_name": "Universiti Malaysia Pahang Al-Sultan Abdullah (UMPSA)",
   "the_id": "625131"
@@ -3798,6 +5688,11 @@
   "qs_name": "Universiti Sains Malaysia (USM)",
   "the_name": "Universiti Sains Malaysia",
   "the_id": "131486"
+ },
+ {
+  "qs_name": "Universiti Sultan Zainal Abidin",
+  "the_name": "Universiti Sultan Zainal Abidin",
+  "the_id": "707858"
  },
  {
   "qs_name": "Universiti Teknologi Brunei",
@@ -3855,6 +5750,16 @@
   "the_id": "624000"
  },
  {
+  "qs_name": "University Mohamed Boudiaf of M'Sila",
+  "the_name": "University Mohamed Boudiaf of M’Sila",
+  "the_id": "648695"
+ },
+ {
+  "qs_name": "University Of Cape Coast",
+  "the_name": "University of Cape Coast",
+  "the_id": "628164"
+ },
+ {
   "qs_name": "University at Albany SUNY",
   "the_name": "SUNY University at Albany",
   "the_id": "710"
@@ -3870,6 +5775,11 @@
   "the_id": "615"
  },
  {
+  "qs_name": "University of Al-Qadisiyah",
+  "the_name": "University of Al-Qadisiyah",
+  "the_id": "670506"
+ },
+ {
   "qs_name": "University of Alaska Fairbanks",
   "the_name": "University of Alaska Fairbanks",
   "the_id": "963"
@@ -3880,6 +5790,11 @@
   "the_id": "564"
  },
  {
+  "qs_name": "University of Algarve",
+  "the_name": "University of Algarve",
+  "the_id": "622284"
+ },
+ {
   "qs_name": "University of Alicante",
   "the_name": "University of Alicante",
   "the_id": "623361"
@@ -3888,6 +5803,11 @@
   "qs_name": "University of Amsterdam",
   "the_name": "University of Amsterdam",
   "the_id": "556"
+ },
+ {
+  "qs_name": "University of Anbar",
+  "the_name": "University of Anbar",
+  "the_id": "623679"
  },
  {
   "qs_name": "University of Antwerp",
@@ -3935,6 +5855,16 @@
   "the_id": "881"
  },
  {
+  "qs_name": "University of Bedfordshire",
+  "the_name": "University of Bedfordshire",
+  "the_id": "131393"
+ },
+ {
+  "qs_name": "University of Beira Interior",
+  "the_name": "University of Beira Interior",
+  "the_id": "587724"
+ },
+ {
   "qs_name": "University of Belgrade",
   "the_name": "University of Belgrade",
   "the_id": "131292"
@@ -3955,9 +5885,24 @@
   "the_id": "612"
  },
  {
+  "qs_name": "University of Bisha",
+  "the_name": "University of Bisha",
+  "the_id": "720404"
+ },
+ {
+  "qs_name": "University of Biskra",
+  "the_name": "University of Biskra",
+  "the_id": "648728"
+ },
+ {
   "qs_name": "University of Bordeaux",
   "the_name": "University of Bordeaux",
   "the_id": "131635"
+ },
+ {
+  "qs_name": "University of Botswana",
+  "the_name": "University of Botswana",
+  "the_id": "625998"
  },
  {
   "qs_name": "University of Bradford",
@@ -3990,6 +5935,16 @@
   "the_id": "131536"
  },
  {
+  "qs_name": "University of Burgos",
+  "the_name": "University of Burgos",
+  "the_id": "633072"
+ },
+ {
+  "qs_name": "University of Cagliari",
+  "the_name": "University of Cagliari",
+  "the_id": "131499"
+ },
+ {
   "qs_name": "University of Calabria",
   "the_name": "University of Calabria",
   "the_id": "589361"
@@ -4018,6 +5973,11 @@
   "qs_name": "University of California, Los Angeles (UCLA)",
   "the_name": "University of California, Los Angeles",
   "the_id": "477"
+ },
+ {
+  "qs_name": "University of California, Merced",
+  "the_name": "University of California, Merced",
+  "the_id": "622527"
  },
  {
   "qs_name": "University of California, Riverside",
@@ -4055,9 +6015,19 @@
   "the_id": "567"
  },
  {
+  "qs_name": "University of Carthage",
+  "the_name": "University of Carthage",
+  "the_id": "657626"
+ },
+ {
   "qs_name": "University of Central Florida",
   "the_name": "University of Central Florida",
   "the_id": "595858"
+ },
+ {
+  "qs_name": "University of Central Punjab",
+  "the_name": "University of Central Punjab",
+  "the_id": "654380"
  },
  {
   "qs_name": "University of Chemistry and Technology, Prague",
@@ -4065,9 +6035,19 @@
   "the_id": "131697"
  },
  {
+  "qs_name": "University of Chester",
+  "the_name": "University of Chester",
+  "the_id": "131400"
+ },
+ {
   "qs_name": "University of Chicago",
   "the_name": "The University of Chicago",
   "the_id": "473"
+ },
+ {
+  "qs_name": "University of Chittagong",
+  "the_name": "University of Chittagong",
+  "the_id": "719221"
  },
  {
   "qs_name": "University of Coimbra",
@@ -4088,6 +6068,11 @@
   "qs_name": "University of Colorado Boulder",
   "the_name": "University of Colorado Boulder",
   "the_id": "541"
+ },
+ {
+  "qs_name": "University of Colorado Denver | Anschutz Medical Campus",
+  "the_name": "University of Colorado Denver/Anschutz Medical Campus",
+  "the_id": "592058"
  },
  {
   "qs_name": "University of Connecticut",
@@ -4113,6 +6098,11 @@
   "qs_name": "University of Cyprus (UCY)",
   "the_name": "University of Cyprus",
   "the_id": "131501"
+ },
+ {
+  "qs_name": "University of Dar es Salaam",
+  "the_name": "University of Dar es Salaam",
+  "the_id": "131367"
  },
  {
   "qs_name": "University of Debrecen",
@@ -4150,6 +6140,16 @@
   "the_id": "131689"
  },
  {
+  "qs_name": "University of Diyala",
+  "the_name": "University of Diyala",
+  "the_id": "685360"
+ },
+ {
+  "qs_name": "University of Duhok",
+  "the_name": "University of Duhok",
+  "the_id": "701734"
+ },
+ {
   "qs_name": "University of Dundee",
   "the_name": "University of Dundee",
   "the_id": "640"
@@ -4170,6 +6170,16 @@
   "the_id": "776"
  },
  {
+  "qs_name": "University of Education, Lahore",
+  "the_name": "University of Education, Lahore",
+  "the_id": "654377"
+ },
+ {
+  "qs_name": "University of El Oued",
+  "the_name": "University of El Oued",
+  "the_id": "710823"
+ },
+ {
   "qs_name": "University of Electronic Science and Technology of China",
   "the_name": "University of Electronic Science and Technology of China",
   "the_id": "131759"
@@ -4178,6 +6188,16 @@
   "qs_name": "University of Engineering & Technology (UET) Lahore",
   "the_name": "University of Engineering & Technology (UET) Lahore",
   "the_id": "623421"
+ },
+ {
+  "qs_name": "University of Engineering and Technology, Taxila",
+  "the_name": "University of Engineering and Technology, Taxila",
+  "the_id": "720793"
+ },
+ {
+  "qs_name": "University of Evora",
+  "the_name": "University of Évora",
+  "the_id": "638552"
  },
  {
   "qs_name": "University of Exeter",
@@ -4193,6 +6213,16 @@
   "qs_name": "University of Florida",
   "the_name": "University of Florida",
   "the_id": "590"
+ },
+ {
+  "qs_name": "University of Foggia",
+  "the_name": "University of Foggia",
+  "the_id": "623514"
+ },
+ {
+  "qs_name": "University of Fukui",
+  "the_name": "University of Fukui",
+  "the_id": "609312"
  },
  {
   "qs_name": "University of Galway",
@@ -4220,6 +6250,11 @@
   "the_id": "566"
  },
  {
+  "qs_name": "University of Gloucestershire",
+  "the_name": "University of Gloucestershire",
+  "the_id": "131800"
+ },
+ {
   "qs_name": "University of Gothenburg",
   "the_name": "University of Gothenburg",
   "the_id": "676"
@@ -4245,6 +6280,11 @@
   "the_id": "746"
  },
  {
+  "qs_name": "University of Gujrat",
+  "the_name": "University of Gujrat",
+  "the_id": "719085"
+ },
+ {
   "qs_name": "University of Göttingen",
   "the_name": "University of Göttingen",
   "the_id": "533"
@@ -4253,6 +6293,11 @@
   "qs_name": "University of Ha'il",
   "the_name": "University of Ha’il",
   "the_id": "704053"
+ },
+ {
+  "qs_name": "University of Hafr Al Batin",
+  "the_name": "University of Hafr Al Batin",
+  "the_id": "718348"
  },
  {
   "qs_name": "University of Haifa",
@@ -4305,6 +6350,11 @@
   "the_id": "131643"
  },
  {
+  "qs_name": "University of Hyogo",
+  "the_name": "University of Hyogo",
+  "the_id": "609672"
+ },
+ {
   "qs_name": "University of Ibadan",
   "the_name": "University of Ibadan",
   "the_id": "131386"
@@ -4325,6 +6375,11 @@
   "the_id": "495"
  },
  {
+  "qs_name": "University of Ilorin (UNILORIN)",
+  "the_name": "University of Ilorin",
+  "the_id": "705869"
+ },
+ {
   "qs_name": "University of International Business and Economics",
   "the_name": "University of International Business and Economics",
   "the_id": "623187"
@@ -4338,6 +6393,21 @@
   "qs_name": "University of Iowa",
   "the_name": "University of Iowa",
   "the_id": "606"
+ },
+ {
+  "qs_name": "University of Isfahan",
+  "the_name": "University of Isfahan",
+  "the_id": "606483"
+ },
+ {
+  "qs_name": "University of Jaén",
+  "the_name": "University of Jaén",
+  "the_id": "589253"
+ },
+ {
+  "qs_name": "University of Jeddah",
+  "the_name": "University of Jeddah",
+  "the_id": "709526"
  },
  {
   "qs_name": "University of Johannesburg",
@@ -4370,6 +6440,16 @@
   "the_id": "131680"
  },
  {
+  "qs_name": "University of Kashan",
+  "the_name": "University of Kashan",
+  "the_id": "624345"
+ },
+ {
+  "qs_name": "University of Kelaniya",
+  "the_name": "University of Kelaniya",
+  "the_id": "623538"
+ },
+ {
   "qs_name": "University of Kent",
   "the_name": "University of Kent",
   "the_id": "832"
@@ -4378,6 +6458,21 @@
   "qs_name": "University of Kentucky",
   "the_name": "University of Kentucky",
   "the_id": "752"
+ },
+ {
+  "qs_name": "University of Kerala",
+  "the_name": "University of Kerala",
+  "the_id": "624402"
+ },
+ {
+  "qs_name": "University of Kerbala",
+  "the_name": "University of Kerbala",
+  "the_id": "670518"
+ },
+ {
+  "qs_name": "University of Kirkuk",
+  "the_name": "University of Kirkuk",
+  "the_id": "661169"
  },
  {
   "qs_name": "University of Klagenfurt",
@@ -4390,9 +6485,19 @@
   "the_id": "131515"
  },
  {
+  "qs_name": "University of Kurdistan",
+  "the_name": "University of Kurdistan",
+  "the_id": "624348"
+ },
+ {
   "qs_name": "University of Kwazulu-Natal",
   "the_name": "University of KwaZulu-Natal",
   "the_id": "902"
+ },
+ {
+  "qs_name": "University of Laghouat",
+  "the_name": "University of Laghouat",
+  "the_id": "720219"
  },
  {
   "qs_name": "University of Lagos",
@@ -4430,6 +6535,11 @@
   "the_id": "662"
  },
  {
+  "qs_name": "University of Lethbridge",
+  "the_name": "University of Lethbridge",
+  "the_id": "623712"
+ },
+ {
   "qs_name": "University of Limerick",
   "the_name": "University of Limerick",
   "the_id": "919"
@@ -4460,6 +6570,11 @@
   "the_id": "1010"
  },
  {
+  "qs_name": "University of Lucknow",
+  "the_name": "University of Lucknow",
+  "the_id": "622203"
+ },
+ {
   "qs_name": "University of Luxembourg",
   "the_name": "University of Luxembourg",
   "the_id": "131698"
@@ -4478,6 +6593,16 @@
   "qs_name": "University of Manitoba",
   "the_name": "University of Manitoba",
   "the_id": "790"
+ },
+ {
+  "qs_name": "University of Manouba",
+  "the_name": "University of Manouba",
+  "the_id": "659912"
+ },
+ {
+  "qs_name": "University of Maragheh",
+  "the_name": "University of Maragheh",
+  "the_id": "670545"
  },
  {
   "qs_name": "University of Maribor",
@@ -4503,6 +6628,11 @@
   "qs_name": "University of Mataram",
   "the_name": "University of Mataram",
   "the_id": "718106"
+ },
+ {
+  "qs_name": "University of Mazandaran",
+  "the_name": "University of Mazandaran",
+  "the_id": "623892"
  },
  {
   "qs_name": "University of Memphis",
@@ -4550,14 +6680,49 @@
   "the_id": "593252"
  },
  {
+  "qs_name": "University of Miyazaki",
+  "the_name": "University of Miyazaki",
+  "the_id": "609492"
+ },
+ {
   "qs_name": "University of Modena and Reggio Emilia",
   "the_name": "University of Modena and Reggio Emilia",
   "the_id": "792"
  },
  {
+  "qs_name": "University of Mohaghegh Ardabili",
+  "the_name": "University of Mohaghegh Ardabili",
+  "the_id": "622257"
+ },
+ {
+  "qs_name": "University of Monastir",
+  "the_name": "University of Monastir",
+  "the_id": "131421"
+ },
+ {
   "qs_name": "University of Mons",
   "the_name": "University of Mons",
   "the_id": "624318"
+ },
+ {
+  "qs_name": "University of Montenegro",
+  "the_name": "University of Montenegro",
+  "the_id": "670530"
+ },
+ {
+  "qs_name": "University of Moratuwa",
+  "the_name": "University of Moratuwa",
+  "the_id": "695905"
+ },
+ {
+  "qs_name": "University of Mosul",
+  "the_name": "University of Mosul",
+  "the_id": "625245"
+ },
+ {
+  "qs_name": "University of Muhammadiyah Malang",
+  "the_name": "Universitas Muhammadiyah Malang",
+  "the_id": "727502"
  },
  {
   "qs_name": "University of Murcia",
@@ -4573,6 +6738,16 @@
   "qs_name": "University of Nairobi",
   "the_name": "University of Nairobi",
   "the_id": "131543"
+ },
+ {
+  "qs_name": "University of Namibia (UNAM)",
+  "the_name": "University of Namibia",
+  "the_id": "715222"
+ },
+ {
+  "qs_name": "University of Namur",
+  "the_name": "University of Namur",
+  "the_id": "623949"
  },
  {
   "qs_name": "University of Naples - Federico II",
@@ -4595,9 +6770,34 @@
   "the_id": "962"
  },
  {
+  "qs_name": "University of Neuchâtel",
+  "the_name": "University of Neuchâtel",
+  "the_id": "131274"
+ },
+ {
+  "qs_name": "University of Nevada - Las Vegas",
+  "the_name": "University of Nevada, Las Vegas",
+  "the_id": "593342"
+ },
+ {
   "qs_name": "University of New Brunswick",
   "the_name": "University of New Brunswick UNB",
   "the_id": "623655"
+ },
+ {
+  "qs_name": "University of Nicosia",
+  "the_name": "University of Nicosia",
+  "the_id": "626007"
+ },
+ {
+  "qs_name": "University of Nigeria Nsukka",
+  "the_name": "University of Nigeria Nsukka",
+  "the_id": "587628"
+ },
+ {
+  "qs_name": "University of Nizwa",
+  "the_name": "University of Nizwa",
+  "the_id": "709472"
  },
  {
   "qs_name": "University of North Carolina at Chapel Hill",
@@ -4620,9 +6820,19 @@
   "the_id": "604"
  },
  {
+  "qs_name": "University of Nova Gorica",
+  "the_name": "University of Nova Gorica",
+  "the_id": "131592"
+ },
+ {
   "qs_name": "University of Novi Sad",
   "the_name": "University of Novi Sad",
   "the_id": "623940"
+ },
+ {
+  "qs_name": "University of Okara",
+  "the_name": "University of Okara",
+  "the_id": "698548"
  },
  {
   "qs_name": "University of Oradea",
@@ -4660,6 +6870,11 @@
   "the_id": "131756"
  },
  {
+  "qs_name": "University of Oum El Bouaghi",
+  "the_name": "University of Oum El Bouaghi",
+  "the_id": "710829"
+ },
+ {
   "qs_name": "University of Oxford",
   "the_name": "University of Oxford",
   "the_id": "468"
@@ -4685,6 +6900,11 @@
   "the_id": "131545"
  },
  {
+  "qs_name": "University of Passau",
+  "the_name": "University of Passau",
+  "the_id": "622275"
+ },
+ {
   "qs_name": "University of Patras",
   "the_name": "University of Patras",
   "the_id": "131718"
@@ -4708,6 +6928,21 @@
   "qs_name": "University of Peshawar",
   "the_name": "University of Peshawar",
   "the_id": "131812"
+ },
+ {
+  "qs_name": "University of Petra",
+  "the_name": "University of Petra",
+  "the_id": "651644"
+ },
+ {
+  "qs_name": "University of Phayao",
+  "the_name": "University of Phayao",
+  "the_id": "685147"
+ },
+ {
+  "qs_name": "University of Piraeus",
+  "the_name": "University of Piraeus",
+  "the_id": "661034"
  },
  {
   "qs_name": "University of Pisa",
@@ -4738,6 +6973,11 @@
   "qs_name": "University of Primorska",
   "the_name": "University of Primorska",
   "the_id": "661106"
+ },
+ {
+  "qs_name": "University of Rajasthan, Jaipur",
+  "the_name": "Amity University Rajasthan, Jaipur",
+  "the_id": "718346"
  },
  {
   "qs_name": "University of Rajshahi",
@@ -4775,9 +7015,19 @@
   "the_id": "131526"
  },
  {
+  "qs_name": "University of Rwanda",
+  "the_name": "University of Rwanda",
+  "the_id": "621378"
+ },
+ {
   "qs_name": "University of Rzeszów",
   "the_name": "University of Rzeszów",
   "the_id": "660974"
+ },
+ {
+  "qs_name": "University of Sadat City",
+  "the_name": "University of Sadat City",
+  "the_id": "646154"
  },
  {
   "qs_name": "University of Salamanca",
@@ -4810,9 +7060,19 @@
   "the_id": "677010"
  },
  {
+  "qs_name": "University of Sargodha",
+  "the_name": "University of Sargodha",
+  "the_id": "625044"
+ },
+ {
   "qs_name": "University of Saskatchewan",
   "the_name": "University of Saskatchewan",
   "the_id": "131576"
+ },
+ {
+  "qs_name": "University of Science and Technology Houari Boumediene (USTHB)",
+  "the_name": "University of Sciences and Technology Houari Boumediene",
+  "the_id": "647912"
  },
  {
   "qs_name": "University of Science and Technology of China",
@@ -4865,6 +7125,11 @@
   "the_id": "714898"
  },
  {
+  "qs_name": "University of South Wales",
+  "the_name": "University of South Wales",
+  "the_id": "131736"
+ },
+ {
   "qs_name": "University of Southampton",
   "the_name": "University of Southampton",
   "the_id": "593"
@@ -4900,6 +7165,16 @@
   "the_id": "549"
  },
  {
+  "qs_name": "University of St.Gallen",
+  "the_name": "University of St Gallen",
+  "the_id": "131326"
+ },
+ {
+  "qs_name": "University of Staffordshire",
+  "the_name": "University of Staffordshire",
+  "the_id": "131431"
+ },
+ {
   "qs_name": "University of Stirling",
   "the_name": "University of Stirling",
   "the_id": "804"
@@ -4908,6 +7183,16 @@
   "qs_name": "University of Strathclyde",
   "the_name": "University of Strathclyde",
   "the_id": "856"
+ },
+ {
+  "qs_name": "University of Sulaimani",
+  "the_name": "University of Sulaimani",
+  "the_id": "587601"
+ },
+ {
+  "qs_name": "University of Sunderland",
+  "the_name": "University of Sunderland",
+  "the_id": "131796"
  },
  {
   "qs_name": "University of Surrey",
@@ -4935,6 +7220,11 @@
   "the_id": "622938"
  },
  {
+  "qs_name": "University of Taipei",
+  "the_name": "University of Taipei",
+  "the_id": "625695"
+ },
+ {
   "qs_name": "University of Tartu",
   "the_name": "University of Tartu",
   "the_id": "859"
@@ -4943,6 +7233,11 @@
   "qs_name": "University of Tasmania",
   "the_name": "University of Tasmania",
   "the_id": "808"
+ },
+ {
+  "qs_name": "University of Technology - Iraq",
+  "the_name": "University of Technology, Iraq",
+  "the_id": "662395"
  },
  {
   "qs_name": "University of Technology Sydney",
@@ -4975,6 +7270,16 @@
   "the_id": "761"
  },
  {
+  "qs_name": "University of Thessaly",
+  "the_name": "University of Thessaly",
+  "the_id": "660830"
+ },
+ {
+  "qs_name": "University of Thi-Qar",
+  "the_name": "University of Thi-Qar",
+  "the_id": "695902"
+ },
+ {
   "qs_name": "University of Toledo",
   "the_name": "University of Toledo",
   "the_id": "131368"
@@ -4983,6 +7288,11 @@
   "qs_name": "University of Toronto",
   "the_name": "University of Toronto",
   "the_id": "483"
+ },
+ {
+  "qs_name": "University of Toyama",
+  "the_name": "University of Toyama",
+  "the_id": "589241"
  },
  {
   "qs_name": "University of Trento",
@@ -4995,9 +7305,19 @@
   "the_id": "713"
  },
  {
+  "qs_name": "University of Tripoli",
+  "the_name": "University of Tripoli",
+  "the_id": "627159"
+ },
+ {
   "qs_name": "University of Tromsø The Arctic University of Norway",
   "the_name": "UiT The Arctic University of Norway",
   "the_id": "764"
+ },
+ {
+  "qs_name": "University of Trás-os-Montes and Alto Douro",
+  "the_name": "University of Trás-os-Montes and Alto Douro",
+  "the_id": "638555"
  },
  {
   "qs_name": "University of Tsukuba",
@@ -5033,6 +7353,16 @@
   "qs_name": "University of Utah",
   "the_name": "University of Utah",
   "the_id": "577"
+ },
+ {
+  "qs_name": "University of Vaasa",
+  "the_name": "University of Vaasa",
+  "the_id": "660806"
+ },
+ {
+  "qs_name": "University of Veterinary and Animal Sciences, Lahore, Pakistan",
+  "the_name": "University of Veterinary and Animal Sciences, Lahore",
+  "the_id": "131434"
  },
  {
   "qs_name": "University of Victoria (UVic)",
@@ -5075,14 +7405,29 @@
   "the_id": "689"
  },
  {
+  "qs_name": "University of West Attica (UNIWA)",
+  "the_name": "University of West Attica",
+  "the_id": "685372"
+ },
+ {
   "qs_name": "University of West Bohemia",
   "the_name": "University of West Bohemia",
   "the_id": "131333"
  },
  {
+  "qs_name": "University of Western Macedonia",
+  "the_name": "University of Western Macedonia",
+  "the_id": "720341"
+ },
+ {
   "qs_name": "University of Westminster",
   "the_name": "University of Westminster",
   "the_id": "131626"
+ },
+ {
+  "qs_name": "University of Winchester",
+  "the_name": "University of Winchester",
+  "the_id": "131311"
  },
  {
   "qs_name": "University of Windsor",
@@ -5110,6 +7455,11 @@
   "the_id": "621402"
  },
  {
+  "qs_name": "University of Worcester",
+  "the_name": "University of Worcester",
+  "the_id": "131471"
+ },
+ {
   "qs_name": "University of Wroclaw",
   "the_name": "University of Wrocław",
   "the_id": "623118"
@@ -5130,9 +7480,34 @@
   "the_id": "589178"
  },
  {
+  "qs_name": "University of Zambia",
+  "the_name": "University of Zambia",
+  "the_id": "670626"
+ },
+ {
+  "qs_name": "University of Zanjan",
+  "the_name": "University of Zanjan",
+  "the_id": "587757"
+ },
+ {
   "qs_name": "University of Zilina",
   "the_name": "University of Žilina",
   "the_id": "661151"
+ },
+ {
+  "qs_name": "University of Zimbabwe",
+  "the_name": "University of Zimbabwe",
+  "the_id": "707981"
+ },
+ {
+  "qs_name": "University of the Aegean",
+  "the_name": "University of the Aegean",
+  "the_id": "625977"
+ },
+ {
+  "qs_name": "University of the Arts London",
+  "the_name": "University of the Arts London",
+  "the_id": "131717"
  },
  {
   "qs_name": "University of the Basque Country",
@@ -5155,9 +7530,24 @@
   "the_id": "621513"
  },
  {
+  "qs_name": "University of the Ryukyus",
+  "the_name": "University of the Ryukyus",
+  "the_id": "609306"
+ },
+ {
+  "qs_name": "University of the South Pacific",
+  "the_name": "University of the South Pacific",
+  "the_id": "661082"
+ },
+ {
   "qs_name": "University of the Sunshine Coast",
   "the_name": "University of the Sunshine Coast",
   "the_id": "131394"
+ },
+ {
+  "qs_name": "University of the West of Scotland",
+  "the_name": "University of the West of Scotland",
+  "the_id": "131427"
  },
  {
   "qs_name": "University of the Western Cape",
@@ -5235,6 +7625,21 @@
   "the_id": "1031"
  },
  {
+  "qs_name": "Université 8 Mai 1945 Guelma",
+  "the_name": "Université 8 Mai 1945 Guelma",
+  "the_id": "670407"
+ },
+ {
+  "qs_name": "Université Abdelhamid Ibn Badis – Mostaganem",
+  "the_name": "University Abdelhamid Ibn Badis Mostaganem",
+  "the_id": "670590"
+ },
+ {
+  "qs_name": "Université Bourgogne Europe",
+  "the_name": "Université Bourgogne Europe",
+  "the_id": "131642"
+ },
+ {
   "qs_name": "Université Claude Bernard Lyon 1",
   "the_name": "Claude Bernard University Lyon 1",
   "the_id": "886"
@@ -5245,14 +7650,29 @@
   "the_id": "625956"
  },
  {
+  "qs_name": "Université Frères Mentouri – Constantine 1",
+  "the_name": "Université Frères Mentouri Constantine 1",
+  "the_id": "648689"
+ },
+ {
   "qs_name": "Université Grenoble Alpes",
   "the_name": "Université Grenoble Alpes",
   "the_id": "715321"
  },
  {
+  "qs_name": "Université Hassan II de Casablanca",
+  "the_name": "Université Hassan II de Casablanca",
+  "the_id": "587808"
+ },
+ {
   "qs_name": "Université Jean Moulin Lyon 3",
   "the_name": "Jean Moulin University – Lyon 3",
   "the_id": "131465"
+ },
+ {
+  "qs_name": "Université Kasdi Merbah – Ouargla",
+  "the_name": "Université Kasdi Merbah Ouargla",
+  "the_id": "650231"
  },
  {
   "qs_name": "Université Laval",
@@ -5263,6 +7683,11 @@
   "qs_name": "Université Mohammed V de Rabat",
   "the_name": "Mohammed V University of Rabat",
   "the_id": "131298"
+ },
+ {
+  "qs_name": "Université Mouloud Mammeri - Tizi Ouzou",
+  "the_name": "Université Mouloud Mammeri de Tizi-Ouzou",
+  "the_id": "720059"
  },
  {
   "qs_name": "Université Paris 1 Panthéon-Sorbonne",
@@ -5285,14 +7710,39 @@
   "the_id": "699920"
  },
  {
+  "qs_name": "Université Polytechnique Hauts‑de‑France",
+  "the_name": "Université Polytechnique Hauts-de-France",
+  "the_id": "632025"
+ },
+ {
+  "qs_name": "Université Savoie Mont Blanc",
+  "the_name": "University of Savoie Mont Blanc",
+  "the_id": "623607"
+ },
+ {
+  "qs_name": "Université Sorbonne Nouvelle",
+  "the_name": "Université Sorbonne Nouvelle",
+  "the_id": "716200"
+ },
+ {
   "qs_name": "Université catholique de Louvain (UCLouvain)",
   "the_name": "Université Catholique de Louvain",
   "the_id": "633"
  },
  {
+  "qs_name": "Université d'Orléans",
+  "the_name": "Université d’Orléans",
+  "the_id": "623610"
+ },
+ {
   "qs_name": "Université de Fribourg",
   "the_name": "University of Fribourg",
   "the_id": "887"
+ },
+ {
+  "qs_name": "Université de Gabès",
+  "the_name": "Université de Gabès",
+  "the_id": "709562"
  },
  {
   "qs_name": "Université de Lille",
@@ -5318,6 +7768,11 @@
   "qs_name": "Université de Poitiers",
   "the_name": "Université de Poitiers",
   "the_id": "623913"
+ },
+ {
+  "qs_name": "Université de Reims Champagne-Ardenne",
+  "the_name": "University of Reims Champagne-Ardenne",
+  "the_id": "623970"
  },
  {
   "qs_name": "Université de Rennes",
@@ -5355,6 +7810,16 @@
   "the_id": "131493"
  },
  {
+  "qs_name": "Urmia University",
+  "the_name": "Urmia University",
+  "the_id": "622248"
+ },
+ {
+  "qs_name": "Utsunomiya University",
+  "the_name": "Utsunomiya University",
+  "the_id": "589184"
+ },
+ {
   "qs_name": "V. N. Karazin Kharkiv National University",
   "the_name": "V.N. Karazin Kharkiv National University",
   "the_id": "131424"
@@ -5373,6 +7838,11 @@
   "qs_name": "Vanderbilt University",
   "the_name": "Vanderbilt University",
   "the_id": "534"
+ },
+ {
+  "qs_name": "Vasyl Stefanyk Carpathian National University",
+  "the_name": "Vasyl Stefanyk Carpathian National University",
+  "the_id": "722202"
  },
  {
   "qs_name": "Verona University",
@@ -5400,6 +7870,11 @@
   "the_id": "625908"
  },
  {
+  "qs_name": "Vignan's Foundation for Science,Technology & Research",
+  "the_name": "Vignan’s Foundation for Science, Technology and Research",
+  "the_id": "622230"
+ },
+ {
   "qs_name": "Vilnius University",
   "the_name": "Vilnius University",
   "the_id": "131748"
@@ -5413,6 +7888,11 @@
   "qs_name": "Virginia Polytechnic Institute and State University",
   "the_name": "Virginia Polytechnic Institute and State University",
   "the_id": "737"
+ },
+ {
+  "qs_name": "Visvesvaraya National Institute of Technology",
+  "the_name": "Visvesvaraya National Institute of Technology, Nagpur",
+  "the_id": "688741"
  },
  {
   "qs_name": "Voronezh State University",
@@ -5445,6 +7925,11 @@
   "the_id": "627"
  },
  {
+  "qs_name": "Walailak University",
+  "the_name": "Walailak University",
+  "the_id": "695770"
+ },
+ {
   "qs_name": "Warsaw University of Life Sciences SGGW (WULS-SGGW)",
   "the_name": "Warsaw University of Life Sciences – SGGW",
   "the_id": "685333"
@@ -5470,9 +7955,19 @@
   "the_id": "505"
  },
  {
+  "qs_name": "Wasit University",
+  "the_name": "Wasit University",
+  "the_id": "716711"
+ },
+ {
   "qs_name": "Wayne State University",
   "the_name": "Wayne State University",
   "the_id": "738"
+ },
+ {
+  "qs_name": "Wenzhou University",
+  "the_name": "Wenzhou University",
+  "the_id": "623643"
  },
  {
   "qs_name": "Western Sydney University",
@@ -5485,9 +7980,19 @@
   "the_id": "690"
  },
  {
+  "qs_name": "Wilfrid Laurier University",
+  "the_name": "Wilfrid Laurier University",
+  "the_id": "675429"
+ },
+ {
   "qs_name": "William & Mary",
   "the_name": "William & Mary",
   "the_id": "611"
+ },
+ {
+  "qs_name": "Woosong University",
+  "the_name": "Woosong University",
+  "the_id": "728373"
  },
  {
   "qs_name": "Worcester Polytechnic Institute",
@@ -5495,9 +8000,19 @@
   "the_id": "593006"
  },
  {
+  "qs_name": "Wroclaw University of Environmental and Life Sciences",
+  "the_name": "Wrocław University of Environmental and Life Sciences",
+  "the_id": "685018"
+ },
+ {
   "qs_name": "Wroclaw University of Science and Technology (Wrocław Tech)",
   "the_name": "Wrocław University of Science and Technology",
   "the_id": "622977"
+ },
+ {
+  "qs_name": "Wuhan Textile University",
+  "the_name": "Wuhan Textile University",
+  "the_id": "623145"
  },
  {
   "qs_name": "Wuhan University",
@@ -5515,9 +8030,24 @@
   "the_id": "131582"
  },
  {
+  "qs_name": "Xiangtan University",
+  "the_name": "Xiangtan University",
+  "the_id": "587829"
+ },
+ {
+  "qs_name": "Xidian University",
+  "the_name": "Xidian University",
+  "the_id": "1043"
+ },
+ {
   "qs_name": "Xi’an Jiaotong University",
   "the_name": "Xi’an Jiaotong University",
   "the_id": "948"
+ },
+ {
+  "qs_name": "YAZD UNIVERSITY",
+  "the_name": "Yazd University",
+  "the_id": "587751"
  },
  {
   "qs_name": "Yale University",
@@ -5525,14 +8055,34 @@
   "the_id": "475"
  },
  {
+  "qs_name": "Yamagata University",
+  "the_name": "Yamagata University",
+  "the_id": "589193"
+ },
+ {
   "qs_name": "Yamaguchi University",
   "the_name": "Yamaguchi University",
   "the_id": "131669"
  },
  {
+  "qs_name": "Yangzhou University",
+  "the_name": "Yangzhou University",
+  "the_id": "624264"
+ },
+ {
+  "qs_name": "Yanshan University",
+  "the_name": "Yanshan University",
+  "the_id": "623463"
+ },
+ {
   "qs_name": "Yarmouk University",
   "the_name": "Yarmouk University",
   "the_id": "625689"
+ },
+ {
+  "qs_name": "Yasouj University",
+  "the_name": "Yasouj University",
+  "the_id": "625005"
  },
  {
   "qs_name": "Yerevan State University",
@@ -5565,6 +8115,11 @@
   "the_id": "622314"
  },
  {
+  "qs_name": "York St John University",
+  "the_name": "York St John University",
+  "the_id": "131302"
+ },
+ {
   "qs_name": "York University",
   "the_name": "York University",
   "the_id": "765"
@@ -5573,6 +8128,11 @@
   "qs_name": "Yuan Ze University",
   "the_name": "Yuan Ze University",
   "the_id": "865"
+ },
+ {
+  "qs_name": "Yuriy Fedkovych Chernivtsi National University",
+  "the_name": "Yuriy Fedkovych Chernivtsi National University",
+  "the_id": "626145"
  },
  {
   "qs_name": "Zagazig University",
@@ -5585,9 +8145,29 @@
   "the_id": "131282"
  },
  {
+  "qs_name": "Zewail City of Science and Technology",
+  "the_name": "Zewail City of Science and Technology",
+  "the_id": "670425"
+ },
+ {
+  "qs_name": "Zhejiang Gongshang University",
+  "the_name": "Zhejiang Gongshang University",
+  "the_id": "622350"
+ },
+ {
   "qs_name": "Zhejiang University",
   "the_name": "Zhejiang University",
   "the_id": "815"
+ },
+ {
+  "qs_name": "Zhejiang University Of Finance & Economics",
+  "the_name": "Zhejiang University of Finance and Economics",
+  "the_id": "707287"
+ },
+ {
+  "qs_name": "Zhejiang University of Technology",
+  "the_name": "Zhejiang University of Technology",
+  "the_id": "623466"
  },
  {
   "qs_name": "Zurich University of Applied Sciences (ZHAW)",
@@ -5595,8 +8175,18 @@
   "the_id": "707804"
  },
  {
+  "qs_name": "École Centrale de Lyon",
+  "the_name": "École Centrale de Lyon",
+  "the_id": "587796"
+ },
+ {
   "qs_name": "École Normale Supérieure de Lyon",
   "the_name": "École Normale Supérieure de Lyon",
   "the_id": "605"
+ },
+ {
+  "qs_name": "İstanbul Bilgi University",
+  "the_name": "Istanbul Bilgi University",
+  "the_id": "675423"
  }
 ]

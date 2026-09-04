@@ -126,6 +126,8 @@ REGION_BY_COUNTRY: Final[dict[str, str]] = {
     "Ethiopia": SUB_SAHARAN_AFRICA,
     "Uganda": SUB_SAHARAN_AFRICA,
     "Sudan": SUB_SAHARAN_AFRICA,
+    # First appeared in the 2026 snapshot re-crawled on 2026-09-02.
+    "Tanzania": SUB_SAHARAN_AFRICA,
     # East Asia
     "China (mainland)": EAST_ASIA,
     "Japan": EAST_ASIA,

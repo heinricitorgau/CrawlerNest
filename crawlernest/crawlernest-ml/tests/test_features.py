@@ -119,16 +119,21 @@ def test_region_columns_are_stable_and_mutually_exclusive(matrix):
 # ── the matrix ───────────────────────────────────────────────────────────────
 
 def test_matrix_shape_and_label_split(matrix):
-    assert len(matrix.X) == 1503
+    # Counts for the 2026 snapshot re-crawled on 2026-09-02. The crawl before it
+    # was taken with the pre-TLS-fix client and resolved a stale ranking id, so
+    # it returned a different edition: 1,503 rows with the score published to
+    # rank 600. These numbers move whenever the snapshot is refreshed, and are
+    # asserted exactly so that a refresh has to be noticed and explained.
+    assert len(matrix.X) == 1504
     assert list(matrix.X.columns[: len(QS_INDICATORS)]) == list(QS_INDICATORS)
 
     labelled = int(matrix.labelled_mask.sum())
-    assert labelled == 600
-    assert len(matrix.X) - labelled == 903
+    assert labelled == 700
+    assert len(matrix.X) - labelled == 804
 
     # The split is exactly QS's publication cut-off, not an arbitrary threshold.
-    assert matrix.rank[matrix.labelled_mask].max() == 600
-    assert matrix.rank[~matrix.labelled_mask].min() == 601
+    assert matrix.rank[matrix.labelled_mask].max() == 700
+    assert matrix.rank[~matrix.labelled_mask].min() == 701
 
 
 def test_rank_is_not_among_the_features(matrix):

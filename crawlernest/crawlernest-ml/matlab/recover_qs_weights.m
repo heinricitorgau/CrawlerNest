@@ -123,11 +123,11 @@ for k = 1:3
 end
 fit = table(fits, rmse, mae, r2, repmat(n, 3, 1), ...
     VariableNames=["fit", "rmse", "mae", "r2", "n"]);
-fprintf("\n--- in-sample fit on the 600 labelled rows ---\n");
+fprintf("\n--- in-sample fit on the %d labelled rows ---\n", n);
 disp(fit);
 fprintf("Read these as recovery, not accuracy. The target is a deterministic\n" + ...
         "function of the features, so a near-perfect R2 is the expected result\n" + ...
-        "and says nothing about the 903 rows whose score QS withheld.\n");
+        "and says nothing about the rows whose score QS withheld.\n");
 
 % --- correlation is not importance -------------------------------------------
 % The recovered weight beside the Pearson correlation with the target. Citations
@@ -220,18 +220,21 @@ end
 function parity = parity_check(rawWeights, renormWeights, renormRescale, rmse, mae, r2)
 %PARITY_CHECK Compare against ranking_ml.models.overall_score on this snapshot.
 %   Reference values are hard-coded on purpose: a silent divergence between the
-%   two ports is exactly the failure this check exists to catch.
+%   two ports is exactly the failure this check exists to catch. They are tied
+%   to one snapshot, so refreshing the snapshot fires this check on the refresh
+%   rather than on a disagreement -- re-derive them from a fresh Python run
+%   before treating a divergence as real.
 
-referenceRaw = [0.2995729900; 0.1504254700; 0.0993226800; 0.1992050400; ...
-                0.0493494600; 0.0507926100; 0.0499196600; 0.0505950400; 0.0508170500];
-referenceRenorm = [0.2999033359; 0.1500915213; 0.1000148317; 0.2000156829; ...
-                   0.0500331921; 0.0499667104; 0.0500394654; 0.0499315319; 0.0500037283];
-referenceRescale = [1.0263566439; -1.6630437711];
+referenceRaw = [0.3021190328; 0.1496055679; 0.0971993485; 0.1984964009; ...
+                0.0502301033; 0.0500770356; 0.0502128382; 0.0500145836; 0.0520450891];
+referenceRenorm = [0.2999603341; 0.1500331887; 0.1000196207; 0.2000411502; ...
+                   0.0500386640; 0.0499795056; 0.0499468955; 0.0499625993; 0.0500180419];
+referenceRescale = [1.0328456787; -2.1772330173];
 
 % rows: published baseline, linear_raw, linear_renorm
-referenceRmse = [0.7829365527; 0.3128385694; 0.2140776054];
-referenceMae  = [0.6785285088; 0.0882161259; 0.0459819738];
-referenceR2   = [0.9982676862; 0.9997234243; 0.9998704862];
+referenceRmse = [0.9761042828; 0.5555284952; 0.3851885055];
+referenceMae  = [0.8058668755; 0.1705813783; 0.0701020761];
+referenceR2   = [0.9972636963; 0.9991136923; 0.9995738932];
 
 parity = table( ...
     ["linear_raw recovered weights"; "linear_renorm recovered weights"; ...
@@ -270,7 +273,7 @@ set(ax, XTick=1:height(recovery), XTickLabel=recovery.indicator, ...
     XTickLabelRotation=30, FontSize=9, TickLabelInterpreter="none");
 ylabel(ax, "weight");
 legend(ax, ["QS published", "recovered by OLS"], Location="northeast");
-title(ax, sprintf("QS weighting recovered from 600 labelled rows (MAE %.4f, worst %.4f)", ...
+title(ax, sprintf("QS weighting recovered from the labelled rows (MAE %.4f, worst %.4f)", ...
     mean(recovery.abs_error), max(recovery.abs_error)), FontSize=11);
 grid(ax, "on");
 ax.GridAlpha = 0.15;

@@ -1,63 +1,63 @@
 {
   "dataset": {
-    "matched": 1120,
-    "qs_population": 1503,
+    "matched": 1104,
+    "qs_population": 1504,
     "the_population": 2191,
     "label_quantile": 0.8,
-    "gap_threshold": 0.2351,
-    "positives": 224,
-    "positive_rate": 0.2
+    "gap_threshold": 0.2726,
+    "positives": 221,
+    "positive_rate": 0.2002
   },
   "qs_only": {
     "logistic": {
-      "roc_auc": 0.7373,
-      "pr_auc": 0.3347,
-      "brier": 0.144
+      "roc_auc": 0.799,
+      "pr_auc": 0.4294,
+      "brier": 0.133
     },
     "gradient_boosting": {
-      "roc_auc": 0.8281,
-      "pr_auc": 0.5016,
-      "brier": 0.1276
+      "roc_auc": 0.8662,
+      "pr_auc": 0.5922,
+      "brier": 0.1143
     }
   },
   "both_sources": {
     "logistic": {
-      "roc_auc": 0.8264,
-      "pr_auc": 0.5718,
-      "brier": 0.1177
+      "roc_auc": 0.8464,
+      "pr_auc": 0.6089,
+      "brier": 0.1127
     },
     "gradient_boosting": {
-      "roc_auc": 0.9133,
-      "pr_auc": 0.7517,
-      "brier": 0.0868
+      "roc_auc": 0.9158,
+      "pr_auc": 0.7408,
+      "brier": 0.0872
     }
   },
   "best_qs_only": "gradient_boosting",
   "threshold_sensitivity": [
     {
       "quantile": 0.7,
-      "threshold": 0.185,
-      "positive_rate": 0.3,
-      "roc_auc": 0.8518,
-      "pr_auc": 0.686
+      "threshold": 0.2029,
+      "positive_rate": 0.2998,
+      "roc_auc": 0.8598,
+      "pr_auc": 0.7044
     },
     {
       "quantile": 0.8,
-      "threshold": 0.2351,
-      "positive_rate": 0.2,
-      "roc_auc": 0.8281,
-      "pr_auc": 0.5016
+      "threshold": 0.2726,
+      "positive_rate": 0.2002,
+      "roc_auc": 0.8662,
+      "pr_auc": 0.5922
     },
     {
       "quantile": 0.9,
-      "threshold": 0.3247,
-      "positive_rate": 0.1,
-      "roc_auc": 0.8088,
-      "pr_auc": 0.2897
+      "threshold": 0.352,
+      "positive_rate": 0.1005,
+      "roc_auc": 0.8354,
+      "pr_auc": 0.3123
     }
   ],
   "favoured_among_positives": {
-    "THE": 177,
-    "QS": 47
+    "THE": 183,
+    "QS": 38
   }
 }
