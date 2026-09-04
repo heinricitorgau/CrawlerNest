@@ -1,9 +1,9 @@
 {
   "dataset": {
     "snapshot": "crawlernest/crawlernest-kb/databases/last_crawl_snapshot.json",
-    "rows_total": 1503,
-    "rows_labelled": 600,
-    "rows_unlabelled": 903,
+    "rows_total": 1504,
+    "rows_labelled": 700,
+    "rows_unlabelled": 804,
     "features": [
       "Academic Reputation",
       "Employer Reputation",
@@ -30,56 +30,56 @@
   },
   "baseline": {
     "published_weights": {
-      "rmse": 0.7829,
-      "mae": 0.6785,
-      "r2": 0.9983,
-      "n": 600
+      "rmse": 0.9761,
+      "mae": 0.8059,
+      "r2": 0.9973,
+      "n": 700
     }
   },
   "cross_validation": {
     "linear_raw": {
-      "rmse_mean": 0.2777,
-      "rmse_std": 0.157,
-      "mae_mean": 0.0911,
-      "mae_std": 0.0195,
-      "r2_mean": 0.9997,
-      "r2_std": 0.0002,
+      "rmse_mean": 0.4908,
+      "rmse_std": 0.2999,
+      "mae_mean": 0.1773,
+      "mae_std": 0.0557,
+      "r2_mean": 0.9991,
+      "r2_std": 0.001,
       "folds": 5
     },
     "linear_renorm": {
-      "rmse_mean": 0.1752,
-      "rmse_std": 0.123,
-      "mae_mean": 0.0465,
-      "mae_std": 0.0215,
-      "r2_mean": 0.9999,
-      "r2_std": 0.0001,
+      "rmse_mean": 0.2992,
+      "rmse_std": 0.2427,
+      "mae_mean": 0.0704,
+      "mae_std": 0.0527,
+      "r2_mean": 0.9996,
+      "r2_std": 0.0005,
       "folds": 5
     },
     "ridge": {
-      "rmse_mean": 0.2858,
-      "rmse_std": 0.1519,
-      "mae_mean": 0.103,
-      "mae_std": 0.0204,
-      "r2_mean": 0.9997,
-      "r2_std": 0.0002,
+      "rmse_mean": 0.497,
+      "rmse_std": 0.2882,
+      "mae_mean": 0.1927,
+      "mae_std": 0.0542,
+      "r2_mean": 0.9991,
+      "r2_std": 0.001,
       "folds": 5
     },
     "random_forest": {
-      "rmse_mean": 3.8434,
-      "rmse_std": 0.5486,
-      "mae_mean": 2.8804,
-      "mae_std": 0.2626,
-      "r2_mean": 0.9572,
-      "r2_std": 0.0099,
+      "rmse_mean": 3.4266,
+      "rmse_std": 0.3568,
+      "mae_mean": 2.6624,
+      "mae_std": 0.2918,
+      "r2_mean": 0.9654,
+      "r2_std": 0.008,
       "folds": 5
     },
     "gradient_boosting": {
-      "rmse_mean": 2.3936,
-      "rmse_std": 0.2194,
-      "mae_mean": 1.8304,
-      "mae_std": 0.1688,
-      "r2_mean": 0.9835,
-      "r2_std": 0.0022,
+      "rmse_mean": 2.2,
+      "rmse_std": 0.1045,
+      "mae_mean": 1.7306,
+      "mae_std": 0.0963,
+      "r2_mean": 0.9859,
+      "r2_std": 0.002,
       "folds": 5
     }
   },
@@ -89,104 +89,104 @@
       {
         "indicator": "Academic Reputation",
         "qs_published": 0.3,
-        "recovered": 0.2996,
-        "abs_error": 0.0004
+        "recovered": 0.3021,
+        "abs_error": 0.0021
       },
       {
         "indicator": "Citations per Faculty",
         "qs_published": 0.2,
-        "recovered": 0.1992,
-        "abs_error": 0.0008
+        "recovered": 0.1985,
+        "abs_error": 0.0015
       },
       {
         "indicator": "Employer Reputation",
         "qs_published": 0.15,
-        "recovered": 0.1504,
+        "recovered": 0.1496,
         "abs_error": 0.0004
       },
       {
         "indicator": "Faculty Student Ratio",
         "qs_published": 0.1,
-        "recovered": 0.0993,
-        "abs_error": 0.0007
+        "recovered": 0.0972,
+        "abs_error": 0.0028
       },
       {
         "indicator": "International Faculty Ratio",
         "qs_published": 0.05,
-        "recovered": 0.0493,
-        "abs_error": 0.0007
+        "recovered": 0.0502,
+        "abs_error": 0.0002
       },
       {
         "indicator": "International Student Ratio",
         "qs_published": 0.05,
-        "recovered": 0.0508,
-        "abs_error": 0.0008
+        "recovered": 0.0501,
+        "abs_error": 0.0001
       },
       {
         "indicator": "International Research Network",
         "qs_published": 0.05,
-        "recovered": 0.0499,
-        "abs_error": 0.0001
+        "recovered": 0.0502,
+        "abs_error": 0.0002
       },
       {
         "indicator": "Employment Outcomes",
         "qs_published": 0.05,
-        "recovered": 0.0506,
-        "abs_error": 0.0006
+        "recovered": 0.05,
+        "abs_error": 0.0
       },
       {
         "indicator": "Sustainability Score",
         "qs_published": 0.05,
-        "recovered": 0.0508,
-        "abs_error": 0.0008
+        "recovered": 0.052,
+        "abs_error": 0.002
       }
     ],
-    "mean_abs_error": 0.0006,
-    "intercept": -1.7265
+    "mean_abs_error": 0.001,
+    "intercept": -2.3478
   },
   "support": [
     {
       "set": "labelled (train)",
-      "n": 600,
-      "supported": 590,
-      "supported_pct": 98.33,
-      "distance_median": 1.3159,
-      "distance_p95": 1.8929,
-      "threshold": 2.1372
+      "n": 700,
+      "supported": 690,
+      "supported_pct": 98.57,
+      "distance_median": 1.3223,
+      "distance_p95": 1.8599,
+      "threshold": 2.1211
     },
     {
       "set": "unlabelled (infer)",
-      "n": 903,
-      "supported": 657,
-      "supported_pct": 72.76,
-      "distance_median": 1.8943,
-      "distance_p95": 2.4838,
-      "threshold": 2.1372
+      "n": 804,
+      "supported": 503,
+      "supported_pct": 62.56,
+      "distance_median": 1.9543,
+      "distance_p95": 2.9393,
+      "threshold": 2.1211
     }
   ],
   "rank_agreement": {
     "linear_renorm": {
       "all_unlabelled": {
-        "spearman": 0.9754349338061236,
+        "spearman": 0.9603694008824262,
         "p_value": 0.0,
-        "n": 903
+        "n": 804
       },
       "supported_only": {
-        "spearman": 0.9735513394814175,
-        "p_value": 0.0,
-        "n": 657
+        "spearman": 0.9632248475383909,
+        "p_value": 4.250136681660961e-288,
+        "n": 503
       }
     },
     "published_weight baseline": {
       "all_unlabelled": {
-        "spearman": 0.975432726278594,
+        "spearman": 0.9603424318052284,
         "p_value": 0.0,
-        "n": 903
+        "n": 804
       },
       "supported_only": {
-        "spearman": 0.973546848579426,
-        "p_value": 0.0,
-        "n": 657
+        "spearman": 0.9632103501618228,
+        "p_value": 4.682574746287161e-288,
+        "n": 503
       }
     }
   },

@@ -4,8 +4,10 @@
 the disagreement model trains on whatever it says. It is exported from the
 warehouse by hand, which means it can go stale in two different ways:
 
-- it can name universities the snapshots do not contain, which is what these
-  tests catch, and they need no database so they run on every push;
+- it can stop describing the snapshot the model trains on -- exported from a
+  warehouse built on a different edition, its QS names would mostly miss and the
+  training set would shrink without an error. That is what these tests catch,
+  and they need no database so they run on every push;
 - it can disagree with the warehouse it was exported from, which needs a
   database with THE data and is covered by
   ``crawlernest-tests/test_pairing_matches_warehouse.py``.
@@ -38,18 +40,42 @@ def test_the_pairing_file_is_present_and_not_empty(pairing):
     """A missing file is legal -- the name join still works -- but a silent
     truncation to a handful of rows is not something to discover from a metric."""
     assert len(pairing) > 500, (
-        f"the pairing file holds {len(pairing)} rows; the warehouse export was 1,080. "
+        f"the pairing file holds {len(pairing)} rows; the warehouse export was 1,638. "
         "A short file would quietly shrink the training set."
     )
 
 
-def test_every_qs_name_exists_in_the_qs_snapshot(pairing):
+#: How many of the snapshot's universities the pairing has to place. The export
+#: currently reaches 1,104 of 1,504. A file exported against a different QS
+#: edition would land near zero here, which is the failure this guards.
+MIN_SNAPSHOT_COVERAGE = 1000
+
+
+def test_the_pairing_covers_the_qs_snapshot(pairing):
+    """The pairing has to describe the snapshot the model trains on.
+
+    This used to assert the stricter thing -- that *every* pairing entry names a
+    snapshot university -- on the reasoning that anything else meant the file had
+    been exported from a warehouse built on a different snapshot. That reasoning
+    held while the canonical dimension was the world ranking and nothing else.
+    It stopped holding when canonical_university was seeded from the unresolved
+    log: it now covers QS's regional, subject and sustainability tables too, so
+    THE legitimately matches canonical universities that the world snapshot has
+    never contained, and 534 such entries are a wider dimension rather than a
+    stale file.
+
+    Coverage is the half of that assertion which still describes a real failure,
+    and it describes it in the direction that actually costs something: an
+    edition mismatch collapses this number, while a wider canonical set leaves
+    it alone.
+    """
     names = {str(record.get("name")) for record in load_snapshot()}
-    missing = sorted(set(pairing) - names)
-    assert not missing, (
-        f"{len(missing)} pairing entries name a QS university the snapshot does not "
-        f"contain, e.g. {missing[:5]}. The file was exported from a warehouse built "
-        "on a different snapshot."
+    covered = len(set(pairing) & names)
+    assert covered >= MIN_SNAPSHOT_COVERAGE, (
+        f"the pairing places only {covered} of the snapshot's {len(names)} universities, "
+        f"below the floor of {MIN_SNAPSHOT_COVERAGE}. Re-export it with "
+        "crawlernest/scripts/export_qs_the_pairing.py; if the export itself is this "
+        "small, the warehouse and the snapshot are describing different editions."
     )
 
 
