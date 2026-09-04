@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a maintenance continuity summary assessing RC-1 operational continuity posture."""
+"""Build a maintenance continuity summary assessing operational continuity posture."""
 
 from __future__ import annotations
 
@@ -16,15 +16,13 @@ REPORTS_DIR = REPO_ROOT / "reports"
 SNAPSHOT_FILE = REPO_ROOT / "snapshots" / "latest_status.json"
 OUTPUT_FILE = REPORTS_DIR / "maintenance_continuity_summary.md"
 
-RC1_STABLE_CONDITIONS = [
-    "QS data is stale (no new crawl since RC-1 packaging)",
-    "THE and ARWU source files not acquired (out-of-scope for RC-1)",
-    "Subject ranking rows at zero (MVP scope: QS global rankings only)",
-    "Release confidence limited (localhost demo, caveats documented)",
-]
+# Shared release posture. These used to be a per-script copy of the RC-1
+# conditions, and every copy had gone false the same way; see
+# scripts/_release_posture.py for what changed and why.
+from _release_posture import STABLE_CONDITIONS
 
 CONTINUITY_DIMENSIONS = [
-    ("Stable degraded continuity", "RC-1 degraded conditions unchanged and non-worsening"),
+    ("Stable degraded continuity", "Known degraded conditions unchanged and non-worsening"),
     ("Report continuity", "Report semantics stable; no classification drift detected"),
     ("Snapshot continuity", "Named snapshots append-only; latest_status.json is current pointer"),
     ("Confidence continuity", "Trust levels derived from observable signals; not manually adjusted"),
@@ -134,7 +132,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         f"Generated: {now}",
         f"Snapshot: `{snap_ts}`",
         "",
-        "This summary assesses operational continuity at RC-1.",
+        "This summary assesses operational continuity for the current release.",
         "Read this alongside the calm and steadiness summaries to confirm",
         "the system remains coherent across sessions and operators.",
         "",
@@ -155,12 +153,14 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "",
         "## Stable Degraded Continuity",
         "",
-        "The following conditions have been stable since RC-1 packaging.",
-        "They are expected, documented, and non-worsening.",
-        "They do not represent continuity regressions.",
+        "The following conditions are stable and expected of this release.",
+        "They are documented and non-worsening, and do not represent continuity",
+        "regressions. The RC-1 source and freshness conditions were resolved by the",
+        "2026-09-04 re-crawl and are deliberately absent: if they reappear, they are",
+        "regressions now, not accepted posture.",
         "",
     ]
-    for condition in RC1_STABLE_CONDITIONS:
+    for condition in STABLE_CONDITIONS:
         lines.append(f"- {condition}")
 
     lines += [
@@ -245,7 +245,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         lines += [
             "## No Continuity Regressions Detected",
             "",
-            "All signals are within the known stable RC-1 posture.",
+            "All signals are within the known stable posture.",
             "No continuity regressions were detected in this session.",
             "",
             "---",
