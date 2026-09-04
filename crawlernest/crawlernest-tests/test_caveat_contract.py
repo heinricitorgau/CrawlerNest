@@ -162,6 +162,67 @@ class TestStaleClaimsAreGone(unittest.TestCase):
             "a live surface still claims data is unavailable or names a fixed data age",
         )
 
+    def test_the_summary_generators_repeat_no_stale_claim(self) -> None:
+        """The five report generators, which would re-emit into reports/.
+
+        Each carried its own copy of the RC-1 posture, and every copy had gone
+        false the same way. Worse, the copies were suppression lists -- their
+        surrounding prose reads "expected, non-worsening, not an active
+        incident" -- so a genuine THE outage would have been reported as an
+        accepted condition. They now read from scripts/_release_posture.py.
+        """
+        generators = [
+            REPO_ROOT / "scripts" / f"{name}.py"
+            for name in (
+                "build_maintenance_calm_summary",
+                "build_maintenance_continuity_summary",
+                "build_maintenance_steadiness_summary",
+                "build_competition_demo_summary",
+                "build_demo_readiness_summary",
+            )
+        ] + [REPO_ROOT / "scripts" / "build_demo_bundle.sh"]
+
+        offenders: list[str] = []
+        for path in generators:
+            if not path.is_file():
+                continue
+            text = _read(path)
+            for claim in (*STALE_CLAIMS, "unavailable (0)", "no ML model"):
+                if claim.lower() in text.lower():
+                    offenders.append(f"{path.name}: {claim}")
+        self.assertEqual(offenders, [])
+
+    def test_release_posture_values_carry_no_stale_claim(self) -> None:
+        # The module the generators read from, checked as values -- its own
+        # docstring quotes the old wording on purpose, to record what changed.
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "_release_posture", REPO_ROOT / "scripts" / "_release_posture.py"
+        )
+        assert spec and spec.loader
+        posture = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(posture)
+
+        strings = [
+            *posture.STABLE_CONDITIONS,
+            *posture.SPOKEN_CAVEATS,
+            *posture.WHAT_NOT_TO_CLAIM,
+            *[f"{a} {b} {c}" for a, b, c in posture.DEGRADED_INDICATORS],
+            *[f"{a} {b}" for a, b in posture.DEMO_CAVEATS],
+        ]
+        for value in strings:
+            for claim in (*STALE_CLAIMS, "no ML model"):
+                with self.subTest(value=value[:35], claim=claim):
+                    self.assertNotIn(claim.lower(), value.lower())
+
+        # The disclaimer that must survive: scoring is deterministic, and the
+        # models do not rank anyone.
+        self.assertTrue(
+            any("deterministic" in c for c in posture.WHAT_NOT_TO_CLAIM),
+            "the deterministic-scoring disclaimer was dropped",
+        )
+
     def test_partial_coverage_caveats_do_not_claim_absence(self) -> None:
         for caveat in (CAVEAT_THE_PARTIAL, CAVEAT_ARWU_PARTIAL):
             with self.subTest(caveat=caveat[:30]):

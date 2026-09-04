@@ -366,17 +366,19 @@ After the bundle is created, the live `reports/` directory is authoritative.
 
 ## Stable Degraded Posture
 
-The following six degraded conditions are present at RC-1. They are expected,
-documented, and non-worsening. They do not constitute an active incident.
+The following degraded conditions are present. They are expected, documented, and
+non-worsening, and do not constitute an active incident. Source availability is
+not among them: all three sources are ingested, so a source reading zero is an
+incident rather than accepted posture.
 
 | Condition | Value | Why Accepted |
 | --- | --- | --- |
-| QS freshness | stale (~354h) | No crawl since RC-1 packaging; expected for packaged demo |
-| THE availability | unavailable (0) | Source files not acquired; out-of-scope at RC-1 |
-| ARWU availability | unavailable (0) | Source files not acquired; out-of-scope at RC-1 |
-| Subject ranking rows | 0 | QS subject ranking not ingested at MVP scope |
-| Release confidence | limited | Derived from above; documented and caveat-covered |
-| Operational trust level | critical | Derived from freshness + source gaps; known and disclosed |
+| Source coverage | partial | All three sources ingested; none covers the whole table. Counted per source at request time |
+| Single-source universities | present | Confidence derives from source count, so these read low; correct, not inflated |
+| Trend depth | single year (2026) | No prior aggregation run to difference against; no rank delta available |
+| Subject ranking sources | QS only | THE and ARWU subject data not ingested |
+| Model estimate support | partial | Some estimates fall outside the fitted data; disclosed as unsupported |
+| Deployment | localhost | Demonstration deployment; architecture is the production shape, scale is not |
 
 See `docs/STABLE_DEGRADED_STATE.md` for escalation triggers and communication
 guidance. See `docs/MAINTENANCE_CADENCE_REVIEW.md` for when to run what.
@@ -385,16 +387,17 @@ guidance. See `docs/MAINTENANCE_CADENCE_REVIEW.md` for when to run what.
 
 `maintenance_calm_summary.md` contextualizes the operational posture without
 alarm amplification. Read it first to understand which signals are known
-stable conditions (RC-1 posture) versus signals that require action.
+stable conditions versus signals that require action.
 
 `maintenance_steadiness_summary.md` provides caution level and steadiness
 guidance derived from the same signals. Read it alongside the calm summary
 before a demo or release.
 
-Known stable conditions at RC-1 (expected and documented):
-- QS data is stale — no new crawl since RC-1 packaging
-- THE and ARWU are unavailable — out-of-scope at RC-1
-- Release confidence is limited — caveats are documented and demo-ready
+Known stable conditions (expected and documented):
+- Single ranking year (2026) — no year-over-year deltas available
+- Subject rankings are QS-only — THE and ARWU subject data not ingested
+- Source coverage is partial — a missing rank is our gap, not the source declining to rank
+- Localhost deployment — caveats are documented and demo-ready
 
 ## Reading Mode Guidance
 

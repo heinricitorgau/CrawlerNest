@@ -16,13 +16,10 @@ REPORTS_DIR = REPO_ROOT / "reports"
 SNAPSHOT_FILE = REPO_ROOT / "snapshots" / "latest_status.json"
 OUTPUT_FILE = REPORTS_DIR / "maintenance_calm_summary.md"
 
-# Known RC-1 stable conditions that are expected and not regressions.
-RC1_STABLE_CONDITIONS = [
-    "QS data is stale (no new crawl since RC-1 packaging)",
-    "THE and ARWU source files not acquired (out-of-scope for RC-1)",
-    "Subject ranking rows at zero (MVP scope: QS global rankings only)",
-    "Release confidence limited (localhost demo, caveats documented)",
-]
+# Shared release posture. These used to be a per-script copy of the RC-1
+# conditions, and every copy had gone false the same way; see
+# scripts/_release_posture.py for what changed and why.
+from _release_posture import STABLE_CONDITIONS
 
 
 def read_text(path: Path, warnings: list[str]) -> str:
@@ -138,14 +135,16 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "",
         "---",
         "",
-        "## Known Stable Conditions (RC-1)",
+        "## Known Stable Conditions",
         "",
-        "The following conditions are expected at RC-1 posture.",
+        "The following conditions are expected of this release.",
         "They are documented, accepted, and caveat-covered.",
         "They do not require action unless a demo or release is blocked.",
+        "Anything not on this list is not a known condition: if a report shows one,",
+        "treat it as a regression rather than as expected noise.",
         "",
     ]
-    for condition in RC1_STABLE_CONDITIONS:
+    for condition in STABLE_CONDITIONS:
         lines.append(f"- {condition}")
 
     lines += [
@@ -179,7 +178,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
             "## No New Signals",
             "",
             "No signals outside the known stable posture were detected.",
-            "The system is in expected RC-1 maintenance state.",
+            "The system is in its expected maintenance state.",
             "",
             "---",
             "",

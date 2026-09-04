@@ -15,6 +15,11 @@ REPO_ROOT = Path(__file__).parent.parent
 REPORTS_DIR = REPO_ROOT / "reports"
 OUTPUT_FILE = REPORTS_DIR / "competition_demo_summary.md"
 
+# Shared release posture. These were a per-script copy of the RC-1 conditions and
+# had gone false; WHAT_NOT_TO_CLAIM in particular still told the presenter no ML
+# model was used. See scripts/_release_posture.py.
+from _release_posture import DEMO_CAVEATS, SPOKEN_CAVEATS, WHAT_NOT_TO_CLAIM
+
 # ── Static presenter content ──────────────────────────────────────────────────
 
 DIFFERENTIATORS = [
@@ -50,30 +55,8 @@ DIFFERENTIATORS = [
     ),
 ]
 
-DEMO_CAVEATS = [
-    ("Data freshness", "QS data ingested at RC-1 packaging (~354 hours ago)."),
-    ("Source coverage", "THE and ARWU data not available at RC-1. Single-source only."),
-    ("Subject rankings", "Subject ranking data incomplete at RC-1."),
-    ("Trend analysis", "Single year of aggregated data; year-over-year deltas not available."),
-    ("Deployment", "Localhost demonstration; not production-scale."),
-]
 
-WHAT_NOT_TO_CLAIM = [
-    "AI-powered recommendations (scoring is deterministic, no ML model used)",
-    "Real-time data (batch ingestion only)",
-    "Multi-source agreement analysis (only QS available at RC-1)",
-    "Comprehensive subject rankings (data incomplete at RC-1)",
-    "Predictive rank forecasting (no historical depth)",
-    "AI-generated confidence scores (formula-derived only)",
-    "Production-scale deployment (localhost demo, RC-1 scope)",
-]
 
-REQUIRED_VERBAL_CAVEATS = [
-    "The ranking data was ingested at RC-1 packaging — approximately 354 hours ago.",
-    "THE and ARWU data are not available at RC-1. All rankings reflect QS source only.",
-    "Subject ranking coverage is incomplete at RC-1.",
-    "This is a localhost demonstration. Architecture is production-ready; RC-1 scope is intentional.",
-]
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -223,7 +206,7 @@ def build_report() -> str:
         "### Required Verbal Statements",
         "",
     ]
-    for caveat in REQUIRED_VERBAL_CAVEATS:
+    for caveat in SPOKEN_CAVEATS:
         lines.append(f'- "{caveat}"')
     lines += ["", "---", ""]
 
@@ -231,7 +214,7 @@ def build_report() -> str:
     lines += [
         "## What NOT to Claim",
         "",
-        "These claims are false or unverifiable at RC-1. Do not make them.",
+        "These claims are false or unverifiable. Do not make them.",
         "",
     ]
     for claim in WHAT_NOT_TO_CLAIM:

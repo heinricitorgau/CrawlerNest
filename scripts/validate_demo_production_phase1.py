@@ -212,12 +212,23 @@ def check_no_fake_ai() -> None:
                     f"forbidden phrase found: {phrase}",
                 )
 
-    readiness_script = REPO_ROOT / "scripts" / "build_demo_readiness_summary.py"
-    if readiness_script.exists():
-        text = readiness_script.read_text()
+    # The disclaimer moved out of the readiness script into the shared posture
+    # module when all five generators stopped keeping private copies of it.
+    # Checked for intent rather than for one phrase: the old assertion passed on
+    # the words "no ML model", which stopped being true once the platform shipped
+    # two of them.
+    posture = REPO_ROOT / "scripts" / "_release_posture.py"
+    if posture.exists():
+        text = posture.read_text()
         check(
-            "readiness script contains WHAT_NOT_TO_CLAIM with AI disclaimer",
-            "AI-powered" in text or "no ML model" in text.lower(),
+            "posture module tells the presenter recommendation scoring is deterministic",
+            "AI-powered" in text and "deterministic" in text,
+            "WHAT_NOT_TO_CLAIM no longer carries the deterministic-scoring disclaimer",
+        )
+        check(
+            "posture module does not deny the modelling layer",
+            "no ML model" not in text.lower(),
+            "the platform ships two models; a demo script must not say otherwise",
         )
 
 

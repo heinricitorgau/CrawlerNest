@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a maintenance steadiness summary assessing RC-1 operational stability."""
+"""Build a maintenance steadiness summary assessing operational stability."""
 
 from __future__ import annotations
 
@@ -16,21 +16,11 @@ REPORTS_DIR = REPO_ROOT / "reports"
 SNAPSHOT_FILE = REPO_ROOT / "snapshots" / "latest_status.json"
 OUTPUT_FILE = REPORTS_DIR / "maintenance_steadiness_summary.md"
 
-RC1_STABLE_CONDITIONS = [
-    "QS data is stale (no new crawl since RC-1 packaging)",
-    "THE and ARWU source files not acquired (out-of-scope for RC-1)",
-    "Subject ranking rows at zero (MVP scope: QS global rankings only)",
-    "Release confidence limited (localhost demo, caveats documented)",
-]
+# Shared release posture. These used to be a per-script copy of the RC-1
+# conditions, and every copy had gone false the same way; see
+# scripts/_release_posture.py for what changed and why.
+from _release_posture import DEGRADED_INDICATORS, STABLE_CONDITIONS
 
-RC1_DEGRADED_INDICATORS = [
-    ("QS freshness", "stale (~354h)", "No crawl run since RC-1 packaging; expected for packaged demo"),
-    ("THE availability", "unavailable (0 records)", "Source files not acquired; out-of-scope at RC-1"),
-    ("ARWU availability", "unavailable (0 records)", "Source files not acquired; out-of-scope at RC-1"),
-    ("Subject ranking rows", "0 — no subject data", "QS subject ranking not yet ingested at MVP scope"),
-    ("Release confidence", "limited", "Derived from freshness and source gaps; documented and caveat-covered"),
-    ("Operational trust level", "critical", "Derived from freshness + source gaps; known and disclosed"),
-]
 
 
 def read_text(path: Path, warnings: list[str]) -> str:
@@ -128,7 +118,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         f"Generated: {now}",
         f"Snapshot: `{snap_ts}`",
         "",
-        "This summary assesses the operational steadiness of CrawlerNest at RC-1.",
+        "This summary assesses the operational steadiness of CrawlerNest.",
         "Read this alongside the calm summary to confirm the system remains in its",
         "expected stable degraded posture.",
         "",
@@ -149,11 +139,13 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "",
         "## Stable Degraded Posture",
         "",
-        "The following degraded indicators are present at RC-1. They are expected,",
+        "The following degraded indicators are present. They are expected,",
         "documented, and non-worsening. They do not constitute an active incident.",
+        "Source availability is no longer among them: all three sources are ingested,",
+        "so a source reading zero is now an incident rather than accepted posture.",
         "",
     ]
-    for indicator, value, rationale in RC1_DEGRADED_INDICATORS:
+    for indicator, value, rationale in DEGRADED_INDICATORS:
         lines.append(f"- **{indicator}**: {value} — {rationale}")
 
     lines += [
@@ -182,7 +174,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         ]
     else:
         lines += [
-            "No signals outside the known stable RC-1 posture were detected.",
+            "No signals outside the known stable posture were detected.",
         ]
 
     lines += [
@@ -213,7 +205,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
             "## No New Signals",
             "",
             "No signals outside the known stable posture were detected.",
-            "The system is in expected RC-1 maintenance state.",
+            "The system is in its expected maintenance state.",
             "",
             "---",
             "",
