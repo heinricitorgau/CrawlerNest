@@ -10,13 +10,13 @@ is right every time can discard the model's text, one that is usually right can
 only annotate it:
 
 ``rules`` -- the mechanical faithfulness checker
-    Perfect precision on the golden set: 20 detections, no false positives. When
+    Perfect precision on the golden set: 21 detections, no false positives. When
     it fires, the explanation really did invent a figure, drop a caveat or name
     an institution that is not there. Acting decisively is warranted, so the
     deterministic reply is used instead and the model's text is discarded.
 
 ``provenance`` -- the structured status checker
-    Also perfect precision: 5 detections on the 55-case set, none on a clean
+    Also perfect precision: 6 detections on the 57-case set, none on a clean
     explanation. It answers a question the other two do not ask -- not whether a
     claim is supported, but whether the *status* of the evidence behind it is
     described honestly. Same precision as the rules, so the same decisive
@@ -24,8 +24,9 @@ only annotate it:
     more rules.
 
 ``judge`` -- the optional LLM second opinion
-    Recall 0.714 against 0.607 for the rules, but precision 0.952: one clean
-    explanation in the golden set gets flagged. Discarding a good answer on a
+    Recall 0.667 against 0.472 for the rules over the 55 cases the judge was
+    calibrated on, but precision 0.960: one clean explanation in the golden set
+    gets flagged. Discarding a good answer on a
     signal that is wrong one time in twenty is the wrong trade, so a judge-only
     concern attaches a warning and keeps the text. The warning is for operators
     reading generation stats, not a user-facing accusation.

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from crawlernest.core.database.settings import DatabaseSettings
+from crawlernest.core.dataset import DATASET_YEAR
 
 MODULE_ROOT = Path(__file__).resolve().parents[2]
 CORE_RECOMMENDATION_DIR = MODULE_ROOT / "crawlernest-core"
@@ -198,9 +199,12 @@ class RecommendationService:
             profile.get("preferredRankingSource")
         ) or self._as_optional_str(profile.get("preferred_ranking_source"))
         limit = self._as_optional_int(profile.get("limit")) or 5
+        # Not the wall clock: the warehouse has rows for one year, so
+        # datetime.now().year starts returning nothing the moment it rolls
+        # past the snapshot -- an empty result that reads like a data outage.
         ranking_year = self._as_optional_int(profile.get("rankingYear")) or self._as_optional_int(
             profile.get("ranking_year")
-        ) or dt.datetime.now().year
+        ) or DATASET_YEAR
         preference_weights = profile.get("preferenceWeights") or profile.get("preference_weights") or {}
         if not isinstance(preference_weights, dict):
             preference_weights = {}

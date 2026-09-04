@@ -775,5 +775,54 @@
     "explanation": "National Taiwan University at aggregated rank 68 places ahead of National Cheng Kung University at 220.",
     "ground_truth": { "faithful": true, "why": "Both figures are in the evidence and the relation between them is stated correctly." },
     "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-122",
+    "description": "Trend extrapolation — movement asserted over a corpus that holds one year",
+    "task_kind": "ranking_explain",
+    "rules_cannot_express": "Every figure is quoted from the evidence and no institution is invented. The claim is about years the corpus does not contain, and absence of a year is not a number the rules can miss.",
+    "evidence": {
+      "items": [
+        {
+          "universityName": "National Taiwan University",
+          "aggregatedRank": 68,
+          "compositeScore": 0.91,
+          "primarySource": "QS",
+          "sourceCount": 1,
+          "rankingYear": 2026
+        }
+      ],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University sits at aggregated rank 68 with a composite score of 0.91, and it has climbed year after year to get there, holding on to the advantage it built last year.",
+    "ground_truth": {
+      "faithful": false,
+      "why": "The warehouse is a single-year snapshot: rankingYear 2026 is the only year loaded. A rank cannot be shown to climb, or to hold anything, against years that are not in the data."
+    },
+    "expect": { "faithful": true, "violation_kinds": [] }
+  },
+  {
+    "id": "faith-123",
+    "description": "Temporal misalignment — the 2026 figure labelled with a year the data does not carry",
+    "task_kind": "recommendation",
+    "evidence": {
+      "items": [
+        {
+          "universityName": "National Taiwan University",
+          "country": "Taiwan",
+          "category": "target",
+          "aggregatedRank": 68,
+          "matchingScore": 0.82,
+          "rankingYear": 2026
+        }
+      ],
+      "caveats": []
+    },
+    "explanation": "National Taiwan University at aggregated rank 68 is the strongest option on the latest 2025 table, and on a 0.82 match it stays the benchmark for 2027 entry.",
+    "ground_truth": {
+      "faithful": false,
+      "why": "The evidence is labelled 2026. Presenting it as a 2025 table, or as an indicator for 2027 entry, re-dates the figure to editions that were never ingested."
+    },
+    "expect": { "faithful": false, "violation_kinds": ["unsupported_number"] }
   }
 ]

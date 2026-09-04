@@ -4,10 +4,17 @@ The mechanical checker in ``faithfulness.py`` is the primary signal and stays
 authoritative: on the golden set it has perfect precision, so when it fires the
 explanation is wrong. What it cannot do is express failures that have no rule --
 a caveat reproduced verbatim and undercut by the next sentence, a causal claim
-the evidence does not contain, a subject rank presented as a global one. Measured
-on the 46-case golden set, the rules reach 0.607 of actual unfaithfulness and
-this judge reaches 0.714; either flagging reaches 0.929. That measurement is what
-this module exists on the strength of, not an intuition that a judge would help.
+the evidence does not contain, a subject rank presented as a global one, a rank
+described as climbing over a corpus that holds a single year. Measured on the
+55-case golden set -- the run recorded in
+``crawlernest-autoeval/reports/judge_calibration_qwen2.5-7b.json`` -- the rules
+reach 0.472 of actual unfaithfulness and this judge reaches 0.667; either
+flagging reaches 0.833, at judge precision 0.960. That measurement is what this
+module exists on the strength of, not an intuition that a judge would help.
+
+Those figures describe the golden set as it stood at that run. The two temporal
+cases added since (faith-122, faith-123) post-date it and are not in them; the
+judge has not been re-calibrated against a set that contains them.
 
 Opt-in and failure-tolerant by construction. With ``WEB_AGENT_JUDGE_BASE_URL``
 unset the judge is simply absent and generation behaves exactly as it did before

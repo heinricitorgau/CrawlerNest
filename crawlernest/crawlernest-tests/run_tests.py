@@ -24,7 +24,16 @@ def run_all_tests():
         mod_path = ROOT / mod
         if mod_path.is_dir() and str(mod_path) not in sys.path:
             sys.path.insert(0, str(mod_path))
-            
+
+    # The repo root, so `crawlernest.agent.*` / `crawlernest.core.*` import.
+    # Running this file as a script puts crawlernest-tests on sys.path, not the
+    # root, so without this any test touching the agent layer fails to load --
+    # which is why none of them could be registered below until now.
+    REPO_ROOT = ROOT.parent
+    if str(REPO_ROOT) not in sys.path:
+        sys.path.insert(0, str(REPO_ROOT))
+
+
     # Add the current directory (tests) to path too
     sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
     
@@ -83,6 +92,13 @@ def run_all_tests():
         "test_analytics_bridge_prune",
         "test_ingest_idempotency",
         "test_pairing_matches_warehouse",
+        # The 2026 single-year dataset declaration: that the explainers put it
+        # in front of the model, and that the query defaults still agree with
+        # the year the warehouse holds. Registered here as well as in
+        # agent-tests.yml (which covers the rest of the generation layer under
+        # pytest) because a wrong default year is a warehouse-shaped bug, and
+        # this is the runner the warehouse tests live in.
+        "test_dataset_context",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.
