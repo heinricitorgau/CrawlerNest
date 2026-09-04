@@ -1,6 +1,15 @@
 # Stable Degraded State
 
-This document defines the current CrawlerNest RC-1 stable degraded operational
+> **Status: four of the six RC-1 conditions below were resolved by the 2026
+> re-crawl of 2026-09-04.** THE and ARWU are ingested (1,637 and 838 universities
+> in the global 2026 universe), QS subject rankings carry 1,068 rows, and no
+> source is stale — all three finished ingesting within the same hour. The rows
+> are kept, marked, because *what was accepted and why* is the part of this
+> document worth having. Do not quote the unresolved-looking rows as current.
+> Live per-source coverage is counted by
+> `AnalyticsService.appendSourceCoverageCaveats`, not asserted here.
+
+This document defines the CrawlerNest RC-1 stable degraded operational
 posture, explains what it means, how to communicate it, and what would or would
 not escalate it into an active incident.
 
@@ -25,15 +34,17 @@ known posture that is sustained intentionally within a scoped release context.
 
 | Condition | Signal | Value | Why Accepted |
 | --- | --- | --- | --- |
-| QS data freshness | `freshness_escalation.md`: escalation state | stale (~354h) | No new crawl run since RC-1 packaging; expected for a packaged demo |
-| THE source availability | `operational_summary.md`: THE count | 0 — unavailable | Source files not acquired; THE ingestion is out of scope at RC-1 |
-| ARWU source availability | `operational_summary.md`: ARWU count | 0 — unavailable | Source files not acquired; ARWU ingestion is out of scope at RC-1 |
-| Subject ranking rows | `maintenance_readiness_summary.md` | 0 — no subject data | QS subject ranking not yet ingested in the live environment |
+| QS data freshness | `freshness_escalation.md`: escalation state | ~~stale (~354h)~~ **resolved** | Re-crawled 2026-09-04; no longer stale |
+| THE source availability | `operational_summary.md`: THE count | ~~0 — unavailable~~ **resolved: 1,637** | Ingested 2026-09-04; coverage partial, disclosed per source |
+| ARWU source availability | `operational_summary.md`: ARWU count | ~~0 — unavailable~~ **resolved: 838** | Ingested 2026-09-04; coverage partial, disclosed per source |
+| Subject ranking rows | `maintenance_readiness_summary.md` | ~~0 — no subject data~~ **resolved: 1,068** | QS subject rankings ingested; still QS-only |
 | Release confidence | `operational_trust_summary.md` | limited | Derived from above; documented and caveat-covered |
 | Operational trust level | `operational_trust_summary.md` | critical | Derived from freshness + source gaps; known and disclosed |
 
-These six degraded conditions have been present since RC-1 packaging and have
-not worsened since then.
+Four of these six conditions were present from RC-1 packaging until the
+2026-09-04 re-crawl resolved them. The remaining two — release confidence and
+operational trust level — were derived from the four, so they should be
+re-derived rather than read from this table.
 
 ---
 
