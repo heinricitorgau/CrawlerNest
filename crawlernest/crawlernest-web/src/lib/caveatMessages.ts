@@ -54,6 +54,9 @@ export const CAVEAT_ADMISSION_DATA_STALE =
 export const CAVEAT_MODEL_ESTIMATE =
   "Some values in this response are model estimates produced by CrawlerNest, not figures published by the ranking source. Estimated values are labelled as estimates, carry a support flag, and never replace a published rank.";
 
+export const CAVEAT_UNSUPPORTED_ESTIMATE =
+  "Some estimates here fall outside the data the model was fitted on and are marked unsupported. The model has seen no comparable cases for them. That is a statement about the evidence behind the estimate, not a measurement of how wrong it is.";
+
 export const CAVEAT_DISAGREEMENT_ESTIMATE =
   "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against.";
 

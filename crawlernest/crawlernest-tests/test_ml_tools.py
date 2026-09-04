@@ -25,7 +25,11 @@ from typing import Any
 
 from crawlernest.agent.tools.ml_tools import EstimateEvidence, MlTools
 from crawlernest.agent.web_agent.generation.provenance import check_provenance
-from crawlernest.core.caveats import DISAGREEMENT_ESTIMATE_CAVEAT, ESTIMATED_VALUE_CAVEAT
+from crawlernest.core.caveats import (
+    DISAGREEMENT_ESTIMATE_CAVEAT,
+    ESTIMATED_VALUE_CAVEAT,
+    UNSUPPORTED_ESTIMATE_CAVEAT,
+)
 from crawlernest.core.dataset import DATASET_YEAR
 from crawlernest.core.services.ml_service import (
     TARGET_DISAGREEMENT,
@@ -161,6 +165,56 @@ class TestDisclosureTravelsWithTheValue(unittest.TestCase):
             with self.subTest(method=method.__name__):
                 self.assertIsInstance(method(), EstimateEvidence)
         self.assertIsInstance(tools.annotate([]), EstimateEvidence)
+
+
+class TestSupportIsDisclosedNotJustCarried(unittest.TestCase):
+    """The support flag reaches the reader, not only the row.
+
+    ESTIMATED_VALUE_CAVEAT promises a support flag. On the live overall-score
+    model that flag is false for 295 of 795 rows, and those rows sit
+    systematically lower than the supported ones -- so describing the mechanism
+    without ever saying it fired disclosed half of it.
+    """
+
+    @staticmethod
+    def _unsupported_stub() -> "StubService":
+        row = dict(_SCORE_ROW)
+        row["isSupported"] = False
+        return StubService(rows_by_target={TARGET_OVERALL_SCORE: [row]})
+
+    def test_an_unsupported_estimate_says_so(self) -> None:
+        tools = MlTools(service=self._unsupported_stub())  # type: ignore[arg-type]
+        evidence = tools.estimated_overall_scores()
+        self.assertIn(UNSUPPORTED_ESTIMATE_CAVEAT, evidence.caveats)
+        self.assertIn(ESTIMATED_VALUE_CAVEAT, evidence.caveats)
+
+    def test_supported_estimates_claim_no_limitation_they_lack(self) -> None:
+        tools = MlTools(service=StubService())  # type: ignore[arg-type]
+        self.assertNotIn(
+            UNSUPPORTED_ESTIMATE_CAVEAT, tools.estimated_overall_scores().caveats
+        )
+
+    def test_one_unsupported_row_discloses_for_the_whole_response(self) -> None:
+        supported = dict(_SCORE_ROW)
+        unsupported = dict(_SCORE_ROW, canonicalUniversityId=99, isSupported=False)
+        stub = StubService(rows_by_target={TARGET_OVERALL_SCORE: [supported, unsupported]})
+        evidence = MlTools(service=stub).estimated_overall_scores()  # type: ignore[arg-type]
+        self.assertIn(UNSUPPORTED_ESTIMATE_CAVEAT, evidence.caveats)
+
+    def test_annotate_discloses_support_too(self) -> None:
+        row = dict(_SCORE_ROW, isSupported=False)
+        stub = StubService(rows_by_target={TARGET_OVERALL_SCORE: [row]})
+        evidence = MlTools(service=stub).annotate(  # type: ignore[arg-type]
+            [{"canonicalUniversityId": 4211, "aggregatedRank": 1201}]
+        )
+        self.assertIn(UNSUPPORTED_ESTIMATE_CAVEAT, evidence.caveats)
+        self.assertIs(evidence.items[0]["isSupported"], False)
+
+    def test_no_duplicate_estimate_caveat_when_both_targets_land(self) -> None:
+        evidence = MlTools(service=StubService()).annotate(  # type: ignore[arg-type]
+            [{"canonicalUniversityId": 4211}]
+        )
+        self.assertEqual(evidence.caveats.count(ESTIMATED_VALUE_CAVEAT), 1)
 
 
 class TestAnnotateMergesOntoRankingRows(unittest.TestCase):

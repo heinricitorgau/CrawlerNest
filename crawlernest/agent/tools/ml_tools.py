@@ -36,7 +36,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from crawlernest.core.caveats import DISAGREEMENT_ESTIMATE_CAVEAT, ESTIMATED_VALUE_CAVEAT
+from crawlernest.core.caveats import (
+    DISAGREEMENT_ESTIMATE_CAVEAT,
+    ESTIMATED_VALUE_CAVEAT,
+    UNSUPPORTED_ESTIMATE_CAVEAT,
+)
 from crawlernest.core.dataset import DATASET_YEAR
 from crawlernest.core.services.ml_service import (
     TARGET_DISAGREEMENT,
@@ -174,12 +178,11 @@ class MlTools:
             merged.append(enriched)
 
         caveats: list[str] = []
-        if scores.items:
+        if scores.items or risks.items:
             caveats.append(ESTIMATED_VALUE_CAVEAT)
         if risks.items:
-            if ESTIMATED_VALUE_CAVEAT not in caveats:
-                caveats.append(ESTIMATED_VALUE_CAVEAT)
             caveats.append(DISAGREEMENT_ESTIMATE_CAVEAT)
+        caveats.extend(_support_caveats([*scores.items, *risks.items]))
 
         return EstimateEvidence(items=merged, caveats=caveats)
 
@@ -221,4 +224,22 @@ class MlTools:
         )
         # No rows, no disclosure: the caveat describes values in the response,
         # and there are none.
-        return EstimateEvidence(items=items, caveats=list(caveats) if items else [])
+        if not items:
+            return EstimateEvidence(items=[], caveats=[])
+        return EstimateEvidence(items=items, caveats=[*caveats, *_support_caveats(items)])
+
+
+def _support_caveats(items: list[dict[str, Any]]) -> list[str]:
+    """The support disclosure, when any row in the response actually lacks support.
+
+    ESTIMATED_VALUE_CAVEAT tells the reader an estimate "carries a support flag".
+    For the overall-score model that flag is false on 295 of 795 rows, and those
+    rows sit systematically lower than the supported ones -- describing the
+    mechanism while never saying it fired is the half-disclosure this closes.
+
+    Conditional for the same reason every other caveat here is: a response whose
+    estimates are all supported would be claiming a limitation it does not have.
+    """
+    if any(item.get("isSupported") is False for item in items):
+        return [UNSUPPORTED_ESTIMATE_CAVEAT]
+    return []

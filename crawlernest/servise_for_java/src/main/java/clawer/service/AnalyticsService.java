@@ -86,6 +86,18 @@ public class AnalyticsService {
      * conflict, and most universities the classifier scores carry no THE rank for
      * anything to have conflicted with.
      */
+    /**
+     * Disclosure for an estimate the model was not fitted anywhere near.
+     *
+     * {@link #ESTIMATED_SCORE_CAVEAT} promises the reader a support flag. For the
+     * overall-score model 295 of 795 rows carry it set to false -- 37%, and those
+     * rows are systematically lower than the supported ones -- so a response that
+     * mentions the flag without ever saying it fired is disclosing the mechanism
+     * and withholding the result.
+     */
+    public static final String UNSUPPORTED_ESTIMATE_CAVEAT =
+            "Some estimates here fall outside the data the model was fitted on and are marked unsupported. The model has seen no comparable cases for them. That is a statement about the evidence behind the estimate, not a measurement of how wrong it is.";
+
     public static final String DISAGREEMENT_ESTIMATE_CAVEAT =
             "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against.";
 

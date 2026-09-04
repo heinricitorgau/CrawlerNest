@@ -83,6 +83,7 @@ goes back to being a constant.
 | Single-year trends | "Year-over-year trend analysis requires data from multiple aggregation runs. Current data covers a single year — no rank delta is available." |
 | Incomplete subject coverage | "Subject ranking data is incomplete. Subject analytics are not available in this release." |
 | Response carries a modelled value | "Some values in this response are model estimates produced by CrawlerNest, not figures published by the ranking source. Estimated values are labelled as estimates, carry a support flag, and never replace a published rank." |
+| Response carries an unsupported estimate | "Some estimates here fall outside the data the model was fitted on and are marked unsupported. The model has seen no comparable cases for them. That is a statement about the evidence behind the estimate, not a measurement of how wrong it is." |
 | Response carries a disagreement probability | "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against." |
 
 ### Model estimates
