@@ -33,6 +33,7 @@ from crawlernest.core.caveats import (
     DISAGREEMENT_ESTIMATE_CAVEAT,
     ESTIMATED_VALUE_CAVEAT,
     STANDARD_CAVEATS,
+    UNSUPPORTED_ESTIMATE_CAVEAT,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -82,6 +83,7 @@ class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
             CAVEAT_ARWU_PARTIAL,
             ESTIMATED_VALUE_CAVEAT,
             DISAGREEMENT_ESTIMATE_CAVEAT,
+            UNSUPPORTED_ESTIMATE_CAVEAT,
         ):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(
@@ -99,6 +101,7 @@ class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
             CAVEAT_ARWU_PARTIAL,
             ESTIMATED_VALUE_CAVEAT,
             DISAGREEMENT_ESTIMATE_CAVEAT,
+            UNSUPPORTED_ESTIMATE_CAVEAT,
         ):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(caveat, typescript)
@@ -107,7 +110,12 @@ class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
         # The doc is the anchor AnalyticsCaveatContractTest already reads, so a
         # caveat that reaches a user must be documented in the same words.
         doc = _read(EXPLAINABILITY_DOC)
-        for caveat in (CAVEAT_QS_STALE, ESTIMATED_VALUE_CAVEAT, DISAGREEMENT_ESTIMATE_CAVEAT):
+        for caveat in (
+            CAVEAT_QS_STALE,
+            ESTIMATED_VALUE_CAVEAT,
+            DISAGREEMENT_ESTIMATE_CAVEAT,
+            UNSUPPORTED_ESTIMATE_CAVEAT,
+        ):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(caveat, doc)
 
@@ -124,7 +132,12 @@ class TestStaleClaimsAreGone(unittest.TestCase):
     def test_no_python_caveat_value_repeats_a_stale_claim(self) -> None:
         # The values, not the source: what a user is shown is the only thing
         # that can be a false disclosure.
-        for caveat in (*STANDARD_CAVEATS, ESTIMATED_VALUE_CAVEAT, DISAGREEMENT_ESTIMATE_CAVEAT):
+        for caveat in (
+            *STANDARD_CAVEATS,
+            ESTIMATED_VALUE_CAVEAT,
+            DISAGREEMENT_ESTIMATE_CAVEAT,
+            UNSUPPORTED_ESTIMATE_CAVEAT,
+        ):
             for claim in STALE_CLAIMS:
                 with self.subTest(caveat=caveat[:30], claim=claim):
                     self.assertNotIn(claim.lower(), caveat.lower())

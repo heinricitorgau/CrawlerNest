@@ -80,6 +80,19 @@ DISAGREEMENT_ESTIMATE_CAVEAT = (
     "rank to compare against."
 )
 
+#: Support is a statement about the evidence behind an estimate, not its error.
+#:
+#: 295 of the 795 overall-score estimates -- 37% -- sit outside the data the
+#: model was fitted on, and they are systematically lower than the supported ones
+#: (mean 13.5 against 18.5), which is exactly where extrapolation is least worth
+#: trusting. ESTIMATED_VALUE_CAVEAT promises the reader a support flag; without
+#: this one, nothing tells them the flag is set to false for a third of the rows.
+UNSUPPORTED_ESTIMATE_CAVEAT = (
+    "Some estimates here fall outside the data the model was fitted on and are marked "
+    "unsupported. The model has seen no comparable cases for them. That is a statement "
+    "about the evidence behind the estimate, not a measurement of how wrong it is."
+)
+
 #: The standard set every recommendation and analytics surface carries. Mirrors
 #: RC1_STANDARD_CAVEATS in caveatMessages.ts and RecommendationEvidenceService.
 STANDARD_CAVEATS: tuple[str, ...] = (
