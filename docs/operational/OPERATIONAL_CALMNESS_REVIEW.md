@@ -16,7 +16,8 @@ maintenance surface without being conditioned to treat all signals as emergencie
 The system has a well-understood, stable posture at RC-1:
 
 - Data is present and browsable.
-- QS 2026 global rankings are fully ingested (1,499 universities).
+- QS, THE and ARWU 2026 rankings are ingested — 10,125 aggregated rows across all
+  universes (2,098 of them global), carrying 9,530 QS, 1,637 THE and 838 ARWU ranks.
 - Smoke consistently passes (15/15).
 - Auth and session model is stable.
 - The localhost posture is documented, not hidden.

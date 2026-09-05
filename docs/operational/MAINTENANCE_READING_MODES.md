@@ -22,7 +22,7 @@ you have 5 minutes and want to confirm nothing changed.
 
 Scan for three things only:
 1. Smoke result line: `Results: N passed, 0 failed` — must match the last session
-2. Aggregated count — must match the last session (expected: 1,499)
+2. Aggregated count — must match the last session (expected: 10,125)
 3. Any NEW escalation language not seen in the last session
 
 **Escalation path:**
