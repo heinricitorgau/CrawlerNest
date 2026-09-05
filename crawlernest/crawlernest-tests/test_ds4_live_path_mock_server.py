@@ -15,6 +15,10 @@ import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from unittest import mock
 
+from crawlernest.agent.web_agent.generation.dataset_context import (
+    DATASET_CONSTRAINTS,
+    DATASET_YEAR,
+)
 from crawlernest.agent.web_agent.generation.models import PromptPayload
 from crawlernest.agent.web_agent.generation.ranking_explainer import RankingExplainer
 from crawlernest.agent.web_agent.generation.recommendation_explainer import (
@@ -277,6 +281,71 @@ class TestDs4Streaming(unittest.TestCase):
         self.assertEqual(result.source, "fallback")
         self.assertEqual(result.reply_text, "Rule-based reply.")
         self.assertIn("ended before completion", result.warning or "")
+
+    def _stream_a_recommendation(self) -> dict:
+        """Drive a real explainer over the streaming path; return the sent body."""
+        self.server.requests.clear()
+        self.server.next_sse = [
+            json.dumps({"choices": [{"delta": {"content": "Streamed prose."}}]}),
+            "[DONE]",
+        ]
+        RecommendationExplainer(verify=False).explain(
+            items=_ITEMS,
+            profile={"country": "Taiwan"},
+            query="recommend for me",
+            caveats=["Only QS is available."],
+            deterministic_reply="Rule-based reply.",
+        )
+        return self.server.requests[0]["body"]
+
+    def test_dataset_year_and_constraints_reach_the_system_turn(self) -> None:
+        # The year lock and the no-trend rules used to live only in the final
+        # user message. Streaming is where that mattered most: a long session
+        # pushes conversation_turns between the system message and the user one,
+        # so a rule stated only there reads as one turn's request rather than a
+        # standing constraint.
+        system = self._stream_a_recommendation()["messages"][0]
+
+        self.assertEqual(system["role"], "system")
+        self.assertIn(str(DATASET_YEAR), system["content"])
+        for constraint in DATASET_CONSTRAINTS:
+            with self.subTest(constraint=constraint[:40]):
+                self.assertIn(constraint, system["content"])
+
+    def test_constraints_stay_in_the_user_turn_as_well(self) -> None:
+        # Belt and braces: hoisting them into the system turn must not quietly
+        # remove them from where the evidence they describe actually sits.
+        messages = self._stream_a_recommendation()["messages"]
+        user = messages[-1]
+
+        self.assertEqual(user["role"], "user")
+        self.assertIn(str(DATASET_YEAR), user["content"])
+        for constraint in DATASET_CONSTRAINTS:
+            with self.subTest(constraint=constraint[:40]):
+                self.assertIn(constraint, user["content"])
+
+    def test_streaming_and_non_streaming_send_the_same_system_turn(self) -> None:
+        # The two transports share one request body and differ only in how the
+        # reply is read back. If they ever diverge, the model is being told
+        # different things depending on a transport flag -- which is exactly the
+        # kind of drift that would leave the year lock on one path only.
+        streamed = self._stream_a_recommendation()["messages"][0]["content"]
+
+        self.server.requests.clear()
+        self.server.next_sse = None
+        self.server.next_status = 200
+        self.server.next_body = {"choices": [{"message": {"content": "Plain prose."}}]}
+        with mock.patch.dict("os.environ", {"WEB_AGENT_DS4_STREAM": "0"}, clear=False):
+            RecommendationExplainer(verify=False).explain(
+                items=_ITEMS,
+                profile={"country": "Taiwan"},
+                query="recommend for me",
+                caveats=["Only QS is available."],
+                deterministic_reply="Rule-based reply.",
+            )
+        non_streamed = self.server.requests[0]["body"]["messages"][0]["content"]
+
+        self.assertEqual(streamed, non_streamed)
 
     def test_non_streaming_server_response_still_parses(self) -> None:
         # Server ignores stream:true and answers with plain JSON.
