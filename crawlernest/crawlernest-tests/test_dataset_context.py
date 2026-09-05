@@ -28,11 +28,18 @@ from crawlernest.agent.web_agent.generation.dataset_context import (
     DATASET_YEAR,
     build_dataset_header,
 )
-from crawlernest.agent.web_agent.generation.models import GenerationResult, PromptPayload
+from crawlernest.agent.web_agent.generation.models import (
+    GenerationResult,
+    PromptPayload,
+    RetrievedContext,
+)
+from crawlernest.agent.web_agent.generation.prompt_builder import WebPromptBuilder
 from crawlernest.agent.web_agent.generation.ranking_explainer import RankingExplainer
 from crawlernest.agent.web_agent.generation.recommendation_explainer import (
     RecommendationExplainer,
 )
+from crawlernest.agent.web_agent.generation.response_generator import WebResponseGenerator
+from crawlernest.agent.web_agent.policy.web_agent_policy import WebAgentPolicy
 
 GOLDEN_FILE = (
     Path(__file__).resolve().parents[1]
@@ -235,6 +242,87 @@ class TestTemporalGoldenCases(unittest.TestCase):
                     for item in self.by_id[case_id]["evidence"]["items"]
                 }
                 self.assertEqual(years, {DATASET_YEAR})
+
+
+class TestChatPathCarriesTheDeclaration(unittest.TestCase):
+    """The multi-turn path, which is the one the year lock most needs.
+
+    ``WebPromptBuilder`` is the only production builder that fills
+    ``conversation_turns``, and those turns are inserted between the system
+    message and the current user message. A rule stated only in the user turn
+    therefore gets further from the model's attention with every round, and
+    reads more like one turn's request than a standing constraint. It carried
+    no dataset declaration at all until now, which is the gap these cover.
+    """
+
+    def _build(self, *, history: list | None = None) -> PromptPayload:
+        return WebPromptBuilder().build(
+            user_input="Which universities should I look at?",
+            retrieved=RetrievedContext(
+                task_kind="ranking_explain",
+                user_input="Which universities should I look at?",
+                summary_facts=["National Taiwan University is ranked 68."],
+            ),
+            policy=WebAgentPolicy(),
+            conversation_history=history,
+        )
+
+    def test_the_declaration_and_rules_reach_the_system_turn(self) -> None:
+        prompt = self._build()
+
+        self.assertEqual(prompt.system_context, build_dataset_header())
+        for constraint in DATASET_CONSTRAINTS:
+            with self.subTest(constraint=constraint[:40]):
+                self.assertIn(constraint, prompt.system_constraints)
+
+    def test_rules_are_stated_in_the_user_turn_as_well(self) -> None:
+        # Same double statement GroundedExplainer makes. The header itself is
+        # deliberately not duplicated into context_block here -- that block is
+        # truncated to policy.max_context_chars, so adding to it would compete
+        # with the retrieved evidence for the same budget.
+        prompt = self._build()
+
+        for constraint in DATASET_CONSTRAINTS:
+            with self.subTest(constraint=constraint[:40]):
+                self.assertIn(constraint, prompt.response_constraints)
+
+    def test_task_constraints_are_not_displaced(self) -> None:
+        prompt = self._build()
+
+        self.assertIn("Stay grounded in the retrieved context.", prompt.response_constraints)
+        self.assertIn(
+            "Do not mention internal tool names, traces, or implementation details.",
+            prompt.response_constraints,
+        )
+
+    def test_rendered_system_message_states_the_year_however_long_the_history(self) -> None:
+        # The assertion that matters: what messages[0] actually says. Ten prior
+        # turns are exactly the case where a user-turn-only rule would be
+        # diluted, so the declaration has to survive them unchanged.
+        history = [
+            type("_Turn", (), {"role": role, "content": f"turn {i}"})()
+            for i, role in enumerate(["user", "assistant"] * 5)
+        ]
+        generator = WebResponseGenerator()
+
+        short = generator._compose_system_content(self._build())
+        long = generator._compose_system_content(self._build(history=history))
+
+        self.assertEqual(short, long)
+        for rendered in (short, long):
+            self.assertIn(str(DATASET_YEAR), rendered)
+            for line in build_dataset_header().split("\n"):
+                self.assertIn(line, rendered)
+            for constraint in DATASET_CONSTRAINTS:
+                self.assertIn(constraint, rendered)
+
+    def test_the_system_turn_still_leads_with_the_role_instruction(self) -> None:
+        # The declaration is appended, not prepended: an instruction that no
+        # longer starts by saying what the agent is would be a different prompt.
+        prompt = self._build()
+        rendered = WebResponseGenerator()._compose_system_content(prompt)
+
+        self.assertTrue(rendered.startswith("You are CrawlerNest Web Agent."))
 
 
 if __name__ == "__main__":
