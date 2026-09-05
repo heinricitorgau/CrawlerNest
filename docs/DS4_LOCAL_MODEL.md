@@ -70,6 +70,37 @@ Provider precedence in `crawlernest/agent/web_agent/generation/response_generato
 5. `WEB_AGENT_OLLAMA_BASE_URL` + `WEB_AGENT_OLLAMA_MODEL` → Ollama
 6. none of the above → deterministic fallback
 
+### Both halves have to be switched, and they switch differently
+
+There are two independent clients, and setting the variables above only moves
+one of them. They share the `WEB_AGENT_DS4_*` names but not the rule for when
+ds4 is selected:
+
+| | Selected when | Base URL if unset |
+| --- | --- | --- |
+| Python web-agent (`response_generator.py`) | `WEB_AGENT_DS4_BASE_URL` is **non-empty** — presence *is* the switch | no default; unset means no ds4 |
+| Next.js (`crawlernest-web/src/lib/agentModelProvider.ts`) | `AGENT_MODEL_PROVIDER=ds4` — an explicit choice | defaults to `http://localhost:8000/v1` |
+
+So exporting only the block above puts the Python explainers on ds4 while the
+Next.js route stays on `mock`. The half-switched state is easy to misread later
+as a streaming bug, because the page keeps rendering deterministic text while
+`inspect_provider_status()` insists ds4 is configured. Set both:
+
+```bash
+export WEB_AGENT_DS4_BASE_URL="http://localhost:8000/v1"   # Python side
+export AGENT_MODEL_PROVIDER="ds4"                          # Next.js side
+```
+
+Check the two independently — they can disagree, and the point is to see that
+they do not:
+
+```bash
+# Python
+PYTHONPATH=. ./.venv/bin/python -c "from crawlernest.agent.web_agent.generation.response_generator import WebResponseGenerator; print(WebResponseGenerator().inspect_provider_status())"
+# Next.js (server-side; /api/agent/health reports getAgentProviderStatus)
+curl -s localhost:3000/api/agent/health
+```
+
 Verify resolution without any network call:
 
 ```python

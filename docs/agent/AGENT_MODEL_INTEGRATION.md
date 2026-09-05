@@ -241,8 +241,20 @@ default. `AGENT_MODEL_BASE_URL` and `AGENT_MODEL_NAME` still take precedence whe
 set, so this provider follows the same override order as the others.
 
 The `WEB_AGENT_DS4_*` names are deliberately the ones the Python web-agent client
-already reads, so a single set of exports points both processes at the same
-server. Running `ds4-server` itself is covered in
+already reads, so one set of exports points both processes at the same server.
+What they do **not** share is the switch that selects ds4 in the first place, so
+both lines in the example above are load-bearing:
+
+- This route needs `AGENT_MODEL_PROVIDER=ds4`. Without it the provider stays
+  `mock`, no matter what `WEB_AGENT_DS4_BASE_URL` says.
+- The Python client has no `AGENT_MODEL_PROVIDER`. It selects ds4 on the
+  *presence* of `WEB_AGENT_DS4_BASE_URL`, and has no default for it.
+
+Set one and not the other and you get a half-switched stack — usually the Python
+explainers on ds4 and this route still on `mock`, which reads like a broken
+stream rather than a missing export. `curl localhost:3000/api/agent/health`
+reports what this side resolved; `WebResponseGenerator().inspect_provider_status()`
+reports the Python side. Running `ds4-server` itself is covered in
 [DS4_LOCAL_MODEL.md](../DS4_LOCAL_MODEL.md).
 
 **This route is non-streaming.** It sends `stream: false` and waits for the whole
