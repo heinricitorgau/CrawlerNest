@@ -199,6 +199,21 @@ jobs:
     name: MATLAB sources re-executed (public-repo runner)
     runs-on: ubuntu-latest
 
+    # Only runs while the repository is public. MathWorks' free GitHub-hosted
+    # MATLAB covers public repositories only; on a private one the licence
+    # server refuses and every run of this job dies at "Re-run the MATLAB ports"
+    # with "MathWorks Licensing Error 1 / Unable to find a license for MATLAB".
+    # That is what it did from 2026-09-04, turning ML Tests permanently red for
+    # a reason unrelated to the code and training everyone to ignore the badge.
+    #
+    # Skipping is the honest state: the job cannot run, and a skip says so,
+    # whereas a failure claims the MATLAB sources disagree with Python when
+    # nothing has been compared at all. What is lost while private is stated
+    # below -- it is a real gap, not a formality, so restore this coverage by
+    # making the repository public again or by supplying a MathWorks batch
+    # licensing token (MLM_LICENSE_FILE) and relaxing this condition.
+    if: github.event.repository.visibility == 'public'
+
     # Until the repository was public this could not exist: MathWorks' free
     # GitHub-hosted MATLAB covers public repositories only, so CI could compare
     # the *committed* MATLAB output against Python but never re-run the sources
@@ -210,6 +225,10 @@ jobs:
     #
     # This job closes it by executing the sources and comparing what they
     # produce, both against Python and against what is committed.
+    #
+    # While this job is skipped that gap is open again: the "MATLAB port parity"
+    # step in ml-metrics still runs, but it compares against committed CSVs, so
+    # an edited .m file that was never re-run passes it.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
