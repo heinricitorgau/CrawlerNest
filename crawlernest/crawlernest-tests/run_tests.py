@@ -104,6 +104,10 @@ def run_all_tests():
         # The caveat strings agree across Python, Java, TypeScript and the
         # explainability doc. Two of them had already drifted.
         "test_caveat_contract",
+        # A request naming a year the warehouse does not hold gets told so.
+        # Registered here as well as in agent-tests.yml because "which years
+        # exist" is a warehouse fact, and this is the runner those live in.
+        "test_unsupported_year_warning",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.

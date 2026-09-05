@@ -30,6 +30,7 @@ from crawlernest.agent.web_agent.interpretation.referential_resolver import Refe
 from crawlernest.agent.web_agent.memory.conversation_store import ConversationStore
 from crawlernest.agent.web_agent.memory.memory_policy import MemoryPolicy
 from crawlernest.agent.web_agent.policy.generation_policy import GenerationPolicy
+from crawlernest.agent.web_agent.policy.unsupported_year import unsupported_year_warnings
 from crawlernest.agent.web_agent.policy.web_agent_policy import WebAgentPolicy
 from crawlernest.agent.web_agent.tool_router.web_tool_router import WebToolRouter
 
@@ -198,6 +199,18 @@ class WebAgentEngine:
         )
         return self._respond(request=request, response=raw)
 
+    @staticmethod
+    def _append_warnings(response: TaskResponse, warnings: list[str]) -> None:
+        """Add warnings the response does not already carry, in order.
+
+        Duplicate-suppressing because a warning derived from the request rather
+        than from the work is one a re-entrant path could otherwise emit twice,
+        and the same sentence twice reads as two problems.
+        """
+        for warning in warnings:
+            if warning not in response.warnings:
+                response.warnings.append(warning)
+
     def _respond(
         self,
         *,
@@ -205,6 +218,24 @@ class WebAgentEngine:
         response: TaskResponse,
         reference_debug: dict[str, object] | None = None,
     ) -> TaskResponse:
+        # Attached here rather than in each branch of execute() because this is
+        # the single funnel every response passes through -- including the
+        # error and rejected ones, and format_failure. A request naming a year
+        # the warehouse does not hold is answered from the one it does, and
+        # nothing else in the payload says so: the tools substitute
+        # DATASET_YEAR silently and the query formatter drops caveats. The
+        # warnings array is the only channel that survives formatting: it
+        # reaches the API as data.warnings, which the agent page renders in its
+        # dev branch (the web branch reads formatter output only, so a
+        # user-facing surface for this still has to be added there).
+        self._append_warnings(
+            response,
+            unsupported_year_warnings(
+                context=request.context,
+                user_input=request.user_input,
+            ),
+        )
+
         response = self._apply_generation(
             request=request,
             response=response,
