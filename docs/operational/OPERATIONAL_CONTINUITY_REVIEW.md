@@ -165,10 +165,10 @@ the maintenance posture requires re-evaluation.
 | Assumption | Where Relied On | What Changes If False |
 | --- | --- | --- |
 | RC-1 posture is stable and non-worsening | All calmness/steadiness reports | Stable degraded posture becomes an active incident |
-| QS source is the only live data source | Aggregation count baseline (1,499) | Aggregation baseline changes; drift signals shift |
+| ~~QS source is the only live data source~~ — **false since 2026-09-04** | Aggregation count baseline (now 10,125) | Already happened: the baseline moved from 1,499 to 10,125 when THE and ARWU were ingested |
 | Smoke passes consistently | Maintenance overview interpretation | Smoke failure triggers Mode 4 investigation |
 | No new crawl runs between sessions | Freshness age increases predictably | Freshness state could improve unexpectedly; reports would need regeneration |
-| THE and ARWU remain unavailable | Source state classification | If acquired, these move from "unavailable" to active source tracking |
+| ~~THE and ARWU remain unavailable~~ — **false since 2026-09-04** | Source state classification | Already happened: both are active sources, carrying 1,637 THE and 838 ARWU 2026 ranks |
 | Bundle creation is a human-triggered action | Bundle freshness semantics | If automated, bundle loses its "point-in-time release evidence" meaning |
 
 ---

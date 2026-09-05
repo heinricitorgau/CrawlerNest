@@ -34,15 +34,19 @@ and surfaces every signal needed to confirm "nothing changed."
 **Signals to check:**
 
 - Smoke result — must show `0 failed` matching the previous session
-- Aggregated count — must match the previous session (expected: 1,499)
+- Aggregated count — must match the previous session (expected: 10,125)
 - Any escalation language that is NEW vs the previous session
 
 **Signals to ignore (stable background context at RC-1):**
 
 - `Freshness state: critical` — expected; unchanged since RC-1 packaging
-- `THE unavailable`, `ARWU unavailable` — expected; out-of-scope at RC-1
 - `Release confidence: limited` — expected; documented posture
 - `Operational trust level: critical` — expected; derived from above
+
+`THE unavailable` / `ARWU unavailable` used to belong on this list and no longer
+does. Both were ingested on 2026-09-04 and the warehouse carries 1,637 THE and
+838 ARWU ranks for 2026, so either message now means a source that was present
+has gone missing — a signal to investigate, not background noise.
 
 **Reports to skip during daily check:**
 
@@ -115,7 +119,7 @@ Run these only when a signal outside the stable degraded posture appears.
 **Trigger conditions (NEW since last session):**
 
 - Smoke shows any failures
-- Aggregated count drops from expected baseline (1,499)
+- Aggregated count drops from expected baseline (10,125)
 - A source that was previously available becomes unavailable
 - Auth or session behavior changes unexpectedly
 - Any `[error]` or `[fail]` in the maintenance overview output
