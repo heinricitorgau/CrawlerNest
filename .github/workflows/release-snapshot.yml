@@ -1,0 +1,50 @@
+name: Release Snapshot Verification
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "releases/v0.2-2026-snapshot/**"
+      - "scripts/restore_release_snapshot.sh"
+      - ".github/workflows/release-snapshot.yml"
+  pull_request:
+    paths:
+      - "releases/v0.2-2026-snapshot/**"
+      - "scripts/restore_release_snapshot.sh"
+      - ".github/workflows/release-snapshot.yml"
+  workflow_dispatch:
+
+jobs:
+  restore-and-verify:
+    name: Restore v0.2 2026 snapshot
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: clawer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d clawer"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install --yes postgresql-client-16
+
+      - name: Restore and verify frozen database
+        env:
+          PGHOST: localhost
+          PGPORT: "5432"
+          PGUSER: test
+          PGPASSWORD: test
+          PGDATABASE: clawer
+        run: ./scripts/restore_release_snapshot.sh
