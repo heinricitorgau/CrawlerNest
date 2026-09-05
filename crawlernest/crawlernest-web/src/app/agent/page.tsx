@@ -12,6 +12,7 @@ import { AGENT_DEMO_RUBRIC } from "@/lib/agentResponseRubric";
 import { AUTH_MESSAGES } from "@/lib/authMessages";
 import { buildConversationTurns, runEntriesFromTurns } from "@/lib/conversationTurns";
 import { saveConversation, type ConversationDetail } from "@/lib/conversationsApi";
+import AgentWarningBanner from "@/components/AgentWarningBanner";
 import { ConversationHistoryPanel } from "@/components/ConversationHistoryPanel";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
 
@@ -2328,7 +2329,18 @@ export default function AgentPage() {
                             // Web render branch — formatter output only.
                             // Reads only from the formatter-shaped payload: explanation, items, meta.
                             // Never touches raw backend data directly.
+                            //
+                            // The one exception is `warnings`, which is a
+                            // response-level field the formatter deliberately
+                            // does not carry: QueryFormatter builds a fresh
+                            // dict and drops anything it does not recognise,
+                            // caveats included. A disclosure the backend
+                            // attached — the year the answer actually
+                            // describes, for one — has no other route to this
+                            // branch, and it was reaching the dev panel only.
                             <div className="mt-4 rounded-[1.5rem] bg-white px-5 py-4">
+                              <AgentWarningBanner warnings={warnings} />
+
                               <div className="space-y-3 text-sm leading-7 text-[#1a1a1a]">
                                 {paragraphs.map((paragraph) => (
                                   <p key={paragraph}>{paragraph}</p>
