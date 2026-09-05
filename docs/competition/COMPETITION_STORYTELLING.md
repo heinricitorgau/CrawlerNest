@@ -43,20 +43,22 @@ It explains what to say, what to emphasize, what to avoid, and what caveats must
 
 **Multi-source aggregation with explainability:**
 
-Navigate to the analytics page. Show the ranking trends table and the source disagreement section.
+Navigate to the analytics page. Show the single-year ranking snapshot and the
+source disagreement section.
 Say:
 
-> "This table shows which universities have the largest disagreement between sources. A spread of
-> 200 means QS ranks the university at 50 and THE ranks it at 250. That disagreement is real
-> information — and it's displayed, not hidden."
+> "This table shows where matched QS, THE, and ARWU ranks disagree. A spread of
+> 200 means two matched source ranks differ by 200 positions. That disagreement
+> is real information — and it is displayed, not hidden."
 
 **Source availability transparency:**
 
 Point to the Source Coverage and Operational Posture sections. Say:
 
-> "THE and ARWU data are not available at RC-1. We show this explicitly in the source availability
-> panel. Every university in this dataset is QS-sourced only. The confidence score reflects that
-> gap — it is not inflated to look better."
+> "The 2026 snapshot contains 9,530 QS, 1,637 THE, and 838 ARWU source ranks.
+> Coverage is partial after entity resolution, so the confidence score reflects
+> how many matched sources support each university. It is not inflated to look
+> better."
 
 **Evidence-backed recommendations:**
 
@@ -64,7 +66,8 @@ Navigate to the recommendations page. Enter inputs. Click "Why this recommendati
 
 > "This panel shows the Evidence Chain: stored reasons derived from the scoring algorithm, not
 > generated text. You can see the ranking fit, IELTS fit, country match, and data confidence.
-> The confidence bar is derived from source coverage completeness, not asserted."
+> If a model estimate is present, `isEstimated` keeps its provenance visible. The confidence bar
+> is derived from source coverage completeness, not asserted."
 
 **Honest data posture:**
 
@@ -100,7 +103,7 @@ Point to the Data Caveats section in the explain panel. Say:
 |---|---|
 | Source transparency | "Every rank shows which sources contributed and whether they agree." |
 | Confidence derivation | "Confidence is derived from data coverage, not asserted. You can see the formula." |
-| Honest limitations | "THE and ARWU are not available. We say so. The confidence score reflects that." |
+| Honest limitations | "THE and ARWU are present but partial. We show their coverage and let the confidence score reflect matched evidence." |
 | Evidence chain | "Every recommendation reason comes from stored data, not generated text." |
 | Caveat visibility | "Caveats are always present. They are not optional disclosures." |
 | Operational awareness | "The system knows what data it has and what it doesn't. It tells you." |
@@ -113,7 +116,7 @@ Point to the Data Caveats section in the explain panel. Say:
 |---|---|
 | "Our AI recommends..." | The recommendation engine is deterministic; no AI/ML model is used |
 | "Real-time data" | Batch ingestion only; data is not streamed |
-| "Multi-source agreement" | At RC-1, only QS is available — all universities are single-source |
+| "Complete multi-source agreement" | Source agreement is available only where source ranks were matched; coverage is partial |
 | "Comprehensive rankings" | THE and ARWU are missing at RC-1 |
 | "Predictive analytics" | No historical depth for trend prediction at RC-1 |
 | "AI-powered confidence" | Confidence is formula-derived, not learned |
@@ -124,11 +127,12 @@ Point to the Data Caveats section in the explain panel. Say:
 
 These must be spoken during any demo. Do not skip them.
 
-1. "The data was ingested at RC-1 packaging and has not been refreshed. Data age is
-   approximately 354 hours."
+1. "This is a point-in-time 2026 snapshot from the 2026-09-04 ingest, not a
+   real-time feed. Freshness is disclosed by the API."
 
-2. "THE and ARWU data are not available. All rankings in this demo reflect QS source only.
-   Source agreement analysis will improve when these sources are added."
+2. "The snapshot contains 1,637 THE and 838 ARWU source ranks alongside 9,530
+   QS ranks. Coverage is partial, and missing values can result from snapshot
+   coverage or entity resolution."
 
 3. "Subject ranking coverage is incomplete. Subject analytics are not shown in this release."
 
@@ -161,11 +165,11 @@ When a reviewer sees the Operational Posture section on the analytics page, the 
 1. **The system knows its own limitations.** Source availability is not buried in docs — it
    is shown on the main analytics page.
 
-2. **THE and ARWU being Unavailable is not a failure.** It is a documented, expected state
-   that the platform reports accurately.
+2. **Partial source coverage is not hidden.** THE and ARWU are ingested for 2026,
+   and the platform reports their coverage accurately.
 
-3. **The confidence posture reflects reality.** "Mostly Low" at RC-1 is correct — all data
-   is single-source. The system does not inflate this.
+3. **The confidence posture reflects reality.** A university with fewer matched
+   sources has less supporting evidence. The system does not inflate this.
 
 4. **The system directs you to more operational detail.** The pointer to `/system-status`
    shows that operational transparency goes deeper than one page.

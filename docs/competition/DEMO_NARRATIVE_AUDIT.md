@@ -1,5 +1,11 @@
 # Demo Narrative Audit
 
+> **RC-1 Historical Baseline (2026-05).** This audit records the demo narrative
+> and limitations observed at the RC-1 packaging point in May 2026. References
+> to QS-only coverage, unavailable THE/ARWU data, or the then-current agent
+> behavior are preserved as historical evidence and are superseded by the
+> current 2026 Live competition documents.
+
 Phase 4 — Demo Rehearsal. Evaluates whether the current demo narrative answers the key questions a competition judge needs answered.
 
 ---
