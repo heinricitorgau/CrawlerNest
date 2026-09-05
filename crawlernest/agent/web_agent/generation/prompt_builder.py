@@ -3,6 +3,10 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
+from crawlernest.agent.web_agent.generation.dataset_context import (
+    DATASET_CONSTRAINTS,
+    build_dataset_header,
+)
 from crawlernest.agent.web_agent.generation.intent_detection import (
     detect_lookup_intents,
     detect_ranking_intents,
@@ -192,12 +196,27 @@ class WebPromptBuilder:
                 for turn in conversation_history
             ]
 
+        # This is the only path that fills conversation_turns, so it is the one
+        # the year lock most needs: every prior turn is inserted between the
+        # system message and the current user message, and a rule stated only in
+        # the latter gets further from the model's attention with each round.
+        #
+        # The header goes in the system turn only, unlike GroundedExplainer,
+        # which also prepends it to its evidence block. That difference is
+        # deliberate: context_block here is truncated to policy.max_context_chars,
+        # so anything added to it competes with the retrieved evidence for the
+        # same budget. The system turn is not truncated, so the declaration is
+        # both safe and unconditional there. The rules themselves are still
+        # stated twice -- response_constraints is a separate list and is not
+        # subject to that budget.
         return PromptPayload(
             system_instruction=system_instruction,
             user_message=effective_original_input,
             context_block=context_block,
-            response_constraints=response_constraints,
+            response_constraints=[*response_constraints, *DATASET_CONSTRAINTS],
             conversation_turns=conversation_turns,
+            system_context=build_dataset_header(),
+            system_constraints=[*DATASET_CONSTRAINTS],
         )
 
     def _detect_language(self, user_input: str) -> str:
