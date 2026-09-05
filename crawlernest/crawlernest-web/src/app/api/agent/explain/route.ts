@@ -40,24 +40,50 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Honour whatever the caller asked for rather than choosing here, so the
+  // component decides between the streaming and one-shot transports and this
+  // route stays a proxy.
+  const wantsStream = (request.headers.get("accept") ?? "").includes(
+    "text/event-stream"
+  );
+
   try {
     const response = await fetch(backendUrl, {
       method: "POST",
       cache: "no-store",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json",
+        Accept: wantsStream ? "text/event-stream" : "application/json",
       },
       body: JSON.stringify(payload),
     });
+
+    const contentType =
+      response.headers.get("content-type") ?? "application/json";
+
+    // Pass the body through unread. Calling response.text() here would wait for
+    // the upstream to finish before sending anything, which is the one thing a
+    // stream must not do -- the page would sit silent and then paint the whole
+    // explanation at once, exactly as it did before there was a stream.
+    if (contentType.includes("text/event-stream") && response.body) {
+      return new NextResponse(response.body, {
+        status: response.status,
+        headers: {
+          "content-type": contentType,
+          // Next buffers a streamed response behind a compressing proxy unless
+          // told not to; without this the deltas arrive in one burst.
+          "X-Accel-Buffering": "no",
+          ...NO_STORE_HEADERS,
+        },
+      });
+    }
 
     const rawBody = await response.text();
 
     return new NextResponse(rawBody, {
       status: response.status,
       headers: {
-        "content-type":
-          response.headers.get("content-type") ?? "application/json",
+        "content-type": contentType,
         ...NO_STORE_HEADERS,
       },
     });

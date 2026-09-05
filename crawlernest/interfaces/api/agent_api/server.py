@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import sys
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -39,6 +40,51 @@ def configure_logging(stream: Any = None, level: str | None = None) -> None:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         force=True,
     )
+
+
+#: Roughly a word or two per frame. Small enough that the reader sees text
+#: arriving rather than appearing, large enough that a long explanation does not
+#: become hundreds of writes.
+_STREAM_CHUNK_CHARS = 24
+
+
+def _split_for_stream(text: str, chunk_chars: int = _STREAM_CHUNK_CHARS) -> list[str]:
+    """Split *text* into delta frames that rejoin to exactly *text*.
+
+    Splitting happens at whitespace so a chunk boundary never lands inside a
+    word, and never inside a multi-byte character. The concatenation property is
+    what the tests assert: a reader that joins every delta must end up with the
+    same string the non-streaming route would have returned, or the two
+    transports are showing different answers.
+
+    CJK text has no spaces to split on, so a long run without whitespace is cut
+    at ``chunk_chars`` by index. Python slices by code point, so that is still
+    safe -- it is the byte-level split that would corrupt a character, and this
+    never does one.
+    """
+    if not text:
+        return []
+
+    chunks: list[str] = []
+    current = ""
+    # Keep the separators: rejoining the pieces has to reproduce the original
+    # whitespace, not a normalized version of it.
+    for piece in re.split(r"(\s+)", text):
+        if not piece:
+            continue
+        if len(current) + len(piece) <= chunk_chars:
+            current += piece
+            continue
+        if current:
+            chunks.append(current)
+            current = ""
+        while len(piece) > chunk_chars:
+            chunks.append(piece[:chunk_chars])
+            piece = piece[chunk_chars:]
+        current = piece
+    if current:
+        chunks.append(current)
+    return chunks
 
 
 def _rate(numerator: int, denominator: int) -> float | None:
@@ -174,10 +220,85 @@ class _RequestHandler(BaseHTTPRequestHandler):
             return
 
         if self.path == "/api/v1/agent/explain":
+            if self._wants_event_stream():
+                self._write_explain_stream(payload)
+                return
             status_code, response = self.api_handler.handle_explain(payload)
         else:
             status_code, response = self.api_handler.handle_task(payload)
         self._write_json(HTTPStatus(status_code), response)
+
+    def _wants_event_stream(self) -> bool:
+        return "text/event-stream" in (self.headers.get("Accept") or "").lower()
+
+    def _write_explain_stream(self, payload: dict[str, Any]) -> None:
+        """Stream the explanation as ``text/event-stream``.
+
+        What is streamed is the *verified* text, not the model's tokens as they
+        arrive. That is the whole design, and it is not a shortcut:
+        ``verify_explanation`` runs after generation and, when it returns
+        USE_FALLBACK, replaces the model's answer with the deterministic one --
+        that is the check that catches a fabricated figure or a dropped caveat.
+        Forwarding deltas live would put the rejected text on the reader's
+        screen before the check that rejects it had run, and no later frame can
+        unread it.
+
+        So the cost is honest and worth naming: this buys no time-to-first-token.
+        The model still has to finish and be checked before the first delta goes
+        out. What it buys is the typewriter rendering, a live channel that shows
+        the request is progressing, and a terminal frame carrying source,
+        warning and model name in one place.
+
+        Deltas are only emitted for model-written text. When the answer is the
+        deterministic fallback the stream carries the terminal frame alone,
+        which matches what the page already does with a JSON fallback response:
+        it renders nothing.
+        """
+        status_code, response = self.api_handler.handle_explain(payload)
+        data = response.get("data") or {}
+
+        self.send_response(HTTPStatus.OK.value)
+        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.send_header("Connection", "close")
+        # Proxies that buffer a response defeat the point of sending one in
+        # pieces; nginx honours this and it is inert everywhere else.
+        self.send_header("X-Accel-Buffering", "no")
+        self.end_headers()
+
+        # Sent before the body so the reader can distinguish "connected, working"
+        # from "connected, hung". The generation itself already happened above,
+        # so this is the first thing the socket carries either way.
+        self._write_sse_frame({"type": "status", "phase": "generating"})
+
+        if response.get("success") and data.get("source") == "llm":
+            for chunk in _split_for_stream(str(data.get("explanation") or "")):
+                self._write_sse_frame({"type": "delta", "text": chunk})
+
+        self._write_sse_frame(
+            {
+                "type": "done",
+                "statusCode": status_code,
+                "success": bool(response.get("success")),
+                "taskKind": data.get("taskKind"),
+                "source": data.get("source"),
+                "modelName": data.get("modelName"),
+                "warning": data.get("warning"),
+                "paragraphs": data.get("paragraphs") or [],
+                "explanation": data.get("explanation"),
+            }
+        )
+        self._write_sse_frame("[DONE]")
+
+    def _write_sse_frame(self, payload: dict[str, Any] | str) -> None:
+        body = payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False)
+        try:
+            self.wfile.write(f"data: {body}\n\n".encode("utf-8"))
+            self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            # The reader navigated away mid-stream. Nothing to recover and
+            # nothing worth logging: an abandoned explanation is routine.
+            pass
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A003
         return

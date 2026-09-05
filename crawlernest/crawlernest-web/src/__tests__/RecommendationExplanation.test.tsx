@@ -1,6 +1,18 @@
+import { ReadableStream as NodeReadableStream } from "node:stream/web";
+import { TextDecoder as NodeTextDecoder, TextEncoder as NodeTextEncoder } from "node:util";
+
 import { render, screen, waitFor } from "@testing-library/react";
 
 import RecommendationExplanation from "@/components/RecommendationExplanation";
+
+// This suite needs jsdom to render, and jsdom ships none of the streaming
+// globals a browser has. Without them the streaming branch could only be tested
+// outside the environment the component actually runs in, which is where its
+// interaction with React state lives.
+const globals = globalThis as unknown as Record<string, unknown>;
+globals.TextEncoder ??= NodeTextEncoder;
+globals.TextDecoder ??= NodeTextDecoder;
+globals.ReadableStream ??= NodeReadableStream;
 
 const ITEMS = [
   {
@@ -12,11 +24,60 @@ const ITEMS = [
   },
 ];
 
-function mockFetchOnce(body: unknown, ok = true) {
-  global.fetch = jest.fn().mockResolvedValue({
+/**
+ * A one-shot JSON response, shaped like a real one.
+ *
+ * The `headers` are not decoration: the component picks its transport from
+ * content-type, so a mock without them tests a branch the browser never takes.
+ */
+function jsonResponse(body: unknown, ok = true) {
+  return {
     ok,
+    headers: {
+      get: (name: string) =>
+        name.toLowerCase() === "content-type" ? "application/json" : null,
+    },
     json: async () => body,
-  }) as unknown as typeof fetch;
+  };
+}
+
+/** An SSE response carrying the given frames, split into arbitrary chunks. */
+function sseResponse(frames: unknown[], sentinel = true) {
+  const text =
+    frames.map((f) => `data: ${JSON.stringify(f)}\n\n`).join("") +
+    (sentinel ? "data: [DONE]\n\n" : "");
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(text);
+  let offset = 0;
+  return {
+    ok: true,
+    headers: {
+      get: (name: string) =>
+        name.toLowerCase() === "content-type"
+          ? "text/event-stream; charset=utf-8"
+          : null,
+    },
+    body: new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (offset >= bytes.length) {
+          controller.close();
+          return;
+        }
+        // Deliberately not frame-aligned.
+        controller.enqueue(bytes.slice(offset, offset + 17));
+        offset += 17;
+      },
+    }),
+    json: async () => {
+      throw new Error("streaming response must not be read as JSON");
+    },
+  };
+}
+
+function mockFetchOnce(body: unknown, ok = true) {
+  global.fetch = jest
+    .fn()
+    .mockResolvedValue(jsonResponse(body, ok)) as unknown as typeof fetch;
 }
 
 describe("RecommendationExplanation", () => {
@@ -102,10 +163,11 @@ describe("RecommendationExplanation", () => {
   });
 
   it("explains a plan even though it carries no rows", async () => {
-    const fetchMock = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: { source: "llm", paragraphs: ["Plan prose."] } }),
-    });
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse({ success: true, data: { source: "llm", paragraphs: ["Plan prose."] } })
+      );
     global.fetch = fetchMock as unknown as typeof fetch;
 
     render(
@@ -123,10 +185,11 @@ describe("RecommendationExplanation", () => {
   });
 
   it("sends the displayed rows to the explain route", async () => {
-    const fetchMock = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, data: { source: "llm", paragraphs: ["ok"] } }),
-    });
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse({ success: true, data: { source: "llm", paragraphs: ["ok"] } })
+      );
     global.fetch = fetchMock as unknown as typeof fetch;
 
     render(<RecommendationExplanation items={ITEMS} caveats={["Only QS."]} />);
@@ -138,5 +201,63 @@ describe("RecommendationExplanation", () => {
     expect(body.taskKind).toBe("recommendation");
     expect(body.items).toEqual(ITEMS);
     expect(body.caveats).toEqual(["Only QS."]);
+  });
+
+  it("asks for the event stream while still accepting JSON", async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(
+        jsonResponse({ success: true, data: { source: "llm", paragraphs: ["ok"] } })
+      );
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    render(<RecommendationExplanation items={ITEMS} />);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const accept = fetchMock.mock.calls[0][1].headers.Accept;
+    expect(accept).toContain("text/event-stream");
+    // The JSON path has to stay reachable: an agent build without the stream
+    // still answers, and the page must render rather than fall silent.
+    expect(accept).toContain("application/json");
+  });
+
+  it("renders streamed prose, using the terminal frame's paragraph split", async () => {
+    global.fetch = jest.fn().mockResolvedValue(
+      sseResponse([
+        { type: "status", phase: "generating" },
+        { type: "delta", text: "NTU is a target-tier " },
+        { type: "delta", text: "match at rank 68." },
+        {
+          type: "done",
+          success: true,
+          source: "llm",
+          modelName: "deepseek-v4-flash",
+          paragraphs: ["NTU is a target-tier match at rank 68."],
+        },
+      ])
+    ) as unknown as typeof fetch;
+
+    render(<RecommendationExplanation items={ITEMS} />);
+
+    expect(
+      await screen.findByText("NTU is a target-tier match at rank 68.")
+    ).toBeInTheDocument();
+    expect(screen.getByText(/deepseek-v4-flash/)).toBeInTheDocument();
+  });
+
+  it("renders nothing when a streamed answer came back as the fallback", async () => {
+    // The server sends no deltas for deterministic text, so the panel must stay
+    // hidden -- the same rule the JSON path already follows. If this ever
+    // renders, unverified or non-model prose is reaching the reader.
+    global.fetch = jest.fn().mockResolvedValue(
+      sseResponse([
+        { type: "status", phase: "generating" },
+        { type: "done", success: true, source: "fallback", paragraphs: [] },
+      ])
+    ) as unknown as typeof fetch;
+
+    const { container } = render(<RecommendationExplanation items={ITEMS} />);
+
+    await waitFor(() => expect(container).toBeEmptyDOMElement());
   });
 });

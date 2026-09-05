@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { readExplainStream, splitParagraphs } from "@/lib/agentExplainStream";
+
 export type ExplanationItem = Record<string, unknown>;
 
 export type ExplanationTaskKind =
@@ -81,7 +83,10 @@ export default function RecommendationExplanation({
       try {
         const response = await fetch("/api/agent/explain", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "text/event-stream, application/json",
+          },
           signal: controller.signal,
           body: JSON.stringify({ taskKind, items, caveats, profile, plan, query, criterion }),
         });
@@ -89,6 +94,52 @@ export default function RecommendationExplanation({
           if (active) setResult(empty);
           return;
         }
+
+        const contentType = response.headers.get("content-type") ?? "";
+        if (contentType.includes("text/event-stream") && response.body) {
+          // Deltas are only sent for model-written answers, so text arriving at
+          // all is what tells us source === "llm". A deterministic fallback
+          // sends its terminal frame and nothing else, and the branch below
+          // leaves `text` empty, so the panel stays hidden exactly as it does
+          // over JSON.
+          let text = "";
+          let modelName: string | null = null;
+
+          for await (const frame of readExplainStream(response.body)) {
+            if (!active) {
+              break;
+            }
+            if (frame.type === "delta") {
+              text += frame.text;
+              // Repaint per frame: this is the typewriter effect, and it is
+              // showing verified text -- the server has already run the
+              // faithfulness check before the first delta leaves it.
+              setResult({ key: itemsKey, paragraphs: splitParagraphs(text), modelName });
+            } else if (frame.type === "done") {
+              modelName = frame.modelName ?? null;
+              const settled =
+                frame.source === "llm"
+                  ? (frame.paragraphs ?? []).filter(
+                      (p): p is string => typeof p === "string" && p.trim().length > 0
+                    )
+                  : [];
+              // The terminal frame is authoritative: it carries the paragraph
+              // split the server made, so the final render matches the JSON
+              // route rather than this component's guess at the boundaries.
+              setResult({
+                key: itemsKey,
+                paragraphs: settled.length > 0 ? settled : splitParagraphs(text),
+                modelName,
+              });
+            }
+          }
+
+          if (active && text === "") {
+            setResult(empty);
+          }
+          return;
+        }
+
         const body = await response.json();
         const data = body?.data;
         // Only surface text the model actually wrote.
