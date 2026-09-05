@@ -29,6 +29,19 @@ class PromptPayload:
     # Ordered list of prior-turn message dicts {"role": ..., "content": ...}
     # injected between the system message and the current user message.
     conversation_turns: list[dict[str, str]] = field(default_factory=list)
+    # What the corpus is, and the rules that hold whatever the conversation
+    # does. These go into the *system* turn, and deliberately repeat what
+    # context_block and response_constraints already say in the user turn.
+    #
+    # The duplication is the point. Everything above lands in the final user
+    # message, and conversation_turns are inserted between the system message
+    # and that one -- so the longer a session runs, the further the year lock
+    # and the no-trend rule drift from the model's attention, and the more they
+    # look like part of one turn's request rather than a standing constraint.
+    # A rule stated in the system turn is not something a later turn can
+    # plausibly be read as superseding.
+    system_context: str = ""
+    system_constraints: list[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)

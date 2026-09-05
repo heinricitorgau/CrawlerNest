@@ -108,13 +108,21 @@ class GroundedExplainer:
         # is what verification checks the answer against: the dataset year is a
         # fact of the evidence, so an explanation naming it must not read as an
         # invented figure.
-        grounded_block = f"{build_dataset_header()}\n\n{evidence_block}"
+        dataset_header = build_dataset_header()
+        grounded_block = f"{dataset_header}\n\n{evidence_block}"
 
+        # The header and the dataset rules go in twice, on purpose: once here in
+        # the system turn, where they cannot read as one turn's request, and
+        # once below in the user turn, where they sit next to the evidence they
+        # describe. See PromptPayload.system_context for why the user turn alone
+        # is not enough.
         prompt = PromptPayload(
             system_instruction=self.system_instruction,
             user_message=query.strip() or default_query,
             context_block=grounded_block,
             response_constraints=[*self.constraints, *DATASET_CONSTRAINTS],
+            system_context=dataset_header,
+            system_constraints=[*DATASET_CONSTRAINTS],
         )
         result: GenerationResult = self._generator.generate_response(
             prompt=prompt,
