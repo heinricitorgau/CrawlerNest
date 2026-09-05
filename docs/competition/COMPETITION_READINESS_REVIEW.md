@@ -1,5 +1,10 @@
 # Competition Readiness Review
 
+> **RC-1 Historical Baseline (2026-05).** This review records the competition
+> state and evidence available at the RC-1 packaging point in May 2026. Its
+> QS-only and THE/ARWU-unavailable findings are historical conclusions and do
+> not describe the current 2026-09-04 three-source snapshot.
+
 Phase 4 — Demo Rehearsal. Final assessment of CrawlerNest v0.1 for competition readiness.
 
 ---

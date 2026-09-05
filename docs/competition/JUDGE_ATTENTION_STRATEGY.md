@@ -12,7 +12,7 @@ and how to guide their attention toward the platform's strongest evidence.
 | Signal | Why Judges Notice It |
 |---|---|
 | Source disagreement severity chips | Visual, immediate, unexplained by most platforms |
-| "THE — Unavailable" in operational posture | Visible self-disclosure of a limitation is unusual |
+| Partial THE/ARWU coverage in operational posture | Visible self-disclosure of source limits is unusual |
 | Evidence Chain heading in explain panel | Implies traceable provenance, not AI generation |
 | "Not AI-generated" note under confidence bar | Direct, rare claim that invites verification |
 | Unconditional caveats on every result | Caveats that cannot be dismissed or hidden |
@@ -22,7 +22,7 @@ and how to guide their attention toward the platform's strongest evidence.
 | Signal | Why It Reinforces |
 |---|---|
 | Confidence posture "Mostly Low" | Confirms the platform doesn't inflate |
-| Source coverage progress bars (QS 100%, THE 0%) | Visual proof of single-source limitation |
+| Source coverage progress bars (QS 9,530, THE 1,637, ARWU 838) | Visual proof that coverage is real but partial |
 | "Derived from source coverage and data completeness" note | Connects the bar to a formula |
 | `/system-status` link in operational posture | Implies depth beyond what's shown |
 | Recommendation scoring formula reference | Verifiability claim without assertion |
@@ -35,9 +35,9 @@ and how to guide their attention toward the platform's strongest evidence.
 |---|---|---|
 | "The platform uses AI for recommendations" | 'Confidence score' sounds like ML | Say "deterministic scoring algorithm" early |
 | "Low confidence means the system is broken" | Confidence = 25% looks bad | Frame: "low confidence is correct — single source" |
-| "THE/ARWU unavailable is a failure" | Missing data looks like a bug | Say "expected limitation; we disclose it" |
+| "Partial THE/ARWU coverage is a failure" | Missing data looks like a bug | Say "coverage is measured and disclosed; a missing row can reflect snapshot scope or entity resolution" |
 | "The explanations are generated text" | Evidence Chain looks like chatbot output | Point: "these are stored algorithm outputs" |
-| "The data is real-time" | Clean UI implies live data | State: "batch ingestion; data is ~354 hours old" |
+| "The data is real-time" | Clean UI implies live data | State: "this is a point-in-time 2026 snapshot from the 2026-09-04 ingest" |
 | "This is a limited prototype" | localhost demo, single QS source | Frame: "the architecture is production-ready; RC-1 scope is intentional" |
 
 ---
@@ -73,14 +73,14 @@ false precision.
 **URL:** `/analytics` — Operational Posture
 
 **Why high-impact:**
-Showing "THE — Unavailable" and "ARWU — Unavailable" on the main analytics page is unusual.
-Most systems hide data gaps. Surfacing them here, in the main demo surface, signals that
-operational honesty is a first-class feature, not a footnote.
+Showing measured QS, THE, and ARWU coverage on the main analytics page is unusual.
+Most systems hide partial data gaps. Surfacing the coverage and its caveats in the
+main demo surface signals that operational honesty is a first-class feature.
 
 **What must be visible:**
-- Three source availability badges: `QS ✓ Available`, `THE — Unavailable`, `ARWU — Unavailable`
-- Confidence posture label (e.g., "Mostly Low")
-- The note: "THE and ARWU data are not available at RC-1"
+- Three source coverage indicators: QS `9,530`, THE `1,637`, ARWU `838`
+- A partial-coverage label and the 2026 snapshot date
+- Confidence posture derived from matched source evidence
 
 **What must NOT be visible as primary focus:**
 - Long lists of caveats above this section
@@ -100,8 +100,8 @@ addresses the black-box objection against recommendation systems.
 - "Evidence Chain" section heading
 - At least 2–3 checkmark (✓) reasons derived from stored scoring
 - The confidence bar with the "Not AI-generated" note
-- Source Coverage: QS ✓ Available, THE — Unavailable, ARWU — Unavailable
-- Data Caveats list (QS stale, THE unavailable, ARWU unavailable)
+- Source Coverage with the measured QS/THE/ARWU counts
+- Data Caveats list covering snapshot age, partial coverage, and entity resolution
 
 **What must NOT be visible as primary focus:**
 - The raw JSON evidence endpoint response
@@ -120,7 +120,7 @@ Show these if a judge asks or if time permits. Do not lead with them.
 | System status / freshness | `/system-status` | "Pipeline state and ingestion timestamps are here" |
 | Saved recommendation evidence | `/saved-recommendations` | "Evidence is preserved in snapshots too" |
 | Ranking trends table | `/analytics` ranking trends | "When two years of data are available, this shows movement" |
-| Subject ranking signal | `/recommendations` — subject fit card | "Subject fit is QS-sourced; data is partial at RC-1" |
+| Subject ranking signal | `/recommendations` — subject fit card | "Subject fit is QS-sourced and partial in the current snapshot" |
 
 ---
 
@@ -132,7 +132,7 @@ Show these if a judge asks or if time permits. Do not lead with them.
 | Java compilation details | Too implementation-focused | Only if directly asked |
 | Ingestion pipeline mechanics | Operational internal detail | Only at /system-status |
 | Authentication model | Not demo-relevant | "Auth is present" at most |
-| Year-over-year trend deltas | Not available at RC-1 | Acknowledge and move on |
+| Year-over-year trend deltas | Single 2026 snapshot | Acknowledge and move on |
 | Subject ranking completeness | Highlights a gap without resolution | Only if asked |
 | Release bundle structure | Internal artifact | Never during demo |
 
@@ -142,14 +142,15 @@ Show these if a judge asks or if time permits. Do not lead with them.
 
 ### On low confidence scores
 **Incorrect framing:** "Sorry, the confidence is low because we only have QS data."
-**Correct framing:** "The confidence reflects what the data supports. Single-source coverage
-means lower confidence. The system does not pretend otherwise."
+**Correct framing:** "The confidence reflects how many matched source ranks support this
+record. Partial coverage means less evidence for some universities. The system does not
+pretend otherwise."
 
-### On unavailable sources
+### On partial source coverage
 **Incorrect framing:** "We don't have THE or ARWU data yet — that's a limitation."
-**Correct framing:** "THE and ARWU are not available at RC-1. The platform discloses this
-on the main analytics page, in source coverage, and in every recommendation's evidence panel.
-That disclosure is the feature."
+**Correct framing:** "THE and ARWU are present in the 2026 snapshot, but coverage is partial.
+The platform discloses the measured coverage, entity-resolution boundary, and resulting
+confidence on the analytics page and evidence panel. That disclosure is the feature."
 
 ### On deterministic scoring
 **Incorrect framing:** "We're not using AI for this."
@@ -159,5 +160,5 @@ can verify the output from the same inputs."
 
 ### On data freshness
 **Incorrect framing:** "The data might be a bit old."
-**Correct framing:** "The data was ingested at RC-1 packaging — approximately 354 hours ago.
-That is disclosed as a caveat on every analytics and recommendation surface."
+**Correct framing:** "The data is a point-in-time 2026 snapshot from the 2026-09-04 ingest.
+The API discloses its freshness rather than implying real-time coverage."

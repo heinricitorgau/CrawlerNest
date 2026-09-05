@@ -50,15 +50,16 @@ ingested source data:
 - Country-level representation in the ranking universe
 
 Every analytics output includes honest disclosure of data limitations:
-stale data, unavailable sources, and single-year coverage are labeled as such.
+snapshot age, partial source coverage, entity-resolution limits, and single-year
+coverage are labeled as such.
 
 ### Operationally Traceable Education Data Platform
 
 The operational infrastructure is visible and honest:
 
 - Freshness state is disclosed at every level (API, frontend, release bundle)
-- Source availability (THE unavailable, ARWU unavailable at RC-1) is documented
-  and surfaced to users, not hidden
+- Source coverage (QS 9,530, THE 1,637, ARWU 838 in the 2026 snapshot) is
+  documented and surfaced to users, not hidden
 - The maintenance posture is described in `docs/STABLE_DEGRADED_STATE.md`
 - Confidence levels are derived from observable signals, not asserted
 
@@ -86,7 +87,7 @@ These are intentionally absent. Claiming them would be dishonest.
 | Non-Goal | Why Absent |
 | --- | --- |
 | Real-time ranking updates | Batch ingestion; freshness is disclosed |
-| THE and ARWU live data | Source files not acquired at RC-1 |
+| Complete THE and ARWU coverage | The 2026 snapshot has partial coverage: 1,637 THE and 838 ARWU source ranks |
 | Subject ranking completeness | MVP scope: QS global rankings only |
 | Predictive ranking forecasting | No historical depth for trend prediction |
 | Natural language query | No LLM integration planned |
@@ -106,10 +107,11 @@ The `/api/v1/rankings/{id}/explain` endpoint is a direct expression of this.
 
 ### 2. Honest Data Posture
 
-No claim in the platform is inflated beyond what the data supports. When THE and
-ARWU are unavailable, the frontend says so. When data is stale (354h at RC-1),
-the freshness endpoint says so. When coverage is limited to one source, the
-confidence is "low" and that is what the user sees.
+No claim in the platform is inflated beyond what the data supports. The frontend
+shows that the 2026 snapshot contains 9,530 QS, 1,637 THE, and 838 ARWU source
+ranks, while making partial coverage and entity-resolution limits explicit. The
+freshness endpoint describes the snapshot age, and confidence reflects matched
+source evidence rather than an asserted score.
 
 Honesty at every surface is a competitive differentiator, not a weakness.
 
