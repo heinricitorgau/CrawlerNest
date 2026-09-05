@@ -46,3 +46,12 @@ PGPASSWORD=test pg_restore -h localhost -U test -d clawer \
 After restore, run `scripts/start_localhost.sh`. The launcher is intentionally
 read-only with respect to the warehouse: it checks PostgreSQL and starts the API
 and web services; it does not crawl or mutate ranking data.
+
+To restore and verify the frozen counts in one step, use:
+
+```bash
+PGDATABASE=clawer ./scripts/restore_release_snapshot.sh
+```
+
+Set `API_BASE_URL=http://localhost:8080` as well when the API is already running;
+the script will then smoke-test the rankings and ranking-trends endpoints.
