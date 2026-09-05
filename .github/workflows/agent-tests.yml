@@ -47,6 +47,7 @@ jobs:
             crawlernest/crawlernest-tests/test_provenance.py \
             crawlernest/crawlernest-tests/test_agent_api_stats.py \
             crawlernest/crawlernest-tests/test_agent_api_explain.py \
+            crawlernest/crawlernest-tests/test_agent_api_sse_stream.py \
             crawlernest/crawlernest-tests/test_ds4_comparison_and_plan_explainers.py \
             crawlernest/crawlernest-tests/test_dataset_context.py \
             crawlernest/crawlernest-tests/test_ml_tools.py \
