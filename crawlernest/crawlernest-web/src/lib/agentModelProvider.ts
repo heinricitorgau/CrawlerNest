@@ -201,7 +201,12 @@ function buildMockResponse(message: string): string {
   return [
     `I read your request as: "${intent}".`,
     "I can explain CrawlerNest concepts, point you to relevant pages, summarize caveats, and suggest debugging direction.",
-    "This response is advisory only. I do not run tools, modify code, write the database, rerun pipelines, or change recommendations.",
+    // "I do not run tools" was true until /api/agent/chat gained its engine
+    // pass, which calls ranking_tools and reads the warehouse. Every other
+    // clause still holds, so only that one is gone: a reply that disclaims
+    // something the request just did is the "hidden limitations" failure this
+    // surface's own rubric names.
+    "This response is advisory only. I do not modify code, write the database, rerun pipelines, or change recommendations.",
     "Useful pages to inspect next: /analytics, /rankings, /recommendations, and /system-status.",
     "Check freshness and source coverage caveats before treating the result as complete.",
   ].join("\n\n");
