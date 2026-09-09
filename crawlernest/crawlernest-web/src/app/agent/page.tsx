@@ -2044,8 +2044,12 @@ export default function AgentPage() {
               <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1 text-[#1a3d2e]">
                 advisory-only
               </span>
+              {/* Was "no tool calling", which stopped being true when this
+                  page's route gained its engine pass: it calls ranking_tools
+                  and reads the warehouse. The boundary that still holds is
+                  that the read is the only thing it does. */}
               <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1 text-[#1a3d2e]">
-                no tool calling
+                readonly warehouse reads
               </span>
             </div>
           </div>

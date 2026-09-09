@@ -28,7 +28,11 @@ describe("agent model provider bridge", () => {
     expect(result.providerLabel).toBe("mock");
     expect(result.text).toContain("Explain Oxford");
     expect(result.text).toContain("advisory only");
-    expect(result.text).toContain("I do not run tools");
+    // Not "I do not run tools": the chat route's engine pass runs a readonly
+    // one. The clauses that are still true are still asserted.
+    expect(result.text).not.toContain("I do not run tools");
+    expect(result.text).toContain("I do not modify code");
+    expect(result.text).toContain("write the database");
     expect(result.text).toContain("/analytics");
   });
 
