@@ -58,6 +58,22 @@ describe("AgentWarningBanner", () => {
     expect(screen.getAllByText("Unsupported year")).toHaveLength(2);
   });
 
+  it("lights up for the payload /api/agent/chat actually returns", () => {
+    // The array the two-pass route builds: the engine's disclosure first, the
+    // provider's own note after it. Asserted together because the banner is
+    // only useful if it picks the first out of the second.
+    render(
+      <AgentWarningBanner
+        warnings={[UNSUPPORTED_YEAR_WARNING, "Mock provider used. No external model was contacted."]}
+      />
+    );
+
+    const banner = screen.getByRole("alert");
+    expect(banner).toHaveTextContent("Unsupported year");
+    expect(banner).toHaveTextContent("Year 2025 is not available");
+    expect(banner).not.toHaveTextContent("Mock provider used");
+  });
+
   it("renders nothing when the payload is malformed", () => {
     const { container } = render(<AgentWarningBanner warnings={undefined} />);
 

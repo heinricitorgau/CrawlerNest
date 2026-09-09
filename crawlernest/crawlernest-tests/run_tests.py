@@ -108,6 +108,9 @@ def run_all_tests():
         # Registered here as well as in agent-tests.yml because "which years
         # exist" is a warehouse fact, and this is the runner those live in.
         "test_unsupported_year_warning",
+        # The two opt-in constraints the chat route's data pass runs on: no
+        # engine-side prose, and no silent handoff to the dev agent.
+        "test_two_pass_constraints",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.

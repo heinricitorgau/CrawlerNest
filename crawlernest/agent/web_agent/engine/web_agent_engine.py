@@ -401,6 +401,14 @@ class WebAgentEngine:
             return response
         if not self._policy.allow_generation or self._policy.generation_mode == "disabled":
             return response
+        # A caller running its own two-pass pipeline -- the chat route asks the
+        # engine for rows and disclosures, then writes the prose itself -- would
+        # otherwise pay for an explanation nobody reads, and on a local ds4 that
+        # is a 60-second model call per turn. Opt-in and exact-match, so an
+        # unrecognised value leaves generation on rather than silently
+        # suppressing it.
+        if str(request.constraints.get("generation", "")).strip().lower() == "disabled":
+            return response
         if not isinstance(response.data, dict):
             return response
 

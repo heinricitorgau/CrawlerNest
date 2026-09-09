@@ -4,6 +4,8 @@ import {
   generateAgentChatResponse,
   validateAgentMessage,
 } from "@/lib/agentModelProvider";
+import { runEngineTask } from "@/lib/agentEngineTask";
+import { getAgentApiBaseUrl } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -44,7 +46,28 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const result = await generateAgentChatResponse(String(message));
+  // Two passes over the same message. The engine pass reads the warehouse and
+  // attaches the response-level disclosures this route had no way of knowing
+  // about -- which year the answer actually describes, above all. The model
+  // pass writes the prose, as it always did.
+  //
+  // They run together rather than in sequence: the model is not handed the
+  // engine's rows (its prompt is advisory and un-grounded by design), so
+  // awaiting the engine first would only add its latency to every data
+  // question. The engine pass never throws and never blocks -- a skipped or
+  // failed one leaves the reply exactly as it was.
+  const rawContext = (payload as Record<string, unknown>).context;
+  const [engine, result] = await Promise.all([
+    runEngineTask(String(message), {
+      baseUrl: getAgentApiBaseUrl(),
+      context:
+        rawContext && typeof rawContext === "object" && !Array.isArray(rawContext)
+          ? (rawContext as Record<string, unknown>)
+          : undefined,
+    }),
+    generateAgentChatResponse(String(message)),
+  ]);
+
   const paragraphs = result.text
     .split(/\n{2,}/)
     .map((part) => part.trim())
@@ -90,15 +113,25 @@ export async function POST(request: NextRequest) {
             modelName: result.modelName,
             baseUrl: result.baseUrl,
             readonly: true,
-            toolsExecuted: false,
+            // True the moment the engine pass runs: it calls ranking_tools,
+            // which reads the warehouse. Still readonly, still no writes -- but
+            // "no tools were executed" stopped being true when this route
+            // gained a first pass, and leaving it hardcoded would have made the
+            // disclosure block itself carry a false one.
+            toolsExecuted: engine.consulted,
             shellExecuted: false,
             dbWrites: false,
             pipelineRuns: false,
             route: "/api/agent/chat",
+            engineConsulted: engine.consulted,
+            ...(engine.skippedReason ? { engineSkipped: engine.skippedReason } : {}),
           },
         },
         traces: [],
-        warnings: result.warnings,
+        // Engine disclosures first: they qualify the answer, where the
+        // provider's notes describe how it was produced. AgentWarningBanner
+        // renders the coded ones and drops the rest.
+        warnings: [...engine.warnings, ...result.warnings],
       },
     },
     result.ok ? 200 : 503

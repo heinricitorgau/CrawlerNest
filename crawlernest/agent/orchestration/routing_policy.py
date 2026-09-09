@@ -18,6 +18,29 @@ class RoutingPolicy:
         has_code_keywords = bool(_DEV_KEYWORD_RE.search(request.user_input))
         is_dev_intent = explicit_dev_kind or has_code_keywords
 
+        # A caller that wants data and disclosures, and nothing else, can say
+        # so. Without this the keyword scan above decides for it: a perfectly
+        # ordinary question that happens to contain "error" or "壞" would hand
+        # the turn to the dev agent, which plans file changes and returns
+        # through format_dev_handoff_result -- a path that carries no
+        # response-level disclosures at all. Honoured only for web-sourced
+        # requests, and only towards "web": pinning cannot be used to reach the
+        # dev agent from somewhere that could not already route there.
+        if (
+            request.source == "web"
+            and not explicit_dev_kind
+            and str(request.constraints.get("route", "")).strip().lower() == "web"
+        ):
+            return RoutingDecision(
+                route="web",
+                reason="caller pinned the web route; no development handoff",
+                signals=RoutingSignals(
+                    is_dev_intent=is_dev_intent,
+                    has_code_keywords=has_code_keywords,
+                    explicit_dev_kind=explicit_dev_kind,
+                ),
+            )
+
         if request.source != "web":
             if is_dev_intent:
                 return RoutingDecision(
