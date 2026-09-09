@@ -53,6 +53,7 @@ jobs:
             crawlernest/crawlernest-tests/test_ml_tools.py \
             crawlernest/crawlernest-tests/test_caveat_contract.py \
             crawlernest/crawlernest-tests/test_unsupported_year_warning.py \
+            crawlernest/crawlernest-tests/test_two_pass_constraints.py \
             -q
 
       # Mechanical faithfulness eval over the golden dataset: verifies the
