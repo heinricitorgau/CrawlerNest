@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-09-04，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-09-10，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：376
-- **期間**：2026-03-16 ~ 2026-09-04
+- **Commit 總數**：392
+- **期間**：2026-03-16 ~ 2026-09-10
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,7 +34,23 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `42f0f4f` | 2026-09-04 | heinricitorgau | 9 | +279 / −113 | Stop the summary generators re-emitting a warehouse that no longer exists **[main]** |
+| `0e83acc` | 2026-09-10 | heinricitorgau | 2 | +22 / −0 | feat(agent): enforce 2026 snapshot constraints in the web system prompt, pinned by a contract test **[main]** |
+| `64d3d7b` | 2026-09-10 | heinricitorgau | 3 | +540 / −0 | Settle how rank movement is computed before there is a second year to compute it from |
+| `0598c66` | 2026-09-10 | heinricitorgau | 1 | +13 / −2 | Correct the next.config comment that sent people to a URL /agent cannot load on |
+| `1b60a63` | 2026-09-09 | heinricitorgau | 3 | +16 / −3 | Stop the agent surface claiming it runs no tools, now that it runs one |
+| `1d4c562` | 2026-09-09 | heinricitorgau | 10 | +747 / −3 | Ask the engine first, so the chat answer can say which year it describes |
+| `b740af2` | 2026-09-05 | heinricitorgau | 10 | +715 / −0 | Say which year the answer describes, when it is not the year that was asked for |
+| `57f44d7` | 2026-09-05 | heinricitorgau | 8 | +815 / −15 | Stream the explanation to the page, after it has been verified rather than before |
+| `f238bb2` | 2026-09-05 | heinricitorgau | 2 | +109 / −2 | Give the multi-turn chat path the dataset declaration it never had |
+| `d41c95e` | 2026-09-05 | heinricitorgau | 2 | +45 / −2 | Say that ds4 has two switches, and that setting one of them is the usual mistake |
+| `1c5e1fc` | 2026-09-05 | heinricitorgau | 4 | +121 / −3 | State the dataset year and its rules in the system turn, not only the user turn |
+| `1af9e26` | 2026-09-05 | heinricitorgau | 1 | +19 / −0 | Skip the MATLAB re-execution job while the repository is private |
+| `6724463` | 2026-09-05 | heinricitorgau | 4 | +204 / −0 | ci(release): add automated snapshot restore verification and v0.3 roadmap |
+| `4bd24cd` | 2026-09-05 | heinricitorgau | 4 | +137 / −0 | release: freeze 2026 database snapshot **[tag: v0.2-2026-snapshot]** |
+| `bbb59e9` | 2026-09-05 | heinricitorgau | 6 | +129 / −83 | docs(competition): align demo narrative with 2026 live three-source coverage |
+| `9813bcb` | 2026-09-05 | heinricitorgau | 5 | +25 / −12 | Correct the operational baselines that still describe a QS-only 1,499-row warehouse |
+| `4569cef` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `42f0f4f` | 2026-09-04 | heinricitorgau | 9 | +279 / −113 | Stop the summary generators re-emitting a warehouse that no longer exists |
 | `a844293` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `f17d7da` | 2026-09-04 | heinricitorgau | 2 | +22 / −10 | Correct the two documents that still describe a warehouse we no longer have |
 | `75278f3` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
@@ -447,8 +463,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 376 |
-| 檔案變更累計 | 6264 |
-| 新增行數累計 | +1377583 |
-| 刪除行數累計 | −699548 |
-| 淨增行數 | +678035 |
+| Commit 數 | 392 |
+| 檔案變更累計 | 6330 |
+| 新增行數累計 | +1381249 |
+| 刪除行數累計 | −699680 |
+| 淨增行數 | +681569 |
