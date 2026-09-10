@@ -111,6 +111,10 @@ def run_all_tests():
         # The two opt-in constraints the chat route's data pass runs on: no
         # engine-side prose, and no silent handoff to the dev agent.
         "test_two_pass_constraints",
+        # Cross-year rank movement, settled before a second year is ingested:
+        # withheld for today's single-year dataset, intervals for banded ranks,
+        # and no delta across a change of source identity.
+        "test_rank_delta",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.
