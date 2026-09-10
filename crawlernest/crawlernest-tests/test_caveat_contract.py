@@ -35,6 +35,7 @@ from crawlernest.core.caveats import (
     STANDARD_CAVEATS,
     UNSUPPORTED_ESTIMATE_CAVEAT,
 )
+from crawlernest.core.dataset import DATASET_YEAR
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -46,6 +47,9 @@ ANALYTICS_SERVICE = (
 )
 CAVEAT_MESSAGES_TS = (
     REPO_ROOT / "crawlernest" / "crawlernest-web" / "src" / "lib" / "caveatMessages.ts"
+)
+AGENT_SYSTEM_PROMPT_TS = (
+    REPO_ROOT / "crawlernest" / "crawlernest-web" / "src" / "lib" / "agentSystemPrompt.ts"
 )
 
 #: Live code paths only. `releases/` and `docs/demo/` describe the state of a
@@ -105,6 +109,18 @@ class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
         ):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(caveat, typescript)
+
+    def test_frontend_agent_system_prompt_carries_dataset_constraints(self) -> None:
+        prompt = _read(AGENT_SYSTEM_PROMPT_TS)
+        self.assertIn(f"DATASET_YEAR = {DATASET_YEAR}", prompt)
+        self.assertIn(
+            f"Dataset year: the warehouse holds ${{DATASET_YEAR}} ranking data",
+            prompt,
+        )
+        self.assertIn("single-year snapshot", prompt)
+        self.assertIn("cross-year trend", prompt)
+        self.assertIn("Name no year other than", prompt)
+        self.assertIn("year after year", prompt)
 
     def test_explainability_doc_carries_the_estimate_caveats(self) -> None:
         # The doc is the anchor AnalyticsCaveatContractTest already reads, so a
