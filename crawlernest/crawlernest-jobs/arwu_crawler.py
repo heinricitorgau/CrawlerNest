@@ -78,6 +78,59 @@ def _slugify(value: str) -> str:
     return slug.strip("-")
 
 
+# ---------------------------------------------------------------------------
+# Entity ids
+# ---------------------------------------------------------------------------
+#
+# The id is what warehouse.mapping_review keys human decisions on, so it has to
+# name the institution and nothing else. It used to be
+# ``arwu:{year}:{slug of the printed name}`` on the payload path and the full
+# profile URL on the HTML path: one changed every edition, the other changed
+# whenever the payload parse fell back, and either change silently orphaned
+# every decision filed against the old form.
+#
+# ShanghaiRanking assigns its own slug per institution -- ``univUp`` in the
+# payload, and the last segment of the profile link in the rendered table.
+# Checked against the live 2026 payload on 2026-09-11: present and unique on
+# all 1,000 entries, and kept through renames ("Institute of Science Tokyo" is
+# still ``tokyo-institute-of-technology``, LMU Munich is ``university-of-munich``),
+# which is the property an entity id needs. ``univCode``, the field that sounds
+# like an identifier, is an empty string on every entry, so it is not read.
+#
+# Both paths now emit ``arwu:<univUp>``. A row with no source slug gets
+# ``arwu:name:<slug>``: marked as name-derived so it can never be mistaken for,
+# or collide with, a source-assigned id -- and carrying no year.
+
+_UNIV_UP = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+_PROFILE_PATH = re.compile(r"/institutions?/([^/?#]+)")
+
+
+def _clean_univ_up(value: Any) -> str | None:
+    """A payload ``univUp`` value, or ``None`` when it is absent or not a slug.
+
+    Absent entries arrive as the literal ``void 0`` (the payload's undefined),
+    which the argument table keeps as a raw string.
+    """
+    text = str(value or "").strip().lower()
+    return text if _UNIV_UP.match(text) else None
+
+
+def _univ_up_from_link(profile_link: str | None) -> str | None:
+    match = _PROFILE_PATH.search(str(profile_link or ""))
+    return _clean_univ_up(match.group(1)) if match else None
+
+
+def arwu_source_id(univ_up: str | None, name: str) -> str:
+    """The source_entity_id for one ARWU institution. Year-free by construction."""
+    if univ_up:
+        return f"arwu:{univ_up}"
+    return f"arwu:name:{_slugify(name)}"
+
+
+def _id_basis(univ_up: str | None) -> str:
+    return "univ_up" if univ_up else "name"
+
+
 class _CellAwareTableExtractor(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
@@ -239,7 +292,8 @@ def _extract_rows_from_html_tables(html: str, year: int, page_url: str) -> list[
                 score_text = row[score_idx].get("text")
                 score = _to_float(score_text)
             country = _pick_country_from_texts(texts[1:] if len(texts) > 1 else texts, institution_name)
-            source_id = profile_link or f"arwu:{year}:{_slugify(institution_name)}"
+            univ_up = _univ_up_from_link(profile_link)
+            source_id = arwu_source_id(univ_up, institution_name)
             rank_display = str(row[rank_idx].get("text", "")).strip() or str(rank)
 
             normalized_rows.append(
@@ -259,6 +313,7 @@ def _extract_rows_from_html_tables(html: str, year: int, page_url: str) -> list[
                     "metadata": {
                         "raw_source": "ARWU",
                         "extraction_method": "html_table",
+                        "id_basis": _id_basis(univ_up),
                         "source_page": page_url,
                         "raw_row": _raw_row(
                             name=institution_name,
@@ -326,12 +381,14 @@ def _split_top_level(blob: str) -> list[str]:
 # It cost 326 of 3,001 entries, spread evenly across every rank band -- which is
 # what made it look like a short table rather than a parsing miss.
 _NAME = r"[\w$]+"
+# Groups: ranking, univNameEn, univUp, region, score. univCode is matched so the
+# pattern stays anchored to the whole entry, but not captured -- it is empty.
 _LITERAL_ENTRY = re.compile(
-    rf"ranking:({_NAME}),univNameEn:({_NAME}),univUp:{_NAME},univLogo:{_NAME},"
+    rf"ranking:({_NAME}),univNameEn:({_NAME}),univUp:({_NAME}),univLogo:{_NAME},"
     rf"region:({_NAME}),regionLogo:{_NAME},regionRanking:{_NAME},univCode:{_NAME},score:({_NAME})"
 )
 _ASSIGNED_ENTRY = re.compile(
-    rf"\.ranking=({_NAME});{_NAME}\.univNameEn=({_NAME});{_NAME}\.univUp={_NAME};"
+    rf"\.ranking=({_NAME});{_NAME}\.univNameEn=({_NAME});{_NAME}\.univUp=({_NAME});"
     rf"{_NAME}\.univLogo={_NAME};{_NAME}\.region=({_NAME});{_NAME}\.regionLogo={_NAME};"
     rf"{_NAME}\.regionRanking={_NAME};{_NAME}\.univCode={_NAME};{_NAME}\.score=({_NAME})"
 )
@@ -369,18 +426,24 @@ def _rows_from_payload(payload_js: str, year: int, page_url: str) -> list[dict[s
         except Exception:
             table[name] = raw
 
+    # Deduplicated on the id, not the name: the payload repeats each entry, and
+    # two institutions that happen to share a printed name are still two.
     seen: set[str] = set()
     rows: list[dict[str, Any]] = []
     for pattern in (_LITERAL_ENTRY, _ASSIGNED_ENTRY):
-        for rank_v, name_v, region_v, score_v in pattern.findall(payload_js):
+        for rank_v, name_v, up_v, region_v, score_v in pattern.findall(payload_js):
             name = table.get(name_v)
-            if not isinstance(name, str) or not name.strip() or name in seen:
+            if not isinstance(name, str) or not name.strip():
                 continue
-            seen.add(name)
+            univ_up = _clean_univ_up(table.get(up_v))
+            source_id = arwu_source_id(univ_up, name)
+            if source_id in seen:
+                continue
+            seen.add(source_id)
             rank_text = str(table.get(rank_v, "")).strip()
             rows.append(
                 {
-                    "id": f"arwu:{year}:{_slugify(name)}",
+                    "id": source_id,
                     "name": name.strip(),
                     "country": table.get(region_v),
                     "year": year,
@@ -392,6 +455,7 @@ def _rows_from_payload(payload_js: str, year: int, page_url: str) -> list[dict[s
                     "metadata": {
                         "raw_source": "ARWU",
                         "extraction_method": "nuxt_payload",
+                        "id_basis": _id_basis(univ_up),
                         "source_page": page_url,
                         "raw_row": _raw_row(
                             name=name.strip(),
@@ -456,15 +520,20 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
                 if payload_js:
                     payload_rows = _rows_from_payload(payload_js, page_year, page_url)
                     if len(payload_rows) > len(normalized_rows):
-                        rendered = {r["name"] for r in normalized_rows}
-                        recovered = {r["name"] for r in payload_rows}
-                        missing = rendered - recovered
+                        # A rendered row is covered if the payload holds it under
+                        # either handle. Both paths emit arwu:<univUp> now, so the id
+                        # usually decides; the name still catches a rendered row
+                        # with no profile link, whose id is name-derived.
+                        recovered_ids = {r["id"] for r in payload_rows}
+                        recovered_names = {r["name"] for r in payload_rows}
+                        missing = [
+                            r for r in normalized_rows
+                            if r["id"] not in recovered_ids and r["name"] not in recovered_names
+                        ]
                         if missing:
                             print(f"[arwu] payload is missing {len(missing)} of the rendered "
-                                  f"rows ({sorted(missing)[:3]}...); keeping both")
-                            payload_rows.extend(
-                                r for r in normalized_rows if r["name"] in missing
-                            )
+                                  f"rows ({[r['name'] for r in missing[:3]]}...); keeping both")
+                            payload_rows.extend(missing)
                         print(f"[arwu] payload rows: {len(payload_rows)} "
                               f"(rendered table had {len(normalized_rows)})")
                         normalized_rows = payload_rows

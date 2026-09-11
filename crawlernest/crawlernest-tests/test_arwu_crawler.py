@@ -28,6 +28,7 @@ from arwu_crawler import (  # noqa: E402
     _to_float,
     _to_int,
     _year_of_page,
+    arwu_source_id,
 )
 
 
@@ -100,17 +101,39 @@ class TestArwuHtmlExtraction(unittest.TestCase):
         self.assertEqual(rows, [])
 
 
-def _payload(*, rank: str, name: str, region: str, score: str) -> str:
+def _payload(*, rank: str, name: str, region: str, score: str, up: str | None = None) -> str:
     """A minimal Nuxt JSONP payload in the shape the live page serves.
 
     The last argument is left unquoted on purpose: the crawler strips trailing
     `);"` characters off the argument list, which would eat a closing quote.
+    ``univCode`` is an empty string, as it is on every live entry.
     """
+    up_arg = "void 0" if up is None else f'"{up}"'
     return (
         '__NUXT_JSONP__("/rankings/arwu/2026", (function(a,b,c,d,e,f,g,h,i){'
         "return {data:[{ranking:a,univNameEn:b,univUp:c,univLogo:d,region:e,"
         "regionLogo:f,regionRanking:g,univCode:h,score:i}]}"
-        f'}}("{rank}","{name}",void 0,"logo.png","{region}","flag.png","1","CODE",{score})));'
+        f'}}("{rank}","{name}",{up_arg},"logo.png","{region}","flag.png","1","",{score})));'
+    )
+
+
+def _payload_of(entries: list[tuple[str, str, str]]) -> str:
+    """Several ``(rank, name, univUp)`` entries, each in its own parameters."""
+    letters = [f"p{i}" for i in range(len(entries) * 3)]
+    objects, args = [], []
+    for i, (rank, name, up) in enumerate(entries):
+        r, n, u = letters[3 * i: 3 * i + 3]
+        objects.append(
+            f"{{ranking:{r},univNameEn:{n},univUp:{u},univLogo:lg,region:rg,"
+            f"regionLogo:lg,regionRanking:rr,univCode:cd,score:sc}}"
+        )
+        args += [f'"{rank}"', f'"{name}"', f'"{up}"']
+    params = ",".join(letters + ["lg", "rg", "rr", "cd", "sc"])
+    values = ",".join(args + ['"logo.png"', '"Japan"', '"1"', '""', "50.0"])
+    return (
+        f'__NUXT_JSONP__("/rankings/arwu/2026", (function({params}){{'
+        f"return {{data:[{','.join(objects)}]}}"
+        f"}}({values})));"
     )
 
 
@@ -225,6 +248,98 @@ class TestRawRowShape(unittest.TestCase):
             html, 2026, "https://www.shanghairanking.com/rankings/arwu/2026"
         )[0]
         self.assertIn("100.0", row["metadata"]["raw_cells"])
+
+
+class TestEntityIdIsTheSourceSlug(unittest.TestCase):
+    """warehouse.mapping_review keys human decisions on this id.
+
+    It used to embed the edition year on the payload path and be a profile URL
+    on the HTML path, so a new edition -- or a payload parse falling back --
+    silently orphaned every decision. It is now ShanghaiRanking's own slug on
+    both paths, with no year in it.
+    """
+
+    PAGE = "https://www.shanghairanking.com/rankings/arwu/2026"
+
+    def test_payload_id_is_the_univ_up_slug(self):
+        row = _rows_from_payload(
+            _payload(rank="1", name="Harvard University", region="US", score="100.0",
+                     up="harvard-university"),
+            2026,
+            self.PAGE,
+        )[0]
+        self.assertEqual("arwu:harvard-university", row["id"])
+        self.assertEqual("univ_up", row["metadata"]["id_basis"])
+
+    def test_id_carries_no_year(self):
+        ids = {
+            _rows_from_payload(
+                _payload(rank="1", name="Harvard University", region="US", score="1",
+                         up="harvard-university"),
+                year,
+                f"https://www.shanghairanking.com/rankings/arwu/{year}",
+            )[0]["id"]
+            for year in (2025, 2026)
+        }
+        self.assertEqual({"arwu:harvard-university"}, ids,
+                         "the same institution must keep one id across editions")
+
+    def test_a_renamed_institution_keeps_its_slug(self):
+        # Observed live: ARWU prints the new name over the old slug.
+        row = _rows_from_payload(
+            _payload(rank="151-200", name="Institute of Science Tokyo", region="Japan", score="1",
+                     up="tokyo-institute-of-technology"),
+            2026,
+            self.PAGE,
+        )[0]
+        self.assertEqual("arwu:tokyo-institute-of-technology", row["id"])
+
+    def test_missing_slug_falls_back_to_a_marked_name_derived_id(self):
+        row = _rows_from_payload(
+            _payload(rank="1", name="Harvard University", region="US", score="1"),
+            2026,
+            self.PAGE,
+        )[0]
+        self.assertEqual("arwu:name:harvard-university", row["id"])
+        self.assertEqual("name", row["metadata"]["id_basis"])
+
+    def test_html_and_payload_paths_emit_the_same_id(self):
+        # The fallback firing used to change every id at once.
+        for link in ("/institution/harvard-university", "/institutions/harvard-university"):
+            html = f"""
+            <table>
+              <tr><th>World Rank</th><th>Institution</th><th>Total Score</th></tr>
+              <tr><td>1</td><td><a href="{link}">Harvard University</a><span>United States</span></td>
+                  <td>100.0</td></tr>
+            </table>
+            """
+            html_row = _extract_rows_from_html_tables(html, 2026, self.PAGE)[0]
+            self.assertEqual("arwu:harvard-university", html_row["id"], link)
+            self.assertEqual(
+                "https://www.shanghairanking.com" + link, html_row["url"],
+                "the profile link is still kept as the url",
+            )
+
+    def test_shared_names_are_two_institutions_and_repeats_are_one(self):
+        rows = _rows_from_payload(
+            _payload_of(
+                [
+                    ("51", "Northeastern University", "northeastern-university"),
+                    ("401-500", "Northeastern University", "northeastern-university-china"),
+                    ("51", "Northeastern University", "northeastern-university"),
+                ]
+            ),
+            2026,
+            self.PAGE,
+        )
+        self.assertEqual(
+            ["arwu:northeastern-university", "arwu:northeastern-university-china"],
+            [r["id"] for r in rows],
+        )
+
+    def test_id_builder_forms(self):
+        self.assertEqual("arwu:x-y", arwu_source_id("x-y", "ignored"))
+        self.assertEqual("arwu:name:x-y", arwu_source_id(None, "X  Y"))
 
 
 class TestPageYearIsRecorded(unittest.TestCase):

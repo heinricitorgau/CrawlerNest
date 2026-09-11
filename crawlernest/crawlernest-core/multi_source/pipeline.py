@@ -11,7 +11,7 @@ from ranking_aggregation.repository import RankingAggregationRepository
 
 from .integrator import IntegrationDiagnostics, integrate_sources
 from .repository import MultiSourceRepository
-from .reviews import MappingReviewApplication, apply_mapping_reviews
+from .reviews import MappingReviewApplication, apply_mapping_reviews, refuse_reappeared_reviews
 from .types import StandardizedRankingRecord, UnifiedRankingRecord
 
 logger = logging.getLogger("MultiSourceRankingPipeline")
@@ -88,10 +88,27 @@ class MultiSourceRankingPipeline:
         # before the ranking_record upsert, which is what actually credits a
         # source to a university. Applied any later and a decision is both
         # transient and ineffective.
-        unified_rows, review_application = apply_mapping_reviews(
-            unified_rows,
-            self.multi_source_repo.load_mapping_reviews(sorted(source_id_map)),
+        reviews = self.multi_source_repo.load_mapping_reviews(sorted(source_id_map))
+        unified_rows, review_application = apply_mapping_reviews(unified_rows, reviews)
+
+        # A decision that did not apply because its entity came back under a new
+        # source_entity_id stops the run here, before the first warehouse write.
+        # Ingesting past it would re-credit rejected false matches with no error.
+        refuse_reappeared_reviews(
+            reviews,
+            review_application,
+            ((row.source, row.source_entity_id, row.university_name) for row in raw_rows),
         )
+        if review_application.unapplied_reviews:
+            # Not refused: the entity is simply absent from this batch (a partial
+            # run, a universe that does not contain it, a source that dropped it),
+            # so nothing is misattributed. Logged so it is never quiet either.
+            logger.warning(
+                "%s standing mapping review(s) had no row in this batch and were not applied: %s%s",
+                len(review_application.unapplied_reviews),
+                ", ".join(f"{code}:{eid}" for code, eid in review_application.unapplied_reviews[:5]),
+                " ..." if len(review_application.unapplied_reviews) > 5 else "",
+            )
         if review_application.applied:
             logger.info(
                 "applied %s human mapping reviews (confirmed=%s remapped=%s rejected=%s)",

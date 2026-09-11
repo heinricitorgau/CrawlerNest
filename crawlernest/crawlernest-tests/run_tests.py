@@ -58,6 +58,9 @@ def run_all_tests():
         # the resolver's blocking/threshold logic were unguarded in CI.
         "test_entity_resolution",
         "test_mapping_reviews",
+        # Plans the rewrite of human decisions onto ARWU's year-free ids. A bad
+        # plan orphans decisions nobody can regenerate, so it runs in CI.
+        "test_rekey_arwu_source_ids",
         # Mirrors a backfill in crawlernest-schema/admission_postgresql.sql;
         # unregistered, a drift between the two would go unnoticed.
         "test_admission_source_identity",
