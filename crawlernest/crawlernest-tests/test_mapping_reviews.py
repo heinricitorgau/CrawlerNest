@@ -15,7 +15,10 @@ sys.path.insert(0, str(PACKAGE_ROOT / "crawlernest-core"))
 
 from multi_source.reviews import (  # noqa: E402
     MappingReview,
+    UnappliedReviewError,
     apply_mapping_reviews,
+    find_reappeared_reviews,
+    refuse_reappeared_reviews,
 )
 from multi_source.types import UnifiedRankingRecord  # noqa: E402
 
@@ -233,6 +236,100 @@ class TestScoping(unittest.TestCase):
         self.assertEqual(1, payload["rejected"])
         self.assertEqual(1, payload["applied"])
         self.assertEqual(0, payload["unapplied_review_count"])
+
+
+class TestReappearedReviews(unittest.TestCase):
+    """A decision that stops matching because its entity's id changed.
+
+    The live case: 61 ARWU decisions keyed ``arwu:2026:<name slug>``, and a
+    crawler that now emits ``arwu:<univUp>``. For 42 of them the slug is the
+    same; for 19 it is not, and only the printed name ties them together.
+    """
+
+    NOVA = MappingReview(
+        "ARWU",
+        "arwu:2026:nova-university-lisbon",
+        "rejected",
+        reviewed_source_name="NOVA University of Lisbon",
+    )
+
+    def _check(self, review, batch):
+        reviews = {review.key: review}
+        rows = [_row(source=s, source_entity_id=e) for s, e, _ in batch]
+        _, stats = apply_mapping_reviews(rows, reviews)
+        return find_reappeared_reviews(reviews, stats.unapplied_reviews, batch)
+
+    def test_entity_absent_from_the_batch_is_not_a_reappearance(self):
+        # A --limit run, a QS universe without that university, a source that
+        # dropped it: nothing is written for it, so nothing is misattributed.
+        self.assertEqual(
+            (), self._check(self.NOVA, [("ARWU", "arwu:university-of-lisbon", "University of Lisbon")])
+        )
+
+    def test_year_dropped_from_the_id_is_caught_on_the_id(self):
+        found = self._check(
+            self.NOVA, [("ARWU", "arwu:nova-university-lisbon", "NOVA University Lisbon")]
+        )
+        self.assertEqual(1, len(found))
+        self.assertEqual("arwu:nova-university-lisbon", found[0].batch_source_entity_id)
+
+    def test_new_edition_year_is_caught(self):
+        found = self._check(
+            self.NOVA, [("ARWU", "arwu:2027:nova-university-lisbon", "NOVA University Lisbon")]
+        )
+        self.assertEqual(1, len(found))
+
+    def test_different_source_slug_is_caught_on_the_printed_name(self):
+        review = MappingReview(
+            "ARWU",
+            "arwu:2026:university-of-texas-southwestern-medical-center",
+            "confirmed",
+            42,
+            reviewed_source_name="University of Texas Southwestern Medical Center",
+        )
+        found = self._check(
+            review,
+            [(
+                "ARWU",
+                "arwu:the-university-of-texas-southwestern-medical-center-at-dallas",
+                "University of Texas Southwestern Medical Center",
+            )],
+        )
+        self.assertEqual(1, len(found))
+        self.assertEqual("name", found[0].matched_on)
+
+    def test_html_fallback_profile_url_is_caught(self):
+        found = self._check(
+            self.NOVA,
+            [("ARWU", "https://www.shanghairanking.com/institution/nova-university-lisbon", "NOVA")],
+        )
+        self.assertEqual(1, len(found))
+
+    def test_another_source_never_revives_a_decision(self):
+        self.assertEqual(
+            (), self._check(self.NOVA, [("THE", "arwu:nova-university-lisbon", "NOVA University of Lisbon")])
+        )
+
+    def test_an_applied_decision_is_not_reported(self):
+        self.assertEqual(
+            (), self._check(self.NOVA, [("ARWU", "arwu:2026:nova-university-lisbon", "NOVA University Lisbon")])
+        )
+
+    def test_refusal_names_the_pair_and_counts_rejections(self):
+        reviews = {self.NOVA.key: self.NOVA}
+        batch = [("ARWU", "arwu:nova-university-lisbon", "NOVA University Lisbon")]
+        _, stats = apply_mapping_reviews([_row(source="ARWU", source_entity_id=batch[0][1])], reviews)
+        with self.assertRaises(UnappliedReviewError) as caught:
+            refuse_reappeared_reviews(reviews, stats, batch)
+        message = str(caught.exception)
+        self.assertIn("arwu:2026:nova-university-lisbon", message)
+        self.assertIn("arwu:nova-university-lisbon", message)
+        self.assertIn("re-crediting 1 match(es) a reviewer rejected", message)
+
+    def test_no_reappearance_means_no_refusal(self):
+        reviews = {self.NOVA.key: self.NOVA}
+        _, stats = apply_mapping_reviews([], reviews)
+        refuse_reappeared_reviews(reviews, stats, [])  # does not raise
 
 
 if __name__ == "__main__":

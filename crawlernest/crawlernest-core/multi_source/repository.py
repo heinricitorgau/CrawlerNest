@@ -125,7 +125,8 @@ class MultiSourceRepository:
                     decision,
                     decided_canonical_university_id,
                     decided_by,
-                    note
+                    note,
+                    reviewed_source_name
                 FROM warehouse.mapping_review
                 WHERE source_code = ANY(%s)
                 """,
@@ -134,7 +135,7 @@ class MultiSourceRepository:
             rows = cur.fetchall()
 
         reviews: dict[tuple[str, str], MappingReview] = {}
-        for source_code, entity_id, decision, decided_id, decided_by, note in rows:
+        for source_code, entity_id, decision, decided_id, decided_by, note, reviewed_name in rows:
             review = MappingReview(
                 source_code=str(source_code),
                 source_entity_id=str(entity_id),
@@ -142,6 +143,7 @@ class MultiSourceRepository:
                 decided_canonical_university_id=None if decided_id is None else int(decided_id),
                 decided_by=str(decided_by or "unknown"),
                 note=None if note is None else str(note),
+                reviewed_source_name=None if reviewed_name is None else str(reviewed_name),
             )
             reviews[review.key] = review
         return reviews

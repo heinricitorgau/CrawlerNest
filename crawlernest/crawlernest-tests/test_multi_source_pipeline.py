@@ -507,5 +507,66 @@ class TestMappingReviewsReachAggregation(unittest.TestCase):
         self.assertEqual(0, summary.mapping_reviews["applied"])
 
 
+class TestReappearedReviewsStopTheRun(unittest.TestCase):
+    """A decision keyed by an id the source no longer uses must stop the ingest.
+
+    Rejected ARWU matches were keyed ``arwu:2026:<slug>``. A batch carrying the
+    same institution as ``arwu:<univUp>`` skips the decision, and the resolver
+    re-credits the match a person threw out. Refused before the first write,
+    not after, because a partial write is its own mess to clean up.
+    """
+
+    # Borrowed rather than inherited, so the parent's tests do not run twice.
+    _pipeline = TestMappingReviewsReachAggregation._pipeline
+    _records = TestMappingReviewsReachAggregation._records
+
+    def _rejected_under_old_id(self):
+        return {
+            ("ARWU", "arwu:2026:oxford"): MappingReview(
+                source_code="ARWU",
+                source_entity_id="arwu:2026:oxford",
+                decision="rejected",
+                decided_by="reviewer",
+                reviewed_source_name="University of Oxford",
+            )
+        }
+
+    def test_refused_before_any_mapping_or_ranking_write(self):
+        from multi_source.reviews import UnappliedReviewError
+
+        pipeline, repo, agg_repo = self._pipeline()
+        repo.mapping_reviews = self._rejected_under_old_id()
+
+        with self.assertRaises(UnappliedReviewError):
+            pipeline.ingest_records(
+                self._records(), batch_id="review-test", run_label_prefix="review-test"
+            )
+
+        self.assertEqual([], repo.unified_rows, "no mapping or ranking row may be written")
+        self.assertEqual([], repo.prune_calls)
+        self.assertEqual({}, agg_repo.outputs_by_scope)
+
+    def test_entity_absent_from_the_batch_does_not_stop_the_run(self):
+        pipeline, repo, _agg = self._pipeline()
+        repo.mapping_reviews = {
+            ("ARWU", "arwu:2026:cambridge"): MappingReview(
+                source_code="ARWU",
+                source_entity_id="arwu:2026:cambridge",
+                decision="rejected",
+                reviewed_source_name="University of Cambridge",
+            )
+        }
+
+        with self.assertLogs("MultiSourceRankingPipeline", level="WARNING") as logs:
+            summary = pipeline.ingest_records(
+                self._records(), batch_id="review-test", run_label_prefix="review-test"
+            )
+
+        self.assertEqual(3, summary.matched_count)
+        self.assertEqual(1, summary.mapping_reviews["unapplied_review_count"])
+        self.assertIn("ARWU:arwu:2026:cambridge", "\n".join(logs.output),
+                      "an unapplied decision is allowed through, but never quietly")
+
+
 if __name__ == "__main__":
     unittest.main()
