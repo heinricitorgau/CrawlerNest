@@ -1,6 +1,6 @@
 """How far a university moved between two ranking editions, when that is knowable.
 
-The warehouse holds one year today (:data:`crawlernest.core.dataset.DATASET_YEAR`),
+The warehouse holds one year today (:data:`crawlernest.core.dataset.DATASET_YEARS`),
 so every delta this module computes right now is withheld with reason
 ``single_year_dataset``. It exists so that the arithmetic, and the rules for when
 the arithmetic may not be done, are settled and tested before a second year is
@@ -60,7 +60,7 @@ import re
 from collections.abc import Collection
 from dataclasses import dataclass, replace
 
-from crawlernest.core.dataset import DATASET_YEAR
+from crawlernest.core.dataset import DATASET_YEARS
 
 __all__ = [
     "DIRECTION_DOWN",
@@ -216,7 +216,7 @@ def compute_rank_delta(
     prior: RankObservation | None,
     *,
     prior_year: int,
-    ingested_years: Collection[int] = (DATASET_YEAR,),
+    ingested_years: Collection[int] = DATASET_YEARS,
 ) -> RankDelta:
     """Movement from ``prior_year`` to ``current.year`` for one source.
 

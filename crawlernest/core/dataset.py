@@ -25,16 +25,36 @@ are described *to a model* is a generation concern and lives in
 ``agent/web_agent/generation/dataset_context.py``, which re-exports both names
 alongside the prose it builds from them.
 
-Changing :data:`DATASET_YEAR` is therefore a data-migration step, not an edit: it
+Changing :data:`DATASET_YEARS` is therefore a data-migration step, not an edit: it
 re-points every query default and rewrites what the model is told the corpus
 contains.
+
+Two questions used to share one constant, and they stop agreeing the moment a
+second edition is loaded, so they are separate names now:
+
+- *Which year does a query use when the caller names none?* That is
+  :data:`DEFAULT_RANKING_YEAR`, one year.
+- *Does the warehouse hold this year?* That is membership in
+  :data:`DATASET_YEARS`. Writing it as ``year != DEFAULT_RANKING_YEAR`` would,
+  after a 2025 ingest, warn a user that the 2025 data they are looking at does
+  not exist.
+
+With one edition loaded both give the answers the single constant gave.
 """
 
 from __future__ import annotations
 
-#: The single ranking year present in the warehouse. Every query default and
-#: every generated explanation is pinned to it.
-DATASET_YEAR = 2026
+#: Every ranking edition the warehouse holds, newest first. Membership here is
+#: what "we have that year" means; nothing else should decide it.
+DATASET_YEARS: tuple[int, ...] = (2026,)
+
+#: The year a query uses when the caller names none: the newest edition held.
+DEFAULT_RANKING_YEAR: int = max(DATASET_YEARS)
+
+#: Alias of :data:`DEFAULT_RANKING_YEAR`, from when there was only one year to
+#: name. Kept so existing imports keep working; new code should say which of the
+#: two questions above it is asking.
+DATASET_YEAR = DEFAULT_RANKING_YEAR
 
 #: Ranking sources actually ingested, largest coverage first. This tuple is what
 #: is loaded, not what is anticipated: a source belongs here once the warehouse

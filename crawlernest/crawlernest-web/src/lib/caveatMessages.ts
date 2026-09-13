@@ -20,10 +20,45 @@
  *   and 838 ARWU ranks for 2026, so that told users a source was missing while
  *   the API served its figures. They now describe partial coverage, matching
  *   what AnalyticsService.appendSourceCoverageCaveats generates per source.
+ *
+ * The snapshot caveat names the editions held, so it is rendered from a
+ * template rather than written out: a year in a constant expires the same way
+ * the old "RC-1 packaging" age did.
  */
 
-export const CAVEAT_QS_STALE =
-  "QS ranking data is a point-in-time snapshot of the 2026 published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
+import { DATASET_YEARS } from "@/lib/datasetScope";
+
+/**
+ * Byte-identical to `SNAPSHOT_CAVEAT_TEMPLATE` in `crawlernest/core/caveats.py`,
+ * `AnalyticsService.SNAPSHOT_CAVEAT_TEMPLATE`, and the copy in
+ * `ANALYTICS_EXPLAINABILITY.md`. `{years}` is replaced literally.
+ */
+export const SNAPSHOT_CAVEAT_TEMPLATE =
+  "QS ranking data is a point-in-time snapshot of the {years} published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
+
+/**
+ * Held editions as prose: `2026`, `2025 and 2026`, `2024, 2025 and 2026`.
+ * Ascending and de-duplicated whatever order they arrive in. The rows in
+ * ANALYTICS_EXPLAINABILITY.md are the specification; Python and Java test their
+ * renderers against the same rows.
+ */
+export function formatEditionYears(years: readonly number[]): string {
+  const ordered = [...new Set(years)].sort((a, b) => a - b).map(String);
+  if (ordered.length === 0) {
+    throw new Error("a snapshot caveat has to name at least one edition");
+  }
+  if (ordered.length === 1) {
+    return ordered[0];
+  }
+  return `${ordered.slice(0, -1).join(", ")} and ${ordered[ordered.length - 1]}`;
+}
+
+/** The snapshot disclosure for the editions held. */
+export function snapshotCaveat(years: readonly number[] = DATASET_YEARS): string {
+  return SNAPSHOT_CAVEAT_TEMPLATE.replace("{years}", formatEditionYears(years));
+}
+
+export const CAVEAT_QS_STALE = snapshotCaveat();
 
 export const CAVEAT_THE_PARTIAL =
   "THE (Times Higher Education) covers part of this dataset. A missing THE rank means either that the THE data ingested here does not include the university or that this platform could not match it. It does not mean THE declines to rank it.";

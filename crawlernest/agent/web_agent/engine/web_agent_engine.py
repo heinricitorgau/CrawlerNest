@@ -4,11 +4,6 @@ import dataclasses
 
 from crawlernest.agent.memory_long_term.memory_retriever import LongTermMemoryRetriever
 from crawlernest.agent.memory_long_term.memory_writer import LongTermMemoryWriter
-from crawlernest.agent.meta.meta_controller import MetaController
-from crawlernest.agent.self_improvement.experience_store import ExperienceStore
-from crawlernest.agent.self_improvement.improvement_engine import ImprovementEngine
-from crawlernest.agent.self_improvement.performance_tracker import PerformanceTracker
-from crawlernest.agent.self_improvement.strategy_store import StrategyStore
 from crawlernest.agent.shared.models.task_request import TaskRequest
 from crawlernest.agent.shared.models.task_response import TaskResponse
 from crawlernest.agent.shared.planner.shared_planner import SharedPlanner
@@ -43,16 +38,14 @@ _GROUNDING_DEBUG_KEY = "__grounding_debug__"
 _POLICY_DEBUG_KEY = "__policy_debug__"
 _ORCHESTRATION_DEBUG_KEY = "__orchestration_debug__"
 _LONG_TERM_MEMORY_DEBUG_KEY = "__long_term_memory_debug__"
-_SELF_IMPROVEMENT_DEBUG_KEY = "__self_improvement_debug__"
-_META_DEBUG_KEY = "__meta_debug__"
 
-
-def _signal_get(signals: object, key: str, default: object = None) -> object:
-    if signals is None:
-        return default
-    if isinstance(signals, dict):
-        return signals.get(key, default)
-    return getattr(signals, key, default)
+# The web engine has no self-improvement or meta-strategy loop. It used to
+# score every reply, generate "prompt patches" and "behavior hints" from recent
+# scores, persist them to unversioned JSON under /tmp, and append the active
+# ones to the next prompt on the generic generation path. A prompt that
+# rewrites itself between requests cannot be reviewed or reproduced, and every
+# honesty rule in the prompt could be diluted by an instruction nobody wrote.
+# The dev agent keeps its own loop; it never feeds a web prompt.
 
 
 class WebAgentEngine:
@@ -73,11 +66,6 @@ class WebAgentEngine:
         generation_policy: GenerationPolicy | None = None,
         long_term_memory_retriever: LongTermMemoryRetriever | None = None,
         long_term_memory_writer: LongTermMemoryWriter | None = None,
-        experience_store: ExperienceStore | None = None,
-        strategy_store: StrategyStore | None = None,
-        performance_tracker: PerformanceTracker | None = None,
-        improvement_engine: ImprovementEngine | None = None,
-        meta_controller: MetaController | None = None,
     ) -> None:
         self._planner = planner or SharedPlanner()
         self._tools = tool_router or WebToolRouter()
@@ -101,11 +89,6 @@ class WebAgentEngine:
         self._generation_policy = generation_policy or GenerationPolicy()
         self._long_term_retriever = long_term_memory_retriever or LongTermMemoryRetriever()
         self._long_term_writer = long_term_memory_writer or LongTermMemoryWriter()
-        self._experience_store = experience_store or ExperienceStore()
-        self._strategy_store = strategy_store or StrategyStore()
-        self._performance_tracker = performance_tracker or PerformanceTracker()
-        self._improvement_engine = improvement_engine or ImprovementEngine()
-        self._meta_controller = meta_controller or MetaController(strategy_store=self._strategy_store)
 
     def execute(self, request: TaskRequest) -> TaskResponse:
         plan = self._planner.build_plan(request)
@@ -254,8 +237,6 @@ class WebAgentEngine:
         policy_debug_payload: dict | None = None
         orchestration_debug_payload: dict | None = None
         long_term_memory_debug_payload: dict | None = None
-        self_improvement_debug_payload: dict | None = None
-        meta_debug_payload: dict | None = None
         if isinstance(response.data, dict) and _MEMORY_DEBUG_KEY in response.data:
             # Pop from a copy so we don't mutate the dataclass field in place.
             clean_data = {k: v for k, v in response.data.items() if k != _MEMORY_DEBUG_KEY}
@@ -323,28 +304,6 @@ class WebAgentEngine:
                 traces=response.traces,
                 warnings=response.warnings,
             )
-        if isinstance(response.data, dict) and _SELF_IMPROVEMENT_DEBUG_KEY in response.data:
-            clean_data = {k: v for k, v in response.data.items() if k != _SELF_IMPROVEMENT_DEBUG_KEY}
-            self_improvement_debug_payload = response.data[_SELF_IMPROVEMENT_DEBUG_KEY]
-            response = TaskResponse(
-                task_id=response.task_id,
-                status=response.status,
-                message=response.message,
-                data=clean_data,
-                traces=response.traces,
-                warnings=response.warnings,
-            )
-        if isinstance(response.data, dict) and _META_DEBUG_KEY in response.data:
-            clean_data = {k: v for k, v in response.data.items() if k != _META_DEBUG_KEY}
-            meta_debug_payload = response.data[_META_DEBUG_KEY]
-            response = TaskResponse(
-                task_id=response.task_id,
-                status=response.status,
-                message=response.message,
-                data=clean_data,
-                traces=response.traces,
-                warnings=response.warnings,
-            )
 
         expose_traces = bool(request.constraints.get("debug")) or self._policy.expose_traces
         if response.status in {"error", "rejected"}:
@@ -376,10 +335,6 @@ class WebAgentEngine:
             formatted["orchestrationDebug"] = orchestration_debug_payload
         if long_term_memory_debug_payload is not None and isinstance(formatted, dict):
             formatted["longTermMemoryDebug"] = long_term_memory_debug_payload
-        if self_improvement_debug_payload is not None and isinstance(formatted, dict):
-            formatted["selfImprovementDebug"] = self_improvement_debug_payload
-        if meta_debug_payload is not None and isinstance(formatted, dict):
-            formatted["metaDebug"] = meta_debug_payload
 
         return TaskResponse(
             task_id=response.task_id,
@@ -438,17 +393,6 @@ class WebAgentEngine:
             else None
         )
         memory_identity = self._resolve_memory_identity(request)
-        meta_target = None
-        if isinstance(resolved_reference_dict, dict):
-            resolved_entities = resolved_reference_dict.get("resolved_entities")
-            if isinstance(resolved_entities, list) and resolved_entities:
-                meta_target = str(resolved_entities[0])
-        meta_resolution = self._meta_controller.resolve_for_request(
-            engine="web",
-            task_kind=request.kind,
-            request_signature=f"{request.session_id or 'no-session'}::{request.user_input}",
-            target=meta_target,
-        )
         retrieved_long_term_memory = self._long_term_retriever.retrieve(
             user_id=memory_identity,
             session_id=session_id,
@@ -456,19 +400,6 @@ class WebAgentEngine:
             task_kind=request.kind,
             resolved_reference=resolved_reference_dict,
         )
-        applied_strategies = self._strategy_store.query(
-            engine="web",
-            task_kind=request.kind,
-            strategy_type="behavior",
-            min_confidence=0.6,
-            limit=2,
-        )
-        strategy_hints = [
-            hint
-            for entry in applied_strategies
-            for hint in entry.get("strategy", [])
-            if isinstance(hint, str) and hint.strip()
-        ]
 
         # --- Store the user's current input BEFORE generation ---
         if session_id:
@@ -508,7 +439,6 @@ class WebAgentEngine:
                 }
                 for entry in retrieved_long_term_memory.entries
             ],
-            strategy_hints=strategy_hints,
         )
         memory_ambiguity_level = (
             str(memory_debug_report.memory_summary.get("ambiguity_level"))
@@ -643,7 +573,6 @@ class WebAgentEngine:
                 policy=self._policy,
                 generation_mode=policy_decision.mode,
                 conversation_history=selected_turns if selected_turns else None,
-                prompt_patches=list(meta_resolution.get("prompt_patches", [])),
             )
             generation = self._generator.generate_response(
                 prompt=prompt,
@@ -683,73 +612,6 @@ class WebAgentEngine:
             response_data=response.data,
             resolved_reference=resolved_reference_dict,
         )
-        experience = self._experience_store.append(
-            engine="web",
-            task_kind=request.kind,
-            task=request.user_input,
-            status=response.status,
-            final_score=float(grounding_report.grounding_score.overall),
-            tools_used=[request.kind, "generation" if policy_decision.mode != "deterministic" else "deterministic"],
-            steps=[
-                {
-                    "step": "retrieval",
-                    "score": float(_signal_get(policy_decision.signals, "retrieval_confidence", 0.0)),
-                },
-                {
-                    "step": "grounding",
-                    "score": float(grounding_report.grounding_score.overall),
-                },
-            ],
-            metadata={
-                "target": retrieved.focus_entity,
-                "generation_mode": policy_decision.mode,
-                "hallucination_risk": grounding_report.hallucination_risk.level,
-            },
-        )
-        performance = self._performance_tracker.analyze(
-            experiences=self._experience_store.recent(
-                engine="web",
-                task_kind=request.kind,
-                limit=12,
-            ),
-            task_kind=request.kind,
-        )
-        new_strategy = self._improvement_engine.generate(
-            engine="web",
-            task_kind=request.kind,
-            performance=performance,
-            experiences=self._experience_store.recent(
-                engine="web",
-                task_kind=request.kind,
-                limit=8,
-            ),
-            target=retrieved.focus_entity,
-        )
-        if new_strategy is not None:
-            self._strategy_store.upsert(
-                engine="web",
-                task_kind=request.kind,
-                strategy=list(new_strategy.get("strategy", [])),
-                confidence=float(new_strategy.get("confidence", 0.6)),
-                reason=str(new_strategy.get("reason", "generated from recent web performance")),
-                target=retrieved.focus_entity,
-                strategy_type="behavior",
-            )
-        meta_update = self._meta_controller.update_from_performance(
-            engine="web",
-            task_kind=request.kind,
-            performance=performance,
-            experiences=self._experience_store.recent(
-                engine="web",
-                task_kind=request.kind,
-                limit=8,
-            ),
-            target=retrieved.focus_entity,
-        )
-        meta_outcome = self._meta_controller.record_outcome(
-            applied_entries=list(meta_resolution.get("applied_entries", [])),
-            final_score=float(grounding_report.grounding_score.overall),
-        )
 
         next_data = dict(response.data)
         next_data["assistantReply"] = answer_text
@@ -781,40 +643,6 @@ class WebAgentEngine:
                     }
                     for entry in retrieved_long_term_memory.entries
                 ]
-            }
-            next_data[_SELF_IMPROVEMENT_DEBUG_KEY] = {
-                "performance": performance,
-                "new_strategy_generated": new_strategy is not None,
-                "strategy_applied": bool(strategy_hints),
-                "strategy_source": (
-                    "stored"
-                    if strategy_hints
-                    else ("newly_generated" if new_strategy is not None else "none")
-                ),
-                "reason": (
-                    str(new_strategy.get("reason"))
-                    if isinstance(new_strategy, dict)
-                    else ("applied stored strategy hints" if strategy_hints else "recent performance stayed within threshold")
-                ),
-                "applied_strategies": strategy_hints[:4],
-                "last_experience": {
-                    "status": experience.get("status"),
-                    "final_score": experience.get("final_score"),
-                },
-            }
-            next_data[_META_DEBUG_KEY] = {
-                **meta_resolution.get("debug", {}),
-                "generated": [
-                    {
-                        "id": entry.get("id"),
-                        "strategy_type": entry.get("strategy_type"),
-                        "confidence": entry.get("confidence"),
-                        "source": entry.get("source"),
-                        "version": entry.get("version"),
-                    }
-                    for entry in meta_update.get("generated_entries", [])
-                ],
-                "rolled_back": meta_outcome.get("rolled_back", []),
             }
 
         return TaskResponse(

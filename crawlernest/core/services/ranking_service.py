@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from crawlernest.core.database.settings import DatabaseSettings
-from crawlernest.core.dataset import DATASET_YEAR
+from crawlernest.core.dataset import DEFAULT_RANKING_YEAR
 
 try:
     import psycopg2
@@ -14,9 +14,9 @@ except ImportError:  # pragma: no cover
 
 @dataclass(slots=True)
 class RankingQuery:
-    # The warehouse holds one year. Defaulting to a literal here is how a
-    # query silently outlives the snapshot it was written against.
-    year: int = DATASET_YEAR
+    # The newest edition the warehouse holds. Defaulting to a literal here is how
+    # a query silently outlives the snapshot it was written against.
+    year: int = DEFAULT_RANKING_YEAR
     scope: str = "global"
     page: int = 1
     page_size: int = 20

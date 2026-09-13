@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from crawlernest.core.database.settings import DatabaseSettings
-from crawlernest.core.dataset import DATASET_YEAR
+from crawlernest.core.dataset import DEFAULT_RANKING_YEAR
 
 try:
     import psycopg2
@@ -58,7 +58,7 @@ _VALUE_KEY = {
 @dataclass(slots=True)
 class MlPredictionQuery:
     target: str
-    year: int = DATASET_YEAR
+    year: int = DEFAULT_RANKING_YEAR
     canonical_university_ids: tuple[int, ...] = ()
     limit: int = 200
 

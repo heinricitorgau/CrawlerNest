@@ -12,11 +12,11 @@ explanation only. Ranks, scores, confidence, and counts stay exactly as the
 deterministic layer produced them, and caveats are preserved verbatim.
 
 That contract has a temporal half, added here because it cannot be enforced
-downstream: the warehouse is a single-year snapshot, and a trend claim invents
-no figure, no caveat and no institution, so nothing in ``faithfulness.py``
-reaches it. :meth:`GroundedExplainer._explain` therefore states the shape of
-the corpus at the top of every evidence block and appends the no-trend rule to
-every explainer's constraints -- see ``dataset_context.py``. Subclasses get
+downstream: a trend claim invents no figure, no caveat and no institution, so
+nothing in ``faithfulness.py`` reaches it. :meth:`GroundedExplainer._explain`
+therefore states the shape of the corpus at the top of every evidence block and
+appends the year and movement rules to every explainer's constraints, both
+derived from the rows it was given -- see ``dataset_context.py``. Subclasses get
 both for free and must not restate either.
 """
 
@@ -27,8 +27,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from crawlernest.agent.web_agent.generation.dataset_context import (
-    DATASET_CONSTRAINTS,
     build_dataset_header,
+    dataset_constraints,
 )
 from crawlernest.agent.web_agent.generation.judge import LlmJudge
 from crawlernest.agent.web_agent.generation.models import GenerationResult, PromptPayload
@@ -108,7 +108,12 @@ class GroundedExplainer:
         # is what verification checks the answer against: the dataset year is a
         # fact of the evidence, so an explanation naming it must not read as an
         # invented figure.
-        dataset_header = build_dataset_header()
+        #
+        # Both are computed from the rows: which years they carry, and whether
+        # any carries a rank-change field. What the warehouse holds does not
+        # decide what these rows can show.
+        dataset_header = build_dataset_header(items)
+        rules = dataset_constraints(items)
         grounded_block = f"{dataset_header}\n\n{evidence_block}"
 
         # The header and the dataset rules go in twice, on purpose: once here in
@@ -120,9 +125,9 @@ class GroundedExplainer:
             system_instruction=self.system_instruction,
             user_message=query.strip() or default_query,
             context_block=grounded_block,
-            response_constraints=[*self.constraints, *DATASET_CONSTRAINTS],
+            response_constraints=[*self.constraints, *rules],
             system_context=dataset_header,
-            system_constraints=[*DATASET_CONSTRAINTS],
+            system_constraints=[*rules],
         )
         result: GenerationResult = self._generator.generate_response(
             prompt=prompt,

@@ -3,23 +3,28 @@ from __future__ import annotations
 from typing import Any
 
 from crawlernest.agent.meta.policy_manager import PolicyManager
-from crawlernest.agent.meta.prompt_optimizer import PromptOptimizer
 from crawlernest.agent.meta.tool_strategy_optimizer import ToolStrategyOptimizer
 from crawlernest.agent.self_improvement.strategy_store import StrategyStore
 
 
 class MetaController:
+    """Tool-strategy selection for the dev agent.
+
+    It no longer produces or serves prompt patches. Those were instructions
+    generated from recent scores and appended to web prompts; they are gone
+    along with the web engine's use of this class. A ``prompt_patch`` entry
+    left in an old strategy file is never queried, so it cannot resurface.
+    """
+
     def __init__(
         self,
         *,
         strategy_store: StrategyStore | None = None,
         policy_manager: PolicyManager | None = None,
-        prompt_optimizer: PromptOptimizer | None = None,
         tool_strategy_optimizer: ToolStrategyOptimizer | None = None,
     ) -> None:
         self._strategy_store = strategy_store or StrategyStore()
         self._policy_manager = policy_manager or PolicyManager()
-        self._prompt_optimizer = prompt_optimizer or PromptOptimizer()
         self._tool_optimizer = tool_strategy_optimizer or ToolStrategyOptimizer()
 
     def resolve_for_request(
@@ -31,30 +36,22 @@ class MetaController:
         target: str | None = None,
     ) -> dict[str, Any]:
         applied: list[dict[str, Any]] = []
-        for strategy_type in ("prompt_patch", "tool_strategy"):
-            for entry in self._strategy_store.query(
-                engine=engine,
-                task_kind=task_kind,
-                target=target,
-                min_confidence=0.7,
-                limit=2,
-                strategy_type=strategy_type,
-                require_active=True,
-            ):
-                allowed, reason = self._policy_manager.should_apply(
-                    strategy_entry=entry,
-                    request_signature=request_signature,
-                    strategy_store=self._strategy_store,
-                )
-                if allowed:
-                    applied.append({**entry, "policy_reason": reason})
-        prompt_patches = [
-            item
-            for entry in applied
-            if entry.get("strategy_type") == "prompt_patch"
-            for item in entry.get("strategy", [])
-            if isinstance(item, str) and item.strip()
-        ]
+        for entry in self._strategy_store.query(
+            engine=engine,
+            task_kind=task_kind,
+            target=target,
+            min_confidence=0.7,
+            limit=2,
+            strategy_type="tool_strategy",
+            require_active=True,
+        ):
+            allowed, reason = self._policy_manager.should_apply(
+                strategy_entry=entry,
+                request_signature=request_signature,
+                strategy_store=self._strategy_store,
+            )
+            if allowed:
+                applied.append({**entry, "policy_reason": reason})
         tool_strategies = [
             item
             for entry in applied
@@ -64,7 +61,6 @@ class MetaController:
         ]
         primary = applied[0] if applied else None
         return {
-            "prompt_patches": prompt_patches,
             "tool_strategies": tool_strategies,
             "applied_entries": applied,
             "debug": {
@@ -97,11 +93,6 @@ class MetaController:
     ) -> dict[str, Any]:
         generated_entries: list[dict[str, Any]] = []
         for candidate in (
-            self._prompt_optimizer.generate(
-                task_kind=task_kind,
-                performance=performance,
-                experiences=experiences,
-            ) if engine == "web" else None,
             self._tool_optimizer.generate(
                 engine=engine,
                 task_kind=task_kind,

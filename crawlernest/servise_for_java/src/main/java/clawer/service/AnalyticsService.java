@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 /**
  * Service for providing analytics on university ranking data.
@@ -46,6 +48,24 @@ public class AnalyticsService {
             "Some values in this response are model estimates produced by CrawlerNest, not figures published by the ranking source. Estimated values are labelled as estimates, carry a support flag, and never replace a published rank.";
 
     /**
+     * Ranking editions the warehouse holds, newest first.
+     *
+     * Mirrors {@code DATASET_YEARS} in crawlernest/core/dataset.py and in the
+     * frontend's datasetScope.ts; Python's test_caveat_contract compares all
+     * three. Changing it is a data-migration step, not an edit.
+     */
+    public static final List<Integer> DATASET_YEARS = List.of(2026);
+
+    /**
+     * The snapshot disclosure with its editions left open. Byte-identical to
+     * {@code SNAPSHOT_CAVEAT_TEMPLATE} in caveats.py and caveatMessages.ts and to
+     * the copy in ANALYTICS_EXPLAINABILITY.md. {@code {years}} is replaced
+     * literally by {@link #formatEditionYears}.
+     */
+    public static final String SNAPSHOT_CAVEAT_TEMPLATE =
+            "QS ranking data is a point-in-time snapshot of the {years} published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
+
+    /**
      * Snapshot disclosure for the ranking data.
      *
      * Previously named an age -- "last ingested at RC-1 packaging (approximately
@@ -53,9 +73,12 @@ public class AnalyticsService {
      * age by roughly two weeks once the 2026 re-crawl landed on 2026-09-04. An age
      * written into a constant is a disclosure with an expiry date, so this states
      * that the data is a snapshot without claiming a distance from it.
+     *
+     * The year it names is the same kind of expiring fact, so it is rendered from
+     * {@link #DATASET_YEARS} through {@link #SNAPSHOT_CAVEAT_TEMPLATE}. For the
+     * single 2026 edition the result is the exact sentence this constant held.
      */
-    public static final String SNAPSHOT_CAVEAT =
-            "QS ranking data is a point-in-time snapshot of the 2026 published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
+    public static final String SNAPSHOT_CAVEAT = snapshotCaveat(DATASET_YEARS);
 
     /**
      * Per-source coverage disclosures, for callers that need them as constants.
@@ -521,6 +544,29 @@ public class AnalyticsService {
         }
         appendModelEstimateCaveat(caveats, containsModelEstimates);
         return caveats;
+    }
+
+    /**
+     * Held editions as prose: {@code 2026}, {@code 2025 and 2026},
+     * {@code 2024, 2025 and 2026}. Ascending and de-duplicated whatever order they
+     * arrive in. The rows in ANALYTICS_EXPLAINABILITY.md are the specification;
+     * Python and TypeScript test their renderers against the same rows.
+     */
+    public static String formatEditionYears(Collection<Integer> years) {
+        List<String> ordered = new TreeSet<>(years).stream().map(String::valueOf).toList();
+        if (ordered.isEmpty()) {
+            throw new IllegalArgumentException("a snapshot caveat has to name at least one edition");
+        }
+        if (ordered.size() == 1) {
+            return ordered.get(0);
+        }
+        return String.join(", ", ordered.subList(0, ordered.size() - 1))
+                + " and " + ordered.get(ordered.size() - 1);
+    }
+
+    /** The snapshot disclosure for the given editions. */
+    public static String snapshotCaveat(Collection<Integer> years) {
+        return SNAPSHOT_CAVEAT_TEMPLATE.replace("{years}", formatEditionYears(years));
     }
 
     /**

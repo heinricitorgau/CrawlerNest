@@ -1,8 +1,9 @@
 """The year a caller asked for, and what to say when it is not the one we hold.
 
-:mod:`crawlernest.core.dataset` states that the warehouse holds exactly one
-ranking year. Every query default already reads :data:`DATASET_YEAR` from there,
-so a request naming 2025 does not fail -- it answers from the 2026 snapshot, or
+:mod:`crawlernest.core.dataset` states which ranking editions the warehouse holds.
+Every query default reads :data:`DEFAULT_RANKING_YEAR` from there, so a request
+naming a year outside :data:`DATASET_YEARS` does not fail -- it answers from the
+default edition, or
 returns an empty page, under HTTP 200 ``success`` with nothing in the response
 saying the year was changed out from under it. A rehearsal turned that up: the
 answer was honest about the numbers and silent about the year, which is the same
@@ -31,7 +32,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from crawlernest.core.dataset import DATASET_YEAR
+from crawlernest.core.caveats import format_edition_years
+from crawlernest.core.dataset import DATASET_YEARS, DEFAULT_RANKING_YEAR
 
 __all__ = [
     "UNSUPPORTED_YEAR_WARNING_CODE",
@@ -66,15 +68,26 @@ _RANK_CUE = re.compile(
 def build_unsupported_year_warning(requested_year: int) -> str:
     """The warning text for one unsupported year.
 
-    Built from :data:`DATASET_YEAR` rather than written out, so re-pointing the
-    warehouse at another year cannot leave this claiming the old one.
+    Built from :data:`DATASET_YEARS` rather than written out, so re-pointing the
+    warehouse at another edition cannot leave this claiming the old one. With a
+    single edition held the text is exactly what it was when that edition was a
+    constant; the agent page matches on the opening words.
     """
+    if len(DATASET_YEARS) == 1:
+        return (
+            f"{UNSUPPORTED_YEAR_WARNING_CODE}: Dataset is strictly locked to the "
+            f"{DEFAULT_RANKING_YEAR} snapshot. Year {requested_year} is not available. This is not "
+            f"missing or incomplete data: the warehouse holds a single-year {DEFAULT_RANKING_YEAR} "
+            f"snapshot and no rows for any other year, so any result shown here describes "
+            f"{DEFAULT_RANKING_YEAR} rather than {requested_year}."
+        )
+    held = format_edition_years(DATASET_YEARS)
     return (
-        f"{UNSUPPORTED_YEAR_WARNING_CODE}: Dataset is strictly locked to the "
-        f"{DATASET_YEAR} snapshot. Year {requested_year} is not available. This is not "
-        f"missing or incomplete data: the warehouse holds a single-year {DATASET_YEAR} "
-        f"snapshot and no rows for any other year, so any result shown here describes "
-        f"{DATASET_YEAR} rather than {requested_year}."
+        f"{UNSUPPORTED_YEAR_WARNING_CODE}: Dataset is strictly locked to the {held} "
+        f"snapshots. Year {requested_year} is not available. This is not missing or "
+        f"incomplete data: the warehouse holds the {held} editions and no rows for any "
+        f"other year, so any result shown here describes {DEFAULT_RANKING_YEAR} rather "
+        f"than {requested_year}."
     )
 
 
@@ -134,11 +147,13 @@ def unsupported_year_warnings(
 ) -> list[str]:
     """One warning per named year the warehouse does not hold.
 
-    Empty for a request that names only :data:`DATASET_YEAR`, or names no year
-    at all -- which is the overwhelming majority, and must stay untouched.
+    Empty for a request that names only held editions, or names no year at all --
+    which is the overwhelming majority, and must stay untouched. Membership, not
+    equality with the default: once a second edition is loaded, a request for it
+    is answerable and warning about it would be false.
     """
     return [
         build_unsupported_year_warning(year)
         for year in detect_requested_years(context=context, user_input=user_input)
-        if year != DATASET_YEAR
+        if year not in DATASET_YEARS
     ]
