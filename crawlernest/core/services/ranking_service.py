@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from crawlernest.core.database.settings import DatabaseSettings
-from crawlernest.core.dataset import DEFAULT_RANKING_YEAR
+from crawlernest.core.dataset import DEFAULT_RANKING_YEAR, resolve_ranking_year
 
 try:
     import psycopg2
@@ -30,6 +30,14 @@ class RankingService:
         self._db_settings = db_settings or DatabaseSettings.from_env()
 
     def list_rankings(self, query: RankingQuery) -> dict[str, Any]:
+        # A year the warehouse does not hold -- including a shadow edition that is
+        # loaded but not released -- reads as empty. The agent's unsupported-year
+        # warning already tells the user why; querying would serve the shadow rows.
+        if resolve_ranking_year(query.year) is None:
+            return {
+                "items": [],
+                "metadata": {"totalCount": 0, "page": query.page, "pageSize": query.page_size},
+            }
         if psycopg2 is None:
             raise RuntimeError("psycopg2 is required for RankingService")
 

@@ -4,9 +4,11 @@ import clawer.domain.ranking.RankingContext;
 import clawer.domain.ranking.ScopedRankedUniversity;
 import clawer.domain.ranking.ScopedRankingReadAdapter;
 import clawer.service.CountryNormalization;
+import clawer.service.DatasetScope;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -15,6 +17,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 
 @Repository
 public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
@@ -59,10 +62,24 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
 
     private final JdbcTemplate jdbcTemplate;
     private final RankingRowMapper rankingRowMapper;
+    private final DatasetScope datasetScope;
 
-    public JdbcScopedRankingReadAdapter(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    /**
+     * Every public read resolves its edition through {@link DatasetScope} before any
+     * SQL is built. The SQL itself only ever filters on a non-null year: the old
+     * {@code (? IS NULL OR ranking_year = ?)} form read every edition when no year
+     * was passed, which lists each university once per edition as soon as a second
+     * one is loaded, and the recommendations endpoint passes no year by default.
+     */
+    @Autowired
+    public JdbcScopedRankingReadAdapter(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, DatasetScope datasetScope) {
         this.jdbcTemplate = jdbcTemplate;
         this.rankingRowMapper = new RankingRowMapper(new SourceRankParser(objectMapper), objectMapper, LOGGER);
+        this.datasetScope = datasetScope;
+    }
+
+    public JdbcScopedRankingReadAdapter(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+        this(jdbcTemplate, objectMapper, DatasetScope.standard());
     }
 
     @Override
@@ -75,13 +92,25 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             int page,
             int pageSize
     ) {
-        logSearchDebug(context, year, search);
-        ScopedSql scopedSql = buildScopedSql(context, year, search, countryCode, countryName, page, pageSize, false, false, null);
+        OptionalInt edition = datasetScope.resolveRankingYear(year);
+        if (edition.isEmpty()) {
+            return List.of();
+        }
+        logSearchDebug(context, edition.getAsInt(), search);
+        ScopedSql scopedSql = buildScopedSql(context, edition.getAsInt(), search, countryCode, countryName, page, pageSize, false, false, null);
         return jdbcTemplate.query(scopedSql.sql(), (rs, rowNum) -> rankingRowMapper.map(rs), scopedSql.args());
     }
 
     @Override
     public long countRankings(RankingContext context, Integer year, String search, String countryCode, String countryName) {
+        OptionalInt edition = datasetScope.resolveRankingYear(year);
+        if (edition.isEmpty()) {
+            return 0L;
+        }
+        return countRankingsInEdition(context, edition.getAsInt(), search, countryCode, countryName);
+    }
+
+    private long countRankingsInEdition(RankingContext context, int year, String search, String countryCode, String countryName) {
         ScopedSql scopedSql = buildScopedSql(context, year, search, countryCode, countryName, 0, 0, true, false, null);
         Long count = jdbcTemplate.queryForObject(scopedSql.sql(), Long.class, scopedSql.args());
         return count == null ? 0L : count;
@@ -89,10 +118,14 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
 
     @Override
     public List<Map<String, Object>> findCountryOptions(RankingContext context, Integer year, String search) {
+        OptionalInt edition = datasetScope.resolveRankingYear(year);
+        if (edition.isEmpty()) {
+            return List.of();
+        }
         String normalizedSearch = search == null ? "" : search.trim();
         String canonicalCountryNameExpression = CountryNormalization.canonicalCountrySqlExpression("country_name");
         List<Object> argsList = new ArrayList<>();
-        StringBuilder sql = appendRankedCtePipeline(context, year, normalizedSearch, null, argsList);
+        StringBuilder sql = appendRankedCtePipeline(context, edition.getAsInt(), normalizedSearch, null, argsList);
         sql.append("""
                 SELECT
                     NULL AS country_code,
@@ -126,13 +159,17 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
             Integer year,
             String country
     ) {
-        ScopedSql scopedSql = buildScopedSql(context, year, null, null, null, 0, 0, false, true, country);
+        OptionalInt edition = datasetScope.resolveRankingYear(year);
+        if (edition.isEmpty()) {
+            return List.of();
+        }
+        ScopedSql scopedSql = buildScopedSql(context, edition.getAsInt(), null, null, null, 0, 0, false, true, country);
         return jdbcTemplate.query(scopedSql.sql(), (rs, rowNum) -> rankingRowMapper.map(rs), scopedSql.args());
     }
 
     private ScopedSql buildScopedSql(
             RankingContext context,
-            Integer year,
+            int year,
             String search,
             String countryCode,
             String countryName,
@@ -200,7 +237,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
      */
     private StringBuilder appendRankedCtePipeline(
             RankingContext context,
-            Integer year,
+            int year,
             String normalizedSearch,
             String countryNameFilter,
             List<Object> argsList
@@ -224,7 +261,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                         canonical_university_id,
                         MIN(display_rank) AS global_rank
                     FROM analytics.v_aggregated_rankings_latest
-                    WHERE (?::integer IS NULL OR ranking_year = ?::integer)
+                    WHERE ranking_year = ?::integer
                       AND universe_type = 'global'
                       AND universe_key = 'global'
                     GROUP BY canonical_university_id
@@ -238,7 +275,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                         coverage_ratio,
                         aggregation_method_version
                     FROM analytics.v_aggregated_rankings_latest
-                    WHERE (?::integer IS NULL OR ranking_year = ?::integer)
+                    WHERE ranking_year = ?::integer
                       AND universe_type = ?
                       AND universe_key = ?
                 ),
@@ -334,7 +371,7 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
                       ON global_ref.canonical_university_id = cu.canonical_university_id
                     LEFT JOIN admission_summary ads
                       ON ads.canonical_university_id = cu.canonical_university_id
-                    WHERE (?::integer IS NULL OR dp.ranking_year = ?::integer)
+                    WHERE dp.ranking_year = ?::integer
                       AND ( ?::text IS NULL OR 
                 """);
         sql.append(canonicalCountrySql).append("""
@@ -371,12 +408,9 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
 
         argsList.add(year);
         argsList.add(year);
-        argsList.add(year);
-        argsList.add(year);
         argsList.add(context.universeType());
         argsList.add(context.universeKey());
         addRepeatedArgs(argsList, normalizedSearch, 24);
-        argsList.add(year);
         argsList.add(year);
         argsList.add(countryNameFilter);
         argsList.add(countryNameFilter);
@@ -389,14 +423,14 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         }
     }
 
-    private void logSearchDebug(RankingContext context, Integer year, String search) {
+    private void logSearchDebug(RankingContext context, int year, String search) {
         String normalizedSearch = search == null ? "" : search.trim();
         if (normalizedSearch.isEmpty()) {
             return;
         }
 
-        long rowsBeforeSearch = countRankings(context, year, null, null, null);
-        long rowsAfterSearch = countRankings(context, year, normalizedSearch, null, null);
+        long rowsBeforeSearch = countRankingsInEdition(context, year, null, null, null);
+        long rowsAfterSearch = countRankingsInEdition(context, year, normalizedSearch, null, null);
 
         LOGGER.info(
                 "Scoped ranking search debug: search='{}', scope='{}', region='{}', whereClause='LOWER(university_name) LIKE %search% OR LOWER(country_name) LIKE %search% OR alias match', rowsBeforeSearch={}, rowsAfterSearch={}",

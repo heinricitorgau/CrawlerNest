@@ -21,11 +21,13 @@ public class SourceIntelligenceService {
     private static final int SEVERE_DISAGREEMENT_THRESHOLD = 100;
 
     private final JdbcTemplate jdbcTemplate;
+    private final DatasetScope datasetScope;
     private final ObjectMapper objectMapper;
 
-    public SourceIntelligenceService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    public SourceIntelligenceService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, DatasetScope datasetScope) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.datasetScope = datasetScope;
     }
 
     public Map<String, Object> getSourceComparison(Long canonicalUniversityId) {
@@ -104,14 +106,8 @@ public class SourceIntelligenceService {
                 WHERE ar.universe_type = 'global'
                   AND ar.universe_key = 'global'
                   AND ar.display_rank IS NOT NULL
-                  AND ar.ranking_year = (
-                      SELECT MAX(latest.ranking_year)
-                      FROM analytics.v_aggregated_rankings_latest latest
-                      WHERE latest.universe_type = 'global'
-                        AND latest.universe_key = 'global'
-                        AND latest.display_rank IS NOT NULL
-                  )
-                """);
+                  AND ar.ranking_year = ?
+                """, datasetScope.defaultRankingYear());
 
         long total = rows.size();
         long qsCount = 0;
@@ -215,11 +211,10 @@ public class SourceIntelligenceService {
                 JOIN warehouse.canonical_university cu
                   ON cu.canonical_university_id = ar.canonical_university_id
                 WHERE ar.canonical_university_id = ?
+                  AND ar.ranking_year = ?
                   AND ar.universe_type = 'global'
                   AND ar.universe_key = 'global'
-                ORDER BY ar.ranking_year DESC
-                LIMIT 1
-                """, canonicalUniversityId);
+                """, canonicalUniversityId, datasetScope.defaultRankingYear());
         return rows.isEmpty() ? null : rows.get(0);
     }
 

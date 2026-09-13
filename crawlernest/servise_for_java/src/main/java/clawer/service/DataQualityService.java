@@ -13,9 +13,11 @@ import java.util.Map;
 public class DataQualityService {
 
     private final JdbcTemplate jdbcTemplate;
+    private final DatasetScope datasetScope;
 
-    public DataQualityService(JdbcTemplate jdbcTemplate) {
+    public DataQualityService(JdbcTemplate jdbcTemplate, DatasetScope datasetScope) {
         this.jdbcTemplate = jdbcTemplate;
+        this.datasetScope = datasetScope;
     }
 
     public Map<String, Object> getDataQuality() {
@@ -182,8 +184,12 @@ public class DataQualityService {
     private Map<String, Object> buildRegressionSummary() {
         Map<String, Object> section = new LinkedHashMap<>();
 
+        // The default edition: a count and score range summed over editions would
+        // shift the moment an unreleased edition is loaded, and read as a regression.
+        int edition = datasetScope.defaultRankingYear();
         Long aggCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM analytics.v_aggregated_rankings_latest", Long.class);
+                "SELECT COUNT(*) FROM analytics.v_aggregated_rankings_latest WHERE ranking_year = ?",
+                Long.class, edition);
         section.put("aggregated_count", aggCount != null ? aggCount : 0L);
 
         List<Map<String, Object>> scoreStats = jdbcTemplate.queryForList("""
@@ -193,7 +199,8 @@ public class DataQualityService {
                     ROUND(AVG(composite_score)::NUMERIC, 4) AS score_avg
                 FROM analytics.v_aggregated_rankings_latest
                 WHERE composite_score IS NOT NULL
-                """);
+                  AND ranking_year = ?
+                """, edition);
         if (!scoreStats.isEmpty()) {
             Map<String, Object> stats = scoreStats.get(0);
             section.put("score_min", stats.get("score_min"));
@@ -206,8 +213,8 @@ public class DataQualityService {
         }
 
         Long lowCoverage = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM analytics.v_aggregated_rankings_latest WHERE coverage_ratio < 0.5",
-                Long.class);
+                "SELECT COUNT(*) FROM analytics.v_aggregated_rankings_latest WHERE coverage_ratio < 0.5 AND ranking_year = ?",
+                Long.class, edition);
         section.put("low_coverage_count", lowCoverage != null ? lowCoverage : 0L);
 
         return section;

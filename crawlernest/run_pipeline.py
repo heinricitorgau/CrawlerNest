@@ -122,6 +122,10 @@ from recommendation_engine import (  # noqa: E402
     recommend_universities_v3,
 )
 from ranking_aggregation.repository import RankingAggregationRepository  # noqa: E402
+#: The edition read commands use when no --ranking-year is given. Distinct from
+#: DEFAULT_RANKING_YEAR below, which is the crawl default and follows the clock on
+#: purpose; a read that followed the clock would query an edition not yet held.
+from crawlernest.core.dataset import DEFAULT_RANKING_YEAR as HELD_DEFAULT_RANKING_YEAR  # noqa: E402
 from crawlernest.db.analytics_bridge import ( # noqa: E402
     AnalyticsBridgeSummary,
     aggregate_legacy_analytics as aggregate_legacy_analytics_conn,
@@ -1626,6 +1630,9 @@ def recommend_universities_from_db(
 ) -> list[Any]:
     if psycopg2 is None:
         raise RuntimeError("psycopg2 is required for PostgreSQL recommendation mode")
+    # Operator tooling: an explicit year is honoured even if it is a shadow
+    # edition, so an ingest can be audited before release.
+    ranking_year = HELD_DEFAULT_RANKING_YEAR if ranking_year is None else ranking_year
     conn = psycopg2.connect(
         host=pg_host,
         port=pg_port,
@@ -1659,6 +1666,7 @@ def compare_universities_from_db(
 ) -> dict[str, Any]:
     if psycopg2 is None:
         raise RuntimeError("psycopg2 is required for PostgreSQL comparison mode")
+    ranking_year = HELD_DEFAULT_RANKING_YEAR if ranking_year is None else ranking_year
     conn = psycopg2.connect(
         host=pg_host,
         port=pg_port,
@@ -1690,6 +1698,7 @@ def recommend_universities_v2_from_db(
 ) -> dict[str, Any]:
     if psycopg2 is None:
         raise RuntimeError("psycopg2 is required for PostgreSQL recommendation mode")
+    ranking_year = HELD_DEFAULT_RANKING_YEAR if ranking_year is None else ranking_year
     conn = psycopg2.connect(
         host=pg_host,
         port=pg_port,
@@ -1751,6 +1760,7 @@ def recommend_universities_v3_from_db(
 ) -> dict[str, Any]:
     if psycopg2 is None:
         raise RuntimeError("psycopg2 is required for PostgreSQL recommendation mode")
+    ranking_year = HELD_DEFAULT_RANKING_YEAR if ranking_year is None else ranking_year
     conn = psycopg2.connect(
         host=pg_host,
         port=pg_port,

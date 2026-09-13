@@ -64,6 +64,11 @@ def run_all_tests():
         # No web prompt carries an instruction the agent wrote for itself, and
         # answering a request writes no strategy or experience store.
         "test_web_prompt_is_static",
+        # Every serving read of a multi-edition relation names one explicit
+        # edition, so a shadow ingest cannot leak or duplicate rows.
+        "test_year_isolation_audit",
+        # Needs PostgreSQL; skips itself unless CRAWLERNEST_RUN_PG_TESTS=1.
+        "test_institution_lineage_pg",
         # Golden constraints for WebPromptBuilder; sat unregistered.
         "test_prompt_builder_instruction",
         # Needs PostgreSQL; skips itself unless CRAWLERNEST_RUN_PG_TESTS=1. The

@@ -69,6 +69,16 @@ CREATE TABLE IF NOT EXISTS analytics.recommendation_results (
 
 DROP VIEW IF EXISTS analytics.v_recommendation_candidates_latest;
 
+-- One row per university per ranking_year, inherited from
+-- analytics.v_aggregated_rankings_latest; source_rank_summary joins on the same
+-- year, while the admission summaries are year-independent. It is not a
+-- single-edition view, and reading it without a ranking_year predicate lists
+-- each university once per edition held -- the recommendations endpoint did
+-- exactly that, since it passes no year by default.
+--
+-- Readers filter ranking_year = <one explicit edition>; see the note on
+-- v_aggregated_rankings_latest for why the view does not, and for the test that
+-- enforces it.
 CREATE VIEW analytics.v_recommendation_candidates_latest AS
 WITH admission_summary AS (
     SELECT

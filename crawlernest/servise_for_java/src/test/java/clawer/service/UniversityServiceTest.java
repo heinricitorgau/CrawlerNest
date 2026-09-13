@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.data.domain.PageImpl;
@@ -34,6 +35,10 @@ class UniversityServiceTest {
 
     @Mock
     private JdbcTemplate jdbcTemplate;
+
+    /** A real scope: the aggregated-ranking read now names the release's default edition. */
+    @Spy
+    private DatasetScope datasetScope = DatasetScope.standard();
 
     @InjectMocks
     private UniversityService universityService;

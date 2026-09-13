@@ -5,6 +5,7 @@ import clawer.dto.CanonicalUniversityDetailPreviewDTO;
 import clawer.dto.DataAvailabilityDTO;
 import clawer.dto.IdentitySummaryDTO;
 import clawer.dto.RankingPreviewSummaryDTO;
+import clawer.service.DatasetScope;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -41,9 +42,11 @@ import java.util.Optional;
 @Repository
 public class UniversityPreviewRepository {
     private final JdbcTemplate jdbcTemplate;
+    private final DatasetScope datasetScope;
 
-    public UniversityPreviewRepository(JdbcTemplate jdbcTemplate) {
+    public UniversityPreviewRepository(JdbcTemplate jdbcTemplate, DatasetScope datasetScope) {
         this.jdbcTemplate = jdbcTemplate;
+        this.datasetScope = datasetScope;
     }
 
     public Optional<CanonicalUniversityDetailPreviewDTO> findByCanonicalUniversityId(Long canonicalUniversityId) {
@@ -297,6 +300,9 @@ public class UniversityPreviewRepository {
                 identity.canonicalUniversityId()
         );
 
+        // Held editions only. bestRank, rowCount and rankingYears summarise across
+        // editions by design, so an edition loaded but not released would otherwise
+        // contribute its rank and its year to the preview.
         RankingPreviewSummaryDTO rankingSummary = jdbcTemplate.queryForObject(
                 """
                 WITH ranking_rows AS (
@@ -308,6 +314,7 @@ public class UniversityPreviewRepository {
                     JOIN warehouse.ranking_source src
                       ON src.ranking_source_id = rr.ranking_source_id
                     WHERE rr.canonical_university_id = ?
+                      AND rr.ranking_year = ANY(?::int[])
                       AND rr.ranking_type = 'world'
                       AND rr.universe_type = 'global'
                       AND rr.universe_key = 'global'
@@ -358,7 +365,8 @@ public class UniversityPreviewRepository {
                     dto.setBestRankingYear((Integer) rs.getObject("best_ranking_year"));
                     return dto;
                 },
-                identity.canonicalUniversityId()
+                identity.canonicalUniversityId(),
+                datasetScope.heldYearsSqlArray()
         );
 
         AdmissionPreviewSummaryDTO admissionSummary = jdbcTemplate.queryForObject(

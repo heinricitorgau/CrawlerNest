@@ -30,9 +30,11 @@ public class RecommendationEvidenceService {
     private static final List<String> STANDARD_CAVEATS = AnalyticsService.STANDARD_CAVEATS;
 
     private final JdbcTemplate jdbcTemplate;
+    private final DatasetScope datasetScope;
 
-    public RecommendationEvidenceService(JdbcTemplate jdbcTemplate) {
+    public RecommendationEvidenceService(JdbcTemplate jdbcTemplate, DatasetScope datasetScope) {
         this.jdbcTemplate = jdbcTemplate;
+        this.datasetScope = datasetScope;
     }
 
     /**
@@ -133,9 +135,10 @@ public class RecommendationEvidenceService {
                   AND ar.universe_type = 'global'
                   AND ar.universe_key = 'global'
                   AND ar.canonical_university_id = ?
-                ORDER BY ar.ranking_year DESC, ar.display_rank ASC NULLS LAST
+                  AND ar.ranking_year = ?
+                ORDER BY ar.display_rank ASC NULLS LAST
                 LIMIT 1
-                """, canonicalUniversityId);
+                """, canonicalUniversityId, datasetScope.defaultRankingYear());
 
         Map<String, Object> evidence = new LinkedHashMap<>();
         if (rows.isEmpty()) {

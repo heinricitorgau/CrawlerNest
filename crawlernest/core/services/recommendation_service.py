@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from crawlernest.core.database.settings import DatabaseSettings
-from crawlernest.core.dataset import DEFAULT_RANKING_YEAR
+from crawlernest.core.dataset import DEFAULT_RANKING_YEAR, resolve_ranking_year
 
 MODULE_ROOT = Path(__file__).resolve().parents[2]
 CORE_RECOMMENDATION_DIR = MODULE_ROOT / "crawlernest-core"
@@ -240,9 +240,13 @@ class RecommendationService:
             if query.country and (query.country_policy or config.country_match_policy) == "hard_filter"
             else None
         )
-        candidates = repo.fetch_candidates(
-            ranking_year=query.ranking_year,
-            country=effective_country,
+        # An edition the warehouse does not hold recommends nothing rather than
+        # recommending from rows that are loaded but not released.
+        edition = resolve_ranking_year(query.ranking_year)
+        candidates = (
+            []
+            if edition is None
+            else repo.fetch_candidates(ranking_year=edition, country=effective_country)
         )
         grouped = recommend_universities_v3(candidates, query, config=config)
         return grouped_recommendations_to_dict(grouped)

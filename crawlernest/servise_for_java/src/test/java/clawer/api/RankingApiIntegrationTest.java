@@ -7,7 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,6 +29,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+// The fixture lives in edition 2099, which no crawl writes, so the live warehouse
+// this runs against cannot leak into the assertions. Declaring 2099 as the only
+// held edition is what makes the reads that take no year -- source comparison,
+// explain, diagnostics -- read the fixture rather than the real 2026 table.
+@TestPropertySource(properties = "crawlernest.dataset.years=2099")
 @SqlGroup({
         @Sql(
                 scripts = {
@@ -40,6 +48,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         )
 })
 class RankingApiIntegrationTest {
+
+    /** A newer edition loaded but not released. Newer on purpose: it is what "newest row wins" would pick. */
+    private static final int SHADOW_EDITION = 2100;
 
     @Autowired
     private MockMvc mockMvc;
@@ -591,6 +602,64 @@ class RankingApiIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.data.error").value("Unsupported region. Supported values: Europe, Asia, North America, Latin America, Oceania, Africa."));
+    }
+
+    @Test
+    void anUnreleasedEditionIsInvisibleToEveryRead() throws Exception {
+        loadShadowEdition();
+
+        // Listings with no year: one row per university, all from the held edition.
+        JsonNode preview = fetchItems("/api/v1/rankings?page=1&pageSize=100&source=AGGREGATED");
+        assertEquals(29, preview.size(), "each university must be listed once, not once per edition");
+        Set<Long> seen = new HashSet<>();
+        for (JsonNode item : preview) {
+            assertEquals(2099, item.get("rankingYear").asInt());
+            assertTrue(seen.add(item.get("canonicalUniversityId").asLong()), "duplicate university " + item);
+        }
+        mockMvc.perform(get("/api/v1/rankings/AGGREGATED")
+                        .param("page", "1")
+                        .param("pageSize", "100")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items.length()").value(29));
+
+        // Asking for the shadow edition by name returns nothing, not its rows.
+        mockMvc.perform(get("/api/v1/rankings")
+                        .param("source", "AGGREGATED")
+                        .param("year", String.valueOf(SHADOW_EDITION))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items.length()").value(0))
+                .andExpect(jsonPath("$.data.metadata.totalCount").value(0));
+
+        // Per-university reads that used to take the newest row: the shadow copy
+        // carries QS 500 / THE 900, so a leak shows as a spread of 400, not 1.
+        mockMvc.perform(get("/api/v1/universities/990001/source-comparison").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.ranking_year").value(2099))
+                .andExpect(jsonPath("$.data.rank_spread").value(1));
+        mockMvc.perform(get("/api/v1/rankings/990001/explain").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.ranking_year").value(2099));
+        mockMvc.perform(get("/api/v1/diagnostics/source-agreement").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.source_overlap.total_universities").value(29))
+                .andExpect(jsonPath("$.data.confidence_buckets.high").value(29));
+
+        // Trends: the shadow edition is neither listed nor compared against.
+        mockMvc.perform(get("/api/v1/analytics/ranking-trends").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.available_years.length()").value(1))
+                .andExpect(jsonPath("$.data.available_years[0]").value(2099))
+                .andExpect(jsonPath("$.data.single_year_only").value(true))
+                .andExpect(jsonPath("$.data.items[0].rank_delta").doesNotExist())
+                .andExpect(jsonPath("$.data.items[0].rank_delta_reason").value("single_year_dataset"));
+    }
+
+    /** Loads edition {@link #SHADOW_EDITION} of the fixture, which this class does not hold. */
+    private void loadShadowEdition() {
+        new ResourceDatabasePopulator(new ClassPathResource("sql/rankings_integration_edition_2100.sql"))
+                .execute(jdbcTemplate.getDataSource());
     }
 
     private JsonNode fetchItems(String path) throws Exception {

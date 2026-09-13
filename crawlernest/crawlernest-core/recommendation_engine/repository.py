@@ -17,6 +17,20 @@ class RecommendationRepository:
         ranking_year: Optional[int] = None,
         country: Optional[str] = None,
     ) -> list[RecommendationCandidate]:
+        """Candidates from one edition.
+
+        ``ranking_year`` is required in practice: the view holds one row per
+        university per edition, and the old ``(%s IS NULL OR ranking_year = %s)``
+        read every edition when it was omitted -- each university once per year
+        the moment a second edition is loaded. Resolve the default before calling
+        (``crawlernest.core.dataset.resolve_ranking_year``); this package cannot
+        import it.
+        """
+        if ranking_year is None:
+            raise ValueError(
+                "fetch_candidates needs a ranking_year; without one the view returns every "
+                "edition and each university once per edition"
+            )
         sql = """
             SELECT
                 canonical_university_id,
@@ -38,13 +52,13 @@ class RecommendationRepository:
                 application_deadline_text,
                 deadline_candidates_json
             FROM analytics.v_recommendation_candidates_latest
-            WHERE (%s IS NULL OR ranking_year = %s)
+            WHERE ranking_year = %s
               AND (%s IS NULL OR country = %s)
             ORDER BY aggregated_rank NULLS LAST, canonical_university_id
         """
         out: list[RecommendationCandidate] = []
         with self.conn.cursor() as cur:
-            cur.execute(sql, (ranking_year, ranking_year, country, country))
+            cur.execute(sql, (ranking_year, country, country))
             for row in cur.fetchall():
                 (
                     canonical_university_id,

@@ -88,6 +88,21 @@ ALTER TABLE analytics.aggregated_rankings
 -- ---------------------------------------------------------
 -- Helpful derived view (latest run per method/year)
 -- ---------------------------------------------------------
+--
+-- Multi-edition by construction: one row per university per ranking_year per
+-- universe. "Latest" means the latest run *within* an edition, never the latest
+-- edition, so this view holds every edition ever aggregated -- including one
+-- loaded but not yet released.
+--
+-- Every reader therefore filters ranking_year to one explicit, non-null
+-- edition. The view cannot do it: a view takes no parameters, and a year written
+-- into it would be a fifth copy of DATASET_YEARS that a release has to remember
+-- to edit. The rule is enforced in the readers instead --
+-- clawer.service.DatasetScope and crawlernest.core.dataset.resolve_ranking_year
+-- choose the edition, and crawlernest-tests/test_year_isolation_audit.py fails
+-- on a serving query over this view that does not constrain ranking_year, or
+-- that constrains it with the (? IS NULL OR ranking_year = ?) form, which reads
+-- every edition when no year is passed.
 CREATE OR REPLACE VIEW analytics.v_aggregated_rankings_latest AS
 WITH ranked_finished_runs AS (
     SELECT
