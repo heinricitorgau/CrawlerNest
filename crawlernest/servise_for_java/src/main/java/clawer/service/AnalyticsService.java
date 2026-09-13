@@ -1,7 +1,9 @@
 package clawer.service;
 
+import clawer.repository.InstitutionLineageRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -48,13 +50,11 @@ public class AnalyticsService {
             "Some values in this response are model estimates produced by CrawlerNest, not figures published by the ranking source. Estimated values are labelled as estimates, carry a support flag, and never replace a published rank.";
 
     /**
-     * Ranking editions the warehouse holds, newest first.
-     *
-     * Mirrors {@code DATASET_YEARS} in crawlernest/core/dataset.py and in the
-     * frontend's datasetScope.ts; Python's test_caveat_contract compares all
-     * three. Changing it is a data-migration step, not an edit.
+     * Ranking editions the warehouse holds, newest first. Defined in
+     * {@link DatasetScope}, which every serving read resolves its edition through;
+     * re-exported here because the snapshot caveat renders from it.
      */
-    public static final List<Integer> DATASET_YEARS = List.of(2026);
+    public static final List<Integer> DATASET_YEARS = DatasetScope.DATASET_YEARS;
 
     /**
      * The snapshot disclosure with its editions left open. Byte-identical to
@@ -125,26 +125,47 @@ public class AnalyticsService {
             "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against.";
 
     private final JdbcTemplate jdbcTemplate;
+    private final DatasetScope datasetScope;
+    private final InstitutionLineageRepository institutionLineageRepository;
     private final ObjectMapper objectMapper;
 
-    public AnalyticsService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    @Autowired
+    public AnalyticsService(
+            JdbcTemplate jdbcTemplate,
+            ObjectMapper objectMapper,
+            DatasetScope datasetScope,
+            InstitutionLineageRepository institutionLineageRepository
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.datasetScope = datasetScope;
+        this.institutionLineageRepository = institutionLineageRepository;
+    }
+
+    public AnalyticsService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+        this(jdbcTemplate, objectMapper, DatasetScope.standard(), new InstitutionLineageRepository(jdbcTemplate));
     }
 
     /**
-     * Returns ranking trend data across available years.
+     * Returns ranking trend data across the editions the warehouse holds.
      *
-     * When multiple years of aggregated data exist, computes rank delta between
-     * the most recent year and the prior year. When only one year is available,
-     * returns that year's data with singleYearOnly = true and no delta values.
+     * Only held editions count: an edition with finished aggregation runs but not
+     * yet released (a shadow ingest) is neither listed in available_years nor
+     * used as the "previous" year, so loading it changes nothing here.
      *
-     * Readonly: reads analytics.aggregated_rankings only.
+     * No rank delta is ever computed. rank_delta is null on every row and
+     * rank_delta_reason says why -- see {@link RankComparisonPolicy}: a single
+     * held edition, an institution-lineage event between the two editions, or,
+     * otherwise, that a composite rank is not comparable across editions. Rows on
+     * a lineage boundary also drop previous_rank, which belongs to a different
+     * institution.
+     *
+     * Readonly: reads analytics.aggregated_rankings and warehouse.institution_lineage.
      */
     public Map<String, Object> getRankingTrends() {
         Map<String, Object> data = new LinkedHashMap<>();
 
-        // Determine available ranking years (finished runs only).
+        // Editions with finished runs, restricted to the ones this release holds.
         List<Integer> years = jdbcTemplate.queryForList("""
                 SELECT DISTINCT ar.ranking_year
                 FROM analytics.aggregated_rankings ar
@@ -153,8 +174,9 @@ public class AnalyticsService {
                 WHERE run.status = 'finished'
                   AND ar.universe_type = 'global'
                   AND ar.universe_key = 'global'
+                  AND ar.ranking_year = ANY(?::int[])
                 ORDER BY ar.ranking_year DESC
-                """, Integer.class);
+                """, Integer.class, datasetScope.heldYearsSqlArray());
 
         data.put("available_years", years);
         boolean singleYearOnly = years.size() < 2;
@@ -209,6 +231,7 @@ public class AnalyticsService {
                 item.put("previous_year", null);
                 item.put("previous_rank", null);
                 item.put("rank_delta", null);
+                item.put("rank_delta_reason", RankComparisonPolicy.REASON_SINGLE_YEAR_DATASET);
                 item.put("source_count_current", countSources(row.get("source_ranks_json")));
                 item.put("source_count_previous", null);
                 items.add(item);
@@ -216,7 +239,10 @@ public class AnalyticsService {
             data.put("items", items);
             data.put("total_count", items.size());
         } else {
-            // Multi-year: compute deltas between most recent and prior year.
+            // Multi-year: pair each university with the prior held edition, for
+            // context only. The prior edition's filters live inside the derived
+            // table: joined bare, `prev` matched every edition of the university,
+            // the current one included, and duplicated the row.
             int previousYear = years.get(1);
             List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
                     SELECT
@@ -237,14 +263,17 @@ public class AnalyticsService {
                       ON cu.canonical_university_id = cur.canonical_university_id
                     LEFT JOIN warehouse.countries c
                       ON c.country_id = cu.country_id
-                    LEFT JOIN analytics.aggregated_rankings prev
+                    LEFT JOIN (
+                        SELECT p.canonical_university_id, p.ranking_year, p.display_rank, p.source_ranks_json
+                        FROM analytics.aggregated_rankings p
+                        JOIN analytics.aggregation_runs p_run
+                          ON p_run.aggregation_run_id = p.aggregation_run_id
+                        WHERE p_run.status = 'finished'
+                          AND p.universe_type = 'global'
+                          AND p.universe_key = 'global'
+                          AND p.ranking_year = ?
+                    ) prev
                       ON prev.canonical_university_id = cur.canonical_university_id
-                     AND prev.universe_type = 'global'
-                     AND prev.universe_key = 'global'
-                    LEFT JOIN analytics.aggregation_runs prev_run
-                      ON prev_run.aggregation_run_id = prev.aggregation_run_id
-                     AND prev_run.status = 'finished'
-                     AND prev.ranking_year = ?
                     WHERE cur_run.status = 'finished'
                       AND cur.universe_type = 'global'
                       AND cur.universe_key = 'global'
@@ -254,8 +283,18 @@ public class AnalyticsService {
                     LIMIT ?
                     """, previousYear, currentYear, TREND_LIMIT);
 
+            List<Long> ids = rows.stream()
+                    .map(row -> ((Number) row.get("canonical_university_id")).longValue())
+                    .toList();
+            List<InstitutionLineage.Event> lineage = institutionLineageRepository.findInvolving(ids);
+
             List<Map<String, Object>> items = new ArrayList<>();
             for (Map<String, Object> row : rows) {
+                long canonicalUniversityId = ((Number) row.get("canonical_university_id")).longValue();
+                String reason = RankComparisonPolicy.withholdReason(
+                        canonicalUniversityId, previousYear, currentYear, lineage);
+                boolean acrossLineage = RankComparisonPolicy.REASON_ENTITY_CHANGED.equals(reason);
+
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("canonical_university_id", row.get("canonical_university_id"));
                 item.put("university_name", row.get("university_name"));
@@ -263,17 +302,12 @@ public class AnalyticsService {
                 item.put("country_name", row.get("country_name"));
                 item.put("current_year", row.get("current_year"));
                 item.put("current_rank", row.get("current_rank"));
-                item.put("previous_year", row.get("previous_year"));
-                item.put("previous_rank", row.get("previous_rank"));
-
-                Number cur = (Number) row.get("current_rank");
-                Number prev = (Number) row.get("previous_rank");
-                Integer delta = (cur != null && prev != null)
-                        ? prev.intValue() - cur.intValue()
-                        : null;
-                item.put("rank_delta", delta);
+                item.put("previous_year", previousYear);
+                item.put("previous_rank", acrossLineage ? null : row.get("previous_rank"));
+                item.put("rank_delta", null);
+                item.put("rank_delta_reason", reason);
                 item.put("source_count_current", countSources(row.get("current_sources")));
-                item.put("source_count_previous", countSources(row.get("previous_sources")));
+                item.put("source_count_previous", acrossLineage ? null : countSources(row.get("previous_sources")));
                 items.add(item);
             }
             data.put("items", items);
@@ -325,11 +359,12 @@ public class AnalyticsService {
                        ranking_year, predicted_value, support_distance, is_supported, is_estimated
                   FROM analytics.v_ml_predictions_latest
                  WHERE target = ?
+                   AND ranking_year = ?
                    AND (%s OR is_supported)
                  ORDER BY predicted_value DESC
                  LIMIT %d
                 """.formatted(supportedOnly ? "FALSE" : "TRUE", cappedLimit),
-                TARGET_OVERALL_SCORE);
+                TARGET_OVERALL_SCORE, datasetScope.defaultRankingYear());
 
         List<Map<String, Object>> items = new ArrayList<>();
         Map<String, Object> model = null;
@@ -405,11 +440,12 @@ public class AnalyticsService {
                        ranking_year, predicted_value, support_distance, is_supported, is_estimated
                   FROM analytics.v_ml_predictions_latest
                  WHERE target = ?
+                   AND ranking_year = ?
                    AND (%s OR is_supported)
                  ORDER BY predicted_value DESC
                  LIMIT %d
                 """.formatted(supportedOnly ? "FALSE" : "TRUE", cappedLimit),
-                TARGET_DISAGREEMENT);
+                TARGET_DISAGREEMENT, datasetScope.defaultRankingYear());
 
         List<Map<String, Object>> items = new ArrayList<>();
         Map<String, Object> model = null;
@@ -489,6 +525,8 @@ public class AnalyticsService {
      * disclosure that is worse than none, because it is specific and confident.
      */
     private Map<String, Integer> sourceCoverage() {
+        // The default edition only. Counted over every edition, "N of M" doubles
+        // when a second edition is loaded and describes no table anyone is shown.
         Map<String, Integer> coverage = new LinkedHashMap<>();
         for (String source : List.of("QS", "THE", "ARWU")) {
             Integer count = jdbcTemplate.queryForObject("""
@@ -496,7 +534,8 @@ public class AnalyticsService {
                     FROM analytics.v_aggregated_rankings_latest
                     WHERE source_ranks_json -> ? IS NOT NULL
                       AND source_ranks_json -> ? <> 'null'::jsonb
-                    """, Integer.class, source, source);
+                      AND ranking_year = ?
+                    """, Integer.class, source, source, datasetScope.defaultRankingYear());
             coverage.put(source, count == null ? 0 : count);
         }
         return coverage;

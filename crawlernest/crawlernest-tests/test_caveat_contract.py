@@ -61,6 +61,7 @@ CAVEAT_MESSAGES_TS = (
 AGENT_SYSTEM_PROMPT_TS = (
     REPO_ROOT / "crawlernest" / "crawlernest-web" / "src" / "lib" / "agentSystemPrompt.ts"
 )
+DATASET_SCOPE_JAVA = ANALYTICS_SERVICE.with_name("DatasetScope.java")
 DATASET_SCOPE_TS = (
     REPO_ROOT / "crawlernest" / "crawlernest-web" / "src" / "lib" / "datasetScope.ts"
 )
@@ -149,11 +150,11 @@ class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
                 self.assertNotIn(SNAPSHOT_CAVEAT_2026, _read(path))
 
     def test_dataset_years_agree_across_languages(self) -> None:
-        java = re.search(r"DATASET_YEARS\s*=\s*List\.of\(([^)]*)\)", _read(ANALYTICS_SERVICE))
+        java = re.search(r"DATASET_YEARS\s*=\s*List\.of\(([^)]*)\)", _read(DATASET_SCOPE_JAVA))
         typescript = re.search(
             r"DATASET_YEARS\s*:\s*readonly number\[\]\s*=\s*\[([^\]]*)\]", _read(DATASET_SCOPE_TS)
         )
-        self.assertIsNotNone(java, "AnalyticsService.DATASET_YEARS not found")
+        self.assertIsNotNone(java, "DatasetScope.DATASET_YEARS not found")
         self.assertIsNotNone(typescript, "datasetScope.ts DATASET_YEARS not found")
         for label, match in (("Java", java), ("TypeScript", typescript)):
             with self.subTest(language=label):

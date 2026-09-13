@@ -56,6 +56,22 @@ DEFAULT_RANKING_YEAR: int = max(DATASET_YEARS)
 #: two questions above it is asking.
 DATASET_YEAR = DEFAULT_RANKING_YEAR
 
+
+def resolve_ranking_year(requested: int | None) -> int | None:
+    """The edition a serving read should use, or ``None`` when it should read nothing.
+
+    No year requested reads the default edition. A held year reads that year. Any
+    other year -- including one loaded but not yet released, a shadow ingest --
+    reads nothing, so the caller returns an empty result instead of querying.
+    ``clawer.service.DatasetScope.resolveRankingYear`` is the same rule in Java.
+
+    Operator tooling (``run_pipeline``) is not a serving read and may query a
+    shadow edition on purpose; it resolves only ``None``.
+    """
+    if requested is None:
+        return DEFAULT_RANKING_YEAR
+    return requested if requested in DATASET_YEARS else None
+
 #: Ranking sources actually ingested, largest coverage first. This tuple is what
 #: is loaded, not what is anticipated: a source belongs here once the warehouse
 #: holds ranks from it, and coverage being partial is not a reason to omit it --

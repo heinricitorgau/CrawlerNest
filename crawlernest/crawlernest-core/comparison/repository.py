@@ -16,6 +16,12 @@ class ComparisonRepository:
         identifier: str | int,
         ranking_year: Optional[int] = None,
     ) -> RecommendationCandidate:
+        # Required for the same reason as RecommendationRepository.fetch_candidates:
+        # without an edition, a university held in two matched twice and the
+        # better-ranked edition's row won, setting its old rank against another
+        # university's current one.
+        if ranking_year is None:
+            raise ValueError("resolve_university needs a ranking_year; resolve the default before calling")
         row_id = self._coerce_identifier(identifier)
         text_value = str(identifier).strip()
         normalized_value = self._normalize_lookup(text_value)
@@ -43,7 +49,7 @@ class ComparisonRepository:
                         ELSE 100
                     END AS match_priority
                 FROM analytics.v_recommendation_candidates_latest v
-                WHERE (CAST(%s AS INTEGER) IS NULL OR v.ranking_year = CAST(%s AS INTEGER))
+                WHERE v.ranking_year = CAST(%s AS INTEGER)
                   AND (
                       (CAST(%s AS BIGINT) IS NOT NULL AND v.canonical_university_id = CAST(%s AS BIGINT))
                       OR lower(v.university_name) = lower(%s)
@@ -59,7 +65,6 @@ class ComparisonRepository:
                     text_value,
                     normalized_value,
                     partial_pattern,
-                    ranking_year,
                     ranking_year,
                     row_id,
                     row_id,

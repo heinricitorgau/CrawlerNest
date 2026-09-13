@@ -2,7 +2,7 @@
  * What the warehouse holds, as the frontend sees it.
  *
  * Mirrors `DATASET_YEARS` and `DEFAULT_RANKING_YEAR` in
- * `crawlernest/core/dataset.py` and `AnalyticsService.DATASET_YEARS` in Java.
+ * `crawlernest/core/dataset.py` and `DatasetScope.DATASET_YEARS` in Java.
  * Python's `test_caveat_contract` compares the three, so a change here needs the
  * same change there. Changing it is a data-migration step, not an edit.
  */

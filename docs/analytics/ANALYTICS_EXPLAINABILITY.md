@@ -92,7 +92,7 @@ The snapshot row above names the editions the warehouse holds, and a year writte
 into a constant is a disclosure with an expiry date — the same failure as the old
 "RC-1 packaging" age. It is therefore rendered from a template. Each language
 keeps exactly one copy of it, filled from its own list of held editions:
-`DATASET_YEARS` in `crawlernest/core/dataset.py`, `AnalyticsService.DATASET_YEARS`,
+`DATASET_YEARS` in `crawlernest/core/dataset.py`, `DatasetScope.DATASET_YEARS`,
 and `DATASET_YEARS` in `crawlernest-web/src/lib/datasetScope.ts`.
 `test_caveat_contract.py` checks that the three lists and the three templates
 agree. The row in the table is what the template renders for the warehouse today.

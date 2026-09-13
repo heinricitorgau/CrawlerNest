@@ -34,9 +34,11 @@ class SourceCoverageCaveatTest {
     /** An AnalyticsService whose warehouse reports the given per-source counts. */
     private AnalyticsService serviceReporting(int qs, int the, int arwu) {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq("QS"), eq("QS"))).thenReturn(qs);
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq("THE"), eq("THE"))).thenReturn(the);
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq("ARWU"), eq("ARWU"))).thenReturn(arwu);
+        // The third argument is the edition the coverage is counted in.
+        int edition = DatasetScope.DEFAULT_RANKING_YEAR;
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq("QS"), eq("QS"), eq(edition))).thenReturn(qs);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq("THE"), eq("THE"), eq(edition))).thenReturn(the);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq("ARWU"), eq("ARWU"), eq(edition))).thenReturn(arwu);
         return new AnalyticsService(jdbc, new com.fasterxml.jackson.databind.ObjectMapper());
     }
 

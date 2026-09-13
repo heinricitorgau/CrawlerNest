@@ -28,15 +28,18 @@ public class UniversityService {
     private final UniversityRepository universityRepository;
     private final AdmissionRecordRepository admissionRecordRepository;
     private final JdbcTemplate jdbcTemplate;
+    private final DatasetScope datasetScope;
 
     public UniversityService(
             UniversityRepository universityRepository,
             AdmissionRecordRepository admissionRecordRepository,
-            JdbcTemplate jdbcTemplate
+            JdbcTemplate jdbcTemplate,
+            DatasetScope datasetScope
     ) {
         this.universityRepository = universityRepository;
         this.admissionRecordRepository = admissionRecordRepository;
         this.jdbcTemplate = jdbcTemplate;
+        this.datasetScope = datasetScope;
     }
 
     public List<UniversityDTO> getAllUniversities(int page, int size) {
@@ -211,19 +214,21 @@ public class UniversityService {
     }
 
     private void hydrateCanonicalRankings(UniversityDTO dto, Long canonicalUniversityId) {
+        // The default edition, not "the newest row for this university": that would
+        // hand a university missing from the current edition its rank from an older
+        // or unreleased one, labelled as current.
         String aggSql = """
                 SELECT ranking_year, display_rank, composite_score, aggregation_method_version
                 FROM analytics.v_aggregated_rankings_latest
                 WHERE canonical_university_id = ?
+                  AND ranking_year = ?
                   AND universe_type = 'global'
                   AND universe_key = 'global'
-                ORDER BY ranking_year DESC
-                LIMIT 1
                 """;
 
         List<Map<String, Object>> aggRows = jdbcTemplate.query(
                 aggSql,
-                new Object[]{canonicalUniversityId},
+                new Object[]{canonicalUniversityId, datasetScope.defaultRankingYear()},
                 (rs, rowNum) -> {
                     Map<String, Object> m = new java.util.HashMap<>();
                     m.put("ranking_year", rs.getInt("ranking_year"));

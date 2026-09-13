@@ -3,6 +3,7 @@ package clawer.api;
 import clawer.dto.RankingDTO;
 import clawer.dto.ApiResponse;
 import clawer.dto.RankingCountryOptionDTO;
+import clawer.service.DatasetScope;
 import clawer.service.RankingService;
 import clawer.service.SourceIntelligenceService;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 
 /**
  * REST Controller for accessing Ranking data.
@@ -32,15 +34,18 @@ public class RankingController {
     private final RankingService rankingService;
     private final SourceIntelligenceService sourceIntelligenceService;
     private final JdbcTemplate jdbcTemplate;
+    private final DatasetScope datasetScope;
 
     public RankingController(
             RankingService rankingService,
             SourceIntelligenceService sourceIntelligenceService,
-            JdbcTemplate jdbcTemplate
+            JdbcTemplate jdbcTemplate,
+            DatasetScope datasetScope
     ) {
         this.rankingService = rankingService;
         this.sourceIntelligenceService = sourceIntelligenceService;
         this.jdbcTemplate = jdbcTemplate;
+        this.datasetScope = datasetScope;
     }
 
     /**
@@ -84,9 +89,14 @@ public class RankingController {
 
         String normalizedSearch = trimToNull(search);
         String normalizedCountry = trimToNull(country);
-        long totalCount = countPreviewRankings(year, normalizedSearch, safeScope, safeRegion, normalizedCountry);
-        List<Map<String, Object>> items = findPreviewRankings(
-                year,
+        // An edition the warehouse does not hold -- including one loaded but not
+        // released -- reads as empty, the same shape a year with no rows returns.
+        OptionalInt edition = datasetScope.resolveRankingYear(year);
+        long totalCount = edition.isEmpty()
+                ? 0L
+                : countPreviewRankings(edition.getAsInt(), normalizedSearch, safeScope, safeRegion, normalizedCountry);
+        List<Map<String, Object>> items = edition.isEmpty() ? List.of() : findPreviewRankings(
+                edition.getAsInt(),
                 normalizedSearch,
                 safeScope,
                 safeRegion,
@@ -224,7 +234,7 @@ public class RankingController {
     }
 
     private List<Map<String, Object>> findPreviewRankings(
-            Integer year,
+            int year,
             String search,
             String scope,
             String region,
@@ -278,7 +288,7 @@ public class RankingController {
         }).toList();
     }
 
-    private long countPreviewRankings(Integer year, String search, String scope, String region, String country) {
+    private long countPreviewRankings(int year, String search, String scope, String region, String country) {
         String sql = previewRankingsCte() + "SELECT COUNT(*) FROM filtered";
         List<Object> args = new ArrayList<>();
         addPreviewQueryArgs(args, year, scope, region, country, search);
@@ -288,13 +298,12 @@ public class RankingController {
 
     private void addPreviewQueryArgs(
             List<Object> args,
-            Integer year,
+            int year,
             String scope,
             String region,
             String country,
             String search
     ) {
-        args.add(year);
         args.add(year);
         args.add("region".equalsIgnoreCase(scope) ? region : null);
         args.add("region".equalsIgnoreCase(scope) ? region : null);
@@ -349,7 +358,7 @@ public class RankingController {
                     WHERE ar.display_rank IS NOT NULL
                       AND ar.universe_type = 'global'
                       AND ar.universe_key = 'global'
-                      AND (?::integer IS NULL OR ar.ranking_year = ?::integer)
+                      AND ar.ranking_year = ?::integer
                 ),
                 scope_ranked AS (
                     SELECT

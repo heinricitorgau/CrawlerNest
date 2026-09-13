@@ -39,6 +39,16 @@ withheld when that identity differs -- two different source entities resolving
 to one canonical university across years is either a rename or a false merge,
 and this module cannot tell which.
 
+**The institution has to survive it too.** Identity checks cannot see a merger
+that keeps its source ids: ARWU ranks Institute of Science Tokyo under Tokyo
+Tech's old slug, and the resolver attached it to the Tokyo Tech record. So every
+call names its canonical university and passes ``warehouse.institution_lineage``
+(:mod:`crawlernest.core.institution_lineage`), and a comparison that crosses an
+event naming the university is withheld with ``entity_changed``. Both arguments
+are required and have no default: a lineage check that can be forgotten is one
+that will be, and the omission would look exactly like a university that never
+merged.
+
 Sign convention, fixed here and nowhere else: ``rank_delta = current - prior``.
 A negative delta means a smaller rank number, i.e. the university moved *up*.
 Because that inversion is easy to read backwards, :attr:`RankDelta.direction`
@@ -61,6 +71,7 @@ from collections.abc import Collection
 from dataclasses import dataclass, replace
 
 from crawlernest.core.dataset import DATASET_YEARS
+from crawlernest.core.institution_lineage import LineageEvent, lineage_boundary
 
 __all__ = [
     "DIRECTION_DOWN",
@@ -96,8 +107,9 @@ REASON_NO_CURRENT_ROW = "no_current_row"
 #: One or both ranks are bands. Not a withholding: the interval is reported,
 #: only the single number is not.
 REASON_BANDED = "banded"
-#: Different source entities resolved to this canonical university in the two
-#: years. A rename and a false merge look identical from here.
+#: The two years do not describe the same entity: different source entities
+#: resolved to this canonical university (a rename and a false merge look
+#: identical from here), or an institution-lineage event lies between them.
 REASON_ENTITY_CHANGED = "entity_changed"
 #: Entity resolution already flagged the match in one of the years.
 REASON_SUSPICIOUS_MERGE = "suspicious_merge"
@@ -216,9 +228,17 @@ def compute_rank_delta(
     prior: RankObservation | None,
     *,
     prior_year: int,
+    canonical_university_id: int,
+    lineage: Collection[LineageEvent],
     ingested_years: Collection[int] = DATASET_YEARS,
 ) -> RankDelta:
     """Movement from ``prior_year`` to ``current.year`` for one source.
+
+    ``lineage`` is ``warehouse.institution_lineage`` -- all of it, or at least
+    every event naming this university; pass ``()`` only when that table is
+    genuinely empty. A lineage boundary is checked straight after the dataset
+    check and before the rows: a merged institution with no prior row is better
+    described by the merger than by a gap in our coverage.
 
     ``ingested_years`` defaults to what :mod:`crawlernest.core.dataset` says the
     warehouse holds, so today's answer is derived from the same constant every
@@ -238,6 +258,13 @@ def compute_rank_delta(
 
     if prior_year not in ingested_years:
         return replace(withheld, reason=REASON_SINGLE_YEAR_DATASET)
+    if lineage_boundary(
+        canonical_university_id,
+        prior_year=prior_year,
+        current_year=current.year,
+        lineage=lineage,
+    ) is not None:
+        return replace(withheld, reason=REASON_ENTITY_CHANGED)
     if current.band is None:
         return replace(withheld, reason=REASON_NO_CURRENT_ROW)
     if prior is None or prior.band is None:

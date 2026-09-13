@@ -4,6 +4,9 @@ The warehouse holds one year, so the most important test here is the dullest:
 with today's dataset, every delta is withheld as ``single_year_dataset``, and
 that follows from ``DATASET_YEAR`` rather than from a literal.
 
+Institution lineage is pinned against the two mergers the warehouse actually
+holds, with the canonical ids they resolve to.
+
 The rest pins the rules a second year will need on the day it arrives. The
 band cases are drawn from the rank strings actually stored in
 ``metadata.raw_row.rank`` -- ARWU's "101-150", THE's "1001–1200" with an en dash
@@ -15,8 +18,13 @@ from __future__ import annotations
 
 import unittest
 
+import re
+from pathlib import Path
+
+from crawlernest.core import institution_lineage as il
 from crawlernest.core import rank_delta as rd
 from crawlernest.core.dataset import DATASET_YEAR
+from crawlernest.core.institution_lineage import LineageEvent, lineage_boundary
 from crawlernest.core.rank_delta import (
     DIRECTION_DOWN,
     DIRECTION_INDETERMINATE,
@@ -42,8 +50,19 @@ def _obs(year: int, rank: str | int | None, *, source: str = "QS", **kwargs) -> 
     return RankObservation(year=year, source=source, band=parse_rank_band(rank), **kwargs)
 
 
-def _delta(current_rank, prior_rank, *, source: str = "QS", **kwargs):
+def _compute(current, prior, *, canonical_university_id: int = 1, lineage=(), **kwargs):
+    """compute_rank_delta for a university with no lineage events, unless told otherwise."""
     return compute_rank_delta(
+        current,
+        prior,
+        canonical_university_id=canonical_university_id,
+        lineage=lineage,
+        **kwargs,
+    )
+
+
+def _delta(current_rank, prior_rank, *, source: str = "QS", **kwargs):
+    return _compute(
         _obs(2026, current_rank, source=source),
         _obs(2025, prior_rank, source=source),
         prior_year=2025,
@@ -100,7 +119,7 @@ class TestStableSourceIdentity(unittest.TestCase):
 
 class TestTodaysSingleYearDataset(unittest.TestCase):
     def test_every_delta_is_withheld_today(self) -> None:
-        delta = compute_rank_delta(
+        delta = _compute(
             _obs(DATASET_YEAR, 10),
             _obs(DATASET_YEAR - 1, 12),
             prior_year=DATASET_YEAR - 1,
@@ -186,7 +205,7 @@ class TestBandedDelta(unittest.TestCase):
 
 class TestWithheldDeltas(unittest.TestCase):
     def test_no_prior_row_is_our_gap(self) -> None:
-        delta = compute_rank_delta(
+        delta = _compute(
             _obs(2026, 40), None, prior_year=2025, ingested_years=BOTH_YEARS
         )
 
@@ -199,7 +218,7 @@ class TestWithheldDeltas(unittest.TestCase):
         self.assertEqual(delta.reason, REASON_NO_CURRENT_ROW)
 
     def test_a_different_source_entity_withholds(self) -> None:
-        delta = compute_rank_delta(
+        delta = _compute(
             _obs(2026, 30, source_entity_id="/universities/new-name"),
             _obs(2025, 35, source_entity_id="/universities/old-name"),
             prior_year=2025,
@@ -211,7 +230,7 @@ class TestWithheldDeltas(unittest.TestCase):
 
     def test_arwu_year_in_the_id_is_not_an_entity_change(self) -> None:
         # Without stable_source_identity every ARWU delta would land here.
-        delta = compute_rank_delta(
+        delta = _compute(
             _obs(2026, 40, source="ARWU", source_entity_id="arwu:2026:aalto-university"),
             _obs(2025, 44, source="ARWU", source_entity_id="arwu:2025:aalto-university"),
             prior_year=2025,
@@ -224,7 +243,7 @@ class TestWithheldDeltas(unittest.TestCase):
     def test_suspicious_merge_in_either_year_withholds(self) -> None:
         for current_flag, prior_flag in ((True, False), (False, True)):
             with self.subTest(current=current_flag, prior=prior_flag):
-                delta = compute_rank_delta(
+                delta = _compute(
                     _obs(2026, 30, source="ARWU", suspicious_merge=current_flag),
                     _obs(2025, 35, source="ARWU", suspicious_merge=prior_flag),
                     prior_year=2025,
@@ -236,7 +255,7 @@ class TestWithheldDeltas(unittest.TestCase):
 class TestRefusedComparisons(unittest.TestCase):
     def test_cross_source_comparison_is_refused(self) -> None:
         with self.assertRaises(ValueError):
-            compute_rank_delta(
+            _compute(
                 _obs(2026, 10, source="QS"),
                 _obs(2025, 12, source="THE"),
                 prior_year=2025,
@@ -247,16 +266,138 @@ class TestRefusedComparisons(unittest.TestCase):
         for prior_year in (2026, 2027):
             with self.subTest(prior_year=prior_year):
                 with self.assertRaises(ValueError):
-                    compute_rank_delta(_obs(2026, 10), None, prior_year=prior_year)
+                    _compute(_obs(2026, 10), None, prior_year=prior_year)
 
     def test_prior_observation_must_match_prior_year(self) -> None:
         with self.assertRaises(ValueError):
-            compute_rank_delta(
+            _compute(
                 _obs(2026, 10),
                 _obs(2024, 12),
                 prior_year=2025,
                 ingested_years=BOTH_YEARS,
             )
+
+
+#: Canonical records as they are in the warehouse on 2026-09-13: the 2026
+#: "Institute of Science Tokyo" rows resolve to the Tokyo Tech record, and the
+#: 2026 "Adelaide University" rows to the University of Adelaide record.
+TOKYO_TECH, TMDU = 85, 668
+ADELAIDE, UNISA = 82, 339
+SCIENCE_TOKYO_MERGER = LineageEvent(TMDU, TOKYO_TECH, 2024, "merger")
+ADELAIDE_MERGER = LineageEvent(UNISA, ADELAIDE, 2026, "merger")
+LINEAGE = (SCIENCE_TOKYO_MERGER, ADELAIDE_MERGER)
+
+
+class TestInstitutionLineageWithholds(unittest.TestCase):
+    """A merger that kept its source ids passes every identity check; lineage does not."""
+
+    def _across(self, canonical_id: int, prior_year: int = 2025, current_year: int = 2026, **obs):
+        return _compute(
+            _obs(current_year, 40, source="ARWU", **obs),
+            _obs(prior_year, 44, source="ARWU", **obs),
+            prior_year=prior_year,
+            canonical_university_id=canonical_id,
+            lineage=LINEAGE,
+            ingested_years=(prior_year, current_year),
+        )
+
+    def test_the_continuing_record_of_a_merger_is_withheld(self) -> None:
+        # Same ARWU slug both years, so without lineage this would be "-4, up".
+        delta = self._across(TOKYO_TECH, source_entity_id="arwu:tokyo-institute-of-technology")
+
+        self.assertEqual(REASON_ENTITY_CHANGED, delta.reason)
+        self.assertIsNone(delta.rank_delta)
+        self.assertIsNone(delta.direction)
+        self.assertIsNone(delta.delta_min)
+
+    def test_the_absorbed_record_is_withheld_too(self) -> None:
+        self.assertEqual(REASON_ENTITY_CHANGED, self._across(TMDU).reason)
+
+    def test_an_unrelated_university_is_untouched(self) -> None:
+        delta = self._across(12345)
+
+        self.assertIsNone(delta.reason)
+        self.assertEqual(-4, delta.rank_delta)
+
+    def test_the_window_reaches_one_edition_label_back(self) -> None:
+        # Science Tokyo took effect in 2024. The 2025 editions predate it in
+        # practice, so 2025 -> 2026 crosses it; 2026 -> 2027 compares two
+        # post-merger editions and does not.
+        self.assertEqual(REASON_ENTITY_CHANGED, self._across(TOKYO_TECH, 2025, 2026).reason)
+        self.assertIsNone(self._across(TOKYO_TECH, 2026, 2027).reason)
+        # Adelaide took effect on 2026-01-01. A year cannot say whether an event
+        # fell before or after an edition went to press, so both comparisons whose
+        # widened window contains 2026 are withheld: 2026 -> 2027 and 2027 -> 2028.
+        # The second is in fact sound. Over-withholding is the chosen error.
+        self.assertEqual(REASON_ENTITY_CHANGED, self._across(ADELAIDE, 2026, 2027).reason)
+        self.assertEqual(REASON_ENTITY_CHANGED, self._across(ADELAIDE, 2027, 2028).reason)
+        self.assertIsNone(self._across(ADELAIDE, 2028, 2029).reason)
+
+    def test_lineage_is_reported_before_a_missing_row(self) -> None:
+        # "We hold no prior row" would blame our coverage for what is a merger.
+        delta = _compute(
+            _obs(2026, 40),
+            None,
+            prior_year=2025,
+            canonical_university_id=TOKYO_TECH,
+            lineage=LINEAGE,
+            ingested_years=BOTH_YEARS,
+        )
+        self.assertEqual(REASON_ENTITY_CHANGED, delta.reason)
+
+    def test_a_single_held_edition_still_reports_the_dataset_reason(self) -> None:
+        delta = _compute(
+            _obs(DATASET_YEAR, 40),
+            _obs(DATASET_YEAR - 1, 44),
+            prior_year=DATASET_YEAR - 1,
+            canonical_university_id=TOKYO_TECH,
+            lineage=LINEAGE,
+        )
+        self.assertEqual(REASON_SINGLE_YEAR_DATASET, delta.reason)
+
+    def test_a_record_whose_institution_changed_in_place(self) -> None:
+        rename = LineageEvent(TOKYO_TECH, TOKYO_TECH, 2024, "rename")
+        self.assertIsNotNone(
+            lineage_boundary(TOKYO_TECH, prior_year=2025, current_year=2026, lineage=(rename,))
+        )
+
+    def test_lineage_cannot_be_left_out(self) -> None:
+        # No default: an omitted lineage check would look exactly like a
+        # university that never merged.
+        with self.assertRaises(TypeError):
+            compute_rank_delta(_obs(2026, 10), _obs(2025, 12), prior_year=2025, ingested_years=BOTH_YEARS)
+
+    def test_unknown_kinds_are_refused(self) -> None:
+        with self.assertRaises(ValueError):
+            LineageEvent(1, 2, 2024, "acquisition")
+
+
+class TestJavaAgreesOnTheRule(unittest.TestCase):
+    """clawer.service.InstitutionLineage and RankComparisonPolicy restate this in Java."""
+
+    JAVA = Path(__file__).resolve().parents[1] / "servise_for_java" / "src" / "main" / "java" / "clawer" / "service"
+
+    def test_reason_codes_match(self) -> None:
+        policy = (self.JAVA / "RankComparisonPolicy.java").read_text(encoding="utf-8")
+        for name, value in (
+            ("REASON_SINGLE_YEAR_DATASET", REASON_SINGLE_YEAR_DATASET),
+            ("REASON_ENTITY_CHANGED", REASON_ENTITY_CHANGED),
+        ):
+            with self.subTest(name=name):
+                self.assertIn(f'{name} = "{value}";', policy)
+
+    def test_edition_lag_and_kinds_match(self) -> None:
+        lineage = (self.JAVA / "InstitutionLineage.java").read_text(encoding="utf-8")
+        self.assertIn(f"EDITION_LAG_YEARS = {il.EDITION_LAG_YEARS};", lineage)
+        kinds = set(re.findall(r'"(\w+)"', re.search(r"KINDS = Set\.of\(([^)]*)\)", lineage).group(1)))
+        self.assertEqual(set(il.KINDS), kinds)
+
+    def test_schema_allows_exactly_these_kinds(self) -> None:
+        ddl = (
+            Path(__file__).resolve().parents[1] / "crawlernest-schema" / "institution_lineage_postgresql.sql"
+        ).read_text(encoding="utf-8")
+        kinds = set(re.findall(r"'(\w+)'", re.search(r"kind IN \(([^)]*)\)", ddl).group(1)))
+        self.assertEqual(set(il.KINDS), kinds)
 
 
 if __name__ == "__main__":

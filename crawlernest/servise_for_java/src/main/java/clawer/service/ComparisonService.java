@@ -4,6 +4,7 @@ import clawer.dto.RankingTrustDTO;
 import clawer.model.UniversityComparisonResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,10 +33,17 @@ public class ComparisonService {
 
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final DatasetScope datasetScope;
 
-    public ComparisonService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    @Autowired
+    public ComparisonService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, DatasetScope datasetScope) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.datasetScope = datasetScope;
+    }
+
+    public ComparisonService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+        this(jdbcTemplate, objectMapper, DatasetScope.standard());
     }
 
     public UniversityComparisonResult compareUniversities(List<String> identifiers, Integer rankingYear) {
@@ -102,10 +111,17 @@ public class ComparisonService {
     }
 
     private List<Candidate> resolveUniversities(List<String> identifiers, Integer rankingYear) {
+        // Without an edition, a university held in two editions matched twice, and
+        // the better-ranked edition's row won the tie -- a comparison that could
+        // quietly set one university's current rank against another's old one.
+        OptionalInt edition = datasetScope.resolveRankingYear(rankingYear);
+        if (edition.isEmpty()) {
+            throw new IllegalArgumentException("No ranking data is available for year " + rankingYear + ".");
+        }
         List<Candidate> resolved = new ArrayList<>();
         Set<Long> seenIds = new LinkedHashSet<>();
         for (String identifier : identifiers) {
-            Candidate candidate = resolveUniversity(identifier, rankingYear);
+            Candidate candidate = resolveUniversity(identifier, edition.getAsInt());
             if (seenIds.add(candidate.canonicalUniversityId)) {
                 resolved.add(candidate);
             }
@@ -116,7 +132,7 @@ public class ComparisonService {
         return resolved;
     }
 
-    private Candidate resolveUniversity(String identifier, Integer rankingYear) {
+    private Candidate resolveUniversity(String identifier, int rankingYear) {
         Long numericId = identifier.chars().allMatch(Character::isDigit) ? Long.parseLong(identifier) : null;
         String normalized = normalizeLookup(identifier);
         String partialPattern = "%" + identifier + "%";
@@ -142,7 +158,7 @@ public class ComparisonService {
                         ELSE 100
                     END AS match_priority
                 FROM analytics.v_recommendation_candidates_latest v
-                WHERE (CAST(? AS INTEGER) IS NULL OR v.ranking_year = CAST(? AS INTEGER))
+                WHERE v.ranking_year = CAST(? AS INTEGER)
                   AND (
                       (CAST(? AS BIGINT) IS NOT NULL AND v.canonical_university_id = CAST(? AS BIGINT))
                       OR lower(v.university_name) = lower(?)
@@ -158,7 +174,6 @@ public class ComparisonService {
                 identifier,
                 normalized,
                 partialPattern,
-                rankingYear,
                 rankingYear,
                 numericId,
                 numericId,

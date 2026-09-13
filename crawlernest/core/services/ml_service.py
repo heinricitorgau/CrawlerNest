@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from crawlernest.core.database.settings import DatabaseSettings
-from crawlernest.core.dataset import DEFAULT_RANKING_YEAR
+from crawlernest.core.dataset import DEFAULT_RANKING_YEAR, resolve_ranking_year
 
 try:
     import psycopg2
@@ -80,6 +80,10 @@ class MlService:
             raise ValueError(
                 f"unknown modelling target {query.target!r}; expected one of {', '.join(TARGETS)}"
             )
+        # Estimates for an edition the warehouse does not hold are not served,
+        # the same rule every ranking read follows.
+        if resolve_ranking_year(query.year) is None:
+            return []
         if psycopg2 is None:
             raise RuntimeError("psycopg2 is required for MlService")
 
