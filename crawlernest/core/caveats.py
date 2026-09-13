@@ -34,16 +34,56 @@ true when written:
 Deliberately not fixed here: ``releases/`` and ``docs/demo/`` describe the state
 of a packaged demo at a point in the past. "RC-1 packaging" is the correct thing
 for a historical record to say.
+
+Year-bearing caveats are templates, not constants. ``CAVEAT_QS_STALE`` names the
+editions the warehouse holds, and a year written into a constant is the same
+kind of expiring disclosure the old "RC-1 packaging" age was. The template has
+one copy per language -- ``SNAPSHOT_CAVEAT_TEMPLATE`` here, in
+``AnalyticsService`` and in ``caveatMessages.ts`` -- and
+``ANALYTICS_EXPLAINABILITY.md`` holds the rule for rendering a list of years,
+which each language's renderer is tested against.
 """
 
 from __future__ import annotations
 
-#: Ranking data is a snapshot, and says so without naming an age. The previous
-#: wording carried one and was wrong within hours of the next crawl.
-CAVEAT_QS_STALE = (
-    "QS ranking data is a point-in-time snapshot of the 2026 published tables. "
+from collections.abc import Iterable
+
+from crawlernest.core.dataset import DATASET_YEARS
+
+#: Byte-identical in Java, TypeScript and the explainability doc. ``{years}`` is
+#: replaced literally, never through str.format, so the three renderers cannot
+#: disagree about escaping.
+SNAPSHOT_CAVEAT_TEMPLATE = (
+    "QS ranking data is a point-in-time snapshot of the {years} published tables. "
     "Figures may not reflect rankings republished since this snapshot was ingested."
 )
+
+
+def format_edition_years(years: Iterable[int]) -> str:
+    """Held editions as prose: ``2026``, ``2025 and 2026``, ``2024, 2025 and 2026``.
+
+    Ascending and de-duplicated whatever order they arrive in. The rows in
+    ANALYTICS_EXPLAINABILITY.md are the specification; Java and TypeScript test
+    their own renderer against the same rows.
+    """
+    ordered = [str(year) for year in sorted({int(year) for year in years})]
+    if not ordered:
+        raise ValueError("a snapshot caveat has to name at least one edition")
+    if len(ordered) == 1:
+        return ordered[0]
+    return f"{', '.join(ordered[:-1])} and {ordered[-1]}"
+
+
+def snapshot_caveat(years: Iterable[int] = DATASET_YEARS) -> str:
+    """The snapshot disclosure for the editions held."""
+    return SNAPSHOT_CAVEAT_TEMPLATE.replace("{years}", format_edition_years(years))
+
+
+#: Ranking data is a snapshot, and says so without naming an age. The previous
+#: wording carried one and was wrong within hours of the next crawl. Rendered
+#: from DATASET_YEARS; for the single 2026 edition it is the exact sentence this
+#: constant has always held.
+CAVEAT_QS_STALE = snapshot_caveat()
 
 #: Partial coverage, phrased so absence is attributed to this platform rather
 #: than to the source. Mirrors the wording AnalyticsService generates per source.

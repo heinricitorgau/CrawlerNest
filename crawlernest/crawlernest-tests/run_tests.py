@@ -61,6 +61,11 @@ def run_all_tests():
         # Plans the rewrite of human decisions onto ARWU's year-free ids. A bad
         # plan orphans decisions nobody can regenerate, so it runs in CI.
         "test_rekey_arwu_source_ids",
+        # No web prompt carries an instruction the agent wrote for itself, and
+        # answering a request writes no strategy or experience store.
+        "test_web_prompt_is_static",
+        # Golden constraints for WebPromptBuilder; sat unregistered.
+        "test_prompt_builder_instruction",
         # Needs PostgreSQL; skips itself unless CRAWLERNEST_RUN_PG_TESTS=1. The
         # rule that links ranking_record rows to the mapping that produced them.
         "test_mapping_provenance",

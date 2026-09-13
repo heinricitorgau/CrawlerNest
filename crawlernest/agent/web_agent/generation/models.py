@@ -17,7 +17,6 @@ class RetrievedContext:
     metadata: dict[str, Any] = field(default_factory=dict)
     source_hints: list[str] = field(default_factory=list)
     long_term_memory: list[dict[str, Any]] = field(default_factory=list)
-    strategy_hints: list[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)

@@ -21,7 +21,6 @@ class WebContextBuilder:
         raw_data: dict[str, Any],
         request_context: dict[str, Any],
         long_term_memory: list[dict[str, Any]] | None = None,
-        strategy_hints: list[str] | None = None,
     ) -> RetrievedContext:
         metadata = (
             dict(raw_data.get("metadata", {}))
@@ -44,8 +43,6 @@ class WebContextBuilder:
         source_hints = self._build_source_hints(task_kind, raw_data)
         if long_term_memory:
             source_hints = list(source_hints) + ["long-term memory"]
-        if strategy_hints:
-            source_hints = list(source_hints) + ["strategy hints"]
 
         return RetrievedContext(
             task_kind=task_kind,
@@ -59,7 +56,6 @@ class WebContextBuilder:
             metadata=metadata,
             source_hints=source_hints,
             long_term_memory=list(long_term_memory or []),
-            strategy_hints=list(strategy_hints or []),
         )
 
     def _extract_focus_entity(

@@ -62,6 +62,46 @@ class AnalyticsCaveatContractTest {
                         + "have drifted -- update the doc, or the constant, so they agree again.");
     }
 
+    /** The literal SNAPSHOT_CAVEAT held before it was rendered from a template. */
+    private static final String SNAPSHOT_CAVEAT_2026 =
+            "QS ranking data is a point-in-time snapshot of the 2026 published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
+
+    @Test
+    @DisplayName("the snapshot caveat for 2026 is the sentence the constant used to hold")
+    void snapshotCaveatRendersBackwardIdentically() {
+        assertEquals(SNAPSHOT_CAVEAT_2026, AnalyticsService.snapshotCaveat(List.of(2026)));
+        assertEquals(AnalyticsService.snapshotCaveat(AnalyticsService.DATASET_YEARS),
+                AnalyticsService.SNAPSHOT_CAVEAT);
+        assertEquals(AnalyticsService.SNAPSHOT_CAVEAT, AnalyticsService.STANDARD_CAVEATS.get(0));
+    }
+
+    @Test
+    @DisplayName("year lists render exactly as the explainability doc specifies")
+    void editionYearsRenderAsDocumented() throws IOException {
+        String contents = Files.readString(EXPLAINABILITY_DOC.toAbsolutePath().normalize(), StandardCharsets.UTF_8);
+        assertTrue(contents.contains(AnalyticsService.SNAPSHOT_CAVEAT_TEMPLATE),
+                "the doc no longer carries SNAPSHOT_CAVEAT_TEMPLATE verbatim");
+
+        String block = contents
+                .split("<!-- year-list-rendering:start -->", 2)[1]
+                .split("<!-- year-list-rendering:end -->", 2)[0];
+        int checked = 0;
+        for (String line : block.strip().split("\\R")) {
+            String[] cells = line.strip().replaceAll("^\\||\\|$", "").split("\\|");
+            if (cells.length != 2 || !Character.isDigit(cells[0].strip().charAt(0))) {
+                continue; // header and separator
+            }
+            List<Integer> editions = new ArrayList<>();
+            for (String year : cells[0].split(",")) {
+                editions.add(Integer.parseInt(year.strip()));
+            }
+            assertEquals(cells[1].strip(), AnalyticsService.formatEditionYears(editions),
+                    "rendering of " + editions);
+            checked++;
+        }
+        assertTrue(checked >= 3, "the rendering table lost its rows");
+    }
+
     @Test
     @DisplayName("the caveat is added only when the payload carries an estimate")
     void caveatIsConditional() {

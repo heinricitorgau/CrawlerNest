@@ -41,7 +41,7 @@ from crawlernest.core.caveats import (
     ESTIMATED_VALUE_CAVEAT,
     UNSUPPORTED_ESTIMATE_CAVEAT,
 )
-from crawlernest.core.dataset import DATASET_YEAR
+from crawlernest.core.dataset import DEFAULT_RANKING_YEAR
 from crawlernest.core.services.ml_service import (
     TARGET_DISAGREEMENT,
     TARGET_OVERALL_SCORE,
@@ -88,7 +88,7 @@ class MlTools:
         self,
         *,
         canonical_university_ids: tuple[int, ...] = (),
-        year: int = DATASET_YEAR,
+        year: int = DEFAULT_RANKING_YEAR,
         limit: int = 200,
     ) -> EstimateEvidence:
         """Estimated QS overall scores, disclosed as estimates."""
@@ -104,7 +104,7 @@ class MlTools:
         self,
         *,
         canonical_university_ids: tuple[int, ...] = (),
-        year: int = DATASET_YEAR,
+        year: int = DEFAULT_RANKING_YEAR,
         limit: int = 200,
     ) -> EstimateEvidence:
         """Cross-source disagreement probabilities, disclosed twice over.
@@ -129,7 +129,7 @@ class MlTools:
         self,
         items: list[dict[str, Any]],
         *,
-        year: int = DATASET_YEAR,
+        year: int = DEFAULT_RANKING_YEAR,
     ) -> EstimateEvidence:
         """Merge available estimates onto ranking rows, disclosing only what landed.
 

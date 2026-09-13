@@ -68,7 +68,7 @@ class TestResponseConstraints(unittest.TestCase):
         self.pb = WebPromptBuilder()
         self.pol = WebAgentPolicy()
 
-    def _con(self, task_kind, *, lookup=None, ranking=None, mode="hybrid", language="en", patches=None):
+    def _con(self, task_kind, *, lookup=None, ranking=None, mode="hybrid", language="en"):
         return self.pb._build_response_constraints(
             task_kind=task_kind,
             language=language,
@@ -76,7 +76,6 @@ class TestResponseConstraints(unittest.TestCase):
             lookup_intents=lookup or [],
             ranking_intents=ranking or [],
             generation_mode=mode,
-            prompt_patches=patches or [],
         )
 
     def test_ranking_additive_intents(self) -> None:
@@ -117,9 +116,11 @@ class TestResponseConstraints(unittest.TestCase):
             ],
         )
 
-    def test_recommendation_with_patches_zh(self) -> None:
+    def test_recommendation_zh(self) -> None:
+        # Formerly "with patches": self-generated "Prompt patch:" lines sat
+        # between the mode rule and the language rule. The rest is unchanged.
         self.assertEqual(
-            self._con("recommendation", mode="hybrid", language="zh", patches=["patch a", "patch b"]),
+            self._con("recommendation", mode="hybrid", language="zh"),
             [
                 "Prefer concise natural language over rigid templates.",
                 "Stay grounded in the retrieved context.",
@@ -128,8 +129,6 @@ class TestResponseConstraints(unittest.TestCase):
                 "Be explicit about uncertainty, tradeoffs, and missing evidence.",
                 "Write as a user-facing assistant, not as an engineering report.",
                 "Anchor the answer to the retrieved context whenever possible.",
-                "Prompt patch: patch a",
-                "Prompt patch: patch b",
                 "Keep the tone natural in Traditional Chinese.",
             ],
         )

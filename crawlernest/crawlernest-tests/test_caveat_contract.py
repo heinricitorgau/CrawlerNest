@@ -18,11 +18,18 @@ string and trusted on four others is how the four drifted.
 
 Matching is exact substring, not fuzzy. A caveat that has been reworded in one
 language is a different disclosure, which is the thing being guarded against.
+
+A year-bearing caveat is a template, so for it the contract is on the template,
+on the list of editions each language fills it from, and on the rule for joining
+that list -- which ANALYTICS_EXPLAINABILITY.md states as a table every renderer
+is tested against. What it renders for today's warehouse is pinned to the exact
+sentence the constant used to hold.
 """
 
 from __future__ import annotations
 
 
+import re
 import unittest
 from pathlib import Path
 
@@ -32,10 +39,13 @@ from crawlernest.core.caveats import (
     CAVEAT_THE_PARTIAL,
     DISAGREEMENT_ESTIMATE_CAVEAT,
     ESTIMATED_VALUE_CAVEAT,
+    SNAPSHOT_CAVEAT_TEMPLATE,
     STANDARD_CAVEATS,
     UNSUPPORTED_ESTIMATE_CAVEAT,
+    format_edition_years,
+    snapshot_caveat,
 )
-from crawlernest.core.dataset import DATASET_YEAR
+from crawlernest.core.dataset import DATASET_YEAR, DATASET_YEARS, DEFAULT_RANKING_YEAR
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -51,6 +61,41 @@ CAVEAT_MESSAGES_TS = (
 AGENT_SYSTEM_PROMPT_TS = (
     REPO_ROOT / "crawlernest" / "crawlernest-web" / "src" / "lib" / "agentSystemPrompt.ts"
 )
+DATASET_SCOPE_TS = (
+    REPO_ROOT / "crawlernest" / "crawlernest-web" / "src" / "lib" / "datasetScope.ts"
+)
+
+#: The sentence CAVEAT_QS_STALE held as a literal before it became a template.
+#: Rendering the template for the 2026-only warehouse must reproduce it byte for
+#: byte, in every language; a template refactor that changes what users read is
+#: not a refactor.
+SNAPSHOT_CAVEAT_2026 = (
+    "QS ranking data is a point-in-time snapshot of the 2026 published tables. "
+    "Figures may not reflect rankings republished since this snapshot was ingested."
+)
+
+#: Every caveat that is still a constant in all four places.
+CONSTANT_CAVEATS = (
+    CAVEAT_THE_PARTIAL,
+    CAVEAT_ARWU_PARTIAL,
+    ESTIMATED_VALUE_CAVEAT,
+    DISAGREEMENT_ESTIMATE_CAVEAT,
+    UNSUPPORTED_ESTIMATE_CAVEAT,
+)
+
+
+def documented_year_renderings(doc: str) -> list[tuple[tuple[int, ...], str]]:
+    """The ``(editions, rendered)`` rows between the year-list-rendering markers."""
+    block = doc.split("<!-- year-list-rendering:start -->", 1)[1].split(
+        "<!-- year-list-rendering:end -->", 1
+    )[0]
+    rows: list[tuple[tuple[int, ...], str]] = []
+    for line in block.strip().splitlines():
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != 2 or not cells[0][:1].isdigit():
+            continue  # header and separator
+        rows.append((tuple(int(y) for y in cells[0].split(",")), cells[1]))
+    return rows
 
 #: Live code paths only. `releases/` and `docs/demo/` describe the state of a
 #: packaged demo at a point in the past, and "RC-1 packaging" is the correct
@@ -81,14 +126,7 @@ def _read(path: Path) -> str:
 class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
     def test_java_carries_every_python_caveat_verbatim(self) -> None:
         java = _read(ANALYTICS_SERVICE)
-        for caveat in (
-            CAVEAT_QS_STALE,
-            CAVEAT_THE_PARTIAL,
-            CAVEAT_ARWU_PARTIAL,
-            ESTIMATED_VALUE_CAVEAT,
-            DISAGREEMENT_ESTIMATE_CAVEAT,
-            UNSUPPORTED_ESTIMATE_CAVEAT,
-        ):
+        for caveat in (*CONSTANT_CAVEATS, SNAPSHOT_CAVEAT_TEMPLATE):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(
                     caveat,
@@ -99,16 +137,59 @@ class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
 
     def test_frontend_carries_every_python_caveat_verbatim(self) -> None:
         typescript = _read(CAVEAT_MESSAGES_TS)
-        for caveat in (
-            CAVEAT_QS_STALE,
-            CAVEAT_THE_PARTIAL,
-            CAVEAT_ARWU_PARTIAL,
-            ESTIMATED_VALUE_CAVEAT,
-            DISAGREEMENT_ESTIMATE_CAVEAT,
-            UNSUPPORTED_ESTIMATE_CAVEAT,
-        ):
+        for caveat in (*CONSTANT_CAVEATS, SNAPSHOT_CAVEAT_TEMPLATE):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(caveat, typescript)
+
+    def test_no_copy_still_writes_the_snapshot_year_out_as_a_constant(self) -> None:
+        # The template is the only definition. A second, hand-rendered copy of
+        # the sentence would be the drift this refactor removes.
+        for path in (ANALYTICS_SERVICE, CAVEAT_MESSAGES_TS):
+            with self.subTest(path=path.name):
+                self.assertNotIn(SNAPSHOT_CAVEAT_2026, _read(path))
+
+    def test_dataset_years_agree_across_languages(self) -> None:
+        java = re.search(r"DATASET_YEARS\s*=\s*List\.of\(([^)]*)\)", _read(ANALYTICS_SERVICE))
+        typescript = re.search(
+            r"DATASET_YEARS\s*:\s*readonly number\[\]\s*=\s*\[([^\]]*)\]", _read(DATASET_SCOPE_TS)
+        )
+        self.assertIsNotNone(java, "AnalyticsService.DATASET_YEARS not found")
+        self.assertIsNotNone(typescript, "datasetScope.ts DATASET_YEARS not found")
+        for label, match in (("Java", java), ("TypeScript", typescript)):
+            with self.subTest(language=label):
+                years = tuple(int(y) for y in match.group(1).split(",") if y.strip())
+                self.assertEqual(DATASET_YEARS, years)
+
+
+class TestYearBearingCaveatTemplates(unittest.TestCase):
+    def test_2026_renders_the_sentence_the_constant_used_to_hold(self) -> None:
+        self.assertEqual(SNAPSHOT_CAVEAT_2026, snapshot_caveat((2026,)))
+
+    def test_todays_warehouse_renders_backward_identically(self) -> None:
+        if DATASET_YEARS == (2026,):
+            self.assertEqual(SNAPSHOT_CAVEAT_2026, CAVEAT_QS_STALE)
+        self.assertEqual(snapshot_caveat(DATASET_YEARS), CAVEAT_QS_STALE)
+
+    def test_the_doc_states_the_template_verbatim(self) -> None:
+        self.assertIn(SNAPSHOT_CAVEAT_TEMPLATE, _read(EXPLAINABILITY_DOC))
+
+    def test_year_lists_render_as_the_doc_specifies(self) -> None:
+        rows = documented_year_renderings(_read(EXPLAINABILITY_DOC))
+        self.assertGreaterEqual(len(rows), 3, "the rendering table lost its rows")
+        for editions, rendered in rows:
+            with self.subTest(editions=editions):
+                self.assertEqual(rendered, format_edition_years(editions))
+
+    def test_an_empty_edition_list_is_refused(self) -> None:
+        with self.assertRaises(ValueError):
+            format_edition_years(())
+
+    def test_dataset_years_are_well_formed(self) -> None:
+        self.assertTrue(DATASET_YEARS, "the warehouse must hold at least one edition")
+        self.assertEqual(len(set(DATASET_YEARS)), len(DATASET_YEARS))
+        self.assertEqual(tuple(sorted(DATASET_YEARS, reverse=True)), DATASET_YEARS, "newest first")
+        self.assertEqual(max(DATASET_YEARS), DEFAULT_RANKING_YEAR)
+        self.assertEqual(DEFAULT_RANKING_YEAR, DATASET_YEAR, "the compatibility alias drifted")
 
     def test_frontend_agent_system_prompt_carries_dataset_constraints(self) -> None:
         prompt = _read(AGENT_SYSTEM_PROMPT_TS)

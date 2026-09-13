@@ -86,6 +86,34 @@ goes back to being a constant.
 | Response carries an unsupported estimate | "Some estimates here fall outside the data the model was fitted on and are marked unsupported. The model has seen no comparable cases for them. That is a statement about the evidence behind the estimate, not a measurement of how wrong it is." |
 | Response carries a disagreement probability | "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against." |
 
+### Year-bearing caveats
+
+The snapshot row above names the editions the warehouse holds, and a year written
+into a constant is a disclosure with an expiry date — the same failure as the old
+"RC-1 packaging" age. It is therefore rendered from a template. Each language
+keeps exactly one copy of it, filled from its own list of held editions:
+`DATASET_YEARS` in `crawlernest/core/dataset.py`, `AnalyticsService.DATASET_YEARS`,
+and `DATASET_YEARS` in `crawlernest-web/src/lib/datasetScope.ts`.
+`test_caveat_contract.py` checks that the three lists and the three templates
+agree. The row in the table is what the template renders for the warehouse today.
+
+Template:
+
+`QS ranking data is a point-in-time snapshot of the {years} published tables. Figures may not reflect rankings republished since this snapshot was ingested.`
+
+`{years}` is the held editions in ascending order, without duplicates, joined as
+below. This table is the specification: the Python, Java and TypeScript renderers
+are each tested against these rows.
+
+<!-- year-list-rendering:start -->
+| Editions held | `{years}` |
+| --- | --- |
+| 2026 | 2026 |
+| 2025, 2026 | 2025 and 2026 |
+| 2026, 2025 | 2025 and 2026 |
+| 2024, 2025, 2026 | 2024, 2025 and 2026 |
+<!-- year-list-rendering:end -->
+
 ### Model estimates
 
 The modelling layer in `crawlernest/crawlernest-ml/` produces estimated values —

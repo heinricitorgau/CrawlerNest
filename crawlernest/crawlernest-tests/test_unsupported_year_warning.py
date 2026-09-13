@@ -122,17 +122,42 @@ class TestUnsupportedYearWarnings(unittest.TestCase):
         self.assertIn("2025", warnings[0])
         self.assertIn("2024", warnings[1])
 
+    def _with_editions(self, years: tuple[int, ...]):
+        original = (uy.DATASET_YEARS, uy.DEFAULT_RANKING_YEAR)
+        uy.DATASET_YEARS, uy.DEFAULT_RANKING_YEAR = years, max(years)
+        self.addCleanup(setattr, uy, "DATASET_YEARS", original[0])
+        self.addCleanup(setattr, uy, "DEFAULT_RANKING_YEAR", original[1])
+
     def test_warning_text_follows_the_dataset_year(self) -> None:
         # Re-pointing the warehouse at another year must not leave this naming
         # the old one.
-        original = uy.DATASET_YEAR
-        try:
-            uy.DATASET_YEAR = 2031
-            self.assertIn("2031", uy.build_unsupported_year_warning(2026))
-            self.assertEqual(uy.unsupported_year_warnings(context={"year": 2031}), [])
-            self.assertEqual(len(uy.unsupported_year_warnings(context={"year": 2026})), 1)
-        finally:
-            uy.DATASET_YEAR = original
+        self._with_editions((2031,))
+        self.assertIn("2031", uy.build_unsupported_year_warning(2026))
+        self.assertEqual(uy.unsupported_year_warnings(context={"year": 2031}), [])
+        self.assertEqual(len(uy.unsupported_year_warnings(context={"year": 2026})), 1)
+
+    def test_single_edition_text_is_unchanged(self) -> None:
+        self._with_editions((2026,))
+        self.assertEqual(
+            uy.build_unsupported_year_warning(2025),
+            "UnsupportedYearWarning: Dataset is strictly locked to the 2026 snapshot. Year 2025 "
+            "is not available. This is not missing or incomplete data: the warehouse holds a "
+            "single-year 2026 snapshot and no rows for any other year, so any result shown here "
+            "describes 2026 rather than 2025.",
+        )
+
+    def test_a_held_edition_is_not_warned_about_once_there_are_two(self) -> None:
+        # The bug a `year != DEFAULT_RANKING_YEAR` check would ship: after a 2025
+        # ingest it would tell a user the 2025 rows in front of them do not exist.
+        self._with_editions((2026, 2025))
+        self.assertEqual(uy.unsupported_year_warnings(context={"year": 2025}), [])
+        self.assertEqual(uy.unsupported_year_warnings(user_input="QS 2025 rankings"), [])
+
+        warning = uy.unsupported_year_warnings(context={"year": 2024})
+        self.assertEqual(len(warning), 1)
+        self.assertTrue(warning[0].startswith(uy.UNSUPPORTED_YEAR_WARNING_CODE))
+        self.assertIn("2025 and 2026", warning[0])
+        self.assertNotIn("single-year", warning[0])
 
 
 class _StubRankingTools:

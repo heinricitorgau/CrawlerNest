@@ -26,7 +26,11 @@ from crawlernest.agent.web_agent.generation.dataset_context import (
     DATASET_CONSTRAINTS,
     DATASET_SOURCES,
     DATASET_YEAR,
+    DATASET_YEARS,
+    DEFAULT_RANKING_YEAR,
     build_dataset_header,
+    dataset_constraints,
+    evidence_scope,
 )
 from crawlernest.agent.web_agent.generation.models import (
     GenerationResult,
@@ -92,6 +96,8 @@ class TestDatasetDeclaration(unittest.TestCase):
         from crawlernest.core import dataset as core_dataset
 
         self.assertIs(DATASET_YEAR, core_dataset.DATASET_YEAR)
+        self.assertIs(DATASET_YEARS, core_dataset.DATASET_YEARS)
+        self.assertIs(DEFAULT_RANKING_YEAR, core_dataset.DEFAULT_RANKING_YEAR)
         self.assertIs(DATASET_SOURCES, core_dataset.DATASET_SOURCES)
 
     def test_core_does_not_import_the_agent_layer(self) -> None:
@@ -118,18 +124,127 @@ class TestDatasetDeclaration(unittest.TestCase):
         # describing a year the warehouse no longer holds.
         import crawlernest.agent.web_agent.generation.dataset_context as ctx
 
-        original = ctx.DATASET_YEAR
+        original = ctx.DATASET_YEARS
         try:
-            ctx.DATASET_YEAR = 2031
+            ctx.DATASET_YEARS = (2031,)
             self.assertIn("2031", ctx.build_dataset_header())
         finally:
-            ctx.DATASET_YEAR = original
+            ctx.DATASET_YEARS = original
 
     def test_constraints_forbid_other_years_and_trend_wording(self) -> None:
         joined = " ".join(DATASET_CONSTRAINTS)
         self.assertIn(str(DATASET_YEAR), joined)
         for phrase in ("currently", "latest", "year after year"):
             self.assertIn(phrase, joined)
+
+
+#: The header and rules as they were written out when they were constants. With
+#: today's evidence -- 2026 rows, no rank-change field, one edition loaded --
+#: deriving them from the evidence must reproduce these byte for byte.
+GOLDEN_HEADER_2026 = (
+    "Dataset year: the warehouse holds 2026 ranking data and no other year.\n"
+    "Ingested sources: QS, THE, ARWU, with partial coverage. A university missing a rank "
+    "from one of them is missing it here; that is not the source declining to rank it.\n"
+    "This is a single-year snapshot. Inferring any cross-year trend, movement, "
+    "improvement or decline from it is forbidden."
+)
+GOLDEN_CONSTRAINTS_2026 = (
+    "Name no year other than 2026. No other year exists in this data, so any other year "
+    "label -- an earlier edition, a later intake -- would be invented.",
+    'Do not write "currently", "latest", "most recent", "up to date", "year after year", '
+    '"has risen", "has improved", "held its position", or any other wording that implies '
+    "time passing or a trend. One snapshot cannot show movement.",
+)
+
+
+def _moved(direction: str, *, prior: int = 2025, current: int = 2026) -> dict:
+    return {
+        "universityName": "National Taiwan University",
+        "rankingYear": current,
+        "rankDelta": {
+            "source": "QS",
+            "priorYear": prior,
+            "currentYear": current,
+            "direction": direction,
+        },
+    }
+
+
+class TestConstraintsFollowTheEvidence(unittest.TestCase):
+    """The rules are computed from the rows, not from how many editions exist."""
+
+    def _with_editions(self, years: tuple[int, ...]) -> None:
+        import crawlernest.agent.web_agent.generation.dataset_context as ctx
+
+        original = ctx.DATASET_YEARS
+        ctx.DATASET_YEARS = years
+        self.addCleanup(setattr, ctx, "DATASET_YEARS", original)
+
+    def test_todays_evidence_renders_the_constants_byte_for_byte(self) -> None:
+        if DATASET_YEARS != (2026,):
+            self.skipTest("golden text describes the 2026-only warehouse")
+        self.assertEqual(GOLDEN_HEADER_2026, build_dataset_header())
+        self.assertEqual(GOLDEN_HEADER_2026, build_dataset_header(_ITEMS))
+        self.assertEqual(GOLDEN_CONSTRAINTS_2026, DATASET_CONSTRAINTS)
+        self.assertEqual(GOLDEN_CONSTRAINTS_2026, dataset_constraints(_ITEMS))
+
+    def test_loading_a_second_edition_does_not_unlock_trend_wording(self) -> None:
+        # The flag-driven version of this refactor would relax the rules here.
+        # These rows compare nothing, so nothing is relaxed.
+        self._with_editions((2026, 2025))
+        header = build_dataset_header(_ITEMS)
+        year_rule, movement_rule = dataset_constraints(_ITEMS)
+
+        self.assertIn("2025 and 2026", header.split("\n")[0])
+        self.assertIn("forbidden", header.split("\n")[2])
+        self.assertIn("has improved", movement_rule)
+        self.assertIn("cannot show movement", movement_rule)
+        self.assertNotIn("single-year", header + movement_rule)
+        # The rows are all 2026, so 2025 is not a year these rows let it name.
+        self.assertTrue(year_rule.startswith("Name no year other than 2026. "))
+        self.assertIn("appears in this evidence", year_rule)
+
+    def test_a_determinate_rank_change_allows_movement_in_its_direction_only(self) -> None:
+        self._with_editions((2026, 2025))
+        rows = [_moved("up"), *_ITEMS]
+        year_rule, movement_rule = dataset_constraints(rows)
+
+        self.assertIn("only in the", movement_rule)
+        self.assertIn("direction it gives", movement_rule)
+        self.assertIn('never say a university "improved" or "declined"', movement_rule)
+        self.assertIn('"latest"', movement_rule)
+        self.assertIn("2025 and 2026", year_rule, "the compared edition is in the evidence")
+        self.assertIn("rank-change field", build_dataset_header(rows).split("\n")[2])
+
+    def test_an_indeterminate_or_withheld_change_shows_no_movement(self) -> None:
+        self._with_editions((2026, 2025))
+        for rows in (
+            [_moved("indeterminate")],
+            [{**_moved("up"), "rankDelta": {"source": "QS", "direction": None}}],
+            [{**_ITEMS[0], "rank_delta": 3}],  # a composite integer delta is not the field
+        ):
+            with self.subTest(rows=rows[0].get("rankDelta", rows[0].get("rank_delta"))):
+                self.assertFalse(evidence_scope(rows).shows_movement)
+                self.assertIn("cannot show movement", dataset_constraints(rows)[1])
+
+    def test_per_source_changes_may_arrive_as_a_list(self) -> None:
+        row = {"rankingYear": 2026, "rankDelta": [{"direction": "indeterminate"}, {"direction": "down"}]}
+        self.assertTrue(evidence_scope([row]).shows_movement)
+
+    def test_rows_without_years_fall_back_to_the_held_editions(self) -> None:
+        scope = evidence_scope([{"universityName": "No Year University"}])
+        self.assertEqual(DATASET_YEARS, scope.years)
+        self.assertFalse(scope.years_from_evidence)
+
+    def test_explainers_pass_their_rows_through(self) -> None:
+        self._with_editions((2026, 2025))
+        gen = CapturingGenerator()
+        RankingExplainer(generator=gen, verify=False).explain(  # type: ignore[arg-type]
+            items=[_moved("down"), *_ITEMS]
+        )
+        assert gen.prompt is not None
+        self.assertIn(dataset_constraints([_moved("down"), *_ITEMS])[1], gen.prompt.response_constraints)
+        self.assertEqual(gen.prompt.system_constraints, list(dataset_constraints([_moved("down"), *_ITEMS])))
 
 
 class TestExplainersCarryTheDeclaration(unittest.TestCase):
@@ -203,7 +318,7 @@ class TestQueryDefaultsAgreeWithTheDataset(unittest.TestCase):
     def test_ranking_tools_default_matches_the_dataset_year(self) -> None:
         import crawlernest.agent.tools.ranking_tools as ranking_tools
 
-        self.assertIs(ranking_tools.DATASET_YEAR, DATASET_YEAR)
+        self.assertIs(ranking_tools.DEFAULT_RANKING_YEAR, DEFAULT_RANKING_YEAR)
 
 
 class TestTemporalGoldenCases(unittest.TestCase):

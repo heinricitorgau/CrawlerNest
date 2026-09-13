@@ -4,8 +4,8 @@ import re
 from typing import TYPE_CHECKING
 
 from crawlernest.agent.web_agent.generation.dataset_context import (
-    DATASET_CONSTRAINTS,
     build_dataset_header,
+    dataset_constraints,
 )
 from crawlernest.agent.web_agent.generation.intent_detection import (
     detect_lookup_intents,
@@ -152,8 +152,13 @@ class WebPromptBuilder:
         policy: WebAgentPolicy,
         generation_mode: str = "hybrid",
         conversation_history: list[ConversationTurn] | None = None,
-        prompt_patches: list[str] | None = None,
     ) -> PromptPayload:
+        # Every instruction below is written in this file or derived from the
+        # request and its evidence. Nothing is read from a store the agent
+        # writes to itself: the prompt-patch and behavior-hint loops that used
+        # to append self-generated instructions here were unversioned files
+        # under /tmp, and a prompt that rewrites itself between requests cannot
+        # be reviewed, reproduced or held to the honesty contract.
         effective_original_input = original_input or user_input
         language = self._detect_language(effective_original_input)
         lookup_intents = self._detect_lookup_intents(user_input) if retrieved.task_kind == "university_lookup" else []
@@ -172,7 +177,6 @@ class WebPromptBuilder:
             lookup_intents=lookup_intents,
             ranking_intents=ranking_intents,
             generation_mode=generation_mode,
-            prompt_patches=prompt_patches or [],
         )
 
         context_parts: list[str] = self._build_context_parts(
@@ -182,7 +186,6 @@ class WebPromptBuilder:
             rewritten_query=rewritten_query,
             resolved_reference=resolved_reference,
             generation_mode=generation_mode,
-            prompt_patches=prompt_patches or [],
         )
 
         context_block = "\n".join(context_parts).strip()
@@ -209,14 +212,18 @@ class WebPromptBuilder:
         # both safe and unconditional there. The rules themselves are still
         # stated twice -- response_constraints is a separate list and is not
         # subject to that budget.
+        #
+        # Derived from the retrieved records, like GroundedExplainer derives them
+        # from its items -- not from how many editions the warehouse holds.
+        rules = dataset_constraints(retrieved.records)
         return PromptPayload(
             system_instruction=system_instruction,
             user_message=effective_original_input,
             context_block=context_block,
-            response_constraints=[*response_constraints, *DATASET_CONSTRAINTS],
+            response_constraints=[*response_constraints, *rules],
             conversation_turns=conversation_turns,
-            system_context=build_dataset_header(),
-            system_constraints=[*DATASET_CONSTRAINTS],
+            system_context=build_dataset_header(retrieved.records),
+            system_constraints=[*rules],
         )
 
     def _detect_language(self, user_input: str) -> str:
@@ -262,7 +269,6 @@ class WebPromptBuilder:
         lookup_intents: list[str],
         ranking_intents: list[str],
         generation_mode: str,
-        prompt_patches: list[str],
     ) -> list[str]:
         constraints = [
             "Prefer concise natural language over rigid templates.",
@@ -288,9 +294,6 @@ class WebPromptBuilder:
         elif generation_mode == "llm":
             constraints.append("Do not present speculation as confirmed fact when retrieval support is weak.")
 
-        if prompt_patches:
-            constraints.extend(f"Prompt patch: {patch}" for patch in prompt_patches[:4])
-
         if language == "zh":
             constraints.append("Keep the tone natural in Traditional Chinese.")
 
@@ -305,7 +308,6 @@ class WebPromptBuilder:
         rewritten_query: str | None,
         resolved_reference: dict | None,
         generation_mode: str,
-        prompt_patches: list[str],
     ) -> list[str]:
         context_parts: list[str] = []
         context_parts.append(f"Original user question: {self._sanitize_context_text(original_input)}")
@@ -352,12 +354,6 @@ class WebPromptBuilder:
                 if content:
                     suffix = f" (confidence={confidence:.2f})" if isinstance(confidence, (int, float)) else ""
                     context_parts.append(f"- {self._sanitize_context_text(str(content))}{suffix}")
-        if retrieved.strategy_hints:
-            context_parts.append("Behavior strategy hints:")
-            context_parts.extend(f"- {self._sanitize_context_text(str(hint))}" for hint in retrieved.strategy_hints[:4])
-        if prompt_patches:
-            context_parts.append("Prompt optimization patches:")
-            context_parts.extend(f"- {self._sanitize_context_text(str(patch))}" for patch in prompt_patches[:4])
         if generation_mode == "llm" and retrieved.summary_facts:
             context_parts.append("Minimal retrieval hints:")
             context_parts.extend(
