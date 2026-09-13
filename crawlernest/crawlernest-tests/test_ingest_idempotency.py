@@ -189,6 +189,37 @@ class TestIngestIsIdempotent(unittest.TestCase):
         self.assertEqual(self._record_count(), 1,
                          "the university missing from the second payload kept its record")
 
+    def test_every_record_names_the_mapping_it_came_from(self):
+        """source_mapping_id was NULL on every row the pipeline ever wrote."""
+        self._ingest(
+            [(FIXTURE_UNIVERSITIES[0][1], 1), (FIXTURE_UNIVERSITIES[1][1], 2)], "idem-a"
+        )
+        # A second run takes the ON CONFLICT path, which must keep the link too.
+        self._ingest(
+            [(FIXTURE_UNIVERSITIES[0][1], 3), (FIXTURE_UNIVERSITIES[1][1], 4)], "idem-b"
+        )
+
+        with self.conn.cursor() as cur:
+            cur.execute(
+                "SELECT rr.source_mapping_id, m.source_entity_id,"
+                "       m.canonical_university_id = rr.canonical_university_id"
+                " FROM warehouse.ranking_record rr"
+                " LEFT JOIN warehouse.source_university_mapping m"
+                "   ON m.source_mapping_id = rr.source_mapping_id"
+                " WHERE rr.ranking_year = %s ORDER BY rr.rank_position",
+                (ISOLATED_YEAR,),
+            )
+            rows = cur.fetchall()
+        self.assertEqual(2, len(rows))
+        for mapping_id, entity_id, same_university in rows:
+            self.assertIsNotNone(mapping_id, "the writer left source_mapping_id NULL")
+            self.assertTrue(same_university, "linked to a mapping that credits someone else")
+        self.assertEqual(
+            [_record(display, 0)["id"] for _, display in FIXTURE_UNIVERSITIES],
+            [entity_id for _, entity_id, _ in rows],
+            "each record must name its own entity's mapping, in rank order",
+        )
+
     def test_a_rank_change_is_applied(self):
         """The check that the prune has not simply deleted everything."""
         self._ingest([(FIXTURE_UNIVERSITIES[0][1], 1)], "idem-a")

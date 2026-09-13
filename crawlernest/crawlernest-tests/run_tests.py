@@ -61,6 +61,9 @@ def run_all_tests():
         # Plans the rewrite of human decisions onto ARWU's year-free ids. A bad
         # plan orphans decisions nobody can regenerate, so it runs in CI.
         "test_rekey_arwu_source_ids",
+        # Needs PostgreSQL; skips itself unless CRAWLERNEST_RUN_PG_TESTS=1. The
+        # rule that links ranking_record rows to the mapping that produced them.
+        "test_mapping_provenance",
         # Mirrors a backfill in crawlernest-schema/admission_postgresql.sql;
         # unregistered, a drift between the two would go unnoticed.
         "test_admission_source_identity",
