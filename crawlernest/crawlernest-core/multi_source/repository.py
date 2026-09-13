@@ -278,6 +278,17 @@ class MultiSourceRepository:
         source_id_map: dict[str, int],
         run_id: str | None = None,
     ) -> int:
+        """
+        Write one ranking fact per university, source, year and universe.
+
+        source_mapping_id is looked up from the entity this row came from, so it
+        has to run after upsert_source_university_mappings in the same ingest --
+        which ingest_records guarantees. It is matched on the university as well
+        as the entity: if the two disagree, NULL is the honest answer, not a link
+        to a mapping that credits someone else. It is also overwritten on
+        conflict, because when two entities resolve to one university the row
+        now holds the later one's rank and must name the later one's mapping.
+        """
         params: list[tuple[Any, ...]] = []
         for row in unified_rows:
             if row.canonical_university_id is None:
@@ -289,6 +300,9 @@ class MultiSourceRepository:
                 (
                     row.canonical_university_id,
                     ranking_source_id,
+                    ranking_source_id,
+                    row.source_entity_id,
+                    row.canonical_university_id,
                     row.year,
                     row.ranking_type,
                     getattr(row, "universe_type", "global"),
@@ -309,6 +323,7 @@ class MultiSourceRepository:
                 INSERT INTO warehouse.ranking_record (
                     canonical_university_id,
                     ranking_source_id,
+                    source_mapping_id,
                     ranking_year,
                     ranking_type,
                     universe_type,
@@ -320,9 +335,20 @@ class MultiSourceRepository:
                     metadata,
                     updated_at,
                     run_id
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, CURRENT_TIMESTAMP, %s)
+                ) VALUES (
+                    %s, %s,
+                    (
+                        SELECT m.source_mapping_id
+                        FROM warehouse.source_university_mapping m
+                        WHERE m.ranking_source_id = %s
+                          AND m.source_entity_id = %s
+                          AND m.canonical_university_id = %s
+                    ),
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, CURRENT_TIMESTAMP, %s
+                )
                 ON CONFLICT (canonical_university_id, ranking_source_id, ranking_year, ranking_type, universe_type, universe_key)
                 DO UPDATE SET
+                    source_mapping_id = EXCLUDED.source_mapping_id,
                     universe_type = EXCLUDED.universe_type,
                     universe_key = EXCLUDED.universe_key,
                     rank_position = EXCLUDED.rank_position,
