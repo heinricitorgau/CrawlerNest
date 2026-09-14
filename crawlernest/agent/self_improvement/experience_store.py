@@ -1,12 +1,39 @@
 from __future__ import annotations
 
 import json
-import os
 import threading
 import time
 import uuid
-from pathlib import Path
 from typing import Any
+
+from crawlernest.agent.persistence.factory import json_store_path
+from crawlernest.agent.persistence.json_files import write_json_atomically
+
+
+def build_experience(
+    *,
+    engine: str,
+    task_kind: str,
+    task: str,
+    status: str,
+    final_score: float,
+    tools_used: list[str],
+    steps: list[dict[str, Any]] | None,
+    metadata: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """One experience record. Shared with the PostgreSQL store."""
+    return {
+        "id": str(uuid.uuid4()),
+        "timestamp": time.time(),
+        "engine": engine,
+        "task_kind": task_kind,
+        "task": task,
+        "status": status,
+        "final_score": max(0.0, min(1.0, float(final_score))),
+        "tools_used": [str(tool) for tool in tools_used if str(tool).strip()],
+        "steps": list(steps or []),
+        "metadata": dict(metadata or {}),
+    }
 
 
 class ExperienceStore:
@@ -16,11 +43,7 @@ class ExperienceStore:
         path: str | None = None,
         max_entries: int = 2000,
     ) -> None:
-        self._path = Path(
-            path
-            or os.environ.get("CRAWLERNEST_EXPERIENCE_STORE_PATH")
-            or "/tmp/crawlernest_agent_experiences.json"
-        )
+        self._path = json_store_path(path, "CRAWLERNEST_EXPERIENCE_STORE_PATH", "experiences.json")
         self._max_entries = max_entries
         self._lock = threading.Lock()
         self._entries: list[dict[str, Any]] = []
@@ -38,18 +61,16 @@ class ExperienceStore:
         steps: list[dict[str, Any]] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        entry = {
-            "id": str(uuid.uuid4()),
-            "timestamp": time.time(),
-            "engine": engine,
-            "task_kind": task_kind,
-            "task": task,
-            "status": status,
-            "final_score": max(0.0, min(1.0, float(final_score))),
-            "tools_used": [str(tool) for tool in tools_used if str(tool).strip()],
-            "steps": list(steps or []),
-            "metadata": dict(metadata or {}),
-        }
+        entry = build_experience(
+            engine=engine,
+            task_kind=task_kind,
+            task=task,
+            status=status,
+            final_score=final_score,
+            tools_used=tools_used,
+            steps=steps,
+            metadata=metadata,
+        )
         with self._lock:
             self._entries.append(entry)
             if len(self._entries) > self._max_entries:
@@ -97,9 +118,4 @@ class ExperienceStore:
             self._entries = [dict(item) for item in entries if isinstance(item, dict)]
 
     def _persist(self) -> None:
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {"entries": self._entries}
-        self._path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        write_json_atomically(self._path, {"entries": self._entries})

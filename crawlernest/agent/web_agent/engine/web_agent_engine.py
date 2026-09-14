@@ -4,6 +4,7 @@ import dataclasses
 
 from crawlernest.agent.memory_long_term.memory_retriever import LongTermMemoryRetriever
 from crawlernest.agent.memory_long_term.memory_writer import LongTermMemoryWriter
+from crawlernest.agent.persistence.factory import conversation_store as build_conversation_store
 from crawlernest.agent.shared.models.task_request import TaskRequest
 from crawlernest.agent.shared.models.task_response import TaskResponse
 from crawlernest.agent.shared.planner.shared_planner import SharedPlanner
@@ -81,7 +82,7 @@ class WebAgentEngine:
         self._ranking_explainer = RankingExplainer(generator=self._generator)
         self._university_lookup_explainer = UniversityLookupExplainer(generator=self._generator)
         self._data_query_explainer = DataQueryExplainer(generator=self._generator)
-        self._memory = memory_store or ConversationStore()
+        self._memory = memory_store or build_conversation_store()
         self._memory_policy = memory_policy or MemoryPolicy()
         self._referential_resolver = referential_resolver or ReferentialResolver()
         self._query_rewriter = query_rewriter or QueryRewriter()

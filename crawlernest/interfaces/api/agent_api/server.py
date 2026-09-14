@@ -1,25 +1,30 @@
 from __future__ import annotations
 
+"""Agent API entry point and the helpers its routes share.
+
+    python -m crawlernest.interfaces.api.agent_api --host 127.0.0.1 --port 8090
+
+The routes live in :mod:`.app`, an ASGI application served by Uvicorn. This
+module parses the command line, applies the production settings, and refuses a
+configuration that would serve wrong answers (see :func:`check_worker_config`).
+"""
+
 import argparse
-import json
 import logging
 import os
 import re
 import sys
-from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
-from crawlernest.agent.web_agent.generation.response_generator import (
-    WebResponseGenerator,
-    generation_stats,
-)
+from crawlernest.agent.web_agent.generation.response_generator import generation_stats
 from crawlernest.agent.web_agent.generation.verification import verification_stats
 
-from .handler import AgentApiHandler
+APP_FACTORY = "crawlernest.interfaces.api.agent_api.app:create_app"
+WORKERS_ENV = "CRAWLERNEST_AGENT_API_WORKERS"
 
 
-_MAX_REQUEST_BYTES = int(os.environ.get("CRAWLERNEST_AGENT_API_MAX_REQUEST_BYTES", "131072"))
+def max_request_bytes() -> int:
+    return int(os.environ.get("CRAWLERNEST_AGENT_API_MAX_REQUEST_BYTES", "131072"))
 
 
 def configure_logging(stream: Any = None, level: str | None = None) -> None:
@@ -33,11 +38,14 @@ def configure_logging(stream: Any = None, level: str | None = None) -> None:
 
     Unit tests could not have caught it. ``assertLogs`` attaches its own handler,
     so it passes whether or not the process has one.
+
+    Uvicorn's own loggers are left unconfigured (``log_config=None``) and
+    propagate here, so server and application lines share one format.
     """
     logging.basicConfig(
         stream=stream if stream is not None else sys.stdout,
         level=(level or os.getenv("CRAWLERNEST_AGENT_API_LOG_LEVEL", "INFO")).upper(),
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        format="%(asctime)s %(levelname)s [pid %(process)d] %(name)s: %(message)s",
         force=True,
     )
 
@@ -96,6 +104,13 @@ def _rate(numerator: int, denominator: int) -> float | None:
     return round(numerator / denominator, 4) if denominator else None
 
 
+def configured_workers() -> int:
+    try:
+        return max(1, int(os.environ.get(WORKERS_ENV, "1")))
+    except ValueError:
+        return 1
+
+
 def build_stats_payload() -> dict[str, Any]:
     """Generation and verification counters, plus the rates worth watching.
 
@@ -122,6 +137,13 @@ def build_stats_payload() -> dict[str, Any]:
         "rules_flag_rate and provenance_flag_rate can both apply to one explanation, so "
         "they may sum to more than mechanical_rejection_rate.",
     ]
+    workers = configured_workers()
+    if workers > 1:
+        caveats.append(
+            f"The agent API runs {workers} worker processes and this response came from one "
+            "of them, so these counters cover only the requests that worker served. Two "
+            "requests to this route can return different numbers."
+        )
     if consulted == 0:
         caveats.append(
             "The judge has not been consulted. Either it is not configured "
@@ -147,191 +169,108 @@ def build_stats_payload() -> dict[str, Any]:
             "judge_flag_rate": _rate(verification["judge_flagged"], consulted),
             "judge_no_opinion_rate": _rate(verification["judge_no_opinion"], consulted),
         },
+        "process": {"pid": os.getpid(), "workers": workers},
         "caveats": caveats,
     }
 
 
-class _RequestHandler(BaseHTTPRequestHandler):
-    api_handler = AgentApiHandler()
-    response_generator = WebResponseGenerator()
-
-    def do_GET(self) -> None:  # noqa: N802
-        if self.path == "/health":
-            self._write_json(
-                HTTPStatus.OK,
-                {
-                    "success": True,
-                    "status": "ok",
-                    "generation": self.response_generator.inspect_provider_status(),
-                },
-            )
-            return
-
-        if self.path == "/api/v1/agent/stats":
-            self._write_json(HTTPStatus.OK, build_stats_payload())
-            return
-
-        self._write_json(
-            HTTPStatus.NOT_FOUND,
-            {"success": False, "error": "route not found"},
-        )
-
-    def do_POST(self) -> None:  # noqa: N802
-        # /explain is a separate route rather than a task kind on purpose: it
-        # must not reach the planner, the tools, or the warehouse. It only turns
-        # rows the caller already has into prose.
-        if self.path not in {"/api/v1/agent/tasks", "/api/v1/agent/explain"}:
-            self._write_json(
-                HTTPStatus.NOT_FOUND,
-                {"success": False, "error": "route not found"},
-            )
-            return
-
-        content_length = int(self.headers.get("Content-Length", "0"))
-        if content_length > _MAX_REQUEST_BYTES:
-            self._write_json(
-                HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
-                {
-                    "success": False,
-                    "error": "request body too large",
-                    "limit_bytes": _MAX_REQUEST_BYTES,
-                },
-            )
-            return
-        raw_body = self.rfile.read(content_length)
-        if len(raw_body) > _MAX_REQUEST_BYTES:
-            self._write_json(
-                HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
-                {
-                    "success": False,
-                    "error": "request body too large",
-                    "limit_bytes": _MAX_REQUEST_BYTES,
-                },
-            )
-            return
-
-        try:
-            payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
-        except json.JSONDecodeError:
-            self._write_json(
-                HTTPStatus.BAD_REQUEST,
-                {"success": False, "error": "invalid JSON body"},
-            )
-            return
-
-        if self.path == "/api/v1/agent/explain":
-            if self._wants_event_stream():
-                self._write_explain_stream(payload)
-                return
-            status_code, response = self.api_handler.handle_explain(payload)
-        else:
-            status_code, response = self.api_handler.handle_task(payload)
-        self._write_json(HTTPStatus(status_code), response)
-
-    def _wants_event_stream(self) -> bool:
-        return "text/event-stream" in (self.headers.get("Accept") or "").lower()
-
-    def _write_explain_stream(self, payload: dict[str, Any]) -> None:
-        """Stream the explanation as ``text/event-stream``.
-
-        What is streamed is the *verified* text, not the model's tokens as they
-        arrive. That is the whole design, and it is not a shortcut:
-        ``verify_explanation`` runs after generation and, when it returns
-        USE_FALLBACK, replaces the model's answer with the deterministic one --
-        that is the check that catches a fabricated figure or a dropped caveat.
-        Forwarding deltas live would put the rejected text on the reader's
-        screen before the check that rejects it had run, and no later frame can
-        unread it.
-
-        So the cost is honest and worth naming: this buys no time-to-first-token.
-        The model still has to finish and be checked before the first delta goes
-        out. What it buys is the typewriter rendering, a live channel that shows
-        the request is progressing, and a terminal frame carrying source,
-        warning and model name in one place.
-
-        Deltas are only emitted for model-written text. When the answer is the
-        deterministic fallback the stream carries the terminal frame alone,
-        which matches what the page already does with a JSON fallback response:
-        it renders nothing.
-        """
-        status_code, response = self.api_handler.handle_explain(payload)
-        data = response.get("data") or {}
-
-        self.send_response(HTTPStatus.OK.value)
-        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-        self.send_header("Connection", "close")
-        # Proxies that buffer a response defeat the point of sending one in
-        # pieces; nginx honours this and it is inert everywhere else.
-        self.send_header("X-Accel-Buffering", "no")
-        self.end_headers()
-
-        # Sent before the body so the reader can distinguish "connected, working"
-        # from "connected, hung". The generation itself already happened above,
-        # so this is the first thing the socket carries either way.
-        self._write_sse_frame({"type": "status", "phase": "generating"})
-
-        if response.get("success") and data.get("source") == "llm":
-            for chunk in _split_for_stream(str(data.get("explanation") or "")):
-                self._write_sse_frame({"type": "delta", "text": chunk})
-
-        self._write_sse_frame(
-            {
-                "type": "done",
-                "statusCode": status_code,
-                "success": bool(response.get("success")),
-                "taskKind": data.get("taskKind"),
-                "source": data.get("source"),
-                "modelName": data.get("modelName"),
-                "warning": data.get("warning"),
-                "paragraphs": data.get("paragraphs") or [],
-                "explanation": data.get("explanation"),
-            }
-        )
-        self._write_sse_frame("[DONE]")
-
-    def _write_sse_frame(self, payload: dict[str, Any] | str) -> None:
-        body = payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False)
-        try:
-            self.wfile.write(f"data: {body}\n\n".encode("utf-8"))
-            self.wfile.flush()
-        except (BrokenPipeError, ConnectionResetError):
-            # The reader navigated away mid-stream. Nothing to recover and
-            # nothing worth logging: an abandoned explanation is routine.
-            pass
-
-    def log_message(self, format: str, *args: Any) -> None:  # noqa: A003
-        return
-
-    def _write_json(self, status: HTTPStatus, payload: dict[str, Any]) -> None:
-        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        self.send_response(status.value)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.end_headers()
-        self.wfile.write(body)
-
-
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="CrawlerNest agent API server")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8090)
+    env = os.environ.get
+    parser = argparse.ArgumentParser(description="CrawlerNest agent API server (Uvicorn)")
+    parser.add_argument("--host", default=env("CRAWLERNEST_AGENT_API_HOST", "127.0.0.1"))
+    parser.add_argument("--port", type=int, default=int(env("CRAWLERNEST_AGENT_API_PORT", "8090")))
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=configured_workers(),
+        help="worker processes; more than 1 requires CRAWLERNEST_AGENT_STORE_BACKEND=postgres",
+    )
+    parser.add_argument(
+        "--limit-concurrency",
+        type=int,
+        default=int(env("CRAWLERNEST_AGENT_API_LIMIT_CONCURRENCY", "64")),
+        help="per worker; beyond it Uvicorn answers 503 instead of queueing without bound",
+    )
+    parser.add_argument(
+        "--timeout-keep-alive", type=int, default=int(env("CRAWLERNEST_AGENT_API_KEEP_ALIVE_SECONDS", "5"))
+    )
+    parser.add_argument(
+        "--graceful-timeout",
+        type=int,
+        default=int(env("CRAWLERNEST_AGENT_API_GRACEFUL_TIMEOUT_SECONDS", "30")),
+        help="seconds in-flight requests get to finish on shutdown",
+    )
+    parser.add_argument(
+        "--forwarded-allow-ips",
+        default=env("CRAWLERNEST_AGENT_API_FORWARDED_ALLOW_IPS", "127.0.0.1"),
+        help="proxies trusted for X-Forwarded-For/Proto; the Next.js proxy runs on this host",
+    )
+    parser.add_argument("--access-log", action="store_true", default=env("CRAWLERNEST_AGENT_API_ACCESS_LOG") == "1")
     return parser
 
 
-def main() -> int:
+def check_worker_config(workers: int, backend: str) -> str | None:
+    """Why this worker count cannot run on this store backend, or None.
+
+    With the JSON backend each worker holds its own conversation history and its
+    own copy of every JSON file, rewriting the whole file on each change. More
+    than one worker then answers a follow-up without the question before it,
+    and silently loses whichever worker's write lands first.
+    """
+    if workers > 1 and backend != "postgres":
+        return (
+            f"--workers {workers} needs CRAWLERNEST_AGENT_STORE_BACKEND=postgres. With the "
+            f"{backend} backend every worker keeps its own conversation history and rewrites "
+            "the JSON stores whole, so follow-ups lose context and concurrent writes are lost."
+        )
+    return None
+
+
+def main(argv: list[str] | None = None) -> int:
+    import uvicorn
+
+    from crawlernest.agent.persistence.factory import AgentStoreConfigError, database_url, store_backend
+
     parser = build_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     configure_logging()
-    server = ThreadingHTTPServer((args.host, args.port), _RequestHandler)
-    print(f"[agent-api] listening on http://{args.host}:{args.port}")
     try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        server.server_close()
+        backend = store_backend()
+        if backend == "postgres":
+            database_url()
+    except AgentStoreConfigError as exc:
+        parser.error(str(exc))
+    problem = check_worker_config(args.workers, backend)
+    if problem:
+        parser.error(problem)
+
+    # Children inherit the environment; the stats route reads it to disclose
+    # that its counters describe one worker of several.
+    os.environ[WORKERS_ENV] = str(args.workers)
+
+    logging.getLogger("crawlernest.agent_api").info(
+        "starting on http://%s:%s with %s worker(s), state backend %s",
+        args.host,
+        args.port,
+        args.workers,
+        backend,
+    )
+    uvicorn.run(
+        APP_FACTORY,
+        factory=True,
+        host=args.host,
+        port=args.port,
+        workers=args.workers,
+        limit_concurrency=args.limit_concurrency,
+        timeout_keep_alive=args.timeout_keep_alive,
+        timeout_graceful_shutdown=args.graceful_timeout,
+        proxy_headers=True,
+        forwarded_allow_ips=args.forwarded_allow_ips,
+        server_header=False,
+        access_log=args.access_log,
+        log_config=None,
+    )
     return 0
 
 

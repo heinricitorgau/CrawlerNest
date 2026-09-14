@@ -1,14 +1,35 @@
 from __future__ import annotations
 
 import json
-import os
 import threading
 import time
 import uuid
-from pathlib import Path
 
 from crawlernest.agent.memory_long_term.memory_index import MemoryIndex
 from crawlernest.agent.memory_long_term.memory_types import MemoryEntry
+from crawlernest.agent.persistence.factory import json_store_path
+from crawlernest.agent.persistence.json_files import write_json_atomically
+
+#: A memory's decay_score reaches 1.0 -- no weight at all -- after this many days.
+DECAY_HORIZON_DAYS = 90.0
+
+
+def decay_score_for(timestamp: float, now: float) -> float:
+    age_days = max(0.0, (now - timestamp) / 86400.0)
+    return max(0.0, min(1.0, age_days / DECAY_HORIZON_DAYS))
+
+
+def rank_memories(entries: list[MemoryEntry], limit: int) -> list[MemoryEntry]:
+    """Most useful first: importance discounted by age, then recency."""
+    ordered = sorted(
+        entries,
+        key=lambda entry: (
+            entry.importance * (1.0 - entry.decay_score),
+            float(entry.metadata.get("timestamp", 0.0)),
+        ),
+        reverse=True,
+    )
+    return ordered[:limit]
 
 
 class LongTermMemoryStore:
@@ -18,11 +39,7 @@ class LongTermMemoryStore:
         path: str | None = None,
         max_entries_per_user: int = 200,
     ) -> None:
-        self._path = Path(
-            path
-            or os.environ.get("CRAWLERNEST_LONG_TERM_MEMORY_PATH")
-            or "/tmp/crawlernest_long_term_memory.json"
-        )
+        self._path = json_store_path(path, "CRAWLERNEST_LONG_TERM_MEMORY_PATH", "long_term_memory.json")
         self._max_entries_per_user = max_entries_per_user
         self._lock = threading.Lock()
         self._entries: dict[str, MemoryEntry] = {}
@@ -86,14 +103,7 @@ class LongTermMemoryStore:
             if not candidate_ids and user_id:
                 candidate_ids = self._index.lookup(user_id=user_id, types=types)
             candidates = [self._entries[entry_id] for entry_id in candidate_ids if entry_id in self._entries]
-            candidates.sort(
-                key=lambda entry: (
-                    entry.importance * (1.0 - entry.decay_score),
-                    float(entry.metadata.get("timestamp", 0.0)),
-                ),
-                reverse=True,
-            )
-            return [self._clone_entry(entry) for entry in candidates[:limit]]
+            return [self._clone_entry(entry) for entry in rank_memories(candidates, limit)]
 
     def decay(self) -> None:
         with self._lock:
@@ -117,9 +127,7 @@ class LongTermMemoryStore:
     def _refresh_decay_locked(self) -> None:
         now = time.time()
         for entry in self._entries.values():
-            timestamp = float(entry.metadata.get("timestamp", now))
-            age_days = max(0.0, (now - timestamp) / 86400.0)
-            entry.decay_score = max(0.0, min(1.0, age_days / 90.0))
+            entry.decay_score = decay_score_for(float(entry.metadata.get("timestamp", now)), now)
 
     def _load(self) -> None:
         if not self._path.exists():
@@ -147,7 +155,6 @@ class LongTermMemoryStore:
         self._rebuild_index()
 
     def _persist(self) -> None:
-        self._path.parent.mkdir(parents=True, exist_ok=True)
         payload = {
             "entries": [
                 {
@@ -161,7 +168,7 @@ class LongTermMemoryStore:
                 for entry in self._entries.values()
             ]
         }
-        self._path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        write_json_atomically(self._path, payload)
 
     def _rebuild_index(self) -> None:
         self._index.rebuild(list(self._entries.values()))

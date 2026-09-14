@@ -13,6 +13,7 @@ from crawlernest.agent.dev_agent.repo.file_resolver import FileResolver
 from crawlernest.agent.dev_agent.repo.patch_builder import PatchBuilder
 from crawlernest.agent.dev_agent.repo.repo_indexer import RepoIndexer
 from crawlernest.agent.meta.meta_controller import MetaController
+from crawlernest.agent.persistence import factory as stores
 from crawlernest.agent.self_rewrite.patch_executor import PatchExecutor
 from crawlernest.agent.self_rewrite.patch_generator import PatchGenerator
 from crawlernest.agent.self_rewrite.patch_store import PatchStore
@@ -55,15 +56,15 @@ class DevAgentEngine:
         self._file_resolver = file_resolver or FileResolver()
         self._patch_builder = patch_builder or PatchBuilder()
         self._change_summary = change_summary or ChangeSummaryBuilder()
-        self._experience_store = experience_store or ExperienceStore()
-        self._strategy_store = strategy_store or StrategyStore()
+        self._experience_store = experience_store or stores.experience_store()
+        self._strategy_store = strategy_store or stores.strategy_store()
         self._performance_tracker = performance_tracker or PerformanceTracker()
         self._improvement_engine = improvement_engine or ImprovementEngine()
         self._meta_controller = meta_controller or MetaController(strategy_store=self._strategy_store)
         self._patch_generator = patch_generator or PatchGenerator(patch_builder=self._patch_builder)
         self._patch_validator = patch_validator or PatchValidator()
         self._patch_executor = patch_executor or PatchExecutor()
-        self._patch_store = patch_store or PatchStore()
+        self._patch_store = patch_store or stores.patch_store()
         self._loop_controller = loop_controller or LoopController(
             task_graph=TaskGraphBuilder(),
             step_executor=StepExecutor(

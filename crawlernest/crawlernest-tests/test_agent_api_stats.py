@@ -10,20 +10,26 @@ from __future__ import annotations
 import io
 import json
 import logging
-import threading
+import os
+import sys
 import unittest
 import urllib.error
 import urllib.request
-from http.server import ThreadingHTTPServer
+from pathlib import Path
+from unittest import mock
 
-from crawlernest.agent.web_agent.generation.judge import JudgeVerdict, LlmJudge
-from crawlernest.agent.web_agent.generation.verification import (
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from agent_api_live_server import LiveAgentApi  # noqa: E402
+from crawlernest.agent.web_agent.generation.judge import JudgeVerdict, LlmJudge  # noqa: E402
+from crawlernest.agent.web_agent.generation.verification import (  # noqa: E402
     reset_judge_health,
     reset_verification_stats,
     verify_explanation,
 )
-from crawlernest.interfaces.api.agent_api.server import (
-    _RequestHandler,
+from crawlernest.interfaces.api.agent_api.app import create_app  # noqa: E402
+from crawlernest.interfaces.api.agent_api.server import (  # noqa: E402
+    WORKERS_ENV,
     build_stats_payload,
     configure_logging,
 )
@@ -100,6 +106,15 @@ class TestStatsPayload(unittest.TestCase):
             any("process-local" in c for c in build_stats_payload()["caveats"])
         )
 
+    def test_several_workers_are_disclosed(self):
+        """With N workers a reader gets one worker's counters and must be told so."""
+        with mock.patch.dict(os.environ, {WORKERS_ENV: "1"}):
+            self.assertFalse(any("worker processes" in c for c in build_stats_payload()["caveats"]))
+        with mock.patch.dict(os.environ, {WORKERS_ENV: "4"}):
+            payload = build_stats_payload()
+        self.assertTrue(any("runs 4 worker processes" in c for c in payload["caveats"]))
+        self.assertEqual(4, payload["process"]["workers"])
+
 
 class TestLoggingReachesStdout(unittest.TestCase):
     """Which stream, and at which level -- not merely that a record was emitted.
@@ -165,15 +180,13 @@ class TestStatsRoute(unittest.TestCase):
 
     def setUp(self) -> None:
         reset_verification_stats()
-        self.server = ThreadingHTTPServer(("127.0.0.1", 0), _RequestHandler)
-        self.port = self.server.server_address[1]
-        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
-        self.thread.start()
+        app = create_app(api_handler=object(), response_generator=object(), configure_process_logging=False)
+        self.server = LiveAgentApi(app)
+        self.server.start()
+        self.port = self.server.port
 
     def tearDown(self) -> None:
-        self.server.shutdown()
-        self.server.server_close()
-        self.thread.join(timeout=5)
+        self.server.stop()
 
     def _get(self, path: str):
         with urllib.request.urlopen(f"http://127.0.0.1:{self.port}{path}", timeout=5) as response:
