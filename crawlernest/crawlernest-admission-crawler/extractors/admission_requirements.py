@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import sys
+from datetime import datetime
 from pathlib import Path
 
 _CRAWLER_DIR = Path(__file__).resolve().parent.parent
 if str(_CRAWLER_DIR) not in sys.path:
     sys.path.insert(0, str(_CRAWLER_DIR))
 
-from models import AdmissionRecord
+from models import FETCH_UNKNOWN, AdmissionRecord
 from observability import compute_extraction_summary
 
 
@@ -23,6 +24,8 @@ def build_admission_record(
     crawl_status: str = "success",
     flagged_fields: list[str] | None = None,
     input_truncated: bool = False,
+    fetched_at: datetime | None = None,
+    fetch_mode: str = FETCH_UNKNOWN,
 ) -> AdmissionRecord:
     """Create an :class:`AdmissionRecord` and attach an :class:`ExtractionSummary`.
 
@@ -33,6 +36,8 @@ def build_admission_record(
         requirements: Free-form key→value map of extracted requirements.
         notes: Optional free-text notes from the crawler.
         crawl_status: The outcome of the HTTP fetch (default ``"success"``).
+        fetched_at: When a live fetch read the page, in UTC.
+        fetch_mode: ``live``, ``snapshot`` or ``unknown``.
 
     Returns:
         A fully populated :class:`AdmissionRecord` with an attached
@@ -54,4 +59,6 @@ def build_admission_record(
         notes=notes,
         crawl_status=crawl_status,
         extraction_summary=summary,
+        fetched_at=fetched_at,
+        fetch_mode=fetch_mode,
     )

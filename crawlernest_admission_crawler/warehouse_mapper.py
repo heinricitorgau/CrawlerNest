@@ -55,6 +55,13 @@ def load_staging_rows_from_postgres(
     )
     try:
         with conn.cursor() as cur:
+            fetch_columns = (
+                "fetched_at, fetch_mode"
+                if _has_fetch_columns(cur, table_name)
+                # A staging table no ingest has touched since the crawler began
+                # recording fetches: none of its rows had one recorded.
+                else f"NULL::timestamptz AS fetched_at, '{FETCH_UNKNOWN}' AS fetch_mode"
+            )
             cur.execute(
                 f"""
                 SELECT
@@ -69,7 +76,8 @@ def load_staging_rows_from_postgres(
                     gpa_requirement,
                     application_deadline,
                     degree_level,
-                    raw_payload
+                    raw_payload,
+                    {fetch_columns}
                 FROM {table_name}
                 ORDER BY normalized_university_name ASC, source_url ASC
                 """
@@ -92,9 +100,24 @@ def load_staging_rows_from_postgres(
             "application_deadline": row[9].isoformat() if hasattr(row[9], "isoformat") else row[9],
             "degree_level": row[10],
             "raw_payload": row[11],
+            "fetched_at": row[12].isoformat() if row[12] is not None else None,
+            "fetch_mode": row[13],
         }
         for row in result_rows
     ]
+
+
+def _has_fetch_columns(cur: Any, table_name: str) -> bool:
+    cur.execute(
+        """
+        SELECT COUNT(*) FROM information_schema.columns
+        WHERE table_name = %s
+          AND table_schema = COALESCE(%s, current_schema())
+          AND column_name IN ('fetched_at', 'fetch_mode')
+        """,
+        (table_name.rsplit(".", 1)[-1], table_name.rsplit(".", 1)[0] if "." in table_name else None),
+    )
+    return int(cur.fetchone()[0]) == 2
 
 
 def requirement_scope_for(
@@ -163,14 +186,23 @@ def map_staging_rows_to_warehouse_rows(rows: list[dict[str, Any]]) -> list[Wareh
                 ),
                 intake_year=intake_year,
                 intake_year_basis=intake_year_basis_for(intake_year, row.get("intake_year_basis")),
-                fetched_at=_optional_datetime(row.get("fetched_at")),
-                fetch_mode=_fetch_mode_for(row),
+                fetched_at=fetched_at_for(row),
+                fetch_mode=fetch_mode_for(row),
             )
         )
     return mapped_rows
 
 
-def _fetch_mode_for(row: dict[str, Any]) -> str:
+def fetched_at_for(row: dict[str, Any]) -> datetime | None:
+    fetched_at = _optional_datetime(row.get("fetched_at"))
+    if fetched_at is not None and fetched_at.utcoffset() is None:
+        # The jsonl and preview paths skip validator.py; TIMESTAMPTZ would read
+        # this in the session's zone and shift the caveat's fetch date.
+        raise ValueError(f"fetched_at {row.get('fetched_at')!r} has no timezone")
+    return fetched_at
+
+
+def fetch_mode_for(row: dict[str, Any]) -> str:
     mode = _choice(row.get("fetch_mode"), allowed=FETCH_MODES, default=FETCH_UNKNOWN, field_name="fetch_mode")
     if mode == FETCH_LIVE and row.get("fetched_at") in (None, ""):
         raise ValueError("fetch_mode 'live' needs fetched_at: a live fetch always has a time")

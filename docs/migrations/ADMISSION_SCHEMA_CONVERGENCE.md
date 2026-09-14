@@ -484,9 +484,38 @@ university detail (`admissionRequirements.caveats`), the preview
 `metadata.admission_caveats` (staleness only).
 
 Every row today renders the **undated** template, naming the 2026-08-22
-extraction date: the crawler records no fetch time, and snapshot runs extract
-from HTML fetched earlier. Recording `fetched_at` in the crawler is what turns it
-into "fetched on".
+extraction date: those eight rows came from a crawl that recorded no fetch time.
+
+### Fetch provenance from the crawler
+
+The crawler now records it. `UniversityAdmissionCrawler._fetch` stamps
+`fetched_at` (UTC, after the body is read) and `fetch_mode='live'` on a live
+fetch; the bridge, `normalize.py`, the staging JSONL, both staging tables and
+`load_staging_rows_from_postgres` carry the pair to `warehouse_mapper`, which
+already wrote it. So a live crawl lands rows that render "fetched on".
+
+- **A snapshot read is `fetch_mode='snapshot'` with `fetched_at` NULL.** Nobody
+  recorded when the checked-in HTML was captured; the file's mtime is a git
+  checkout and "now" is when it was opened. Snapshot rows keep the undated
+  template. `extracted_at` is never used as a fallback.
+- **A failed fetch claims no fetch** (`unknown`, NULL). It never becomes a row
+  anyway.
+- **Naive timestamps are refused** by the bridge, `validator.py`
+  (`fetched_at_missing_timezone`), the mapper and the preview loader:
+  TIMESTAMPTZ would read one in the session's zone (+08 on the dev database) and
+  can shift the caveat's date by a day. A live row with no time is refused at
+  each of those layers too, before `ck_admission_record_fetch` would.
+- **Older staging tables** get the two columns on the next ingest
+  (`ADD COLUMN IF NOT EXISTS`, SQLite via `PRAGMA table_info`); until then the
+  PostgreSQL loader reads them as NULL / `unknown`.
+- Pinned by `test_admission_fetch_provenance.py`.
+
+**The staging table still freezes.** `writer._ingest_to_postgres` inserts with
+`ON CONFLICT (source_url, degree_level) DO NOTHING` -- the trap below, one layer
+up. Re-crawling a page already in `public.admission_staging_records` skips it,
+so its new requirements *and* its new `fetched_at` never reach the postgres
+staging path. The JSONL path (`write-admission-warehouse-preview --input-source
+jsonl`) upserts the warehouse directly and is unaffected.
 
 ---
 

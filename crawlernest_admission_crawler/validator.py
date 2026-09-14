@@ -6,7 +6,12 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from crawlernest_admission_crawler.models import DEGREE_LEVELS, UNKNOWN_DEGREE_LEVEL
+from crawlernest_admission_crawler.models import (
+    DEGREE_LEVELS,
+    FETCH_LIVE,
+    FETCH_MODES,
+    UNKNOWN_DEGREE_LEVEL,
+)
 from crawlernest_admission_crawler.source_identity import admission_source_entity_id
 
 REQUIRED_FIELDS = (
@@ -141,6 +146,8 @@ def validate_admission_staging_rows(staging_file: Path) -> AdmissionStagingValid
                     except ValueError:
                         row_errors.append("invalid_application_deadline_isoformat")
 
+            row_errors.extend(_fetch_errors(payload))
+
             if row_errors:
                 invalid_row_count += 1
                 _maybe_add_sample(error_samples, line_number, row_errors, payload)
@@ -177,6 +184,37 @@ def validate_admission_staging_rows(staging_file: Path) -> AdmissionStagingValid
 
 def summary_to_dict(summary: AdmissionStagingValidationSummary) -> dict[str, Any]:
     return asdict(summary)
+
+
+def _fetch_errors(payload: dict[str, Any]) -> list[str]:
+    """Fetch provenance, checked at the staging gate.
+
+    ck_admission_record_fetch would refuse a live row with no time, but only at
+    the very end, with no line number. A naive timestamp it would accept, and
+    TIMESTAMPTZ would read it in the session's zone -- so the fetch date the
+    stale-data caveat prints could be off by a day with nothing failing.
+    """
+    errors: list[str] = []
+    fetch_mode = payload.get("fetch_mode")
+    if fetch_mode is not None and fetch_mode not in FETCH_MODES:
+        errors.append("invalid_fetch_mode")
+
+    fetched_at = payload.get("fetched_at")
+    if fetched_at is not None:
+        parsed = None
+        if isinstance(fetched_at, str) and fetched_at.strip():
+            try:
+                parsed = datetime.fromisoformat(fetched_at)
+            except ValueError:
+                pass
+        if parsed is None:
+            errors.append("invalid_fetched_at_isoformat")
+        elif parsed.utcoffset() is None:
+            errors.append("fetched_at_missing_timezone")
+
+    if fetch_mode == FETCH_LIVE and fetched_at is None:
+        errors.append("live_fetch_missing_fetched_at")
+    return errors
 
 
 def _maybe_add_sample(

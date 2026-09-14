@@ -150,6 +150,10 @@ def run_all_tests():
         # Readers through v_admission_requirement_*, fixture copies of the views,
         # and the admission caveats; the rule itself is PostgreSQL-only.
         "test_admission_readers",
+        # The crawler's fetch time and mode, through the bridge, staging and the
+        # mapper, so the stale-data caveat can say "fetched on"; staging and
+        # landing against PostgreSQL are opt-in.
+        "test_admission_fetch_provenance",
         # Cross-year rank movement, settled before a second year is ingested:
         # withheld for today's single-year dataset, intervals for banded ranks,
         # and no delta across a change of source identity.

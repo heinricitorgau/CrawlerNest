@@ -46,6 +46,8 @@ def normalize_admission_records(records: Iterable[AdmissionRecord]) -> list[Norm
                     _prefer(record.degree_level, record.raw_payload, "degree_level")
                 ),
                 raw_payload=record.raw_payload,
+                fetched_at=record.fetched_at,
+                fetch_mode=record.fetch_mode,
             )
         )
     return normalized_rows
