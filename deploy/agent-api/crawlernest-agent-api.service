@@ -1,0 +1,29 @@
+# The agent API under Uvicorn, as a systemd user service.
+#
+# %h is the user's home. Settings, including the database URL, come from
+# ~/.config/crawlernest/agent-api.env (template: agent-api.env.example beside
+# this file). The password is not in that file: libpq reads ~/.pgpass.
+[Unit]
+Description=CrawlerNest agent API (Uvicorn)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+EnvironmentFile=%h/.config/crawlernest/agent-api.env
+WorkingDirectory=%h
+ExecStart=/bin/sh -c 'cd "$CRAWLERNEST_REPO" && exec "$CRAWLERNEST_PYTHON" -m crawlernest.interfaces.api.agent_api'
+# Uvicorn stops accepting on SIGTERM and gives in-flight requests
+# CRAWLERNEST_AGENT_API_GRACEFUL_TIMEOUT_SECONDS to finish; systemd waits longer.
+KillSignal=SIGTERM
+TimeoutStopSec=45
+Restart=on-failure
+RestartSec=5
+# A missing schema or database URL fails at start-up; do not spin on it.
+StartLimitIntervalSec=120
+StartLimitBurst=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

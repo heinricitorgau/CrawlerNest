@@ -205,6 +205,10 @@ npm run dev
 
 # Frontend with mock agent provider
 AGENT_MODEL_PROVIDER=mock npm run dev
+
+# Agent API (Uvicorn, port 8090). State goes to ~/.local/state/crawlernest/agent;
+# see deploy/agent-api/README.md for workers and the PostgreSQL backend.
+PYTHONPATH=. ./.venv/bin/python -m crawlernest.interfaces.api.agent_api
 ```
 
 For Ollama / OpenAI agent setup, see [Agent Model Integration](agent/AGENT_MODEL_INTEGRATION.md).

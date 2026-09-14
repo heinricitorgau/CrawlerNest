@@ -135,6 +135,14 @@ def run_all_tests():
         # The two opt-in constraints the chat route's data pass runs on: no
         # engine-side prose, and no silent handoff to the dev agent.
         "test_two_pass_constraints",
+        # The agent API under Uvicorn: transport limits, error shapes, worker
+        # guard, store factory. The stats and SSE route tests ran only in
+        # agent-tests.yml until the server moved to ASGI.
+        "test_agent_api_asgi",
+        "test_agent_api_stats",
+        "test_agent_api_sse_stream",
+        # PostgreSQL agent_state stores; skip unless CRAWLERNEST_RUN_PG_TESTS=1.
+        "test_agent_state_pg",
         # Cross-year rank movement, settled before a second year is ingested:
         # withheld for today's single-year dataset, intervals for banded ranks,
         # and no delta across a change of source identity.

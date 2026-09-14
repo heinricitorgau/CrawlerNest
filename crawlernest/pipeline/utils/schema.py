@@ -112,6 +112,8 @@ def ensure_postgres_schema(
         MODULE_ROOT / "crawlernest-schema" / "admission_postgresql.sql",
         MODULE_ROOT / "crawlernest-schema" / "recommendation_postgresql.sql",
         MODULE_ROOT / "crawlernest-schema" / "ml_postgresql.sql",
+        # Agent API runtime state; references nothing above.
+        MODULE_ROOT / "crawlernest-schema" / "agent_state_postgresql.sql",
     ]
     try:
         with conn.cursor() as cur:

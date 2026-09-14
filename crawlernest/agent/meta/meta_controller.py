@@ -4,6 +4,7 @@ from typing import Any
 
 from crawlernest.agent.meta.policy_manager import PolicyManager
 from crawlernest.agent.meta.tool_strategy_optimizer import ToolStrategyOptimizer
+from crawlernest.agent.persistence.factory import strategy_store as build_strategy_store
 from crawlernest.agent.self_improvement.strategy_store import StrategyStore
 
 
@@ -23,7 +24,7 @@ class MetaController:
         policy_manager: PolicyManager | None = None,
         tool_strategy_optimizer: ToolStrategyOptimizer | None = None,
     ) -> None:
-        self._strategy_store = strategy_store or StrategyStore()
+        self._strategy_store = strategy_store or build_strategy_store()
         self._policy_manager = policy_manager or PolicyManager()
         self._tool_optimizer = tool_strategy_optimizer or ToolStrategyOptimizer()
 

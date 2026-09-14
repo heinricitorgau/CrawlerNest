@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from crawlernest.agent.memory_long_term.memory_store import LongTermMemoryStore
+from crawlernest.agent.persistence.factory import long_term_memory_store
 
 _IELTS_RE = re.compile(r"(?:ielts|雅思)\s*[:=]?\s*([0-9](?:\.[0-9])?)", re.IGNORECASE)
 _TOEFL_RE = re.compile(r"(?:toefl)\s*[:=]?\s*([0-9]{2,3})", re.IGNORECASE)
@@ -16,7 +17,7 @@ _COUNTRY_PATTERNS = {
 
 class LongTermMemoryWriter:
     def __init__(self, store: LongTermMemoryStore | None = None) -> None:
-        self._store = store or LongTermMemoryStore()
+        self._store = store or long_term_memory_store()
 
     def write_from_interaction(
         self,

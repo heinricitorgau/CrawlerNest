@@ -16,13 +16,17 @@ pass on an implementation that streamed the rejected text.
 from __future__ import annotations
 
 import json
-import threading
+import sys
 import unittest
 import urllib.request
-from http.server import ThreadingHTTPServer
+from pathlib import Path
 from unittest import mock
 
-from crawlernest.interfaces.api.agent_api.server import _RequestHandler, _split_for_stream
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from agent_api_live_server import LiveAgentApi  # noqa: E402
+from crawlernest.interfaces.api.agent_api.app import create_app  # noqa: E402
+from crawlernest.interfaces.api.agent_api.server import _split_for_stream  # noqa: E402
 
 _ITEMS = [
     {
@@ -85,16 +89,35 @@ class TestSplitForStream(unittest.TestCase):
         self.assertEqual(_split_for_stream(""), [])
 
 
+class _StubApiHandler:
+    """Stands in for AgentApiHandler; each test patches handle_explain."""
+
+    def handle_explain(self, payload):  # pragma: no cover - always patched
+        raise AssertionError("handle_explain was not patched")
+
+    def handle_task(self, payload):  # pragma: no cover
+        raise AssertionError("handle_task was not patched")
+
+
+class _StubGenerator:
+    def inspect_provider_status(self):
+        return {"configured": False}
+
+
 class _StreamTestCase(unittest.TestCase):
     def setUp(self) -> None:
-        self.server = ThreadingHTTPServer(("127.0.0.1", 0), _RequestHandler)
-        self.port = self.server.server_address[1]
-        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
-        self.thread.start()
+        self.api_handler = _StubApiHandler()
+        app = create_app(
+            api_handler=self.api_handler,
+            response_generator=_StubGenerator(),
+            configure_process_logging=False,
+        )
+        self.server = LiveAgentApi(app)
+        self.server.start()
+        self.port = self.server.port
 
     def tearDown(self) -> None:
-        self.server.shutdown()
-        self.server.server_close()
+        self.server.stop()
 
     def _post(self, *, accept: str) -> tuple[str, list]:
         request = urllib.request.Request(
@@ -126,7 +149,7 @@ class _StreamTestCase(unittest.TestCase):
 class TestExplainStreamsWhenAsked(_StreamTestCase):
     def test_accept_header_selects_the_event_stream(self) -> None:
         with mock.patch.object(
-            _RequestHandler.api_handler, "handle_explain", _explain_response(source="llm")
+            self.api_handler, "handle_explain", _explain_response(source="llm")
         ):
             content_type, raw = self._post(accept="text/event-stream")
 
@@ -137,7 +160,7 @@ class TestExplainStreamsWhenAsked(_StreamTestCase):
 
     def test_deltas_rejoin_to_the_verified_explanation(self) -> None:
         with mock.patch.object(
-            _RequestHandler.api_handler, "handle_explain", _explain_response(source="llm")
+            self.api_handler, "handle_explain", _explain_response(source="llm")
         ):
             _, raw = self._post(accept="text/event-stream")
 
@@ -149,7 +172,7 @@ class TestExplainStreamsWhenAsked(_StreamTestCase):
 
     def test_done_frame_carries_the_metadata_the_page_needs(self) -> None:
         with mock.patch.object(
-            _RequestHandler.api_handler,
+            self.api_handler,
             "handle_explain",
             _explain_response(source="llm", warning="Judge flagged one clause."),
         ):
@@ -170,7 +193,7 @@ class TestExplainStreamsWhenAsked(_StreamTestCase):
         # The deterministic reply is not model prose and the page does not show
         # it. Streaming it would put text on screen that the JSON route hides.
         with mock.patch.object(
-            _RequestHandler.api_handler,
+            self.api_handler,
             "handle_explain",
             _explain_response(source="fallback", warning="Generation failed."),
         ):
@@ -188,7 +211,7 @@ class TestExplainStreamsWhenAsked(_StreamTestCase):
 class TestJsonRouteIsUnchanged(_StreamTestCase):
     def test_without_the_accept_header_the_route_still_answers_json(self) -> None:
         with mock.patch.object(
-            _RequestHandler.api_handler, "handle_explain", _explain_response(source="llm")
+            self.api_handler, "handle_explain", _explain_response(source="llm")
         ):
             content_type, raw = self._post(accept="application/json")
 
@@ -200,7 +223,7 @@ class TestJsonRouteIsUnchanged(_StreamTestCase):
         # The property the whole design rests on: one verified answer, two ways
         # of reading it. If these can differ, one of them is unverified.
         with mock.patch.object(
-            _RequestHandler.api_handler, "handle_explain", _explain_response(source="llm")
+            self.api_handler, "handle_explain", _explain_response(source="llm")
         ):
             _, json_raw = self._post(accept="application/json")
             _, sse_raw = self._post(accept="text/event-stream")

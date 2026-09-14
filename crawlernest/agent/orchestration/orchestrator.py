@@ -4,6 +4,7 @@ import re
 import time
 
 from crawlernest.agent.orchestration.handoff_types import DevHandoff, RoutingDecision
+from crawlernest.agent.persistence.factory import conversation_store as build_conversation_store
 from crawlernest.agent.shared.models.task_request import TaskRequest
 from crawlernest.agent.shared.models.task_response import TaskResponse
 from crawlernest.agent.shared.validation.request_validator import RequestValidator
@@ -26,7 +27,7 @@ class Orchestrator:
         self._web_engine = web_engine
         self._dev_engine = dev_engine
         self._validator = validator or RequestValidator()
-        self._memory = memory_store or ConversationStore()
+        self._memory = memory_store or build_conversation_store()
         self._resolver = referential_resolver or ReferentialResolver()
         self._rewriter = query_rewriter or QueryRewriter()
 

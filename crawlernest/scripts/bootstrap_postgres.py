@@ -27,6 +27,8 @@ SCHEMA_ORDER = [
     # Before recommendation: its view reads warehouse.admission_record.
     SCHEMA_DIR / "admission_postgresql.sql",
     SCHEMA_DIR / "recommendation_postgresql.sql",
+    # Agent API runtime state; references nothing above.
+    SCHEMA_DIR / "agent_state_postgresql.sql",
 ]
 
 

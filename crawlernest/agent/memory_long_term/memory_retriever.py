@@ -4,6 +4,7 @@ import re
 
 from crawlernest.agent.memory_long_term.memory_store import LongTermMemoryStore
 from crawlernest.agent.memory_long_term.memory_types import RetrievedMemory, RetrievedMemoryEntry
+from crawlernest.agent.persistence.factory import long_term_memory_store
 from crawlernest.agent.web_agent.memory.memory_policy import _extract_entity_tokens
 
 _PREFERENCE_RE = re.compile(r"\b(recommend|推薦|recommendation|ielts|toefl|risk|country|uk|英國|united kingdom)\b", re.IGNORECASE)
@@ -11,7 +12,7 @@ _PREFERENCE_RE = re.compile(r"\b(recommend|推薦|recommendation|ielts|toefl|ris
 
 class LongTermMemoryRetriever:
     def __init__(self, store: LongTermMemoryStore | None = None) -> None:
-        self._store = store or LongTermMemoryStore()
+        self._store = store or long_term_memory_store()
 
     def retrieve(
         self,
