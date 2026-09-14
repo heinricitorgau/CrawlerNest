@@ -4,8 +4,9 @@ The write path is exercised end to end by the ml-serving CI job against a
 throwaway PostgreSQL. These cover the one piece that job cannot reach: the
 collapse of several snapshot rows onto one canonical university.
 
-That collapse is what real entity resolution produces -- the warehouse holds
-1,499 canonical universities for 1,503 snapshot rows -- but the CI database is
+That collapse is what real entity resolution produces -- it merges variant
+spellings, so snapshot rows and canonical universities are not one-to-one --
+but the CI database is
 seeded one row per distinct name, so nothing there merges. Without these tests
 the guard would be code nobody runs until a real warehouse breaks the insert.
 """

@@ -13,14 +13,15 @@ function [X, y, info] = build_cross_source_data(options)
 %   training run needs, including THE's five pillar scores in INFO.theFeatures
 %   -- the two-sided ceiling model is fitted from [X INFO.theFeatures].
 %
-%   INFO.qsIndex holds the row each match came from in the full 1,503-row QS
+%   INFO.qsIndex holds the row each match came from in the full 1,504-row QS
 %   matrix, so a caller can separate the matched universities from the rest
 %   without re-deriving the join or matching on names.
 %
 %   ## The join
 %
-%   Matching on a normalised name (letters only, lowercased) recovers 820 of the
-%   1,503 QS universities. The warehouse reaches 1,080 for the same two
+%   On the QS 2026 edition, matching on a normalised name (letters only,
+%   lowercased) recovers 842 of the 1,504 QS universities. The warehouse
+%   pairing reaches 1,109 for the same two
 %   snapshots, because its entity resolver is seeded with reviewed aliases and
 %   because a human went through the ambiguous cases. That decision is committed
 %   to qs_the_pairing_2026.json and is read here rather than re-derived, so

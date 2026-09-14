@@ -5,7 +5,7 @@ cannot cover. That module compares a committed artifact against a fresh Python
 run, and this port has no committed artifact: its output is gitignored, because
 a per-university probability table is a result to look at rather than a number
 to hold still. Its Python counterpart is no help either --
-``ranking_ml.serving.predict_disagreement`` scores all 1,503 QS universities
+``ranking_ml.serving.predict_disagreement`` scores all 1,504 QS universities
 into PostgreSQL, while the port scores only the ones THE has not ranked, into a
 CSV. Different contracts on purpose, so there is nothing to diff.
 

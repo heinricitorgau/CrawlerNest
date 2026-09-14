@@ -1,8 +1,8 @@
 """Per-prediction support: is this row inside the region the model was trained on?
 
-The EDA established that the 903 universities whose score QS withholds are not
-drawn from the same population as the 600 it publishes -- every indicator shifts
-by 0.67 to 1.91 pooled standard deviations. A model trained on the labelled rows
+The EDA established that the 799 universities whose score QS withholds are not
+drawn from the same population as the 705 it publishes -- every indicator shifts
+by 0.55 to 1.78 pooled standard deviations. A model trained on the labelled rows
 therefore extrapolates when it predicts the unlabelled ones, and a
 cross-validated error says nothing about how wrong it is out there.
 

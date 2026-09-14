@@ -1,7 +1,7 @@
 """Country to region grouping for the QS feature matrix.
 
 The 2026 snapshot spans 107 country strings. Feeding those in as 107 one-hot
-columns against 600 labelled rows would add more parameters than the training
+columns against 705 labelled rows would add more parameters than the training
 set can support, so countries are collapsed into 12 regions.
 
 The grouping is geographic-political and, like any such grouping, has judgement
@@ -118,6 +118,7 @@ REGION_BY_COUNTRY: Final[dict[str, str]] = {
     "Northern Cyprus": MIDDLE_EAST_NORTH_AFRICA,
     "Morocco": MIDDLE_EAST_NORTH_AFRICA,
     "Syria": MIDDLE_EAST_NORTH_AFRICA,
+    "Libya": MIDDLE_EAST_NORTH_AFRICA,
     # Sub-Saharan Africa
     "South Africa": SUB_SAHARAN_AFRICA,
     "Ghana": SUB_SAHARAN_AFRICA,

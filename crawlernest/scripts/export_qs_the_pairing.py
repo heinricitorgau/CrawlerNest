@@ -39,10 +39,15 @@ PAIRING_FILE = (
     REPO_ROOT / "crawlernest" / "crawlernest-kb" / "databases" / "qs_the_pairing_2026.json"
 )
 
+#: The edition the file describes. The warehouse also holds THE 2025, and
+#: reading across editions would propose every 2025-only university as an
+#: addition to a 2026 file.
+PAIRING_YEAR = 2026
+
 #: Deliberately identical to the query in
-#: crawlernest-tests/test_pairing_matches_warehouse.py, including the absence of
-#: a year filter. The two are compared against each other, so they have to ask
-#: the same question; the nid is the one thing this needs and that does not.
+#: crawlernest-tests/test_pairing_matches_warehouse.py, including its edition
+#: filter. The two are compared against each other, so they have to ask the
+#: same question; the nid is the one thing this needs and that does not.
 PAIRING_QUERY = """
     SELECT cu.display_name,
            rr.metadata #>> '{raw_row,name}',
@@ -51,6 +56,9 @@ PAIRING_QUERY = """
     JOIN warehouse.ranking_source rs USING (ranking_source_id)
     JOIN warehouse.canonical_university cu USING (canonical_university_id)
     WHERE rs.source_code = 'THE'
+      AND rr.ranking_year = %s
+      AND rr.ranking_type = 'world'
+      AND rr.universe_type = 'global'
 """
 
 
@@ -70,7 +78,7 @@ def _id_text(value: Any) -> str:
 
 def read_warehouse(conn: Any) -> dict[str, tuple[str, str]]:
     with conn.cursor() as cur:
-        cur.execute(PAIRING_QUERY)
+        cur.execute(PAIRING_QUERY, (PAIRING_YEAR,))
         return {
             str(qs_name): (str(the_name), _id_text(nid))
             for qs_name, the_name, nid in cur.fetchall()

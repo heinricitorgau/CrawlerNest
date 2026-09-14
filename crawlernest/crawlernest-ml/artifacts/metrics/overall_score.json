@@ -2,8 +2,8 @@
   "dataset": {
     "snapshot": "crawlernest/crawlernest-kb/databases/last_crawl_snapshot.json",
     "rows_total": 1504,
-    "rows_labelled": 700,
-    "rows_unlabelled": 804,
+    "rows_labelled": 705,
+    "rows_unlabelled": 799,
     "features": [
       "Academic Reputation",
       "Employer Reputation",
@@ -30,56 +30,56 @@
   },
   "baseline": {
     "published_weights": {
-      "rmse": 0.9761,
-      "mae": 0.8059,
-      "r2": 0.9973,
-      "n": 700
+      "rmse": 0.9659,
+      "mae": 0.8017,
+      "r2": 0.9974,
+      "n": 705
     }
   },
   "cross_validation": {
     "linear_raw": {
-      "rmse_mean": 0.4908,
-      "rmse_std": 0.2999,
-      "mae_mean": 0.1773,
-      "mae_std": 0.0557,
-      "r2_mean": 0.9991,
-      "r2_std": 0.001,
+      "rmse_mean": 0.4824,
+      "rmse_std": 0.1406,
+      "mae_mean": 0.1672,
+      "mae_std": 0.0307,
+      "r2_mean": 0.9993,
+      "r2_std": 0.0004,
       "folds": 5
     },
     "linear_renorm": {
-      "rmse_mean": 0.2992,
-      "rmse_std": 0.2427,
-      "mae_mean": 0.0704,
-      "mae_std": 0.0527,
+      "rmse_mean": 0.3502,
+      "rmse_std": 0.0913,
+      "mae_mean": 0.074,
+      "mae_std": 0.0201,
       "r2_mean": 0.9996,
-      "r2_std": 0.0005,
+      "r2_std": 0.0002,
       "folds": 5
     },
     "ridge": {
-      "rmse_mean": 0.497,
-      "rmse_std": 0.2882,
-      "mae_mean": 0.1927,
-      "mae_std": 0.0542,
-      "r2_mean": 0.9991,
-      "r2_std": 0.001,
+      "rmse_mean": 0.4801,
+      "rmse_std": 0.1439,
+      "mae_mean": 0.177,
+      "mae_std": 0.0253,
+      "r2_mean": 0.9993,
+      "r2_std": 0.0004,
       "folds": 5
     },
     "random_forest": {
-      "rmse_mean": 3.4266,
-      "rmse_std": 0.3568,
-      "mae_mean": 2.6624,
-      "mae_std": 0.2918,
-      "r2_mean": 0.9654,
-      "r2_std": 0.008,
+      "rmse_mean": 3.4867,
+      "rmse_std": 0.2118,
+      "mae_mean": 2.69,
+      "mae_std": 0.1407,
+      "r2_mean": 0.9652,
+      "r2_std": 0.0053,
       "folds": 5
     },
     "gradient_boosting": {
-      "rmse_mean": 2.2,
-      "rmse_std": 0.1045,
-      "mae_mean": 1.7306,
-      "mae_std": 0.0963,
-      "r2_mean": 0.9859,
-      "r2_std": 0.002,
+      "rmse_mean": 2.1669,
+      "rmse_std": 0.1343,
+      "mae_mean": 1.6999,
+      "mae_std": 0.1181,
+      "r2_mean": 0.9865,
+      "r2_std": 0.0027,
       "folds": 5
     }
   },
@@ -89,104 +89,104 @@
       {
         "indicator": "Academic Reputation",
         "qs_published": 0.3,
-        "recovered": 0.3021,
-        "abs_error": 0.0021
+        "recovered": 0.3007,
+        "abs_error": 0.0007
       },
       {
         "indicator": "Citations per Faculty",
         "qs_published": 0.2,
-        "recovered": 0.1985,
-        "abs_error": 0.0015
+        "recovered": 0.1984,
+        "abs_error": 0.0016
       },
       {
         "indicator": "Employer Reputation",
         "qs_published": 0.15,
-        "recovered": 0.1496,
-        "abs_error": 0.0004
+        "recovered": 0.1507,
+        "abs_error": 0.0007
       },
       {
         "indicator": "Faculty Student Ratio",
         "qs_published": 0.1,
-        "recovered": 0.0972,
-        "abs_error": 0.0028
+        "recovered": 0.0982,
+        "abs_error": 0.0018
       },
       {
         "indicator": "International Faculty Ratio",
         "qs_published": 0.05,
-        "recovered": 0.0502,
-        "abs_error": 0.0002
+        "recovered": 0.0489,
+        "abs_error": 0.0011
       },
       {
         "indicator": "International Student Ratio",
         "qs_published": 0.05,
-        "recovered": 0.0501,
-        "abs_error": 0.0001
+        "recovered": 0.052,
+        "abs_error": 0.002
       },
       {
         "indicator": "International Research Network",
+        "qs_published": 0.05,
+        "recovered": 0.0497,
+        "abs_error": 0.0003
+      },
+      {
+        "indicator": "Employment Outcomes",
         "qs_published": 0.05,
         "recovered": 0.0502,
         "abs_error": 0.0002
       },
       {
-        "indicator": "Employment Outcomes",
-        "qs_published": 0.05,
-        "recovered": 0.05,
-        "abs_error": 0.0
-      },
-      {
         "indicator": "Sustainability Score",
         "qs_published": 0.05,
-        "recovered": 0.052,
-        "abs_error": 0.002
+        "recovered": 0.0512,
+        "abs_error": 0.0012
       }
     ],
-    "mean_abs_error": 0.001,
-    "intercept": -2.3478
+    "mean_abs_error": 0.0011,
+    "intercept": -2.2585
   },
   "support": [
     {
       "set": "labelled (train)",
-      "n": 700,
-      "supported": 690,
-      "supported_pct": 98.57,
-      "distance_median": 1.3223,
-      "distance_p95": 1.8599,
-      "threshold": 2.1211
+      "n": 705,
+      "supported": 698,
+      "supported_pct": 99.01,
+      "distance_median": 1.3127,
+      "distance_p95": 1.8119,
+      "threshold": 2.0502
     },
     {
       "set": "unlabelled (infer)",
-      "n": 804,
-      "supported": 503,
-      "supported_pct": 62.56,
-      "distance_median": 1.9543,
-      "distance_p95": 2.9393,
-      "threshold": 2.1211
+      "n": 799,
+      "supported": 440,
+      "supported_pct": 55.07,
+      "distance_median": 1.9829,
+      "distance_p95": 2.8282,
+      "threshold": 2.0502
     }
   ],
   "rank_agreement": {
     "linear_renorm": {
       "all_unlabelled": {
-        "spearman": 0.9603694008824262,
+        "spearman": 0.9613886484044906,
         "p_value": 0.0,
-        "n": 804
+        "n": 799
       },
       "supported_only": {
-        "spearman": 0.9632248475383909,
-        "p_value": 4.250136681660961e-288,
-        "n": 503
+        "spearman": 0.9551444433644238,
+        "p_value": 1.3083314777280275e-233,
+        "n": 440
       }
     },
     "published_weight baseline": {
       "all_unlabelled": {
-        "spearman": 0.9603424318052284,
+        "spearman": 0.9613864358348677,
         "p_value": 0.0,
-        "n": 804
+        "n": 799
       },
       "supported_only": {
-        "spearman": 0.9632103501618228,
-        "p_value": 4.682574746287161e-288,
-        "n": 503
+        "spearman": 0.9551652062318272,
+        "p_value": 1.1849041509188997e-233,
+        "n": 440
       }
     }
   },

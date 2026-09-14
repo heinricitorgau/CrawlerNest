@@ -14,25 +14,37 @@ estimates into `analytics.ml_predictions` for the API to read. Full records in
 ## The data
 
 Built from `crawlernest/crawlernest-kb/databases/last_crawl_snapshot.json`, which
-is committed — so everything here runs with no database and no network.
+is committed — so everything here runs with no database and no network. It is a
+byte copy of `crawlernest-kb/qs_universes/2026/global/global/raw_snapshot.json`,
+the QS World University Rankings **2026** table (nid 4061771), whose
+`run_status.json` records the edition as verified against the 2026 edition page.
+
+The file it replaced was the **2027** table (nid 4153156) — resolved from a
+cached ranking id and saved under the 2026 name, so Peking sat at 13 and
+Tsinghua at 14 where the 2026 edition has Peking at 14 and Tsinghua at =17. Every number below was
+regenerated from the verified edition on 2026-09-14.
 
 | | |
 |---|---|
-| Universities | 1,503 (QS 2026) |
+| Universities | 1,504 (QS 2026) |
 | Indicators | 9, all present on every record |
 | Countries | 107, grouped into 12 regions |
-| Feature matrix | `(1503, 9)` indicators, `(1503, 21)` with region one-hot |
+| Feature matrix | `(1504, 9)` indicators, `(1504, 21)` with region one-hot |
+
+The records also carry `rank_display` (the published label, `=17`, `1401+`) and
+an `International Student Diversity` metric new in the 2026 table. Neither is
+read: `rank` is the table position, and the feature set is the fixed nine.
 
 The target is QS's `Overall Score`, and its availability is the reason this is a
 supervised problem at all:
 
 ```
-rank    1– 600  →  Overall Score published   →  600 labelled rows  (training set)
-rank  601–1503  →  Overall Score = "n/a"     →  903 unlabelled rows (inference set)
+rank    1– 705  →  Overall Score published   →  705 labelled rows  (training set)
+rank  706–1504  →  Overall Score = "n/a"     →  799 unlabelled rows (inference set)
 ```
 
-QS publishes the nine component indicators for all 1,503 universities but the
-total only for the top 600.
+QS publishes the nine component indicators for all 1,504 universities but the
+total only for the top 705.
 
 `rank` is never a feature — QS derives the rank *from* the overall score, so
 using it would leak the target. It is carried alongside the matrix for
@@ -56,10 +68,10 @@ Every indicator is *present* on every record, but some carry `"n/a"`:
 
 | Indicator | Missing | % |
 |---|---:|---:|
-| International Faculty Ratio | 100 | 6.65 |
-| International Student Ratio | 58 | 3.86 |
-| Sustainability Score | 19 | 1.26 |
-| International Research Network | 1 | 0.07 |
+| International Faculty Ratio | 87 | 5.78 |
+| International Student Ratio | 37 | 2.46 |
+| Sustainability Score | 24 | 1.60 |
+| International Research Network | 2 | 0.13 |
 | the other five | 0 | 0.00 |
 
 Median imputation is the current strategy. It is a decision, not a default —
@@ -67,22 +79,22 @@ Median imputation is the current strategy. It is a decision, not a default —
 
 ### 2. The indicators line up with QS's published weighting
 
-Correlation with `Overall Score` on the 600 labelled rows:
+Correlation with `Overall Score` on the 705 labelled rows:
 
 | Indicator | Pearson r | QS published weight |
 |---|---:|---:|
-| Academic Reputation | 0.901 | 30% |
-| Employer Reputation | 0.777 | 15% |
-| Employment Outcomes | 0.630 | 5% |
-| Sustainability Score | 0.576 | 5% |
-| International Research Network | 0.478 | 5% |
-| Citations per Faculty | 0.476 | 20% |
+| Academic Reputation | 0.905 | 30% |
+| Employer Reputation | 0.786 | 15% |
+| Sustainability Score | 0.670 | 5% |
+| Employment Outcomes | 0.648 | 5% |
+| International Research Network | 0.518 | 5% |
+| Citations per Faculty | 0.494 | 20% |
 | International Student Ratio | 0.405 | 5% |
-| International Faculty Ratio | 0.351 | 5% |
-| Faculty Student Ratio | 0.333 | 10% |
+| International Faculty Ratio | 0.382 | 5% |
+| Faculty Student Ratio | 0.312 | 10% |
 
 The ordering broadly tracks the published weights, with one worth noting:
-**Citations per Faculty carries a 20% weight but correlates at only 0.476**,
+**Citations per Faculty carries a 20% weight but correlates at only 0.494**,
 below three indicators weighted at 5%. Whether a fitted model recovers the
 published 20% is a concrete, checkable question for Phase 2 rather than a
 hand-wave about feature importance.
@@ -92,43 +104,43 @@ hand-wave about feature importance.
 ### 3. Training set and inference set are not the same population
 
 This is the finding that constrains Phase 2. Standardised difference in means
-(Cohen's *d*) between the 600 labelled and 903 unlabelled rows:
+(Cohen's *d*) between the 705 labelled and 799 unlabelled rows:
 
 | Indicator | Labelled mean | Unlabelled mean | Cohen's *d* |
 |---|---:|---:|---:|
-| Sustainability Score | 49.98 | 6.88 | 1.91 |
-| Academic Reputation | 37.72 | 8.70 | 1.68 |
-| Citations per Faculty | 44.56 | 9.51 | 1.60 |
-| International Research Network | 72.57 | 35.22 | 1.58 |
-| Employer Reputation | 37.00 | 8.35 | 1.49 |
-| International Faculty Ratio | 50.46 | 15.61 | 1.21 |
-| Employment Outcomes | 40.02 | 13.06 | 1.13 |
-| International Student Ratio | 41.86 | 13.74 | 1.03 |
-| Faculty Student Ratio | 38.71 | 21.10 | 0.67 |
+| Sustainability Score | 66.10 | 38.03 | 1.78 |
+| Academic Reputation | 42.10 | 11.33 | 1.61 |
+| Citations per Faculty | 49.64 | 13.57 | 1.53 |
+| Employer Reputation | 43.01 | 12.70 | 1.48 |
+| International Research Network | 71.28 | 37.54 | 1.44 |
+| Employment Outcomes | 44.92 | 16.71 | 1.10 |
+| International Faculty Ratio | 52.73 | 19.98 | 1.08 |
+| International Student Ratio | 47.71 | 20.00 | 0.94 |
+| Faculty Student Ratio | 42.02 | 26.90 | 0.55 |
 
-Every indicator shifts by more than 0.6 pooled standard deviations and most by
-more than 1.0. Predicting the 903 from the 600 is **extrapolation, not
+Every indicator shifts by more than 0.5 pooled standard deviations and seven of
+nine by more than 1.0. Predicting the 799 from the 705 is **extrapolation, not
 interpolation**.
 
 ![PCA scatter](artifacts/eda/pca_scatter.png)
 
-PC1 alone explains 50.7% of the variance and orders the labelled rows almost
+PC1 alone explains 49.9% of the variance and orders the labelled rows almost
 monotonically by rank. The unlabelled rows pile up at the low end of PC1, in a
 region where the training data is sparse — though the two populations do overlap
-around ranks 500–600, so predictions just past the cutoff rest on real support
-and predictions deep in the tail do not.
+just above the publication cut-off, so predictions just past it rest on real
+support and predictions deep in the tail do not.
 
 **Consequences for Phase 2**, all of them arising from this figure:
 
-1. A cross-validated RMSE on the 600 labelled rows measures how well the model
-   recovers QS's scoring function. It does **not** estimate the error on the 903.
+1. A cross-validated RMSE on the 705 labelled rows measures how well the model
+   recovers QS's scoring function. It does **not** estimate the error on the 799.
    Reporting it as though it did would be the exact kind of flattering,
    unfalsifiable number this repo's honesty contract exists to prevent.
 2. Every prediction needs a **support flag** — a distance from the training
    distribution — and only predictions inside the supported region should be
    surfaced. This maps onto the existing mechanically-derived confidence rule
    rather than inventing a new one.
-3. Spearman ρ between predicted score and QS's published rank on the 903 is not
+3. Spearman ρ between predicted score and QS's published rank on the 799 is not
    an optional extra. It is the only external validation available in the
    shifted region, because the ordering is known even though the scores are not.
 
@@ -142,65 +154,68 @@ out of it.
 ### The published weighting is recovered from the data
 
 A linear fit on the raw indicators reproduces QS's documented weighting to a
-mean absolute error of **0.0006** (worst case 0.0008): Academic Reputation
-0.2996 against a published 0.30, Citations per Faculty 0.1992 against 0.20, and
+mean absolute error of **0.0011** (worst case 0.0020): Academic Reputation
+0.3007 against a published 0.30, Citations per Faculty 0.1984 against 0.20, and
 so on for all nine.
 
 This reframes what the model is. The overall score is a deterministic weighted
-sum, so this is system identification, not forecasting — and an R² of 0.9999
+sum, so this is system identification, not forecasting — and an R² of 0.9996
 should be read as "the formula was recovered", never as predictive accuracy.
-Tree models do *worse* here (random forest RMSE 3.84 against 0.18), which is the
+Tree models do *worse* here (random forest RMSE 3.49 against 0.35), which is the
 expected result when the true relationship is exactly linear.
 
 It also shows why correlation is not importance: Citations per Faculty carries a
-20% weight but correlates with the target at only 0.476, below three indicators
+20% weight but correlates with the target at only 0.494, below three indicators
 weighted at 5%.
 
 ### Imputation, not model choice, decided performance under shift
 
-The first run used median imputation and scored Spearman 0.9551 against the
-published ranks of the 903. Holding the weights fixed and only changing how
-missing indicators are handled:
+Median imputation scores Spearman 0.9381 against the published ranks of the 799.
+Changing only how missing indicators are handled:
 
-| Missing-value strategy | Spearman on the 903 |
+| Missing-value strategy | Spearman on the 799 |
 |---|---:|
-| median imputation | 0.9551 |
-| renormalise over available weights | **0.9755** |
+| median imputation (fitted weights) | 0.9381 |
+| renormalise over available weights (fitted) | **0.9614** |
+| renormalise over available weights (QS published) | 0.9614 |
 
-The fitted and published weights differ by at most 0.0008, so none of that gap
-is about the model. Median imputation borrows values from a training
-distribution whose medians run three to five times higher than the withheld
-tail, biasing exactly the 114 rows that carry a missing indicator. The
-recommended model, `linear_renorm`, renormalises instead — and then wins on both
-cross-validation (RMSE 0.175 against 0.278) and extrapolation.
+Fitted and published weights land in the same place once missing values are
+renormalised, so none of that gap is about the model. Median imputation borrows
+values from a training distribution whose medians run up to nearly six times
+higher than the withheld tail, biasing exactly the 96 withheld rows that carry a
+missing indicator. The recommended model, `linear_renorm`, renormalises instead
+— and then wins on both cross-validation (RMSE 0.350 against 0.482) and
+extrapolation.
 
 The general lesson is worth stating plainly: under covariate shift the default
-preprocessing step did more damage than any modelling decision, and only the
-out-of-distribution check surfaced it. Cross-validation alone would have shipped
-the worse pipeline.
+preprocessing step did more damage than any modelling decision, and it was the
+out-of-distribution check that first surfaced it.
 
-### A quarter of the inference set is unsupported
+### Almost half of the inference set is unsupported
 
 | Set | n | Supported | % |
 |---|---:|---:|---:|
-| Labelled (train) | 600 | 590 | 98.33 |
-| Unlabelled (infer) | 903 | 657 | 72.76 |
+| Labelled (train) | 705 | 698 | 99.01 |
+| Unlabelled (infer) | 799 | 440 | 55.07 |
 
 Support is the mean distance to the 10 nearest training rows in standardised
 indicator space, thresholded at the 95th percentile of the training set's own
 leave-one-out distances — mechanical and inspectable, like the rest of the
-confidence handling in this repo. **27% of the rows we would predict sit outside
+confidence handling in this repo. **45% of the rows we would predict sit outside
 the region the model was fitted on**, and the flag is what decides whether an
-estimate is publishable.
+estimate is publishable. That share is larger on the 2026 edition than on the
+2027 table this snapshot replaced (37%), with near-identical labelled and
+withheld counts — so the support rate is a property of the edition, and has to
+be re-read whenever the snapshot changes.
 
 ## Phase 3 results — cross-source disagreement
 
 Full detail in the [model card](model_cards/disagreement.md). QS and THE both
-rank 1,082 of the same universities, and they frequently disagree about them.
-The pairing comes from the warehouse — entity resolution seeded with 112
-reviewed aliases, ambiguous cases settled by hand — rather than being
-re-derived here from a name key, which reached 820. On the 818 both methods
-place, they pick the same THE entity every time.
+rank 1,109 of the same universities, and they frequently disagree about them.
+The pairing comes from the warehouse — entity resolution seeded with reviewed
+aliases, ambiguous cases settled by hand — rather than being re-derived here
+from a name key, which reaches 842. On the 830 both methods place, they pick the
+same THE entity every time.
 
 The trap here was the same shape as Phase 2's, one level up. Each source's rank
 is close to a deterministic function of its own component scores, so a
@@ -212,23 +227,28 @@ institutions at QS ingest time, before THE data arrives.
 
 | Feature set | Model | ROC-AUC | PR-AUC |
 |---|---|---:|---:|
-| **QS only** | **gradient boosting** | **0.8262** | **0.5196** |
-| QS only | logistic regression | 0.7307 | 0.3198 |
-| both sources *(ceiling)* | gradient boosting | 0.9048 | 0.7693 |
-| chance | — | 0.5000 | 0.2000 |
+| **QS only** | **gradient boosting** | **0.8384** | **0.5201** |
+| QS only | logistic regression | 0.7460 | 0.3547 |
+| both sources *(ceiling)* | gradient boosting | 0.9258 | 0.7620 |
+| chance | — | 0.5000 | 0.2002 |
 
 ![Disagreement diagnostics](artifacts/eda/disagreement_diagnostics.png)
 
-PR-AUC 0.470 against a 0.200 base rate is the honest headline — a 2.3× lift,
-where ROC-AUC would flatter an imbalanced problem. QS alone reaches 0.813 of a
-two-sided ceiling of 0.890, so most of what is predictable is already in QS's own
+PR-AUC 0.520 against a 0.200 base rate is the honest headline — a 2.6× lift,
+where ROC-AUC would flatter an imbalanced problem. QS alone reaches 0.838 of a
+two-sided ceiling of 0.926, so most of what is predictable is already in QS's own
 numbers. Gradient boosting beats the linear model here by a wide margin, the
 opposite of the overall-score result, because this relationship genuinely is not
 linear. Calibration holds in the low and middle range and goes over-confident in
-the top bin (0.72 predicted against 0.52 observed).
+the top bin (0.72 predicted against 0.59 observed).
 
-Among disagreeing pairs, **THE ranks the university higher 133 times to QS's
-31** — the sources do not merely differ, they differ in a consistent direction.
+These are lower than the numbers committed before (ROC-AUC 0.8662, PR-AUC
+0.5922), which were trained on the 2027 table mislabelled as 2026. Same code,
+different edition; the metrics gate refused the comparison on its `matched` and
+`positives` invariants.
+
+Among disagreeing pairs, **THE ranks the university higher 178 times to QS's
+44** — the sources do not merely differ, they differ in a consistent direction.
 
 ## Phase 3 results — LLM evaluation
 
@@ -503,11 +523,13 @@ PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.serving.p
 # add --dry-run to compute everything and write nothing
 ```
 
-The job fits the estimator on the 600 labelled universities, predicts the 903
+The job fits the estimator on the 705 labelled universities, predicts the 799
 withheld ones, resolves each to a `canonical_university_id`, and writes one
-`analytics.ml_model_runs` row plus its predictions in a single transaction. On
-the current snapshot 902 of 903 resolve; the one that does not is a snapshot row
-literally named "N/A", which is skipped rather than guessed at.
+`analytics.ml_model_runs` row plus its predictions in a single transaction.
+Against the live warehouse on 2026-09-14, 787 of 799 resolve. The 12 that do not
+— Pratt Institute, University of Tunis, Universidad Diego Portales and nine more
+— have no canonical university whose normalised name matches, and are reported
+and skipped rather than guessed at.
 
 The schema enforces two things rather than trusting callers to:
 `ml_predictions.is_estimated` is `CHECK`-constrained true, so no writer can turn
@@ -524,13 +546,13 @@ PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python \
     --pg-user test --pg-password test --pg-database clawer
 ```
 
-It trains on the 1,082 universities QS and THE both rank, then scores **all 1,503
-QS universities** — including the 683 THE has never covered. That is where the
+It trains on the 1,109 universities QS and THE both rank, then scores **all 1,504
+QS universities** — including the 395 outside that overlap. That is where the
 probability is useful: a contested institution can be flagged at QS ingest time
-rather than after a second source arrives, which in this deployment it never has.
+rather than after a second source arrives.
 
-Worth checking, since the training set is an overlap rather than a slice: **96.8%
-of the 1,503 fall inside the training support**, against 72.8% for the
+Worth checking, since the training set is an overlap rather than a slice: **97.1%
+of the 1,504 fall inside the training support**, against 55.1% for the
 overall-score model. The overlap spans the QS distribution instead of clustering
 at one end of it the way a published-score cutoff does.
 
@@ -564,9 +586,10 @@ either filter turns that test red — checked, not assumed.
 
 ### A boundary check worth knowing about
 
-QS's lowest published overall score is 20.8, and every estimated university ranks
-below 600, so on QS's own ordering no estimate should exceed 20.8. Two of 902
-do (0.22%), the worst by 0.585. They are left unclipped: clipping would pile
+QS's lowest published overall score in 2026 is 25.1, and every estimated
+university ranks below 705, so on QS's own ordering no estimate should exceed
+25.1. Six of the 787 served do (0.76%), the worst by 2.88. They are left
+unclipped: clipping would pile
 rows up at the boundary and hide the error rather than remove it, and the size of
 the overshoot is a useful read on the estimates' precision near the cut-off.
 
@@ -585,7 +608,7 @@ PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.evaluatio
     --baseline-dir /tmp/metrics-baseline
 ```
 
-**38 feature-layer tests** run first: matrix shape, the 600/903 publication
+**38 feature-layer tests** run first: matrix shape, the 705/799 publication
 split, region coverage for all 107 countries, value parsing, the renormalising
 baseline, and that `rank` never appears among the features. They are fast and
 have no model in them, so a broken feature layer fails as itself rather than
@@ -594,14 +617,15 @@ surfacing later as an unexplained metric movement.
 **The MATLAB parity check** then compares the committed `artifacts/eda_matlab/`
 tables against a fresh Python run, at a tolerance of 1e-9. Two implementations
 that disagree are not a redundancy — they are a bug in one of them, and nobody
-knows which. Measured agreement:
+knows which. Measured agreement on the QS 2026 snapshot, after re-running every
+port on R2026a:
 
 | Table | Column | Max absolute difference |
 |---|---|---:|
-| correlation_with_target | `pearson_r` | 7.2e-16 |
-| covariate_shift | `labelled_mean` | 7.1e-14 |
-| covariate_shift | `unlabelled_mean` | 1.8e-14 |
-| covariate_shift | `standardised_gap` | 4.9e-15 |
+| correlation_with_target | `pearson_r` | 7.8e-16 |
+| covariate_shift | `labelled_mean` | 5.0e-14 |
+| covariate_shift | `unlabelled_mean` | 4.6e-14 |
+| covariate_shift | `standardised_gap` | 4.2e-15 |
 | missingness | `missing`, `missing_pct` | 0 |
 
 Machine precision, which is what the same formulas over the same inputs should
@@ -656,16 +680,18 @@ each has something the label orders:
 
 | Target | Ground truth available at serving time | Currently |
 |---|---|---:|
-| `qs_overall_score` | QS withholds the score for ranks 601–1503 and publishes the rank | Spearman **−0.9755** |
-| `qs_the_disagreement` | both sources' ranks are in the warehouse for the universities both rank | ROC-AUC **0.8907** |
+| `qs_overall_score` | QS withholds the score for ranks 706–1504 and publishes the rank | Spearman **−0.9627** |
+| `qs_the_disagreement` | both sources' ranks are in the warehouse for the universities both rank | ROC-AUC **0.8906** |
 
 The score check also compares against `metrics_json.rank_agreement_spearman`,
 recorded by the training run, so it regresses against a number rather than
-admiring one: served −0.9755 against a recorded 0.9754.
+admiring one: served −0.9627 on 774 rows against a recorded 0.9614.
+(Measured on the live warehouse on 2026-09-14, after the serving jobs were re-run
+from the verified 2026 snapshot.)
 
 Support is reported split rather than pooled, which turns the flag into a
 claim that can fail. Supported predictions agree with published ranks at
-0.9736 and unsupported ones at 0.8660 — the flag is measuring something. Were
+0.9552 and unsupported ones at 0.8824 — the flag is measuring something. Were
 the two equal, or the unsupported ones better, that would say it is not.
 
 Verified by breaking it, on a copy of the warehouse: shuffling the scores
@@ -682,14 +708,14 @@ it. Visible as 0.8591 where a fresh run gives 0.8907, and invisible to every
 other check in the chain.
 
 Rehearsing this job locally found a bug the live database had been hiding. Four
-snapshot rows are named `N/A`; against a warehouse seeded one row per name they
+rows of the snapshot at the time were named `N/A` (one is, in 2026); against a
+warehouse seeded one row per name they
 all resolved onto a single invented university and the insert aborted on a
 duplicate key, writing nothing. Two fixes: the seeder skips missing-data markers
 instead of creating an entity for them, and both serving jobs collapse to one row
 per canonical university before inserting. The second matters beyond this bug —
-real entity resolution merges variant spellings, which is why the warehouse holds
-1,499 canonical universities for 1,503 snapshot rows, and `ml_predictions` is
-unique on canonical id.
+real entity resolution merges variant spellings, so snapshot rows and canonical
+universities are not one-to-one, and `ml_predictions` is unique on canonical id.
 
 **The metrics gate** then retrains both models and compares against the
 committed `artifacts/metrics/*.json`. A model has no compiler and no failing test
@@ -702,11 +728,14 @@ Two kinds of guard, because they fail differently:
 
 | Kind | Checked how | Examples |
 |---|---|---|
-| **Invariant** | exactly, and first | `rows_labelled` = 600, `matched` = 1,082, `positives` = 217 |
+| **Invariant** | exactly, and first | `rows_labelled` = 705, `matched` = 1,109, `positives` = 222 |
 | **Metric** | against a direction and tolerance | `linear_renorm` RMSE (±0.05), weight-recovery error (±0.0005), disagreement ROC-AUC (±0.02) |
 
 Invariants come first because they describe the *data*: if the training set
-stops being 600 rows, no metric comparison below it means anything.
+stops being 705 rows, no metric comparison below it means anything. Replacing the
+mislabelled 2027 snapshot with the verified 2026 one tripped exactly these
+(`rows_labelled` 700 → 705, `matched` 1,104 → 1,109), and the metrics files were
+recommitted from the new edition rather than compared against the old one.
 
 Training is seeded and reproducible — a rerun on the same snapshot reproduces
 every guarded number exactly, so the tolerances exist for library drift rather

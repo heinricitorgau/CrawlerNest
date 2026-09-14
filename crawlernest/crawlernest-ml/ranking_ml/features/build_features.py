@@ -5,11 +5,16 @@ is committed to the repository, so this builder -- and therefore training and
 evaluation -- runs with no database and no network. That is deliberate: CI can
 verify the model without provisioning PostgreSQL.
 
-Output shape (2026 snapshot):
+Output shape (QS 2026 edition, nid 4061771):
 
-    X            (1503, 9) indicators, or (1503, 21) with region one-hot
-    y            1503 values, 600 numeric and 903 NaN
-    rank         1503 integers, evaluation only, never a feature
+    X            (1504, 9) indicators, or (1504, 21) with region one-hot
+    y            1504 values, 705 numeric and 799 NaN
+    rank         1504 integers, evaluation only, never a feature
+
+The snapshot's records also carry ``rank_display`` (the published label, e.g.
+``=17`` or ``1401+``) and, from the 2026 edition, an ``International Student
+Diversity`` metric. Neither is read: ``rank`` is the table position, and the
+feature set is the fixed :data:`QS_INDICATORS` list.
 
 Run it directly for a summary of what came out::
 
@@ -62,7 +67,7 @@ class FeatureMatrix:
 
     @property
     def labelled_mask(self) -> pd.Series:
-        """Rows where QS published an overall score (ranks 1-600)."""
+        """Rows where QS published an overall score (ranks 1-705 in 2026)."""
         return self.y.notna()
 
     @property

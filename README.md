@@ -80,13 +80,13 @@ flowchart LR
 
 ## Modelling layer
 
-QS publishes nine component indicators for all 1,503 universities in the 2026
-snapshot, but the `Overall Score` only for ranks 1–600. That asymmetry is a
+QS publishes nine component indicators for all 1,504 universities in the 2026
+edition, but the `Overall Score` only for ranks 1–705. That asymmetry is a
 supervised learning problem sitting in the data:
 
 ```
-rank    1– 600  →  score published   →    600 labelled rows  (training set)
-rank  601–1503  →  score withheld    →    903 unlabelled rows (inference set)
+rank    1– 705  →  score published   →    705 labelled rows  (training set)
+rank  706–1504  →  score withheld    →    799 unlabelled rows (inference set)
 ```
 
 Exploratory analysis of that split produced the finding that shapes the whole
@@ -94,16 +94,16 @@ modelling design:
 
 ![QS universities in indicator space](crawlernest/crawlernest-ml/artifacts/eda/pca_scatter.png)
 
-PC1 alone explains 50.7% of the variance and orders the labelled universities
-almost monotonically by rank. But the 903 universities we would predict pile up
+PC1 alone explains 49.9% of the variance and orders the labelled universities
+almost monotonically by rank. But the 799 universities we would predict pile up
 at the low end of PC1, where training data is sparse — every indicator differs
-between the two groups by 0.67 to 1.91 pooled standard deviations. **Predicting
+between the two groups by 0.55 to 1.78 pooled standard deviations. **Predicting
 the withheld scores is extrapolation, not interpolation.**
 
 So the model does not get to report a flattering cross-validated error and call
 it accuracy. Cross-validation measures how well it recovers QS's scoring
 function; a per-prediction support flag decides which estimates are publishable;
-and Spearman correlation against the published ranks of the 903 provides the
+and Spearman correlation against the published ranks of the 799 provides the
 only external validation available in the shifted region — the scores are
 unknown there, but the ordering is not.
 
@@ -111,23 +111,26 @@ Two results came out of it:
 
 **The published weighting is recoverable from the data.** A linear fit on the
 raw indicators reproduces QS's documented weighting to a mean absolute error of
-0.0006 — Academic Reputation 0.2996 against a published 0.30, Citations per
-Faculty 0.1992 against 0.20, and so on across all nine. That makes this system
-identification rather than forecasting, and the resulting R² of 0.9999 is
+0.0011 — Academic Reputation 0.3007 against a published 0.30, Citations per
+Faculty 0.1984 against 0.20, and so on across all nine. That makes this system
+identification rather than forecasting, and the resulting R² of 0.9996 is
 reported as "the formula was recovered", not as predictive accuracy.
 
-**Preprocessing mattered more than the model.** The first pipeline used median
-imputation and scored Spearman 0.9551 against the published ranks of the 903.
-Holding the weights fixed — they differ from QS's by at most 0.0008 — and only
-renormalising over available indicators instead of imputing moved that to
-0.9755. Median imputation borrows values from a training distribution whose
-medians run three to five times higher than the withheld tail. Cross-validation
-alone would have shipped the worse pipeline; only the out-of-distribution check
-caught it.
+**Preprocessing mattered more than the model.** Median imputation scores
+Spearman 0.9381 against the published ranks of the 799. Renormalising over the
+available indicators instead moves that to 0.9614 — with the fitted weights or
+with QS's published ones, which land in the same place — so the gap is the
+missing-value strategy, not the weights. Median imputation borrows values from a
+training distribution whose medians run up to nearly six times higher than the
+withheld tail, and it was the out-of-distribution check that first caught it.
 
 Estimates are stored and labelled as estimates. Nothing in the modelling layer
-writes to `analytics.aggregated_rankings` or changes a published rank, and 27%
+writes to `analytics.aggregated_rankings` or changes a published rank, and 45%
 of the inference set is flagged as outside the model's support.
+
+All of these figures come from the edition-verified QS 2026 table (nid 4061771).
+The snapshot committed before 2026-09-14 was the 2027 table saved under the 2026
+name; see [crawlernest-ml/README.md](crawlernest/crawlernest-ml/README.md#the-data).
 
 → **[crawlernest/crawlernest-ml/](crawlernest/crawlernest-ml/)** — feature
 contract, EDA, metrics, and model cards.
@@ -265,7 +268,7 @@ CrawlerNest v0.1 is an operational MVP — reproducible and demonstrable, not a 
 - All three ranking sources are ingested for 2026: QS covers 1,503 universities, THE 1,637, ARWU 838, across a global universe of 2,098
 - 618 universities reach three sources (confidence high), 644 reach two, and 836 remain single-source (low)
 - Coverage is partial, not complete — 461 universities carry no THE rank and 1,260 carry no ARWU rank. Every 2026 ranking record now resolves to a canonical university, so what remains is snapshot scope rather than unmatched entities
-- Model estimates are stored separately and never enter `analytics.aggregated_rankings`: 795 estimated overall scores (295 of them outside the model's training support, and disclosed as such) and 1,484 disagreement probabilities
+- Model estimates are stored separately and never enter `analytics.aggregated_rankings`: 787 estimated overall scores (351 of them outside the model's training support, and disclosed as such) and 1,482 disagreement probabilities, from the edition-verified QS 2026 snapshot
 - A missing rank is disclosed as **our** gap — not ingested, or not matched — rather than as the source declining to rank the university
 - The agent page defaults to a mock provider and does not write to the database
 

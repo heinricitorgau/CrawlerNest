@@ -2,7 +2,8 @@ function value = qs_to_rank(raw)
 %QS_TO_RANK Parse a published QS rank. Ranges such as "901-950" take their midpoint.
 %
 %   Mirrors ranking_ml.features.build_features._to_rank. The 2026 snapshot
-%   happens to carry plain integers on all 1,503 rows, but earlier and future
+%   carries plain integer positions on all 1,504 rows (the published label,
+%   e.g. "=17" or "1401+", sits in rank_display, which is not read), but earlier and future
 %   crawls carry banded ranks ("901-950") and tie markers ("=12"), so the
 %   parsing rules are kept identical to the Python side rather than simplified.
 

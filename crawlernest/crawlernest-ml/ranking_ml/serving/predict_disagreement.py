@@ -7,7 +7,7 @@
     # compute everything, write nothing
     ... -m ranking_ml.serving.predict_disagreement --dry-run
 
-Fits the one-sided classifier on the 820 universities QS and THE both rank, then
+Fits the one-sided classifier on the 1,109 universities QS and THE both rank, then
 scores **every** university QS ranks -- including the ones THE has never covered.
 That asymmetry is the point of the model: the probability is useful precisely
 where there is no THE verdict to compare against, so a contested institution can
@@ -20,10 +20,10 @@ Shared: predictions land in their own table, never in
 consumer can surface a probability without the means to say how far outside the
 training data it sits.
 
-Different: the training set is the 820-row overlap rather than a slice of the
-ranking table, so it is worth checking where the other 683 universities sit
-relative to it. They sit inside it. 96.8% of all 1,503 rows fall within the
-training support, against 72.8% for the overall-score model, because the overlap
+Different: the training set is the 1,109-row overlap rather than a slice of the
+ranking table, so it is worth checking where the other 395 universities sit
+relative to it. They sit inside it. 97.1% of all 1,504 rows fall within the
+training support, against 55.1% for the overall-score model, because the overlap
 spans the QS distribution rather than clustering at one end of it the way the
 published-score cutoff does. The looser coupling to rank is what makes this
 model's coverage the better of the two.
@@ -190,8 +190,8 @@ def main() -> int:
                         float(flagger.threshold_),
                         "Probability that THE places this university substantially "
                         "differently from QS, predicted from QS indicators alone. Trained on "
-                        "the 820-university overlap; most scored rows sit outside it, which "
-                        "is what the support flag reports.",
+                        f"the {len(y_train)}-university overlap; scored rows outside it are "
+                        "what the support flag reports.",
                     ),
                 )
                 ml_run_id = cursor.fetchone()[0]

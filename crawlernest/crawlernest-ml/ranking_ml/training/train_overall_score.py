@@ -9,14 +9,14 @@ against).
 
 The report has three parts, in order of how much they can be trusted:
 
-1. **Cross-validated error on the 600 labelled rows.** Measures how well a model
-   recovers QS's published scoring function. It is *not* an estimate of the
-   error on the withheld 903 -- see the covariate-shift finding in the module
+1. **Cross-validated error on the labelled rows** (705 in QS 2026). Measures how
+   well a model recovers QS's published scoring function. It is *not* an estimate
+   of the error on the withheld rows -- see the covariate-shift finding in the module
    README -- and is labelled accordingly everywhere it appears.
 2. **Weight recovery.** The raw linear model's coefficients, normalised, beside
    QS's published weights. Falsifiable: either the fit lands on the documented
    weighting or it does not.
-3. **Rank agreement on the 903.** Spearman between predicted score and published
+3. **Rank agreement on the withheld rows** (799). Spearman between predicted score and published
    rank, reported for all unlabelled rows and again for the supported subset
    only. The scores out there are unknown; the ordering is not.
 """
@@ -111,7 +111,7 @@ def main() -> int:
     print()
     print("=" * 78)
     print(f"2. CROSS-VALIDATED COMPARISON ({args.folds}-fold, labelled rows only)")
-    print("   Measures recovery of QS's scoring function, NOT error on the withheld 903.")
+    print(f"   Measures recovery of QS's scoring function, NOT error on the withheld {len(X_unlab)}.")
     print("=" * 78)
 
     cv_results: dict[str, CrossValMetrics] = {}
@@ -156,7 +156,7 @@ def main() -> int:
     # ---- 5. external validation on the withheld rows ---------------------
     print()
     print("=" * 78)
-    print("5. RANK AGREEMENT ON THE 903 -- the only external check in the shifted region")
+    print(f"5. RANK AGREEMENT ON THE {len(X_unlab)} -- the only external check in the shifted region")
     print("=" * 78)
     supported = flagger.is_supported(X_unlab)
     ranks = rank_unlab.to_numpy()

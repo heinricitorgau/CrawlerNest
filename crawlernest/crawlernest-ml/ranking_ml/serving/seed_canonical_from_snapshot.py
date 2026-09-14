@@ -17,8 +17,8 @@ Two places that is worth having:
 - A local database you want to point the models at without waiting on a crawl.
 
 **It is not entity resolution.** The real pipeline merges aliases and variant
-spellings, which is why the warehouse holds 1,499 canonical universities for
-1,503 snapshot rows. This inserts one row per distinct snapshot name and makes no
+spellings, so its canonical universities and the snapshot's rows are not
+one-to-one. This inserts one row per distinct snapshot name and makes no
 attempt to merge anything, so a database seeded this way is fine for exercising
 the serving path and wrong for anything that depends on canonical identity.
 Idempotent: re-running inserts nothing new.

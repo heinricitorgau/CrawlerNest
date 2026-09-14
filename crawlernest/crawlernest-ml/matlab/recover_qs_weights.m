@@ -9,9 +9,9 @@ function results = recover_qs_weights(options)
 %   ranking_ml/models/overall_score.py and ranking_ml/evaluation/baselines.py.
 %
 %   QS combines nine indicators into the overall score as a weighted average and
-%   publishes the weighting it uses. Fitting ordinary least squares to the 600
-%   rows where the score is published and normalising the coefficients to sum to
-%   1 recovers that weighting to a mean absolute error of 0.0006.
+%   publishes the weighting it uses. Fitting ordinary least squares to the 705
+%   rows where the QS 2026 score is published and normalising the coefficients to
+%   sum to 1 recovers that weighting to a mean absolute error of 0.0011.
 %
 %   That result reframes what the model is. The overall score is a deterministic
 %   weighted sum, so this is **system identification, not forecasting** -- an R2
@@ -26,9 +26,9 @@ function results = recover_qs_weights(options)
 %
 %   Two fits, differing only in how missing indicators are handled:
 %
-%     linear_raw      median-impute, then OLS on all 600 rows. This is the one
+%     linear_raw      median-impute, then OLS on all 705 rows. This is the one
 %                     the model card quotes.
-%     linear_renorm   OLS on the 593 rows with no missing indicator, then score
+%     linear_renorm   OLS on the 689 rows with no missing indicator, then score
 %                     a row by renormalising the weights over whatever it does
 %                     have. Recovers the weighting an order of magnitude more
 %                     closely, because it never borrows a median from the
@@ -225,16 +225,16 @@ function parity = parity_check(rawWeights, renormWeights, renormRescale, rmse, m
 %   rather than on a disagreement -- re-derive them from a fresh Python run
 %   before treating a divergence as real.
 
-referenceRaw = [0.3021190328; 0.1496055679; 0.0971993485; 0.1984964009; ...
-                0.0502301033; 0.0500770356; 0.0502128382; 0.0500145836; 0.0520450891];
-referenceRenorm = [0.2999603341; 0.1500331887; 0.1000196207; 0.2000411502; ...
-                   0.0500386640; 0.0499795056; 0.0499468955; 0.0499625993; 0.0500180419];
-referenceRescale = [1.0328456787; -2.1772330173];
+referenceRaw = [0.3006744083; 0.1506585289; 0.0982467586; 0.1984387890; ...
+                0.0488729783; 0.0520054373; 0.0497197185; 0.0502276913; 0.0511556899];
+referenceRenorm = [0.2998676680; 0.1501774056; 0.1000572814; 0.2000178410; ...
+                   0.0499987428; 0.0500335366; 0.0500906020; 0.0499730687; 0.0497838540];
+referenceRescale = [1.0317999441; -2.1153658367];
 
 % rows: published baseline, linear_raw, linear_renorm
-referenceRmse = [0.9761042828; 0.5555284952; 0.3851885055];
-referenceMae  = [0.8058668755; 0.1705813783; 0.0701020761];
-referenceR2   = [0.9972636963; 0.9991136923; 0.9995738932];
+referenceRmse = [0.9658809305; 0.4920194004; 0.3619078483];
+referenceMae  = [0.8017032475; 0.1629720426; 0.0736892182];
+referenceR2   = [0.9973682173; 0.9993170840; 0.9996305133];
 
 parity = table( ...
     ["linear_raw recovered weights"; "linear_renorm recovered weights"; ...

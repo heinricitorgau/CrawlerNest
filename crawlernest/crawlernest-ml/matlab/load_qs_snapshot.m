@@ -8,13 +8,16 @@ function matrix = load_qs_snapshot(snapshotPath)
 %   MATRIX = LOAD_QS_SNAPSHOT(PATH) reads an explicit snapshot file.
 %
 %   Returned struct:
-%     .X               1503x9 double, indicators in QS_INDICATORS order, NaN where missing
-%     .y               1503x1 double, Overall Score; NaN for ranks 601-1503
-%     .rank            1503x1 double, published rank (evaluation only, never a feature)
-%     .name            1503x1 string, university name
-%     .country         1503x1 string
+%     .X               1504x9 double, indicators in QS_INDICATORS order, NaN where missing
+%     .y               1504x1 double, Overall Score; NaN for ranks 706-1504 (QS 2026)
+%     .rank            1504x1 double, published rank (evaluation only, never a feature)
+%     .name            1504x1 string, university name
+%     .country         1504x1 string
 %     .indicators      1x9 string, column names of X
-%     .labelledMask    1503x1 logical, true where QS published an overall score
+%     .labelledMask    1504x1 logical, true where QS published an overall score
+%
+%   Metrics outside the nine indicators -- International Student Diversity,
+%   published from the 2026 edition -- are ignored, as is rank_display.
 %
 %   `rank` is deliberately kept out of X: QS derives the rank *from* the overall
 %   score, so using it as a feature would leak the target.

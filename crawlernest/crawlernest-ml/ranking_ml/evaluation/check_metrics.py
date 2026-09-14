@@ -21,7 +21,7 @@ Two kinds of guard, because they fail differently:
     regress. Compared against the baseline with a direction and a tolerance.
 ``invariant``
     A number that describes the *data*, not the model -- row counts, class
-    balance. These are exact. If the training set stops being 600 rows, no
+    balance. These are exact. If the training set stops being 705 rows, no
     metric comparison below it means anything, so they are checked first.
 """
 

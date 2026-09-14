@@ -171,7 +171,7 @@ class TestSupportIsDisclosedNotJustCarried(unittest.TestCase):
     """The support flag reaches the reader, not only the row.
 
     ESTIMATED_VALUE_CAVEAT promises a support flag. On the live overall-score
-    model that flag is false for 295 of 795 rows, and those rows sit
+    model that flag is false for 351 of 787 rows, and those rows sit
     systematically lower than the supported ones -- so describing the mechanism
     without ever saying it fired disclosed half of it.
     """

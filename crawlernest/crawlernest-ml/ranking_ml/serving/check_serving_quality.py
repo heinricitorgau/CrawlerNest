@@ -16,7 +16,8 @@ both of them. But each has something the label is a monotone function of, and
 that something is published:
 
 ``qs_overall_score``
-    QS withholds the score for ranks 601-1503 and publishes the rank. Rank
+    QS withholds the score below its publication cut-off (ranks 706-1504 in
+    2026) and publishes the rank. Rank
     orders the true score, so the rank correlation between what was served and
     what QS published is a real accuracy measure on exactly the rows that were
     served. The training run records its own expectation as
