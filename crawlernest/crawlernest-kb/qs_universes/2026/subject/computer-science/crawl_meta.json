@@ -9,27 +9,35 @@
   "http_backend": "curl_cffi",
   "http_impersonate": "chrome124",
   "ranking_scope": "regional_ranking",
-  "ranking_id_source": "direct",
+  "ranking_id_source": "edition_page",
   "used_resolution_cache": false,
-  "resolved_ranking_id": "4023722",
+  "resolved_ranking_id": "4114630",
   "ranking_id_candidates": [
-    "4023722"
+    "4114630"
   ],
   "resolved_ranking_page_url": "",
   "page_resolution_skipped": true,
   "page_resolution_attempted": false,
   "subregion_id": "",
-  "resolution_cache_path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.claude/worktrees/crawler-performance-coverage-0a4655/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
+  "resolution_cache_path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.claude/worktrees/crawlernest-architecture-review-3b0e48/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
   "universe": {
     "universe_type": "subject",
     "universe_key": "computer-science",
     "label": "QS Computer Science Rankings",
-    "ranking_id": "4023722",
-    "ranking_page_url": null,
+    "ranking_id": null,
+    "ranking_page_url": "https://www.topuniversities.com/university-subject-rankings/computer-science-information-systems",
     "region_name": null,
     "fetch_details": false,
     "enable_aggregation": true,
     "ranking_scope": "regional_ranking"
+  },
+  "edition": {
+    "source": "QS",
+    "ranking_year": 2026,
+    "page_url": "https://www.topuniversities.com/university-subject-rankings/computer-science-information-systems",
+    "evidence": "title: QS World University Rankings for Computer Science and Information Systems 2026 | TopUniversities",
+    "ranking_id": "4114630",
+    "verified": true
   },
   "live_fetch_classification": "live_ok",
   "live_fetch_message": "",

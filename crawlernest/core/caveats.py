@@ -133,6 +133,25 @@ UNSUPPORTED_ESTIMATE_CAVEAT = (
     "about the evidence behind the estimate, not a measurement of how wrong it is."
 )
 
+#: Carried wherever a per-source rank change is shown (rankDelta on a source
+#: ranking). Movement is computed by crawlernest/core/rank_delta.py and
+#: clawer.service.SourceRankDelta, source by source from printed ranks; this says
+#: the three things a reader would otherwise assume the other way.
+RANK_CHANGE_CAVEAT = (
+    "Rank changes compare one source's published ranks between two editions. They are not "
+    "changes in a composite or platform rank, a banded rank gives a range rather than a "
+    "number, and no change is shown when the institution or its source entry changed "
+    "between editions."
+)
+
+#: Carried by the trends surface once more than one edition is held. It pairs a
+#: university's editions but deliberately reports no composite movement.
+COMPOSITE_RANK_NOT_COMPARED_CAVEAT = (
+    "Composite ranks are not compared between editions. A university's composite position "
+    "moves whenever source coverage changes, so rank movement is reported per source on each "
+    "university's page instead."
+)
+
 #: The standard set every recommendation and analytics surface carries. Mirrors
 #: RC1_STANDARD_CAVEATS in caveatMessages.ts and RecommendationEvidenceService.
 STANDARD_CAVEATS: tuple[str, ...] = (

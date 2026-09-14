@@ -92,6 +92,14 @@ export const CAVEAT_MODEL_ESTIMATE =
 export const CAVEAT_UNSUPPORTED_ESTIMATE =
   "Some estimates here fall outside the data the model was fitted on and are marked unsupported. The model has seen no comparable cases for them. That is a statement about the evidence behind the estimate, not a measurement of how wrong it is.";
 
+/** Shown wherever a per-source rank change (rankDelta) is rendered. */
+export const CAVEAT_RANK_CHANGE =
+  "Rank changes compare one source's published ranks between two editions. They are not changes in a composite or platform rank, a banded rank gives a range rather than a number, and no change is shown when the institution or its source entry changed between editions.";
+
+/** Shown on ranking trends when more than one edition is held. */
+export const CAVEAT_COMPOSITE_RANK_NOT_COMPARED =
+  "Composite ranks are not compared between editions. A university's composite position moves whenever source coverage changes, so rank movement is reported per source on each university's page instead.";
+
 export const CAVEAT_DISAGREEMENT_ESTIMATE =
   "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against.";
 

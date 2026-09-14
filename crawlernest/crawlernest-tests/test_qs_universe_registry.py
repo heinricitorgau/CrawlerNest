@@ -20,9 +20,10 @@ class TestQSUniverseRegistry(unittest.TestCase):
         self.assertEqual(spec.universe_key, "europe")
         self.assertEqual(spec.ranking_type, "region:europe")
 
-    def test_subject_spec_can_be_loaded(self):
+    def test_subject_spec_resolves_its_edition_from_a_page_not_a_pin(self):
         spec = get_qs_universe_spec("subject", "computer-science")
-        self.assertEqual(spec.ranking_id, "4023722")
+        self.assertIsNone(spec.ranking_id)
+        self.assertTrue(spec.ranking_page_url.endswith("/computer-science-information-systems"))
 
 
 if __name__ == "__main__":

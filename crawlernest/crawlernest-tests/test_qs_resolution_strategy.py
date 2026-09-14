@@ -151,7 +151,11 @@ class TestQSResolutionStrategy(unittest.TestCase):
                 ),
                 encoding="utf-8",
             )
-            run_status_path.write_text(json.dumps({"status": "ok"}), encoding="utf-8")
+            # A known-good snapshot is one that finished *and* proved its edition.
+            run_status_path.write_text(json.dumps({
+                "status": "ok",
+                "crawl_meta": {"edition": {"verified": True, "ranking_year": 2026, "ranking_id": "4061771"}},
+            }), encoding="utf-8")
             universities, crawl_meta = _apply_qs_snapshot_fallback(
                 [],
                 {

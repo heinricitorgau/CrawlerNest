@@ -1,0 +1,14 @@
+# Weekly. Ranking editions are published once a year; a weekly pass picks up
+# corrections and late matches without putting load on the sources. Persistent
+# runs a missed pass at the next boot (WSL is not always up at 03:30).
+[Unit]
+Description=Run the CrawlerNest scheduled refresh weekly
+
+[Timer]
+OnCalendar=Mon *-*-* 03:30:00
+RandomizedDelaySec=45min
+Persistent=true
+Unit=crawlernest-scheduled-refresh.service
+
+[Install]
+WantedBy=timers.target

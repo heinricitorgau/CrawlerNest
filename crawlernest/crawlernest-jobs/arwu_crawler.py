@@ -10,7 +10,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin
 
-import requests
+from ranking_edition import EditionMismatchError, verify_arwu_page_url
+from transport import REQUEST_ERRORS, build_sync_session, request_headers, resolve_backend
 
 
 BASE_URL = "https://www.shanghairanking.com"
@@ -31,13 +32,27 @@ def _sleep() -> None:
     time.sleep(REQUEST_DELAY_SECONDS)
 
 
-def _request_text(url: str, session: requests.Session) -> str | None:
+def _new_session() -> tuple[Any, dict[str, str]]:
+    """A session that can decode what shanghairanking.com actually sends.
+
+    Its CDN answers some edition pages Brotli-compressed whatever Accept-Encoding
+    says. Plain ``requests`` without a brotli package hands that back as bytes of
+    noise: on 2026-09-14 /rankings/arwu/2025 came through as 32 KB with no table
+    and no payload link, and the crawl reported "unable to parse". The shared
+    transport prefers curl_cffi, which decodes it.
+    """
+    choice = resolve_backend()
+    session = build_sync_session(choice, user_agent=DEFAULT_HEADERS["User-Agent"], extra_headers={})
+    return session, request_headers(choice, DEFAULT_HEADERS)
+
+
+def _request_text(url: str, session: Any, headers: dict[str, str] | None = None) -> str | None:
     try:
-        response = session.get(url, headers=DEFAULT_HEADERS, timeout=DEFAULT_TIMEOUT)
+        response = session.get(url, headers=DEFAULT_HEADERS if headers is None else headers, timeout=DEFAULT_TIMEOUT)
         response.raise_for_status()
         _sleep()
         return response.text
-    except requests.RequestException as exc:
+    except REQUEST_ERRORS as exc:
         print(f"[warn] failed to fetch {url}: {exc}")
         return None
 
@@ -334,11 +349,13 @@ def _extract_rows_from_html_tables(html: str, year: int, page_url: str) -> list[
 
 
 def _candidate_pages(year: int) -> list[str]:
-    return [
-        f"{BASE_URL}/rankings/arwu/{year}",
-        f"{BASE_URL}/rankings/arwu/{year - 1}",
-        f"{BASE_URL}/rankings/arwu/{year - 2}",
-    ]
+    """Only the requested edition.
+
+    This used to fall back two years. Rows were then honestly labelled with the
+    older year, but a 2025 request could still write the 2023 table, and an
+    ingest asked for one edition must not quietly produce another.
+    """
+    return [f"{BASE_URL}/rankings/arwu/{year}"]
 
 
 def _split_top_level(blob: str) -> list[str]:
@@ -494,14 +511,24 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
     output_path = output_base / f"arwu_rankings_{year}.json"
 
     print(f"[arwu] starting crawl for year={year}")
-    session = requests.Session()
+    session, headers = _new_session()
     resolved_url = None
     resolved_year = year
+    edition = None
     normalized_rows: list[dict[str, Any]] = []
     try:
         for page_url in _candidate_pages(year):
             print(f"[arwu] page={page_url}")
-            html = _request_text(page_url, session)
+            try:
+                response = session.get(page_url, headers=headers, timeout=DEFAULT_TIMEOUT)
+                response.raise_for_status()
+                _sleep()
+            except REQUEST_ERRORS as exc:
+                print(f"[warn] failed to fetch {page_url}: {exc}")
+                continue
+            # A redirect to another edition's page is a different table.
+            edition = verify_arwu_page_url(str(response.url or page_url), ranking_year=year)
+            html = response.text
             if not html:
                 continue
             # Rows carry the year of the page they came from, not the year that
@@ -516,7 +543,7 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
             payload_url = _payload_url(html, page_url)
             if payload_url:
                 print(f"[arwu] payload={payload_url}")
-                payload_js = _request_text(payload_url, session)
+                payload_js = _request_text(payload_url, session, headers)
                 if payload_js:
                     payload_rows = _rows_from_payload(payload_js, page_year, page_url)
                     if len(payload_rows) > len(normalized_rows):
@@ -555,6 +582,8 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
 
     if not normalized_rows:
         raise RuntimeError("Unable to locate or parse ARWU rankings table.")
+    if edition is None or resolved_year != year:
+        raise EditionMismatchError(f"ARWU edition {year} was not the table read ({resolved_url})")
 
     output_payload = {
         "rows": normalized_rows,
@@ -563,6 +592,7 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
             "ranking_type": "world",
             "ranking_year": year,
             "resolved_page_url": resolved_url,
+            "edition": edition.as_meta(),
             "valid_rank_count": len(normalized_rows),
         },
     }

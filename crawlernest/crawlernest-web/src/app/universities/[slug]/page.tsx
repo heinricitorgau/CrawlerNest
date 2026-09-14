@@ -14,6 +14,15 @@ import type {
   SubjectRankingsApiResponse,
 } from "@/types/subjectRanking";
 import ShortlistButton from "@/components/ShortlistButton";
+import { CAVEAT_RANK_CHANGE } from "@/lib/caveatMessages";
+import { presentRankDelta, type RankDeltaTone } from "@/lib/rankDeltaPresentation";
+
+const RANK_DELTA_TONE_CLASS: Record<RankDeltaTone, string> = {
+  up: "text-emerald-700",
+  down: "text-rose-700",
+  neutral: "text-slate-600",
+  withheld: "text-slate-400",
+};
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -465,22 +474,36 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
                       <th className="text-center">Rank</th>
                       <th className="text-center">Overall Score</th>
                       <th className="text-center">Year</th>
+                      <th className="text-center">Change in this source</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {rankingEvidence.length > 0 ? rankingEvidence.map((r) => (
-                      <tr key={`${r.source}-${r.year ?? "unknown"}`}>
-                        <td className="font-bold text-slate-900">{r.source}</td>
-                        <td className="text-center font-mono">{formatRank(r.rank)}</td>
-                        <td className="text-center font-mono">{formatRankingScore(r.score)}</td>
-                        <td className="text-center text-slate-500">{r.year ?? "—"}</td>
-                      </tr>
-                    )) : (
-                      <tr><td colSpan={4} className="text-center py-10 text-slate-400 italic">No source evidence found.</td></tr>
+                    {rankingEvidence.length > 0 ? rankingEvidence.map((r) => {
+                      const change = presentRankDelta(r);
+                      return (
+                        <tr key={`${r.source}-${r.year ?? "unknown"}`}>
+                          <td className="font-bold text-slate-900">{r.source}</td>
+                          <td className="text-center font-mono">{r.rankDisplay || formatRank(r.rank)}</td>
+                          <td className="text-center font-mono">{formatRankingScore(r.score)}</td>
+                          <td className="text-center text-slate-500">{r.year ?? "—"}</td>
+                          <td
+                            className={`text-center text-xs ${RANK_DELTA_TONE_CLASS[change.tone]}`}
+                            title={change.detail}
+                          >
+                            {change.label}
+                            <span className="sr-only"> {change.detail}</span>
+                          </td>
+                        </tr>
+                      );
+                    }) : (
+                      <tr><td colSpan={5} className="text-center py-10 text-slate-400 italic">No source evidence found.</td></tr>
                     )}
                   </tbody>
                 </table>
               </div>
+              {rankingEvidence.some((r) => r.rankDelta) && (
+                <p className="mt-2 text-xs text-slate-500">{CAVEAT_RANK_CHANGE}</p>
+              )}
             </Section>
 
             <Section title="Subject Rankings">

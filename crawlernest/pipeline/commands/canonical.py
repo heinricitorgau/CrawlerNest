@@ -71,6 +71,7 @@ def ingest_rankings_payload(
     pg_user: Optional[str],
     pg_password: Optional[str],
     batch_id: str | None = None,
+    allow_shrink: bool = False,
 ) -> Any:
     from models import University
     from multi_source.adapters import ARWUAdapter, QSAdapter, THEAdapter
@@ -102,6 +103,7 @@ def ingest_rankings_payload(
             batch_id=effective_run_id,
             run_label_prefix=f"{source_code.lower()}_payload_ingest",
             ranking_type=ranking_type,
+            allow_shrink=allow_shrink,
         )
     finally:
         conn.close()
@@ -945,6 +947,12 @@ def backfill_qs_ranking_records_from_legacy(
                     CURRENT_TIMESTAMP,
                     %s
                 FROM candidate_rows
+                -- Fill gaps only. This used to DO UPDATE, so every run-the-rankings
+                -- or run-arwu-rankings without --skip-seed rewrote the QS world
+                -- ranks the multi-source ingest had written with whatever the
+                -- legacy table held -- on 2026-09-13 that was the QS 2025 table
+                -- under a 2026 label. A legacy row carries no proof of edition and
+                -- must never replace one that was ingested.
                 ON CONFLICT (
                     canonical_university_id,
                     ranking_source_id,
@@ -953,14 +961,7 @@ def backfill_qs_ranking_records_from_legacy(
                     universe_type,
                     universe_key
                 )
-                DO UPDATE SET
-                    rank_position = EXCLUDED.rank_position,
-                    score = EXCLUDED.score,
-                    source_url = COALESCE(EXCLUDED.source_url, warehouse.ranking_record.source_url),
-                    metadata = EXCLUDED.metadata,
-                    updated_at = CURRENT_TIMESTAMP,
-                    run_id = EXCLUDED.run_id,
-                    ingested_at = CURRENT_TIMESTAMP
+                DO NOTHING
                 """
                 ,
                 (ranking_source_id, run_id),

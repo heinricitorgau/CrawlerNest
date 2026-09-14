@@ -52,6 +52,7 @@ for _path in (
         sys.path.insert(0, str(_path))
 
 from qs_universe_registry import iter_all_qs_universes  # noqa: E402
+from ranking_edition import snapshot_edition_ok  # noqa: E402
 from pipeline.utils.postgres import (  # noqa: E402
     build_multi_source_pipeline,
     connect_postgres,
@@ -67,6 +68,20 @@ def load_snapshot(path: Path) -> list[dict[str, Any]]:
     if isinstance(rows, dict):
         rows = rows.get("rows", [])
     return [row for row in rows if isinstance(row, dict)]
+
+
+def edition_verified(run_status_path: Path, ranking_year: int) -> bool:
+    """Replay only a snapshot whose crawl proved it read ``ranking_year``'s table.
+
+    A replay reproduces the snapshot under the year it is asked for. Before
+    ranking_edition, the 2026 global and world-slice snapshots were crawled off
+    the page then serving QS 2027, so replaying them as 2026 is the mislabel.
+    """
+    try:
+        run_status = json.loads(run_status_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return False
+    return snapshot_edition_ok(run_status, ranking_year=ranking_year)
 
 
 def replay_universe(pipeline: Any, spec: Any, rows: list[dict[str, Any]], ranking_year: int) -> Any:
@@ -129,6 +144,12 @@ def main() -> int:
         rows = load_snapshot(path)
         if not rows:
             skipped.append(f"{spec.ranking_type}: snapshot is empty")
+            continue
+        if not edition_verified(path.parent / "run_status.json", args.ranking_year):
+            skipped.append(
+                f"{spec.ranking_type}: snapshot records no verified {args.ranking_year} edition "
+                "(crawled before ranking_edition; re-crawl it)"
+            )
             continue
         plan.append((spec, path, rows))
 

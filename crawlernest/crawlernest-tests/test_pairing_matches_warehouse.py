@@ -25,7 +25,11 @@ import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PAIRING_FILE = REPO_ROOT / "crawlernest" / "crawlernest-kb" / "databases" / "qs_the_pairing_2026.json"
+#: The pairing describes one edition, and the comparison must too: read across
+#: editions, the 2025 THE load made every 2025-only university look missing from
+#: the export.
+PAIRING_YEAR = 2026
+PAIRING_FILE = REPO_ROOT / "crawlernest" / "crawlernest-kb" / "databases" / f"qs_the_pairing_{PAIRING_YEAR}.json"
 
 #: Below this, the warehouse is a scratch or partially loaded database rather
 #: than one the export could reasonably be compared against.
@@ -59,7 +63,10 @@ class TestPairingMatchesWarehouse(unittest.TestCase):
                     JOIN warehouse.ranking_source rs USING (ranking_source_id)
                     JOIN warehouse.canonical_university cu USING (canonical_university_id)
                     WHERE rs.source_code = 'THE'
-                """)
+                      AND rr.ranking_year = %s
+                      AND rr.ranking_type = 'world'
+                      AND rr.universe_type = 'global'
+                """, (PAIRING_YEAR,))
                 cls.warehouse = {str(a): str(b) for a, b in cur.fetchall() if b}
         finally:
             conn.close()

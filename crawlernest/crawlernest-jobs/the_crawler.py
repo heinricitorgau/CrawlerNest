@@ -13,6 +13,8 @@ from urllib.parse import urljoin
 
 import requests
 
+from ranking_edition import THE_EDITION_PAGE, EditionMismatchError, VerifiedEdition, verify_the_edition_page
+
 
 BASE_URL = "https://www.timeshighereducation.com"
 WORLD_RANKINGS_PAGE = f"{BASE_URL}/world-university-rankings"
@@ -470,23 +472,42 @@ def _load_payload_for_year(year: int, session: requests.Session) -> tuple[Any | 
     return None, None
 
 
+def _load_verified_edition(year: int, session: requests.Session) -> tuple[list[dict[str, Any]], VerifiedEdition]:
+    """The rows of exactly ``year``'s table, from the page whose table config names that year.
+
+    ``_load_payload_for_year`` is not used for ingestion any more: every fallback
+    it tries -- last year's data file, a hard-coded 2024 file, the unversioned
+    and "latest" pages -- can answer with another edition, and the requested year
+    was stamped on whichever did. A 2025 request that got the latest page would
+    have ingested 2026 as 2025.
+    """
+    page_url = THE_EDITION_PAGE.format(year=int(year))
+    try:
+        response = session.get(page_url, headers=DEFAULT_HEADERS, timeout=DEFAULT_TIMEOUT)
+    except requests.RequestException as exc:
+        raise EditionMismatchError(f"THE edition page {page_url} failed: {exc}") from exc
+    if response.status_code != 200:
+        raise EditionMismatchError(f"THE edition page {page_url}: HTTP {response.status_code}")
+    # The current edition's /<year>/ page redirects to /latest/; the table config
+    # still names its year, which is what is checked.
+    edition, rows = verify_the_edition_page(response.text, page_url=str(response.url or page_url), ranking_year=year)
+    return rows, edition
+
+
 def crawl_the_rankings(year: int = 2026, output_dir: Path | None = None) -> Path:
     output_base = output_dir or DEFAULT_OUTPUT_DIR
     output_base.mkdir(parents=True, exist_ok=True)
     output_path = output_base / f"the_rankings_{year}.json"
 
-    print(f"[THE_CRAWL] start year={year} source=THE primary_page={WORLD_RANKINGS_PAGE}")
+    print(f"[THE_CRAWL] start year={year} source=THE edition_page={THE_EDITION_PAGE.format(year=year)}")
 
     session = requests.Session()
     try:
-        payload, resolved_url = _load_payload_for_year(year, session)
+        raw_rows, edition = _load_verified_edition(year, session)
     finally:
         session.close()
+    resolved_url = edition.page_url
 
-    if payload is None:
-        raise RuntimeError("Unable to locate or fetch THE rankings JSON payload.")
-
-    raw_rows = _extract_rows(payload)
     normalized_rows: list[dict[str, Any]] = []
     valid_rank_count = 0
     for row in raw_rows:
@@ -503,6 +524,7 @@ def crawl_the_rankings(year: int = 2026, output_dir: Path | None = None) -> Path
             "ranking_type": "world",
             "ranking_year": year,
             "resolved_data_url": resolved_url,
+            "edition": edition.as_meta(),
             "raw_row_count": len(raw_rows),
             "valid_rank_count": valid_rank_count,
         },

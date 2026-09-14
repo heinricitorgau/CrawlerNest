@@ -47,6 +47,10 @@ class QSAdapter(BaseSourceAdapter):
                         "table_metrics": dict(uni.table_metrics or {}),
                         "universe_type": self.universe_type,
                         "universe_key": self.universe_key,
+                        # The printed rank ("=17", "601-610"). rank_position holds
+                        # the sort ordinal; a year-over-year delta must read the
+                        # band from here or claim precision QS never published.
+                        "rank_display": str(getattr(uni, "rank_display", "") or "") or None,
                     },
                 )
             )

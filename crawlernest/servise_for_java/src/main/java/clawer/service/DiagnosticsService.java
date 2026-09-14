@@ -7,24 +7,33 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Ranking diagnostics for the held editions. Like {@link HealthService}, these
+ * reach a page (system status), so an ingested but unreleased edition stays out.
+ * Ingestion logs are the exception: a batch is an event, not an edition's data.
+ */
 @Service
 public class DiagnosticsService {
     private final JdbcTemplate jdbcTemplate;
+    private final DatasetScope datasetScope;
 
-    public DiagnosticsService(JdbcTemplate jdbcTemplate) {
+    public DiagnosticsService(JdbcTemplate jdbcTemplate, DatasetScope datasetScope) {
         this.jdbcTemplate = jdbcTemplate;
+        this.datasetScope = datasetScope;
     }
 
     public Map<String, Object> getRankingsDiagnostics() {
         Map<String, Object> data = new LinkedHashMap<>();
+        String held = datasetScope.heldYearsSqlArray();
 
         List<Map<String, Object>> sourceCounts = jdbcTemplate.queryForList("""
                 SELECT rs.source_code, rr.ranking_year, count(*) AS count
                 FROM warehouse.ranking_record rr
                 JOIN warehouse.ranking_source rs ON rs.ranking_source_id = rr.ranking_source_id
+                WHERE rr.ranking_year = ANY(?::int[])
                 GROUP BY rs.source_code, rr.ranking_year
                 ORDER BY rr.ranking_year DESC, rs.source_code
-                """);
+                """, held);
         data.put("source_counts", sourceCounts.stream().map(row -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("source_code", row.get("source_code"));
@@ -34,7 +43,7 @@ public class DiagnosticsService {
         }).toList());
 
         Long unresolvedCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM analytics.missing_entity_log", Long.class);
+                "SELECT count(*) FROM analytics.missing_entity_log WHERE ranking_year = ANY(?::int[])", Long.class, held);
         data.put("unresolved_university_count", unresolvedCount != null ? unresolvedCount : 0L);
 
         Long duplicateCount = jdbcTemplate.queryForObject(
@@ -42,7 +51,8 @@ public class DiagnosticsService {
         data.put("duplicate_resolution_count", duplicateCount != null ? duplicateCount : 0L);
 
         Long aggCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM analytics.v_aggregated_rankings_latest", Long.class);
+                "SELECT count(*) FROM analytics.v_aggregated_rankings_latest WHERE ranking_year = ANY(?::int[])",
+                Long.class, held);
         data.put("aggregated_latest_count", aggCount != null ? aggCount : 0L);
 
         List<Map<String, Object>> ingestionLog = jdbcTemplate.queryForList("""
@@ -70,9 +80,10 @@ public class DiagnosticsService {
                 SELECT aggregation_run_id, ranking_year, status, started_at, finished_at,
                        input_record_count, output_record_count
                 FROM analytics.aggregation_runs
+                WHERE ranking_year = ANY(?::int[])
                 ORDER BY aggregation_run_id DESC
                 LIMIT 1
-                """);
+                """, held);
         if (!aggRuns.isEmpty()) {
             Map<String, Object> run = aggRuns.get(0);
             data.put("latest_aggregation_run_id", run.get("aggregation_run_id"));
@@ -142,14 +153,15 @@ public class DiagnosticsService {
                 JOIN warehouse.canonical_university cu
                   ON cu.canonical_university_id = ar.canonical_university_id
                 JOIN warehouse.countries c ON c.country_id = cu.country_id
-                WHERE NOT EXISTS (
+                WHERE ar.ranking_year = ANY(?::int[])
+                  AND NOT EXISTS (
                     SELECT 1 FROM warehouse.subject_ranking_record srr
                     WHERE srr.canonical_university_id = ar.canonical_university_id
                 )
                 GROUP BY c.country_name
                 ORDER BY global_count DESC
                 LIMIT 10
-                """);
+                """, datasetScope.heldYearsSqlArray());
         data.put("top_missing_countries", missingCountries.stream().map(row -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("country_name", row.get("country_name"));

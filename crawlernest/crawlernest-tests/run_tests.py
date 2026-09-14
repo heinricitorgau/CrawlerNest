@@ -96,6 +96,13 @@ def run_all_tests():
         # empty artifact from a Cloudflare-blocked run -- and nobody saw it.
         "test_qs_universe_invariants",
         "test_qs_resolution_strategy",
+        # A crawl labels rows with a ranking_year only after proving it read that
+        # edition. Without it the 2027 QS table was ingested as 2026.
+        "test_ranking_edition",
+        # The external scheduler's one-shot command, and the guardrail that the
+        # API and web app cannot start the pipeline.
+        "test_scheduled_refresh",
+        "test_no_pipeline_triggers_from_api",
         # Needs PostgreSQL; skips itself unless CRAWLERNEST_RUN_PG_TESTS=1.
         "test_legacy_source",
         "test_arwu_crawler",

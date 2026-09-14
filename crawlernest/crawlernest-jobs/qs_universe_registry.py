@@ -176,27 +176,31 @@ QS_REGIONAL_SPECS: dict[str, QSUniverseSpec] = {
     ),
 }
 
+_SUBJECT_PAGE = "https://www.topuniversities.com/university-subject-rankings/{slug}"
+
+#: Pages, not pinned ids. The ids pinned here until 2026-09 were never checked
+#: against an edition: computer-science's 4023722 is the 2025 subject table, and
+#: it was ingested as 2026. Each subject now resolves its id from
+#: ``<page>/<year>`` (see ranking_edition), which also retires the dead
+#: engineering-technology pin that answered HTTP 500.
 QS_SUBJECT_SPECS: dict[str, QSUniverseSpec] = {
-    # The pinned id currently answers HTTP 500. Subject specs carry no ranking
-    # page, so there is nothing to re-resolve it from; fixing this needs a
-    # subject page URL, which is its own piece of work.
     "engineering-technology": QSUniverseSpec(
         universe_type="subject",
         universe_key="engineering-technology",
         label="QS Engineering & Technology Rankings",
-        ranking_id="4023765",
+        ranking_page_url=_SUBJECT_PAGE.format(slug="engineering-technology"),
     ),
     "computer-science": QSUniverseSpec(
         universe_type="subject",
         universe_key="computer-science",
         label="QS Computer Science Rankings",
-        ranking_id="4023722",
+        ranking_page_url=_SUBJECT_PAGE.format(slug="computer-science-information-systems"),
     ),
     "business-management": QSUniverseSpec(
         universe_type="subject",
         universe_key="business-management",
         label="QS Business & Management Rankings",
-        ranking_id="4023720",
+        ranking_page_url=_SUBJECT_PAGE.format(slug="business-management-studies"),
     ),
 }
 

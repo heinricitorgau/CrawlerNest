@@ -36,6 +36,9 @@ class UniversityServiceTest {
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private clawer.repository.InstitutionLineageRepository institutionLineageRepository;
+
     /** A real scope: the aggregated-ranking read now names the release's default edition. */
     @Spy
     private DatasetScope datasetScope = DatasetScope.standard();
@@ -108,15 +111,27 @@ class UniversityServiceTest {
                 "composite_score", 98.1,
                 "aggregation_method_version", "v2"
         )));
+        // The source-rank query answers for the edition it is asked for, as the
+        // SQL does: 2026 rows for 2026, 2025 rows for 2025.
         when(jdbcTemplate.query(
                 contains("WITH ranked_source_rows AS"),
                 any(Object[].class),
                 any(RowMapper.class)
-        )).thenReturn(List.of(
-                Map.of("source_code", "QS", "ranking_year", 2026, "rank_position", 1, "score", 100.0),
-                Map.of("source_code", "THE", "ranking_year", 2026, "rank_position", 2, "score", 99.0),
-                Map.of("source_code", "ARWU", "ranking_year", 2026, "rank_position", 3, "score", 98.0)
-        ));
+        )).thenAnswer(invocation -> {
+            int year = (Integer) ((Object[]) invocation.getArgument(1))[1];
+            if (year == 2026) {
+                return List.of(
+                        sourceRow("QS", 2026, 1, "1", "/universities/mit"),
+                        sourceRow("THE", 2026, 2, "2", "the:mit"),
+                        sourceRow("ARWU", 2026, 3, "3", "arwu:mit"));
+            }
+            if (year == 2025) {
+                return List.of(
+                        sourceRow("QS", 2025, 1, "1", "/universities/mit"),
+                        sourceRow("THE", 2025, 201, "201–250", "the:mit"));
+            }
+            return List.of();
+        });
 
         UniversityDTO result = universityService.getUniversityBySlug("mit");
 
@@ -125,6 +140,68 @@ class UniversityServiceTest {
         assertEquals(3, result.getSourceRankings().size());
         assertEquals(List.of("QS", "THE", "ARWU"), result.getSourceRankings().stream().map(r -> r.getSource()).toList());
         assertEquals(3, result.getRankingEvidence().size());
+    }
+
+    private static Map<String, Object> sourceRow(String source, int year, int position, String display, String entityId) {
+        Map<String, Object> row = new java.util.HashMap<>();
+        row.put("source_code", source);
+        row.put("ranking_year", year);
+        row.put("rank_position", position);
+        row.put("score", 90.0);
+        row.put("rank_display", display);
+        row.put("source_entity_id", entityId);
+        row.put("suspicious_merge", false);
+        return row;
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void sourceRankingsCarryAPerSourceDeltaFromThePriorHeldEdition() {
+        DatasetScope twoEditions = new DatasetScope("2026,2025");
+        UniversityService service = new UniversityService(
+                universityRepository, admissionRecordRepository, jdbcTemplate, twoEditions, institutionLineageRepository);
+        University legacy = new University();
+        legacy.setId(10L);
+        legacy.setSchoolSlug("mit");
+        when(universityRepository.findBySchoolSlug("mit")).thenReturn(Optional.of(legacy));
+        when(institutionLineageRepository.findInvolving(any())).thenReturn(List.of());
+        when(jdbcTemplate.query(contains("FROM warehouse.canonical_university_link cul"), any(Object[].class), any(RowMapper.class)))
+                .thenReturn(List.of(9001L));
+        when(jdbcTemplate.query(contains("FROM analytics.v_aggregated_rankings_latest"), any(Object[].class), any(RowMapper.class)))
+                .thenReturn(List.of(Map.of("ranking_year", 2026, "display_rank", 2, "composite_score", 98.1,
+                        "aggregation_method_version", "v2")));
+        when(jdbcTemplate.query(contains("WITH ranked_source_rows AS"), any(Object[].class), any(RowMapper.class)))
+                .thenAnswer(invocation -> {
+                    int year = (Integer) ((Object[]) invocation.getArgument(1))[1];
+                    return year == 2026
+                            ? List.of(sourceRow("QS", 2026, 14, "14", "/universities/x"),
+                                      sourceRow("THE", 2026, 201, "201–250", "the:x"),
+                                      sourceRow("ARWU", 2026, 30, "30", "arwu:x"))
+                            : List.of(sourceRow("QS", 2025, 17, "=17", "/universities/x"),
+                                      sourceRow("THE", 2025, 301, "301–350", "the:x"));
+                });
+
+        Map<String, clawer.dto.SourceRankingDTO> bySource = service.getUniversityBySlug("mit").getSourceRankings().stream()
+                .collect(java.util.stream.Collectors.toMap(clawer.dto.SourceRankingDTO::getSource, r -> r));
+
+        clawer.dto.SourceRankingDTO qs = bySource.get("QS");
+        assertEquals(-3, qs.getRankDelta().getValue());
+        assertEquals("up", qs.getRankDelta().getDirection());
+        assertEquals(2025, qs.getRankDelta().getPriorYear());
+        assertEquals("=17", qs.getRankDelta().getPriorRankDisplay());
+        assertNull(qs.getRankDeltaReason());
+
+        clawer.dto.SourceRankingDTO the = bySource.get("THE");
+        assertNull(the.getRankDelta().getValue(), "banded ranks give an interval, never a number");
+        assertEquals("up", the.getRankDelta().getDirection());
+        assertEquals("banded", the.getRankDeltaReason());
+
+        clawer.dto.SourceRankingDTO arwu = bySource.get("ARWU");
+        assertNull(arwu.getRankDelta());
+        assertEquals("no_prior_row", arwu.getRankDeltaReason());
+
+        // Never composite: the aggregated ranking has no delta field at all.
+        assertEquals(2, service.getUniversityBySlug("mit").getAggregatedRanking().getDisplayRank());
     }
 
     @Test

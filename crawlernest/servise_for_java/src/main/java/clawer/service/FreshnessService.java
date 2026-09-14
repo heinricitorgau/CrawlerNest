@@ -15,13 +15,20 @@ public class FreshnessService {
     private static final long STALE_THRESHOLD_HOURS = 30L * 24;
 
     private final JdbcTemplate jdbcTemplate;
+    private final DatasetScope datasetScope;
 
-    public FreshnessService(JdbcTemplate jdbcTemplate) {
+    public FreshnessService(JdbcTemplate jdbcTemplate, DatasetScope datasetScope) {
         this.jdbcTemplate = jdbcTemplate;
+        this.datasetScope = datasetScope;
     }
 
+    /**
+     * Freshness of the held editions. Reading every edition made a shadow load the
+     * "latest" year and the latest aggregation run, on a page users see.
+     */
     public Map<String, Object> getFreshness() {
         Map<String, Object> data = new LinkedHashMap<>();
+        String held = datasetScope.heldYearsSqlArray();
 
         List<String> allSources = jdbcTemplate.queryForList(
                 "SELECT source_code FROM warehouse.ranking_source WHERE is_active = TRUE ORDER BY source_code",
@@ -35,9 +42,10 @@ public class FreshnessService {
                        MAX(rr.ranking_year) AS latest_year
                 FROM warehouse.ranking_record rr
                 JOIN warehouse.ranking_source rs ON rs.ranking_source_id = rr.ranking_source_id
+                WHERE rr.ranking_year = ANY(?::int[])
                 GROUP BY rs.source_code
                 ORDER BY rs.source_code
-                """);
+                """, held);
 
         Map<String, Map<String, Object>> sourceDataMap = new LinkedHashMap<>();
         for (Map<String, Object> row : sourceRows) {
@@ -127,9 +135,10 @@ public class FreshnessService {
                 SELECT aggregation_run_id, ranking_year, status, started_at, finished_at,
                        output_record_count
                 FROM analytics.aggregation_runs
+                WHERE ranking_year = ANY(?::int[])
                 ORDER BY aggregation_run_id DESC
                 LIMIT 1
-                """);
+                """, held);
 
         Map<String, Object> aggregation = new LinkedHashMap<>();
         if (!aggRuns.isEmpty()) {

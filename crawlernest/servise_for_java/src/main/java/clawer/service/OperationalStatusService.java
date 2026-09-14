@@ -9,13 +9,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Pipeline status for the held editions; an unreleased edition's aggregation run
+ * and unresolved names stay out, as on the other status pages.
+ */
 @Service
 public class OperationalStatusService {
 
     private final JdbcTemplate jdbcTemplate;
+    private final DatasetScope datasetScope;
 
-    public OperationalStatusService(JdbcTemplate jdbcTemplate) {
+    public OperationalStatusService(JdbcTemplate jdbcTemplate, DatasetScope datasetScope) {
         this.jdbcTemplate = jdbcTemplate;
+        this.datasetScope = datasetScope;
     }
 
     public Map<String, Object> getOperationalStatus() {
@@ -36,9 +42,10 @@ public class OperationalStatusService {
                        output_record_count
                 FROM analytics.aggregation_runs
                 WHERE status = 'finished'
+                  AND ranking_year = ANY(?::int[])
                 ORDER BY aggregation_run_id DESC
                 LIMIT 1
-                """);
+                """, datasetScope.heldYearsSqlArray());
         if (rows.isEmpty()) {
             return Map.of(
                     "run_id", (Object) null,
@@ -100,19 +107,21 @@ public class OperationalStatusService {
     // ── Unresolved trend (7-day comparison) ──────────────────────────────────
 
     private Map<String, Object> buildUnresolvedTrend() {
+        String held = datasetScope.heldYearsSqlArray();
         Long total = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM analytics.missing_entity_log", Long.class);
+                "SELECT COUNT(*) FROM analytics.missing_entity_log WHERE ranking_year = ANY(?::int[])",
+                Long.class, held);
 
         Long last7d = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM analytics.missing_entity_log "
-                + "WHERE created_at >= NOW() - INTERVAL '7 days'",
-                Long.class);
+                + "WHERE ranking_year = ANY(?::int[]) AND created_at >= NOW() - INTERVAL '7 days'",
+                Long.class, held);
 
         Long prior7d = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM analytics.missing_entity_log "
-                + "WHERE created_at >= NOW() - INTERVAL '14 days' "
+                + "WHERE ranking_year = ANY(?::int[]) AND created_at >= NOW() - INTERVAL '14 days' "
                 + "  AND created_at < NOW() - INTERVAL '7 days'",
-                Long.class);
+                Long.class, held);
 
         long t = total != null ? total : 0L;
         long l7 = last7d != null ? last7d : 0L;

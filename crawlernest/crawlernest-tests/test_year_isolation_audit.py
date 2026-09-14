@@ -81,43 +81,6 @@ ALLOWED: tuple[Allowed, ...] = (
         "operational: does an active source have any row at all, in any edition",
     ),
     Allowed(
-        "crawlernest/servise_for_java/src/main/java/clawer/service/DiagnosticsService.java",
-        "GROUP BY rs.source_code, rr.ranking_year",
-        "operational: a per-edition breakdown, which is the point of the endpoint",
-    ),
-    Allowed(
-        "crawlernest/servise_for_java/src/main/java/clawer/service/HealthService.java",
-        "GROUP BY rs.source_code, rr.ranking_year",
-        "operational: a per-edition breakdown, which is the point of the endpoint",
-    ),
-    Allowed(
-        "crawlernest/servise_for_java/src/main/java/clawer/service/DiagnosticsService.java",
-        "AS global_count",
-        "operational: distinct universities lacking subject coverage; cannot duplicate, and an "
-        "operator auditing a shadow ingest should see it",
-    ),
-    Allowed(
-        "crawlernest/servise_for_java/src/main/java/clawer/service/HealthService.java",
-        "SELECT count(*) FROM analytics.v_aggregated_rankings_latest",
-        "operational: total rows held across editions, reported beside latest_ranking_year",
-    ),
-    Allowed(
-        "crawlernest/servise_for_java/src/main/java/clawer/service/HealthService.java",
-        "SELECT MAX(ranking_year) FROM analytics.v_aggregated_rankings_latest",
-        "operational: reports the newest edition loaded, released or not -- what an operator "
-        "needs to see during a shadow ingest",
-    ),
-    Allowed(
-        "crawlernest/servise_for_java/src/main/java/clawer/service/DiagnosticsService.java",
-        "SELECT count(*) FROM analytics.v_aggregated_rankings_latest",
-        "operational: total rows held across editions",
-    ),
-    Allowed(
-        "crawlernest/servise_for_java/src/main/java/clawer/service/FreshnessService.java",
-        "MAX(rr.ranking_year) AS latest_year",
-        "operational: freshness per source, reporting which edition is newest",
-    ),
-    Allowed(
         "crawlernest/servise_for_java/src/main/java/clawer/repository/UniversityPreviewRepository.java",
         "AS matched_by",
         "identity lookup: EXISTS on a ranking row only orders candidate records; no rank is read",

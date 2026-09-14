@@ -43,10 +43,8 @@ class TestArwuParsingHelpers(unittest.TestCase):
         self.assertAlmostEqual(_to_float("72.3%"), 72.3)
         self.assertIsNone(_to_float(""))
 
-    def test_candidate_pages_include_requested_year_first(self):
-        pages = _candidate_pages(2026)
-        self.assertEqual(pages[0], "https://www.shanghairanking.com/rankings/arwu/2026")
-        self.assertIn("2025", pages[1])
+    def test_candidate_pages_are_only_the_requested_edition(self):
+        self.assertEqual(_candidate_pages(2026), ["https://www.shanghairanking.com/rankings/arwu/2026"])
 
 
 class TestArwuHtmlExtraction(unittest.TestCase):
@@ -362,12 +360,10 @@ class TestPageYearIsRecorded(unittest.TestCase):
         self.assertEqual(_year_of_page("https://x/rankings/arwu/", 2026), 2026)
         self.assertEqual(_year_of_page("", 2024), 2024)
 
-    def test_candidate_pages_walk_backwards(self):
-        pages = _candidate_pages(2026)
-        years = [int(p.rsplit("/", 1)[-1]) for p in pages]
-        self.assertEqual(years, [2026, 2025, 2024],
-                         "the fallback is what makes the year ambiguous; if this "
-                         "order changes the year test above has to change with it")
+    def test_no_fallback_to_an_older_edition(self):
+        """A request for one edition must not produce another, even correctly labelled."""
+        years = [int(p.rsplit("/", 1)[-1]) for p in _candidate_pages(2026)]
+        self.assertEqual(years, [2026])
 
 
 if __name__ == "__main__":

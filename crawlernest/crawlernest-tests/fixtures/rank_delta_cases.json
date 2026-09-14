@@ -1,0 +1,35 @@
+{
+  "_comment": "Golden cases for per-source rank movement. Read by test_rank_delta.py (crawlernest/core/rank_delta.py) and SourceRankDeltaTest.java (clawer.service.SourceRankDelta); both must produce exactly these results. Ranks are as printed by the source. prior null = we hold no prior row. Lineage: university 85 merged with 668 effective 2024; university 82 absorbed 339 effective 2026.",
+  "lineage": [
+    {"predecessor": 668, "successor": 85, "effective_year": 2024, "kind": "merger"},
+    {"predecessor": 339, "successor": 82, "effective_year": 2026, "kind": "merger"}
+  ],
+  "cases": [
+    {"name": "exact move up", "held": [2026, 2025], "university": 1, "source": "QS", "current": "14", "prior": "17", "prior_year": 2025, "current_id": "/universities/tsinghua-university", "prior_id": "/universities/tsinghua-university",
+     "expect": {"value": -3, "min": -3, "max": -3, "direction": "up", "reason": null}},
+    {"name": "tie notation is exact", "held": [2026, 2025], "university": 1, "source": "THE", "current": "=98", "prior": "95", "prior_year": 2025, "current_id": "t1", "prior_id": "t1",
+     "expect": {"value": 3, "min": 3, "max": 3, "direction": "down", "reason": null}},
+    {"name": "exact unchanged", "held": [2026, 2025], "university": 1, "source": "ARWU", "current": "30", "prior": "30", "prior_year": 2025, "current_id": "arwu:the-university-of-tokyo", "prior_id": "arwu:the-university-of-tokyo",
+     "expect": {"value": 0, "min": 0, "max": 0, "direction": "unchanged", "reason": null}},
+    {"name": "same band says nothing", "held": [2026, 2025], "university": 1, "source": "ARWU", "current": "201-300", "prior": "201-300", "prior_year": 2025, "current_id": "arwu:x", "prior_id": "arwu:x",
+     "expect": {"value": null, "min": -99, "max": 99, "direction": "indeterminate", "reason": "banded"}},
+    {"name": "band wholly above prior band", "held": [2026, 2025], "university": 1, "source": "THE", "current": "201–250", "prior": "301–350", "prior_year": 2025, "current_id": "t2", "prior_id": "t2",
+     "expect": {"value": null, "min": -149, "max": -51, "direction": "up", "reason": "banded"}},
+    {"name": "open band is unbounded on one side", "held": [2026, 2025], "university": 1, "source": "THE", "current": "1501+", "prior": "1201–1500", "prior_year": 2025, "current_id": "t3", "prior_id": "t3",
+     "expect": {"value": null, "min": 1, "max": null, "direction": "down", "reason": "banded"}},
+    {"name": "only one edition held", "held": [2026], "university": 1, "source": "QS", "current": "14", "prior": "17", "prior_year": 2025, "current_id": "q", "prior_id": "q",
+     "expect": {"value": null, "min": null, "max": null, "direction": null, "reason": "single_year_dataset"}},
+    {"name": "no prior row is our gap", "held": [2026, 2025], "university": 1, "source": "QS", "current": "14", "prior": null, "prior_year": 2025, "current_id": "q", "prior_id": null,
+     "expect": {"value": null, "min": null, "max": null, "direction": null, "reason": "no_prior_row"}},
+    {"name": "different source entity across years", "held": [2026, 2025], "university": 1, "source": "ARWU", "current": "90", "prior": "80", "prior_year": 2025, "current_id": "arwu:new-slug", "prior_id": "arwu:old-slug",
+     "expect": {"value": null, "min": null, "max": null, "direction": null, "reason": "entity_changed"}},
+    {"name": "year-embedded ids are one identity", "held": [2026, 2025], "university": 1, "source": "ARWU", "current": "90", "prior": "80", "prior_year": 2025, "current_id": "arwu:2026:aalto-university", "prior_id": "arwu:2025:aalto-university",
+     "expect": {"value": 10, "min": 10, "max": 10, "direction": "down", "reason": null}},
+    {"name": "merger inside the window withholds", "held": [2026, 2025], "university": 82, "source": "QS", "current": "82", "prior": "89", "prior_year": 2025, "current_id": "q82", "prior_id": "q82",
+     "expect": {"value": null, "min": null, "max": null, "direction": null, "reason": "entity_changed"}},
+    {"name": "merger reaches back one edition of lag", "held": [2026, 2025], "university": 85, "source": "QS", "current": "40", "prior": "44", "prior_year": 2025, "current_id": "q85", "prior_id": "q85",
+     "expect": {"value": null, "min": null, "max": null, "direction": null, "reason": "entity_changed"}},
+    {"name": "suspicious merge withholds", "held": [2026, 2025], "university": 1, "source": "QS", "current": "14", "prior": "17", "prior_year": 2025, "current_id": "q", "prior_id": "q", "prior_suspicious": true,
+     "expect": {"value": null, "min": null, "max": null, "direction": null, "reason": "suspicious_merge"}}
+  ]
+}

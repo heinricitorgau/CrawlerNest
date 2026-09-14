@@ -1,8 +1,32 @@
+/**
+ * One source's movement between two editions (clawer.dto.RankDeltaDTO).
+ *
+ * Always per source; there is no composite equivalent. `value` is current minus
+ * prior (negative = up) and is set only for two exact ranks; `min`/`max` bound a
+ * banded movement. Render `direction`, never the sign.
+ */
+export type RankDelta = {
+  priorYear: number | null;
+  currentYear: number | null;
+  priorRankDisplay: string | null;
+  value: number | null;
+  min: number | null;
+  max: number | null;
+  direction: "up" | "down" | "unchanged" | "indeterminate" | null;
+};
+
 export type UniversityRanking = {
   source: string;
   year: number | null;
+  /** A band's lower bound; show `rankDisplay` when present. */
   rank: number | null;
+  /** The rank as the source printed it: "=98", "201–250". */
+  rankDisplay?: string | null;
   score: number | null;
+  /** Null when no movement is shown; `rankDeltaReason` says why. */
+  rankDelta?: RankDelta | null;
+  /** Machine code: why `rankDelta` is null, or "banded". Null for an exact change. */
+  rankDeltaReason?: string | null;
 };
 
 export type AggregatedRanking = {
