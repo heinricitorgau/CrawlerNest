@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
 from ranking_aggregation.types import RankingRecordInput
 
@@ -152,40 +152,65 @@ class MultiSourceRepository:
     def load_active_mappings(
         self,
         keys: Sequence[tuple[str, str]],
-        source_id_map: dict[str, int],
+        source_id_map: dict[str, int] | None = None,
     ) -> dict[tuple[str, str], ExistingMapping]:
-        """The active mapping for each (source_code, source_entity_id) that has one."""
-        code_by_id = {int(source_id): code for code, source_id in source_id_map.items()}
-        pairs = sorted({(source_id_map[code], str(entity_id)) for code, entity_id in keys if code in source_id_map})
+        """The active mapping for each (source_code, source_entity_id) that has one.
+
+        Keyed by source_code, so it serves every source -- ranking or not.
+        ``source_id_map`` is accepted for the ranking callers that still pass it
+        and is no longer needed.
+        """
+        pairs = sorted({(str(code), str(entity_id)) for code, entity_id in keys if code and entity_id})
         if not pairs:
             return {}
         with self.conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT m.ranking_source_id, m.source_entity_id, m.canonical_university_id,
+                SELECT m.source_code, m.source_entity_id, m.canonical_university_id,
                        m.match_method, m.confidence_score
                 FROM warehouse.source_university_mapping m
-                JOIN unnest(%s::smallint[], %s::text[]) AS k(ranking_source_id, source_entity_id)
-                  ON k.ranking_source_id = m.ranking_source_id
+                JOIN unnest(%s::text[], %s::text[]) AS k(source_code, source_entity_id)
+                  ON k.source_code = m.source_code
                  AND k.source_entity_id = m.source_entity_id
                 WHERE m.is_active
                 """,
-                ([source_id for source_id, _ in pairs], [entity_id for _, entity_id in pairs]),
+                ([code for code, _ in pairs], [entity_id for _, entity_id in pairs]),
             )
             rows = cur.fetchall()
         return {
-            (code_by_id[int(source_id)], str(entity_id)): ExistingMapping(
+            (str(code), str(entity_id)): ExistingMapping(
                 canonical_university_id=int(canonical_id),
                 match_method=None if method is None else str(method),
                 confidence_score=None if confidence is None else float(confidence),
             )
-            for source_id, entity_id, canonical_id, method, confidence in rows
-            if int(source_id) in code_by_id
+            for code, entity_id, canonical_id, method, confidence in rows
         }
 
     def upsert_source_university_mappings(self, unified_rows: list[UnifiedRankingRecord], source_id_map: dict[str, int]) -> None:
+        """Write a ranking batch's mappings. See :meth:`upsert_entity_mappings`."""
+        rows = [row for row in unified_rows if source_id_map.get(row.source) is not None]
+        self.upsert_entity_mappings(
+            rows,
+            source_of=lambda row: row.source,
+            ranking_source_id_of=lambda code: source_id_map.get(code),
+        )
+
+    def upsert_entity_mappings(
+        self,
+        rows: Sequence[Any],
+        *,
+        source_of: Callable[[Any], str],
+        ranking_source_id_of: Callable[[str], int | None] = lambda code: None,
+    ) -> dict[tuple[str, str], int]:
         """
-        Write this batch's mappings.
+        Write mappings for any source into warehouse.source_university_mapping.
+
+        ``rows`` are resolved records -- UnifiedRankingRecord or
+        entity_resolution's ResolutionResult -- and ``source_of`` reads the source
+        code off one. ``ranking_source_id_of`` gives a ranking source's id and
+        None for any other source, which the table's composite foreign key
+        requires. Returns the source_mapping_id of every mapping written or
+        confirmed, keyed by (source_code, source_entity_id).
 
         Refuses, before writing anything, to move an active mapping to another
         university unless the row carries a human decision. The conflict clause
@@ -193,43 +218,43 @@ class MultiSourceRepository:
         check and the write is left alone rather than overwritten. See
         multi_source/continuity.py for why an entity's id outranks its name.
         """
+        resolved = [row for row in rows if row.canonical_university_id is not None and row.source_entity_id]
         reassignments = find_reassignments(
-            unified_rows,
-            self.load_active_mappings(
-                [(row.source, row.source_entity_id) for row in unified_rows if row.canonical_university_id is not None],
-                source_id_map,
-            ),
+            resolved,
+            self.load_active_mappings([(source_of(row), row.source_entity_id) for row in resolved], None),
+            source_of=source_of,
         )
         if reassignments:
             raise MappingReassignmentError(reassignments)
 
-        params: list[tuple[Any, ...]] = []
-        for row in unified_rows:
-            if row.canonical_university_id is None:
-                continue
-            ranking_source_id = source_id_map.get(row.source)
-            if ranking_source_id is None:
-                continue
-            params.append(
-                (
-                    ranking_source_id,
-                    row.source_entity_id,
-                    row.canonical_university_id,
-                    row.matching_method,
-                    row.confidence_score,
-                    json.dumps(row.metadata, ensure_ascii=False),
-                )
+        # One statement cannot update a row twice, so a batch naming one entity
+        # more than once keeps its last row -- what sequential writes left.
+        by_key: dict[tuple[str, str], tuple[Any, ...]] = {}
+        for row in resolved:
+            code = source_of(row)
+            by_key[(code, str(row.source_entity_id))] = (
+                code,
+                ranking_source_id_of(code),
+                str(row.source_entity_id),
+                int(row.canonical_university_id),
+                row.matching_method,
+                row.confidence_score,
+                json.dumps(row.metadata, ensure_ascii=False),
             )
-        if not params:
-            return
+        if not by_key:
+            return {}
+
+        from psycopg2.extras import execute_values
+
         with self.conn.cursor() as cur:
-            cur.executemany(
+            returned = execute_values(
+                cur,
                 """
                 INSERT INTO warehouse.source_university_mapping (
-                    ranking_source_id, source_entity_id, canonical_university_id,
+                    source_code, ranking_source_id, source_entity_id, canonical_university_id,
                     match_method, confidence_score, metadata
-                ) VALUES (%s, %s, %s, %s, %s, %s::jsonb)
-                ON CONFLICT (ranking_source_id, source_entity_id)
+                ) VALUES %s
+                ON CONFLICT (source_code, source_entity_id)
                 DO UPDATE SET
                     canonical_university_id = EXCLUDED.canonical_university_id,
                     match_method = EXCLUDED.match_method,
@@ -243,51 +268,51 @@ class MultiSourceRepository:
                 WHERE warehouse.source_university_mapping.canonical_university_id = EXCLUDED.canonical_university_id
                    OR NOT warehouse.source_university_mapping.is_active
                    OR EXCLUDED.match_method IN ('human_confirmed', 'human_remapped')
+                RETURNING source_code, source_entity_id, source_mapping_id
                 """,
-                params,
+                list(by_key.values()),
+                template="(%s, %s, %s, %s, %s, %s, %s::jsonb)",
+                fetch=True,
             )
         self.conn.commit()
+        return {(str(code), str(entity_id)): int(mapping_id) for code, entity_id, mapping_id in returned}
 
     def deactivate_rejected_mappings(
         self,
         rejected_keys: list[tuple[str, str]] | tuple[tuple[str, str], ...],
-        source_id_map: dict[str, int],
+        source_id_map: dict[str, int] | None = None,
     ) -> int:
         """
         Retire the mappings a reviewer threw out.
 
-        upsert_source_university_mappings skips rows whose canonical id is None,
-        so a rejected entity is simply never written again and its old row
-        survives untouched -- still asserting the match a person just rejected.
-        The ranking records are already gone by then, so nothing user-facing is
+        upsert_entity_mappings skips rows whose canonical id is None, so a
+        rejected entity is simply never written again and its old row survives
+        untouched -- still asserting the match a person just rejected. The
+        ranking records are already gone by then, so nothing user-facing is
         wrong, but the mapping table would keep offering the same rejected pair
         up for review forever.
 
         canonical_university_id is NOT NULL in this table, so the row is
-        deactivated rather than blanked.
+        deactivated rather than blanked. Keyed by source_code, for every source;
+        ``source_id_map`` is accepted for old callers and unused.
         """
-        params = [
-            (source_id_map[source_code], source_entity_id)
-            for source_code, source_entity_id in rejected_keys
-            if source_code in source_id_map
-        ]
-        if not params:
+        keys = sorted({(str(code), str(entity_id)) for code, entity_id in rejected_keys})
+        if not keys:
             return 0
-        deactivated = 0
         with self.conn.cursor() as cur:
-            for ranking_source_id, source_entity_id in params:
-                cur.execute(
-                    """
-                    UPDATE warehouse.source_university_mapping
-                    SET is_active = FALSE,
-                        last_seen_at = CURRENT_TIMESTAMP
-                    WHERE ranking_source_id = %s
-                      AND source_entity_id = %s
-                      AND is_active
-                    """,
-                    (ranking_source_id, source_entity_id),
-                )
-                deactivated += max(0, cur.rowcount)
+            cur.execute(
+                """
+                UPDATE warehouse.source_university_mapping m
+                SET is_active = FALSE,
+                    last_seen_at = CURRENT_TIMESTAMP
+                FROM unnest(%s::text[], %s::text[]) AS k(source_code, source_entity_id)
+                WHERE m.source_code = k.source_code
+                  AND m.source_entity_id = k.source_entity_id
+                  AND m.is_active
+                """,
+                ([code for code, _ in keys], [entity_id for _, entity_id in keys]),
+            )
+            deactivated = max(0, cur.rowcount)
         self.conn.commit()
         return deactivated
 

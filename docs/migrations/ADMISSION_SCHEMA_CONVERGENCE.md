@@ -97,6 +97,8 @@ Each phase is independently deployable and independently revertible.
 | 4 | Admission ER: swap the exact-only resolver for `EntityResolver`, write `warehouse.source_mapping` | done |
 | 5 | Rename to `warehouse.admission_record`, extract columns, update all call sites | done |
 | 6 | Close the crawler → staging gap | done |
+| 7 | Programme / intake granularity; admission mappings move to `source_university_mapping`; ranking guardrails in the admission resolver | done (schema + resolver) |
+| 8 | Readers stop collapsing rows with `MIN()`; `CAVEAT_IELTS_MISSING` / `CAVEAT_ADMISSION_DATA_STALE` with the fetch date | next |
 
 Phase 1 could not stand alone as first planned. Making `source_code` NOT NULL
 and moving the unique constraint breaks both existing writers — their
@@ -373,6 +375,86 @@ live in `tests/`, which no CI workflow runs; the new bridge tests are in
 
 ---
 
+## Phase 7 — granularity and one mapping table (landed 2026-09-14)
+
+Backup: `~/crawlernest-backups/2026-09-14-admission-granularity/` (full
+`pg_dump` plus CSVs of `admission_record`, `source_mapping`, the
+`university_site` reviews and every mapping key).
+
+### `warehouse.source_university_mapping` serves every source
+
+`source_code` is now its key (`NOT NULL`, FK → `entity_source`, unique with
+`source_entity_id`); `ranking_source_id` is nullable. A composite FK
+`(ranking_source_id, source_code) → ranking_source` makes a ranking row's two
+keys agree without a trigger (the schema loader cannot run `$$` bodies), and
+MATCH SIMPLE skips it for a non-ranking row. Every ranking reader joins on
+`ranking_source_id`, so it sees exactly the rows it saw before.
+
+The 8 `university_site` rows in `warehouse.source_mapping` were copied across
+once (inactive ones stay inactive; `threshold_used`, `matched_alias_id` and
+`review_status` kept in metadata) and the legacy copies set inactive.
+`v_entity_mapping` unions the legacy table only for entities the unified table
+does not hold, so nothing is queued for review twice.
+
+Writers that had to supply `source_code`: `MultiSourceRepository`
+(`upsert_entity_mappings`, which the ranking `upsert_source_university_mappings`
+now delegates to), `crawlernest_ranking_crawler/subjects/qs_subject.py`, and the
+`test_mapping_provenance` fixture, which also has to register its test source in
+`entity_source`.
+
+### `warehouse.admission_record` granularity
+
+| Column | Meaning |
+|---|---|
+| `faculty`, `programme_name` | as printed; both NULL when the number is not programme-specific |
+| `programme_key` | normalised `faculty\|programme`, `''` when both NULL (`admission_programme_key`) |
+| `requirement_scope` | `programme` / `faculty` / `institution_minimum` / `unspecified` |
+| `intake_year`, `intake_year_basis` | `page_stated` / `deadline_inferred` / `unknown` (year NULL) |
+| `fetched_at`, `fetch_mode` | `live` / `snapshot` / `unknown`; what a staleness caveat must name |
+| `source_mapping_id` | the mapping that resolved the row, as on `ranking_record` |
+
+Natural key: `UNIQUE NULLS NOT DISTINCT (source_code, source_entity_id,
+degree_level, programme_key, intake_year)` (PostgreSQL 15+; CI runs 16). CHECKs
+tie scope to the names, year to its basis, `live` to a fetch time, and a mapping
+id to a canonical id.
+
+**Every existing row is `unspecified`, intake `unknown`, fetch `unknown`.** That
+is the truth about them: the crawler extracts one number per page and records no
+programme, intake or fetch time — Imperial's profile even notes its IELTS is
+tiered 6.5 / 7.0 by programme. Nothing was inferred in SQL.
+
+### The resolver now meets the ranking standard
+
+`crawlernest_admission_crawler/entity_resolver.py`, in order and before any
+write: resolve per page (rows of one page are one entity), apply
+`mapping_review`, **refuse** a run where a decision's page came back under a new
+id (`refuse_reappeared_reviews`, matched on printed name or URL host — the last
+path segment `english-language-requirements` is shared by most universities and
+would refuse every run), log decisions whose page is absent, hold mapped pages
+on their existing university (`apply_mapping_continuity`). Then one guarded
+upsert into the unified table, rejected mappings retired, rows given
+`canonical_university_id` and a `source_mapping_id` that credits the same
+university or NULL.
+
+Still reading `warehouse.source_mapping`, to move in phase 8:
+`clawer/service/DataQualityService.java` (low-confidence counts — admission rows
+there are now inactive), `crawlernest-autoeval/runners/run_canonical_diagnostics.py`;
+and `crawlernest/scripts/seed_canonical_from_universities.py` still writes it for
+the legacy universities seed.
+
+### Before any programme-scoped row is written
+
+Seven files collapse admission rows per university with `MIN()` —
+`AdmissionRecordRepository`, `UniversityPreviewRepository`,
+`JdbcScopedRankingReadAdapter`, `RecommendationEvidenceService`, the
+`admission_preview_summary` CTE in `recommendation_postgresql.sql`,
+`convergence_preview.py`, `canonical_university_detail_preview.py`. With one row
+per page today they are correct. With several programme rows they would report
+the least demanding programme's IELTS as the university's. Phase 8 must switch
+them to scope-aware reads before any source writes `programme` rows.
+
+---
+
 ## Traps
 
 **The `DO NOTHING` freeze.** `warehouse_writer.py:152` inserts with
@@ -424,10 +506,11 @@ splits on every `;`. Therefore:
 `degree_level` does not prevent duplicates — the upsert never finds a conflict
 and inserts a new row every run. Hence decision 3.
 
-**Two mapping tables.** `warehouse.source_mapping` (`source_name TEXT`, 0 rows)
-and `warehouse.source_university_mapping` (`ranking_source_id` FK, 3359 rows)
-are parallel systems. `v_entity_mapping` papers over the split for readers.
-Merging them for writers is out of scope here and should be its own migration.
+**Two mapping tables** — resolved for admissions in phase 7. Admission entity
+resolution writes only `warehouse.source_university_mapping` now; the legacy
+`warehouse.source_mapping` rows for `university_site` are inactive copies. The
+table itself remains for the readers listed under phase 7 and the legacy
+universities seed.
 
 ---
 

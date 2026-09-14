@@ -64,6 +64,13 @@ class TestSourceMappingBackfill(unittest.TestCase):
                 (SOURCE, "Provenance test source"),
             )
             self.source_id = cur.fetchone()[0]
+            # Every mapping names a registered source (entity_source), as
+            # upsert_ranking_sources guarantees for real ones.
+            cur.execute(
+                "INSERT INTO warehouse.entity_source (source_code, source_kind, display_name)"
+                " VALUES (%s, 'ranking', %s) ON CONFLICT (source_code) DO NOTHING",
+                (SOURCE, "Provenance test source"),
+            )
             self.uni = {}
             for key, (slug, display) in UNIVERSITIES.items():
                 cur.execute(
@@ -116,16 +123,17 @@ class TestSourceMappingBackfill(unittest.TestCase):
             )
             cur.execute("DELETE FROM warehouse.canonical_university WHERE canonical_slug = ANY(%s)", (slugs,))
             cur.execute("DELETE FROM warehouse.ranking_source WHERE source_code = %s", (SOURCE,))
+            cur.execute("DELETE FROM warehouse.entity_source WHERE source_code = %s", (SOURCE,))
         self.conn.commit()
 
     def _mapping(self, entity_id, uni, name, *, active=True):
         with self.conn.cursor() as cur:
             cur.execute(
                 "INSERT INTO warehouse.source_university_mapping"
-                " (ranking_source_id, source_entity_id, canonical_university_id, match_method,"
+                " (ranking_source_id, source_code, source_entity_id, canonical_university_id, match_method,"
                 "  confidence_score, is_active, metadata)"
-                " VALUES (%s, %s, %s, 'exact', 1.0, %s, %s::jsonb) RETURNING source_mapping_id",
-                (self.source_id, entity_id, self.uni[uni], active, json.dumps({"normalized_name": name})),
+                " VALUES (%s, %s, %s, %s, 'exact', 1.0, %s, %s::jsonb) RETURNING source_mapping_id",
+                (self.source_id, SOURCE, entity_id, self.uni[uni], active, json.dumps({"normalized_name": name})),
             )
             return cur.fetchone()[0]
 

@@ -238,20 +238,201 @@ class TestSourceEntityIdFallback(unittest.TestCase):
     def test_a_null_column_is_derived_from_the_url(self):
         # source_entity_id is nullable until it becomes half of the natural
         # key, so a row written before that migration still has to resolve.
-        cur = FakeCursor([(7, None, "University of Oxford", "United Kingdom",
+        cur = FakeCursor([(7, SOURCE_CODE, None, "University of Oxford", "United Kingdom",
                            "https://www.ox.ac.uk/admissions/graduate/")])
         rows = _load_admission_rows(cur, target_schema="warehouse", target_table="admission_record")
         self.assertEqual("www.ox.ac.uk/admissions/graduate", rows[0]["source_entity_id"])
 
     def test_an_existing_column_is_used_as_is(self):
-        cur = FakeCursor([(7, "already.set/path", "University of Oxford", "UK", "https://ignored.example/")])
+        cur = FakeCursor([(7, SOURCE_CODE, "already.set/path", "University of Oxford", "UK", "https://ignored.example/")])
         rows = _load_admission_rows(cur, target_schema="warehouse", target_table="admission_record")
         self.assertEqual("already.set/path", rows[0]["source_entity_id"])
 
     def test_a_blank_country_becomes_none(self):
-        cur = FakeCursor([(7, "x", "University of Oxford", "   ", "https://example.edu/")])
+        cur = FakeCursor([(7, SOURCE_CODE, "x", "University of Oxford", "   ", "https://example.edu/")])
         rows = _load_admission_rows(cur, target_schema="warehouse", target_table="admission_record")
         self.assertIsNone(rows[0]["country"])
+
+    def test_the_rows_own_source_code_is_kept(self):
+        cur = FakeCursor([(7, "another_admission_source", "x", "University of Oxford", None, "https://example.edu/")])
+        rows = _load_admission_rows(cur, target_schema="warehouse", target_table="admission_record")
+        self.assertEqual("another_admission_source", rows[0]["source_code"])
+
+
+# ---------------------------------------------------------------------------
+# Resolution per page, and the rules the ranking pipeline applies
+# ---------------------------------------------------------------------------
+
+UCL_OLD = "www.ucl.ac.uk/prospective-students/graduate/taught-degrees/english-language-requirements"
+UCL_NEW = "www.ucl.ac.uk/study/graduate/english-language-requirements"
+MELBOURNE = "study.unimelb.edu.au/admissions/english-language-requirements"
+
+
+def _page_row(row_id, entity_id, name, country="United Kingdom", code=SOURCE_CODE):
+    return {
+        "id": row_id,
+        "source_code": code,
+        "source_entity_id": entity_id,
+        "university_name": name,
+        "country": country,
+        "source_url": f"https://{entity_id}",
+    }
+
+
+def _ucl_resolver():
+    return EntityResolver(
+        PROFILES
+        + [
+            CanonicalProfile(canonical_university_id=9, display_name="UCL", country_hint="united kingdom",
+                             aliases=("University College London",)),
+            CanonicalProfile(canonical_university_id=35, display_name="University of Manchester",
+                             country_hint="united kingdom"),
+        ]
+    )
+
+
+class TestRowsResolvePerPage(unittest.TestCase):
+    """One page now yields several rows; they are one entity with one answer."""
+
+    def test_rows_of_one_page_become_one_entity(self):
+        from crawlernest_admission_crawler.entity_resolver import group_rows_into_entities
+
+        entities = group_rows_into_entities([
+            _page_row(3, MELBOURNE, "University of Melbourne", "Australia"),
+            _page_row(1, UCL_OLD, "University College London"),
+            _page_row(2, MELBOURNE, "University of Melbourne", "Australia"),
+        ])
+        self.assertEqual([(SOURCE_CODE, MELBOURNE), (SOURCE_CODE, UCL_OLD)], [e.key for e in entities])
+        self.assertEqual([3, 2], entities[0].row_ids)
+
+    def test_the_most_printed_name_is_resolved_and_every_variant_is_kept(self):
+        from crawlernest_admission_crawler.entity_resolver import (
+            _resolve_entity,
+            group_rows_into_entities,
+        )
+
+        entity = group_rows_into_entities([
+            _page_row(1, UCL_OLD, "UCL (University College London)"),
+            _page_row(2, UCL_OLD, "University College London"),
+            _page_row(3, UCL_OLD, "University College London"),
+        ])[0]
+        self.assertEqual("University College London", entity.university_name)
+
+        result = _resolve_entity(_ucl_resolver(), entity)
+        self.assertEqual(3, result.metadata["raw_row"]["row_count"])
+        self.assertEqual(
+            ["University College London", "UCL (University College London)"],
+            result.metadata["raw_row"]["names_seen"],
+            "a page printing two names is worth a reviewer's look",
+        )
+
+
+class TestReappearedDecisionsStopTheRun(unittest.TestCase):
+    """The unapplied-review guardrail from the ranking pipeline, wired into admissions."""
+
+    def _decide(self, entities, reviews, existing=None):
+        from crawlernest_admission_crawler.entity_resolver import decide_admission_entities
+
+        return decide_admission_entities(
+            entities, resolver=_ucl_resolver(), reviews=reviews, existing_mappings=existing or {}
+        )
+
+    def _review(self, entity_id, decision="rejected", canonical=None, name="University College London"):
+        return {
+            (SOURCE_CODE, entity_id): MappingReview(
+                SOURCE_CODE, entity_id, decision, canonical, decided_by="reviewer", reviewed_source_name=name
+            )
+        }
+
+    def test_a_decision_on_a_moved_page_refuses_the_run(self):
+        from crawlernest_admission_crawler.entity_resolver import group_rows_into_entities
+        from multi_source.reviews import UnappliedReviewError
+
+        entities = group_rows_into_entities([_page_row(1, UCL_NEW, "University College London")])
+        with self.assertRaises(UnappliedReviewError) as raised:
+            self._decide(entities, self._review(UCL_OLD))
+        self.assertIn(UCL_NEW, str(raised.exception))
+
+    def test_a_moved_page_is_recognised_by_its_host_even_under_a_new_name(self):
+        from crawlernest_admission_crawler.entity_resolver import group_rows_into_entities
+        from multi_source.reviews import UnappliedReviewError
+
+        entities = group_rows_into_entities([_page_row(1, UCL_NEW, "UCL")])
+        with self.assertRaises(UnappliedReviewError):
+            self._decide(entities, self._review(UCL_OLD))
+
+    def test_pages_sharing_a_path_do_not_trip_it(self):
+        """english-language-requirements ends the UCL and Melbourne ids alike."""
+        from crawlernest_admission_crawler.entity_resolver import group_rows_into_entities
+        from multi_source.reviews import find_reappeared_reviews
+
+        entities = group_rows_into_entities([_page_row(1, MELBOURNE, "University of Melbourne", "Australia")])
+        reviews = self._review(UCL_OLD)
+
+        with self.assertLogs("crawlernest.admission.entity_resolver", level="WARNING") as logs:
+            results, application, _ = self._decide(entities, reviews)
+        self.assertEqual(13, results[0].canonical_university_id)
+        self.assertIn(UCL_OLD, "\n".join(logs.output), "an unapplied decision is allowed, never quiet")
+
+        # The ranking default -- the id's last segment -- would have refused.
+        batch = [(SOURCE_CODE, MELBOURNE, "University of Melbourne")]
+        self.assertTrue(find_reappeared_reviews(reviews, application.unapplied_reviews, batch))
+
+    def test_a_decision_on_the_same_page_applies(self):
+        from crawlernest_admission_crawler.entity_resolver import group_rows_into_entities
+
+        entities = group_rows_into_entities([_page_row(1, UCL_OLD, "University College London")])
+        results, application, _ = self._decide(entities, self._review(UCL_OLD, "remapped", 35))
+        self.assertEqual(35, results[0].canonical_university_id)
+        self.assertEqual(1, application.remapped)
+
+
+class TestAnExistingMappingHoldsThePage(unittest.TestCase):
+    def test_a_new_spelling_cannot_move_a_mapped_page(self):
+        from crawlernest_admission_crawler.entity_resolver import (
+            decide_admission_entities,
+            group_rows_into_entities,
+        )
+        from multi_source.continuity import ExistingMapping
+
+        entities = group_rows_into_entities([_page_row(1, MELBOURNE, "University of Oxford", "United Kingdom")])
+        existing = {(SOURCE_CODE, MELBOURNE): ExistingMapping(13, "normalized_display", 0.97)}
+
+        with self.assertLogs("crawlernest.admission.entity_resolver", level="WARNING"):
+            results, _, continuity = decide_admission_entities(
+                entities, resolver=_ucl_resolver(), reviews={}, existing_mappings=existing
+            )
+        self.assertEqual(13, results[0].canonical_university_id)
+        self.assertEqual(3, results[0].metadata["mapping_continuity"]["resolver_canonical_university_id"])
+        self.assertEqual(1, len(continuity.conflicts))
+
+    def test_a_human_remap_still_moves_it(self):
+        from crawlernest_admission_crawler.entity_resolver import (
+            decide_admission_entities,
+            group_rows_into_entities,
+        )
+        from multi_source.continuity import ExistingMapping
+
+        entities = group_rows_into_entities([_page_row(1, MELBOURNE, "University of Melbourne", "Australia")])
+        reviews = {(SOURCE_CODE, MELBOURNE): MappingReview(SOURCE_CODE, MELBOURNE, "remapped", 3, decided_by="r")}
+        results, _, continuity = decide_admission_entities(
+            entities,
+            resolver=_ucl_resolver(),
+            reviews=reviews,
+            existing_mappings={(SOURCE_CODE, MELBOURNE): ExistingMapping(13)},
+        )
+        self.assertEqual(3, results[0].canonical_university_id)
+        self.assertEqual((), continuity.conflicts)
+
+
+class TestProvenance(unittest.TestCase):
+    def test_a_row_names_only_a_mapping_that_credits_its_own_university(self):
+        from crawlernest_admission_crawler.entity_resolver import provenance_mapping_id
+
+        self.assertEqual(501, provenance_mapping_id((501, 13), 13))
+        self.assertIsNone(provenance_mapping_id((501, 13), 3), "the guarded upsert kept another university")
+        self.assertIsNone(provenance_mapping_id((501, 13), None), "a rejected page names no mapping")
+        self.assertIsNone(provenance_mapping_id(None, 13))
 
 
 if __name__ == "__main__":

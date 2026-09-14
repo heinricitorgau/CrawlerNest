@@ -11,6 +11,26 @@ from typing import Any
 DEGREE_LEVELS = ("undergraduate", "postgraduate", "doctoral")
 UNKNOWN_DEGREE_LEVEL = "unknown"
 
+#: What a requirement applies to. Mirrored by ck_admission_record_requirement_scope
+#: and ck_admission_record_scope_shape in crawlernest-schema/admission_postgresql.sql.
+SCOPE_PROGRAMME = "programme"
+SCOPE_FACULTY = "faculty"
+SCOPE_INSTITUTION_MINIMUM = "institution_minimum"
+SCOPE_UNSPECIFIED = "unspecified"
+REQUIREMENT_SCOPES = (SCOPE_PROGRAMME, SCOPE_FACULTY, SCOPE_INSTITUTION_MINIMUM, SCOPE_UNSPECIFIED)
+
+#: How intake_year was established. Mirrored by ck_admission_record_intake.
+INTAKE_PAGE_STATED = "page_stated"
+INTAKE_DEADLINE_INFERRED = "deadline_inferred"
+INTAKE_UNKNOWN = "unknown"
+INTAKE_YEAR_BASES = (INTAKE_PAGE_STATED, INTAKE_DEADLINE_INFERRED, INTAKE_UNKNOWN)
+
+#: Where the page content came from. Mirrored by ck_admission_record_fetch.
+FETCH_LIVE = "live"
+FETCH_SNAPSHOT = "snapshot"
+FETCH_UNKNOWN = "unknown"
+FETCH_MODES = (FETCH_LIVE, FETCH_SNAPSHOT, FETCH_UNKNOWN)
+
 
 @dataclass(slots=True)
 class AdmissionRecord:
@@ -63,3 +83,12 @@ class WarehouseReadyAdmissionRow:
     canonical_university_id: int | None = None
     entity_resolution_status: str = "unresolved"
     raw_payload: dict[str, Any] | None = None
+    #: Programme granularity. Both NULL with scope "unspecified" is what every
+    #: current source produces: one number per page, scope not established.
+    faculty: str | None = None
+    programme_name: str | None = None
+    requirement_scope: str = SCOPE_UNSPECIFIED
+    intake_year: int | None = None
+    intake_year_basis: str = INTAKE_UNKNOWN
+    fetched_at: datetime | None = None
+    fetch_mode: str = FETCH_UNKNOWN

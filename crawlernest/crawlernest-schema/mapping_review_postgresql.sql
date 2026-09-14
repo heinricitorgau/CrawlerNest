@@ -64,6 +64,14 @@ INSERT INTO warehouse.entity_source (source_code, source_kind, display_name)
 VALUES ('university_site', 'admission', 'University admission pages')
 ON CONFLICT (source_code) DO NOTHING;
 
+-- Every mapping names a registered source. Added here rather than in
+-- multi_source_postgresql.sql, which runs before this registry exists.
+ALTER TABLE warehouse.source_university_mapping
+    DROP CONSTRAINT IF EXISTS fk_source_university_mapping_entity_source;
+ALTER TABLE warehouse.source_university_mapping
+    ADD CONSTRAINT fk_source_university_mapping_entity_source
+    FOREIGN KEY (source_code) REFERENCES warehouse.entity_source(source_code);
+
 -- ---------------------------------------------------------
 -- Standing decisions
 -- ---------------------------------------------------------
@@ -162,16 +170,14 @@ CREATE INDEX IF NOT EXISTS idx_mapping_review_decided_at
 -- ---------------------------------------------------------
 --
 -- The review queue is not derived from mapping_review. It is derived from the
--- mappings the resolver produced, filtered to the fuzzy methods -- and those
--- live in two parallel tables:
+-- mappings the resolver produced, filtered to the fuzzy methods.
 --
---   warehouse.source_university_mapping  ranking sources, keyed by id
---   warehouse.source_mapping             any source, keyed by source_name
---
--- Admission mappings land in the second. This view puts both under one
--- source_code vocabulary so the queue, the CLI review scripts and the API all
--- read the same shape. Readers only: merging the two for writers is a
--- separate migration.
+-- Every source now writes warehouse.source_university_mapping, keyed by
+-- source_code (admission pages moved there from warehouse.source_mapping on
+-- 2026-09-14; see docs/migrations/ADMISSION_SCHEMA_CONVERGENCE.md, phase 7).
+-- The legacy table is still unioned in, but only for an entity the unified
+-- table does not hold, so a migrated mapping is never offered for review twice
+-- and a stale legacy row cannot contradict the live one.
 --
 -- metadata is passed through untouched. The review screen reads
 -- token_overlap, country_mismatch, suspicious_merge and candidate_count_hint
@@ -179,7 +185,7 @@ CREATE INDEX IF NOT EXISTS idx_mapping_review_decided_at
 -- raw_row.location, which each source's own writer has to supply.
 CREATE OR REPLACE VIEW warehouse.v_entity_mapping AS
 SELECT
-    rs.source_code,
+    m.source_code,
     m.source_entity_id,
     m.canonical_university_id,
     m.match_method,
@@ -187,8 +193,6 @@ SELECT
     m.is_active,
     m.metadata
 FROM warehouse.source_university_mapping m
-JOIN warehouse.ranking_source rs
-    ON rs.ranking_source_id = m.ranking_source_id
 UNION ALL
 SELECT
     sm.source_name AS source_code,
@@ -198,4 +202,10 @@ SELECT
     sm.confidence_score,
     sm.is_active,
     sm.metadata
-FROM warehouse.source_mapping sm;
+FROM warehouse.source_mapping sm
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM warehouse.source_university_mapping u
+    WHERE u.source_code = sm.source_name
+      AND u.source_entity_id = sm.source_entity_id
+);

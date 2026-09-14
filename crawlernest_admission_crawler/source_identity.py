@@ -44,3 +44,40 @@ def admission_source_entity_id(source_url: str) -> str:
     text = _SCHEME_RE.sub("", str(source_url or "").strip().lower())
     text = _QUERY_OR_FRAGMENT_RE.sub("", text)
     return text.rstrip("/")
+
+
+def admission_entity_host(source_entity_id: str | None) -> str | None:
+    """The host an admission entity id lives on: what names the institution.
+
+    ``multi_source.reviews`` recognises a reviewed entity that came back under a
+    new id by the id's last segment. For admission ids that segment is a page
+    name -- ``english-language-requirements`` ends the UCL, Melbourne and Toronto
+    ids alike -- so it would match unrelated universities and refuse every run.
+    A university moving its requirements page keeps its host far more often
+    than its path, and two universities do not share one.
+    """
+    text = str(source_entity_id or "").strip().lower()
+    host = text.split("/", 1)[0]
+    return host or None
+
+
+_KEY_SPACE_RE = re.compile(r"\s+")
+
+
+def _key_part(value: str | None) -> str:
+    return _KEY_SPACE_RE.sub(" ", str(value or "").strip().lower())
+
+
+def admission_programme_key(faculty: str | None, programme_name: str | None) -> str:
+    """The programme half of an admission row's natural key.
+
+    ``faculty|programme``, lowercased with whitespace collapsed, so the same
+    programme printed as "MSc  Computing" and "MSc Computing" is one row. Empty
+    when neither is named: an institution-wide or unspecified requirement.
+    Mirrored by ck_admission_record_programme_names, which requires exactly that
+    emptiness, in crawlernest-schema/admission_postgresql.sql.
+    """
+    faculty_part, programme_part = _key_part(faculty), _key_part(programme_name)
+    if not faculty_part and not programme_part:
+        return ""
+    return f"{faculty_part}|{programme_part}"

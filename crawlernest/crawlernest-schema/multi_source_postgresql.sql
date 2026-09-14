@@ -22,9 +22,25 @@ CREATE TABLE IF NOT EXISTS warehouse.ranking_source (
 -- ---------------------------------------------------------
 -- Source university mapping (source entity -> canonical university)
 -- ---------------------------------------------------------
+--
+-- The one mapping table for every source that names universities. It began
+-- ranking-only, keyed by ranking_source_id, while admission pages wrote a
+-- parallel warehouse.source_mapping keyed by source_name -- two tables, two
+-- vocabularies, and a view (warehouse.v_entity_mapping) papering over the
+-- split. source_code is now the key for every source:
+--
+--   * a ranking row carries both source_code and ranking_source_id, and the
+--     composite foreign key below makes the two agree;
+--   * any other source (university_site) carries source_code alone, with
+--     ranking_source_id NULL, so every ranking reader -- all of which join on
+--     ranking_source_id -- keeps seeing exactly the rows it saw before.
+--
+-- source_code also references warehouse.entity_source; that foreign key is
+-- added in mapping_review_postgresql.sql, which creates the registry.
 CREATE TABLE IF NOT EXISTS warehouse.source_university_mapping (
     source_mapping_id BIGSERIAL PRIMARY KEY,
-    ranking_source_id SMALLINT NOT NULL
+    source_code TEXT NOT NULL,
+    ranking_source_id SMALLINT
         REFERENCES warehouse.ranking_source(ranking_source_id),
     source_entity_id TEXT NOT NULL,       -- source unique id/path/url hash
     canonical_university_id BIGINT NOT NULL
@@ -37,6 +53,42 @@ CREATE TABLE IF NOT EXISTS warehouse.source_university_mapping (
     metadata JSONB,
     UNIQUE (ranking_source_id, source_entity_id)
 );
+
+-- Migration: ranking_source_id -> source_code. No-ops once applied.
+ALTER TABLE warehouse.source_university_mapping
+    ADD COLUMN IF NOT EXISTS source_code TEXT;
+
+UPDATE warehouse.source_university_mapping m
+SET source_code = rs.source_code
+FROM warehouse.ranking_source rs
+WHERE rs.ranking_source_id = m.ranking_source_id
+  AND m.source_code IS NULL;
+
+ALTER TABLE warehouse.source_university_mapping
+    ALTER COLUMN source_code SET NOT NULL;
+
+ALTER TABLE warehouse.source_university_mapping
+    ALTER COLUMN ranking_source_id DROP NOT NULL;
+
+-- A unique index rather than a constraint: the foreign key below depends on it,
+-- and the usual DROP-then-ADD would fail on every bootstrap after the first.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_ranking_source_id_code
+    ON warehouse.ranking_source (ranking_source_id, source_code);
+
+-- A ranking row's two keys name the same source. MATCH SIMPLE skips the check
+-- when ranking_source_id is NULL, which is exactly the non-ranking case.
+ALTER TABLE warehouse.source_university_mapping
+    DROP CONSTRAINT IF EXISTS fk_source_university_mapping_ranking_code;
+ALTER TABLE warehouse.source_university_mapping
+    ADD CONSTRAINT fk_source_university_mapping_ranking_code
+    FOREIGN KEY (ranking_source_id, source_code)
+    REFERENCES warehouse.ranking_source (ranking_source_id, source_code);
+
+-- The key every writer upserts on. (ranking_source_id, source_entity_id)
+-- stays for the ranking writers that still name it; for ranking rows the two
+-- keys are equivalent, and a NULL ranking_source_id never collides.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_source_university_mapping_source_entity
+    ON warehouse.source_university_mapping (source_code, source_entity_id);
 
 -- ---------------------------------------------------------
 -- Ranking facts (one row per source + year + type + university)
