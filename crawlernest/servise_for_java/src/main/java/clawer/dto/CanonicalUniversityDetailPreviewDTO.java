@@ -11,6 +11,20 @@ public class CanonicalUniversityDetailPreviewDTO {
     private RankingPreviewSummaryDTO rankingSummary;
     private AdmissionPreviewSummaryDTO admissionSummary;
     private DataAvailabilityDTO dataAvailability;
+    /**
+     * CAVEAT_IELTS_MISSING and CAVEAT_ADMISSION_DATA_STALE for this university.
+     * Top-level rather than on admissionSummary, which is null when there is no
+     * admission data -- exactly when the IELTS caveat applies.
+     */
+    private List<String> admissionCaveats = List.of();
+
+    public List<String> getAdmissionCaveats() {
+        return admissionCaveats;
+    }
+
+    public void setAdmissionCaveats(List<String> admissionCaveats) {
+        this.admissionCaveats = admissionCaveats;
+    }
 
     public Long getCanonicalUniversityId() {
         return canonicalUniversityId;

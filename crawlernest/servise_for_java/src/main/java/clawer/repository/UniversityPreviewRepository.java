@@ -5,6 +5,7 @@ import clawer.dto.CanonicalUniversityDetailPreviewDTO;
 import clawer.dto.DataAvailabilityDTO;
 import clawer.dto.IdentitySummaryDTO;
 import clawer.dto.RankingPreviewSummaryDTO;
+import clawer.service.AdmissionCaveats;
 import clawer.service.DatasetScope;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -43,10 +44,16 @@ import java.util.Optional;
 public class UniversityPreviewRepository {
     private final JdbcTemplate jdbcTemplate;
     private final DatasetScope datasetScope;
+    private final AdmissionRecordRepository admissionRecordRepository;
 
-    public UniversityPreviewRepository(JdbcTemplate jdbcTemplate, DatasetScope datasetScope) {
+    public UniversityPreviewRepository(
+            JdbcTemplate jdbcTemplate,
+            DatasetScope datasetScope,
+            AdmissionRecordRepository admissionRecordRepository
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.datasetScope = datasetScope;
+        this.admissionRecordRepository = admissionRecordRepository;
     }
 
     public Optional<CanonicalUniversityDetailPreviewDTO> findByCanonicalUniversityId(Long canonicalUniversityId) {
@@ -369,17 +376,26 @@ public class UniversityPreviewRepository {
                 datasetScope.heldYearsSqlArray()
         );
 
+        // Best requirements through v_admission_requirement_summary, the rule every
+        // admission reader shares: university-level rows, newest stated intake.
+        // MIN() over the whole table would quote the easiest programme as the
+        // university's once programme rows exist. The counts still describe every
+        // row, which is what they claim to.
         AdmissionPreviewSummaryDTO admissionSummary = jdbcTemplate.queryForObject(
                 """
                 SELECT
-                    COUNT(*)::INTEGER AS row_count,
-                    COUNT(DISTINCT source_url)::INTEGER AS source_url_count,
-                    ARRAY_REMOVE(ARRAY_AGG(DISTINCT country ORDER BY country), NULL) AS countries,
-                    MIN(ielts_requirement) AS best_ielts_requirement,
-                    MIN(toefl_requirement)::INTEGER AS best_toefl_requirement,
-                    MAX(extracted_at) AS latest_extracted_at
-                FROM warehouse.admission_record
-                WHERE canonical_university_id = ?
+                    COUNT(ar.*)::INTEGER AS row_count,
+                    COUNT(DISTINCT ar.source_url)::INTEGER AS source_url_count,
+                    ARRAY_REMOVE(ARRAY_AGG(DISTINCT ar.country ORDER BY ar.country), NULL) AS countries,
+                    MAX(s.ielts_requirement) AS best_ielts_requirement,
+                    MAX(s.toefl_requirement)::INTEGER AS best_toefl_requirement,
+                    MAX(ar.extracted_at) AS latest_extracted_at,
+                    COALESCE(MAX(s.programme_row_count), 0)::INTEGER AS programme_row_count,
+                    COALESCE(bool_or(s.values_differ), FALSE) AS values_differ
+                FROM warehouse.admission_record ar
+                LEFT JOIN warehouse.v_admission_requirement_summary s
+                  ON s.canonical_university_id = ar.canonical_university_id
+                WHERE ar.canonical_university_id = ?
                 """,
                 (rs, rowNum) -> {
                     int rowCount = rs.getInt("row_count");
@@ -396,6 +412,8 @@ public class UniversityPreviewRepository {
                     dto.setLatestExtractedAt(
                             latestExtractedAt == null ? null : latestExtractedAt.toInstant().toString()
                     );
+                    dto.setProgrammeRowCount(rs.getInt("programme_row_count"));
+                    dto.setValuesDiffer(rs.getBoolean("values_differ"));
                     return dto;
                 },
                 identity.canonicalUniversityId()
@@ -433,6 +451,8 @@ public class UniversityPreviewRepository {
         dto.setRankingSummary(rankingSummary);
         dto.setAdmissionSummary(admissionSummary);
         dto.setDataAvailability(dataAvailability);
+        dto.setAdmissionCaveats(AdmissionCaveats.forSummary(
+                admissionRecordRepository.findSummaryRow(identity.canonicalUniversityId())));
         return dto;
     }
 

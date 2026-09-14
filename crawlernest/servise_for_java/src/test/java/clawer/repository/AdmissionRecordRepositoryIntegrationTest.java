@@ -2,6 +2,7 @@ package clawer.repository;
 
 import clawer.dto.AdmissionRequirementDTO;
 import clawer.dto.AdmissionRequirementsDTO;
+import clawer.service.AnalyticsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -92,6 +93,44 @@ class AdmissionRecordRepositoryIntegrationTest {
     }
 
     @Test
+    void aProgrammeRowIsListedButNeverFoldedIntoUniversityLevelFigures() {
+        AdmissionRequirementsDTO admissions = repository.findByCanonicalUniversityId(MIT);
+
+        // The seed's programme row asks for IELTS 5.5 and TOEFL 70. A MIN() over
+        // the table would have quoted those as MIT's requirements.
+        AdmissionRequirementDTO postgraduate = admissions.getByDegreeLevel().stream()
+                .filter(level -> "postgraduate".equals(level.getDegreeLevel()))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(7.0, postgraduate.getIeltsRequirement());
+        assertEquals(100, postgraduate.getToeflRequirement());
+        assertEquals("unspecified", postgraduate.getRequirementScope());
+        assertEquals(7.0, admissions.getSummary().getIeltsRequirement());
+
+        assertEquals(1, admissions.getProgrammeRequirements().size());
+        AdmissionRequirementDTO programme = admissions.getProgrammeRequirements().get(0);
+        assertEquals("MEng Computation", programme.getProgrammeName());
+        assertEquals("School of Engineering", programme.getFaculty());
+        assertEquals(5.5, programme.getIeltsRequirement());
+        assertEquals(2027, programme.getIntakeYear());
+        assertEquals("page_stated", programme.getIntakeYearBasis());
+    }
+
+    @Test
+    void staleDataIsDisclosedWithTheExtractionDateWhenFetchDatesWereNotAllRecorded() {
+        AdmissionRequirementsDTO admissions = repository.findByCanonicalUniversityId(MIT);
+
+        // The programme row records a fetch; the two university-level rows do not.
+        // So the caveat names the oldest extraction and says the fetch date is
+        // unknown, rather than presenting the one recorded fetch as covering all.
+        assertEquals(Boolean.FALSE, admissions.getFetchDatesRecorded());
+        assertEquals(
+                List.of(AnalyticsService.ADMISSION_STALE_UNDATED_TEMPLATE.replace("{date}", "2026-04-14")),
+                admissions.getCaveats()
+        );
+    }
+
+    @Test
     void universityWithoutAdmissionRecordsReportsNoData() {
         AdmissionRequirementsDTO admissions = repository.findByCanonicalUniversityId(OXFORD_WITHOUT_ADMISSIONS);
 
@@ -100,6 +139,8 @@ class AdmissionRecordRepositoryIntegrationTest {
         assertEquals(0, admissions.getDegreeLevelCount());
         assertTrue(admissions.getByDegreeLevel().isEmpty());
         assertNotNull(admissions.getSummary());
+        // No admission row at all is itself an IELTS gap, and nothing is stale.
+        assertEquals(List.of(AnalyticsService.IELTS_MISSING_CAVEAT), admissions.getCaveats());
     }
 
     @Test

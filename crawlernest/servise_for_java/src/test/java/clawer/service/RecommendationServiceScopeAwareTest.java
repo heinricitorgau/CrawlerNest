@@ -18,7 +18,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class RecommendationServiceScopeAwareTest {
 
@@ -105,6 +108,45 @@ class RecommendationServiceScopeAwareTest {
                 .count();
 
         assertEquals(1L, duplicateIdCount);
+    }
+
+    @Test
+    void responseMetadataCarriesTheAdmissionStalenessCaveatForReturnedUniversities() throws Exception {
+        JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
+        java.sql.ResultSet summary = mock(java.sql.ResultSet.class);
+        when(summary.next()).thenReturn(true);
+        when(summary.getBoolean("fetch_dates_recorded")).thenReturn(false);
+        when(summary.getObject("oldest_fetched_on", java.time.LocalDate.class)).thenReturn(null);
+        when(summary.getObject("oldest_extracted_on", java.time.LocalDate.class))
+                .thenReturn(java.time.LocalDate.of(2026, 8, 22));
+        when(jdbcTemplate.query(
+                contains("v_admission_requirement_summary"),
+                any(org.springframework.jdbc.core.ResultSetExtractor.class),
+                any(Object[].class)
+        )).thenAnswer(invocation -> invocation
+                .<org.springframework.jdbc.core.ResultSetExtractor<?>>getArgument(1)
+                .extractData(summary));
+
+        RecommendationService service = new RecommendationService(
+                new DuplicateScopedRankingReadAdapter(), jdbcTemplate, new ObjectMapper());
+        RecommendationGroupResponse response = service.getRecommendationsV3(
+                "United Kingdom", "global", null, null, "hard_filter", 6.5, 50, "balanced",
+                null, null, null, 2026, 5);
+
+        assertEquals(
+                List.of(AnalyticsService.ADMISSION_STALE_UNDATED_TEMPLATE.replace("{date}", "2026-08-22")),
+                response.getMetadata().get("admission_caveats")
+        );
+    }
+
+    @Test
+    void noAdmissionDataMeansNoAdmissionCaveatInMetadata() {
+        RecommendationService service = service(new NoopScopedRankingReadAdapter());
+        RecommendationGroupResponse response = service.getRecommendationsV3(
+                "United Kingdom", "global", null, null, "hard_filter", 6.5, 50, "balanced",
+                null, null, null, 2026, 5);
+
+        assertEquals(List.of(), response.getMetadata().get("admission_caveats"));
     }
 
     private Object invokeScoreCandidateV3(

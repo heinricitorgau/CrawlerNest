@@ -169,3 +169,49 @@ INSERT INTO warehouse.admission_record (
         '{"source":"integration-test"}'::jsonb
     );
 
+-- A programme on the same page with a lower bar than the university-level row,
+-- fetched later than either was extracted. Every reader must keep it out of the
+-- university-level figures (bestIeltsRequirement stays 7.0, not 5.5), list it
+-- as a programme requirement, and still count it towards staleness.
+INSERT INTO warehouse.admission_record (
+    source_entity_id,
+    university_name,
+    normalized_university_name,
+    source_url,
+    country,
+    degree_level,
+    faculty,
+    programme_name,
+    programme_key,
+    requirement_scope,
+    intake_year,
+    intake_year_basis,
+    ielts_requirement,
+    toefl_requirement,
+    extracted_at,
+    fetched_at,
+    fetch_mode,
+    canonical_university_id,
+    entity_resolution_status
+) VALUES (
+    'example.edu/admissions/mit',
+    'MIT',
+    'MIT',
+    'https://example.edu/admissions/mit',
+    'United States',
+    'postgraduate',
+    'School of Engineering',
+    'MEng Computation',
+    'school of engineering|meng computation',
+    'programme',
+    2027,
+    'page_stated',
+    5.5,
+    70,
+    '2026-04-14T18:06:49Z',
+    '2026-04-14T18:00:00Z',
+    'live',
+    990102,
+    'resolved_alias_exact'
+);
+

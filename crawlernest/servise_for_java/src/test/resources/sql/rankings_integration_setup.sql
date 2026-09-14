@@ -304,3 +304,127 @@ SELECT
     universe_type,
     universe_key
 FROM deduped_latest;
+
+-- admission-requirement-views:start
+-- The admission columns added on 2026-09-14 and the two views every admission
+-- reader goes through. Copied from crawlernest-schema/admission_postgresql.sql;
+-- test_admission_readers.py fails if these copies drift from it. On a
+-- bootstrapped database the columns already exist and the views are replaced
+-- with identical definitions.
+ALTER TABLE warehouse.admission_record ADD COLUMN IF NOT EXISTS source_mapping_id BIGINT;
+ALTER TABLE warehouse.admission_record ADD COLUMN IF NOT EXISTS faculty TEXT;
+ALTER TABLE warehouse.admission_record ADD COLUMN IF NOT EXISTS programme_name TEXT;
+ALTER TABLE warehouse.admission_record ADD COLUMN IF NOT EXISTS programme_key TEXT NOT NULL DEFAULT '';
+ALTER TABLE warehouse.admission_record ADD COLUMN IF NOT EXISTS requirement_scope TEXT NOT NULL DEFAULT 'unspecified';
+ALTER TABLE warehouse.admission_record ADD COLUMN IF NOT EXISTS intake_year INTEGER;
+ALTER TABLE warehouse.admission_record ADD COLUMN IF NOT EXISTS intake_year_basis TEXT NOT NULL DEFAULT 'unknown';
+ALTER TABLE warehouse.admission_record ADD COLUMN IF NOT EXISTS fetched_at TIMESTAMPTZ;
+ALTER TABLE warehouse.admission_record ADD COLUMN IF NOT EXISTS fetch_mode TEXT NOT NULL DEFAULT 'unknown';
+ALTER TABLE warehouse.admission_record DROP CONSTRAINT IF EXISTS uq_admission_record_source_entity;
+ALTER TABLE warehouse.admission_record ADD CONSTRAINT uq_admission_record_source_entity
+    UNIQUE NULLS NOT DISTINCT (source_code, source_entity_id, degree_level, programme_key, intake_year);
+
+CREATE OR REPLACE VIEW warehouse.v_admission_requirement_institution AS
+WITH scoped AS (
+    SELECT
+        ar.*,
+        ar.requirement_scope IN ('institution_minimum', 'unspecified') AS applies_to_institution,
+        MAX(ar.intake_year) FILTER (
+            WHERE ar.requirement_scope IN ('institution_minimum', 'unspecified')
+        ) OVER (PARTITION BY ar.canonical_university_id, ar.degree_level) AS newest_institution_intake
+    FROM warehouse.admission_record ar
+    WHERE ar.canonical_university_id IS NOT NULL
+),
+institution AS (
+    SELECT
+        canonical_university_id,
+        degree_level,
+        MIN(ielts_requirement) AS ielts_requirement,
+        MIN(toefl_requirement) AS toefl_requirement,
+        MIN(duolingo_requirement) AS duolingo_requirement,
+        MIN(gpa_requirement) AS gpa_requirement,
+        MIN(application_deadline) AS application_deadline,
+        MIN(source_url) AS source_url,
+        COUNT(*)::integer AS institution_row_count,
+        COUNT(ielts_requirement)::integer AS institution_ielts_row_count,
+        (
+            COUNT(DISTINCT ielts_requirement) > 1
+            OR COUNT(DISTINCT toefl_requirement) > 1
+            OR COUNT(DISTINCT duolingo_requirement) > 1
+            OR COUNT(DISTINCT gpa_requirement) > 1
+        ) AS values_differ,
+        CASE
+            WHEN bool_and(requirement_scope = 'institution_minimum') THEN 'institution_minimum'
+            ELSE 'unspecified'
+        END AS requirement_scope,
+        MAX(intake_year) AS intake_year,
+        CASE
+            WHEN MAX(intake_year) IS NULL THEN 'unknown'
+            WHEN bool_and(intake_year_basis = 'page_stated') THEN 'page_stated'
+            ELSE 'deadline_inferred'
+        END AS intake_year_basis,
+        bool_and(fetched_at IS NOT NULL) AS fetch_dates_recorded,
+        (MIN(fetched_at) AT TIME ZONE 'UTC')::date AS oldest_fetched_on,
+        (MIN(extracted_at) AT TIME ZONE 'UTC')::date AS oldest_extracted_on
+    FROM scoped
+    WHERE applies_to_institution
+      AND intake_year IS NOT DISTINCT FROM newest_institution_intake
+    GROUP BY canonical_university_id, degree_level
+),
+programme AS (
+    SELECT
+        canonical_university_id,
+        degree_level,
+        COUNT(*)::integer AS programme_row_count,
+        COUNT(ielts_requirement)::integer AS programme_ielts_row_count,
+        bool_and(fetched_at IS NOT NULL) AS fetch_dates_recorded,
+        (MIN(fetched_at) AT TIME ZONE 'UTC')::date AS oldest_fetched_on,
+        (MIN(extracted_at) AT TIME ZONE 'UTC')::date AS oldest_extracted_on
+    FROM scoped
+    WHERE NOT applies_to_institution
+    GROUP BY canonical_university_id, degree_level
+)
+SELECT
+    canonical_university_id,
+    degree_level,
+    i.ielts_requirement,
+    i.toefl_requirement,
+    i.duolingo_requirement,
+    i.gpa_requirement,
+    i.application_deadline,
+    i.source_url,
+    COALESCE(i.institution_row_count, 0) AS institution_row_count,
+    COALESCE(i.institution_ielts_row_count, 0) AS institution_ielts_row_count,
+    COALESCE(i.values_differ, FALSE) AS values_differ,
+    i.requirement_scope,
+    i.intake_year,
+    COALESCE(i.intake_year_basis, 'unknown') AS intake_year_basis,
+    COALESCE(p.programme_row_count, 0) AS programme_row_count,
+    COALESCE(p.programme_ielts_row_count, 0) AS programme_ielts_row_count,
+    COALESCE(i.fetch_dates_recorded, TRUE) AND COALESCE(p.fetch_dates_recorded, TRUE) AS fetch_dates_recorded,
+    LEAST(i.oldest_fetched_on, p.oldest_fetched_on) AS oldest_fetched_on,
+    LEAST(i.oldest_extracted_on, p.oldest_extracted_on) AS oldest_extracted_on
+FROM institution i
+FULL OUTER JOIN programme p USING (canonical_university_id, degree_level);
+
+CREATE OR REPLACE VIEW warehouse.v_admission_requirement_summary AS
+SELECT
+    canonical_university_id,
+    MIN(ielts_requirement) AS ielts_requirement,
+    MIN(toefl_requirement) AS toefl_requirement,
+    MIN(duolingo_requirement) AS duolingo_requirement,
+    MIN(gpa_requirement) AS gpa_requirement,
+    MIN(application_deadline) AS application_deadline,
+    COUNT(*) FILTER (WHERE institution_row_count > 0)::integer AS degree_level_count,
+    SUM(institution_row_count)::integer AS institution_row_count,
+    SUM(institution_ielts_row_count)::integer AS institution_ielts_row_count,
+    SUM(programme_row_count)::integer AS programme_row_count,
+    SUM(programme_ielts_row_count)::integer AS programme_ielts_row_count,
+    bool_or(values_differ) AS values_differ,
+    (SUM(institution_ielts_row_count) + SUM(programme_ielts_row_count)) = 0 AS ielts_missing,
+    bool_and(fetch_dates_recorded) AS fetch_dates_recorded,
+    MIN(oldest_fetched_on) AS oldest_fetched_on,
+    MIN(oldest_extracted_on) AS oldest_extracted_on
+FROM warehouse.v_admission_requirement_institution
+GROUP BY canonical_university_id;
+-- admission-requirement-views:end

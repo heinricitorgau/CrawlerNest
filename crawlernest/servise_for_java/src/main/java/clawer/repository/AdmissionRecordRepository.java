@@ -2,22 +2,34 @@ package clawer.repository;
 
 import clawer.dto.AdmissionRequirementDTO;
 import clawer.dto.AdmissionRequirementsDTO;
+import clawer.service.AdmissionCaveats;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Reads structured entry requirements from {@code warehouse.admission_record}.
  *
- * <p>This is the only read path for admission requirements that uses the typed
- * columns. The older {@code warehouse.admission_requirements} table carries one
- * row per university with every requirement column NULL, so anything joined to
- * it reports "no data" for every university; and {@code raw_payload} on
+ * <p>University-level figures come through {@code warehouse.v_admission_requirement_institution}
+ * and {@code _summary}, never from a {@code MIN()} over the table. That aggregate
+ * was harmless with one row per page and wrong the moment a source writes
+ * programme rows or a second intake: it would quote the least demanding
+ * programme, or last year's bar, as the university's. The views hold the rule
+ * once for every language; programme rows are read separately and listed as
+ * what they are.
+ *
+ * <p>The older {@code warehouse.admission_requirements} table carries one row per
+ * university with every requirement column NULL, so anything joined to it
+ * reports "no data" for every university; and {@code raw_payload} on
  * admission_record is the crawler's unparsed capture, not a query surface.
  *
  * <p>Read-only by construction: no method here mutates.
@@ -32,60 +44,118 @@ public class AdmissionRecordRepository {
     }
 
     /**
-     * All published requirements for one canonical university, one entry per
-     * degree level, plus the flattened cross-level summary.
+     * All published requirements for one canonical university: one
+     * university-level entry per degree level, the programme-specific
+     * requirements, the flattened cross-level summary, and their caveats.
      *
-     * @return {@link AdmissionRequirementsDTO#empty()} when the university has no
-     *         admission record, so callers need no null branch
+     * @return an empty result carrying {@code CAVEAT_IELTS_MISSING} when the
+     *         university has no admission record, so callers need no null branch
      */
     public AdmissionRequirementsDTO findByCanonicalUniversityId(Long canonicalUniversityId) {
         if (canonicalUniversityId == null) {
-            return AdmissionRequirementsDTO.empty();
+            return withoutData();
         }
 
-        // One row per degree level. A university can be crawled from several
-        // source pages for the same level, so the aggregate collapses those to
-        // the lowest published bar and the earliest deadline rather than letting
-        // an arbitrary row win.
         List<AdmissionRequirementDTO> levels = jdbcTemplate.query(
                 """
                 SELECT
                     degree_level,
-                    MIN(ielts_requirement) AS ielts_requirement,
-                    MIN(toefl_requirement) AS toefl_requirement,
-                    MIN(duolingo_requirement) AS duolingo_requirement,
-                    MIN(gpa_requirement) AS gpa_requirement,
-                    MIN(application_deadline) AS application_deadline,
-                    MIN(source_url) AS source_url
-                FROM warehouse.admission_record
+                    ielts_requirement,
+                    toefl_requirement,
+                    duolingo_requirement,
+                    gpa_requirement,
+                    application_deadline,
+                    source_url,
+                    requirement_scope,
+                    intake_year,
+                    intake_year_basis,
+                    values_differ
+                FROM warehouse.v_admission_requirement_institution
                 WHERE canonical_university_id = ?
-                GROUP BY degree_level
+                  AND institution_row_count > 0
                 ORDER BY degree_level ASC
                 """,
                 (rs, rowNum) -> {
-                    AdmissionRequirementDTO dto = new AdmissionRequirementDTO();
+                    AdmissionRequirementDTO dto = requirementValues(rs);
                     dto.setDegreeLevel(rs.getString("degree_level"));
-                    dto.setIeltsRequirement(nullableDouble(rs.getObject("ielts_requirement")));
-                    dto.setToeflRequirement(nullableInteger(rs.getObject("toefl_requirement")));
-                    dto.setDuolingoRequirement(nullableInteger(rs.getObject("duolingo_requirement")));
-                    dto.setGpaRequirement(nullableDouble(rs.getObject("gpa_requirement")));
-                    dto.setApplicationDeadline(isoDate(rs.getObject("application_deadline")));
+                    dto.setSourceUrl(rs.getString("source_url"));
+                    dto.setRequirementScope(rs.getString("requirement_scope"));
+                    dto.setIntakeYear(nullableInteger(rs.getObject("intake_year")));
+                    dto.setIntakeYearBasis(rs.getString("intake_year_basis"));
+                    dto.setValuesDiffer(rs.getBoolean("values_differ"));
+                    return dto;
+                },
+                canonicalUniversityId
+        );
+
+        List<AdmissionRequirementDTO> programmes = jdbcTemplate.query(
+                """
+                SELECT
+                    degree_level,
+                    faculty,
+                    programme_name,
+                    requirement_scope,
+                    intake_year,
+                    intake_year_basis,
+                    ielts_requirement,
+                    toefl_requirement,
+                    duolingo_requirement,
+                    gpa_requirement,
+                    application_deadline,
+                    source_url
+                FROM warehouse.admission_record
+                WHERE canonical_university_id = ?
+                  AND requirement_scope IN ('programme', 'faculty')
+                ORDER BY degree_level ASC, faculty ASC NULLS FIRST, programme_name ASC NULLS FIRST,
+                         intake_year DESC NULLS LAST
+                """,
+                (rs, rowNum) -> {
+                    AdmissionRequirementDTO dto = requirementValues(rs);
+                    dto.setDegreeLevel(rs.getString("degree_level"));
+                    dto.setFaculty(rs.getString("faculty"));
+                    dto.setProgrammeName(rs.getString("programme_name"));
+                    dto.setRequirementScope(rs.getString("requirement_scope"));
+                    dto.setIntakeYear(nullableInteger(rs.getObject("intake_year")));
+                    dto.setIntakeYearBasis(rs.getString("intake_year_basis"));
                     dto.setSourceUrl(rs.getString("source_url"));
                     return dto;
                 },
                 canonicalUniversityId
         );
 
-        if (levels.isEmpty()) {
-            return AdmissionRequirementsDTO.empty();
+        Optional<AdmissionSummaryRow> summaryRow = findSummaryRow(canonicalUniversityId);
+        if (levels.isEmpty() && programmes.isEmpty()) {
+            return withoutData();
         }
 
         AdmissionRequirementsDTO dto = new AdmissionRequirementsDTO();
         dto.setHasData(true);
         dto.setDegreeLevelCount(levels.size());
         dto.setByDegreeLevel(levels);
+        dto.setProgrammeRequirements(programmes);
         dto.setSummary(summarise(levels));
+        dto.setCaveats(AdmissionCaveats.forSummary(summaryRow));
+        summaryRow.ifPresent(row -> {
+            dto.setFetchDatesRecorded(row.fetchDatesRecorded());
+            dto.setOldestFetchedOn(row.oldestFetchedOn() == null ? null : row.oldestFetchedOn().toString());
+            dto.setOldestExtractedOn(row.oldestExtractedOn() == null ? null : row.oldestExtractedOn().toString());
+        });
         return dto;
+    }
+
+    /**
+     * The summary-view row for one university, or empty when it has no admission
+     * row at all -- which {@link AdmissionCaveats#forSummary} reads as an IELTS gap.
+     */
+    public Optional<AdmissionSummaryRow> findSummaryRow(Long canonicalUniversityId) {
+        if (canonicalUniversityId == null) {
+            return Optional.empty();
+        }
+        return jdbcTemplate.query(
+                SUMMARY_SELECT + " WHERE canonical_university_id = ?",
+                (rs, rowNum) -> summaryRow(rs),
+                canonicalUniversityId
+        ).stream().findFirst();
     }
 
     /**
@@ -104,28 +174,18 @@ public class AdmissionRecordRepository {
         Map<Long, AdmissionRequirementDTO> summaries = new LinkedHashMap<>();
 
         jdbcTemplate.query(
-                """
-                SELECT
-                    canonical_university_id,
-                    MIN(ielts_requirement) AS ielts_requirement,
-                    MIN(toefl_requirement) AS toefl_requirement,
-                    MIN(duolingo_requirement) AS duolingo_requirement,
-                    MIN(gpa_requirement) AS gpa_requirement,
-                    MIN(application_deadline) AS application_deadline
-                FROM warehouse.admission_record
-                WHERE canonical_university_id IN (%s)
-                GROUP BY canonical_university_id
-                """.formatted(placeholders),
+                SUMMARY_SELECT + " WHERE canonical_university_id IN (%s)".formatted(placeholders),
                 rs -> {
                     while (rs.next()) {
+                        AdmissionSummaryRow row = summaryRow(rs);
                         AdmissionRequirementDTO dto = new AdmissionRequirementDTO();
                         // Deliberately no degreeLevel: this row spans every level
                         // the university publishes, so naming one would be a lie.
-                        dto.setIeltsRequirement(nullableDouble(rs.getObject("ielts_requirement")));
-                        dto.setToeflRequirement(nullableInteger(rs.getObject("toefl_requirement")));
-                        dto.setDuolingoRequirement(nullableInteger(rs.getObject("duolingo_requirement")));
-                        dto.setGpaRequirement(nullableDouble(rs.getObject("gpa_requirement")));
-                        dto.setApplicationDeadline(isoDate(rs.getObject("application_deadline")));
+                        dto.setIeltsRequirement(row.ieltsRequirement());
+                        dto.setToeflRequirement(row.toeflRequirement());
+                        dto.setDuolingoRequirement(row.duolingoRequirement());
+                        dto.setGpaRequirement(row.gpaRequirement());
+                        dto.setApplicationDeadline(row.applicationDeadline());
                         summaries.put(rs.getLong("canonical_university_id"), dto);
                     }
                     return null;
@@ -134,6 +194,57 @@ public class AdmissionRecordRepository {
         );
 
         return summaries;
+    }
+
+    private static final String SUMMARY_SELECT = """
+            SELECT
+                canonical_university_id,
+                ielts_requirement,
+                toefl_requirement,
+                duolingo_requirement,
+                gpa_requirement,
+                application_deadline,
+                degree_level_count,
+                programme_row_count,
+                values_differ,
+                ielts_missing,
+                fetch_dates_recorded,
+                oldest_fetched_on,
+                oldest_extracted_on
+            FROM warehouse.v_admission_requirement_summary
+            """;
+
+    private static AdmissionSummaryRow summaryRow(ResultSet rs) throws SQLException {
+        return new AdmissionSummaryRow(
+                nullableDouble(rs.getObject("ielts_requirement")),
+                nullableInteger(rs.getObject("toefl_requirement")),
+                nullableInteger(rs.getObject("duolingo_requirement")),
+                nullableDouble(rs.getObject("gpa_requirement")),
+                isoDate(rs.getObject("application_deadline")),
+                rs.getInt("degree_level_count"),
+                rs.getInt("programme_row_count"),
+                rs.getBoolean("values_differ"),
+                rs.getBoolean("ielts_missing"),
+                rs.getBoolean("fetch_dates_recorded"),
+                rs.getObject("oldest_fetched_on", LocalDate.class),
+                rs.getObject("oldest_extracted_on", LocalDate.class)
+        );
+    }
+
+    private static AdmissionRequirementDTO requirementValues(ResultSet rs) throws SQLException {
+        AdmissionRequirementDTO dto = new AdmissionRequirementDTO();
+        dto.setIeltsRequirement(nullableDouble(rs.getObject("ielts_requirement")));
+        dto.setToeflRequirement(nullableInteger(rs.getObject("toefl_requirement")));
+        dto.setDuolingoRequirement(nullableInteger(rs.getObject("duolingo_requirement")));
+        dto.setGpaRequirement(nullableDouble(rs.getObject("gpa_requirement")));
+        dto.setApplicationDeadline(isoDate(rs.getObject("application_deadline")));
+        return dto;
+    }
+
+    private static AdmissionRequirementsDTO withoutData() {
+        AdmissionRequirementsDTO dto = AdmissionRequirementsDTO.empty();
+        dto.setCaveats(AdmissionCaveats.forSummary(Optional.empty()));
+        return dto;
     }
 
     private static AdmissionRequirementDTO summarise(List<AdmissionRequirementDTO> levels) {

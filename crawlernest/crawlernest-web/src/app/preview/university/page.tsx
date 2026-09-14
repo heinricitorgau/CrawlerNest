@@ -293,6 +293,17 @@ export default function UniversityPreviewPage() {
               </div>
             </div>
           ) : null}
+
+          {/* Rendered by the API with the fetch date; shown verbatim. */}
+          {Array.isArray(data?.admissionCaveats) && data.admissionCaveats.length > 0 ? (
+            <ul className="mt-6 space-y-1" aria-label="Admission data caveats">
+              {data.admissionCaveats.map((caveat: string) => (
+                <li key={caveat} className="text-xs text-slate-500">
+                  · {caveat}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </section>
       </div>
     </main>

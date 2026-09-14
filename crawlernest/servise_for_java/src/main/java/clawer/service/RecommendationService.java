@@ -88,6 +88,42 @@ public class RecommendationService {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * CAVEAT_ADMISSION_DATA_STALE for the universities this response returns,
+     * naming the oldest date behind any of their requirements. Empty when none of
+     * them has an admission row. The per-university IELTS caveat is not repeated
+     * here -- it names one university -- and travels with
+     * {@code /recommendations/explain} instead.
+     */
+    private List<String> admissionCaveats(Map<String, List<RecommendationResult>> grouped) {
+        List<Long> ids = grouped.values().stream()
+                .flatMap(List::stream)
+                .map(RecommendationResult::getCanonicalUniversityId)
+                .filter(java.util.Objects::nonNull)
+                .distinct()
+                .toList();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        String stale = jdbcTemplate.query(
+                """
+                SELECT bool_and(fetch_dates_recorded) AS fetch_dates_recorded,
+                       MIN(oldest_fetched_on) AS oldest_fetched_on,
+                       MIN(oldest_extracted_on) AS oldest_extracted_on
+                FROM warehouse.v_admission_requirement_summary
+                WHERE canonical_university_id = ANY(?::bigint[])
+                """,
+                rs -> rs.next()
+                        ? AnalyticsService.admissionStaleCaveat(
+                                rs.getBoolean("fetch_dates_recorded"),
+                                rs.getObject("oldest_fetched_on", java.time.LocalDate.class),
+                                rs.getObject("oldest_extracted_on", java.time.LocalDate.class))
+                        : null,
+                ids.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(",", "{", "}"))
+        );
+        return stale == null ? List.of() : List.of(stale);
+    }
+
     public List<RecommendationResult> getRecommendations(
             String country,
             String scope,
@@ -198,6 +234,7 @@ public class RecommendationService {
                         "target_upper", TARGET_RATIO_UPPER + AGGRESSIVE_TARGET_ADJUSTMENT
                 )
         ));
+        metadata.put("admission_caveats", admissionCaveats(grouped));
 
         return new RecommendationGroupResponse(
                 grouped.get("reach"),
@@ -323,6 +360,7 @@ public class RecommendationService {
                         "target_upper", TARGET_RATIO_UPPER + AGGRESSIVE_TARGET_ADJUSTMENT
                 )
         ));
+        metadata.put("admission_caveats", admissionCaveats(grouped));
         if (grouped.get("reach").isEmpty() && grouped.get("target").isEmpty() && grouped.get("safety").isEmpty()) {
             metadata.put(
                     "no_results_reason",

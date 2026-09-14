@@ -46,7 +46,8 @@ which each language's renderer is tested against.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
+from datetime import date, datetime
 
 from crawlernest.core.dataset import DATASET_YEARS
 
@@ -152,6 +153,87 @@ COMPOSITE_RANK_NOT_COMPARED_CAVEAT = (
     "moves whenever source coverage changes, so rank movement is reported per source on each "
     "university's page instead."
 )
+
+#: Shown when a university has no stored IELTS figure at any scope
+#: (warehouse.v_admission_requirement_summary.ielts_missing), or no admission row
+#: at all. Byte-identical to AnalyticsService.IELTS_MISSING_CAVEAT and to
+#: CAVEAT_IELTS_MISSING in caveatMessages.ts.
+CAVEAT_IELTS_MISSING = (
+    "No IELTS requirement was found in stored admission data for this university. "
+    "Language fit cannot be assessed."
+)
+
+#: CAVEAT_ADMISSION_DATA_STALE is a template, not a constant, because it has to
+#: name a date. It used to say only that requirements "are scraped and may not
+#: reflect the current year's entry conditions" -- true, and no help to a reader
+#: deciding whether a figure is last month's or three years old.
+#:
+#: Two templates, because every admission row written so far has no fetch time:
+#: runs over checked-in snapshots extract today from HTML fetched earlier, and
+#: calling the extraction date a fetch date would understate the page's age.
+ADMISSION_STALE_FETCHED_TEMPLATE = (
+    "Admission requirements were read from university pages fetched on {date} and may not "
+    "reflect the current year's entry conditions."
+)
+
+ADMISSION_STALE_UNDATED_TEMPLATE = (
+    "Admission requirements were read from university pages whose fetch date was not recorded. "
+    "They were extracted on {date}, the pages may be older than that, and they may not reflect "
+    "the current year's entry conditions."
+)
+
+
+def admission_stale_caveat(
+    *,
+    fetch_dates_recorded: bool,
+    oldest_fetched_on: date | str | None,
+    oldest_extracted_on: date | str | None,
+) -> str | None:
+    """CAVEAT_ADMISSION_DATA_STALE for the admission rows behind a response.
+
+    The inputs are the staleness columns of the admission views, combined over
+    every university a response shows: all fetch dates recorded, the oldest fetch
+    date, the oldest extraction date (UTC dates). The oldest, because a
+    disclosure about the freshest row would understate the rest.
+
+    The fetched template needs every row to carry a fetch date. Otherwise the
+    undated one names the extraction date and says the fetch date is unknown.
+    None when there is no admission data to disclose anything about.
+    """
+    if fetch_dates_recorded and oldest_fetched_on is not None:
+        return ADMISSION_STALE_FETCHED_TEMPLATE.replace("{date}", _iso_date(oldest_fetched_on))
+    if oldest_extracted_on is not None:
+        return ADMISSION_STALE_UNDATED_TEMPLATE.replace("{date}", _iso_date(oldest_extracted_on))
+    return None
+
+
+def admission_caveats(summary: Mapping[str, object] | None) -> list[str]:
+    """The admission caveats for one university, from its summary-view row.
+
+    ``summary`` is a row of warehouse.v_admission_requirement_summary as a
+    mapping, or None when the university has no admission row -- which is itself
+    an IELTS gap.
+    """
+    if summary is None:
+        return [CAVEAT_IELTS_MISSING]
+    caveats: list[str] = []
+    if summary.get("ielts_missing"):
+        caveats.append(CAVEAT_IELTS_MISSING)
+    stale = admission_stale_caveat(
+        fetch_dates_recorded=bool(summary.get("fetch_dates_recorded")),
+        oldest_fetched_on=summary.get("oldest_fetched_on"),  # type: ignore[arg-type]
+        oldest_extracted_on=summary.get("oldest_extracted_on"),  # type: ignore[arg-type]
+    )
+    if stale:
+        caveats.append(stale)
+    return caveats
+
+
+def _iso_date(value: date | str) -> str:
+    if isinstance(value, datetime):
+        raise TypeError("pass a UTC date, not a timestamp: the views already convert to UTC")
+    return value.isoformat() if isinstance(value, date) else str(value)[:10]
+
 
 #: The standard set every recommendation and analytics surface carries. Mirrors
 #: RC1_STANDARD_CAVEATS in caveatMessages.ts and RecommendationEvidenceService.
