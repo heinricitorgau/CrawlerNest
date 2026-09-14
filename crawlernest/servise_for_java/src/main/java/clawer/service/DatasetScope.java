@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 public class DatasetScope {
 
     /** Every ranking edition the warehouse holds, newest first. Changing it is a data migration. */
-    public static final List<Integer> DATASET_YEARS = List.of(2026);
+    public static final List<Integer> DATASET_YEARS = List.of(2026, 2025);
 
     /** The edition a read uses when the caller names none. */
     public static final int DEFAULT_RANKING_YEAR = Collections.max(DATASET_YEARS);

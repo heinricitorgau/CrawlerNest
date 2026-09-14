@@ -79,7 +79,7 @@ goes back to being a constant.
 | Source has no rows | "&lt;Source&gt; data is not available. No university carries a rank from this source." |
 | Source covers part of the table | "&lt;Source&gt; covers N of M universities. A missing &lt;S&gt; rank means either that the &lt;S&gt; data ingested here does not include the university or that this platform could not match it — not that &lt;S&gt; does not rank it." |
 | Source covers the whole table | *(no caveat — there is nothing undisclosed)* |
-| Snapshot age | "QS ranking data is a point-in-time snapshot of the 2026 published tables. Figures may not reflect rankings republished since this snapshot was ingested." |
+| Snapshot age | "QS ranking data is a point-in-time snapshot of the 2025 and 2026 published tables. Figures may not reflect rankings republished since this snapshot was ingested." |
 | Single-year trends | "Year-over-year trend analysis requires data from multiple aggregation runs. Current coverage is a single year — no rank delta is available." |
 | Multi-edition trends | "Composite ranks are not compared between editions. A university's composite position moves whenever source coverage changes, so rank movement is reported per source on each university's page instead." |
 | Incomplete subject coverage | "Subject ranking data is incomplete. Subject analytics are not available in this release." |
