@@ -1,0 +1,22 @@
+# One guarded refresh of the released edition. Started only by the matching
+# .timer -- never by the API or the web app (test_no_pipeline_triggers_from_api).
+#
+# %h is the user's home. CRAWLERNEST_REPO and the database settings come from
+# ~/.config/crawlernest/scheduler.env, written by install_scheduler.sh.
+[Unit]
+Description=CrawlerNest scheduled refresh (edition-verified, shrink-guarded)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/crawlernest/scheduler.env
+WorkingDirectory=%h
+# Fail loudly, before crawling, if the checkout predates the command.
+ExecStartPre=/bin/sh -c 'cd "$CRAWLERNEST_REPO" && "$CRAWLERNEST_PYTHON" -m crawlernest.run_pipeline scheduled-refresh --help >/dev/null'
+ExecStart=/bin/sh -c 'cd "$CRAWLERNEST_REPO" && exec "$CRAWLERNEST_PYTHON" -m crawlernest.run_pipeline scheduled-refresh --pg-host "$CRAWLERNEST_PG_HOST" --pg-database "$CRAWLERNEST_PG_DATABASE" --pg-user "$CRAWLERNEST_PG_USER"'
+# A full QS + THE + ARWU pass takes a few minutes; anything near this is hung.
+TimeoutStartSec=2h
+Nice=10
+StandardOutput=append:%h/.crawlernest/scheduled_refresh/scheduled_refresh.log
+StandardError=append:%h/.crawlernest/scheduled_refresh/scheduled_refresh.log

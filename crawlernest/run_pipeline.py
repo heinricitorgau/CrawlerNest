@@ -101,6 +101,12 @@ from qs_universe_registry import (  # noqa: E402
     iter_all_qs_universes,
     iter_major_qs_universes,
 )
+from ranking_edition import (  # noqa: E402
+    assert_crawled_edition,
+    qs_fetch_for,
+    resolve_qs_edition,
+    snapshot_edition_ok,
+)
 from arwu_crawler import crawl_arwu_rankings  # noqa: E402
 from the_crawler import crawl_the_rankings  # noqa: E402
 from pipeline_command_router import (  # noqa: E402
@@ -255,10 +261,22 @@ def run_qs_crawl(
         detail_chunk_size=max(1, detail_chunk_size),
         resolution_cache_path=str(REPO_ROOT / "crawlernest-kb" / "qs_universe_resolution_cache.json"),
     )
-    setattr(config, "_stable_ranking_id", str(global_spec.ranking_id or preferred_ranking_id or "").strip())
+    # The id must be ranking_year's own table. An explicit --ranking-id is held to
+    # the same proof: it has to be the id the edition page declares.
+    edition = resolve_qs_edition(
+        global_spec.ranking_page_url,
+        ranking_year,
+        qs_fetch_for(config),
+        pinned_ranking_id=preferred_ranking_id,
+    )
+    config.ranking_page_url = edition.page_url
+    setattr(config, "_edition_ranking_id", edition.ranking_id)
+    setattr(config, "_stable_ranking_id", edition.ranking_id)
     setattr(config, "progress_label", "global/global")
     crawler = UniversityCrawler(config)
     universities = asyncio.run(crawler.crawl_async()) if use_async else crawler.crawl()
+    if universities:
+        assert_crawled_edition(edition, str(getattr(config, "ranking_id", "") or ""))
     crawl_meta = {
         "detail_fallback_triggered": bool(getattr(config, "_detail_fallback_triggered", False)),
         "detail_deferred_paths": list(getattr(config, "_detail_deferred_paths", []) or []),
@@ -278,6 +296,7 @@ def run_qs_crawl(
         "used_snapshot_fallback": False,
         "snapshot_fallback_path": "",
         "run_backing": "live",
+        "edition": edition.as_meta(),
     }
     universities, crawl_meta = _apply_qs_snapshot_fallback(
         universities,
@@ -430,6 +449,16 @@ def _load_known_good_qs_snapshot(
     except Exception:
         return None, raw_snapshot_path
     if str(run_status.get("status", "") or "").strip().lower() != "ok":
+        return None, raw_snapshot_path
+    # "ok" says the crawl finished, not which edition it read. The 2026 snapshots
+    # written before ranking_edition existed hold the 2027 world table; falling
+    # back on one would ingest it under 2026 all over again.
+    if not snapshot_edition_ok(run_status, ranking_year=ranking_year):
+        _QS_PIPELINE_LOG.info(
+            "qs_acquire event=fallback_refused reason=edition_unverified ranking_year=%s snapshot_path=%s",
+            ranking_year,
+            raw_snapshot_path,
+        )
         return None, raw_snapshot_path
     try:
         universities = load_snapshot(raw_snapshot_path)
@@ -2522,7 +2551,51 @@ _REMAINING_COMMAND_HANDLERS: dict[str, Callable[[argparse.Namespace], int]] = {
     "rebuild-preview-and-resolve": _cmd_rebuild_preview_and_resolve,
     "preview-ranking-admission-convergence": _cmd_preview_ranking_admission_convergence,
     "preview-canonical-university-detail": _cmd_preview_canonical_university_detail,
+    "scheduled-refresh": lambda args: _cmd_scheduled_refresh(args),
 }
+
+
+def _cmd_scheduled_refresh(args: argparse.Namespace) -> int:
+    """See crawlernest/pipeline/commands/scheduled_refresh.py for why this, not ``run``."""
+    from crawlernest.pipeline.commands.canonical import run_arwu_rankings_ingestion, run_the_rankings_ingestion
+    from crawlernest.pipeline.commands.scheduled_refresh import run_scheduled_refresh
+
+    ranking_year = HELD_DEFAULT_RANKING_YEAR if args.ranking_year is None else int(args.ranking_year)
+    pg = dict(pg_host=args.pg_host, pg_port=args.pg_port, pg_database=args.pg_database,
+              pg_user=args.pg_user, pg_password=args.pg_password)
+    kb = MODULE_ROOT / "crawlernest-kb"
+
+    def qs(year: int) -> Any:
+        summary, normalized, standardized, interrupted, crawl_meta = run_qs_universe_ingestion(
+            universe_type="global", universe_key="global",
+            # The whole table. A limit would make the batch partial, and the
+            # shrink guard would (rightly) refuse to prune the edition down to it.
+            limit=2500, ranking_year=year, use_async=False, workers=1,
+            request_delay=args.request_delay, local_parse_workers=4,
+            output_dir=kb / "qs_universes", resume=False, **pg,
+        )
+        if interrupted or crawl_meta.get("failure_classification") or not standardized:
+            raise RuntimeError(
+                f"QS {year} did not complete as a live crawl: "
+                f"failure={crawl_meta.get('failure_classification')!r} rows={len(standardized)}"
+            )
+        return {"rows": len(standardized), "matched": summary.matched_count,
+                "unresolved": summary.unresolved_count, "edition": crawl_meta.get("edition")}
+
+    runners = {
+        "QS": qs,
+        "THE": lambda year: run_the_rankings_ingestion(
+            ranking_year=year, output_dir=kb / "databases", skip_seed=True, **pg),
+        "ARWU": lambda year: run_arwu_rankings_ingestion(
+            ranking_year=year, output_dir=kb / "databases", skip_seed=True, **pg),
+    }
+    return run_scheduled_refresh(
+        ranking_year=ranking_year,
+        sources=str(args.sources).split(","),
+        runners=runners,
+        lock_path=Path(args.lock_file),
+        status_dir=Path(args.status_dir),
+    )
 
 
 def _dispatch_remaining_commands(args: argparse.Namespace) -> int:

@@ -62,6 +62,13 @@ class FakeMultiSourceRepository:
     def upsert_ranking_records(self, unified_rows, source_id_map, run_id=None):
         self.unified_rows = [row for row in self.unified_rows if row.canonical_university_id is not None]
 
+    #: Rows the warehouse already holds per (ranking_source_id, year, ranking_type).
+    #: Empty by default: a first ingest has nothing to shrink.
+    existing_counts: dict = {}
+
+    def count_ranking_records(self, *, ranking_source_id, ranking_year, ranking_type):
+        return self.existing_counts.get((ranking_source_id, ranking_year, ranking_type), 0)
+
     def prune_superseded_records(self, *, ranking_source_id, ranking_year, ranking_type, run_id):
         self.prune_calls.append((ranking_source_id, ranking_year, ranking_type, run_id))
         return 0
@@ -368,6 +375,39 @@ class TestSupersededRecordsArePruned(unittest.TestCase):
         self.assertEqual(
             repo.prune_calls, [], "pruning without a run id would empty the table"
         )
+
+
+class TestAPartialBatchCannotPruneAnEdition(unittest.TestCase):
+    """``run --limit 30`` against a held edition used to leave it 30 rows long."""
+
+    ROW = StandardizedRankingRecord("QS", "qs:a", "A University", "Taiwan", 2026, "world", 1, 90.0)
+
+    def _pipeline(self, repo):
+        return TestSupersededRecordsArePruned()._pipeline(repo)
+
+    def test_refused_before_any_write_when_most_of_the_edition_would_go(self):
+        from multi_source.pipeline import ShrinkingBatchError
+
+        repo = FakeMultiSourceRepository()
+        repo.existing_counts = {(1, 2026, "world"): 1503}
+        with self.assertRaisesRegex(ShrinkingBatchError, "would prune 1502"):
+            self._pipeline(repo).ingest_records([self.ROW], batch_id="partial", run_label_prefix="t")
+        self.assertEqual([], repo.unified_rows)
+        self.assertEqual([], repo.prune_calls)
+
+    def test_a_full_recrawl_and_a_first_ingest_pass(self):
+        for existing in ({}, {(1, 2026, "world"): 1}):
+            with self.subTest(existing=existing):
+                repo = FakeMultiSourceRepository()
+                repo.existing_counts = existing
+                self._pipeline(repo).ingest_records([self.ROW], batch_id="full", run_label_prefix="t")
+                self.assertEqual(1, len(repo.prune_calls))
+
+    def test_a_deliberate_shrink_can_be_allowed(self):
+        repo = FakeMultiSourceRepository()
+        repo.existing_counts = {(1, 2026, "world"): 1503}
+        self._pipeline(repo).ingest_records([self.ROW], batch_id="shrink", run_label_prefix="t", allow_shrink=True)
+        self.assertEqual(1, len(repo.prune_calls))
 
 
 class TestMappingReviewsReachAggregation(unittest.TestCase):

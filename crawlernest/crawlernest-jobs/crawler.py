@@ -541,6 +541,7 @@ class UniversityCrawler:
             path=str(path),
             country=str(country),
             table_metrics=table_metrics,
+            rank_display=str(node.get("rank_display") or "").strip(),
         )
 
     def crawl(self) -> List[University]:

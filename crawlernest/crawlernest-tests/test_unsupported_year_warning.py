@@ -84,20 +84,27 @@ class TestYearDetection(unittest.TestCase):
         )
 
 
+#: Years the warehouse does not hold, derived so the examples stay unheld when an
+#: edition is released. They were the literal 2025 until 2025 was ingested.
+UNHELD = min(uy.DATASET_YEARS) - 1
+UNHELD_EARLIER = UNHELD - 1
+
+
 class TestUnsupportedYearWarnings(unittest.TestCase):
     def test_unsupported_year_produces_the_coded_warning(self) -> None:
-        warnings = unsupported_year_warnings(context={"year": 2025})
+        warnings = unsupported_year_warnings(context={"year": UNHELD})
         self.assertEqual(len(warnings), 1)
         self.assertIn(UNSUPPORTED_YEAR_WARNING_CODE, warnings[0])
-        self.assertIn("2025", warnings[0])
+        self.assertIn(str(UNHELD), warnings[0])
         self.assertIn(str(DATASET_YEAR), warnings[0])
 
     def test_warning_blames_the_snapshot_not_a_failed_lookup(self) -> None:
         # The whole point: an empty or substituted result must not read as "we
-        # looked for 2025 and could not find it".
-        warning = build_unsupported_year_warning(2025)
+        # looked for that year and could not find it".
+        warning = build_unsupported_year_warning(UNHELD)
         self.assertIn("not missing or incomplete data", warning)
-        self.assertIn("single-year", warning)
+        for year in uy.DATASET_YEARS:
+            self.assertIn(str(year), warning)
 
     def test_dataset_year_is_the_only_supported_year(self) -> None:
         self.assertEqual(unsupported_year_warnings(context={"year": DATASET_YEAR}), [])
@@ -115,12 +122,12 @@ class TestUnsupportedYearWarnings(unittest.TestCase):
 
     def test_one_warning_per_distinct_unsupported_year(self) -> None:
         warnings = unsupported_year_warnings(
-            context={"year": 2025},
-            user_input="and 2025 versus 2024",
+            context={"year": UNHELD},
+            user_input=f"and {UNHELD} versus {UNHELD_EARLIER}",
         )
         self.assertEqual(len(warnings), 2)
-        self.assertIn("2025", warnings[0])
-        self.assertIn("2024", warnings[1])
+        self.assertIn(str(UNHELD), warnings[0])
+        self.assertIn(str(UNHELD_EARLIER), warnings[1])
 
     def _with_editions(self, years: tuple[int, ...]):
         original = (uy.DATASET_YEARS, uy.DEFAULT_RANKING_YEAR)
@@ -200,8 +207,8 @@ def _request(**kwargs: Any) -> TaskRequest:
 
 
 class TestEngineAttachesTheWarning(unittest.TestCase):
-    def test_context_year_2025_warns_without_failing_the_task(self) -> None:
-        response = _engine().execute(_request(context={"year": 2025}))
+    def test_an_unheld_context_year_warns_without_failing_the_task(self) -> None:
+        response = _engine().execute(_request(context={"year": UNHELD}))
 
         # Still a successful read: the rows shown are real, they simply
         # describe a different year from the one asked for -- and now say so.
@@ -212,7 +219,7 @@ class TestEngineAttachesTheWarning(unittest.TestCase):
         )
 
     def test_year_in_the_prompt_warns_too(self) -> None:
-        response = _engine().execute(_request(user_input="QS 2025 rankings please"))
+        response = _engine().execute(_request(user_input=f"QS {UNHELD} rankings please"))
         self.assertTrue(any(UNSUPPORTED_YEAR_WARNING_CODE in w for w in response.warnings))
 
     def test_dataset_year_request_is_unchanged(self) -> None:
@@ -235,13 +242,13 @@ class TestEngineAttachesTheWarning(unittest.TestCase):
         # _respond is the one place every branch of execute() lands, the
         # rejected one included, so an unknown kind still discloses the year.
         response = _engine().execute(
-            _request(kind="dev_refinement", context={"rankingYear": 2025})
+            _request(kind="dev_refinement", context={"rankingYear": UNHELD})
         )
         self.assertEqual(response.status, "rejected")
         self.assertTrue(any(UNSUPPORTED_YEAR_WARNING_CODE in w for w in response.warnings))
 
     def test_warning_is_not_repeated(self) -> None:
-        request = _request(context={"year": 2025}, user_input="and what about 2025?")
+        request = _request(context={"year": UNHELD}, user_input=f"and what about {UNHELD}?")
         response = _engine().execute(request)
         coded = [w for w in response.warnings if UNSUPPORTED_YEAR_WARNING_CODE in w]
         self.assertEqual(len(coded), 1)

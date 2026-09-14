@@ -114,10 +114,15 @@ class TestDatasetDeclaration(unittest.TestCase):
     def test_header_states_year_sources_and_the_snapshot_rule(self) -> None:
         lines = build_dataset_header().split("\n")
         self.assertEqual(len(lines), 3)
-        self.assertIn(str(DATASET_YEAR), lines[0])
+        for year in DATASET_YEARS:
+            self.assertIn(str(year), lines[0])
         for source in DATASET_SOURCES:
             self.assertIn(source, lines[1])
-        self.assertIn("single-year snapshot", lines[2])
+        # One edition: the snapshot rule. More: the rule is about the evidence,
+        # which here carries no rank-change field, so trends stay forbidden.
+        expected = "single-year snapshot" if len(DATASET_YEARS) == 1 else "rank-change field"
+        self.assertIn(expected, lines[2])
+        self.assertIn("forbidden", lines[2])
 
     def test_header_is_derived_from_the_constants(self) -> None:
         # A header written out by hand is one a dataset migration can leave
@@ -258,7 +263,9 @@ class TestExplainersCarryTheDeclaration(unittest.TestCase):
         return gen.prompt
 
     def test_every_explainer_prepends_the_header_and_appends_the_constraints(self) -> None:
-        header = build_dataset_header()
+        # Derived from the rows the explainer is given, not from the held
+        # editions: _ITEMS are all 2026, so 2025 is not a year they let it name.
+        header = build_dataset_header(_ITEMS)
         for explainer_cls in (
             RecommendationExplainer,
             RankingExplainer,
@@ -271,7 +278,7 @@ class TestExplainersCarryTheDeclaration(unittest.TestCase):
                     prompt.context_block.startswith(header),
                     f"{explainer_cls.__name__} does not lead with the dataset header",
                 )
-                for constraint in DATASET_CONSTRAINTS:
+                for constraint in dataset_constraints(_ITEMS):
                     self.assertIn(constraint, prompt.response_constraints)
 
     def test_the_declaration_does_not_displace_the_task_constraints(self) -> None:

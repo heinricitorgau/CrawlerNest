@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import os
 from pathlib import Path
 
 
@@ -51,7 +52,10 @@ def build_parser(
     )
 
     run_parser = subparsers.add_parser("run", help="Crawl QS -> normalize -> write to DB")
-    run_parser.add_argument("--ranking-id", default="3990755")
+    # No default id: 3990755 is the QS 2025 table, and it was crawled under
+    # whatever --ranking-year said. The id now comes from the edition page; an
+    # explicit one must match it.
+    run_parser.add_argument("--ranking-id", default="")
     run_parser.add_argument("--ranking-year", type=int, default=default_ranking_year)
     run_parser.add_argument("--limit", type=int, default=30)
     run_parser.add_argument("--workers", type=int, default=1, help="Max concurrent requests per crawler")
@@ -1002,4 +1006,25 @@ def build_parser(
     compare_parser.add_argument("--pg-database", default="clawer")
     compare_parser.add_argument("--pg-user", default="test")
     compare_parser.add_argument("--pg-password", default="")
+
+    scheduled_parser = subparsers.add_parser(
+        "scheduled-refresh",
+        help=(
+            "One guarded refresh of the released edition for an external scheduler (cron/systemd). "
+            "Edition-verified, shrink-guarded, locked; never loops."
+        ),
+    )
+    scheduled_parser.add_argument(
+        "--ranking-year", type=int, default=None,
+        help="Edition to refresh (default: the newest edition crawlernest.core.dataset holds)",
+    )
+    scheduled_parser.add_argument("--sources", default="QS,THE,ARWU")
+    scheduled_parser.add_argument("--lock-file", default=str(Path.home() / ".crawlernest" / "scheduled_refresh.lock"))
+    scheduled_parser.add_argument("--status-dir", default=str(Path.home() / ".crawlernest" / "scheduled_refresh"))
+    scheduled_parser.add_argument("--request-delay", type=float, default=10.0)
+    scheduled_parser.add_argument("--pg-host", default="localhost")
+    scheduled_parser.add_argument("--pg-port", type=int, default=5432)
+    scheduled_parser.add_argument("--pg-database", default="clawer")
+    scheduled_parser.add_argument("--pg-user", default="test")
+    scheduled_parser.add_argument("--pg-password", default=os.environ.get("CRAWLERNEST_PG_PASSWORD", ""))
     return parser

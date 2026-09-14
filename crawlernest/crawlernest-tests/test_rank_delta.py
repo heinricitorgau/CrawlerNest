@@ -23,7 +23,7 @@ from pathlib import Path
 
 from crawlernest.core import institution_lineage as il
 from crawlernest.core import rank_delta as rd
-from crawlernest.core.dataset import DATASET_YEAR
+from crawlernest.core.dataset import DATASET_YEAR, DATASET_YEARS
 from crawlernest.core.institution_lineage import LineageEvent, lineage_boundary
 from crawlernest.core.rank_delta import (
     DIRECTION_DOWN,
@@ -117,12 +117,13 @@ class TestStableSourceIdentity(unittest.TestCase):
         self.assertIsNone(stable_source_identity(None))
 
 
-class TestTodaysSingleYearDataset(unittest.TestCase):
-    def test_every_delta_is_withheld_today(self) -> None:
+class TestTheHeldEditionsDecide(unittest.TestCase):
+    def test_a_single_held_edition_withholds_every_delta(self) -> None:
         delta = _compute(
             _obs(DATASET_YEAR, 10),
             _obs(DATASET_YEAR - 1, 12),
             prior_year=DATASET_YEAR - 1,
+            ingested_years=(DATASET_YEAR,),
         )
 
         self.assertEqual(delta.reason, REASON_SINGLE_YEAR_DATASET)
@@ -131,11 +132,16 @@ class TestTodaysSingleYearDataset(unittest.TestCase):
         self.assertIsNone(delta.delta_max)
         self.assertIsNone(delta.direction)
 
+    def test_a_prior_edition_that_is_not_held_is_withheld_too(self) -> None:
+        earliest = min(DATASET_YEARS)
+        delta = _compute(_obs(earliest, 10), _obs(earliest - 1, 12), prior_year=earliest - 1)
+        self.assertEqual(delta.reason, REASON_SINGLE_YEAR_DATASET)
+
     def test_the_default_follows_the_dataset_constant(self) -> None:
-        # Pinned to core.dataset, not to a literal, so ingesting a second year
-        # is what turns deltas on -- nothing else has to remember to.
+        # Pinned to core.dataset, not to a literal, so releasing an edition is
+        # what turns deltas on -- nothing else has to remember to.
         original = rd.compute_rank_delta.__kwdefaults__["ingested_years"]
-        self.assertEqual(tuple(original), (DATASET_YEAR,))
+        self.assertEqual(tuple(original), DATASET_YEARS)
 
 
 class TestExactDelta(unittest.TestCase):
@@ -352,6 +358,7 @@ class TestInstitutionLineageWithholds(unittest.TestCase):
             prior_year=DATASET_YEAR - 1,
             canonical_university_id=TOKYO_TECH,
             lineage=LINEAGE,
+            ingested_years=(DATASET_YEAR,),
         )
         self.assertEqual(REASON_SINGLE_YEAR_DATASET, delta.reason)
 
@@ -391,6 +398,60 @@ class TestJavaAgreesOnTheRule(unittest.TestCase):
         self.assertIn(f"EDITION_LAG_YEARS = {il.EDITION_LAG_YEARS};", lineage)
         kinds = set(re.findall(r'"(\w+)"', re.search(r"KINDS = Set\.of\(([^)]*)\)", lineage).group(1)))
         self.assertEqual(set(il.KINDS), kinds)
+
+    def test_golden_cases_shared_with_source_rank_delta(self) -> None:
+        """fixtures/rank_delta_cases.json is also asserted by SourceRankDeltaTest.java."""
+        import json
+
+        from crawlernest.core.institution_lineage import LineageEvent
+
+        golden = json.loads((Path(__file__).resolve().parent / "fixtures" / "rank_delta_cases.json").read_text(encoding="utf-8"))
+        lineage = tuple(
+            LineageEvent(e["predecessor"], e["successor"], e["effective_year"], e["kind"]) for e in golden["lineage"]
+        )
+        for case in golden["cases"]:
+            with self.subTest(case=case["name"]):
+                current = RankObservation(2026, case["source"], parse_rank_band(case["current"]), case["current_id"])
+                prior = None
+                if case["prior"] is not None:
+                    prior = RankObservation(
+                        case["prior_year"], case["source"], parse_rank_band(case["prior"]), case["prior_id"],
+                        suspicious_merge=bool(case.get("prior_suspicious")),
+                    )
+                result = compute_rank_delta(
+                    current, prior, prior_year=case["prior_year"], canonical_university_id=case["university"],
+                    lineage=lineage, ingested_years=tuple(case["held"]),
+                )
+                expect = case["expect"]
+                self.assertEqual(
+                    (expect["value"], expect["min"], expect["max"], expect["direction"], expect["reason"]),
+                    (result.rank_delta, result.delta_min, result.delta_max, result.direction, result.reason),
+                )
+
+    def test_source_rank_delta_uses_the_same_reason_codes(self) -> None:
+        java = (self.JAVA / "SourceRankDelta.java").read_text(encoding="utf-8")
+        for name, value in (
+            ("REASON_NO_PRIOR_ROW", REASON_NO_PRIOR_ROW),
+            ("REASON_NO_CURRENT_ROW", REASON_NO_CURRENT_ROW),
+            ("REASON_BANDED", REASON_BANDED),
+            ("REASON_SUSPICIOUS_MERGE", REASON_SUSPICIOUS_MERGE),
+            ("DIRECTION_UP", DIRECTION_UP),
+            ("DIRECTION_DOWN", DIRECTION_DOWN),
+            ("DIRECTION_UNCHANGED", DIRECTION_UNCHANGED),
+            ("DIRECTION_INDETERMINATE", DIRECTION_INDETERMINATE),
+        ):
+            with self.subTest(name=name):
+                self.assertIn(f'{name} = "{value}";', java)
+
+    def test_the_ui_explains_every_withholding_reason_the_api_can_send(self) -> None:
+        java = (self.JAVA / "SourceRankDelta.java").read_text(encoding="utf-8")
+        policy = (self.JAVA / "RankComparisonPolicy.java").read_text(encoding="utf-8")
+        codes = set(re.findall(r'REASON_\w+ = "(\w+)";', java + policy)) - {REASON_BANDED}
+        ts = (
+            Path(__file__).resolve().parents[1] / "crawlernest-web" / "src" / "lib" / "rankDeltaPresentation.ts"
+        ).read_text(encoding="utf-8")
+        explained = set(re.findall(r"^\s+(\w+):", ts.split("RANK_DELTA_REASON_TEXT", 1)[1].split("};", 1)[0], re.M))
+        self.assertEqual(codes, explained)
 
     def test_schema_allows_exactly_these_kinds(self) -> None:
         ddl = (

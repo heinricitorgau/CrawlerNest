@@ -121,6 +121,14 @@ public class AnalyticsService {
     public static final String UNSUPPORTED_ESTIMATE_CAVEAT =
             "Some estimates here fall outside the data the model was fitted on and are marked unsupported. The model has seen no comparable cases for them. That is a statement about the evidence behind the estimate, not a measurement of how wrong it is.";
 
+    /** Carried wherever a per-source rankDelta is shown. See {@link SourceRankDelta}. */
+    public static final String RANK_CHANGE_CAVEAT =
+            "Rank changes compare one source's published ranks between two editions. They are not changes in a composite or platform rank, a banded rank gives a range rather than a number, and no change is shown when the institution or its source entry changed between editions.";
+
+    /** Carried by ranking trends when more than one edition is held; see {@link RankComparisonPolicy}. */
+    public static final String COMPOSITE_RANK_NOT_COMPARED_CAVEAT =
+            "Composite ranks are not compared between editions. A university's composite position moves whenever source coverage changes, so rank movement is reported per source on each university's page instead.";
+
     public static final String DISAGREEMENT_ESTIMATE_CAVEAT =
             "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against.";
 
@@ -577,6 +585,9 @@ public class AnalyticsService {
         caveats.add(SNAPSHOT_CAVEAT);
         if (singleYear && !noData) {
             caveats.add("Year-over-year trend analysis requires data from multiple aggregation runs. Current coverage is a single year — no rank delta is available.");
+        }
+        if (!singleYear && !noData) {
+            caveats.add(COMPOSITE_RANK_NOT_COMPARED_CAVEAT);
         }
         if (noData) {
             caveats.add("No aggregated ranking data is currently available.");

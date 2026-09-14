@@ -16,6 +16,15 @@ from .types import StandardizedRankingRecord, UnifiedRankingRecord
 
 logger = logging.getLogger("MultiSourceRankingPipeline")
 
+#: A batch that would keep less than this share of an edition's existing rows is
+#: refused. Real editions move by a few percent; the QS 2026 table and its
+#: predecessor differ by one row in 1,504.
+MIN_RETAINED_RATIO = 0.9
+
+
+class ShrinkingBatchError(RuntimeError):
+    """A batch would prune most of an edition it only partly re-crawled."""
+
 SOURCE_NAME_MAP = {
     "QS": "QS World University Rankings",
     "THE": "Times Higher Education World University Rankings",
@@ -41,6 +50,29 @@ class MultiSourceIngestionSummary:
 
 
 class MultiSourceRankingPipeline:
+    def _refuse_shrinking_batch(
+        self,
+        unified_rows: Sequence[UnifiedRankingRecord],
+        source_id_map: dict[str, int],
+        ranking_type: str,
+    ) -> None:
+        incoming: dict[tuple[str, int], int] = {}
+        for row in unified_rows:
+            if row.canonical_university_id is None or str(row.ranking_type or "world").lower() != ranking_type.lower():
+                continue
+            key = (row.source, int(row.year))
+            incoming[key] = incoming.get(key, 0) + 1
+        for (source_code, year), count in sorted(incoming.items()):
+            existing = self.multi_source_repo.count_ranking_records(
+                ranking_source_id=source_id_map[source_code], ranking_year=year, ranking_type=ranking_type
+            )
+            if existing and count < existing * MIN_RETAINED_RATIO:
+                raise ShrinkingBatchError(
+                    f"{source_code} {year} {ranking_type}: this batch resolves {count} rows but the "
+                    f"warehouse holds {existing}; ingesting it would prune {existing - count}. "
+                    "Re-crawl the whole edition, or pass allow_shrink=True if the edition really shrank."
+                )
+
     def __init__(
         self,
         resolver: EntityResolver,
@@ -62,7 +94,16 @@ class MultiSourceRankingPipeline:
         run_label_prefix: str = "multi_source_ingest",
         ranking_type: str = "world",
         enable_aggregation: bool = True,
+        allow_shrink: bool = False,
     ) -> MultiSourceIngestionSummary:
+        """Resolve, write and (with a batch_id) prune one batch.
+
+        ``allow_shrink`` lifts the guard below for a deliberate replacement by a
+        smaller edition. Without it a batch that would prune more than
+        ``1 - MIN_RETAINED_RATIO`` of an edition's existing rows is refused before
+        any write: the prune deletes every row the batch did not carry, so a
+        ``run --limit 30`` against a held edition used to reduce it to 30 rows.
+        """
         raw_rows = list(standardized_records)
         if not raw_rows:
             return MultiSourceIngestionSummary(
@@ -117,6 +158,9 @@ class MultiSourceRankingPipeline:
                 review_application.remapped,
                 review_application.rejected,
             )
+
+        if batch_id and not allow_shrink:
+            self._refuse_shrinking_batch(unified_rows, source_id_map, ranking_type)
 
         self.multi_source_repo.upsert_source_university_mappings(unified_rows, source_id_map)
         if review_application.rejected_keys:

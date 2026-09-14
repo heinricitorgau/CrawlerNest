@@ -35,10 +35,12 @@ from pathlib import Path
 
 from crawlernest.core.caveats import (
     CAVEAT_ARWU_PARTIAL,
+    COMPOSITE_RANK_NOT_COMPARED_CAVEAT,
     CAVEAT_QS_STALE,
     CAVEAT_THE_PARTIAL,
     DISAGREEMENT_ESTIMATE_CAVEAT,
     ESTIMATED_VALUE_CAVEAT,
+    RANK_CHANGE_CAVEAT,
     SNAPSHOT_CAVEAT_TEMPLATE,
     STANDARD_CAVEATS,
     UNSUPPORTED_ESTIMATE_CAVEAT,
@@ -82,6 +84,8 @@ CONSTANT_CAVEATS = (
     ESTIMATED_VALUE_CAVEAT,
     DISAGREEMENT_ESTIMATE_CAVEAT,
     UNSUPPORTED_ESTIMATE_CAVEAT,
+    RANK_CHANGE_CAVEAT,
+    COMPOSITE_RANK_NOT_COMPARED_CAVEAT,
 )
 
 
@@ -213,6 +217,8 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
             ESTIMATED_VALUE_CAVEAT,
             DISAGREEMENT_ESTIMATE_CAVEAT,
             UNSUPPORTED_ESTIMATE_CAVEAT,
+            RANK_CHANGE_CAVEAT,
+            COMPOSITE_RANK_NOT_COMPARED_CAVEAT,
         ):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(caveat, doc)

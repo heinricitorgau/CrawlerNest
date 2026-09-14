@@ -80,13 +80,19 @@ class University:
     path: str = ""
     table_metrics: Dict[str, str] = field(default_factory=dict)
     requirements: AdmissionRequirements = field(default_factory=AdmissionRequirements)
-    
+    #: The rank as QS prints it: "=17", "601-610", "1401+". ``rank`` is the
+    #: endpoint's sort ordinal, which is distinct for every row even inside a
+    #: band, so it states a precision QS does not publish. Empty for snapshots
+    #: written before this field existed.
+    rank_display: str = ""
+
     def get_effective_canonical_name(self) -> str:
         return self.canonical_name or self.name
     
     def to_dict(self) -> Dict[str, Any]:
         data = {
             'rank': self.rank,
+            'rank_display': self.rank_display,
             'name': self.name,
             'country': self.country,
             'location': self.location,
@@ -126,5 +132,6 @@ class University:
             canonical_name=data.get('canonical_name', ''),
             path=data.get('path', ''),
             table_metrics=data.get('table_metrics', {}) or {},
-            requirements=requirements
+            requirements=requirements,
+            rank_display=str(data.get('rank_display') or ''),
         )

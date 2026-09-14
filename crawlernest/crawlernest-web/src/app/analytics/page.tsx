@@ -8,6 +8,8 @@ import {
   sourceAvailabilityConfig,
   spreadToSeverity,
 } from "@/lib/analyticsPresentation";
+import { CAVEAT_COMPOSITE_RANK_NOT_COMPARED } from "@/lib/caveatMessages";
+import { RANK_DELTA_REASON_TEXT } from "@/lib/rankDeltaPresentation";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -20,7 +22,9 @@ interface RankingTrendItem {
   current_rank: number | null;
   previous_year: number | null;
   previous_rank: number | null;
-  rank_delta: number | null;
+  /** Always null: composite ranks are not compared across editions. */
+  rank_delta: null;
+  rank_delta_reason: string | null;
   source_count_current: number;
   source_count_previous: number | null;
 }
@@ -149,26 +153,6 @@ function ErrorBlock({ message }: { message: string }) {
   );
 }
 
-function DeltaChip({ delta }: { delta: number | null }) {
-  if (delta === null) {
-    return <span className="text-slate-400">—</span>;
-  }
-  if (delta > 0) {
-    return (
-      <span className="rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-xs font-semibold text-emerald-700">
-        +{delta}
-      </span>
-    );
-  }
-  if (delta < 0) {
-    return (
-      <span className="rounded border border-red-200 bg-red-50 px-1.5 py-0.5 text-xs font-semibold text-red-700">
-        {delta}
-      </span>
-    );
-  }
-  return <span className="text-xs text-slate-400">0</span>;
-}
 
 function formatTs(ts: string | null | undefined): string {
   if (!ts) return "—";
@@ -216,11 +200,16 @@ export default function AnalyticsPage() {
           )}
         </div>
 
-        {/* ── Single-year notice ── */}
+        {/* ── Edition notice: why no composite movement is shown ── */}
         {trendsState.status === "ok" && trends?.single_year_only && (
           <div className="mb-6 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             Only one year of aggregated data is available. Year-over-year rank deltas are not
             shown. Multiple aggregation runs are required for trend analysis.
+          </div>
+        )}
+        {trendsState.status === "ok" && trends && !trends.single_year_only && (
+          <div className="mb-6 border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+            {CAVEAT_COMPOSITE_RANK_NOT_COMPARED}
           </div>
         )}
 
@@ -252,7 +241,7 @@ export default function AnalyticsPage() {
                 <StatCard
                   label="Trend Coverage"
                   value={trends.single_year_only ? "Single year" : "Multi-year"}
-                  sub={trends.single_year_only ? "no delta available" : "delta computed"}
+                  sub={trends.single_year_only ? "no delta available" : "per source, on university pages"}
                 />
               </div>
 
@@ -264,8 +253,7 @@ export default function AnalyticsPage() {
                         "Rank",
                         "University",
                         "Country",
-                        trends.single_year_only ? null : "Prev Rank",
-                        trends.single_year_only ? null : "Delta",
+                        trends.single_year_only ? null : "Composite change",
                         "Sources",
                       ]
                         .filter(Boolean)
@@ -293,14 +281,14 @@ export default function AnalyticsPage() {
                         </td>
                         <td className="px-3 py-2 text-slate-500">{row.country_name ?? "—"}</td>
                         {!trends.single_year_only && (
-                          <>
-                            <td className="px-3 py-2 font-mono text-slate-500">
-                              {row.previous_rank ?? "—"}
-                            </td>
-                            <td className="px-3 py-2">
-                              <DeltaChip delta={row.rank_delta} />
-                            </td>
-                          </>
+                          // Never a number: the API withholds every composite delta
+                          // and says why. See CAVEAT_COMPOSITE_RANK_NOT_COMPARED.
+                          <td
+                            className="px-3 py-2 text-xs text-slate-400"
+                            title={RANK_DELTA_REASON_TEXT[row.rank_delta_reason ?? ""] ?? undefined}
+                          >
+                            {row.rank_delta_reason === "entity_changed" ? "Institution changed" : "Not compared"}
+                          </td>
                         )}
                         <td className="px-3 py-2 font-mono text-xs text-slate-400">
                           {row.source_count_current}

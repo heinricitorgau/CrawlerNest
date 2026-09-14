@@ -12,6 +12,12 @@ from crawler import UniversityCrawler
 from models import University
 
 from qs_universe_registry import QSUniverseSpec
+from ranking_edition import (
+    VerifiedEdition,
+    assert_crawled_edition,
+    qs_fetch_for,
+    resolve_qs_edition,
+)
 
 
 def _persist_resolution_cache(config: Config) -> None:
@@ -25,8 +31,11 @@ def _persist_resolution_cache(config: Config) -> None:
     # hold, including a hardcoded default, and the next run then trusted it as
     # "resolved" and skipped page resolution entirely. That is how one wrong id
     # became permanent.
+    # An id proven against the edition page (ranking_edition) qualifies too, and
+    # overwrites whatever an earlier unversioned-page resolution left under this
+    # year's key.
     source = str(getattr(config, "_ranking_id_source", "") or "").strip()
-    if source != "page_resolution":
+    if source not in ("page_resolution", "edition_page"):
         return
     universe_type = str(getattr(config, "universe_type", "") or "").strip().lower()
     universe_key = str(getattr(config, "universe_key", "") or "").strip().lower()
@@ -120,9 +129,29 @@ class BaseQSUniverseCrawler:
             ),
         )
 
+    def resolve_edition(self, config: Config) -> VerifiedEdition:
+        """Prove which table is this universe's ``ranking_year`` edition before fetching it.
+
+        Raises EditionMismatchError when the source cannot show it -- including a
+        universe whose page names no year, and a pinned id that is not the id the
+        edition page declares. ``edition_fetch`` is overridable for tests.
+        """
+        fetch = getattr(self, "edition_fetch", None) or qs_fetch_for(config)
+        return resolve_qs_edition(
+            self.spec.ranking_page_url,
+            self.ranking_year,
+            fetch,
+            pinned_ranking_id=str(self.spec.ranking_id or "").strip(),
+        )
+
     def crawl(self, existing_universities: list[University] | None = None) -> tuple[list[University], dict[str, Any]]:
         config = self.build_config()
-        setattr(config, "_stable_ranking_id", str(self.spec.ranking_id or "").strip())
+        edition = self.resolve_edition(config)
+        # Fetch with the edition's id from the edition's page, so the endpoint
+        # warm-up and any re-resolution see the same edition, not the latest one.
+        config.ranking_page_url = edition.page_url
+        setattr(config, "_edition_ranking_id", edition.ranking_id)
+        setattr(config, "_stable_ranking_id", edition.ranking_id)
         existing_universities = list(existing_universities or [])
         if existing_universities:
             config._resume_paths = [str(uni.path).strip() for uni in existing_universities if str(uni.path or "").strip()]
@@ -137,6 +166,7 @@ class BaseQSUniverseCrawler:
         universities = asyncio.run(crawler.crawl_async()) if self.use_async else crawler.crawl()
         self.interrupted = getattr(crawler, "interrupted", False)
         if universities:
+            assert_crawled_edition(edition, str(getattr(config, "ranking_id", "") or ""))
             _persist_resolution_cache(config)
         crawl_meta = {
             "detail_fallback_triggered": bool(getattr(config, "_detail_fallback_triggered", False)),
@@ -168,6 +198,10 @@ class BaseQSUniverseCrawler:
             "subregion_id": str(getattr(config, "_subregion_id", "") or ""),
             "resolution_cache_path": str(getattr(config, "resolution_cache_path", "") or ""),
             "universe": asdict(self.spec),
+            # What makes this run's rows replayable under ranking_year: the
+            # edition page and id it was proven against. Snapshots without it are
+            # refused by the fallback and by reingest_qs_universes.
+            "edition": edition.as_meta(),
         }
         return universities, crawl_meta
 

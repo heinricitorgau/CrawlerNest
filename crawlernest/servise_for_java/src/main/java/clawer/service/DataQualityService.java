@@ -38,16 +38,20 @@ public class DataQualityService {
     private Map<String, Object> buildUnresolved() {
         Map<String, Object> section = new LinkedHashMap<>();
 
+        // The unresolved queue fills during every ingest, shadow editions included;
+        // the data-quality page shows the release's.
+        String held = datasetScope.heldYearsSqlArray();
         Long total = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM analytics.missing_entity_log", Long.class);
+                "SELECT COUNT(*) FROM analytics.missing_entity_log WHERE ranking_year = ANY(?::int[])", Long.class, held);
         section.put("total", total != null ? total : 0L);
 
         List<Map<String, Object>> bySource = jdbcTemplate.queryForList("""
                 SELECT source_code, COUNT(*) AS count
                 FROM analytics.missing_entity_log
+                WHERE ranking_year = ANY(?::int[])
                 GROUP BY source_code
                 ORDER BY count DESC
-                """);
+                """, held);
         section.put("by_source", bySource.stream().map(row -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("source_code", row.get("source_code"));
@@ -58,9 +62,10 @@ public class DataQualityService {
         List<Map<String, Object>> examples = jdbcTemplate.queryForList("""
                 SELECT source_code, raw_name, country_hint, ranking_year
                 FROM analytics.missing_entity_log
+                WHERE ranking_year = ANY(?::int[])
                 ORDER BY created_at DESC
                 LIMIT 5
-                """);
+                """, held);
         section.put("top_examples", examples.stream().map(row -> {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("source_code", row.get("source_code"));

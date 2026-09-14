@@ -6,87 +6,29 @@
     "country_hint": "South Africa",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 184,
-    "score": 57.2,
+    "rank": 150,
+    "score": 62.3,
     "source_url": "/universities/university-cape-town",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
-        "Overall Score": "57.2",
-        "Citations per Faculty": "57.8",
-        "Academic Reputation": "60.4",
-        "Faculty Student Ratio": "15.2",
-        "Employer Reputation": "52.7",
-        "Employment Outcomes": "98",
-        "International Student Ratio": "26.3",
-        "International Research Network": "97.8",
-        "International Faculty Ratio": "53.8",
-        "Sustainability Score": "91.9"
+        "Overall Score": "62.3",
+        "Citations per Faculty": "75.4",
+        "Academic Reputation": "58.2",
+        "Faculty Student Ratio": "14.6",
+        "Employer Reputation": "62.3",
+        "Employment Outcomes": "97.7",
+        "International Student Ratio": "27.9",
+        "International Research Network": "97.7",
+        "International Faculty Ratio": "66.1",
+        "International Student Diversity": "33.9",
+        "Sustainability Score": "92.1"
       },
       "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/university-johannesburg",
-    "university_name": "University of Johannesburg",
-    "country_hint": "South Africa",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 292,
-    "score": 46.5,
-    "source_url": "/universities/university-johannesburg",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "46.5",
-        "Citations per Faculty": "52.3",
-        "Academic Reputation": "26.3",
-        "Faculty Student Ratio": "43.5",
-        "Employer Reputation": "31",
-        "Employment Outcomes": "66.9",
-        "International Student Ratio": "52",
-        "International Research Network": "99.4",
-        "International Faculty Ratio": "99",
-        "Sustainability Score": "77.9"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/stellenbosch-university",
-    "university_name": "Stellenbosch University",
-    "country_hint": "South Africa",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 296,
-    "score": 46.2,
-    "source_url": "/universities/stellenbosch-university",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "46.2",
-        "Citations per Faculty": "73.6",
-        "Academic Reputation": "39.5",
-        "Faculty Student Ratio": "3.7",
-        "Employer Reputation": "41.6",
-        "Employment Outcomes": "85.1",
-        "International Student Ratio": "13.1",
-        "International Research Network": "94.7",
-        "International Faculty Ratio": "22.7",
-        "Sustainability Score": "57.7"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "150"
     }
   },
   {
@@ -96,57 +38,93 @@
     "country_hint": "South Africa",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 302,
-    "score": 45.7,
+    "rank": 291,
+    "score": 46.4,
     "source_url": "/universities/university-witwatersrand",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
-        "Overall Score": "45.7",
-        "Citations per Faculty": "37.3",
-        "Academic Reputation": "39.2",
-        "Faculty Student Ratio": "10.9",
-        "Employer Reputation": "47.6",
-        "Employment Outcomes": "99.1",
-        "International Student Ratio": "10.6",
-        "International Research Network": "97.2",
-        "International Faculty Ratio": "88.1",
-        "Sustainability Score": "83"
+        "Overall Score": "46.4",
+        "Citations per Faculty": "40.2",
+        "Academic Reputation": "36.8",
+        "Faculty Student Ratio": "14",
+        "Employer Reputation": "50.9",
+        "Employment Outcomes": "99.5",
+        "International Student Ratio": "9.4",
+        "International Research Network": "96.7",
+        "International Faculty Ratio": "86.8",
+        "International Student Diversity": "15.1",
+        "Sustainability Score": "85.6"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "291"
     }
   },
   {
     "source": "QS",
-    "source_entity_id": "/universities/university-pretoria",
-    "university_name": "University of Pretoria",
+    "source_entity_id": "/universities/stellenbosch-university",
+    "university_name": "Stellenbosch University",
     "country_hint": "South Africa",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 328,
-    "score": 43.5,
-    "source_url": "/universities/university-pretoria",
+    "rank": 302,
+    "score": 45.2,
+    "source_url": "/universities/stellenbosch-university",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
-        "Overall Score": "43.5",
-        "Citations per Faculty": "36.3",
-        "Academic Reputation": "34.9",
-        "Faculty Student Ratio": "5.5",
-        "Employer Reputation": "53.9",
-        "Employment Outcomes": "80.8",
-        "International Student Ratio": "24.7",
-        "International Research Network": "98",
-        "International Faculty Ratio": "73.6",
-        "Sustainability Score": "80.5"
+        "Overall Score": "45.2",
+        "Citations per Faculty": "67.5",
+        "Academic Reputation": "36.7",
+        "Faculty Student Ratio": "5",
+        "Employer Reputation": "44.8",
+        "Employment Outcomes": "88.9",
+        "International Student Ratio": "14.5",
+        "International Research Network": "93.6",
+        "International Faculty Ratio": "25.4",
+        "International Student Diversity": "11",
+        "Sustainability Score": "61"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "302"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-johannesburg",
+    "university_name": "University of Johannesburg",
+    "country_hint": "South Africa",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 309,
+    "score": 44.7,
+    "source_url": "/universities/university-johannesburg",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "44.7",
+        "Citations per Faculty": "45.2",
+        "Academic Reputation": "25.5",
+        "Faculty Student Ratio": "46.5",
+        "Employer Reputation": "25.9",
+        "Employment Outcomes": "69.6",
+        "International Student Ratio": "60.1",
+        "International Research Network": "99.1",
+        "International Faculty Ratio": "98.5",
+        "International Student Diversity": "63.9",
+        "Sustainability Score": "74.8"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "=308"
     }
   },
   {
@@ -156,27 +134,61 @@
     "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 364,
-    "score": 41.1,
+    "rank": 347,
+    "score": 41.6,
     "source_url": "/universities/cairo-university",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
-        "Overall Score": "41.1",
-        "Citations per Faculty": "6.1",
-        "Academic Reputation": "56.3",
-        "Faculty Student Ratio": "12.7",
-        "Employer Reputation": "59.8",
-        "Employment Outcomes": "94.4",
-        "International Student Ratio": "13.7",
-        "International Research Network": "88",
-        "International Faculty Ratio": "3.6",
-        "Sustainability Score": "70.6"
+        "Overall Score": "41.6",
+        "Citations per Faculty": "6",
+        "Academic Reputation": "60.8",
+        "Faculty Student Ratio": "13.8",
+        "Employer Reputation": "52.7",
+        "Employment Outcomes": "98",
+        "International Student Ratio": "14.4",
+        "International Research Network": "88.9",
+        "International Faculty Ratio": "4.2",
+        "International Student Diversity": "10.9",
+        "Sustainability Score": "66.6"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "=347"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-pretoria",
+    "university_name": "University of Pretoria",
+    "country_hint": "South Africa",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 363,
+    "score": 40.9,
+    "source_url": "/universities/university-pretoria",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "40.9",
+        "Citations per Faculty": "31.2",
+        "Academic Reputation": "32.3",
+        "Faculty Student Ratio": "6.2",
+        "Employer Reputation": "55.1",
+        "Employment Outcomes": "84.8",
+        "International Student Ratio": "17.4",
+        "International Research Network": "97.6",
+        "International Faculty Ratio": "57.2",
+        "International Student Diversity": "23.5",
+        "Sustainability Score": "80.1"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "=362"
     }
   },
   {
@@ -186,27 +198,29 @@
     "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 393,
-    "score": 38.8,
+    "rank": 381,
+    "score": 39.4,
     "source_url": "/universities/american-university-cairo",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
-        "Overall Score": "38.8",
-        "Citations per Faculty": "14.3",
-        "Academic Reputation": "35.9",
-        "Faculty Student Ratio": "35.5",
+        "Overall Score": "39.4",
+        "Citations per Faculty": "12.2",
+        "Academic Reputation": "40.8",
+        "Faculty Student Ratio": "39",
         "Employer Reputation": "46.9",
-        "Employment Outcomes": "98.7",
-        "International Student Ratio": "7.6",
-        "International Research Network": "35.6",
-        "International Faculty Ratio": "95.8",
-        "Sustainability Score": "70.5"
+        "Employment Outcomes": "88.6",
+        "International Student Ratio": "7.1",
+        "International Research Network": "46.8",
+        "International Faculty Ratio": "98",
+        "International Student Diversity": "11.7",
+        "Sustainability Score": "51.6"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "=381"
     }
   },
   {
@@ -216,27 +230,29 @@
     "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 551,
-    "score": 29.8,
+    "rank": 543,
+    "score": 30.3,
     "source_url": "/universities/ain-shams-university-cairo-asu-cairo",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
-        "Overall Score": "29.8",
-        "Citations per Faculty": "3.3",
-        "Academic Reputation": "31.7",
-        "Faculty Student Ratio": "17.8",
-        "Employer Reputation": "47.6",
-        "Employment Outcomes": "58.9",
-        "International Student Ratio": "12.3",
-        "International Research Network": "80.5",
-        "International Faculty Ratio": "24.9",
-        "Sustainability Score": "60.5"
+        "Overall Score": "30.3",
+        "Citations per Faculty": "3.5",
+        "Academic Reputation": "35.6",
+        "Faculty Student Ratio": "17.1",
+        "Employer Reputation": "38.8",
+        "Employment Outcomes": "69.6",
+        "International Student Ratio": "13.7",
+        "International Research Network": "80.8",
+        "International Faculty Ratio": "29.5",
+        "International Student Diversity": "19.7",
+        "Sustainability Score": "56.7"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "=542"
     }
   },
   {
@@ -246,27 +262,29 @@
     "country_hint": "South Africa",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 607,
-    "score": 28.3,
+    "rank": 563,
+    "score": 29.5,
     "source_url": "/universities/university-kwazulu-natal",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
-        "Overall Score": "28.3",
-        "Citations per Faculty": "41.4",
-        "Academic Reputation": "18.2",
-        "Faculty Student Ratio": "5.7",
-        "Employer Reputation": "14.1",
-        "Employment Outcomes": "76.5",
-        "International Student Ratio": "1.8",
-        "International Research Network": "96.3",
-        "International Faculty Ratio": "22.1",
-        "Sustainability Score": "65.7"
+        "Overall Score": "29.5",
+        "Citations per Faculty": "44.5",
+        "Academic Reputation": "17.9",
+        "Faculty Student Ratio": "6.9",
+        "Employer Reputation": "14.4",
+        "Employment Outcomes": "79.4",
+        "International Student Ratio": "2.1",
+        "International Research Network": "95.9",
+        "International Faculty Ratio": "29.1",
+        "International Student Diversity": "6.7",
+        "Sustainability Score": "63"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "=558"
     }
   },
   {
@@ -276,27 +294,29 @@
     "country_hint": "Tunisia",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 658,
-    "score": 26.8,
+    "rank": 742,
+    "score": null,
     "source_url": "/universities/universite-de-tunis-el-manar",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
-        "Overall Score": "26.8",
-        "Citations per Faculty": "8.6",
-        "Academic Reputation": "18.5",
-        "Faculty Student Ratio": "45.1",
-        "Employer Reputation": "10.9",
-        "Employment Outcomes": "61.6",
-        "International Student Ratio": "18",
-        "International Research Network": "84.1",
-        "International Faculty Ratio": "67.6",
-        "Sustainability Score": "62"
+        "Overall Score": "n/a",
+        "Citations per Faculty": "9.2",
+        "Academic Reputation": "15.8",
+        "Faculty Student Ratio": "39.9",
+        "Employer Reputation": "6.2",
+        "Employment Outcomes": "61.3",
+        "International Student Ratio": "16.7",
+        "International Research Network": "82.5",
+        "International Faculty Ratio": "61.9",
+        "International Student Diversity": "19.9",
+        "Sustainability Score": "56.7"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "731-740"
     }
   },
   {
@@ -306,7 +326,7 @@
     "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 807,
+    "rank": 785,
     "score": null,
     "source_url": "/universities/alexandria-university",
     "source_version": null,
@@ -315,108 +335,20 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "3.6",
-        "Academic Reputation": "28.3",
-        "Faculty Student Ratio": "6.6",
-        "Employer Reputation": "29.9",
-        "Employment Outcomes": "25.4",
-        "International Student Ratio": "13.5",
-        "International Research Network": "81.8",
-        "International Faculty Ratio": "1.7",
-        "Sustainability Score": "54.7"
+        "Citations per Faculty": "3.5",
+        "Academic Reputation": "32.7",
+        "Faculty Student Ratio": "7.2",
+        "Employer Reputation": "24.2",
+        "Employment Outcomes": "33",
+        "International Student Ratio": "13.6",
+        "International Research Network": "80.7",
+        "International Faculty Ratio": "1.9",
+        "International Student Diversity": "19",
+        "Sustainability Score": "56.6"
       },
       "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/egypt-japan-university-science-technology",
-    "university_name": "Egypt Japan University of Science & Technology",
-    "country_hint": "Egypt",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 815,
-    "score": null,
-    "source_url": "/universities/egypt-japan-university-science-technology",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "83",
-        "Academic Reputation": "6.7",
-        "Faculty Student Ratio": "2.4",
-        "Employer Reputation": "6.1",
-        "Employment Outcomes": "6",
-        "International Student Ratio": "2.7",
-        "International Research Network": "18.9",
-        "International Faculty Ratio": "4.9",
-        "Sustainability Score": "39.3"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/university-ghana",
-    "university_name": "University of Ghana",
-    "country_hint": "Ghana",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 889,
-    "score": null,
-    "source_url": "/universities/university-ghana",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "11.3",
-        "Academic Reputation": "20.4",
-        "Faculty Student Ratio": "1.8",
-        "Employer Reputation": "12.4",
-        "Employment Outcomes": "93.2",
-        "International Student Ratio": "1.8",
-        "International Research Network": "82.3",
-        "International Faculty Ratio": "6.9",
-        "Sustainability Score": "51.4"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/rhodes-university",
-    "university_name": "Rhodes University",
-    "country_hint": "South Africa",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 929,
-    "score": null,
-    "source_url": "/universities/rhodes-university",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "24.7",
-        "Academic Reputation": "8.3",
-        "Faculty Student Ratio": "12.6",
-        "Employer Reputation": "11.5",
-        "Employment Outcomes": "59.1",
-        "International Student Ratio": "44.2",
-        "International Research Network": "68.8",
-        "International Faculty Ratio": "N/A",
-        "Sustainability Score": "40.7"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "781-790"
     }
   },
   {
@@ -426,7 +358,7 @@
     "country_hint": "Ethiopia",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 954,
+    "rank": 856,
     "score": null,
     "source_url": "/universities/addis-ababa-university",
     "source_version": null,
@@ -435,18 +367,52 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "3.5",
-        "Academic Reputation": "7.4",
-        "Faculty Student Ratio": "50",
-        "Employer Reputation": "12.4",
-        "Employment Outcomes": "94.3",
-        "International Student Ratio": "N/A",
-        "International Research Network": "65.8",
-        "International Faculty Ratio": "N/A",
-        "Sustainability Score": "50.5"
+        "Citations per Faculty": "2.5",
+        "Academic Reputation": "7.8",
+        "Faculty Student Ratio": "65.3",
+        "Employer Reputation": "12.1",
+        "Employment Outcomes": "96.9",
+        "International Student Ratio": "n/a",
+        "International Research Network": "63.8",
+        "International Faculty Ratio": "n/a",
+        "International Student Diversity": "n/a",
+        "Sustainability Score": "41.7"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "851-900"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-ghana",
+    "university_name": "University of Ghana",
+    "country_hint": "Ghana",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 894,
+    "score": null,
+    "source_url": "/universities/university-ghana",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "10.8",
+        "Academic Reputation": "17.8",
+        "Faculty Student Ratio": "2.1",
+        "Employer Reputation": "12.4",
+        "Employment Outcomes": "96.8",
+        "International Student Ratio": "1.8",
+        "International Research Network": "80.8",
+        "International Faculty Ratio": "8.1",
+        "International Student Diversity": "1.6",
+        "Sustainability Score": "52.8"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "851-900"
     }
   },
   {
@@ -456,7 +422,7 @@
     "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 962,
+    "rank": 911,
     "score": null,
     "source_url": "/universities/future-university-egypt",
     "source_version": null,
@@ -465,18 +431,20 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "7.7",
-        "Academic Reputation": "6.1",
-        "Faculty Student Ratio": "49.6",
-        "Employer Reputation": "28.7",
-        "Employment Outcomes": "5.4",
-        "International Student Ratio": "31.5",
-        "International Research Network": "50.1",
-        "International Faculty Ratio": "15.9",
-        "Sustainability Score": "45.8"
+        "Citations per Faculty": "5.3",
+        "Academic Reputation": "7.1",
+        "Faculty Student Ratio": "47.2",
+        "Employer Reputation": "40.5",
+        "Employment Outcomes": "3.3",
+        "International Student Ratio": "33",
+        "International Research Network": "50.4",
+        "International Faculty Ratio": "18.2",
+        "International Student Diversity": "34.5",
+        "Sustainability Score": "35.7"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "901-950"
     }
   },
   {
@@ -486,7 +454,7 @@
     "country_hint": "South Africa",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 998,
+    "rank": 949,
     "score": null,
     "source_url": "/universities/university-south-africa",
     "source_version": null,
@@ -495,168 +463,20 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "14.2",
-        "Academic Reputation": "12.6",
-        "Faculty Student Ratio": "1",
-        "Employer Reputation": "12.6",
-        "Employment Outcomes": "89.7",
-        "International Student Ratio": "12",
-        "International Research Network": "92.8",
-        "International Faculty Ratio": "N/A",
-        "Sustainability Score": "45.4"
+        "Citations per Faculty": "11.7",
+        "Academic Reputation": "13.8",
+        "Faculty Student Ratio": "1.2",
+        "Employer Reputation": "13.6",
+        "Employment Outcomes": "96",
+        "International Student Ratio": "13.3",
+        "International Research Network": "92.5",
+        "International Faculty Ratio": "n/a",
+        "International Student Diversity": "10.1",
+        "Sustainability Score": "43.3"
       },
       "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/al-azhar-university",
-    "university_name": "Al-Azhar University",
-    "country_hint": "Egypt",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1004,
-    "score": null,
-    "source_url": "/universities/al-azhar-university",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "2.1",
-        "Academic Reputation": "18.3",
-        "Faculty Student Ratio": "13.3",
-        "Employer Reputation": "19.1",
-        "Employment Outcomes": "23.8",
-        "International Student Ratio": "15.3",
-        "International Research Network": "71.3",
-        "International Faculty Ratio": "1.6",
-        "Sustainability Score": "46.3"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/arab-academy-science-technology-maritime-transport-aastmt",
-    "university_name": "Arab Academy for Science, Technology and Maritime Transport (AASTMT)",
-    "country_hint": "Egypt",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1009,
-    "score": null,
-    "source_url": "/universities/arab-academy-science-technology-maritime-transport-aastmt",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "2.5",
-        "Academic Reputation": "6.4",
-        "Faculty Student Ratio": "44.9",
-        "Employer Reputation": "16.2",
-        "Employment Outcomes": "15.2",
-        "International Student Ratio": "33.5",
-        "International Research Network": "31.9",
-        "International Faculty Ratio": "8.2",
-        "Sustainability Score": "53.7"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/assiut-university",
-    "university_name": "Assiut University",
-    "country_hint": "Egypt",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1011,
-    "score": null,
-    "source_url": "/universities/assiut-university",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "4.1",
-        "Academic Reputation": "13.4",
-        "Faculty Student Ratio": "16.7",
-        "Employer Reputation": "14.8",
-        "Employment Outcomes": "3.5",
-        "International Student Ratio": "5.1",
-        "International Research Network": "67",
-        "International Faculty Ratio": "20.9",
-        "Sustainability Score": "51.8"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/makerere-university",
-    "university_name": "Makerere University",
-    "country_hint": "Uganda",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1061,
-    "score": null,
-    "source_url": "/universities/makerere-university",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "7.3",
-        "Academic Reputation": "14.5",
-        "Faculty Student Ratio": "4.4",
-        "Employer Reputation": "7.5",
-        "Employment Outcomes": "97.7",
-        "International Student Ratio": "18.8",
-        "International Research Network": "66.9",
-        "International Faculty Ratio": "11.2",
-        "Sustainability Score": "46.2"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/mansoura-university",
-    "university_name": "Mansoura University",
-    "country_hint": "Egypt",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1062,
-    "score": null,
-    "source_url": "/universities/mansoura-university",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "5.1",
-        "Academic Reputation": "16.1",
-        "Faculty Student Ratio": "5",
-        "Employer Reputation": "19.7",
-        "Employment Outcomes": "10.2",
-        "International Student Ratio": "26.5",
-        "International Research Network": "82.2",
-        "International Faculty Ratio": "8.4",
-        "Sustainability Score": "60.7"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "901-950"
     }
   },
   {
@@ -666,7 +486,7 @@
     "country_hint": "South Africa",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1077,
+    "rank": 977,
     "score": null,
     "source_url": "/universities/north-west-university",
     "source_version": null,
@@ -675,198 +495,20 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "24.5",
-        "Academic Reputation": "9.6",
-        "Faculty Student Ratio": "5.3",
-        "Employer Reputation": "9.4",
-        "Employment Outcomes": "20.5",
-        "International Student Ratio": "3",
-        "International Research Network": "95.7",
-        "International Faculty Ratio": "8",
-        "Sustainability Score": "63.3"
+        "Citations per Faculty": "24.9",
+        "Academic Reputation": "8.4",
+        "Faculty Student Ratio": "7",
+        "Employer Reputation": "14.9",
+        "Employment Outcomes": "24.8",
+        "International Student Ratio": "3.1",
+        "International Research Network": "94.6",
+        "International Faculty Ratio": "9.2",
+        "International Student Diversity": "7.7",
+        "Sustainability Score": "60.4"
       },
       "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/universite-mohammed-v-de-rabat",
-    "university_name": "Université Mohammed V de Rabat",
-    "country_hint": "Morocco",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1154,
-    "score": null,
-    "source_url": "/universities/universite-mohammed-v-de-rabat",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "10.1",
-        "Academic Reputation": "6.8",
-        "Faculty Student Ratio": "2.5",
-        "Employer Reputation": "6.9",
-        "Employment Outcomes": "67.5",
-        "International Student Ratio": "5.9",
-        "International Research Network": "81.4",
-        "International Faculty Ratio": "3.9",
-        "Sustainability Score": "47.2"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/university-ibadan",
-    "university_name": "University of Ibadan",
-    "country_hint": "Nigeria",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1168,
-    "score": null,
-    "source_url": "/universities/university-ibadan",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "7.1",
-        "Academic Reputation": "13",
-        "Faculty Student Ratio": "4.8",
-        "Employer Reputation": "24.4",
-        "Employment Outcomes": "68.7",
-        "International Student Ratio": "1.1",
-        "International Research Network": "64.7",
-        "International Faculty Ratio": "1.3",
-        "Sustainability Score": "38.7"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/university-lagos",
-    "university_name": "University of Lagos",
-    "country_hint": "Nigeria",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1169,
-    "score": null,
-    "source_url": "/universities/university-lagos",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "3.9",
-        "Academic Reputation": "10.9",
-        "Faculty Student Ratio": "2.5",
-        "Employer Reputation": "25.1",
-        "Employment Outcomes": "85.1",
-        "International Student Ratio": "1.1",
-        "International Research Network": "67.4",
-        "International Faculty Ratio": "1.3",
-        "Sustainability Score": "36"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/university-nairobi",
-    "university_name": "University of Nairobi",
-    "country_hint": "Kenya",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1176,
-    "score": null,
-    "source_url": "/universities/university-nairobi",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "3.2",
-        "Academic Reputation": "14.4",
-        "Faculty Student Ratio": "16.9",
-        "Employer Reputation": "18.9",
-        "Employment Outcomes": "93.3",
-        "International Student Ratio": "N/A",
-        "International Research Network": "41.5",
-        "International Faculty Ratio": "N/A",
-        "Sustainability Score": "44.7"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/university-sfax",
-    "university_name": "University of Sfax",
-    "country_hint": "Tunisia",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1187,
-    "score": null,
-    "source_url": "/universities/university-sfax",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "6.4",
-        "Academic Reputation": "12.1",
-        "Faculty Student Ratio": "46.6",
-        "Employer Reputation": "4.2",
-        "Employment Outcomes": "12.2",
-        "International Student Ratio": "4.2",
-        "International Research Network": "67",
-        "International Faculty Ratio": "1.1",
-        "Sustainability Score": "53.1"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/university-free-state",
-    "university_name": "University of the Free State",
-    "country_hint": "South Africa",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1190,
-    "score": null,
-    "source_url": "/universities/university-free-state",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "18.3",
-        "Academic Reputation": "8.6",
-        "Faculty Student Ratio": "3.7",
-        "Employer Reputation": "8.4",
-        "Employment Outcomes": "16.1",
-        "International Student Ratio": "7.4",
-        "International Research Network": "95.9",
-        "International Faculty Ratio": "15.7",
-        "Sustainability Score": "38"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "951-1000"
     }
   },
   {
@@ -876,7 +518,7 @@
     "country_hint": "South Africa",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1191,
+    "rank": 1003,
     "score": null,
     "source_url": "/universities/university-western-cape",
     "source_version": null,
@@ -885,18 +527,372 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "23.5",
-        "Academic Reputation": "12.6",
-        "Faculty Student Ratio": "4.5",
-        "Employer Reputation": "8.8",
-        "Employment Outcomes": "28.4",
-        "International Student Ratio": "5",
-        "International Research Network": "85.3",
-        "International Faculty Ratio": "29.2",
-        "Sustainability Score": "37"
+        "Citations per Faculty": "23.9",
+        "Academic Reputation": "12",
+        "Faculty Student Ratio": "6.1",
+        "Employer Reputation": "6.4",
+        "Employment Outcomes": "28.1",
+        "International Student Ratio": "5.5",
+        "International Research Network": "84.4",
+        "International Faculty Ratio": "30.3",
+        "International Student Diversity": "10.5",
+        "Sustainability Score": "35.7"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "951-1000"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/al-azhar-university",
+    "university_name": "Al-Azhar University",
+    "country_hint": "Egypt",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1007,
+    "score": null,
+    "source_url": "/universities/al-azhar-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "2",
+        "Academic Reputation": "21.5",
+        "Faculty Student Ratio": "14.9",
+        "Employer Reputation": "13.9",
+        "Employment Outcomes": "33.2",
+        "International Student Ratio": "16.8",
+        "International Research Network": "64.4",
+        "International Faculty Ratio": "1.7",
+        "International Student Diversity": "12.7",
+        "Sustainability Score": "35.3"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/arab-academy-science-technology-maritime-transport-aastmt",
+    "university_name": "Arab Academy for Science, Technology and Maritime Transport (AASTMT)",
+    "country_hint": "Egypt",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1013,
+    "score": null,
+    "source_url": "/universities/arab-academy-science-technology-maritime-transport-aastmt",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "2.4",
+        "Academic Reputation": "7.5",
+        "Faculty Student Ratio": "44.7",
+        "Employer Reputation": "12.4",
+        "Employment Outcomes": "16.8",
+        "International Student Ratio": "34.9",
+        "International Research Network": "27",
+        "International Faculty Ratio": "9.2",
+        "International Student Diversity": "33.6",
+        "Sustainability Score": "29.7"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/assiut-university",
+    "university_name": "Assiut University",
+    "country_hint": "Egypt",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1015,
+    "score": null,
+    "source_url": "/universities/assiut-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "4",
+        "Academic Reputation": "16.3",
+        "Faculty Student Ratio": "20.7",
+        "Employer Reputation": "15.1",
+        "Employment Outcomes": "3",
+        "International Student Ratio": "7.2",
+        "International Research Network": "66.5",
+        "International Faculty Ratio": "21.1",
+        "International Student Diversity": "10.6",
+        "Sustainability Score": "53.3"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/makerere-university",
+    "university_name": "Makerere University",
+    "country_hint": "Uganda",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1063,
+    "score": null,
+    "source_url": "/universities/makerere-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "6.5",
+        "Academic Reputation": "13.4",
+        "Faculty Student Ratio": "5.8",
+        "Employer Reputation": "5.3",
+        "Employment Outcomes": "98.3",
+        "International Student Ratio": "13.6",
+        "International Research Network": "65.3",
+        "International Faculty Ratio": "8.3",
+        "International Student Diversity": "10.3",
+        "Sustainability Score": "42"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/mansoura-university",
+    "university_name": "Mansoura University",
+    "country_hint": "Egypt",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1064,
+    "score": null,
+    "source_url": "/universities/mansoura-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "5",
+        "Academic Reputation": "18.8",
+        "Faculty Student Ratio": "5.2",
+        "Employer Reputation": "15.8",
+        "Employment Outcomes": "12.6",
+        "International Student Ratio": "21.2",
+        "International Research Network": "81.9",
+        "International Faculty Ratio": "9.9",
+        "International Student Diversity": "24.5",
+        "Sustainability Score": "55.5"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/rhodes-university",
+    "university_name": "Rhodes University",
+    "country_hint": "South Africa",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1086,
+    "score": null,
+    "source_url": "/universities/rhodes-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "18.9",
+        "Academic Reputation": "8",
+        "Faculty Student Ratio": "17.2",
+        "Employer Reputation": "9.1",
+        "Employment Outcomes": "42.9",
+        "International Student Ratio": "46.4",
+        "International Research Network": "56.5",
+        "International Faculty Ratio": "n/a",
+        "International Student Diversity": "34.6",
+        "Sustainability Score": "42.2"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-ibadan",
+    "university_name": "University of Ibadan",
+    "country_hint": "Nigeria",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1155,
+    "score": null,
+    "source_url": "/universities/university-ibadan",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "7.3",
+        "Academic Reputation": "11.6",
+        "Faculty Student Ratio": "6.4",
+        "Employer Reputation": "16.6",
+        "Employment Outcomes": "76.2",
+        "International Student Ratio": "n/a",
+        "International Research Network": "64.8",
+        "International Faculty Ratio": "n/a",
+        "International Student Diversity": "n/a",
+        "Sustainability Score": "41.9"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-lagos",
+    "university_name": "University of Lagos",
+    "country_hint": "Nigeria",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1160,
+    "score": null,
+    "source_url": "/universities/university-lagos",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "5.2",
+        "Academic Reputation": "9.4",
+        "Faculty Student Ratio": "2.5",
+        "Employer Reputation": "16.5",
+        "Employment Outcomes": "90.4",
+        "International Student Ratio": "n/a",
+        "International Research Network": "45.9",
+        "International Faculty Ratio": "n/a",
+        "International Student Diversity": "n/a",
+        "Sustainability Score": "36.6"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-nairobi",
+    "university_name": "University of Nairobi",
+    "country_hint": "Kenya",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1165,
+    "score": null,
+    "source_url": "/universities/university-nairobi",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "2.6",
+        "Academic Reputation": "12.8",
+        "Faculty Student Ratio": "25.7",
+        "Employer Reputation": "13.7",
+        "Employment Outcomes": "95.6",
+        "International Student Ratio": "n/a",
+        "International Research Network": "48.7",
+        "International Faculty Ratio": "n/a",
+        "International Student Diversity": "n/a",
+        "Sustainability Score": "39.1"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-free-state",
+    "university_name": "University of the Free State",
+    "country_hint": "South Africa",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1184,
+    "score": null,
+    "source_url": "/universities/university-free-state",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "13.8",
+        "Academic Reputation": "7.2",
+        "Faculty Student Ratio": "4.9",
+        "Employer Reputation": "12.1",
+        "Employment Outcomes": "18.4",
+        "International Student Ratio": "8.3",
+        "International Research Network": "93.7",
+        "International Faculty Ratio": "n/a",
+        "International Student Diversity": "6.4",
+        "Sustainability Score": "41.7"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-sfax",
+    "university_name": "University of Sfax",
+    "country_hint": "Tunisia",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1192,
+    "score": null,
+    "source_url": "/universities/university-sfax",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "6.1",
+        "Academic Reputation": "11.4",
+        "Faculty Student Ratio": "56.3",
+        "Employer Reputation": "4.2",
+        "Employment Outcomes": "13.6",
+        "International Student Ratio": "5.6",
+        "International Research Network": "58.9",
+        "International Faculty Ratio": "1.1",
+        "International Student Diversity": "9.6",
+        "Sustainability Score": "49.6"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1001-1200"
     }
   },
   {
@@ -906,7 +902,7 @@
     "country_hint": "Nigeria",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1206,
+    "rank": 1205,
     "score": null,
     "source_url": "/universities/ahmadu-bello-university-zaria",
     "source_version": null,
@@ -915,18 +911,20 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "2.3",
-        "Academic Reputation": "7.6",
-        "Faculty Student Ratio": "10.1",
-        "Employer Reputation": "12.8",
-        "Employment Outcomes": "76",
-        "International Student Ratio": "1.6",
-        "International Research Network": "52.1",
-        "International Faculty Ratio": "4.3",
-        "Sustainability Score": "30.3"
+        "Citations per Faculty": "2.2",
+        "Academic Reputation": "6.3",
+        "Faculty Student Ratio": "10",
+        "Employer Reputation": "9.4",
+        "Employment Outcomes": "80.8",
+        "International Student Ratio": "1.4",
+        "International Research Network": "44.1",
+        "International Faculty Ratio": "2",
+        "International Student Diversity": "5.8",
+        "Sustainability Score": "28"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
     }
   },
   {
@@ -945,18 +943,20 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "12.3",
-        "Academic Reputation": "7",
-        "Faculty Student Ratio": "1.8",
-        "Employer Reputation": "6.9",
-        "Employment Outcomes": "3.4",
-        "International Student Ratio": "3.3",
-        "International Research Network": "61.4",
-        "International Faculty Ratio": "11.7",
-        "Sustainability Score": "55.9"
+        "Citations per Faculty": "11.1",
+        "Academic Reputation": "8.7",
+        "Faculty Student Ratio": "2.1",
+        "Employer Reputation": "4.1",
+        "Employment Outcomes": "2.8",
+        "International Student Ratio": "1.6",
+        "International Research Network": "51.5",
+        "International Faculty Ratio": "13.7",
+        "International Student Diversity": "6",
+        "Sustainability Score": "39.8"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
     }
   },
   {
@@ -975,48 +975,20 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "4.8",
-        "Academic Reputation": "8.6",
-        "Faculty Student Ratio": "31.3",
-        "Employer Reputation": "13.7",
-        "Employment Outcomes": "4.4",
-        "International Student Ratio": "5.2",
-        "International Research Network": "36.1",
-        "International Faculty Ratio": "2.8",
-        "Sustainability Score": "44.5"
+        "Citations per Faculty": "4.6",
+        "Academic Reputation": "8.4",
+        "Faculty Student Ratio": "36.7",
+        "Employer Reputation": "10.8",
+        "Employment Outcomes": "3",
+        "International Student Ratio": "6.1",
+        "International Research Network": "18.4",
+        "International Faculty Ratio": "1.8",
+        "International Student Diversity": "10.1",
+        "Sustainability Score": "20.6"
       },
       "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/capital-university-egypt",
-    "university_name": "Capital University – Egypt",
-    "country_hint": "Egypt",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1220,
-    "score": null,
-    "source_url": "/universities/capital-university-egypt",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "2.6",
-        "Academic Reputation": "8.7",
-        "Faculty Student Ratio": "3.8",
-        "Employer Reputation": "15.3",
-        "Employment Outcomes": "15.6",
-        "International Student Ratio": "2.8",
-        "International Research Network": "63.2",
-        "International Faculty Ratio": "1.2",
-        "Sustainability Score": "52.2"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
     }
   },
   {
@@ -1026,7 +998,7 @@
     "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1224,
+    "rank": 1228,
     "score": null,
     "source_url": "/universities/delta-university-science-technology",
     "source_version": null,
@@ -1035,48 +1007,84 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "6.6",
-        "Academic Reputation": "21",
-        "Faculty Student Ratio": "4",
-        "Employer Reputation": "11.1",
-        "Employment Outcomes": "4",
-        "International Student Ratio": "2.7",
-        "International Research Network": "17.6",
-        "International Faculty Ratio": "17.3",
-        "Sustainability Score": "33.4"
+        "Citations per Faculty": "5.1",
+        "Academic Reputation": "26.2",
+        "Faculty Student Ratio": "5.7",
+        "Employer Reputation": "8.8",
+        "Employment Outcomes": "3.2",
+        "International Student Ratio": "2.4",
+        "International Research Network": "14",
+        "International Faculty Ratio": "8.5",
+        "International Student Diversity": "6.6",
+        "Sustainability Score": "33.1"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
     }
   },
   {
     "source": "QS",
-    "source_entity_id": "/universities/ibn-tofail-university",
-    "university_name": "Ibn Tofail University",
-    "country_hint": "Morocco",
+    "source_entity_id": "/universities/german-university-cairo",
+    "university_name": "German University in Cairo",
+    "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1238,
+    "rank": 1235,
     "score": null,
-    "source_url": "/universities/ibn-tofail-university",
+    "source_url": "/universities/german-university-cairo",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "12.9",
+        "Citations per Faculty": "3.3",
         "Academic Reputation": "11.6",
-        "Faculty Student Ratio": "1.3",
-        "Employer Reputation": "7.3",
-        "Employment Outcomes": "4.9",
-        "International Student Ratio": "3.4",
-        "International Research Network": "45",
-        "International Faculty Ratio": "24.6",
-        "Sustainability Score": "40.2"
+        "Faculty Student Ratio": "9.8",
+        "Employer Reputation": "21.3",
+        "Employment Outcomes": "5.7",
+        "International Student Ratio": "1.4",
+        "International Research Network": "20.4",
+        "International Faculty Ratio": "17.8",
+        "International Student Diversity": "1.3",
+        "Sustainability Score": "9.5"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/capital-university-egypt",
+    "university_name": "Capital University – Egypt",
+    "country_hint": "Egypt",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1238,
+    "score": null,
+    "source_url": "/universities/capital-university-egypt",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "2.6",
+        "Academic Reputation": "11",
+        "Faculty Student Ratio": "4.9",
+        "Employer Reputation": "15",
+        "Employment Outcomes": "20.1",
+        "International Student Ratio": "3.4",
+        "International Research Network": "63.6",
+        "International Faculty Ratio": "1.2",
+        "International Student Diversity": "2.8",
+        "Sustainability Score": "36.1"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
     }
   },
   {
@@ -1086,7 +1094,7 @@
     "country_hint": "Ghana",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1254,
+    "rank": 1258,
     "score": null,
     "source_url": "/universities/kwame-nkrumah-university-science-technology",
     "source_version": null,
@@ -1095,78 +1103,52 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "4.1",
-        "Academic Reputation": "12.5",
-        "Faculty Student Ratio": "4.5",
-        "Employer Reputation": "10.8",
-        "Employment Outcomes": "41.6",
-        "International Student Ratio": "N/A",
-        "International Research Network": "69.1",
-        "International Faculty Ratio": "N/A",
-        "Sustainability Score": "41.4"
+        "Citations per Faculty": "3.9",
+        "Academic Reputation": "10.2",
+        "Faculty Student Ratio": "6",
+        "Employer Reputation": "9.2",
+        "Employment Outcomes": "49.9",
+        "International Student Ratio": "n/a",
+        "International Research Network": "65.9",
+        "International Faculty Ratio": "n/a",
+        "International Student Diversity": "n/a",
+        "Sustainability Score": "42.3"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
     }
   },
   {
     "source": "QS",
-    "source_entity_id": "/universities/universite-de-sousse",
-    "university_name": "Université de Sousse",
-    "country_hint": "Tunisia",
+    "source_entity_id": "/universities/tanta-university",
+    "university_name": "Tanta University",
+    "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1352,
+    "rank": 1303,
     "score": null,
-    "source_url": "/universities/universite-de-sousse",
+    "source_url": "/universities/tanta-university",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "2.9",
-        "Academic Reputation": "7.4",
-        "Faculty Student Ratio": "46.9",
-        "Employer Reputation": "3.6",
-        "Employment Outcomes": "9.1",
-        "International Student Ratio": "3.3",
-        "International Research Network": "42.9",
-        "International Faculty Ratio": "1.2",
-        "Sustainability Score": "47.6"
+        "Citations per Faculty": "4",
+        "Academic Reputation": "7.7",
+        "Faculty Student Ratio": "7.2",
+        "Employer Reputation": "9.8",
+        "Employment Outcomes": "5.7",
+        "International Student Ratio": "3",
+        "International Research Network": "73.3",
+        "International Faculty Ratio": "1.5",
+        "International Student Diversity": "7.3",
+        "Sustainability Score": "48.1"
       },
       "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/university-dar-es-salaam",
-    "university_name": "University of Dar es Salaam",
-    "country_hint": "Tanzania",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1361,
-    "score": null,
-    "source_url": "/universities/university-dar-es-salaam",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "2.7",
-        "Academic Reputation": "5.7",
-        "Faculty Student Ratio": "8.9",
-        "Employer Reputation": "12.7",
-        "Employment Outcomes": "85.3",
-        "International Student Ratio": "1.4",
-        "International Research Network": "54.9",
-        "International Faculty Ratio": "1.2",
-        "Sustainability Score": "34.9"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
     }
   },
   {
@@ -1185,48 +1167,116 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "3.9",
-        "Academic Reputation": "6.7",
-        "Faculty Student Ratio": "6.3",
-        "Employer Reputation": "12.7",
-        "Employment Outcomes": "82.3",
-        "International Student Ratio": "1.6",
-        "International Research Network": "55.6",
-        "International Faculty Ratio": "N/A",
-        "Sustainability Score": "23.6"
+        "Citations per Faculty": "5.1",
+        "Academic Reputation": "8.9",
+        "Faculty Student Ratio": "8.2",
+        "Employer Reputation": "6.9",
+        "Employment Outcomes": "84.9",
+        "International Student Ratio": "2.1",
+        "International Research Network": "53.5",
+        "International Faculty Ratio": "n/a",
+        "International Student Diversity": "1.8",
+        "Sustainability Score": "23.3"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
     }
   },
   {
     "source": "QS",
-    "source_entity_id": "/universities/university-nigeria-nsukka",
-    "university_name": "University of Nigeria Nsukka",
-    "country_hint": "Nigeria",
+    "source_entity_id": "/universities/ibn-tofail-university",
+    "university_name": "Ibn Tofail University",
+    "country_hint": "Morocco",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1377,
+    "rank": 1395,
     "score": null,
-    "source_url": "/universities/university-nigeria-nsukka",
+    "source_url": "/universities/ibn-tofail-university",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "11.7",
-        "Academic Reputation": "6.7",
+        "Citations per Faculty": "12",
+        "Academic Reputation": "14.6",
         "Faculty Student Ratio": "1.5",
-        "Employer Reputation": "12.3",
-        "Employment Outcomes": "46.9",
-        "International Student Ratio": "N/A",
-        "International Research Network": "67.1",
-        "International Faculty Ratio": "N/A",
-        "Sustainability Score": "32.5"
+        "Employer Reputation": "3.1",
+        "Employment Outcomes": "5",
+        "International Student Ratio": "4.2",
+        "International Research Network": "28.6",
+        "International Faculty Ratio": "27",
+        "International Student Diversity": "9.1",
+        "Sustainability Score": "36.8"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universite-mohammed-v-de-rabat",
+    "university_name": "Université Mohammed V de Rabat",
+    "country_hint": "Morocco",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1397,
+    "score": null,
+    "source_url": "/universities/universite-mohammed-v-de-rabat",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "9.5",
+        "Academic Reputation": "4.8",
+        "Faculty Student Ratio": "2.4",
+        "Employer Reputation": "3.1",
+        "Employment Outcomes": "75.8",
+        "International Student Ratio": "5.7",
+        "International Research Network": "75.6",
+        "International Faculty Ratio": "4.7",
+        "International Student Diversity": "11.1",
+        "Sustainability Score": "42.6"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/universite-de-sousse",
+    "university_name": "Université de Sousse",
+    "country_hint": "Tunisia",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1402,
+    "score": null,
+    "source_url": "/universities/universite-de-sousse",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "2.9",
+        "Academic Reputation": "6.4",
+        "Faculty Student Ratio": "51.8",
+        "Employer Reputation": "3.9",
+        "Employment Outcomes": "9.4",
+        "International Student Ratio": "3.7",
+        "International Research Network": "36.6",
+        "International Faculty Ratio": "1.2",
+        "International Student Diversity": "7.9",
+        "Sustainability Score": "44.1"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
     }
   },
   {
@@ -1236,7 +1286,7 @@
     "country_hint": "Tunisia",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1394,
+    "rank": 1404,
     "score": null,
     "source_url": "/universities/university-tunis",
     "source_version": null,
@@ -1245,18 +1295,20 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "3.1",
-        "Academic Reputation": "11",
-        "Faculty Student Ratio": "22.5",
-        "Employer Reputation": "4.6",
-        "Employment Outcomes": "59.5",
-        "International Student Ratio": "2.6",
-        "International Research Network": "19.5",
-        "International Faculty Ratio": "2.3",
-        "Sustainability Score": "40"
+        "Citations per Faculty": "3",
+        "Academic Reputation": "11.3",
+        "Faculty Student Ratio": "28.3",
+        "Employer Reputation": "5.8",
+        "Employment Outcomes": "58.5",
+        "International Student Ratio": "2.8",
+        "International Research Network": "17.4",
+        "International Faculty Ratio": "2.5",
+        "International Student Diversity": "7.1",
+        "Sustainability Score": "29.6"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
     }
   },
   {
@@ -1266,7 +1318,7 @@
     "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1401,
+    "rank": 1408,
     "score": null,
     "source_url": "/universities/zagazig-university",
     "source_version": null,
@@ -1275,18 +1327,52 @@
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "5.3",
-        "Academic Reputation": "9.4",
-        "Faculty Student Ratio": "4.3",
-        "Employer Reputation": "13.7",
-        "Employment Outcomes": "5",
-        "International Student Ratio": "7.7",
-        "International Research Network": "73",
+        "Citations per Faculty": "5.1",
+        "Academic Reputation": "11.3",
+        "Faculty Student Ratio": "4.5",
+        "Employer Reputation": "9.1",
+        "Employment Outcomes": "5.2",
+        "International Student Ratio": "8.1",
+        "International Research Network": "69.8",
         "International Faculty Ratio": "1.3",
-        "Sustainability Score": "58.7"
+        "International Student Diversity": "12",
+        "Sustainability Score": "53"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1201-1400"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/aswan-university",
+    "university_name": "Aswan University",
+    "country_hint": "Egypt",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1414,
+    "score": null,
+    "source_url": "/universities/aswan-university",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "6.4",
+        "Academic Reputation": "7.1",
+        "Faculty Student Ratio": "11.8",
+        "Employer Reputation": "2.2",
+        "Employment Outcomes": "2.9",
+        "International Student Ratio": "1.8",
+        "International Research Network": "53.9",
+        "International Faculty Ratio": "1.1",
+        "International Student Diversity": "6.1",
+        "Sustainability Score": "40"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1401+"
     }
   },
   {
@@ -1296,7 +1382,7 @@
     "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1408,
+    "rank": 1417,
     "score": null,
     "source_url": "/universities/benha-university-egypt",
     "source_version": null,
@@ -1306,137 +1392,115 @@
       "table_metrics": {
         "Overall Score": "n/a",
         "Citations per Faculty": "4.2",
-        "Academic Reputation": "6.1",
-        "Faculty Student Ratio": "6.7",
-        "Employer Reputation": "8.5",
-        "Employment Outcomes": "3.4",
-        "International Student Ratio": "2.3",
-        "International Research Network": "72.4",
+        "Academic Reputation": "6.2",
+        "Faculty Student Ratio": "8.2",
+        "Employer Reputation": "4.4",
+        "Employment Outcomes": "2.9",
+        "International Student Ratio": "2.4",
+        "International Research Network": "59.7",
         "International Faculty Ratio": "1",
-        "Sustainability Score": "57.9"
+        "International Student Diversity": "6.7",
+        "Sustainability Score": "36.1"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1401+"
     }
   },
   {
     "source": "QS",
-    "source_entity_id": "/universities/german-university-cairo",
-    "university_name": "German University in Cairo",
+    "source_entity_id": "/universities/nile-university",
+    "university_name": "Nile University",
     "country_hint": "Egypt",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1420,
-    "score": null,
-    "source_url": "/universities/german-university-cairo",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "3.5",
-        "Academic Reputation": "10.5",
-        "Faculty Student Ratio": "8.7",
-        "Employer Reputation": "26.7",
-        "Employment Outcomes": "6.8",
-        "International Student Ratio": "1.3",
-        "International Research Network": "18.2",
-        "International Faculty Ratio": "15.5",
-        "Sustainability Score": "17.9"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/nelson-mandela-university",
-    "university_name": "Nelson Mandela University",
-    "country_hint": "South Africa",
-    "ranking_year": 2026,
-    "ranking_type": "region:africa",
-    "rank": 1442,
-    "score": null,
-    "source_url": "/universities/nelson-mandela-university",
-    "source_version": null,
-    "universe_type": "region",
-    "universe_key": "africa",
-    "metadata": {
-      "table_metrics": {
-        "Overall Score": "n/a",
-        "Citations per Faculty": "17.4",
-        "Academic Reputation": "6.6",
-        "Faculty Student Ratio": "2",
-        "Employer Reputation": "5.6",
-        "Employment Outcomes": "17.7",
-        "International Student Ratio": "N/A",
-        "International Research Network": "61.8",
-        "International Faculty Ratio": "N/A",
-        "Sustainability Score": "36.2"
-      },
-      "universe_type": "region",
-      "universe_key": "africa"
-    }
-  },
-  {
-    "source": "QS",
-    "source_entity_id": "/universities/obafemi-awolowo-university",
-    "university_name": "Obafemi Awolowo University",
-    "country_hint": "Nigeria",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
     "rank": 1443,
     "score": null,
-    "source_url": "/universities/obafemi-awolowo-university",
+    "source_url": "/universities/nile-university",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "6",
-        "Academic Reputation": "6.6",
-        "Faculty Student Ratio": "2.4",
-        "Employer Reputation": "8.6",
-        "Employment Outcomes": "56.5",
-        "International Student Ratio": "N/A",
-        "International Research Network": "49.4",
-        "International Faculty Ratio": "N/A",
-        "Sustainability Score": "25.9"
+        "Citations per Faculty": "7.4",
+        "Academic Reputation": "8.6",
+        "Faculty Student Ratio": "29.2",
+        "Employer Reputation": "4.6",
+        "Employment Outcomes": "3.3",
+        "International Student Ratio": "2.7",
+        "International Research Network": "9.8",
+        "International Faculty Ratio": "5.5",
+        "International Student Diversity": "6.9",
+        "Sustainability Score": "19.8"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1401+"
     }
   },
   {
     "source": "QS",
-    "source_entity_id": "/universities/tanta-university",
-    "university_name": "Tanta University",
+    "source_entity_id": "/universities/suez-canal-university",
+    "university_name": "Suez Canal University",
     "country_hint": "Egypt",
     "ranking_year": 2026,
     "ranking_type": "region:africa",
-    "rank": 1454,
+    "rank": 1459,
     "score": null,
-    "source_url": "/universities/tanta-university",
+    "source_url": "/universities/suez-canal-university",
     "source_version": null,
     "universe_type": "region",
     "universe_key": "africa",
     "metadata": {
       "table_metrics": {
         "Overall Score": "n/a",
-        "Citations per Faculty": "4.1",
-        "Academic Reputation": "6.6",
-        "Faculty Student Ratio": "7.1",
-        "Employer Reputation": "13.1",
-        "Employment Outcomes": "5.3",
-        "International Student Ratio": "3.2",
-        "International Research Network": "76.4",
-        "International Faculty Ratio": "1.5",
-        "Sustainability Score": "52.9"
+        "Citations per Faculty": "4.4",
+        "Academic Reputation": "6.1",
+        "Faculty Student Ratio": "17.4",
+        "Employer Reputation": "3.9",
+        "Employment Outcomes": "2.9",
+        "International Student Ratio": "3",
+        "International Research Network": "52.2",
+        "International Faculty Ratio": "2.5",
+        "International Student Diversity": "7.3",
+        "Sustainability Score": "48"
       },
       "universe_type": "region",
-      "universe_key": "africa"
+      "universe_key": "africa",
+      "rank_display": "1401+"
+    }
+  },
+  {
+    "source": "QS",
+    "source_entity_id": "/universities/university-tripoli",
+    "university_name": "University of Tripoli",
+    "country_hint": "Libya",
+    "ranking_year": 2026,
+    "ranking_type": "region:africa",
+    "rank": 1497,
+    "score": null,
+    "source_url": "/universities/university-tripoli",
+    "source_version": null,
+    "universe_type": "region",
+    "universe_key": "africa",
+    "metadata": {
+      "table_metrics": {
+        "Overall Score": "n/a",
+        "Citations per Faculty": "1.3",
+        "Academic Reputation": "6.8",
+        "Faculty Student Ratio": "8.6",
+        "Employer Reputation": "12.8",
+        "Employment Outcomes": "28.7",
+        "International Student Ratio": "3.4",
+        "International Research Network": "30.6",
+        "International Faculty Ratio": "1.2",
+        "International Student Diversity": "7.6",
+        "Sustainability Score": "11.2"
+      },
+      "universe_type": "region",
+      "universe_key": "africa",
+      "rank_display": "1401+"
     }
   }
 ]

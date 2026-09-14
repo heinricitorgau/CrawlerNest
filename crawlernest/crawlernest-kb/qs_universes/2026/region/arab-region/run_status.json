@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "",
   "message": "",
-  "run_id": "qs-region-arab-region-2026-2026-09-02T07:00:43Z",
+  "run_id": "qs-region-arab-region-2026-2026-09-14T03:05:17Z",
   "universe_type": "region",
   "universe_key": "arab-region",
   "ranking_year": 2026,
@@ -17,17 +17,17 @@
     "http_backend": "curl_cffi",
     "http_impersonate": "chrome124",
     "ranking_scope": "world_slice",
-    "ranking_id_source": "cache",
-    "used_resolution_cache": true,
-    "resolved_ranking_id": "4153156",
+    "ranking_id_source": "edition_page",
+    "used_resolution_cache": false,
+    "resolved_ranking_id": "4061771",
     "ranking_id_candidates": [
-      "4153156"
+      "4061771"
     ],
-    "resolved_ranking_page_url": "https://www.topuniversities.com/university-rankings/world-university-rankings",
+    "resolved_ranking_page_url": "",
     "page_resolution_skipped": true,
     "page_resolution_attempted": false,
     "subregion_id": "",
-    "resolution_cache_path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.claude/worktrees/crawler-performance-coverage-0a4655/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
+    "resolution_cache_path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.claude/worktrees/crawlernest-architecture-review-3b0e48/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
     "universe": {
       "universe_type": "region",
       "universe_key": "arab-region",
@@ -39,6 +39,14 @@
       "enable_aggregation": true,
       "ranking_scope": "world_slice"
     },
+    "edition": {
+      "source": "QS",
+      "ranking_year": 2026,
+      "page_url": "https://www.topuniversities.com/world-university-rankings/2026",
+      "evidence": "title: QS World University Rankings 2026: Top Global Universities | TopUniversities",
+      "ranking_id": "4061771",
+      "verified": true
+    },
     "live_fetch_classification": "live_ok",
     "live_fetch_message": "",
     "live_fetch_block_reason": "",
@@ -46,12 +54,12 @@
     "snapshot_fallback_path": "",
     "run_backing": "live"
   },
-  "normalized_count": 115,
-  "standardized_count": 115,
-  "rows_written": 90,
+  "normalized_count": 122,
+  "standardized_count": 122,
+  "rows_written": 122,
   "rows_updated": 0,
-  "matched_count": 90,
-  "unresolved_count": 25,
+  "matched_count": 122,
+  "unresolved_count": 0,
   "aggregated_years": [
     2026
   ]

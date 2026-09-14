@@ -1,10 +1,12 @@
 package clawer.service;
 
+import clawer.dto.RankDeltaDTO;
 import clawer.dto.RankingDTO;
 import clawer.dto.SourceRankingDTO;
 import clawer.dto.UniversityDTO;
 import clawer.model.University;
 import clawer.repository.AdmissionRecordRepository;
+import clawer.repository.InstitutionLineageRepository;
 import clawer.repository.UniversityRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.data.domain.PageRequest;
@@ -29,17 +31,20 @@ public class UniversityService {
     private final AdmissionRecordRepository admissionRecordRepository;
     private final JdbcTemplate jdbcTemplate;
     private final DatasetScope datasetScope;
+    private final InstitutionLineageRepository institutionLineageRepository;
 
     public UniversityService(
             UniversityRepository universityRepository,
             AdmissionRecordRepository admissionRecordRepository,
             JdbcTemplate jdbcTemplate,
-            DatasetScope datasetScope
+            DatasetScope datasetScope,
+            InstitutionLineageRepository institutionLineageRepository
     ) {
         this.universityRepository = universityRepository;
         this.admissionRecordRepository = admissionRecordRepository;
         this.jdbcTemplate = jdbcTemplate;
         this.datasetScope = datasetScope;
+        this.institutionLineageRepository = institutionLineageRepository;
     }
 
     public List<UniversityDTO> getAllUniversities(int page, int size) {
@@ -272,37 +277,91 @@ public class UniversityService {
         dto.setRankingEvidence(dto.getSourceRankings());
     }
 
-    private List<SourceRankingDTO> loadRankingEvidence(Long canonicalUniversityId, int rankingYear) {
-        String sourceSql = """
-                WITH ranked_source_rows AS (
-                    SELECT rs.source_code,
-                           rr.ranking_year,
-                           rr.rank_position,
-                           rr.score,
-                           ROW_NUMBER() OVER (
-                               PARTITION BY rs.source_code
-                               ORDER BY rr.rank_position ASC NULLS LAST, rr.score DESC NULLS LAST
-                           ) AS row_num
-                    FROM warehouse.ranking_record rr
-                    JOIN warehouse.ranking_source rs
-                      ON rs.ranking_source_id = rr.ranking_source_id
-                    WHERE rr.canonical_university_id = ?
-                      AND rr.ranking_year = ?
-                      AND rr.ranking_type = 'world'
-                      AND rr.universe_type = 'global'
-                      AND rr.universe_key = 'global'
-                      AND rr.rank_position IS NOT NULL
-                )
-                SELECT source_code,
-                       ranking_year,
-                       rank_position,
-                       score
-                FROM ranked_source_rows
-                WHERE row_num = 1
-                """;
+    private static final String SOURCE_ROWS_SQL = """
+            WITH ranked_source_rows AS (
+                SELECT rs.source_code,
+                       rr.ranking_year,
+                       rr.rank_position,
+                       rr.score,
+                       COALESCE(rr.metadata->>'rank_display', rr.metadata->'raw_row'->>'rank') AS rank_display,
+                       sm.source_entity_id,
+                       COALESCE((rr.metadata->>'suspicious_merge')::boolean, FALSE) AS suspicious_merge,
+                       ROW_NUMBER() OVER (
+                           PARTITION BY rs.source_code
+                           ORDER BY rr.rank_position ASC NULLS LAST, rr.score DESC NULLS LAST
+                       ) AS row_num
+                FROM warehouse.ranking_record rr
+                JOIN warehouse.ranking_source rs
+                  ON rs.ranking_source_id = rr.ranking_source_id
+                LEFT JOIN warehouse.source_university_mapping sm
+                  ON sm.source_mapping_id = rr.source_mapping_id
+                WHERE rr.canonical_university_id = ?
+                  AND rr.ranking_year = ?
+                  AND rr.ranking_type = 'world'
+                  AND rr.universe_type = 'global'
+                  AND rr.universe_key = 'global'
+                  AND rr.rank_position IS NOT NULL
+            )
+            SELECT source_code,
+                   ranking_year,
+                   rank_position,
+                   score,
+                   rank_display,
+                   source_entity_id,
+                   suspicious_merge
+            FROM ranked_source_rows
+            WHERE row_num = 1
+            """;
 
-        List<Map<String, Object>> srcRows = jdbcTemplate.query(
-                sourceSql,
+    /**
+     * This edition's per-source ranks, each with its movement since the prior held edition.
+     *
+     * <p>The delta is computed source by source from the printed ranks
+     * ({@link SourceRankDelta}); nothing here subtracts {@code display_rank} or a
+     * composite score. The prior edition is the next-older one {@link DatasetScope}
+     * holds -- an ingested but unreleased edition is never read, so a shadow load
+     * cannot produce a movement.
+     */
+    private List<SourceRankingDTO> loadRankingEvidence(Long canonicalUniversityId, int rankingYear) {
+        List<Map<String, Object>> srcRows = querySourceRows(canonicalUniversityId, rankingYear);
+        if (srcRows.isEmpty()) {
+            return List.of();
+        }
+
+        Integer heldPriorYear = datasetScope.heldYears().stream()
+                .filter(year -> year < rankingYear)
+                .max(Integer::compare)
+                .orElse(null);
+        // With no older held edition the comparison is with the edition before, which
+        // SourceRankDelta withholds as single_year_dataset without reading anything.
+        int priorYear = heldPriorYear != null ? heldPriorYear : rankingYear - 1;
+        Map<String, Map<String, Object>> priorBySource = heldPriorYear == null
+                ? Map.of()
+                : querySourceRows(canonicalUniversityId, heldPriorYear).stream()
+                        .collect(Collectors.toMap(row -> (String) row.get("source_code"), row -> row, (a, b) -> a));
+        List<InstitutionLineage.Event> lineage = heldPriorYear == null
+                ? List.of()
+                : institutionLineageRepository.findInvolving(List.of(canonicalUniversityId));
+
+        return srcRows.stream()
+                .map(row -> {
+                    SourceRankingDTO dto = toSourceRanking(row);
+                    Map<String, Object> prior = priorBySource.get(dto.getSource());
+                    SourceRankDelta.Result delta = SourceRankDelta.compute(
+                            toObservation(row), prior == null ? null : toObservation(prior),
+                            priorYear, canonicalUniversityId, lineage, datasetScope.heldYears());
+                    applyDelta(dto, delta, prior);
+                    return dto;
+                })
+                .sorted(Comparator
+                        .comparingInt((SourceRankingDTO row) -> sourcePriority(row.getSource()))
+                        .thenComparing(SourceRankingDTO::getSource, Comparator.nullsLast(String::compareTo)))
+                .collect(Collectors.toList());
+    }
+
+    private List<Map<String, Object>> querySourceRows(Long canonicalUniversityId, int rankingYear) {
+        return jdbcTemplate.query(
+                SOURCE_ROWS_SQL,
                 new Object[]{canonicalUniversityId, rankingYear},
                 (rs, rowNum) -> {
                     Map<String, Object> m = new java.util.HashMap<>();
@@ -310,16 +369,38 @@ public class UniversityService {
                     m.put("ranking_year", rs.getInt("ranking_year"));
                     m.put("rank_position", rs.getObject("rank_position"));
                     m.put("score", rs.getObject("score"));
+                    m.put("rank_display", rs.getString("rank_display"));
+                    m.put("source_entity_id", rs.getString("source_entity_id"));
+                    m.put("suspicious_merge", rs.getBoolean("suspicious_merge"));
                     return m;
                 }
         );
+    }
 
-        return srcRows.stream()
-                .map(this::toSourceRanking)
-                .sorted(Comparator
-                        .comparingInt((SourceRankingDTO row) -> sourcePriority(row.getSource()))
-                        .thenComparing(SourceRankingDTO::getSource, Comparator.nullsLast(String::compareTo)))
-                .collect(Collectors.toList());
+    private static SourceRankDelta.Observation toObservation(Map<String, Object> row) {
+        return new SourceRankDelta.Observation(
+                ((Number) row.get("ranking_year")).intValue(),
+                (String) row.get("source_code"),
+                (String) row.get("rank_display"),
+                (String) row.get("source_entity_id"),
+                Boolean.TRUE.equals(row.get("suspicious_merge")));
+    }
+
+    private static void applyDelta(SourceRankingDTO dto, SourceRankDelta.Result delta, Map<String, Object> prior) {
+        dto.setRankDeltaReason(delta.reason());
+        if (!delta.compared()) {
+            dto.setRankDelta(null);
+            return;
+        }
+        RankDeltaDTO out = new RankDeltaDTO();
+        out.setPriorYear(delta.priorYear());
+        out.setCurrentYear(delta.currentYear());
+        out.setPriorRankDisplay(prior == null ? null : (String) prior.get("rank_display"));
+        out.setValue(delta.value());
+        out.setMin(delta.min());
+        out.setMax(delta.max());
+        out.setDirection(delta.direction());
+        dto.setRankDelta(out);
     }
 
     private SourceRankingDTO toSourceRanking(Map<String, Object> row) {
@@ -329,6 +410,7 @@ public class UniversityService {
 
         Object rankObj = row.get("rank_position");
         sourceRanking.setRank(rankObj == null ? null : ((Number) rankObj).intValue());
+        sourceRanking.setRankDisplay((String) row.get("rank_display"));
 
         Object scoreObj = row.get("score");
         Double score = null;

@@ -606,6 +606,22 @@ def _apply_direct_ranking_id(config: Config, ranking_id: str) -> str:
     return direct_ranking_id
 
 
+def _apply_edition_ranking_id(config: Config) -> str:
+    """The id ranking_edition proved is this edition's, ahead of cache, pin and page.
+
+    Set by the universe crawler after reading the edition's own page. It wins even
+    on a forced refresh: re-resolving off the unversioned page is how the 2027
+    table came to be crawled as 2026.
+    """
+    verified = str(getattr(config, "_edition_ranking_id", "") or "").strip()
+    if not verified:
+        return ""
+    _apply_direct_ranking_id(config, verified)
+    config._ranking_id_source = "edition_page"
+    _clear_failure_classification(config)
+    return verified
+
+
 def _clear_cached_resolution_state(config: Config) -> None:
     config.ranking_id = ""
     config._ranking_id_from_cache = False
@@ -1298,6 +1314,9 @@ class UniversityFetcher:
             pass
 
     def _ensure_ranking_id(self, *, force_refresh: bool = False) -> str:
+        edition_ranking_id = _apply_edition_ranking_id(self.config)
+        if edition_ranking_id:
+            return edition_ranking_id
         direct_ranking_id = str(
             getattr(self.config, "_stable_ranking_id", "") or getattr(self.config, "ranking_id", "") or ""
         ).strip()
@@ -1822,6 +1841,9 @@ class AsyncUniversityFetcher:
         raise RuntimeError("async network retry exhausted without response")
 
     async def _ensure_ranking_id(self, *, force_refresh: bool = False) -> str:
+        edition_ranking_id = _apply_edition_ranking_id(self.config)
+        if edition_ranking_id:
+            return edition_ranking_id
         direct_ranking_id = str(
             getattr(self.config, "_stable_ranking_id", "") or getattr(self.config, "ranking_id", "") or ""
         ).strip()

@@ -31,6 +31,7 @@ from crawlernest.agent.orchestration.routing_policy import RoutingPolicy
 from crawlernest.agent.shared.models.task_request import TaskRequest
 from crawlernest.agent.web_agent.engine.web_agent_engine import WebAgentEngine
 from crawlernest.agent.web_agent.generation.models import GenerationResult, PromptPayload
+from crawlernest.core.dataset import DATASET_YEARS
 
 
 def _request(**kwargs: Any) -> TaskRequest:
@@ -190,7 +191,8 @@ class TestGenerationDisabledConstraint(unittest.TestCase):
 
         response = engine.execute(
             _request(
-                context={"year": 2025},
+                # A year the warehouse does not hold, so a disclosure is due.
+                context={"year": min(DATASET_YEARS) - 1},
                 constraints={"generation": "disabled"},
             )
         )

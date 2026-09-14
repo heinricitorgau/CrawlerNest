@@ -132,7 +132,7 @@ class TestIngestIsIdempotent(unittest.TestCase):
             )
         self.conn.commit()
 
-    def _ingest(self, names_and_ranks, batch_id):
+    def _ingest(self, names_and_ranks, batch_id, *, allow_shrink=False):
         from crawlernest.pipeline.commands.canonical import ingest_rankings_payload
 
         return ingest_rankings_payload(
@@ -147,6 +147,7 @@ class TestIngestIsIdempotent(unittest.TestCase):
             pg_user=self.dsn["user"],
             pg_password=self.dsn["password"],
             batch_id=batch_id,
+            allow_shrink=allow_shrink,
         )
 
     def _record_count(self):
@@ -184,10 +185,23 @@ class TestIngestIsIdempotent(unittest.TestCase):
         )
         self.assertEqual(self._record_count(), 2)
 
-        self._ingest([(FIXTURE_UNIVERSITIES[0][1], 1)], "idem-b")
+        # Half the edition leaving is past the shrink guard, so the replacement
+        # has to say it means it.
+        self._ingest([(FIXTURE_UNIVERSITIES[0][1], 1)], "idem-b", allow_shrink=True)
 
         self.assertEqual(self._record_count(), 1,
                          "the university missing from the second payload kept its record")
+
+    def test_a_partial_payload_is_refused_and_prunes_nothing(self):
+        """What a `run --limit 30` against a held edition used to do: keep 30 rows."""
+        from multi_source.pipeline import ShrinkingBatchError
+
+        self._ingest(
+            [(FIXTURE_UNIVERSITIES[0][1], 1), (FIXTURE_UNIVERSITIES[1][1], 2)], "idem-a"
+        )
+        with self.assertRaises(ShrinkingBatchError):
+            self._ingest([(FIXTURE_UNIVERSITIES[0][1], 1)], "idem-b")
+        self.assertEqual(self._record_count(), 2, "a refused batch still pruned")
 
     def test_every_record_names_the_mapping_it_came_from(self):
         """source_mapping_id was NULL on every row the pipeline ever wrote."""

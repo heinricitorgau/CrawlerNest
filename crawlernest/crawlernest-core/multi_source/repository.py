@@ -234,6 +234,21 @@ class MultiSourceRepository:
         self.conn.commit()
         return deactivated
 
+    def count_ranking_records(self, *, ranking_source_id: int, ranking_year: int, ranking_type: str) -> int:
+        """Rows this source holds for one edition and ranking type: the prune's scope."""
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT count(*)
+                FROM warehouse.ranking_record
+                WHERE ranking_source_id = %s
+                  AND ranking_year = %s
+                  AND ranking_type = %s
+                """,
+                (ranking_source_id, ranking_year, ranking_type),
+            )
+            return int(cur.fetchone()[0] or 0)
+
     def prune_superseded_records(
         self,
         *,
