@@ -10,8 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,30 +27,47 @@ import static org.mockito.Mockito.when;
  * rank means. A null is ambiguous: the source may not rank the university, or
  * this platform may have failed to match it. Only the second is our doing, and
  * reporting it as the first blames the institution for our gap.
+ *
+ * The second thing they hold is that "N of M" counts one population: the global
+ * universe of the default edition, the table the trends and disagreement
+ * endpoints serve. The counts once ran over the whole view, which also holds
+ * region, regional, special and subject universes that only QS populates, so the
+ * live caveat read "THE covers 1637 of 9862 universities" and QS said nothing.
  */
 class SourceCoverageCaveatTest {
 
-    /** An AnalyticsService whose warehouse reports the given per-source counts. */
-    private AnalyticsService serviceReporting(int qs, int the, int arwu) {
+    /** SQL scoped to the disclosed table. Anything else gets no answer from the mock. */
+    private static String globalScoped() {
+        return argThat(sql -> sql != null
+                && sql.contains("universe_type = 'global'")
+                && sql.contains("universe_key = 'global'"));
+    }
+
+    /**
+     * An AnalyticsService whose warehouse holds {@code total} universities in the
+     * disclosed table, with the given per-source coverage of it.
+     */
+    private AnalyticsService serviceReporting(int total, int qs, int the, int arwu) {
         JdbcTemplate jdbc = mock(JdbcTemplate.class);
-        // The third argument is the edition the coverage is counted in.
+        // Both queries name the edition; the per-source one names the source twice first.
         int edition = DatasetScope.DEFAULT_RANKING_YEAR;
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq("QS"), eq("QS"), eq(edition))).thenReturn(qs);
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq("THE"), eq("THE"), eq(edition))).thenReturn(the);
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), eq("ARWU"), eq("ARWU"), eq(edition))).thenReturn(arwu);
+        when(jdbc.queryForObject(globalScoped(), eq(Integer.class), eq(edition))).thenReturn(total);
+        when(jdbc.queryForObject(globalScoped(), eq(Integer.class), eq("QS"), eq("QS"), eq(edition))).thenReturn(qs);
+        when(jdbc.queryForObject(globalScoped(), eq(Integer.class), eq("THE"), eq("THE"), eq(edition))).thenReturn(the);
+        when(jdbc.queryForObject(globalScoped(), eq(Integer.class), eq("ARWU"), eq("ARWU"), eq(edition))).thenReturn(arwu);
         return new AnalyticsService(jdbc, new com.fasterxml.jackson.databind.ObjectMapper());
     }
 
-    private List<String> caveatsFor(int qs, int the, int arwu) {
+    private List<String> caveatsFor(int total, int qs, int the, int arwu) {
         List<String> caveats = new ArrayList<>();
-        serviceReporting(qs, the, arwu).appendSourceCoverageCaveats(caveats);
+        serviceReporting(total, qs, the, arwu).appendSourceCoverageCaveats(caveats);
         return caveats;
     }
 
     @Test
     @DisplayName("a partially covered source says a missing rank is our gap, not the source's")
     void partialCoverageExplainsWhatANullMeans() {
-        List<String> caveats = caveatsFor(1499, 969, 0);
+        List<String> caveats = caveatsFor(1499, 1499, 969, 0);
 
         String theCaveat = caveats.stream()
                 .filter(c -> c.startsWith("THE ("))
@@ -72,7 +88,7 @@ class SourceCoverageCaveatTest {
     @Test
     @DisplayName("a source with no rows is reported as absent, not as partial")
     void absentSourceIsReportedAsAbsent() {
-        List<String> caveats = caveatsFor(1499, 969, 0);
+        List<String> caveats = caveatsFor(1499, 1499, 969, 0);
 
         String arwu = caveats.stream()
                 .filter(c -> c.startsWith("ARWU ("))
@@ -87,7 +103,7 @@ class SourceCoverageCaveatTest {
     @Test
     @DisplayName("a fully covered source gets no coverage caveat")
     void fullCoverageIsSilent() {
-        List<String> caveats = caveatsFor(1499, 969, 0);
+        List<String> caveats = caveatsFor(1499, 1499, 969, 0);
 
         assertTrue(caveats.stream().noneMatch(c -> c.startsWith("QS (")),
                 "QS covers every row, so there is nothing to disclose about it: " + caveats);
@@ -96,8 +112,8 @@ class SourceCoverageCaveatTest {
     @Test
     @DisplayName("the caveats change when the coverage changes")
     void caveatsTrackTheData() {
-        List<String> before = caveatsFor(1499, 0, 0);
-        List<String> after = caveatsFor(1499, 969, 0);
+        List<String> before = caveatsFor(1499, 1499, 0, 0);
+        List<String> after = caveatsFor(1499, 1499, 969, 0);
 
         assertTrue(before.stream().anyMatch(c -> c.startsWith("THE (") && c.contains("not available")),
                 "with no THE rows the caveat must say the source is absent: " + before);
@@ -113,11 +129,47 @@ class SourceCoverageCaveatTest {
         // Map.of does not preserve order, so this fails if the declaration goes
         // back to being a Map -- a caveats array that reshuffles between restarts
         // is hard to diff and hard to hold a contract against.
-        List<String> caveats = caveatsFor(1499, 969, 0);
+        List<String> caveats = caveatsFor(1499, 1499, 969, 0);
         List<String> sourcesInOrder = caveats.stream()
                 .map(c -> c.substring(0, c.indexOf(' ')))
                 .toList();
         assertEquals(List.of("THE", "ARWU"), sourcesInOrder,
                 "QS is silent at full coverage; the rest must follow the declared order");
+    }
+
+    /**
+     * The live 2026 global table: 2,098 universities, of which QS ranks 1,502, THE
+     * 1,637 and ARWU 838. No source covers all of it and the widest is THE, so a
+     * max-based M would print "QS covers 1502 of 1637" and silence THE's own gap.
+     */
+    @Test
+    @DisplayName("M is the size of the table, so no source is silenced by being the widest")
+    void denominatorIsTheTableNotTheWidestSource() {
+        List<String> caveats = caveatsFor(2098, 1502, 1637, 838);
+
+        assertTrue(caveats.stream().anyMatch(c -> c.startsWith("QS (") && c.contains("1502 of 2098")),
+                "QS is partial against the table it is served from: " + caveats);
+        assertTrue(caveats.stream().anyMatch(c -> c.startsWith("THE (") && c.contains("1637 of 2098")),
+                "the widest source still has a gap and must disclose it: " + caveats);
+        assertTrue(caveats.stream().anyMatch(c -> c.startsWith("ARWU (") && c.contains("838 of 2098")),
+                "every partial source is measured against the same population: " + caveats);
+        assertTrue(caveats.stream().noneMatch(c -> c.contains("of 1637")),
+                "M must not be the coverage of a source: " + caveats);
+    }
+
+    /**
+     * The mismatch this closed, held as a regression. The mock answers only SQL
+     * scoped to the global universe, so a query that loses its scope counts zero
+     * for every source and this reports every source as absent instead of partial.
+     */
+    @Test
+    @DisplayName("coverage is counted in the global universe, never across universes")
+    void countsAreScopedToTheDisclosedTable() {
+        List<String> caveats = caveatsFor(2098, 1502, 1637, 838);
+
+        assertTrue(caveats.stream().noneMatch(c -> c.contains("not available")),
+                "an unscoped count reads as zero here; every source must be found: " + caveats);
+        assertTrue(caveats.stream().noneMatch(c -> c.contains("9862")),
+                "a cross-universe row count is not a number of universities: " + caveats);
     }
 }
