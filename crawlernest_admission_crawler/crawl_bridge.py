@@ -27,7 +27,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-from crawlernest_admission_crawler.models import AdmissionRecord
+from crawlernest_admission_crawler.models import (
+    FETCH_LIVE,
+    FETCH_MODES,
+    FETCH_UNKNOWN,
+    AdmissionRecord,
+)
 
 _CRAWLER_DIR = (
     Path(__file__).resolve().parent.parent
@@ -241,6 +246,7 @@ def to_pipeline_record(crawled: Any, *, country: str | None, extracted_at: datet
     staging gate, so a third opinion here could only disagree with both.
     """
     requirements: dict[str, str] = dict(getattr(crawled, "requirements", {}) or {})
+    fetched_at, fetch_mode = _fetch_provenance(crawled)
     return AdmissionRecord(
         university_name=str(crawled.university_name),
         source_url=str(crawled.source_url),
@@ -253,7 +259,30 @@ def to_pipeline_record(crawled: Any, *, country: str | None, extracted_at: datet
         application_deadline=requirements.get(FIELD_DEADLINE) or None,
         degree_level=str(getattr(crawled, "degree_level", "") or "") or None,
         raw_payload=_raw_payload(crawled, requirements),
+        fetched_at=fetched_at,
+        fetch_mode=fetch_mode,
     )
+
+
+def _fetch_provenance(crawled: Any) -> tuple[datetime | None, str]:
+    """The crawler's fetch time and mode, checked before they become a row.
+
+    ``extracted_at`` is deliberately not a fallback. It is when this run
+    parsed the page; for a snapshot that can be months after the page was
+    captured, and the stale-data caveat would then say "fetched on" a date
+    nobody fetched anything.
+    """
+    fetched_at = getattr(crawled, "fetched_at", None)
+    fetch_mode = str(getattr(crawled, "fetch_mode", None) or FETCH_UNKNOWN)
+    if fetch_mode not in FETCH_MODES:
+        raise ValueError(f"{crawled.source_url}: fetch_mode {fetch_mode!r} is not one of {', '.join(FETCH_MODES)}")
+    if fetched_at is not None and (fetched_at.tzinfo is None or fetched_at.utcoffset() is None):
+        # TIMESTAMPTZ would read a naive time in the session's zone (+08 here),
+        # moving the fetch date by up to a day.
+        raise ValueError(f"{crawled.source_url}: fetched_at {fetched_at!r} has no timezone")
+    if fetch_mode == FETCH_LIVE and fetched_at is None:
+        raise ValueError(f"{crawled.source_url}: a live fetch arrived without fetched_at")
+    return fetched_at, fetch_mode
 
 
 def _raw_payload(crawled: Any, requirements: dict[str, str]) -> dict[str, Any]:

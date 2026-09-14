@@ -45,6 +45,10 @@ class AdmissionRecord:
     application_deadline: date | None = None
     degree_level: str | None = None
     raw_payload: dict[str, Any] | None = None
+    #: When the page was read off the network (timezone-aware), or None when
+    #: nobody recorded it -- a snapshot, or a source that predates this field.
+    fetched_at: datetime | None = None
+    fetch_mode: str = FETCH_UNKNOWN
 
 
 @dataclass(slots=True)
@@ -61,6 +65,8 @@ class NormalizedAdmissionRow:
     application_deadline: date | None = None
     degree_level: str = UNKNOWN_DEGREE_LEVEL
     raw_payload: dict[str, Any] | None = None
+    fetched_at: datetime | None = None
+    fetch_mode: str = FETCH_UNKNOWN
 
 
 @dataclass(slots=True)

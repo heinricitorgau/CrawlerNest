@@ -7,12 +7,16 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from crawlernest_admission_crawler.models import NormalizedAdmissionRow
+from crawlernest_admission_crawler.models import FETCH_UNKNOWN, NormalizedAdmissionRow
 from crawlernest_admission_crawler.postgres_driver import get_psycopg2
 from crawlernest_admission_crawler.validator import (
     AdmissionStagingValidationResult,
     validate_admission_staging_rows,
 )
+
+#: Added to both staging tables once the crawler began recording fetches.
+_FETCH_COLUMNS_SQLITE = (("fetched_at", "TEXT NULL"), ("fetch_mode", "TEXT NOT NULL DEFAULT 'unknown'"))
+_FETCH_COLUMNS_POSTGRES = (("fetched_at", "TIMESTAMPTZ NULL"), ("fetch_mode", "TEXT NOT NULL DEFAULT 'unknown'"))
 
 
 @dataclass(slots=True)
@@ -103,9 +107,9 @@ def ingest_summary_to_dict(summary: AdmissionStagingIngestSummary) -> dict[str, 
 
 def _row_to_staging_payload(row: NormalizedAdmissionRow) -> dict[str, object]:
     payload = asdict(row)
-    extracted_at = payload.get("extracted_at")
-    if isinstance(extracted_at, datetime):
-        payload["extracted_at"] = extracted_at.isoformat()
+    for key in ("extracted_at", "fetched_at"):
+        if isinstance(payload.get(key), datetime):
+            payload[key] = payload[key].isoformat()
     deadline = payload.get("application_deadline")
     if isinstance(deadline, (datetime, date)):
         payload["application_deadline"] = deadline.isoformat()
@@ -140,10 +144,16 @@ def _ingest_to_sqlite(sqlite_db_file: Path, rows: list[dict[str, Any]]) -> tuple
                 application_deadline TEXT NULL,
                 degree_level TEXT NOT NULL DEFAULT 'unknown',
                 raw_payload TEXT NULL,
+                fetched_at TEXT NULL,
+                fetch_mode TEXT NOT NULL DEFAULT 'unknown',
                 UNIQUE(source_url, degree_level)
             )
             """
         )
+        existing = {column[1] for column in cur.execute("PRAGMA table_info(admission_staging_records)")}
+        for column, ddl in _FETCH_COLUMNS_SQLITE:
+            if column not in existing:
+                cur.execute(f"ALTER TABLE admission_staging_records ADD COLUMN {column} {ddl}")
         inserted = 0
         skipped = 0
         for row in rows:
@@ -161,8 +171,10 @@ def _ingest_to_sqlite(sqlite_db_file: Path, rows: list[dict[str, Any]]) -> tuple
                     gpa_requirement,
                     application_deadline,
                     degree_level,
-                    raw_payload
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    raw_payload,
+                    fetched_at,
+                    fetch_mode
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     row["university_name"],
@@ -177,6 +189,8 @@ def _ingest_to_sqlite(sqlite_db_file: Path, rows: list[dict[str, Any]]) -> tuple
                     row.get("application_deadline"),
                     row.get("degree_level") or "unknown",
                     json.dumps(row.get("raw_payload"), ensure_ascii=False) if row.get("raw_payload") is not None else None,
+                    row.get("fetched_at") or None,
+                    row.get("fetch_mode") or FETCH_UNKNOWN,
                 ),
             )
             if cur.rowcount == 1:
@@ -227,8 +241,10 @@ def _ingest_to_postgres(
                         gpa_requirement,
                         application_deadline,
                         degree_level,
-                        raw_payload
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb)
+                        raw_payload,
+                        fetched_at,
+                        fetch_mode
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s)
                     ON CONFLICT (source_url, degree_level) DO NOTHING
                     RETURNING 1
                     """,
@@ -247,6 +263,8 @@ def _ingest_to_postgres(
                         json.dumps(row.get("raw_payload"), ensure_ascii=False)
                         if row.get("raw_payload") is not None
                         else None,
+                        datetime.fromisoformat(str(row["fetched_at"])) if row.get("fetched_at") else None,
+                        row.get("fetch_mode") or FETCH_UNKNOWN,
                     ),
                 )
                 if cur.fetchone() is not None:
@@ -283,7 +301,14 @@ def _ensure_postgres_staging_table(
             application_deadline DATE NULL,
             degree_level TEXT NOT NULL DEFAULT 'unknown',
             raw_payload JSONB NULL,
+            fetched_at TIMESTAMPTZ NULL,
+            fetch_mode TEXT NOT NULL DEFAULT 'unknown',
             UNIQUE (source_url, degree_level)
         )
         """
     )
+    # Tables created before the crawler recorded fetches. Without these the
+    # insert above fails on a missing column, and a loader that selected around
+    # them would drop every fetch time between the crawl and the warehouse.
+    for column, ddl in _FETCH_COLUMNS_POSTGRES:
+        cur.execute(f"ALTER TABLE {table_name} ADD COLUMN IF NOT EXISTS {column} {ddl}")

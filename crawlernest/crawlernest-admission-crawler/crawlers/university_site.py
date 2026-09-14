@@ -28,9 +28,9 @@ from __future__ import annotations
 import re
 import sys
 import urllib.error
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 from urllib.parse import urlparse
 
 _CRAWLER_DIR = Path(__file__).resolve().parent.parent
@@ -44,8 +44,15 @@ from base import BaseCrawler
 from extractors.admission_requirements import build_admission_record
 from http_client import HttpClient
 from extractors.admission_text_extractor import extract_with_diagnostics
-from models import AdmissionRecord
+from models import FETCH_LIVE, FETCH_SNAPSHOT, FETCH_UNKNOWN, AdmissionRecord
 from site_profiles.default import DEFAULT_ADMISSION_KEYWORDS
+
+
+class _Fetched(NamedTuple):
+    html: str
+    crawl_status: str
+    fetch_mode: str
+    fetched_at: datetime | None
 
 
 # ── Minimum content threshold ─────────────────────────────────────────────────
@@ -213,7 +220,8 @@ class UniversityAdmissionCrawler(BaseCrawler):
         url: str,
     ) -> AdmissionRecord:
         """Attempt one URL, map any error to a CrawlStatus, return an AdmissionRecord."""
-        html, crawl_status = self._fetch(url)
+        fetched = self._fetch(url)
+        html, crawl_status = fetched.html, fetched.crawl_status
 
         if crawl_status == "success" and html:
             fields, extract_diagnostics = self._extract(html)
@@ -248,12 +256,19 @@ class UniversityAdmissionCrawler(BaseCrawler):
             input_truncated=bool(
                 extract_diagnostics.get("raw_truncated") or extract_diagnostics.get("clean_truncated")
             ),
+            fetched_at=fetched.fetched_at,
+            fetch_mode=fetched.fetch_mode,
         )
 
     # ── Fetch layer ───────────────────────────────────────────────────────────
 
-    def _fetch(self, url: str) -> tuple[str, str]:
-        """Return ``(html_body, crawl_status)``."""
+    def _fetch(self, url: str) -> _Fetched:
+        """Read *url* from a snapshot or the network, and say which and when.
+
+        The stale-data caveat names the date a page was fetched, so the time is
+        taken here, where the body arrives -- not in the bridge, which only
+        knows when the whole run started and would stamp every page with it.
+        """
         # 1. Check snapshot first
         if self._snapshot_dir is not None:
             slug = _url_to_slug(url)
@@ -262,31 +277,38 @@ class UniversityAdmissionCrawler(BaseCrawler):
                 if snap.exists():
                     self.logger.debug("Snapshot hit: %s", snap)
                     html = snap.read_text(encoding="utf-8", errors="replace")
-                    if _visible_text_length(html) < _MIN_VISIBLE_WORDS:
-                        return html, "empty"
-                    return html, "success"
+                    # No fetched_at. The file's mtime is when git checked it
+                    # out, and now is when it was opened; neither is when the
+                    # page was captured, and a reader would take either one as
+                    # a claim about how current the requirement is.
+                    status = "empty" if _visible_text_length(html) < _MIN_VISIBLE_WORDS else "success"
+                    return _Fetched(html, status, FETCH_SNAPSHOT, None)
 
-        # 2. Live HTTP fetch
+        # 2. Live HTTP fetch. A failure read no page content, so it carries no
+        # fetch mode or time either.
         try:
             html = self.fetch_text(url)
         except urllib.error.HTTPError as exc:
             self.logger.warning("HTTP %s on %s", exc.code, url)
-            return "", _status_from_http_error(exc)
+            return _Fetched("", _status_from_http_error(exc), FETCH_UNKNOWN, None)
         except urllib.error.URLError as exc:
             self.logger.warning("URLError on %s: %s", url, exc.reason)
-            return "", _status_from_url_error(exc)
+            return _Fetched("", _status_from_url_error(exc), FETCH_UNKNOWN, None)
         except TimeoutError:
             self.logger.warning("Timeout on %s", url)
-            return "", "timeout"
+            return _Fetched("", "timeout", FETCH_UNKNOWN, None)
         except Exception as exc:  # noqa: BLE001
             self.logger.warning("Unexpected error on %s: %s", url, exc)
-            return "", "error"
+            return _Fetched("", "error", FETCH_UNKNOWN, None)
+        # After the body is read, so the courtesy delay and the round trip are
+        # not counted as "before the page was fetched".
+        fetched_at = datetime.now(timezone.utc)
 
         if not html or _visible_text_length(html) < _MIN_VISIBLE_WORDS:
             self.logger.warning("Empty or near-empty response from %s", url)
-            return html, "empty"
+            return _Fetched(html, "empty", FETCH_LIVE, fetched_at)
 
-        return html, "success"
+        return _Fetched(html, "success", FETCH_LIVE, fetched_at)
 
     # ── Extraction layer ──────────────────────────────────────────────────────
 

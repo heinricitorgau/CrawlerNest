@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Any
 
 from crawlernest_admission_crawler.models import (
-    FETCH_UNKNOWN,
     UNKNOWN_DEGREE_LEVEL,
     WarehouseReadyAdmissionRow,
 )
@@ -27,7 +26,12 @@ from crawlernest_admission_crawler.source_identity import (
     admission_programme_key,
     admission_source_entity_id,
 )
-from crawlernest_admission_crawler.warehouse_mapper import intake_year_basis_for, requirement_scope_for
+from crawlernest_admission_crawler.warehouse_mapper import (
+    fetch_mode_for,
+    fetched_at_for,
+    intake_year_basis_for,
+    requirement_scope_for,
+)
 
 
 @dataclass(slots=True)
@@ -85,8 +89,10 @@ def load_warehouse_preview_rows(preview_file: Path) -> list[WarehouseReadyAdmiss
                 ),
                 intake_year=intake_year,
                 intake_year_basis=intake_year_basis_for(intake_year, item.get("intake_year_basis")),
-                fetched_at=datetime.fromisoformat(str(item["fetched_at"])) if item.get("fetched_at") else None,
-                fetch_mode=str(item.get("fetch_mode") or FETCH_UNKNOWN),
+                # The same checks as the staging path, so a hand-edited preview
+                # cannot land a live row with no time or a naive timestamp.
+                fetched_at=fetched_at_for(item),
+                fetch_mode=fetch_mode_for(item),
             )
         )
     return rows
