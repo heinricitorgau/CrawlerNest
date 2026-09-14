@@ -525,12 +525,22 @@ public class AnalyticsService {
             Map.entry("ARWU", "ARWU (Academic Ranking of World Universities)"));
 
     /**
-     * How many aggregated rows carry a non-null rank for each source.
+     * How many universities in the disclosed table carry a non-null rank for each
+     * source.
      *
      * <p>Read from the data rather than stated as a constant. These caveats used
      * to assert "THE data is not available", which was true when written and
      * became false the day THE was ingested for part of the table — the sort of
      * disclosure that is worse than none, because it is specific and confident.
+     *
+     * <p>Scoped to the table the caveats are attached to: the global universe of
+     * the default edition, which is what both callers serve (ranking trends here,
+     * source disagreement in {@link SourceIntelligenceService}). The view also
+     * holds region, regional, special and subject universes, a university appears
+     * once per universe it is in, and only QS populates the others. Counted over
+     * the whole view, QS had 9,862 rows in 2026 against 1,502 global ones, so the
+     * published caveat read "THE covers 1637 of 9862 universities" and QS, as the
+     * largest count, looked complete and disclosed nothing.
      */
     private Map<String, Integer> sourceCoverage() {
         // The default edition only. Counted over every edition, "N of M" doubles
@@ -543,10 +553,32 @@ public class AnalyticsService {
                     WHERE source_ranks_json -> ? IS NOT NULL
                       AND source_ranks_json -> ? <> 'null'::jsonb
                       AND ranking_year = ?
+                      AND universe_type = 'global'
+                      AND universe_key = 'global'
                     """, Integer.class, source, source, datasetScope.defaultRankingYear());
             coverage.put(source, count == null ? 0 : count);
         }
         return coverage;
+    }
+
+    /**
+     * How many universities the disclosed table holds: the denominator.
+     *
+     * <p>Counted, not inferred from the sources. The denominator used to be the
+     * largest per-source count, which is the table's size only when some source
+     * covers all of it. None does in the 2026 global table (2,098 universities;
+     * THE, the widest, ranks 1,637), so a max-based M understates the table and
+     * silences the widest source, which then looks complete.
+     */
+    private int disclosedTableSize() {
+        Integer total = jdbcTemplate.queryForObject("""
+                SELECT count(*)
+                FROM analytics.v_aggregated_rankings_latest
+                WHERE ranking_year = ?
+                  AND universe_type = 'global'
+                  AND universe_key = 'global'
+                """, Integer.class, datasetScope.defaultRankingYear());
+        return total == null ? 0 : total;
     }
 
     /**
@@ -559,7 +591,12 @@ public class AnalyticsService {
      */
     public void appendSourceCoverageCaveats(List<String> caveats) {
         Map<String, Integer> coverage = sourceCoverage();
-        int total = coverage.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        // The table's own size, floored at the widest source so a short count can
+        // never print "1637 of 1502" or make a partial source look complete. In a
+        // consistent warehouse the count wins: every counted source row is a row
+        // of this table.
+        int total = Math.max(disclosedTableSize(),
+                coverage.values().stream().mapToInt(Integer::intValue).max().orElse(0));
 
         for (Map.Entry<String, String> entry : SOURCE_LABELS) {
             int covered = coverage.getOrDefault(entry.getKey(), 0);

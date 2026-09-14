@@ -148,6 +148,14 @@ The ranking-trends response carries these caveats verbatim:
 3. `QS ranking data is a point-in-time snapshot of the 2026 published tables. Figures may not reflect rankings republished since this snapshot was ingested.`
 4. `Year-over-year trend analysis requires data from multiple aggregation runs. Current coverage is a single year — no rank delta is available.`
 
+> **Correction (2026-09-14).** Rows 1 and 2 above are a faithful capture of a wrong
+> disclosure. Their denominator, 9,530, was QS's row count summed across every
+> universe in the view (global, region, regional, special, subject), not a number of
+> universities in the table the endpoint serves, and QS — as the largest count — was
+> reported as complete. Counted in the global table, the same endpoint now reads:
+> QS covers 1502 of 2098 universities, THE 1637 of 2098, ARWU 838 of 2098. See
+> `docs/analytics/ANALYTICS_EXPLAINABILITY.md` for the current capture.
+
 ---
 
 ## Evidence-Backed Recommendations
