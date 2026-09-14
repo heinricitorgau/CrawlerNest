@@ -97,21 +97,36 @@ WITH admission_summary AS (
       ON ar.university_id = cul.university_id
     GROUP BY cul.canonical_university_id
 ),
+-- Crawled requirements through warehouse.v_admission_requirement_summary, the
+-- rule every admission reader shares (admission_postgresql.sql): university-
+-- level rows only, newest stated intake. It used to take MIN() over every
+-- admission row, which would report the least demanding programme's IELTS as
+-- the university's once a source writes programme rows.
 crawled_admission_summary AS (
     SELECT
         canonical_university_id,
-        MIN(duolingo_requirement) AS duolingo_min,
-        MIN(gpa_requirement) AS crawled_gpa_min,
-        MIN(ielts_requirement) AS crawled_ielts_min,
-        MIN(toefl_requirement) AS crawled_toefl_min,
-        COUNT(*) FILTER (WHERE ielts_requirement IS NOT NULL) AS crawled_ielts_observation_count,
-        MIN(application_deadline) AS application_deadline,
+        duolingo_requirement AS duolingo_min,
+        gpa_requirement AS crawled_gpa_min,
+        ielts_requirement AS crawled_ielts_min,
+        toefl_requirement AS crawled_toefl_min,
+        institution_ielts_row_count AS crawled_ielts_observation_count,
+        application_deadline,
+        programme_row_count,
+        fetch_dates_recorded,
+        oldest_fetched_on,
+        oldest_extracted_on
+    FROM warehouse.v_admission_requirement_summary
+),
+crawled_deadline_payload AS (
+    SELECT
+        canonical_university_id,
         (
             ARRAY_AGG(raw_payload ORDER BY id DESC)
             FILTER (WHERE raw_payload IS NOT NULL)
         )[1] AS latest_raw_payload
     FROM warehouse.admission_record
     WHERE canonical_university_id IS NOT NULL
+      AND requirement_scope IN ('institution_minimum', 'unspecified')
     GROUP BY canonical_university_id
 ),
 source_rank_summary AS (
@@ -146,10 +161,16 @@ SELECT
     COALESCE(ads.toefl_min, aps.crawled_toefl_min) AS toefl_min,
     aps.duolingo_min,
     COALESCE(aps.application_deadline::text, ads.application_deadline_text) AS application_deadline_text,
-    COALESCE(aps.latest_raw_payload->'deadline_candidates', '[]'::jsonb) AS deadline_candidates_json,
+    COALESCE(dlp.latest_raw_payload->'deadline_candidates', '[]'::jsonb) AS deadline_candidates_json,
     COALESCE(ads.ielts_observation_count, 0)
         + COALESCE(aps.crawled_ielts_observation_count, 0) AS ielts_observation_count,
-    COALESCE(ads.admission_record_count, 0) AS admission_record_count
+    COALESCE(ads.admission_record_count, 0) AS admission_record_count,
+    -- What CAVEAT_ADMISSION_DATA_STALE names, for any reader that shows the
+    -- crawled requirements above.
+    COALESCE(aps.programme_row_count, 0) AS admission_programme_row_count,
+    aps.fetch_dates_recorded AS admission_fetch_dates_recorded,
+    aps.oldest_fetched_on AS admission_oldest_fetched_on,
+    aps.oldest_extracted_on AS admission_oldest_extracted_on
 FROM analytics.v_aggregated_rankings_latest ar
 JOIN warehouse.canonical_university cu
   ON cu.canonical_university_id = ar.canonical_university_id
@@ -159,6 +180,8 @@ LEFT JOIN admission_summary ads
   ON ads.canonical_university_id = ar.canonical_university_id
 LEFT JOIN crawled_admission_summary aps
   ON aps.canonical_university_id = ar.canonical_university_id
+LEFT JOIN crawled_deadline_payload dlp
+  ON dlp.canonical_university_id = ar.canonical_university_id
 LEFT JOIN source_rank_summary srs
   ON srs.canonical_university_id = ar.canonical_university_id
  AND srs.ranking_year = ar.ranking_year

@@ -232,15 +232,19 @@ public class DataQualityService {
         double threshold = 0.80;
         section.put("threshold", threshold);
 
+        // warehouse.v_entity_mapping, not warehouse.source_mapping: every source,
+        // admission pages included, now writes source_university_mapping, and the
+        // legacy table's admission rows were retired on 2026-09-14. Reading it
+        // would report no low-confidence matches whatever the live mappings held.
         Long count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM warehouse.source_mapping WHERE confidence_score < ? AND is_active = TRUE",
+                "SELECT COUNT(*) FROM warehouse.v_entity_mapping WHERE confidence_score < ? AND is_active = TRUE",
                 Long.class, threshold);
         section.put("count", count != null ? count : 0L);
 
         List<Map<String, Object>> examples = jdbcTemplate.queryForList("""
-                SELECT sm.source_name, sm.confidence_score, sm.match_method,
+                SELECT sm.source_code AS source_name, sm.confidence_score, sm.match_method,
                        cu.canonical_slug, cu.display_name
-                FROM warehouse.source_mapping sm
+                FROM warehouse.v_entity_mapping sm
                 JOIN warehouse.canonical_university cu
                   ON cu.canonical_university_id = sm.canonical_university_id
                 WHERE sm.confidence_score < 0.80 AND sm.is_active = TRUE

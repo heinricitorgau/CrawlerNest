@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -131,6 +132,32 @@ public class AnalyticsService {
 
     public static final String DISAGREEMENT_ESTIMATE_CAVEAT =
             "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against.";
+
+    /**
+     * Shown when a university has no stored IELTS figure at any scope
+     * ({@code warehouse.v_admission_requirement_summary.ielts_missing}) or no
+     * admission row at all. Byte-identical to {@code CAVEAT_IELTS_MISSING} in
+     * caveats.py and caveatMessages.ts.
+     */
+    public static final String IELTS_MISSING_CAVEAT =
+            "No IELTS requirement was found in stored admission data for this university. Language fit cannot be assessed.";
+
+    /**
+     * {@code CAVEAT_ADMISSION_DATA_STALE}, when every admission row behind the
+     * response records when its page was fetched. {@code {date}} is the oldest
+     * fetch, as a UTC ISO date, replaced literally.
+     */
+    public static final String ADMISSION_STALE_FETCHED_TEMPLATE =
+            "Admission requirements were read from university pages fetched on {date} and may not reflect the current year's entry conditions.";
+
+    /**
+     * {@code CAVEAT_ADMISSION_DATA_STALE}, when any row lacks a fetch time -- every
+     * row so far, since snapshot runs extract today from HTML fetched earlier.
+     * {@code {date}} is the oldest extraction; naming it a fetch date would
+     * understate the page's age.
+     */
+    public static final String ADMISSION_STALE_UNDATED_TEMPLATE =
+            "Admission requirements were read from university pages whose fetch date was not recorded. They were extracted on {date}, the pages may be older than that, and they may not reflect the current year's entry conditions.";
 
     private final JdbcTemplate jdbcTemplate;
     private final DatasetScope datasetScope;
@@ -654,6 +681,24 @@ public class AnalyticsService {
     /** The snapshot disclosure for the given editions. */
     public static String snapshotCaveat(Collection<Integer> years) {
         return SNAPSHOT_CAVEAT_TEMPLATE.replace("{years}", formatEditionYears(years));
+    }
+
+    /**
+     * {@code CAVEAT_ADMISSION_DATA_STALE} for the admission rows behind a response,
+     * or null when there are none. The arguments are the staleness columns of the
+     * admission views, combined over every university shown: every fetch date
+     * recorded, the oldest fetch, the oldest extraction. The rule is
+     * {@code admission_stale_caveat} in caveats.py and is stated in
+     * ANALYTICS_EXPLAINABILITY.md.
+     */
+    public static String admissionStaleCaveat(boolean fetchDatesRecorded, LocalDate oldestFetchedOn, LocalDate oldestExtractedOn) {
+        if (fetchDatesRecorded && oldestFetchedOn != null) {
+            return ADMISSION_STALE_FETCHED_TEMPLATE.replace("{date}", oldestFetchedOn.toString());
+        }
+        if (oldestExtractedOn != null) {
+            return ADMISSION_STALE_UNDATED_TEMPLATE.replace("{date}", oldestExtractedOn.toString());
+        }
+        return null;
     }
 
     /**

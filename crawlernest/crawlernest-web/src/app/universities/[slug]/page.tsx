@@ -128,45 +128,104 @@ function AdmissionRequirementsBlock({ admissions }: { admissions?: AdmissionRequ
   // would not, so treat a missing block the same as an empty one.
   if (!admissions || !admissions.hasData) {
     return (
-      <p className="p-4 text-slate-400 italic text-sm">
-        No admission requirements have been collected for this university yet.
-      </p>
+      <div className="p-4">
+        <p className="text-slate-400 italic text-sm">
+          No admission requirements have been collected for this university yet.
+        </p>
+        <AdmissionCaveatList caveats={admissions?.caveats} />
+      </div>
     );
   }
 
   const levels = admissions.byDegreeLevel.length > 0 ? admissions.byDegreeLevel : [admissions.summary];
+  const programmes = admissions.programmeRequirements ?? [];
 
   return (
     <div className="space-y-6">
-      {levels.map((level, index) => (
-        <AdmissionLevelRow
-          key={level.degreeLevel ?? `level-${index}`}
-          level={level}
-          showHeading={levels.length > 1}
-        />
-      ))}
+      {admissions.byDegreeLevel.length > 0 &&
+        levels.map((level, index) => (
+          <AdmissionLevelRow
+            key={level.degreeLevel ?? `level-${index}`}
+            level={level}
+            showHeading={levels.length > 1}
+          />
+        ))}
+      {programmes.length > 0 && (
+        <div>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+            Programme-specific requirements
+          </h3>
+          <div className="space-y-4">
+            {programmes.map((programme, index) => (
+              <AdmissionLevelRow
+                key={`${programme.degreeLevel}-${programme.faculty}-${programme.programmeName}-${programme.intakeYear}-${index}`}
+                level={programme}
+                showHeading
+                heading={[programme.programmeName ?? programme.faculty, formatDegreeLevel(programme.degreeLevel)]
+                  .filter(Boolean)
+                  .join(" · ")}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      <AdmissionCaveatList caveats={admissions.caveats} />
     </div>
+  );
+}
+
+/** The API renders these (with the fetch date); shown verbatim, never reworded here. */
+function AdmissionCaveatList({ caveats }: { caveats?: string[] }) {
+  if (!caveats || caveats.length === 0) {
+    return null;
+  }
+  return (
+    <ul className="mt-2 space-y-1" aria-label="Admission data caveats">
+      {caveats.map((caveat) => (
+        <li key={caveat} className="text-xs text-slate-500">
+          · {caveat}
+        </li>
+      ))}
+    </ul>
   );
 }
 
 function AdmissionLevelRow({
   level,
   showHeading,
+  heading,
 }: {
   level: AdmissionRequirement;
   showHeading: boolean;
+  heading?: string;
 }) {
   return (
     <div>
       {showHeading && (
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-          {formatDegreeLevel(level.degreeLevel)}
+          {heading ?? formatDegreeLevel(level.degreeLevel)}
         </h3>
       )}
       <AdmissionRequirementBadges
         requirements={level}
         emptyMessage="The source for this level did not publish any entry requirements."
       />
+      {level.requirementScope === "unspecified" && (
+        <p className="mt-2 text-xs text-slate-500">
+          The source gives one figure without saying whether it applies to every programme.
+        </p>
+      )}
+      {level.valuesDiffer && (
+        <p className="mt-2 text-xs text-slate-500">
+          Sources for this level disagree; the lowest published figure is shown.
+        </p>
+      )}
+      {level.intakeYear != null && (
+        <p className="mt-2 text-xs text-slate-500">
+          For the {level.intakeYear} intake
+          {level.intakeYearBasis === "deadline_inferred" ? " (inferred from the application deadline)" : ""}.
+        </p>
+      )}
       {level.sourceUrl && (
         <a
           href={level.sourceUrl}

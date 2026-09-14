@@ -124,6 +124,42 @@ are each tested against these rows.
 | 2024, 2025, 2026 | 2024, 2025 and 2026 |
 <!-- year-list-rendering:end -->
 
+### Admission caveats
+
+Two disclosures travel with admission requirements wherever an API response
+shows them: the university detail's `admissionRequirements.caveats`, the preview's
+`admissionCaveats`, and `GET /api/v1/recommendations/explain`. The recommendation
+list's `metadata.admission_caveats` carries the staleness caveat for the
+universities it returns (the IELTS one names a single university, so it stays on
+the explain endpoint).
+
+| Condition | Required Caveat |
+|---|---|
+| No stored IELTS figure for the university at any scope, or no admission row at all (`v_admission_requirement_summary.ielts_missing`) | "No IELTS requirement was found in stored admission data for this university. Language fit cannot be assessed." |
+| Any admission requirement is shown | `CAVEAT_ADMISSION_DATA_STALE`, rendered from one of the two templates below |
+
+`CAVEAT_ADMISSION_DATA_STALE` has to name a date, so it is a template, with one
+copy per language: `ADMISSION_STALE_*_TEMPLATE` in `crawlernest/core/caveats.py`,
+`AnalyticsService.java` and `caveatMessages.ts`. The date is the **oldest** one
+behind the response, as a UTC ISO date, taken from the staleness columns of
+`warehouse.v_admission_requirement_institution` / `_summary`. When every row
+records when its page was fetched:
+
+`Admission requirements were read from university pages fetched on {date} and may not reflect the current year's entry conditions.`
+
+When any row does not — every row written so far, since a run over checked-in
+snapshots extracts today from HTML fetched earlier — the extraction date is named
+and the fetch date is said to be unknown, never passed off as one:
+
+`Admission requirements were read from university pages whose fetch date was not recorded. They were extracted on {date}, the pages may be older than that, and they may not reflect the current year's entry conditions.`
+
+The requirement values these caveats accompany follow one rule, defined once in
+those views: a university-level figure comes only from rows that apply to the
+institution (`institution_minimum` or `unspecified`), for the newest intake they
+state. Programme and faculty rows are counted and listed separately, never folded
+into it; where rows still disagree the lowest bar is shown and `valuesDiffer` is
+set.
+
 ### Model estimates
 
 The modelling layer in `crawlernest/crawlernest-ml/` produces estimated values —

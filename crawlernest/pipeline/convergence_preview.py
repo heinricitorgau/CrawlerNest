@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from crawlernest.core.caveats import admission_caveats
 from crawlernest.pipeline.ranking_scope import DEFAULT_SCOPE_PARAMS, scope_predicate
 
 try:
@@ -32,6 +33,9 @@ class AdmissionPreviewSummary:
     best_ielts_requirement: float | None
     best_toefl_requirement: int | None
     latest_extracted_at: str | None
+    #: Rows attributed to a named programme or faculty. They are never part of
+    #: the best-requirement figures, which are university-level only.
+    programme_row_count: int = 0
 
 
 @dataclass(slots=True)
@@ -41,6 +45,9 @@ class ConvergencePreviewRow:
     ranking_summary: RankingPreviewSummary | None
     admission_summary: AdmissionPreviewSummary | None
     missing_data: list[str]
+    #: CAVEAT_IELTS_MISSING and CAVEAT_ADMISSION_DATA_STALE. On the row, not the
+    #: admission summary, which is None exactly when the IELTS caveat applies.
+    admission_caveats: list[str] = field(default_factory=list)
 
 
 def build_convergence_preview(
@@ -114,13 +121,17 @@ def build_convergence_preview(
                     ORDER BY canonical_university_id, rank_position ASC, ranking_year DESC, source ASC
                 ),
                 admission_summary AS (
+                    -- Counts describe every row of the admission table. The best
+                    -- requirements do not: they come from
+                    -- warehouse.v_admission_requirement_summary, the rule every
+                    -- admission reader shares -- university-level rows, newest
+                    -- stated intake -- so a programme's bar is never quoted as the
+                    -- university's.
                     SELECT
                         ar.canonical_university_id,
                         COUNT(*)::INTEGER AS row_count,
                         COUNT(DISTINCT ar.source_url)::INTEGER AS source_url_count,
                         ARRAY_REMOVE(ARRAY_AGG(DISTINCT ar.country ORDER BY ar.country), NULL) AS countries,
-                        MIN(ar.ielts_requirement) AS best_ielts_requirement,
-                        MIN(ar.toefl_requirement)::INTEGER AS best_toefl_requirement,
                         MAX(ar.extracted_at) AS latest_extracted_at
                     FROM {admission_schema}.{admission_table} ar
                     WHERE ar.canonical_university_id IS NOT NULL
@@ -139,9 +150,14 @@ def build_convergence_preview(
                     ads.row_count,
                     ads.source_url_count,
                     ads.countries,
-                    ads.best_ielts_requirement,
-                    ads.best_toefl_requirement,
-                    ads.latest_extracted_at
+                    s.ielts_requirement,
+                    s.toefl_requirement::INTEGER,
+                    ads.latest_extracted_at,
+                    COALESCE(s.programme_row_count, 0),
+                    s.ielts_missing,
+                    s.fetch_dates_recorded,
+                    s.oldest_fetched_on,
+                    s.oldest_extracted_on
                 FROM warehouse.canonical_university cu
                 LEFT JOIN ranking_summary rs
                     ON rs.canonical_university_id = cu.canonical_university_id
@@ -149,6 +165,8 @@ def build_convergence_preview(
                     ON rb.canonical_university_id = cu.canonical_university_id
                 LEFT JOIN admission_summary ads
                     ON ads.canonical_university_id = cu.canonical_university_id
+                LEFT JOIN warehouse.v_admission_requirement_summary s
+                    ON s.canonical_university_id = cu.canonical_university_id
                 WHERE rs.canonical_university_id IS NOT NULL
                    OR ads.canonical_university_id IS NOT NULL
                 ORDER BY
@@ -246,6 +264,7 @@ def _row_from_tuple(row: tuple[Any, ...]) -> ConvergencePreviewRow:
             best_ielts_requirement=None if row[12] is None else float(row[12]),
             best_toefl_requirement=None if row[13] is None else int(row[13]),
             latest_extracted_at=None if row[14] is None else row[14].isoformat(),
+            programme_row_count=int(row[15] or 0),
         )
 
     missing_data: list[str] = []
@@ -260,4 +279,14 @@ def _row_from_tuple(row: tuple[Any, ...]) -> ConvergencePreviewRow:
         ranking_summary=ranking_summary,
         admission_summary=admission_summary,
         missing_data=missing_data,
+        admission_caveats=admission_caveats(
+            None
+            if row[16] is None
+            else {
+                "ielts_missing": row[16],
+                "fetch_dates_recorded": row[17],
+                "oldest_fetched_on": row[18],
+                "oldest_extracted_on": row[19],
+            }
+        ),
     )

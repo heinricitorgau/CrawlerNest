@@ -34,7 +34,12 @@ import unittest
 from pathlib import Path
 
 from crawlernest.core.caveats import (
+    ADMISSION_STALE_FETCHED_TEMPLATE,
+    ADMISSION_STALE_UNDATED_TEMPLATE,
     CAVEAT_ARWU_PARTIAL,
+    CAVEAT_IELTS_MISSING,
+    admission_caveats,
+    admission_stale_caveat,
     COMPOSITE_RANK_NOT_COMPARED_CAVEAT,
     CAVEAT_QS_STALE,
     CAVEAT_THE_PARTIAL,
@@ -86,6 +91,14 @@ CONSTANT_CAVEATS = (
     UNSUPPORTED_ESTIMATE_CAVEAT,
     RANK_CHANGE_CAVEAT,
     COMPOSITE_RANK_NOT_COMPARED_CAVEAT,
+    CAVEAT_IELTS_MISSING,
+)
+
+#: Templates that must be byte-identical in every language and in the doc.
+TEMPLATE_CAVEATS = (
+    SNAPSHOT_CAVEAT_TEMPLATE,
+    ADMISSION_STALE_FETCHED_TEMPLATE,
+    ADMISSION_STALE_UNDATED_TEMPLATE,
 )
 
 
@@ -131,7 +144,7 @@ def _read(path: Path) -> str:
 class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
     def test_java_carries_every_python_caveat_verbatim(self) -> None:
         java = _read(ANALYTICS_SERVICE)
-        for caveat in (*CONSTANT_CAVEATS, SNAPSHOT_CAVEAT_TEMPLATE):
+        for caveat in (*CONSTANT_CAVEATS, *TEMPLATE_CAVEATS):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(
                     caveat,
@@ -142,7 +155,7 @@ class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
 
     def test_frontend_carries_every_python_caveat_verbatim(self) -> None:
         typescript = _read(CAVEAT_MESSAGES_TS)
-        for caveat in (*CONSTANT_CAVEATS, SNAPSHOT_CAVEAT_TEMPLATE):
+        for caveat in (*CONSTANT_CAVEATS, *TEMPLATE_CAVEATS):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(caveat, typescript)
 
@@ -223,11 +236,74 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(caveat, doc)
 
+    def test_explainability_doc_carries_the_admission_caveats(self) -> None:
+        doc = _read(EXPLAINABILITY_DOC)
+        for caveat in (CAVEAT_IELTS_MISSING, ADMISSION_STALE_FETCHED_TEMPLATE, ADMISSION_STALE_UNDATED_TEMPLATE):
+            with self.subTest(caveat=caveat[:40]):
+                self.assertIn(caveat, doc)
+
     def test_standard_set_is_the_three_source_caveats(self) -> None:
         self.assertEqual(
             list(STANDARD_CAVEATS),
             [CAVEAT_QS_STALE, CAVEAT_THE_PARTIAL, CAVEAT_ARWU_PARTIAL],
         )
+
+
+class TestAdmissionCaveats(unittest.TestCase):
+    """The rule each language's renderer follows; the Java and TS ones are tested on the same cases."""
+
+    def test_a_recorded_fetch_date_is_named_as_the_fetch_date(self) -> None:
+        from datetime import date
+
+        self.assertEqual(
+            ADMISSION_STALE_FETCHED_TEMPLATE.replace("{date}", "2026-03-01"),
+            admission_stale_caveat(
+                fetch_dates_recorded=True, oldest_fetched_on=date(2026, 3, 1), oldest_extracted_on=date(2026, 8, 22)
+            ),
+        )
+
+    def test_an_unrecorded_fetch_is_never_passed_off_as_the_extraction_date(self) -> None:
+        from datetime import date
+
+        caveat = admission_stale_caveat(
+            fetch_dates_recorded=False, oldest_fetched_on=date(2026, 3, 1), oldest_extracted_on=date(2026, 8, 22)
+        )
+        self.assertEqual(ADMISSION_STALE_UNDATED_TEMPLATE.replace("{date}", "2026-08-22"), caveat)
+        self.assertIn("fetch date was not recorded", caveat)
+        self.assertNotIn("fetched on", caveat)
+
+    def test_no_admission_data_means_no_staleness_claim(self) -> None:
+        self.assertIsNone(
+            admission_stale_caveat(fetch_dates_recorded=True, oldest_fetched_on=None, oldest_extracted_on=None)
+        )
+
+    def test_a_timestamp_is_refused_so_every_language_names_the_same_utc_day(self) -> None:
+        from datetime import datetime, timezone
+
+        with self.assertRaises(TypeError):
+            admission_stale_caveat(
+                fetch_dates_recorded=True,
+                oldest_fetched_on=datetime(2026, 3, 1, 23, 30, tzinfo=timezone.utc),
+                oldest_extracted_on=None,
+            )
+
+    def test_admission_caveats_follow_the_summary_row(self) -> None:
+        from datetime import date
+
+        self.assertEqual([CAVEAT_IELTS_MISSING], admission_caveats(None))
+        row = {"ielts_missing": True, "fetch_dates_recorded": False, "oldest_fetched_on": None,
+               "oldest_extracted_on": date(2026, 8, 22)}
+        caveats = admission_caveats(row)
+        self.assertEqual(CAVEAT_IELTS_MISSING, caveats[0])
+        self.assertIn("extracted on 2026-08-22", caveats[1])
+        self.assertEqual(1, len(admission_caveats({**row, "ielts_missing": False})))
+
+    def test_java_and_typescript_renderers_use_the_same_rule(self) -> None:
+        # Source-level check that each renderer picks the fetched template only
+        # when every date is recorded -- the behaviour is unit-tested in Java
+        # (AdmissionCaveatsTest) and TypeScript (admissionCaveats.test.ts).
+        self.assertIn("if (fetchDatesRecorded && oldestFetchedOn != null)", _read(ANALYTICS_SERVICE))
+        self.assertIn("if (staleness.fetchDatesRecorded && staleness.oldestFetchedOn)", _read(CAVEAT_MESSAGES_TS))
 
 
 class TestStaleClaimsAreGone(unittest.TestCase):

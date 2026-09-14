@@ -61,6 +61,19 @@ export type AdmissionRequirement = {
   /** ISO-8601 date, `yyyy-MM-dd`. */
   applicationDeadline: string | null;
   sourceUrl: string | null;
+  /**
+   * What the figures apply to: `institution_minimum`, `unspecified` (one figure
+   * whose scope the page did not establish), `programme` or `faculty`. Optional
+   * only so a cached response from before the field existed still type-checks.
+   */
+  requirementScope?: string | null;
+  faculty?: string | null;
+  programmeName?: string | null;
+  intakeYear?: number | null;
+  /** `page_stated`, `deadline_inferred` or `unknown`. */
+  intakeYearBasis?: string | null;
+  /** University-level rows disagreed and the lowest bar is shown. */
+  valuesDiffer?: boolean | null;
 };
 
 /**
@@ -79,7 +92,15 @@ export type AdmissionRequirements = {
   hasData: boolean;
   degreeLevelCount: number;
   summary: AdmissionRequirement;
+  /** University-level figures only; programme rows are never folded in. */
   byDegreeLevel: AdmissionRequirement[];
+  /** Requirements a source attributed to a named programme or faculty. */
+  programmeRequirements?: AdmissionRequirement[];
+  /** CAVEAT_IELTS_MISSING / CAVEAT_ADMISSION_DATA_STALE, rendered by the API. Show them verbatim. */
+  caveats?: string[];
+  fetchDatesRecorded?: boolean | null;
+  oldestFetchedOn?: string | null;
+  oldestExtractedOn?: string | null;
 };
 
 export type UniversityDetail = {

@@ -1,5 +1,7 @@
 package clawer.service;
 
+import clawer.repository.AdmissionRecordRepository;
+import clawer.repository.AdmissionSummaryRow;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -10,6 +12,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Readonly evidence service for recommendation explanations.
@@ -31,10 +34,16 @@ public class RecommendationEvidenceService {
 
     private final JdbcTemplate jdbcTemplate;
     private final DatasetScope datasetScope;
+    private final AdmissionRecordRepository admissionRecordRepository;
 
-    public RecommendationEvidenceService(JdbcTemplate jdbcTemplate, DatasetScope datasetScope) {
+    public RecommendationEvidenceService(
+            JdbcTemplate jdbcTemplate,
+            DatasetScope datasetScope,
+            AdmissionRecordRepository admissionRecordRepository
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.datasetScope = datasetScope;
+        this.admissionRecordRepository = admissionRecordRepository;
     }
 
     /**
@@ -51,15 +60,17 @@ public class RecommendationEvidenceService {
         Map<String, Object> identity = fetchIdentity(canonicalUniversityId);
         Map<String, Object> ranking = fetchRankingEvidence(canonicalUniversityId);
         Map<String, Object> sourceCoverage = buildSourceCoverage(ranking);
-        Map<String, Object> ieltsEvidence = buildIeltsEvidence(canonicalUniversityId, ieltsScore);
+        Optional<AdmissionSummaryRow> admissionSummary = admissionRecordRepository.findSummaryRow(canonicalUniversityId);
+        Map<String, Object> ieltsEvidence = buildIeltsEvidence(admissionSummary, ieltsScore);
         Map<String, Object> countryEvidence = buildCountryEvidence(identity, country);
         int sourceCount = (int) sourceCoverage.get("source_count");
         Map<String, Object> confidenceEvidence = buildConfidenceEvidence(ranking, ieltsEvidence, sourceCount);
 
         List<String> caveats = new ArrayList<>(STANDARD_CAVEATS);
-        if (Boolean.TRUE.equals(ieltsEvidence.get("ielts_min_missing"))) {
-            caveats.add("No IELTS requirement was found in stored admission data for this university. Language fit cannot be assessed.");
-        }
+        // CAVEAT_IELTS_MISSING and CAVEAT_ADMISSION_DATA_STALE, decided from the
+        // same summary row the IELTS evidence reads. This used to carry its own
+        // copy of the IELTS string and no staleness disclosure at all.
+        caveats.addAll(AdmissionCaveats.forSummary(admissionSummary));
         if (sourceCount <= 1) {
             caveats.add("This university has single-source ranking coverage (QS only). Multi-source agreement analysis is not available.");
         }
@@ -182,22 +193,23 @@ public class RecommendationEvidenceService {
 
     // ── Private: IELTS ────────────────────────────────────────────────────────
 
-    private Map<String, Object> buildIeltsEvidence(long canonicalUniversityId, Double ieltsScore) {
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
-                SELECT MIN(ar.ielts_requirement) AS ielts_min
-                FROM warehouse.admission_record ar
-                WHERE ar.canonical_university_id = ?
-                  AND ar.ielts_requirement IS NOT NULL
-                """, canonicalUniversityId);
-
-        Double ieltsMin = null;
-        if (!rows.isEmpty() && rows.get(0).get("ielts_min") != null) {
-            ieltsMin = ((Number) rows.get(0).get("ielts_min")).doubleValue();
-        }
+    /**
+     * The university-level IELTS bar from {@code v_admission_requirement_summary}.
+     * It used to be {@code MIN(ielts_requirement)} over every admission row, which
+     * would compare a student against the least demanding programme once a source
+     * writes programme rows. Programme-specific figures are not a university's
+     * requirement and are not used here; {@code ielts_programme_specific_only}
+     * says when they are all there is.
+     */
+    private Map<String, Object> buildIeltsEvidence(Optional<AdmissionSummaryRow> summary, Double ieltsScore) {
+        Double ieltsMin = summary.map(AdmissionSummaryRow::ieltsRequirement).orElse(null);
 
         Map<String, Object> evidence = new LinkedHashMap<>();
         evidence.put("ielts_min", ieltsMin);
         evidence.put("ielts_min_missing", ieltsMin == null);
+        evidence.put("ielts_programme_specific_only",
+                ieltsMin != null ? Boolean.FALSE : summary.map(row -> !row.ieltsMissing()).orElse(false));
+        evidence.put("ielts_values_differ", summary.map(AdmissionSummaryRow::valuesDiffer).orElse(false));
         evidence.put("ielts_provided", ieltsScore);
 
         if (ieltsMin == null) {

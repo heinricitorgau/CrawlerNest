@@ -379,6 +379,8 @@ type RecommendationResponse = {
   };
   metadata?: {
     candidate_count?: number;
+    /** CAVEAT_ADMISSION_DATA_STALE for the returned universities, rendered by the API with its date. */
+    admission_caveats?: string[];
     counts?: {
       reach?: number;
       target?: number;
@@ -1907,7 +1909,7 @@ export function RecommendationPageContent() {
                   ieltsMin: item.ieltsMin,
                   matchingScore: item.matchingScore,
                 }))}
-                caveats={RC1_STANDARD_CAVEATS}
+                caveats={[...RC1_STANDARD_CAVEATS, ...(metadata?.admission_caveats ?? [])]}
               />
             </div>
           </section>
@@ -2562,7 +2564,7 @@ export function RecommendationPageContent() {
                 recommendationConfidence: item.recommendationConfidence,
                 ieltsRequirement: item.ieltsMin,
               }))}
-              caveats={RC1_STANDARD_CAVEATS}
+              caveats={[...RC1_STANDARD_CAVEATS, ...(metadata?.admission_caveats ?? [])]}
             />
 
             <Section

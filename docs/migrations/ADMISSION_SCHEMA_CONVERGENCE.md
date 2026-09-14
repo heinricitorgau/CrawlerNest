@@ -98,7 +98,7 @@ Each phase is independently deployable and independently revertible.
 | 5 | Rename to `warehouse.admission_record`, extract columns, update all call sites | done |
 | 6 | Close the crawler → staging gap | done |
 | 7 | Programme / intake granularity; admission mappings move to `source_university_mapping`; ranking guardrails in the admission resolver | done (schema + resolver) |
-| 8 | Readers stop collapsing rows with `MIN()`; `CAVEAT_IELTS_MISSING` / `CAVEAT_ADMISSION_DATA_STALE` with the fetch date | next |
+| 8 | Readers stop collapsing rows with `MIN()`; `CAVEAT_IELTS_MISSING` / `CAVEAT_ADMISSION_DATA_STALE` with the fetch date | done |
 
 Phase 1 could not stand alone as first planned. Making `source_code` NOT NULL
 and moving the unique constraint breaks both existing writers — their
@@ -436,22 +436,57 @@ upsert into the unified table, rejected mappings retired, rows given
 `canonical_university_id` and a `source_mapping_id` that credits the same
 university or NULL.
 
-Still reading `warehouse.source_mapping`, to move in phase 8:
-`clawer/service/DataQualityService.java` (low-confidence counts — admission rows
-there are now inactive), `crawlernest-autoeval/runners/run_canonical_diagnostics.py`;
-and `crawlernest/scripts/seed_canonical_from_universities.py` still writes it for
-the legacy universities seed.
+`crawlernest/scripts/seed_canonical_from_universities.py` still writes
+`warehouse.source_mapping` for the legacy universities seed. Its readers moved in
+phase 8.
 
-### Before any programme-scoped row is written
+## Phase 8 — readers and admission caveats (landed 2026-09-14)
 
-Seven files collapse admission rows per university with `MIN()` —
-`AdmissionRecordRepository`, `UniversityPreviewRepository`,
+### One rule, in two views
+
+`warehouse.v_admission_requirement_institution` (per university and degree
+level) and `warehouse.v_admission_requirement_summary` (per university), in
+`admission_postgresql.sql`. A university-level figure comes only from rows scoped
+`institution_minimum` or `unspecified`, for the newest intake they state; rows of
+unknown intake count only when none states one. Programme and faculty rows are
+counted (`programme_row_count`), never folded in. Rows that still disagree keep
+the lowest bar and set `values_differ`. `ielts_missing` means no IELTS figure at
+any scope. Staleness columns — `fetch_dates_recorded`, `oldest_fetched_on`,
+`oldest_extracted_on` — cover every row, programme rows included, as UTC dates.
+
+The seven `MIN()` readers now read the views: `AdmissionRecordRepository` (which
+also lists `programmeRequirements`), `UniversityPreviewRepository`,
 `JdbcScopedRankingReadAdapter`, `RecommendationEvidenceService`, the
-`admission_preview_summary` CTE in `recommendation_postgresql.sql`,
-`convergence_preview.py`, `canonical_university_detail_preview.py`. With one row
-per page today they are correct. With several programme rows they would report
-the least demanding programme's IELTS as the university's. Phase 8 must switch
-them to scope-aware reads before any source writes `programme` rows.
+`crawled_admission_summary` CTE of `analytics.v_recommendation_candidates_latest`,
+`convergence_preview.py` and `canonical_university_detail_preview.py`. Row counts
+there still describe every row, which is what they claim.
+`test_admission_readers.py` fails if any live reader aggregates a requirement
+column over the table again. `DataQualityService` and
+`run_canonical_diagnostics.py` read `warehouse.v_entity_mapping` instead of the
+legacy mapping table, whose last live rows phase 7 retired.
+
+**The Java test fixtures carry a copy of both views.** `api-tests.yml` runs the
+Java suite on a bare database built from `*_integration_setup.sql`, so the three
+fixtures that create `admission_record` also add the new columns, the new key and
+the views (between `admission-requirement-views:start/end` markers).
+`test_admission_readers.py` compares the copies to the schema, whitespace-
+normalised. Change a view and copy it across.
+
+### The caveats
+
+`CAVEAT_IELTS_MISSING` (constant) and `CAVEAT_ADMISSION_DATA_STALE` (two
+templates, fetched / undated) are defined in `crawlernest/core/caveats.py`,
+`AnalyticsService.java`, `caveatMessages.ts` and `ANALYTICS_EXPLAINABILITY.md`,
+and `test_caveat_contract.py`, `AdmissionCaveatsTest` and
+`admissionCaveats.test.ts` hold the four together. They reach users through the
+university detail (`admissionRequirements.caveats`), the preview
+(`admissionCaveats`), `/recommendations/explain`, and the recommendation list's
+`metadata.admission_caveats` (staleness only).
+
+Every row today renders the **undated** template, naming the 2026-08-22
+extraction date: the crawler records no fetch time, and snapshot runs extract
+from HTML fetched earlier. Recording `fetched_at` in the crawler is what turns it
+into "fetched on".
 
 ---
 

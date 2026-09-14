@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from crawlernest.core.caveats import admission_caveats
 from crawlernest.pipeline.ranking_scope import DEFAULT_SCOPE_PARAMS, scope_predicate
 from crawlernest_ranking_crawler.normalize import normalize_university_name
 
@@ -45,6 +46,9 @@ class AdmissionSummary:
     best_ielts_requirement: float | None
     best_toefl_requirement: int | None
     latest_extracted_at: str | None
+    #: Rows attributed to a named programme or faculty, never part of the
+    #: best-requirement figures, which are university-level only.
+    programme_row_count: int = 0
 
 
 @dataclass(slots=True)
@@ -64,6 +68,9 @@ class CanonicalUniversityDetailPreview:
     ranking_summary: RankingSummary | None
     admission_summary: AdmissionSummary | None
     data_availability: DataAvailability
+    #: CAVEAT_IELTS_MISSING and CAVEAT_ADMISSION_DATA_STALE. Top-level because
+    #: admission_summary is None exactly when the IELTS caveat applies.
+    admission_caveats: list[str] = field(default_factory=list)
 
 
 def build_canonical_university_detail_preview(
@@ -137,6 +144,9 @@ def build_canonical_university_detail_preview(
                 admission_schema=admission_schema,
                 admission_table=admission_table,
             )
+            caveats = admission_caveats(
+                _load_requirement_summary_row(cur, canonical_university_id=int(resolved_canonical_id))
+            )
     finally:
         conn.close()
 
@@ -168,6 +178,7 @@ def build_canonical_university_detail_preview(
             has_admission_data=admission_summary is not None,
             missing_sections=missing_sections,
         ),
+        admission_caveats=caveats,
     )
 
 
@@ -418,17 +429,27 @@ def _load_admission_summary(
     admission_schema: str,
     admission_table: str,
 ) -> AdmissionSummary | None:
+    """Counts over every admission row; best requirements from the shared rule.
+
+    The best figures come from warehouse.v_admission_requirement_summary --
+    university-level rows, newest stated intake -- the same view the Java
+    preview, the university detail and the recommendation view read. MIN() over
+    the table would quote a programme's bar as the university's.
+    """
     cur.execute(
         f"""
         SELECT
-            COUNT(*)::INTEGER AS row_count,
-            COUNT(DISTINCT source_url)::INTEGER AS source_url_count,
-            ARRAY_REMOVE(ARRAY_AGG(DISTINCT country ORDER BY country), NULL) AS countries,
-            MIN(ielts_requirement) AS best_ielts_requirement,
-            MIN(toefl_requirement)::INTEGER AS best_toefl_requirement,
-            MAX(extracted_at) AS latest_extracted_at
-        FROM {admission_schema}.{admission_table}
-        WHERE canonical_university_id = %s
+            COUNT(ar.*)::INTEGER AS row_count,
+            COUNT(DISTINCT ar.source_url)::INTEGER AS source_url_count,
+            ARRAY_REMOVE(ARRAY_AGG(DISTINCT ar.country ORDER BY ar.country), NULL) AS countries,
+            MAX(s.ielts_requirement) AS best_ielts_requirement,
+            MAX(s.toefl_requirement)::INTEGER AS best_toefl_requirement,
+            MAX(ar.extracted_at) AS latest_extracted_at,
+            COALESCE(MAX(s.programme_row_count), 0)::INTEGER AS programme_row_count
+        FROM {admission_schema}.{admission_table} ar
+        LEFT JOIN warehouse.v_admission_requirement_summary s
+          ON s.canonical_university_id = ar.canonical_university_id
+        WHERE ar.canonical_university_id = %s
         """,
         (canonical_university_id,),
     )
@@ -443,4 +464,30 @@ def _load_admission_summary(
         best_ielts_requirement=None if row[3] is None else float(row[3]),
         best_toefl_requirement=None if row[4] is None else int(row[4]),
         latest_extracted_at=None if row[5] is None else row[5].isoformat(),
+        programme_row_count=int(row[6] or 0),
     )
+
+
+def _load_requirement_summary_row(
+    cur: "psycopg2.extensions.cursor",
+    *,
+    canonical_university_id: int,
+) -> dict[str, Any] | None:
+    """The university's row of v_admission_requirement_summary, or None when it has no admission row."""
+    cur.execute(
+        """
+        SELECT ielts_missing, fetch_dates_recorded, oldest_fetched_on, oldest_extracted_on
+        FROM warehouse.v_admission_requirement_summary
+        WHERE canonical_university_id = %s
+        """,
+        (canonical_university_id,),
+    )
+    row = cur.fetchone()
+    if row is None:
+        return None
+    return {
+        "ielts_missing": row[0],
+        "fetch_dates_recorded": row[1],
+        "oldest_fetched_on": row[2],
+        "oldest_extracted_on": row[3],
+    }

@@ -336,6 +336,140 @@ CREATE INDEX IF NOT EXISTS idx_admission_record_canonical_programme
     ON warehouse.admission_record(canonical_university_id, degree_level, intake_year, requirement_scope);
 
 -- ---------------------------------------------------------
+-- Reading requirements: the one rule every reader uses
+-- ---------------------------------------------------------
+--
+-- Seven readers used to collapse a university's rows with MIN() over the whole
+-- table. With one row per page that was harmless. With programme rows it
+-- reports the least demanding programme's IELTS as the university's, and with
+-- two intakes it mixes this year's bar with last year's. These views are the
+-- rule, stated once, for Java, Python and the recommendation view alike.
+--
+-- A university-level value for a degree level comes only from rows whose scope
+-- is institution_minimum or unspecified -- never programme or faculty rows,
+-- which are counted instead -- and only from the newest intake those rows
+-- state (rows of unknown intake count only when none states one). Where
+-- several such rows still disagree, the lowest bar is kept and values_differ
+-- says so.
+--
+-- Staleness columns cover every row behind a university, programme rows
+-- included, and are dates in UTC so every language renders the same day:
+--   fetch_dates_recorded  every row carries fetched_at
+--   oldest_fetched_on     the oldest of those fetches
+--   oldest_extracted_on   the oldest extraction, the only date when fetches
+--                         were not recorded
+-- crawlernest/core/caveats.py admission_stale_caveat() turns them into
+-- CAVEAT_ADMISSION_DATA_STALE; ANALYTICS_EXPLAINABILITY.md states the rule.
+CREATE OR REPLACE VIEW warehouse.v_admission_requirement_institution AS
+WITH scoped AS (
+    SELECT
+        ar.*,
+        ar.requirement_scope IN ('institution_minimum', 'unspecified') AS applies_to_institution,
+        MAX(ar.intake_year) FILTER (
+            WHERE ar.requirement_scope IN ('institution_minimum', 'unspecified')
+        ) OVER (PARTITION BY ar.canonical_university_id, ar.degree_level) AS newest_institution_intake
+    FROM warehouse.admission_record ar
+    WHERE ar.canonical_university_id IS NOT NULL
+),
+institution AS (
+    SELECT
+        canonical_university_id,
+        degree_level,
+        MIN(ielts_requirement) AS ielts_requirement,
+        MIN(toefl_requirement) AS toefl_requirement,
+        MIN(duolingo_requirement) AS duolingo_requirement,
+        MIN(gpa_requirement) AS gpa_requirement,
+        MIN(application_deadline) AS application_deadline,
+        MIN(source_url) AS source_url,
+        COUNT(*)::integer AS institution_row_count,
+        COUNT(ielts_requirement)::integer AS institution_ielts_row_count,
+        (
+            COUNT(DISTINCT ielts_requirement) > 1
+            OR COUNT(DISTINCT toefl_requirement) > 1
+            OR COUNT(DISTINCT duolingo_requirement) > 1
+            OR COUNT(DISTINCT gpa_requirement) > 1
+        ) AS values_differ,
+        CASE
+            WHEN bool_and(requirement_scope = 'institution_minimum') THEN 'institution_minimum'
+            ELSE 'unspecified'
+        END AS requirement_scope,
+        MAX(intake_year) AS intake_year,
+        CASE
+            WHEN MAX(intake_year) IS NULL THEN 'unknown'
+            WHEN bool_and(intake_year_basis = 'page_stated') THEN 'page_stated'
+            ELSE 'deadline_inferred'
+        END AS intake_year_basis,
+        bool_and(fetched_at IS NOT NULL) AS fetch_dates_recorded,
+        (MIN(fetched_at) AT TIME ZONE 'UTC')::date AS oldest_fetched_on,
+        (MIN(extracted_at) AT TIME ZONE 'UTC')::date AS oldest_extracted_on
+    FROM scoped
+    WHERE applies_to_institution
+      AND intake_year IS NOT DISTINCT FROM newest_institution_intake
+    GROUP BY canonical_university_id, degree_level
+),
+programme AS (
+    SELECT
+        canonical_university_id,
+        degree_level,
+        COUNT(*)::integer AS programme_row_count,
+        COUNT(ielts_requirement)::integer AS programme_ielts_row_count,
+        bool_and(fetched_at IS NOT NULL) AS fetch_dates_recorded,
+        (MIN(fetched_at) AT TIME ZONE 'UTC')::date AS oldest_fetched_on,
+        (MIN(extracted_at) AT TIME ZONE 'UTC')::date AS oldest_extracted_on
+    FROM scoped
+    WHERE NOT applies_to_institution
+    GROUP BY canonical_university_id, degree_level
+)
+SELECT
+    canonical_university_id,
+    degree_level,
+    i.ielts_requirement,
+    i.toefl_requirement,
+    i.duolingo_requirement,
+    i.gpa_requirement,
+    i.application_deadline,
+    i.source_url,
+    COALESCE(i.institution_row_count, 0) AS institution_row_count,
+    COALESCE(i.institution_ielts_row_count, 0) AS institution_ielts_row_count,
+    COALESCE(i.values_differ, FALSE) AS values_differ,
+    i.requirement_scope,
+    i.intake_year,
+    COALESCE(i.intake_year_basis, 'unknown') AS intake_year_basis,
+    COALESCE(p.programme_row_count, 0) AS programme_row_count,
+    COALESCE(p.programme_ielts_row_count, 0) AS programme_ielts_row_count,
+    COALESCE(i.fetch_dates_recorded, TRUE) AND COALESCE(p.fetch_dates_recorded, TRUE) AS fetch_dates_recorded,
+    LEAST(i.oldest_fetched_on, p.oldest_fetched_on) AS oldest_fetched_on,
+    LEAST(i.oldest_extracted_on, p.oldest_extracted_on) AS oldest_extracted_on
+FROM institution i
+FULL OUTER JOIN programme p USING (canonical_university_id, degree_level);
+
+-- One row per university. Values are the lowest bar across degree levels --
+-- "could I get in anywhere here", which degree_level_count qualifies -- and
+-- ielts_missing is the trigger for CAVEAT_IELTS_MISSING: no stored IELTS figure
+-- at any scope. A university with no admission row at all is absent, and a
+-- reader treats absence as missing too.
+CREATE OR REPLACE VIEW warehouse.v_admission_requirement_summary AS
+SELECT
+    canonical_university_id,
+    MIN(ielts_requirement) AS ielts_requirement,
+    MIN(toefl_requirement) AS toefl_requirement,
+    MIN(duolingo_requirement) AS duolingo_requirement,
+    MIN(gpa_requirement) AS gpa_requirement,
+    MIN(application_deadline) AS application_deadline,
+    COUNT(*) FILTER (WHERE institution_row_count > 0)::integer AS degree_level_count,
+    SUM(institution_row_count)::integer AS institution_row_count,
+    SUM(institution_ielts_row_count)::integer AS institution_ielts_row_count,
+    SUM(programme_row_count)::integer AS programme_row_count,
+    SUM(programme_ielts_row_count)::integer AS programme_ielts_row_count,
+    bool_or(values_differ) AS values_differ,
+    (SUM(institution_ielts_row_count) + SUM(programme_ielts_row_count)) = 0 AS ielts_missing,
+    bool_and(fetch_dates_recorded) AS fetch_dates_recorded,
+    MIN(oldest_fetched_on) AS oldest_fetched_on,
+    MIN(oldest_extracted_on) AS oldest_extracted_on
+FROM warehouse.v_admission_requirement_institution
+GROUP BY canonical_university_id;
+
+-- ---------------------------------------------------------
 -- Admission mappings move to warehouse.source_university_mapping
 -- ---------------------------------------------------------
 --

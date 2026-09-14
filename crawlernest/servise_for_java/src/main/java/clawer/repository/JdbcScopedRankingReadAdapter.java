@@ -245,16 +245,18 @@ public class JdbcScopedRankingReadAdapter implements ScopedRankingReadAdapter {
         String canonicalCountrySql = CountryNormalization.canonicalCountrySqlExpression("c.country_name");
         StringBuilder sql = new StringBuilder("""
                 WITH admission_summary AS (
+                    -- University-level requirements only, newest stated intake:
+                    -- the rule v_admission_requirement_summary holds for every
+                    -- reader. MIN() over admission_record would rank a student
+                    -- against the least demanding programme once programme rows exist.
                     SELECT
-                        ar.canonical_university_id,
-                        MIN(ar.ielts_requirement) AS ielts_min,
-                        MIN(ar.toefl_requirement) AS toefl_min,
-                        MIN(ar.duolingo_requirement) AS duolingo_min,
-                        MIN(ar.gpa_requirement) AS gpa_min,
-                        MIN(ar.application_deadline) AS application_deadline
-                    FROM warehouse.admission_record ar
-                    WHERE ar.canonical_university_id IS NOT NULL
-                    GROUP BY ar.canonical_university_id
+                        s.canonical_university_id,
+                        s.ielts_requirement AS ielts_min,
+                        s.toefl_requirement AS toefl_min,
+                        s.duolingo_requirement AS duolingo_min,
+                        s.gpa_requirement AS gpa_min,
+                        s.application_deadline
+                    FROM warehouse.v_admission_requirement_summary s
                 ),
                 global_reference AS (
                     SELECT

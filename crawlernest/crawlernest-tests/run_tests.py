@@ -147,6 +147,9 @@ def run_all_tests():
         # unified mapping table with the ranking pipeline's guardrails.
         "test_admission_programme_granularity",
         "test_admission_resolver_pg",
+        # Readers through v_admission_requirement_*, fixture copies of the views,
+        # and the admission caveats; the rule itself is PostgreSQL-only.
+        "test_admission_readers",
         # Cross-year rank movement, settled before a second year is ingested:
         # withheld for today's single-year dataset, intervals for banded ranks,
         # and no delta across a change of source identity.

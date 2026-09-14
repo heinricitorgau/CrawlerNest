@@ -41,10 +41,13 @@ def _rows(conn, sql: str, params=None) -> list[tuple]:
 
 
 def get_low_confidence_matches(conn, threshold: float = 0.80) -> list[dict[str, Any]]:
+    # warehouse.v_entity_mapping covers every source's mappings. The legacy
+    # warehouse.source_mapping lost its last live rows when admission mappings
+    # moved to source_university_mapping, so reading it reports nothing.
     rows = _rows(conn, """
-        SELECT sm.source_name, sm.confidence_score, sm.match_method,
+        SELECT sm.source_code, sm.confidence_score, sm.match_method,
                cu.canonical_slug, cu.display_name
-        FROM warehouse.source_mapping sm
+        FROM warehouse.v_entity_mapping sm
         JOIN warehouse.canonical_university cu
           ON cu.canonical_university_id = sm.canonical_university_id
         WHERE sm.confidence_score < %s
@@ -87,14 +90,14 @@ def get_canonical_collisions(conn) -> list[dict[str, Any]]:
     """Find canonical slugs that are mapped from multiple distinct source entities."""
     rows = _rows(conn, """
         SELECT cu.canonical_slug, cu.display_name,
-               COUNT(DISTINCT sm.source_name || ':' || sm.source_entity_id) AS source_entity_count,
-               STRING_AGG(DISTINCT sm.source_name, ', ' ORDER BY sm.source_name) AS sources
-        FROM warehouse.source_mapping sm
+               COUNT(DISTINCT sm.source_code || ':' || sm.source_entity_id) AS source_entity_count,
+               STRING_AGG(DISTINCT sm.source_code, ', ' ORDER BY sm.source_code) AS sources
+        FROM warehouse.v_entity_mapping sm
         JOIN warehouse.canonical_university cu
           ON cu.canonical_university_id = sm.canonical_university_id
         WHERE sm.is_active = TRUE
         GROUP BY cu.canonical_slug, cu.display_name
-        HAVING COUNT(DISTINCT sm.source_name || ':' || sm.source_entity_id) > 3
+        HAVING COUNT(DISTINCT sm.source_code || ':' || sm.source_entity_id) > 3
         ORDER BY source_entity_count DESC
         LIMIT 20
     """)

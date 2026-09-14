@@ -78,8 +78,36 @@ export const CAVEAT_SUBJECT_NO_DATA =
 export const CAVEAT_SUBJECT_QS_ONLY =
   "Subject rankings are QS-sourced only. THE and ARWU subject data is not available.";
 
-export const CAVEAT_ADMISSION_DATA_STALE =
-  "Admission requirements are scraped and may not reflect the current year's entry conditions.";
+/**
+ * CAVEAT_ADMISSION_DATA_STALE names a date, so it is a pair of templates rather
+ * than a constant. Byte-identical to ADMISSION_STALE_*_TEMPLATE in
+ * crawlernest/core/caveats.py and AnalyticsService.java. The API renders these;
+ * the frontend renders only when it holds the staleness fields itself.
+ */
+export const ADMISSION_STALE_FETCHED_TEMPLATE =
+  "Admission requirements were read from university pages fetched on {date} and may not reflect the current year's entry conditions.";
+
+export const ADMISSION_STALE_UNDATED_TEMPLATE =
+  "Admission requirements were read from university pages whose fetch date was not recorded. They were extracted on {date}, the pages may be older than that, and they may not reflect the current year's entry conditions.";
+
+/**
+ * The staleness disclosure for the admission rows behind a view: every fetch
+ * date recorded, the oldest fetch, the oldest extraction (UTC ISO dates).
+ * Null when there is no admission data. Same rule as admission_stale_caveat.
+ */
+export function admissionStaleCaveat(staleness: {
+  fetchDatesRecorded: boolean;
+  oldestFetchedOn: string | null;
+  oldestExtractedOn: string | null;
+}): string | null {
+  if (staleness.fetchDatesRecorded && staleness.oldestFetchedOn) {
+    return ADMISSION_STALE_FETCHED_TEMPLATE.replace("{date}", staleness.oldestFetchedOn.slice(0, 10));
+  }
+  if (staleness.oldestExtractedOn) {
+    return ADMISSION_STALE_UNDATED_TEMPLATE.replace("{date}", staleness.oldestExtractedOn.slice(0, 10));
+  }
+  return null;
+}
 
 /**
  * Disclosure for any surface showing a value from the modelling layer.
