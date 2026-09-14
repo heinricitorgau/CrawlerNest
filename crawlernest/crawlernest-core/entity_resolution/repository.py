@@ -17,6 +17,14 @@ class EntityResolutionRepository:
         self.conn = conn
 
     def load_canonical_profiles(self) -> list[CanonicalProfile]:
+        """Every university a name may resolve to.
+
+        Only active ones. A duplicate merged into another keeps its row, because
+        historical ML runs and the legacy link table still reference it, but
+        its status becomes 'merged' and its names move to the survivor as
+        aliases. Offering it here as well would give the resolver two
+        candidates for one institution, which is the split the merge undid.
+        """
         with self.conn.cursor() as cur:
             cur.execute(
                 """
@@ -33,6 +41,7 @@ class EntityResolutionRepository:
                     ON c.country_id = cu.country_id
                 LEFT JOIN warehouse.university_alias ua
                     ON ua.canonical_university_id = cu.canonical_university_id
+                WHERE cu.status = 'active'
                 GROUP BY cu.canonical_university_id, cu.display_name, c.country_name
                 """
             )

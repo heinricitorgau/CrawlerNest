@@ -247,6 +247,66 @@ class TestIngestIsIdempotent(unittest.TestCase):
             ranks = [r[0] for r in cur.fetchall()]
         self.assertEqual(ranks, [7])
 
+    def test_a_second_spelling_does_not_move_a_mapped_entity(self):
+        """QS printed one entity two ways and the mapping flipped between two universities."""
+        from crawlernest.pipeline.commands.canonical import ingest_rankings_payload
+        from multi_source.continuity import MappingReassignmentError
+        from multi_source.repository import MultiSourceRepository
+        from multi_source.types import UnifiedRankingRecord
+
+        entity = f"idem:{ISOLATED_YEAR}:one-entity"
+        first, second = FIXTURE_UNIVERSITIES[0][1], FIXTURE_UNIVERSITIES[1][1]
+        for name, batch in ((first, "spelling-a"), (second, "spelling-b")):
+            ingest_rankings_payload(
+                source=SOURCE,
+                payload=[dict(_record(name, 1), id=entity)],
+                ranking_year=ISOLATED_YEAR,
+                ranking_type="world",
+                source_version=None,
+                pg_host=self.dsn["host"],
+                pg_port=self.dsn["port"],
+                pg_database=self.dsn["database"],
+                pg_user=self.dsn["user"],
+                pg_password=self.dsn["password"],
+                batch_id=batch,
+            )
+
+        with self.conn.cursor() as cur:
+            cur.execute(
+                "SELECT cu.canonical_slug, m.metadata -> 'mapping_continuity' ->> 'reason'"
+                " FROM warehouse.source_university_mapping m"
+                " JOIN warehouse.canonical_university cu USING (canonical_university_id)"
+                " WHERE m.source_entity_id = %s",
+                (entity,),
+            )
+            mapping = cur.fetchall()
+            cur.execute(
+                "SELECT cu.canonical_slug FROM warehouse.ranking_record rr"
+                " JOIN warehouse.canonical_university cu USING (canonical_university_id)"
+                " WHERE rr.ranking_year = %s",
+                (ISOLATED_YEAR,),
+            )
+            ranked = [r[0] for r in cur.fetchall()]
+            cur.execute(
+                "SELECT canonical_university_id FROM warehouse.canonical_university WHERE canonical_slug = %s",
+                (FIXTURE_UNIVERSITIES[1][0],),
+            )
+            other_id = cur.fetchone()[0]
+            cur.execute("SELECT ranking_source_id FROM warehouse.ranking_source WHERE source_code = %s", (SOURCE,))
+            source_id = cur.fetchone()[0]
+
+        self.assertEqual([(FIXTURE_UNIVERSITIES[0][0], "existing_mapping")], mapping)
+        self.assertEqual([FIXTURE_UNIVERSITIES[0][0]], ranked, "the rank followed the second spelling")
+
+        repo = MultiSourceRepository(self.conn)
+        moved = UnifiedRankingRecord(
+            canonical_university_id=other_id, source=SOURCE, source_entity_id=entity, rank=1, score=None,
+            year=ISOLATED_YEAR, ranking_type="world", matched_alias=None, confidence_score=1.0,
+            matching_method="exact",
+        )
+        with self.assertRaises(MappingReassignmentError):
+            repo.upsert_source_university_mappings([moved], {SOURCE: source_id})
+
 
 if __name__ == "__main__":
     unittest.main()

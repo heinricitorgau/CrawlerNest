@@ -34,9 +34,16 @@ class FakeMultiSourceRepository:
         self.deactivated_keys = []
         #: Source codes the pipeline asked for reviews under.
         self.review_lookup_codes = []
+        #: Active warehouse.source_university_mapping rows, keyed
+        #: (source_code, source_entity_id). Empty: nothing mapped yet.
+        self.existing_mappings = {}
 
     def upsert_ranking_sources(self, sources):
         return {code: idx for idx, (code, _, _) in enumerate(sources, start=1)}
+
+    def load_active_mappings(self, keys, source_id_map):
+        wanted = set(keys)
+        return {key: value for key, value in self.existing_mappings.items() if key in wanted}
 
     def load_mapping_reviews(self, source_codes):
         # The real repository queries warehouse.mapping_review by source_code.
@@ -606,6 +613,142 @@ class TestReappearedReviewsStopTheRun(unittest.TestCase):
         self.assertEqual(1, summary.mapping_reviews["unapplied_review_count"])
         self.assertIn("ARWU:arwu:2026:cambridge", "\n".join(logs.output),
                       "an unapplied decision is allowed through, but never quietly")
+
+
+class TestAMappedEntityKeepsItsUniversity(unittest.TestCase):
+    """
+    QS prints /universities/istanbul-bilgi-university as "İstanbul Bilgi
+    University" in its world table and "Istanbul Bilgi Üniversitesi" in its MBA
+    table. With a duplicate canonical for each spelling, every ingest used to
+    overwrite the one mapping row, so the MBA rank landed on a different
+    university from the world rank.
+    """
+
+    ENTITY = "/universities/istanbul-bilgi-university"
+
+    def _pipeline(self):
+        resolver = EntityResolver(
+            [
+                CanonicalProfile(canonical_university_id=365697, display_name="İstanbul Bilgi University", country_hint="turkey"),
+                CanonicalProfile(canonical_university_id=1240, display_name="Istanbul Bilgi Üniversitesi", country_hint="turkey"),
+            ]
+        )
+        repo = FakeMultiSourceRepository()
+        agg_repo = FakeAggregationRepository()
+        return MultiSourceRankingPipeline(resolver=resolver, multi_source_repo=repo, aggregation_repo=agg_repo), repo
+
+    def _mba_row(self):
+        return StandardizedRankingRecord(
+            "QS", self.ENTITY, "Istanbul Bilgi Üniversitesi", "Turkey", 2026, "world", 57, None,
+            universe_type="special", universe_key="mba",
+        )
+
+    def _world_row(self):
+        return StandardizedRankingRecord("QS", self.ENTITY, "İstanbul Bilgi University", "Turkey", 2026, "world", 1201, None)
+
+    def test_the_resolver_cannot_move_a_mapped_entity(self):
+        from multi_source.continuity import ExistingMapping
+
+        pipeline, repo = self._pipeline()
+        repo.existing_mappings = {("QS", self.ENTITY): ExistingMapping(365697, "exact", 1.0)}
+
+        with self.assertLogs("MultiSourceRankingPipeline", level="WARNING") as logs:
+            summary = pipeline.ingest_records([self._mba_row()], batch_id="mba", run_label_prefix="t")
+
+        self.assertEqual({365697}, {row.canonical_university_id for row in repo.unified_rows})
+        held = repo.unified_rows[0]
+        self.assertEqual(1240, held.metadata["mapping_continuity"]["resolver_canonical_university_id"])
+        self.assertEqual("exact", held.matching_method, "the kept mapping's method, not the overruled one's")
+        self.assertEqual(1, summary.mapping_continuity["entities_held"])
+        self.assertIn("mapping_review", "\n".join(logs.output), "a held disagreement is never quiet")
+
+    def test_an_unresolved_row_stays_on_its_mapping(self):
+        from multi_source.continuity import ExistingMapping
+
+        pipeline, repo = self._pipeline()
+        repo.existing_mappings = {("QS", "/universities/renamed"): ExistingMapping(365697, "exact", 1.0)}
+        row = StandardizedRankingRecord("QS", "/universities/renamed", "Nothing Like Any Name", "Turkey", 2026, "world", 900, None)
+
+        with self.assertLogs("MultiSourceRankingPipeline", level="INFO") as logs:
+            summary = pipeline.ingest_records([row], batch_id="renamed", run_label_prefix="t")
+
+        # Not a disagreement, so a summary line rather than a warning per entity.
+        self.assertFalse([line for line in logs.output if line.startswith("WARNING")], logs.output)
+
+        self.assertEqual(1, summary.matched_count)
+        self.assertEqual([365697], [r.canonical_university_id for r in repo.unified_rows])
+
+    def test_one_batch_cannot_split_an_entity(self):
+        pipeline, repo = self._pipeline()
+        with self.assertLogs("MultiSourceRankingPipeline", level="WARNING"):
+            summary = pipeline.ingest_records([self._world_row(), self._mba_row()], batch_id="both", run_label_prefix="t")
+
+        self.assertEqual(1, len({row.canonical_university_id for row in repo.unified_rows}))
+        self.assertEqual("split_within_batch", summary.mapping_continuity["held"][0]["reason"])
+
+    def test_a_human_remap_still_moves_the_entity(self):
+        from multi_source.continuity import ExistingMapping
+
+        pipeline, repo = self._pipeline()
+        repo.existing_mappings = {("QS", self.ENTITY): ExistingMapping(1240, "exact", 1.0)}
+        repo.mapping_reviews = {
+            ("QS", self.ENTITY): MappingReview(
+                source_code="QS", source_entity_id=self.ENTITY, decision="remapped",
+                decided_canonical_university_id=365697, decided_by="reviewer",
+            )
+        }
+
+        summary = pipeline.ingest_records([self._mba_row()], batch_id="remap", run_label_prefix="t")
+
+        self.assertEqual([365697], [row.canonical_university_id for row in repo.unified_rows])
+        self.assertEqual(0, summary.mapping_continuity["entities_held"])
+
+    def test_agreement_changes_nothing(self):
+        from multi_source.continuity import ExistingMapping
+
+        pipeline, repo = self._pipeline()
+        repo.existing_mappings = {("QS", self.ENTITY): ExistingMapping(365697, "exact", 1.0)}
+        summary = pipeline.ingest_records([self._world_row()], batch_id="world", run_label_prefix="t")
+
+        self.assertEqual(0, summary.mapping_continuity["rows_held"])
+        self.assertNotIn("mapping_continuity", repo.unified_rows[0].metadata)
+
+
+class TestTheMappingUpsertRefusesSilentReassignment(unittest.TestCase):
+    """The repository's own guard, for callers that never go through the pipeline."""
+
+    def _row(self, canonical_id, method="exact"):
+        from multi_source.types import UnifiedRankingRecord
+
+        return UnifiedRankingRecord(
+            canonical_university_id=canonical_id, source="QS", source_entity_id="/universities/x",
+            rank=1, score=None, year=2026, ranking_type="world", matched_alias=None,
+            confidence_score=1.0, matching_method=method,
+        )
+
+    def test_reassignment_is_found_and_human_decisions_are_exempt(self):
+        from multi_source.continuity import ExistingMapping, find_reassignments
+
+        existing = {("QS", "/universities/x"): ExistingMapping(1240)}
+        self.assertEqual(
+            [("QS", "/universities/x", 1240, 365697, "exact")],
+            find_reassignments([self._row(365697)], existing),
+        )
+        self.assertEqual([], find_reassignments([self._row(365697, "human_remapped")], existing))
+        self.assertEqual([], find_reassignments([self._row(1240)], existing))
+
+    def test_the_repository_raises_before_writing(self):
+        from multi_source.continuity import ExistingMapping, MappingReassignmentError
+        from multi_source.repository import MultiSourceRepository
+
+        class NoWriteConnection:
+            def cursor(self):
+                raise AssertionError("no SQL may run once the reassignment is detected")
+
+        repo = MultiSourceRepository(NoWriteConnection())
+        repo.load_active_mappings = lambda keys, source_id_map: {("QS", "/universities/x"): ExistingMapping(1240)}
+        with self.assertRaisesRegex(MappingReassignmentError, "mapped to 1240, write says 365697"):
+            repo.upsert_source_university_mappings([self._row(365697)], {"QS": 1})
 
 
 if __name__ == "__main__":

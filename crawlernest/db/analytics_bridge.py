@@ -365,6 +365,10 @@ def _seed_canonical_universities(cur: Any) -> int:
 
 
 def _seed_canonical_university_links(cur: Any) -> int:
+    # A legacy university whose slug canonical was merged into another links to
+    # the survivor. _seed_canonical_universities keeps upserting the merged row
+    # by slug (status and merged_into survive its metadata ||), so linking by
+    # slug alone would undo the merge on every pipeline run.
     cur.execute(
         """
         WITH upserted AS (
@@ -377,7 +381,11 @@ def _seed_canonical_university_links(cur: Any) -> int:
                 metadata
             )
             SELECT
-                cu.canonical_university_id,
+                CASE
+                    WHEN cu.status = 'merged' AND cu.metadata ? 'merged_into'
+                        THEN (cu.metadata ->> 'merged_into')::bigint
+                    ELSE cu.canonical_university_id
+                END,
                 u.university_id,
                 'legacy_bridge',
                 1.0000,

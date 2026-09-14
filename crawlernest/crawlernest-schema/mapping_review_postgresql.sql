@@ -4,9 +4,13 @@
 --
 -- A reviewer's decision deliberately does NOT live on
 -- warehouse.source_university_mapping. That table is pipeline-owned and its
--- upsert overwrites canonical_university_id, match_method, confidence_score
--- and metadata on every ingest, so a decision stored there would survive
--- exactly until the next run-the-rankings -- silently, with no error.
+-- upsert overwrites match_method, confidence_score and metadata on every
+-- ingest, so a decision stored there would survive exactly until the next
+-- run-the-rankings -- silently, with no error.
+--
+-- canonical_university_id is the exception: since 2026-09-14 an active
+-- mapping keeps its university and the upsert refuses to move it (see
+-- multi_source/continuity.py). A remap filed here is the one thing that does.
 --
 -- Nor is `is_active = FALSE` a rejection: nothing in the aggregation path
 -- reads that column. The credit a university gets for a source comes from

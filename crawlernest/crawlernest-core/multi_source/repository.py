@@ -5,6 +5,7 @@ from typing import Any, Sequence
 
 from ranking_aggregation.types import RankingRecordInput
 
+from .continuity import ExistingMapping, MappingReassignmentError, find_reassignments
 from .integrator import IntegrationDiagnostics
 from .reviews import MappingReview
 from .types import StandardizedRankingRecord, UnifiedRankingRecord
@@ -148,7 +149,60 @@ class MultiSourceRepository:
             reviews[review.key] = review
         return reviews
 
+    def load_active_mappings(
+        self,
+        keys: Sequence[tuple[str, str]],
+        source_id_map: dict[str, int],
+    ) -> dict[tuple[str, str], ExistingMapping]:
+        """The active mapping for each (source_code, source_entity_id) that has one."""
+        code_by_id = {int(source_id): code for code, source_id in source_id_map.items()}
+        pairs = sorted({(source_id_map[code], str(entity_id)) for code, entity_id in keys if code in source_id_map})
+        if not pairs:
+            return {}
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT m.ranking_source_id, m.source_entity_id, m.canonical_university_id,
+                       m.match_method, m.confidence_score
+                FROM warehouse.source_university_mapping m
+                JOIN unnest(%s::smallint[], %s::text[]) AS k(ranking_source_id, source_entity_id)
+                  ON k.ranking_source_id = m.ranking_source_id
+                 AND k.source_entity_id = m.source_entity_id
+                WHERE m.is_active
+                """,
+                ([source_id for source_id, _ in pairs], [entity_id for _, entity_id in pairs]),
+            )
+            rows = cur.fetchall()
+        return {
+            (code_by_id[int(source_id)], str(entity_id)): ExistingMapping(
+                canonical_university_id=int(canonical_id),
+                match_method=None if method is None else str(method),
+                confidence_score=None if confidence is None else float(confidence),
+            )
+            for source_id, entity_id, canonical_id, method, confidence in rows
+            if int(source_id) in code_by_id
+        }
+
     def upsert_source_university_mappings(self, unified_rows: list[UnifiedRankingRecord], source_id_map: dict[str, int]) -> None:
+        """
+        Write this batch's mappings.
+
+        Refuses, before writing anything, to move an active mapping to another
+        university unless the row carries a human decision. The conflict clause
+        repeats that rule, so a mapping moved by a concurrent writer between the
+        check and the write is left alone rather than overwritten. See
+        multi_source/continuity.py for why an entity's id outranks its name.
+        """
+        reassignments = find_reassignments(
+            unified_rows,
+            self.load_active_mappings(
+                [(row.source, row.source_entity_id) for row in unified_rows if row.canonical_university_id is not None],
+                source_id_map,
+            ),
+        )
+        if reassignments:
+            raise MappingReassignmentError(reassignments)
+
         params: list[tuple[Any, ...]] = []
         for row in unified_rows:
             if row.canonical_university_id is None:
@@ -186,6 +240,9 @@ class MultiSourceRepository:
                     -- later confirm or remap.
                     is_active = TRUE,
                     last_seen_at = CURRENT_TIMESTAMP
+                WHERE warehouse.source_university_mapping.canonical_university_id = EXCLUDED.canonical_university_id
+                   OR NOT warehouse.source_university_mapping.is_active
+                   OR EXCLUDED.match_method IN ('human_confirmed', 'human_remapped')
                 """,
                 params,
             )
