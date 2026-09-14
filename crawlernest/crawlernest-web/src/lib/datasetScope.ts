@@ -8,7 +8,7 @@
  */
 
 /** Every ranking edition the warehouse holds, newest first. */
-export const DATASET_YEARS: readonly number[] = [2026];
+export const DATASET_YEARS: readonly number[] = [2026, 2025];
 
 /** The year a query uses when the caller names none: the newest edition held. */
 export const DEFAULT_RANKING_YEAR: number = Math.max(...DATASET_YEARS);

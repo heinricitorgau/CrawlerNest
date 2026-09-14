@@ -46,7 +46,13 @@ from __future__ import annotations
 
 #: Every ranking edition the warehouse holds, newest first. Membership here is
 #: what "we have that year" means; nothing else should decide it.
-DATASET_YEARS: tuple[int, ...] = (2026,)
+#:
+#: 2025 released 2026-09-14, after its shadow ingest was audited unreachable from
+#: every serving surface. Every 2025 and 2026 world-ranking row was crawled
+#: through crawlernest-jobs/ranking_edition.py, which proves the edition from the
+#: page that names it -- the check whose absence had stored the QS 2027 table as
+#: 2026.
+DATASET_YEARS: tuple[int, ...] = (2026, 2025)
 
 #: The year a query uses when the caller names none: the newest edition held.
 DEFAULT_RANKING_YEAR: int = max(DATASET_YEARS)
