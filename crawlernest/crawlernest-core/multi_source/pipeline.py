@@ -9,6 +9,7 @@ from ranking_aggregation import RankingRecordInput, RankingAggregator, default_a
 from ranking_aggregation.config import AggregationConfig
 from ranking_aggregation.repository import RankingAggregationRepository
 
+from .continuity import apply_mapping_continuity
 from .integrator import IntegrationDiagnostics, integrate_sources
 from .repository import MultiSourceRepository
 from .reviews import MappingReviewApplication, apply_mapping_reviews, refuse_reappeared_reviews
@@ -47,6 +48,8 @@ class MultiSourceIngestionSummary:
     aggregated_row_count: int = 0
     # A human override that nobody can see is worse than no override at all.
     mapping_reviews: dict[str, object] = field(default_factory=dict)
+    # Entities kept on their existing mapping against the resolver's answer.
+    mapping_continuity: dict[str, object] = field(default_factory=dict)
 
 
 class MultiSourceRankingPipeline:
@@ -159,6 +162,41 @@ class MultiSourceRankingPipeline:
                 review_application.rejected,
             )
 
+        # An entity already mapped stays on that university: the source's id
+        # outranks the name it printed this time. Only a human remap, applied
+        # above, moves it. Without this a source that spells one entity two ways
+        # flips its mapping, and its ranks, on every other ingest.
+        existing_mappings = self.multi_source_repo.load_active_mappings(
+            [(row.source, row.source_entity_id) for row in unified_rows], source_id_map
+        )
+        unified_rows, continuity = apply_mapping_continuity(unified_rows, existing_mappings)
+        # A name the resolver could not read at all is not a disagreement: QS's
+        # MBA table prints "Curtin Business School" under
+        # /universities/curtin-university, and 39 such rows used to be dropped
+        # as unresolved. One summary line for those; a warning per entity only
+        # where the resolver named a different university.
+        unread = [c for c in continuity.conflicts if c.resolver_canonical_university_id is None]
+        if unread:
+            logger.info(
+                "kept %s entities on their existing mapping although the resolver could not match the printed name: %s%s",
+                len(unread),
+                ", ".join(f"{c.source_code}:{c.source_entity_id}" for c in unread[:5]),
+                " ..." if len(unread) > 5 else "",
+            )
+        for conflict in continuity.conflicts:
+            if conflict.resolver_canonical_university_id is None:
+                continue
+            logger.warning(
+                "kept %s %s on canonical %s; the resolver matched it to %s by %s (%s). "
+                "File a remap in warehouse.mapping_review if the resolver is right.",
+                conflict.source_code,
+                conflict.source_entity_id,
+                conflict.kept_canonical_university_id,
+                conflict.resolver_canonical_university_id,
+                conflict.resolver_method,
+                conflict.reason,
+            )
+
         if batch_id and not allow_shrink:
             self._refuse_shrinking_batch(unified_rows, source_id_map, ranking_type)
 
@@ -247,6 +285,7 @@ class MultiSourceRankingPipeline:
             years_aggregated=aggregated_years,
             aggregated_row_count=aggregated_row_count,
             mapping_reviews=review_application.to_dict(),
+            mapping_continuity=continuity.to_dict(),
         )
         universe_counts: dict[tuple[int, str, str], int] = {}
         for row in unified_rows:

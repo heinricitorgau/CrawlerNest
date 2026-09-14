@@ -112,6 +112,7 @@ def run_all_tests():
         # Need PostgreSQL; skip themselves unless CRAWLERNEST_RUN_PG_TESTS=1.
         "test_analytics_bridge_prune",
         "test_ingest_idempotency",
+        "test_merged_canonical_pg",
         "test_pairing_matches_warehouse",
         # The 2026 single-year dataset declaration: that the explainers put it
         # in front of the model, and that the query defaults still agree with

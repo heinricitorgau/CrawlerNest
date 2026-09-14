@@ -22,6 +22,15 @@ one-to-one. This inserts one row per distinct snapshot name and makes no
 attempt to merge anything, so a database seeded this way is fine for exercising
 the serving path and wrong for anything that depends on canonical identity.
 Idempotent: re-running inserts nothing new.
+
+**It refuses a warehouse that already has canonical universities** unless given
+``--allow-populated-warehouse``. Its only dedupe is the slug, so against a real
+warehouse it adds a second canonical for every university the pipeline stored
+under another spelling. That happened on the live database on 2026-09-04: 2,310
+canonicals in one statement, which the resolver then matched by name. QS's MBA
+table spells İstanbul Bilgi "Istanbul Bilgi Üniversitesi" and its world table
+"İstanbul Bilgi University", so one QS entity ended up ranked on two
+universities.
 """
 
 from __future__ import annotations
@@ -43,9 +52,27 @@ def slugify(name: str) -> str:
     return re.sub(r"[^0-9a-z]+", "-", str(name).lower()).strip("-")
 
 
+def refusal_reason(existing_canonicals: int, allow_populated: bool) -> str | None:
+    """Why seeding must not run, or None when it may."""
+    if existing_canonicals == 0 or allow_populated:
+        return None
+    return (
+        f"warehouse.canonical_university already holds {existing_canonicals} rows. This script "
+        "dedupes by slug only, so against a populated warehouse it creates a duplicate canonical "
+        "for every university stored under another spelling, and the resolver then splits "
+        "sources between them. It is for an empty CI or scratch database. Pass "
+        "--allow-populated-warehouse only if you know every snapshot name is already canonical."
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Seed canonical universities from the snapshot.")
     parser.add_argument("--snapshot", default=str(DEFAULT_SNAPSHOT))
+    parser.add_argument(
+        "--allow-populated-warehouse",
+        action="store_true",
+        help="seed even though canonical_university already has rows (creates duplicates; see module docstring)",
+    )
     parser.add_argument("--pg-host", default="localhost")
     parser.add_argument("--pg-port", type=int, default=5432)
     parser.add_argument("--pg-user", default="test")
@@ -97,6 +124,12 @@ def main() -> int:
     try:
         with connection:
             with connection.cursor() as cursor:
+                cursor.execute("SELECT count(*) FROM warehouse.canonical_university")
+                reason = refusal_reason(int(cursor.fetchone()[0]), args.allow_populated_warehouse)
+                if reason:
+                    print(f"ERROR refusing to seed: {reason}", file=sys.stderr)
+                    return 3
+
                 execute_values(
                     cursor,
                     """

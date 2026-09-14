@@ -16,7 +16,7 @@ from __future__ import annotations
 import pandas as pd
 
 from ranking_ml.serving.predict import collapse_to_one_row_per_university, normalise_name
-from ranking_ml.serving.seed_canonical_from_snapshot import normalise_display_name, slugify
+from ranking_ml.serving.seed_canonical_from_snapshot import normalise_display_name, refusal_reason, slugify
 
 
 def _frame(rows):
@@ -76,3 +76,10 @@ def test_slug_and_normalised_name_agree_with_the_resolver():
 def test_placeholder_names_share_a_slug():
     """Why the seeder skips them: they all collapse onto one invented entity."""
     assert slugify("N/A") == slugify("n/a") == "n-a"
+
+
+def test_the_seeder_refuses_a_populated_warehouse():
+    """Run against the live warehouse once, it added 2,310 duplicate-prone canonicals."""
+    assert refusal_reason(0, allow_populated=False) is None
+    assert "--allow-populated-warehouse" in refusal_reason(3809, allow_populated=False)
+    assert refusal_reason(3809, allow_populated=True) is None
