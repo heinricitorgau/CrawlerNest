@@ -17,14 +17,17 @@ from pathlib import Path
 from typing import Any
 
 from crawlernest_admission_crawler.models import (
+    FETCH_UNKNOWN,
     UNKNOWN_DEGREE_LEVEL,
     WarehouseReadyAdmissionRow,
 )
 from crawlernest_admission_crawler.postgres_driver import get_psycopg2
 from crawlernest_admission_crawler.source_identity import (
     SOURCE_CODE,
+    admission_programme_key,
     admission_source_entity_id,
 )
+from crawlernest_admission_crawler.warehouse_mapper import intake_year_basis_for, requirement_scope_for
 
 
 @dataclass(slots=True)
@@ -49,6 +52,9 @@ def load_warehouse_preview_rows(preview_file: Path) -> list[WarehouseReadyAdmiss
         if not isinstance(item, dict):
             raise ValueError("warehouse preview artifact rows must be JSON objects")
         source_url = str(item["source_url"])
+        faculty = str(item["faculty"]).strip() or None if item.get("faculty") else None
+        programme_name = str(item["programme_name"]).strip() or None if item.get("programme_name") else None
+        intake_year = _optional_int(item.get("intake_year"))
         rows.append(
             WarehouseReadyAdmissionRow(
                 university_name=str(item["university_name"]),
@@ -70,6 +76,17 @@ def load_warehouse_preview_rows(preview_file: Path) -> list[WarehouseReadyAdmiss
                 canonical_university_id=_optional_int(item.get("canonical_university_id")),
                 entity_resolution_status=str(item.get("entity_resolution_status", "unresolved")),
                 raw_payload=item.get("raw_payload") if isinstance(item.get("raw_payload"), dict) else None,
+                faculty=faculty,
+                programme_name=programme_name,
+                requirement_scope=requirement_scope_for(
+                    faculty=faculty,
+                    programme_name=programme_name,
+                    declared=item.get("requirement_scope"),
+                ),
+                intake_year=intake_year,
+                intake_year_basis=intake_year_basis_for(intake_year, item.get("intake_year_basis")),
+                fetched_at=datetime.fromisoformat(str(item["fetched_at"])) if item.get("fetched_at") else None,
+                fetch_mode=str(item.get("fetch_mode") or FETCH_UNKNOWN),
             )
         )
     return rows
@@ -151,6 +168,14 @@ def _upsert_rows(
 ) -> tuple[int, int]:
     """Insert or replace each row. Returns (inserted, updated).
 
+    The conflict target is the table's natural key: page, degree level,
+    programme and intake. Two programmes on one page, or one programme's 2026
+    and 2027 intakes, are separate rows; a re-crawl of the same one replaces it.
+
+    Resolution columns are reset along with the rest: the rows are resolved by
+    resolve-admission-entities after landing, and a row keeping the previous
+    run's source_mapping_id would name a mapping nobody re-checked.
+
     ``xmax = 0`` is true only for a tuple this statement inserted, which is how
     an upsert reports which branch it took without a second round trip.
     """
@@ -169,30 +194,49 @@ def _upsert_rows(
                     normalized_university_name,
                     country,
                     canonical_university_id,
+                    source_mapping_id,
                     entity_resolution_status,
                     degree_level,
+                    faculty,
+                    programme_name,
+                    programme_key,
+                    requirement_scope,
+                    intake_year,
+                    intake_year_basis,
                     ielts_requirement,
                     toefl_requirement,
                     duolingo_requirement,
                     gpa_requirement,
                     application_deadline,
                     raw_payload,
+                    fetched_at,
+                    fetch_mode,
                     extracted_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)
-                ON CONFLICT (source_code, source_entity_id, degree_level)
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, NULL, %s, %s, %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s
+                )
+                ON CONFLICT (source_code, source_entity_id, degree_level, programme_key, intake_year)
                 DO UPDATE SET
                     source_url = EXCLUDED.source_url,
                     university_name = EXCLUDED.university_name,
                     normalized_university_name = EXCLUDED.normalized_university_name,
                     country = EXCLUDED.country,
                     canonical_university_id = EXCLUDED.canonical_university_id,
+                    source_mapping_id = EXCLUDED.source_mapping_id,
                     entity_resolution_status = EXCLUDED.entity_resolution_status,
+                    faculty = EXCLUDED.faculty,
+                    programme_name = EXCLUDED.programme_name,
+                    requirement_scope = EXCLUDED.requirement_scope,
+                    intake_year_basis = EXCLUDED.intake_year_basis,
                     ielts_requirement = EXCLUDED.ielts_requirement,
                     toefl_requirement = EXCLUDED.toefl_requirement,
                     duolingo_requirement = EXCLUDED.duolingo_requirement,
                     gpa_requirement = EXCLUDED.gpa_requirement,
                     application_deadline = EXCLUDED.application_deadline,
                     raw_payload = EXCLUDED.raw_payload,
+                    fetched_at = EXCLUDED.fetched_at,
+                    fetch_mode = EXCLUDED.fetch_mode,
                     extracted_at = EXCLUDED.extracted_at,
                     updated_at = CURRENT_TIMESTAMP
                 RETURNING (xmax = 0) AS was_inserted
@@ -207,12 +251,20 @@ def _upsert_rows(
                     row.canonical_university_id,
                     row.entity_resolution_status,
                     row.degree_level or UNKNOWN_DEGREE_LEVEL,
+                    row.faculty,
+                    row.programme_name,
+                    admission_programme_key(row.faculty, row.programme_name),
+                    row.requirement_scope,
+                    row.intake_year,
+                    row.intake_year_basis,
                     row.ielts_requirement,
                     row.toefl_requirement,
                     row.duolingo_requirement,
                     row.gpa_requirement,
                     row.application_deadline,
                     json.dumps(row.raw_payload, ensure_ascii=False) if row.raw_payload is not None else None,
+                    row.fetched_at,
+                    row.fetch_mode,
                     row.extracted_at,
                 ),
             )

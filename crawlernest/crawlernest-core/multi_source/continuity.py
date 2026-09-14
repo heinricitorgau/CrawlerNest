@@ -27,7 +27,7 @@ so a single ingest cannot split an entity either.
 
 import logging
 from dataclasses import dataclass, field, replace
-from typing import Any, Optional, TypeVar
+from typing import Any, Callable, Optional, TypeVar
 
 from .reviews import METHOD_BY_DECISION
 
@@ -98,16 +98,26 @@ class MappingReassignmentError(RuntimeError):
         )
 
 
+def _ranking_source_of(row: Any) -> str:
+    return row.source
+
+
 def find_reassignments(
     unified_rows: list[Any],
     existing: dict[tuple[str, str], ExistingMapping],
+    *,
+    source_of: Callable[[Any], str] = _ranking_source_of,
 ) -> list[tuple[str, str, int, int, Optional[str]]]:
-    """(source, entity id, current, proposed, method) for every silent canonical change."""
+    """(source, entity id, current, proposed, method) for every silent canonical change.
+
+    ``source_of`` reads the source code off a row: ranking records spell it
+    ``source``, entity_resolution's ResolutionResult ``source_name``.
+    """
     found: dict[tuple[str, str], tuple[str, str, int, int, Optional[str]]] = {}
     for row in unified_rows:
         if row.canonical_university_id is None or row.matching_method in HUMAN_METHODS:
             continue
-        key = (row.source, str(row.source_entity_id))
+        key = (source_of(row), str(row.source_entity_id))
         mapping = existing.get(key)
         if mapping is not None and int(mapping.canonical_university_id) != int(row.canonical_university_id):
             found.setdefault(
@@ -158,6 +168,8 @@ def _batch_choice(rows: list[Any]) -> int:
 def apply_mapping_continuity(
     unified_rows: list[ResolvedRow],
     existing: dict[tuple[str, str], ExistingMapping],
+    *,
+    source_of: Callable[[Any], str] = _ranking_source_of,
 ) -> tuple[list[ResolvedRow], MappingContinuityApplication]:
     """
     Hold every row whose entity is already mapped on that mapping's university.
@@ -166,12 +178,15 @@ def apply_mapping_continuity(
     (source_code, source_entity_id). Rows carrying a human decision pass through
     untouched. A row the resolver left unresolved is held too: an entity that
     was matched last run and not this run has not stopped being that university.
+
+    Serves the admission resolver as well as the ranking pipeline; ``source_of``
+    is how it reads the source code off either row type.
     """
     groups: dict[tuple[str, str], list[int]] = {}
     for index, row in enumerate(unified_rows):
         if row.matching_method in HUMAN_METHODS or not row.source_entity_id:
             continue
-        groups.setdefault((row.source, str(row.source_entity_id)), []).append(index)
+        groups.setdefault((source_of(row), str(row.source_entity_id)), []).append(index)
 
     out = list(unified_rows)
     conflicts: list[MappingConflict] = []

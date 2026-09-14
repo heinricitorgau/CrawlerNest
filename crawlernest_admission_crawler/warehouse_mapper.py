@@ -7,6 +7,15 @@ from pathlib import Path
 from typing import Any
 
 from crawlernest_admission_crawler.models import (
+    FETCH_LIVE,
+    FETCH_MODES,
+    FETCH_UNKNOWN,
+    INTAKE_UNKNOWN,
+    INTAKE_YEAR_BASES,
+    REQUIREMENT_SCOPES,
+    SCOPE_FACULTY,
+    SCOPE_PROGRAMME,
+    SCOPE_UNSPECIFIED,
     UNKNOWN_DEGREE_LEVEL,
     WarehouseReadyAdmissionRow,
 )
@@ -88,9 +97,46 @@ def load_staging_rows_from_postgres(
     ]
 
 
+def requirement_scope_for(
+    *,
+    faculty: str | None,
+    programme_name: str | None,
+    declared: str | None = None,
+) -> str:
+    """The scope a row's requirement applies to.
+
+    Derived from the names when the source did not declare it: a programme name
+    makes it a programme requirement, a faculty alone a faculty one, neither
+    ``unspecified``. ``institution_minimum`` is never derived -- that a number is
+    a floor for every programme is something the page has to say.
+
+    A declared scope that contradicts the names is refused here, with the names
+    in the message, rather than by the database's CHECK with none.
+    """
+    derived = SCOPE_PROGRAMME if programme_name else SCOPE_FACULTY if faculty else SCOPE_UNSPECIFIED
+    if not declared:
+        return derived
+    if declared not in REQUIREMENT_SCOPES:
+        raise ValueError(f"requirement_scope {declared!r} is not one of {', '.join(REQUIREMENT_SCOPES)}")
+    names_required = {SCOPE_PROGRAMME: bool(programme_name), SCOPE_FACULTY: bool(faculty) and not programme_name}
+    if declared in names_required and not names_required[declared]:
+        raise ValueError(
+            f"requirement_scope {declared!r} does not fit faculty={faculty!r} programme_name={programme_name!r}"
+        )
+    if declared not in names_required and (faculty or programme_name):
+        raise ValueError(
+            f"requirement_scope {declared!r} applies to no single programme, but the row names "
+            f"faculty={faculty!r} programme_name={programme_name!r}"
+        )
+    return declared
+
+
 def map_staging_rows_to_warehouse_rows(rows: list[dict[str, Any]]) -> list[WarehouseReadyAdmissionRow]:
     mapped_rows: list[WarehouseReadyAdmissionRow] = []
     for row in rows:
+        faculty = _optional_text(row.get("faculty"))
+        programme_name = _optional_text(row.get("programme_name"))
+        intake_year = _optional_int(row.get("intake_year"))
         mapped_rows.append(
             WarehouseReadyAdmissionRow(
                 university_name=str(row["university_name"]),
@@ -108,9 +154,60 @@ def map_staging_rows_to_warehouse_rows(rows: list[dict[str, Any]]) -> list[Wareh
                 canonical_university_id=None,
                 entity_resolution_status="unresolved",
                 raw_payload=row.get("raw_payload") if isinstance(row.get("raw_payload"), dict) else None,
+                faculty=faculty,
+                programme_name=programme_name,
+                requirement_scope=requirement_scope_for(
+                    faculty=faculty,
+                    programme_name=programme_name,
+                    declared=_optional_text(row.get("requirement_scope")),
+                ),
+                intake_year=intake_year,
+                intake_year_basis=intake_year_basis_for(intake_year, row.get("intake_year_basis")),
+                fetched_at=_optional_datetime(row.get("fetched_at")),
+                fetch_mode=_fetch_mode_for(row),
             )
         )
     return mapped_rows
+
+
+def _fetch_mode_for(row: dict[str, Any]) -> str:
+    mode = _choice(row.get("fetch_mode"), allowed=FETCH_MODES, default=FETCH_UNKNOWN, field_name="fetch_mode")
+    if mode == FETCH_LIVE and row.get("fetched_at") in (None, ""):
+        raise ValueError("fetch_mode 'live' needs fetched_at: a live fetch always has a time")
+    return mode
+
+
+def intake_year_basis_for(intake_year: int | None, declared: Any) -> str:
+    """How the intake year was established; a year never travels without one.
+
+    A year with no stated basis is refused rather than defaulted: whether the
+    page said "2026 entry" or someone worked it out from a deadline is exactly
+    the difference a reader has to be told.
+    """
+    basis = _choice(declared, allowed=INTAKE_YEAR_BASES, default=INTAKE_UNKNOWN, field_name="intake_year_basis")
+    if intake_year is None and basis != INTAKE_UNKNOWN:
+        raise ValueError(f"intake_year_basis {basis!r} given without an intake_year")
+    if intake_year is not None and basis == INTAKE_UNKNOWN:
+        raise ValueError(
+            f"intake_year {intake_year} needs intake_year_basis (page_stated or deadline_inferred)"
+        )
+    return basis
+
+
+def _choice(value: Any, *, allowed: tuple[str, ...], default: str, field_name: str) -> str:
+    text = _optional_text(value)
+    if text is None:
+        return default
+    if text not in allowed:
+        raise ValueError(f"{field_name} {text!r} is not one of {', '.join(allowed)}")
+    return text
+
+
+def _optional_datetime(value: Any) -> datetime | None:
+    if value is None or isinstance(value, datetime):
+        return value
+    text = str(value).strip()
+    return datetime.fromisoformat(text) if text else None
 
 
 def warehouse_rows_to_jsonable(rows: list[WarehouseReadyAdmissionRow]) -> list[dict[str, Any]]:

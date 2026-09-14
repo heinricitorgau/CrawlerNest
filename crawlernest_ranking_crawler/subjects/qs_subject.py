@@ -329,13 +329,20 @@ def _upsert_source_mapping(cur: object, *, source_id: int, source_entity_id: str
         """
         INSERT INTO warehouse.source_university_mapping (
             ranking_source_id,
+            source_code,
             source_entity_id,
             canonical_university_id,
             match_method,
             confidence_score,
             metadata,
             last_seen_at
-        ) VALUES (%s, %s, %s, 'normalized_exact', 1.0, '{"phase": "subject-ranking-phase-2"}'::jsonb, CURRENT_TIMESTAMP)
+        )
+        -- source_code is the table's key for every source; for a ranking source
+        -- it must be that source's own code, which the composite foreign key checks.
+        SELECT rs.ranking_source_id, rs.source_code, %s, %s, 'normalized_exact', 1.0,
+               '{"phase": "subject-ranking-phase-2"}'::jsonb, CURRENT_TIMESTAMP
+        FROM warehouse.ranking_source rs
+        WHERE rs.ranking_source_id = %s
         ON CONFLICT (ranking_source_id, source_entity_id) DO UPDATE SET
             canonical_university_id = EXCLUDED.canonical_university_id,
             match_method = EXCLUDED.match_method,
@@ -345,7 +352,7 @@ def _upsert_source_mapping(cur: object, *, source_id: int, source_entity_id: str
             last_seen_at = CURRENT_TIMESTAMP
         RETURNING source_mapping_id
         """,
-        (source_id, source_entity_id, canonical_id),
+        (source_entity_id, canonical_id, source_id),
     )
     row = cur.fetchone()
     return None if row is None else int(row[0])

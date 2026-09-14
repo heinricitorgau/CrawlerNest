@@ -304,11 +304,19 @@ def find_reappeared_reviews(
     reviews: dict[tuple[str, str], MappingReview],
     unapplied_keys: Iterable[tuple[str, str]],
     batch: Iterable[tuple[str, str, Optional[str]]],
+    *,
+    id_handle: Callable[[Optional[str]], Optional[str]] = _id_tail,
 ) -> tuple[ReappearedReview, ...]:
     """Unapplied decisions whose entity is present in ``batch`` under another id.
 
     ``batch`` is ``(source_code, source_entity_id, printed_name)`` per input row.
     Only compared within one source: a THE row never revives an ARWU decision.
+
+    ``id_handle`` reduces an entity id to the part that names the institution.
+    The default, the last id segment, suits ranking ids. It does not suit a
+    source whose ids are URLs: admission pages end in the same
+    ``english-language-requirements`` at a dozen universities, and matching on
+    that would refuse every run. Such a source passes its own (the host).
     """
     unapplied = [reviews[key] for key in unapplied_keys if key in reviews]
     if not unapplied:
@@ -318,7 +326,7 @@ def find_reappeared_reviews(
     for source_code, entity_id, name in batch:
         source_code = str(source_code or "").strip().upper()
         entity_id = str(entity_id or "").strip()
-        name_slug, tail = _slug(name), _id_tail(entity_id)
+        name_slug, tail = _slug(name), id_handle(entity_id)
         for handle, kind in ((name_slug, "name"), (tail, "id")):
             if handle:
                 by_handle.setdefault((source_code, handle), []).append(
@@ -328,7 +336,7 @@ def find_reappeared_reviews(
     found: list[ReappearedReview] = []
     for review in sorted(unapplied, key=lambda r: r.key):
         source_code = review.source_code.upper()
-        handles = _handles(_slug(review.reviewed_source_name), _id_tail(review.source_entity_id))
+        handles = _handles(_slug(review.reviewed_source_name), id_handle(review.source_entity_id))
         hit = next(
             (
                 match
@@ -356,8 +364,10 @@ def refuse_reappeared_reviews(
     reviews: dict[tuple[str, str], MappingReview],
     application: MappingReviewApplication,
     batch: Iterable[tuple[str, str, Optional[str]]],
+    *,
+    id_handle: Callable[[Optional[str]], Optional[str]] = _id_tail,
 ) -> None:
     """Raise :class:`UnappliedReviewError` if any decision's entity came back under a new id."""
-    reappeared = find_reappeared_reviews(reviews, application.unapplied_reviews, batch)
+    reappeared = find_reappeared_reviews(reviews, application.unapplied_reviews, batch, id_handle=id_handle)
     if reappeared:
         raise UnappliedReviewError(reappeared)

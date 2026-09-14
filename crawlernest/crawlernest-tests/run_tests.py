@@ -143,6 +143,10 @@ def run_all_tests():
         "test_agent_api_sse_stream",
         # PostgreSQL agent_state stores; skip unless CRAWLERNEST_RUN_PG_TESTS=1.
         "test_agent_state_pg",
+        # Admission rows keyed by programme and intake, and resolved through the
+        # unified mapping table with the ranking pipeline's guardrails.
+        "test_admission_programme_granularity",
+        "test_admission_resolver_pg",
         # Cross-year rank movement, settled before a second year is ingested:
         # withheld for today's single-year dataset, intervals for banded ranks,
         # and no delta across a change of source identity.
