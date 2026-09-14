@@ -6,8 +6,8 @@
     # inspect without touching the database
     ... -m ranking_ml.serving.predict --dry-run
 
-Fits the recommended estimator on the 600 universities QS publishes an overall
-score for, predicts the 903 it withholds one from, and stores each prediction
+Fits the recommended estimator on the 705 universities QS publishes an overall
+score for, predicts the 799 it withholds one from, and stores each prediction
 with the support distance that says how far outside the training data it sits.
 
 Three things this deliberately does:
@@ -16,9 +16,9 @@ Three things this deliberately does:
 touched. A published rank and a model's estimate of a withheld score are
 different kinds of claim, and the schema keeps them apart.
 
-**It resolves names rather than assuming them.** The snapshot has 1,503 rows;
-the warehouse has 1,499 canonical universities, because entity resolution merged
-some. Rows that do not resolve are reported and skipped, never guessed at.
+**It resolves names rather than assuming them.** Snapshot names and canonical
+universities are not one-to-one, because entity resolution merges variant
+spellings. Rows that do not resolve are reported and skipped, never guessed at.
 
 **It replaces its own previous run atomically.** Each run inserts a fresh
 ``ml_model_runs`` row and its predictions in one transaction, so a reader either
@@ -65,8 +65,7 @@ def collapse_to_one_row_per_university(frame: pd.DataFrame) -> tuple[pd.DataFram
     """Keep one prediction per canonical university, and say how many were dropped.
 
     Entity resolution merges variant spellings, so several snapshot rows can
-    resolve to the same canonical university -- the warehouse holds 1,499 of them
-    for 1,503 snapshot rows. ``ml_predictions`` is unique on
+    resolve to the same canonical university. ``ml_predictions`` is unique on
     ``(ml_run_id, canonical_university_id, ranking_year)``, so writing the
     unmerged rows aborts the whole insert on a duplicate key.
 
@@ -235,8 +234,9 @@ def main() -> int:
                         json.dumps(baseline.as_dict()),
                         float(flagger.threshold_),
                         "Estimates for universities whose overall score QS withholds "
-                        "(ranks 601 and below). Cross-validated error describes recovery of "
-                        "QS's scoring function on the labelled rows, not error on these.",
+                        f"(ranks {int(ranks.min())} and below). Cross-validated error "
+                        "describes recovery of QS's scoring function on the labelled rows, "
+                        "not error on these.",
                     ),
                 )
                 ml_run_id = cursor.fetchone()[0]

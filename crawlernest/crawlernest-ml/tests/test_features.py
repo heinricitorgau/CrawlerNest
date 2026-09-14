@@ -119,21 +119,23 @@ def test_region_columns_are_stable_and_mutually_exclusive(matrix):
 # ── the matrix ───────────────────────────────────────────────────────────────
 
 def test_matrix_shape_and_label_split(matrix):
-    # Counts for the 2026 snapshot re-crawled on 2026-09-02. The crawl before it
-    # was taken with the pre-TLS-fix client and resolved a stale ranking id, so
-    # it returned a different edition: 1,503 rows with the score published to
-    # rank 600. These numbers move whenever the snapshot is refreshed, and are
-    # asserted exactly so that a refresh has to be noticed and explained.
+    # Counts for the edition-verified QS 2026 table (nid 4061771), crawled
+    # 2026-09-14. The snapshot committed before it (700 labelled / 804 withheld)
+    # turned out to be the 2027 table, nid 4153156, served from a cached ranking
+    # id; the one before that (1,503 rows, score to rank 600) was a stale id
+    # from the pre-TLS-fix client. These numbers move whenever the snapshot is
+    # refreshed, and are asserted exactly so that a refresh has to be noticed
+    # and explained.
     assert len(matrix.X) == 1504
     assert list(matrix.X.columns[: len(QS_INDICATORS)]) == list(QS_INDICATORS)
 
     labelled = int(matrix.labelled_mask.sum())
-    assert labelled == 700
-    assert len(matrix.X) - labelled == 804
+    assert labelled == 705
+    assert len(matrix.X) - labelled == 799
 
     # The split is exactly QS's publication cut-off, not an arbitrary threshold.
-    assert matrix.rank[matrix.labelled_mask].max() == 700
-    assert matrix.rank[~matrix.labelled_mask].min() == 701
+    assert matrix.rank[matrix.labelled_mask].max() == 705
+    assert matrix.rank[~matrix.labelled_mask].min() == 706
 
 
 def test_rank_is_not_among_the_features(matrix):

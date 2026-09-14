@@ -59,18 +59,18 @@ from the Python-committed `../artifacts/eda/` so neither run clobbers the other.
 
 ![QS indicator correlation, labelled rows only](../artifacts/eda_matlab/correlation_heatmap.png)
 
-Pearson correlation on the 600 labelled rows, target included as the last row
-and column. The ordering broadly tracks QS's published weighting, with one
-exception worth reading off the bottom row: **Citations per Faculty carries a
-20% weight but correlates with Overall Score at only 0.48**, below three
+Pearson correlation on the 705 labelled rows of QS 2026, target included as the
+last row and column. The ordering broadly tracks QS's published weighting, with
+one exception worth reading off the bottom row: **Citations per Faculty carries
+a 20% weight but correlates with Overall Score at only 0.49**, below three
 indicators weighted at 5%. Correlation is not importance — Phase 2 confirms the
 20% is really there by recovering it from a linear fit.
 
-![Target distribution, ranks 1-600](../artifacts/eda_matlab/target_distribution.png)
+![Target distribution, ranks 1-705](../artifacts/eda_matlab/target_distribution.png)
 
-The regression target, published only for ranks 1-600 (n=600, mean 41.8, std
+The regression target, published only for ranks 1-705 (n=705, mean 46.7, std
 18.8). The right skew is the shape of the ranking table itself: scores above 60
-are rare because few universities are near the top. The 903 rows QS withholds a
+are rare because few universities are near the top. The 799 rows QS withholds a
 score for are not in this histogram at all — that gap is what the PCA figure is
 about.
 

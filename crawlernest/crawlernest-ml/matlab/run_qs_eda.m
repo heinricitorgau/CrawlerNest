@@ -9,14 +9,14 @@ function results = run_qs_eda(options)
 %   Reproduces the three figures and the four numeric tables that the Phase 2
 %   modelling decisions rest on:
 %
-%     1. correlation_heatmap  indicator correlation on the 600 labelled rows
-%     2. target_distribution  the published Overall Score, ranks 1-600
-%     3. pca_scatter          all 1,503 rows, training set vs inference set
+%     1. correlation_heatmap  indicator correlation on the 705 labelled rows
+%     2. target_distribution  the published Overall Score, ranks 1-705
+%     3. pca_scatter          all 1,504 rows, training set vs inference set
 %
 %   The question the analysis exists to answer is not "are the indicators
-%   correlated" -- of course they are -- but *how far the 903 unlabelled rows
-%   sit from the 600 labelled ones*. Training on ranks 1-600 and predicting
-%   601-1503 is extrapolation, not interpolation.
+%   correlated" -- of course they are -- but *how far the 799 unlabelled rows
+%   sit from the 705 labelled ones*. Training on ranks 1-705 and predicting
+%   706-1504 is extrapolation, not interpolation. (Counts are QS 2026.)
 %
 %   Output goes to artifacts/eda_matlab/, deliberately separate from the
 %   Python-committed artifacts/eda/ so neither run clobbers the other.
@@ -79,7 +79,7 @@ fprintf("\n--- indicator correlation with %s (labelled rows) ---\n", matrix.targ
 disp(correlationTable);
 
 % --- covariate shift ---------------------------------------------------------
-% Cohen's d between the 600 labelled and 903 unlabelled rows. Anything past
+% Cohen's d between the labelled and unlabelled rows (705 / 799). Anything past
 % roughly 0.8 is a large shift, and means a cross-validated error on the
 % labelled rows understates the error a model makes on the unlabelled ones.
 allImputed = median_impute(matrix.X);
@@ -196,7 +196,8 @@ end
 function parity = parity_check(correlationTable, shift, explained, yLab)
 %PARITY_CHECK Compare against the numbers the Python EDA produced on this snapshot.
 %   Reference values come from ranking_ml.eda.run_eda on
-%   last_crawl_snapshot.json (QS 2026, 1,504 rows). They are hard-coded on
+%   last_crawl_snapshot.json (QS 2026 edition, nid 4061771, 1,504 rows,
+%   705 labelled). They are hard-coded on
 %   purpose: a silent divergence between the two ports is exactly the failure
 %   this check exists to catch.
 %
@@ -210,22 +211,22 @@ referenceCorr = dictionary( ...
      "Sustainability Score", "International Research Network", ...
      "Citations per Faculty", "International Student Ratio", ...
      "International Faculty Ratio", "Faculty Student Ratio"], ...
-    [0.899483, 0.800391, 0.613249, 0.618268, 0.494912, ...
-     0.483992, 0.397889, 0.375336, 0.321830]);
+    [0.904965, 0.785898, 0.647536, 0.669819, 0.518193, ...
+     0.493507, 0.405226, 0.381639, 0.312008]);
 
 referenceGap = dictionary( ...
     ["Sustainability Score", "Academic Reputation", "Citations per Faculty", ...
      "International Research Network", "Employer Reputation", ...
      "International Faculty Ratio", "Employment Outcomes", ...
      "International Student Ratio", "Faculty Student Ratio"], ...
-    [1.7729, 1.6343, 1.4204, 1.2858, 1.5265, 1.0409, 1.0784, 0.9067, 0.5016]);
+    [1.780097, 1.612278, 1.525642, 1.436839, 1.477006, 1.081918, 1.102897, 0.944229, 0.551270]);
 
 corrDelta = max(abs(correlationTable.pearson_r ...
     - reshape(referenceCorr(correlationTable.indicator), [], 1)));
 gapDelta = max(abs(shift.standardised_gap ...
     - reshape(referenceGap(shift.indicator), [], 1)));
-pcaDelta = max(abs(explained(1:2) - [47.5977; 13.4346]));
-targetDelta = max(abs([mean(yLab); std(yLab)] - [46.967714; 18.673447]));
+pcaDelta = max(abs(explained(1:2) - [49.9349; 12.9210]));
+targetDelta = max(abs([mean(yLab); std(yLab)] - [46.704397; 18.841124]));
 
 parity = table( ...
     ["correlation with target"; "covariate shift (Cohen's d)"; ...

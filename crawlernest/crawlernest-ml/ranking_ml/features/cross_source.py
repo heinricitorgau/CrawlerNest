@@ -60,17 +60,18 @@ def normalise_name(name: Any) -> str:
 def load_pairing(path: Path | str | None = None) -> dict[str, str]:
     """Which QS university is which THE university, as the warehouse decided.
 
-    Joining on a normalised name recovers 820 of the 1,503 QS universities. The
-    warehouse reaches 1,080 for the same two snapshots, because its entity
-    resolver is seeded with reviewed aliases -- ``Universidade de São Paulo`` is
-    ``University of São Paulo``, ``Osaka University`` is ``The University of
-    Osaka`` -- and because a human went through the ambiguous cases.
+    On the QS 2026 edition, joining on a normalised name recovers 842 of the
+    1,504 QS universities. The warehouse pairing reaches 1,109 for the same two
+    snapshots, because its entity resolver is seeded with reviewed aliases --
+    ``Universidade de São Paulo`` is ``University of São Paulo``, ``Osaka
+    University`` is ``The University of Osaka`` -- and because a human went
+    through the ambiguous cases.
 
     Reading that decision here rather than re-deriving it keeps one answer to
     "which institution is this" instead of two that agree today and drift
-    tomorrow. Checked when this was introduced: on the 818 universities both
-    methods place, they choose the same THE entity every time, so this adds rows
-    rather than correcting them.
+    tomorrow. Re-checked on 2026: on the 830 universities both methods place,
+    they choose the same THE entity every time, so this adds rows rather than
+    correcting them.
 
     Exported to a file rather than queried, because the ML jobs train from
     committed snapshots with no database. A missing file is not an error -- the

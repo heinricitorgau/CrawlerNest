@@ -122,11 +122,12 @@ DISAGREEMENT_ESTIMATE_CAVEAT = (
 
 #: Support is a statement about the evidence behind an estimate, not its error.
 #:
-#: 295 of the 795 overall-score estimates -- 37% -- sit outside the data the
+#: 351 of the 787 overall-score estimates -- 45% -- sit outside the data the
 #: model was fitted on, and they are systematically lower than the supported ones
-#: (mean 13.5 against 18.5), which is exactly where extrapolation is least worth
+#: (mean 11.8 against 18.9), which is exactly where extrapolation is least worth
 #: trusting. ESTIMATED_VALUE_CAVEAT promises the reader a support flag; without
-#: this one, nothing tells them the flag is set to false for a third of the rows.
+#: this one, nothing tells them the flag is set to false for almost half the rows.
+#: (Counts from the 2026-09-14 run on the edition-verified QS 2026 snapshot.)
 UNSUPPORTED_ESTIMATE_CAVEAT = (
     "Some estimates here fall outside the data the model was fitted on and are marked "
     "unsupported. The model has seen no comparable cases for them. That is a statement "

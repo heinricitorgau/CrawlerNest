@@ -8,10 +8,10 @@ Written as a script rather than a notebook so it reruns identically in CI and
 its output can be diffed. The figures land in ``artifacts/eda/``.
 
 The question this analysis exists to answer is not "are the indicators
-correlated" -- of course they are -- but **how far the 903 unlabelled rows sit
-from the 600 labelled ones**. Training on ranks 1-600 and predicting ranks
-601-1503 is extrapolation, not interpolation, and the size of that gap decides
-how much the Phase 2 error estimates can be trusted.
+correlated" -- of course they are -- but **how far the 799 unlabelled rows sit
+from the 705 labelled ones** (QS 2026). Training on ranks 1-705 and predicting
+ranks 706-1504 is extrapolation, not interpolation, and the size of that gap
+decides how much the Phase 2 error estimates can be trusted.
 """
 
 from __future__ import annotations
@@ -79,8 +79,14 @@ def plot_correlation(matrix, out_dir: Path) -> Path:
     return path
 
 
+def _rank_span(matrix, mask) -> str:
+    """Published rank range of a subset, read from the data rather than typed in."""
+    ranks = matrix.rank[mask]
+    return f"{int(ranks.min())}-{int(ranks.max())}"
+
+
 def plot_pca(matrix, out_dir: Path) -> tuple[Path, PCA]:
-    """PCA of all 1,503 rows, labelled and unlabelled drawn separately."""
+    """PCA of every snapshot row, labelled and unlabelled drawn separately."""
     indicators = _prepared_indicators(matrix.X)
     scaled = StandardScaler().fit_transform(indicators)
     pca = PCA(n_components=2, random_state=0)
@@ -91,12 +97,12 @@ def plot_pca(matrix, out_dir: Path) -> tuple[Path, PCA]:
     ax.scatter(
         coords[~labelled, 0], coords[~labelled, 1],
         s=9, alpha=0.45, c="#b0b7c3",
-        label=f"rank 601-1503, score withheld (n={int((~labelled).sum())})",
+        label=f"rank {_rank_span(matrix, ~labelled)}, score withheld (n={int((~labelled).sum())})",
     )
     scatter = ax.scatter(
         coords[labelled, 0], coords[labelled, 1],
         s=14, alpha=0.85, c=matrix.rank[labelled], cmap="viridis",
-        label=f"rank 1-600, score published (n={int(labelled.sum())})",
+        label=f"rank {_rank_span(matrix, labelled)}, score published (n={int(labelled.sum())})",
     )
     ax.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0] * 100:.1f}% variance)")
     ax.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1] * 100:.1f}% variance)")
@@ -162,7 +168,7 @@ def plot_target_distribution(matrix, out_dir: Path) -> Path:
     _, y_lab = matrix.labelled()
     fig, ax = plt.subplots(figsize=(7.5, 4.5))
     ax.hist(y_lab, bins=40, color="#4c72b0", alpha=0.85, edgecolor="white")
-    ax.set_xlabel(f"{TARGET_LABEL} (published, ranks 1-600)")
+    ax.set_xlabel(f"{TARGET_LABEL} (published, ranks {_rank_span(matrix, matrix.labelled_mask)})")
     ax.set_ylabel("universities")
     ax.set_title(
         f"Target distribution: n={len(y_lab)}, mean={y_lab.mean():.1f}, "

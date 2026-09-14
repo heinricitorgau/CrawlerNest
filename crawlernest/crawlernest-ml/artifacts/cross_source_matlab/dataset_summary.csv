@@ -1,10 +1,10 @@
 quantity,value
-matched,1104
+matched,1109
 qs_population,1504
 the_population,2191
-gap_threshold,0.272648928887033
-positives,221
-positive_rate,0.20018115942029
-favoured_the,183
-favoured_qs,38
-paired_count,1104
+gap_threshold,0.256783735688552
+positives,222
+positive_rate,0.200180342651037
+favoured_the,178
+favoured_qs,44
+paired_count,1109

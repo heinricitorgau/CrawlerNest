@@ -46,7 +46,7 @@ def test_the_pairing_file_is_present_and_not_empty(pairing):
 
 
 #: How many of the snapshot's universities the pairing has to place. The export
-#: currently reaches 1,104 of 1,504. A file exported against a different QS
+#: currently reaches 1,109 of 1,504. A file exported against a different QS
 #: edition would land near zero here, which is the failure this guards.
 MIN_SNAPSHOT_COVERAGE = 1000
 

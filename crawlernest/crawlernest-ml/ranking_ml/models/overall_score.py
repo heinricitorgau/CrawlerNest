@@ -17,18 +17,20 @@ Three models with different inductive biases, so the comparison says something:
     renormalising over the weights that are present instead of imputing. Added
     after measurement, not on principle -- see below.
 
-Four indicators carry missing values (6.65% at worst), and how those are handled
+Four indicators carry missing values (5.78% at worst), and how those are handled
 turned out to matter more than which model is used. Median imputation borrows a
-value from the training distribution, whose medians are three to five times
-higher than the withheld tail's actual values, so it injects a systematic upward
-bias into exactly the rows the model extrapolates to. Measured on the 903
-withheld rows, holding the weights fixed:
+value from the training distribution, whose medians run up to nearly six times
+higher than the withheld tail's, so it injects a systematic upward bias into
+exactly the rows the model extrapolates to. Measured on the 799 withheld rows of
+QS 2026:
 
-    fitted weights + median imputation     spearman 0.9551
-    fitted weights + renormalisation       spearman 0.9755
+    fitted weights + median imputation     spearman 0.9381
+    fitted weights + renormalisation       spearman 0.9614
+    published weights + renormalisation    spearman 0.9614
 
-The weights differ from QS's published ones by at most 0.0008, so that gap is
-entirely attributable to the missing-value strategy. ``linear_renorm`` is the
+Every weighting here is within 0.0020 of QS's published one, and the published
+weights under renormalisation land exactly where the fitted ones do, so the gap
+is the missing-value strategy rather than the weights. ``linear_renorm`` is the
 model this module recommends for the withheld rows.
 """
 
