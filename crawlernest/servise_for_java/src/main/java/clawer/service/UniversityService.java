@@ -321,8 +321,11 @@ public class UniversityService {
      * composite score. The prior edition is the next-older one {@link DatasetScope}
      * holds -- an ingested but unreleased edition is never read, so a shadow load
      * cannot produce a movement.
+     *
+     * <p>Public so {@link ComparisonService} shows the same per-source ranks and
+     * movements as the university page rather than computing its own.
      */
-    private List<SourceRankingDTO> loadRankingEvidence(Long canonicalUniversityId, int rankingYear) {
+    public List<SourceRankingDTO> loadRankingEvidence(Long canonicalUniversityId, int rankingYear) {
         List<Map<String, Object>> srcRows = querySourceRows(canonicalUniversityId, rankingYear);
         if (srcRows.isEmpty()) {
             return List.of();

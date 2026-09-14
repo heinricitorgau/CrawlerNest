@@ -12,10 +12,15 @@
  */
 import type { RankDelta, UniversityRanking } from "@/types/university";
 
-export type RankDeltaTone = "up" | "down" | "neutral" | "withheld";
+/**
+ * `entity_changed` is its own tone rather than a kind of `withheld`: the other
+ * withheld reasons are gaps in our data, while this one says the two editions
+ * describe different institutions, and a reader should not take it for "no data".
+ */
+export type RankDeltaTone = "up" | "down" | "neutral" | "withheld" | "entity_changed";
 
 export type RankDeltaPresentation = {
-  /** Short cell text, e.g. "↑ 3 since 2025". */
+  /** Short cell text, e.g. "↑ 3 since 2025" or "↑ 601–610 → 551–560". */
   label: string;
   /** Full sentence for a title attribute or screen readers. */
   detail: string;
@@ -29,13 +34,19 @@ export const RANK_DELTA_REASON_TEXT: Record<string, string> = {
     "No rank from this source is held for the prior edition. That is a gap in this platform's data, not a statement that the source did not rank it.",
   no_current_row: "No rank from this source is held for this edition.",
   entity_changed:
-    "The institution or its source entry changed between editions (for example a merger or rename), so the two ranks do not describe the same entity.",
+    "The institution or its entry in this source changed between editions: a merger, split or rename, or the source listing it under a different entry. The two ranks do not describe the same entity, so no change is shown.",
   suspicious_merge: "The match between this source's entry and this university was flagged for review in one of the editions.",
   rank_display_missing:
     "The printed rank for one of the editions was not recorded, and the stored position alone would overstate its precision.",
   composite_rank_not_comparable:
     "A composite rank moves when source coverage changes, so it is not compared across editions.",
 };
+
+/**
+ * Cell text for `entity_changed`. Not "Merged": the code also covers a split, a
+ * rename and a source re-keying its entry, and the API does not say which.
+ */
+export const ENTITY_CHANGED_LABEL = "Entity changed";
 
 const FALLBACK_REASON = "No rank change is available for this source.";
 const BAND_NOTE = "the source publishes a band, not an exact rank";
@@ -50,10 +61,28 @@ function span(lowest: number | null, highest: number | null): string {
   return `at least ${places(lowest ?? highest ?? 0)}`;
 }
 
-export function presentRankDelta(row: Pick<UniversityRanking, "rankDelta" | "rankDeltaReason">): RankDeltaPresentation {
+/**
+ * "601–610 → 551–560": both editions as the source printed them. Null unless both
+ * printed ranks are known, so an interval is never assembled from a lower bound.
+ */
+export function rankInterval(priorRankDisplay: string | null | undefined, rankDisplay: string | null | undefined): string | null {
+  const prior = priorRankDisplay?.trim();
+  const current = rankDisplay?.trim();
+  return prior && current ? `${prior} → ${current}` : null;
+}
+
+export function presentRankDelta(
+  row: Pick<UniversityRanking, "rankDelta" | "rankDeltaReason" | "rankDisplay">,
+): RankDeltaPresentation {
+  const reason = row.rankDeltaReason ?? "";
+  // Checked before the delta: if the API ever sent movement alongside this reason,
+  // the reason is the safer of the two to believe.
+  if (reason === "entity_changed") {
+    return { label: ENTITY_CHANGED_LABEL, detail: RANK_DELTA_REASON_TEXT.entity_changed, tone: "entity_changed" };
+  }
+
   const delta: RankDelta | null = row.rankDelta ?? null;
   if (!delta || !delta.direction) {
-    const reason = row.rankDeltaReason ?? "";
     return { label: "—", detail: RANK_DELTA_REASON_TEXT[reason] ?? FALLBACK_REASON, tone: "withheld" };
   }
 
@@ -71,26 +100,29 @@ export function presentRankDelta(row: Pick<UniversityRanking, "rankDelta" | "ran
     return { label: `No change${since}`, detail: `Same rank as the prior edition${was}.`, tone: "neutral" };
   }
 
-  // Banded: only an interval is known. Up means both bounds are negative.
+  // Banded: only an interval is known, so the cell shows the printed ranks, not a
+  // number of places. Up means both bounds are negative.
+  const interval = rankInterval(delta.priorRankDisplay, row.rankDisplay);
+  const intervalNote = interval ? ` (${interval})` : was;
   if (delta.direction === "up") {
     const nearest = delta.max != null ? Math.abs(delta.max) : null;
     const farthest = delta.min != null ? Math.abs(delta.min) : null;
     return {
-      label: `↑ banded${since}`,
-      detail: `Up ${span(nearest, farthest)}${since}${was}; ${BAND_NOTE}.`,
+      label: interval ? `↑ ${interval}` : `↑ banded${since}`,
+      detail: `Up ${span(nearest, farthest)}${since}${intervalNote}; ${BAND_NOTE}.`,
       tone: "up",
     };
   }
   if (delta.direction === "down") {
     return {
-      label: `↓ banded${since}`,
-      detail: `Down ${span(delta.min, delta.max)}${since}${was}; ${BAND_NOTE}.`,
+      label: interval ? `↓ ${interval}` : `↓ banded${since}`,
+      detail: `Down ${span(delta.min, delta.max)}${since}${intervalNote}; ${BAND_NOTE}.`,
       tone: "down",
     };
   }
   return {
-    label: `Within band${since}`,
-    detail: `The bands in both editions overlap, so the direction of any movement is unknown${was}; ${BAND_NOTE}.`,
+    label: interval ?? `Within band${since}`,
+    detail: `The bands in both editions overlap, so the direction of any movement is unknown${intervalNote}; ${BAND_NOTE}.`,
     tone: "neutral",
   };
 }

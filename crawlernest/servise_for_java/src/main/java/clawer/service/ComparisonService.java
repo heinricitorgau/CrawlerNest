@@ -34,12 +34,20 @@ public class ComparisonService {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
     private final DatasetScope datasetScope;
+    /** Per-source printed ranks and movements; null only for callers that build the service by hand. */
+    private final UniversityService universityService;
 
     @Autowired
-    public ComparisonService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, DatasetScope datasetScope) {
+    public ComparisonService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, DatasetScope datasetScope,
+                             UniversityService universityService) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
         this.datasetScope = datasetScope;
+        this.universityService = universityService;
+    }
+
+    public ComparisonService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, DatasetScope datasetScope) {
+        this(jdbcTemplate, objectMapper, datasetScope, null);
     }
 
     public ComparisonService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
@@ -65,9 +73,10 @@ public class ComparisonService {
                 .toList();
         Candidate winner = tiedWinners.size() == 1 ? ordered.get(0) : null;
 
+        int edition = datasetScope.resolveRankingYear(rankingYear).orElseThrow();
         Map<String, Object> universities = new LinkedHashMap<>();
         for (Candidate candidate : ordered) {
-            universities.put(candidate.universityName, serializeUniversity(candidate));
+            universities.put(candidate.universityName, serializeUniversity(candidate, edition));
         }
 
         Map<String, Object> ranking = buildRankingDimension(ordered);
@@ -386,7 +395,7 @@ public class ComparisonService {
                 winner.getKey() + " is stronger in " + source + " at #" + bestRank + " versus " + runnerUp.getKey() + " at #" + runnerUp.getValue() + ", a " + gap + "-place source advantage.");
     }
 
-    private Map<String, Object> serializeUniversity(Candidate candidate) {
+    private Map<String, Object> serializeUniversity(Candidate candidate, int edition) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("canonicalUniversityId", candidate.canonicalUniversityId);
         payload.put("universityName", candidate.universityName);
@@ -401,6 +410,13 @@ public class ComparisonService {
             }
         }
         payload.put("sourceRanks", sourceRanks);
+        // sourceRanks is rank_position: a band's lower bound, which reads as an exact
+        // rank. sourceRankings carries the printed rank and each source's movement
+        // since the prior held edition, computed once in UniversityService so the
+        // comparison and the university page cannot disagree. Never a composite delta.
+        payload.put("sourceRankings", universityService == null
+                ? List.of()
+                : universityService.loadRankingEvidence(candidate.canonicalUniversityId, edition));
         payload.put("dataCompleteness", completenessSnapshot(candidate));
         payload.put("aggregationMethodVersion", candidate.aggregationMethodVersion);
         payload.put("evidenceSummary", buildEvidenceSummary(candidate));
