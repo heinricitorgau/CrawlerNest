@@ -3,16 +3,30 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { SourceRankChange, anyEntityChanged, anyRankChangeShown } from "@/components/SourceRankChange";
+import { CAVEAT_RANK_CHANGE } from "@/lib/caveatMessages";
 import { formatIelts, formatRank, formatScore } from "@/lib/format";
 import type {
   CompareResponse,
   CompareUniversityPayload,
   ShortlistItem,
 } from "@/types/compare";
+import type { UniversityRanking } from "@/types/university";
 
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
 const MAX_COMPARE_ITEMS = 4;
 const DEFAULT_RANKING_YEAR = 2026;
+const COMPARE_SOURCES = ["QS", "THE", "ARWU"] as const;
+
+/**
+ * The rank as the source printed it ("=98", "601–610"). `sourceRanks` holds only a
+ * band's lower bound, so it is the fallback for an API that sends no evidence.
+ */
+function printedSourceRank(evidence: UniversityRanking | undefined, position: number | undefined): string {
+  if (evidence?.rankDisplay) return evidence.rankDisplay;
+  if (evidence?.rank != null) return `#${formatRank(evidence.rank)}`;
+  return position != null ? `#${formatRank(position)}` : "—";
+}
 
 function ComparePageShell() {
   return (
@@ -401,16 +415,20 @@ export default function ComparePage() {
                                   Ranking Evidence
                                 </div>
                                 <div className="space-y-2 text-sm">
-                                  {(["QS", "THE", "ARWU"] as const).map((source) => (
-                                    <div key={source} className="flex items-center justify-between">
-                                      <span className="text-[#6b7068]">{source}</span>
-                                      <span className="font-semibold text-[#1a1a1a]">
-                                        {university.sourceRanks[source] != null
-                                          ? `#${formatRank(university.sourceRanks[source])}`
-                                          : "—"}
-                                      </span>
-                                    </div>
-                                  ))}
+                                  {COMPARE_SOURCES.map((source) => {
+                                    const evidence = university.sourceRankings?.find((row) => row.source === source);
+                                    return (
+                                      <div key={source} className="flex items-start justify-between gap-3">
+                                        <span className="text-[#6b7068]">{source}</span>
+                                        <span className="flex flex-col items-end gap-0.5">
+                                          <span className="font-semibold text-[#1a1a1a]">
+                                            {printedSourceRank(evidence, university.sourceRanks[source])}
+                                          </span>
+                                          {evidence ? <SourceRankChange ranking={evidence} /> : null}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               </section>
 
@@ -505,6 +523,12 @@ export default function ComparePage() {
                         );
                       })}
                     </section>
+                    {comparedUniversities.some((university) => {
+                      const rows = university.sourceRankings ?? [];
+                      return anyRankChangeShown(rows) || anyEntityChanged(rows);
+                    }) ? (
+                      <p className="mt-4 text-xs leading-5 text-[#6b7068]">{CAVEAT_RANK_CHANGE}</p>
+                    ) : null}
                   </>
                 ) : loading ? (
                   <section className="mt-6 grid gap-6 md:grid-cols-2 2xl:grid-cols-4">

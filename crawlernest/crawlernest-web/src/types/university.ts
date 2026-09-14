@@ -5,14 +5,33 @@
  * prior (negative = up) and is set only for two exact ranks; `min`/`max` bound a
  * banded movement. Render `direction`, never the sign.
  */
+export type RankDeltaDirection = "up" | "down" | "unchanged" | "indeterminate";
+
+/**
+ * Why `rankDelta` is null, or "banded" when it is an interval
+ * (clawer.service.SourceRankDelta / RankComparisonPolicy reason codes).
+ * `entity_changed` covers a lineage merger, split or rename and a source
+ * re-keying its entry; the code does not say which.
+ */
+export type RankDeltaReason =
+  | "banded"
+  | "single_year_dataset"
+  | "no_prior_row"
+  | "no_current_row"
+  | "entity_changed"
+  | "suspicious_merge"
+  | "rank_display_missing"
+  | "composite_rank_not_comparable";
+
 export type RankDelta = {
   priorYear: number | null;
   currentYear: number | null;
+  /** The prior edition's rank as printed: "601–610". */
   priorRankDisplay: string | null;
   value: number | null;
   min: number | null;
   max: number | null;
-  direction: "up" | "down" | "unchanged" | "indeterminate" | null;
+  direction: RankDeltaDirection | null;
 };
 
 export type UniversityRanking = {
@@ -25,8 +44,11 @@ export type UniversityRanking = {
   score: number | null;
   /** Null when no movement is shown; `rankDeltaReason` says why. */
   rankDelta?: RankDelta | null;
-  /** Machine code: why `rankDelta` is null, or "banded". Null for an exact change. */
-  rankDeltaReason?: string | null;
+  /**
+   * Why `rankDelta` is null, or "banded". Null for an exact change. Typed as
+   * string too: a code the API adds later must still render, as withheld.
+   */
+  rankDeltaReason?: RankDeltaReason | (string & {}) | null;
 };
 
 export type AggregatedRanking = {

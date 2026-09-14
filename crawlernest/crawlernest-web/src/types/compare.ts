@@ -1,3 +1,5 @@
+import type { UniversityRanking } from "@/types/university";
+
 export type ShortlistItem = {
   canonicalUniversityId: number;
   universityName: string;
@@ -13,7 +15,13 @@ export type CompareUniversityPayload = {
   aggregatedRank: number | null;
   aggregatedScore: number | null;
   ieltsMin: number | null;
+  /** rank_position per source: a band's lower bound. Prefer `sourceRankings`. */
   sourceRanks: Partial<Record<"QS" | "THE" | "ARWU", number>>;
+  /**
+   * Printed rank and movement per source, from the same computation as the
+   * university page. Optional so a response from an older API still renders.
+   */
+  sourceRankings?: UniversityRanking[];
   dataCompleteness: {
     hasAggregatedRank: boolean;
     hasIeltsRequirement: boolean;
