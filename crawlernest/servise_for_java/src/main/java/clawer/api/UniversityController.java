@@ -63,13 +63,23 @@ public class UniversityController {
     }
 
     /**
-     * Retrieves a specific university by its URL slug.
+     * Retrieves a specific university by its URL slug, as one ranking edition shows it.
      * @param slug The university slug
+     * @param year The edition; the default when omitted. A year the release does not hold is a 400.
      * @return UniversityDTO object if found, 404 otherwise
      */
     @GetMapping("/by-slug/{slug}")
-    public ResponseEntity<ApiResponse<UniversityDTO>> getUniversityBySlug(@PathVariable String slug) {
-        UniversityDTO university = universityService.getUniversityBySlug(slug);
+    public ResponseEntity<ApiResponse<UniversityDTO>> getUniversityBySlug(
+            @PathVariable String slug,
+            @RequestParam(required = false) Integer year
+    ) {
+        UniversityDTO university;
+        try {
+            university = universityService.getUniversityBySlug(slug, year);
+        } catch (IllegalArgumentException ex) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
+        }
         if (university != null) {
             return ResponseEntity.ok(ApiResponse.success(university));
         } else {

@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { fetchJson } from "@/lib/api";
+import { CaveatBanner } from "@/components/CaveatBanner";
+import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
+import { YEAR_QUERY_PARAM, hrefForEdition, resolveSelectedYear } from "@/lib/datasetScope";
 import { formatDegreeLevel, formatRank, formatRankingScore } from "@/lib/format";
 import { AdmissionRequirementBadges } from "@/components/AdmissionRequirementBadges";
 import type {
@@ -14,7 +18,7 @@ import type {
   SubjectRankingsApiResponse,
 } from "@/types/subjectRanking";
 import ShortlistButton from "@/components/ShortlistButton";
-import { CAVEAT_RANK_CHANGE } from "@/lib/caveatMessages";
+import { CAVEAT_RANK_CHANGE, editionCaveats } from "@/lib/caveatMessages";
 import { SourceRankChange, anyEntityChanged, anyRankChangeShown } from "@/components/SourceRankChange";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +41,14 @@ type UniversityDetailPageProps = {
   params: Promise<{
     slug: string;
   }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
+
+/** The edition in `?year=`, resolved by the same rule as every other year-aware page. */
+async function selectedEdition(searchParams: UniversityDetailPageProps["searchParams"]) {
+  const raw = (await searchParams)?.[YEAR_QUERY_PARAM];
+  return resolveSelectedYear(Array.isArray(raw) ? raw[0] : raw);
+}
 
 const SOURCE_PRIORITY = ["QS", "THE", "ARWU"] as const;
 
@@ -244,15 +255,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-async function fetchUniversityDetail(slug: string): Promise<UniversityDetailResponse> {
-  // Real implement would use fetchJson from lib/api
-  return fetchJson<UniversityDetailResponse>(`/api/v1/universities/by-slug/${encodeURIComponent(slug)}`);
+async function fetchUniversityDetail(slug: string, year?: number): Promise<UniversityDetailResponse> {
+  const query = year != null ? `?year=${year}` : "";
+  return fetchJson<UniversityDetailResponse>(`/api/v1/universities/by-slug/${encodeURIComponent(slug)}${query}`);
 }
 
-async function fetchUniversitySubjectRankings(canonicalUniversityId: number): Promise<SubjectRankingRow[]> {
+async function fetchUniversitySubjectRankings(canonicalUniversityId: number, year: number): Promise<SubjectRankingRow[]> {
   try {
+    // Scoped to the edition: without a year this endpoint returns every year it
+    // holds, which on a 2025 page would show 2026 subject ranks.
     const response = await fetchJson<SubjectRankingsApiResponse>(
-      `/api/v1/universities/${canonicalUniversityId}/subject-rankings`
+      `/api/v1/universities/${canonicalUniversityId}/subject-rankings?year=${year}`
     );
 
     if (!response.success || !Array.isArray(response.data?.items)) {
@@ -274,7 +287,7 @@ function formatSubjectScore(score?: number | null) {
   return score.toFixed(1);
 }
 
-function SubjectRankingsBlock({ items }: { items: SubjectRankingRow[] }) {
+function SubjectRankingsBlock({ items, year }: { items: SubjectRankingRow[]; year: number }) {
   const strongSubjects = items.filter((item) => item.rankPosition != null && item.rankPosition <= 10);
   const midSubjects = items.filter(
     (item) => item.rankPosition != null && item.rankPosition > 10 && item.rankPosition <= 50
@@ -282,9 +295,11 @@ function SubjectRankingsBlock({ items }: { items: SubjectRankingRow[] }) {
   const weakSubjects = items.filter((item) => item.rankPosition == null || item.rankPosition > 50);
 
   if (items.length === 0) {
+    // "Held" on purpose: subject tables are ingested for fewer editions than world
+    // rankings, so an empty list is our coverage, not a statement about the university.
     return (
       <div className="rounded border border-slate-100 bg-slate-50 p-6 text-sm text-slate-500">
-        No subject ranking data is available for this university yet.
+        No {year} subject rankings are held for this university.
       </div>
     );
   }
@@ -354,13 +369,15 @@ function SubjectRankingsBlock({ items }: { items: SubjectRankingRow[] }) {
   );
 }
 
-export default async function UniversityDetailPage({ params }: UniversityDetailPageProps) {
+export default async function UniversityDetailPage({ params, searchParams }: UniversityDetailPageProps) {
   const { slug } = await params;
+  const { year } = await selectedEdition(searchParams);
+  const editionHref = (href: string) => hrefForEdition(href, year);
   let detail: UniversityDetail | null = null;
   let timestamp: string | undefined;
 
   try {
-    const response = await fetchUniversityDetail(slug);
+    const response = await fetchUniversityDetail(slug, year);
     if (response.success) {
       detail = response.data;
       timestamp = response.metadata?.timestamp;
@@ -375,7 +392,7 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
         <div className="text-center max-w-md p-8 bg-white border border-slate-200 rounded-lg shadow-lg">
           <h1 className="text-2xl font-bold text-slate-900 mb-4">University Not Found</h1>
           <p className="text-slate-600 mb-6">The university with slug "{slug}" could not be located in our database.</p>
-          <Link href="/" className="inline-block px-6 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 transition-colors">
+          <Link href={editionHref("/")} className="inline-block px-6 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 transition-colors">
             Back to Rankings
           </Link>
         </div>
@@ -394,18 +411,24 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
       : evidenceSummary.agreementLevel === "moderate"
         ? "bg-amber-50 text-amber-800 border-amber-200"
         : "bg-rose-50 text-rose-800 border-rose-200";
-  const subjectRankings = await fetchUniversitySubjectRankings(detail.canonicalUniversityId);
+  const subjectRankings = await fetchUniversitySubjectRankings(detail.canonicalUniversityId, year);
+  // The edition the API read; the requested one if an older API does not say.
+  const edition = detail.rankingYear ?? year;
+  const rankedInEdition = detail.aggregatedRanking != null;
 
   return (
     <main className="min-h-screen bg-slate-50 pb-20">
       {/* ── 1. Breadcrumb/Actions ── */}
       <div className="bg-white border-b border-slate-200">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-3 flex items-center justify-between">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-widest">
-            <Link href="/" className="hover:text-blue-600">Rankings</Link>
+            <Link href={editionHref("/")} className="hover:text-blue-600">Rankings</Link>
             <span>/</span>
             <span className="text-slate-900">{detail.universityName}</span>
           </div>
+          <Suspense fallback={<YearSelectorFallback variant="nav" />}>
+            <YearSelector variant="nav" />
+          </Suspense>
           <ShortlistButton
             item={{
               canonicalUniversityId: detail.canonicalUniversityId,
@@ -439,15 +462,22 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
                 <span className="text-green-500">✓</span> Data Verified
               </span>
               <span>Updated: {formatDate(timestamp) || "Recently"}</span>
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700">{edition} edition</span>
             </div>
           </div>
 
           <div className="flex-shrink-0 bg-slate-900 text-white rounded-lg p-6 shadow-xl relative overflow-hidden min-w-[200px]">
             <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/10 -mr-8 -mt-8 rounded-full blur-2xl" />
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">Aggregated Rank</p>
-            <p className="text-5xl font-black tabular-nums">
-              #{primaryRank ? formatRank(primaryRank) : "N/A"}
-            </p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">Aggregated Rank · {edition}</p>
+            {rankedInEdition ? (
+              <p className="text-5xl font-black tabular-nums">
+                #{primaryRank ? formatRank(primaryRank) : "N/A"}
+              </p>
+            ) : (
+              <p className="max-w-[16rem] text-sm font-semibold leading-snug text-slate-200">
+                Not in the {edition} edition held here.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -541,18 +571,28 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
                         </td>
                       </tr>
                     )) : (
-                      <tr><td colSpan={5} className="text-center py-10 text-slate-400 italic">No source evidence found.</td></tr>
+                      <tr>
+                        <td colSpan={5} className="text-center py-10 text-slate-400 italic">
+                          {rankedInEdition
+                            ? "No source evidence found."
+                            : `No ${edition} ranking row is held for this university.`}
+                        </td>
+                      </tr>
                     )}
                   </tbody>
                 </table>
               </div>
-              {(anyRankChangeShown(rankingEvidence) || anyEntityChanged(rankingEvidence)) && (
-                <p className="mt-2 text-xs text-slate-500">{CAVEAT_RANK_CHANGE}</p>
-              )}
+              <CaveatBanner
+                className="mt-3"
+                caveats={[
+                  ...editionCaveats(edition),
+                  anyRankChangeShown(rankingEvidence) || anyEntityChanged(rankingEvidence) ? CAVEAT_RANK_CHANGE : null,
+                ]}
+              />
             </Section>
 
             <Section title="Subject Rankings">
-              <SubjectRankingsBlock items={subjectRankings} />
+              <SubjectRankingsBlock items={subjectRankings} year={edition} />
             </Section>
 
             <Section title="Admission Requirements">
@@ -603,7 +643,7 @@ export default async function UniversityDetailPage({ params }: UniversityDetailP
                <h3 className="text-lg font-bold mb-2">Ready to apply?</h3>
                <p className="text-sm text-blue-100 mb-6 leading-relaxed">Our recommendation engine can check your profile against this university's criteria.</p>
                <Link
-                 href="/recommendations"
+                 href={editionHref("/recommendations")}
                  className="block w-full py-3 bg-white text-blue-600 font-bold text-sm rounded shadow-sm hover:bg-blue-50 transition-colors text-center"
                >
                  Check Admission Odds

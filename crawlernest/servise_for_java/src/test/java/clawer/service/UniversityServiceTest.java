@@ -205,6 +205,76 @@ class UniversityServiceTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void bySlugReadsTheRequestedEditionAndSaysWhichItWas() {
+        DatasetScope twoEditions = new DatasetScope("2026,2025");
+        UniversityService service = new UniversityService(
+                universityRepository, admissionRecordRepository, jdbcTemplate, twoEditions, institutionLineageRepository);
+        University legacy = new University();
+        legacy.setId(10L);
+        legacy.setSchoolSlug("mit");
+        when(universityRepository.findBySchoolSlug("mit")).thenReturn(Optional.of(legacy));
+        when(jdbcTemplate.query(contains("FROM warehouse.canonical_university_link cul"), any(Object[].class), any(RowMapper.class)))
+                .thenReturn(List.of(9001L));
+        List<Integer> aggregatedYears = new java.util.ArrayList<>();
+        when(jdbcTemplate.query(contains("FROM analytics.v_aggregated_rankings_latest"), any(Object[].class), any(RowMapper.class)))
+                .thenAnswer(invocation -> {
+                    int year = (Integer) ((Object[]) invocation.getArgument(1))[1];
+                    aggregatedYears.add(year);
+                    return List.of(Map.of("ranking_year", year, "display_rank", year == 2025 ? 4 : 2,
+                            "composite_score", 97.0, "aggregation_method_version", "v2"));
+                });
+        when(jdbcTemplate.query(contains("WITH ranked_source_rows AS"), any(Object[].class), any(RowMapper.class)))
+                .thenAnswer(invocation -> {
+                    int year = (Integer) ((Object[]) invocation.getArgument(1))[1];
+                    return List.of(sourceRow("QS", year, year == 2025 ? 17 : 14, year == 2025 ? "17" : "14", "/universities/x"));
+                });
+
+        UniversityDTO result = service.getUniversityBySlug("mit", 2025);
+
+        assertEquals(List.of(2025), aggregatedYears);
+        assertEquals(2025, result.getRankingYear());
+        assertEquals(2025, result.getAggregatedRanking().getRankingYear());
+        assertEquals(4, result.getAggregatedRanking().getDisplayRank());
+        clawer.dto.SourceRankingDTO qs = result.getSourceRankings().get(0);
+        assertEquals(2025, qs.getYear());
+        assertEquals("17", qs.getRankDisplay());
+        // No edition before 2025 is held, so there is nothing to move from.
+        assertNull(qs.getRankDelta());
+        assertEquals("single_year_dataset", qs.getRankDeltaReason());
+        verifyNoInteractions(institutionLineageRepository);
+
+        assertEquals(2026, service.getUniversityBySlug("mit").getRankingYear(), "no year reads the default edition");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void aHeldEditionWithoutThisUniversityReturnsItUnrankedNotFromAnotherEdition() {
+        when(universityRepository.findBySchoolSlug("ceu")).thenReturn(Optional.empty());
+        when(jdbcTemplate.query(contains("FROM warehouse.canonical_university cu"), any(Object[].class), any(RowMapper.class)))
+                .thenReturn(List.of(Map.of("canonical_university_id", 77L, "display_name", "Central European University",
+                        "country_name", "Austria")));
+        when(jdbcTemplate.query(contains("FROM analytics.v_aggregated_rankings_latest"), any(Object[].class), any(RowMapper.class)))
+                .thenReturn(List.of());
+
+        UniversityDTO result = universityService.getUniversityBySlug("ceu", 2025);
+
+        assertEquals("Central European University", result.getUniversityName());
+        assertEquals(2025, result.getRankingYear());
+        assertNull(result.getAggregatedRanking());
+        assertTrue(result.getSourceRankings().isEmpty());
+        verify(jdbcTemplate, never()).query(contains("WITH ranked_source_rows AS"), any(Object[].class), any(RowMapper.class));
+    }
+
+    @Test
+    void anEditionTheReleaseDoesNotHoldIsRefusedBeforeAnythingIsRead() {
+        IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+                () -> universityService.getUniversityBySlug("mit", 1999));
+        assertTrue(refused.getMessage().contains("1999"));
+        verifyNoInteractions(universityRepository, jdbcTemplate);
+    }
+
+    @Test
     void testUniversityWithoutAdmissionRecordReportsNoDataRatherThanNull() {
         University u1 = new University();
         u1.setId(1L);

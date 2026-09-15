@@ -12,8 +12,18 @@ public class UniversityDTO {
     private List<SourceRankingDTO> rankingEvidence;
     private AdmissionRequirementsDTO admissionRequirements;
     private DataQualityDTO dataQuality;
+    /**
+     * The edition this response was read for. Set whether or not the university has
+     * a row in it: {@code aggregatedRanking.rankingYear} is null exactly when it has
+     * none, and cannot then say which edition was missing. Null on the legacy
+     * by-id reads, which are not scoped to an edition.
+     */
+    private Integer rankingYear;
 
     public UniversityDTO() {}
+
+    public Integer getRankingYear() { return rankingYear; }
+    public void setRankingYear(Integer rankingYear) { this.rankingYear = rankingYear; }
 
     public Long getCanonicalUniversityId() { return canonicalUniversityId; }
     public void setCanonicalUniversityId(Long canonicalUniversityId) { this.canonicalUniversityId = canonicalUniversityId; }

@@ -8,7 +8,7 @@ import { SourceRankChange, anyEntityChanged, anyRankChangeShown } from "@/compon
 import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
 import { useSelectedYear } from "@/hooks/useSelectedYear";
 import { CAVEAT_RANK_CHANGE, editionCaveats } from "@/lib/caveatMessages";
-import { DEFAULT_RANKING_YEAR } from "@/lib/datasetScope";
+import { DEFAULT_RANKING_YEAR, hrefForEdition } from "@/lib/datasetScope";
 import { formatIelts, formatRank, formatScore } from "@/lib/format";
 import type {
   CompareResponse,
@@ -407,7 +407,7 @@ export function ComparePageContent({
                                 <h3 className="text-lg font-semibold text-[#1a1a1a]">
                                   {university.slug ? (
                                     <Link
-                                      href={`/universities/${university.slug}`}
+                                      href={hrefForEdition(`/universities/${university.slug}`, comparisonYear ?? rankingYear)}
                                       className="underline decoration-[#c0bdb8] underline-offset-2 hover:text-[#1a3d2e] hover:decoration-[#1a3d2e]"
                                     >
                                       {university.universityName}

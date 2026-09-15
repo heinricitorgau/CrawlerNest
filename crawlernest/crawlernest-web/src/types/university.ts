@@ -135,6 +135,12 @@ export type UniversityDetail = {
   rankingEvidence?: UniversityRanking[];
   admissionRequirements: AdmissionRequirements;
   dataQuality: DataQuality | null;
+  /**
+   * The edition this response was read for, set whether or not the university has
+   * a row in it (`aggregatedRanking` is null when it has none). Optional: absent
+   * from older API builds.
+   */
+  rankingYear?: number | null;
 };
 
 export type UniversityDetailResponse = {

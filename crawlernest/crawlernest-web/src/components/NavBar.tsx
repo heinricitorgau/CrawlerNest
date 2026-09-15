@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
 import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
-import { YEAR_QUERY_PARAM, hrefWithYear, resolveSelectedYear } from "@/lib/datasetScope";
+import { YEAR_QUERY_PARAM, hrefForEdition, resolveSelectedYear } from "@/lib/datasetScope";
 
 /**
  * Pages whose data depends on the selected edition. The nav offers the edition
@@ -14,8 +14,11 @@ import { YEAR_QUERY_PARAM, hrefWithYear, resolveSelectedYear } from "@/lib/datas
  */
 export const YEAR_AWARE_PATHS: readonly string[] = ["/", "/rankings", "/recommendations", "/compare"];
 
+/** A university's own page; its sources sub-page is not scoped to an edition. */
+const UNIVERSITY_DETAIL_PATH = /^\/universities\/[^/]+\/?$/;
+
 export function isYearAwarePath(pathname: string): boolean {
-  return YEAR_AWARE_PATHS.includes(pathname);
+  return YEAR_AWARE_PATHS.includes(pathname) || UNIVERSITY_DETAIL_PATH.test(pathname);
 }
 
 function GitHubIcon() {
@@ -60,18 +63,16 @@ function PlainNavLinks({ pathname }: { pathname: string }) {
   );
 }
 
-/** Nav links that keep an explicitly selected edition when they lead to a year-aware page. */
+/** Nav links that keep the edition being viewed when they lead to a year-aware page. */
 function YearPreservingNavLinks({ pathname }: { pathname: string }) {
   const searchParams = useSearchParams();
-  const raw = searchParams?.get(YEAR_QUERY_PARAM);
-  const { year, requestedHeld } = resolveSelectedYear(raw);
-  const carryYear = raw != null && requestedHeld;
+  const { year } = resolveSelectedYear(searchParams?.get(YEAR_QUERY_PARAM));
   return (
     <>
       {NAV_LINKS.map((link) => (
         <Link
           key={link.label}
-          href={carryYear && isYearAwarePath(link.href) ? hrefWithYear(link.href, year) : link.href}
+          href={isYearAwarePath(link.href) ? hrefForEdition(link.href, year) : link.href}
           className={navLinkClass(pathname === link.href)}
         >
           {link.label}
