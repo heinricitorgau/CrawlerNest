@@ -1,8 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Suspense } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
+import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
+import { YEAR_QUERY_PARAM, hrefWithYear, resolveSelectedYear } from "@/lib/datasetScope";
+
+/**
+ * Pages whose data depends on the selected edition. The nav offers the edition
+ * selector only here -- on /about it would change nothing -- and links into these
+ * pages carry the current `?year=` so moving between them keeps the edition.
+ */
+export const YEAR_AWARE_PATHS: readonly string[] = ["/", "/rankings", "/recommendations", "/compare"];
+
+export function isYearAwarePath(pathname: string): boolean {
+  return YEAR_AWARE_PATHS.includes(pathname);
+}
 
 function GitHubIcon() {
   return (
@@ -26,6 +40,46 @@ const NAV_LINKS = [
   { label: "Status", href: "/system-status" },
   { label: "Data Quality", href: "/data-quality" },
 ];
+
+function navLinkClass(isActive: boolean): string {
+  return `px-4 py-2 text-sm font-medium transition-colors ${
+    isActive ? "text-blue-600" : "text-slate-600 hover:text-slate-900"
+  }`;
+}
+
+/** Nav links without the query string: what renders before the URL is readable. */
+function PlainNavLinks({ pathname }: { pathname: string }) {
+  return (
+    <>
+      {NAV_LINKS.map((link) => (
+        <Link key={link.label} href={link.href} className={navLinkClass(pathname === link.href)}>
+          {link.label}
+        </Link>
+      ))}
+    </>
+  );
+}
+
+/** Nav links that keep an explicitly selected edition when they lead to a year-aware page. */
+function YearPreservingNavLinks({ pathname }: { pathname: string }) {
+  const searchParams = useSearchParams();
+  const raw = searchParams?.get(YEAR_QUERY_PARAM);
+  const { year, requestedHeld } = resolveSelectedYear(raw);
+  const carryYear = raw != null && requestedHeld;
+  return (
+    <>
+      {NAV_LINKS.map((link) => (
+        <Link
+          key={link.label}
+          href={carryYear && isYearAwarePath(link.href) ? hrefWithYear(link.href, year) : link.href}
+          className={navLinkClass(pathname === link.href)}
+        >
+          {link.label}
+        </Link>
+      ))}
+    </>
+  );
+}
 
 export default function NavBar() {
   const pathname = usePathname() ?? "";
@@ -59,27 +113,22 @@ export default function NavBar() {
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">
-            {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    isActive
-                      ? "text-blue-600"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
+            {/* useSearchParams in the root layout needs its own boundary, or the
+                production build fails for every static page. */}
+            <Suspense fallback={<PlainNavLinks pathname={pathname} />}>
+              <YearPreservingNavLinks pathname={pathname} />
+            </Suspense>
           </div>
         </div>
 
-        {/* Right: Auth actions */}
+        {/* Right: edition, then auth actions */}
         <div className="flex items-center gap-3 sm:gap-4">
+          {isYearAwarePath(pathname) ? (
+            <Suspense fallback={<YearSelectorFallback variant="nav" />}>
+              <YearSelector variant="nav" />
+            </Suspense>
+          ) : null}
+
           <a
             href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform"
             target="_blank"

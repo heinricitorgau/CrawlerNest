@@ -14,6 +14,10 @@ import {
   useState,
 } from "react";
 
+import { CaveatBanner } from "@/components/CaveatBanner";
+import { YearSelector } from "@/components/YearSelector";
+import { editionCaveats } from "@/lib/caveatMessages";
+import { YEAR_QUERY_PARAM, resolveSelectedYear } from "@/lib/datasetScope";
 import { formatRank, formatScore } from "@/lib/format";
 import { countryBelongsToRegion, normalizeCountryName } from "@/lib/regionMap";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
@@ -104,7 +108,6 @@ function isAbortLikeError(error: unknown): boolean {
 }
 
 const DEFAULT_SOURCE = "AGGREGATED";
-const DEFAULT_YEAR = 2026;
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_SCOPE = "global";
@@ -603,7 +606,9 @@ function RankingsHomeContent() {
     searchParams.get("pageSize"),
     DEFAULT_PAGE_SIZE
   );
-  const year = parsePositiveInt(searchParams.get("year"), DEFAULT_YEAR);
+  // Only a held edition is ever queried: an unheld ?year= reads the default and the
+  // selector says so, instead of showing an empty table that looks like no data.
+  const { year } = resolveSelectedYear(searchParams.get(YEAR_QUERY_PARAM));
   const source = searchParams.get("source") ?? DEFAULT_SOURCE;
   const search = searchParams.get("search") ?? "";
   const scope = parseScope(searchParams.get("scope"));
@@ -920,15 +925,6 @@ function RankingsHomeContent() {
     updateRoute({ region: nextRegion, page: 1 }, "push");
   }
 
-  function handleYearChange(nextYear: string) {
-    const normalizedYear = nextYear.trim();
-    if (!normalizedYear) {
-      return;
-    }
-
-    updateRoute({ year: normalizedYear, page: 1 }, "push");
-  }
-
   function handleSearchChange(value: string) {
     setSearchInput(value);
     updateRoute({ search: value || null, page: 1 });
@@ -1067,6 +1063,7 @@ function RankingsHomeContent() {
           </div>
 
           <RankingsSummary year={year} summaries={countSummaries} />
+          <CaveatBanner caveats={editionCaveats(year)} className="mt-6" />
         </header>
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -1138,15 +1135,7 @@ function RankingsHomeContent() {
                       </div>
                     </label>
 
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-[#1a3d2e]">Year</span>
-                      <input
-                        className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
-                        type="number"
-                        value={year}
-                        onChange={(e) => handleYearChange(e.target.value)}
-                      />
-                    </label>
+                    <YearSelector variant="page" />
 
                     <label className="flex flex-col gap-2">
                       <span className="text-sm font-medium text-[#1a3d2e]">

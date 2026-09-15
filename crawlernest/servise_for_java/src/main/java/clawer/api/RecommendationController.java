@@ -139,19 +139,26 @@ public class RecommendationController {
             @RequestParam(name = "ieltsScore", required = false) Double ieltsScore,
             @RequestParam(name = "targetRank", required = false) Integer targetRank,
             @RequestParam(name = "country", required = false) String country,
-            @RequestParam(name = "subjectKey", required = false) String subjectKey
+            @RequestParam(name = "subjectKey", required = false) String subjectKey,
+            @RequestParam(name = "rankingYear", required = false) Integer rankingYear
     ) {
         if (canonicalUniversityId == null || canonicalUniversityId <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "canonicalUniversityId is required and must be positive.");
         }
-        Map<String, Object> evidence = evidenceService.getEvidence(
-                canonicalUniversityId, ieltsScore, targetRank, country, subjectKey
-        );
+        Map<String, Object> evidence;
+        try {
+            evidence = evidenceService.getEvidence(
+                    canonicalUniversityId, ieltsScore, targetRank, country, subjectKey, rankingYear
+            );
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage(), ex);
+        }
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("timestamp", Instant.now().toString());
         metadata.put("endpoint", "recommendations/explain");
         metadata.put("readonly", true);
         metadata.put("canonical_university_id", canonicalUniversityId);
+        metadata.put("ranking_year", evidence.get("ranking_year_requested"));
         return clawer.dto.ApiResponse.success(evidence, metadata);
     }
 

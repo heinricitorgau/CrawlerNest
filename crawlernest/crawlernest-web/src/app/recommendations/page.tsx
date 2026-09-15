@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchAppJson } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
+import { useSelectedYear } from "@/hooks/useSelectedYear";
 import { AUTH_MESSAGES } from "@/lib/authMessages";
-import { RC1_STANDARD_CAVEATS } from "@/lib/caveatMessages";
+import { editionCaveats } from "@/lib/caveatMessages";
+import { DEFAULT_RANKING_YEAR } from "@/lib/datasetScope";
+import { CaveatBanner } from "@/components/CaveatBanner";
+import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
 import { sourceAvailabilityConfig } from "@/lib/analyticsPresentation";
 import { AdmissionRequirementBadges } from "@/components/AdmissionRequirementBadges";
 import { AdmissionSignalBadge } from "@/components/AdmissionSignalBadge";
@@ -1049,7 +1053,16 @@ function truncatePlanText(text: string | undefined, maxLength = 110) {
   return `${text.slice(0, maxLength - 1).trimEnd()}...`;
 }
 
-export function RecommendationPageContent() {
+type RecommendationPageContentProps = {
+  /** A held edition; the page wrapper resolves it from `?year=`. */
+  rankingYear?: number;
+  yearSelector?: ReactNode;
+};
+
+export function RecommendationPageContent({
+  rankingYear = DEFAULT_RANKING_YEAR,
+  yearSelector = <YearSelectorFallback variant="page" />,
+}: RecommendationPageContentProps = {}) {
   const [country, setCountry] = useState(DEFAULT_COUNTRY);
   const [ielts, setIelts] = useState(DEFAULT_IELTS);
   const [toefl, setToefl] = useState<number | "">("");
@@ -1090,6 +1103,13 @@ export function RecommendationPageContent() {
   const [importedSummaryPreview, setImportedSummaryPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The edition the displayed recommendations were computed for. It lags
+  // `rankingYear` while a refetch is in flight, and the caveats, the explained rows
+  // and the explain panels describe the rows on screen, not the ones on the way.
+  const [resultYear, setResultYear] = useState<number | null>(null);
+  // The edition last asked for; null until the user first generates recommendations,
+  // so changing the edition before then fetches nothing.
+  const lastRequestedYear = useRef<number | null>(null);
 
   const { authenticated, refresh: refreshAuth } = useAuth();
   const [lastResponse, setLastResponse] = useState<RecommendationResponse | null>(null);
@@ -1385,6 +1405,17 @@ export function RecommendationPageContent() {
     return Object.keys(payload).length > 0 ? payload : null;
   }, [scenarioGpaDelta, scenarioIeltsDelta, scenarioTargetRankDelta, scenarioToeflDelta]);
 
+  // A new edition re-runs the last request against it, with the same profile, plan
+  // and scenario. Before the first request there is nothing to re-run.
+  useEffect(() => {
+    if (lastRequestedYear.current === null || lastRequestedYear.current === rankingYear) {
+      return;
+    }
+    void fetchRecommendations();
+    // Only the edition triggers this; the profile inputs refetch on Generate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rankingYear]);
+
   async function fetchRecommendations(
     selectedPlanOverride: PlanName | null = selectedPlan,
     scenarioPayloadOverride: {
@@ -1444,6 +1475,9 @@ export function RecommendationPageContent() {
       if (selectedSubject) {
         params.set("subject", selectedSubject);
       }
+      const requestedYear = rankingYear;
+      params.set("rankingYear", String(requestedYear));
+      lastRequestedYear.current = requestedYear;
 
       const json = await fetchAppJson<RecommendationResponse>(
         `/api/recommendations?${params.toString()}`
@@ -1453,6 +1487,7 @@ export function RecommendationPageContent() {
         throw new Error("Recommendation request did not succeed.");
       }
 
+      setResultYear(requestedYear);
       setLastResponse(json);
       setSavePhase("idle");
       setSaveTitle("");
@@ -1473,6 +1508,7 @@ export function RecommendationPageContent() {
       setCurrentFocus(json.nextActionGuide?.currentFocus ?? currentFocus);
     } catch {
       setError("Unable to load recommendations. Please confirm the API server is running.");
+      setResultYear(null);
       setData(null);
       setMetadata(null);
       setApplicationPlan(null);
@@ -1772,12 +1808,15 @@ export function RecommendationPageContent() {
               and risk profile.
             </p>
           </div>
-          <Link
-            href="/"
-            className="inline-flex items-center rounded-full border border-[#e0ddd8] bg-white px-4 py-2 text-sm font-medium text-[#1a3d2e] shadow-sm transition hover:border-[#3d7a5a] hover:bg-[#e8f2ec]"
-          >
-            Back to rankings
-          </Link>
+          <div className="flex flex-col items-end gap-3">
+            {yearSelector}
+            <Link
+              href="/"
+              className="inline-flex items-center rounded-full border border-[#e0ddd8] bg-white px-4 py-2 text-sm font-medium text-[#1a3d2e] shadow-sm transition hover:border-[#3d7a5a] hover:bg-[#e8f2ec]"
+            >
+              Back to rankings
+            </Link>
+          </div>
         </div>
 
         {shortlistContext.length > 0 ? (
@@ -1905,11 +1944,14 @@ export function RecommendationPageContent() {
                 items={comparisonItems.map((item) => ({
                   universityName: item.universityName,
                   country: item.country,
+                  // The agent may name only the years its rows carry; without this
+                  // it falls back to every edition held.
+                  rankingYear: resultYear ?? rankingYear,
                   aggregatedRank: item.aggregatedRank,
                   ieltsMin: item.ieltsMin,
                   matchingScore: item.matchingScore,
                 }))}
-                caveats={[...RC1_STANDARD_CAVEATS, ...(metadata?.admission_caveats ?? [])]}
+                caveats={[...editionCaveats(resultYear ?? rankingYear), ...(metadata?.admission_caveats ?? [])]}
               />
             </div>
           </section>
@@ -2206,6 +2248,9 @@ export function RecommendationPageContent() {
 
         {data ? (
           <div className="mt-8 space-y-8">
+            <CaveatBanner
+              caveats={[...editionCaveats(resultYear ?? rankingYear), ...(metadata?.admission_caveats ?? [])]}
+            />
             {decisionSummary ? (
               <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-[#1a3d2e]">
@@ -2559,28 +2604,32 @@ export function RecommendationPageContent() {
                 universityName: item.universityName,
                 country: item.country,
                 category,
+                rankingYear: resultYear ?? rankingYear,
                 aggregatedRank: item.aggregatedRank,
                 matchingScore: item.matchingScore,
                 recommendationConfidence: item.recommendationConfidence,
                 ieltsRequirement: item.ieltsMin,
               }))}
-              caveats={[...RC1_STANDARD_CAVEATS, ...(metadata?.admission_caveats ?? [])]}
+              caveats={[...editionCaveats(resultYear ?? rankingYear), ...(metadata?.admission_caveats ?? [])]}
             />
 
             <Section
               title="Reach"
               description="Ambitious options with stronger ranking upside relative to your target."
               items={data.reach}
+              rankingYear={resultYear ?? rankingYear}
             />
             <Section
               title="Target"
               description="Balanced options with realistic fit and solid positioning."
               items={data.target}
+              rankingYear={resultYear ?? rankingYear}
             />
             <Section
               title="Safety"
               description="Lower-risk options that may be more accessible for your profile."
               items={data.safety}
+              rankingYear={resultYear ?? rankingYear}
             />
           </div>
         ) : null}
@@ -2615,9 +2664,15 @@ export default function RecommendationPage() {
         </main>
       }
     >
-      <RecommendationPageContent />
+      <RecommendationPageWithSelectedYear />
     </Suspense>
   );
+}
+
+/** Reads the edition from the URL, so the page body stays renderable without a router. */
+function RecommendationPageWithSelectedYear() {
+  const { year } = useSelectedYear();
+  return <RecommendationPageContent rankingYear={year} yearSelector={<YearSelector variant="page" />} />;
 }
 
 function SummaryItem({ label, value }: { label: string; value: string }) {
@@ -2635,14 +2690,18 @@ type ExplainState =
   | { status: "ok"; caveats: string[]; sourceCoverage: Record<string, boolean>; confidenceReason: string }
   | { status: "error" };
 
-function ExplainPanel({ item }: { item: RecommendationItem }) {
+function ExplainPanel({ item, rankingYear }: { item: RecommendationItem; rankingYear: number }) {
   const [open, setOpen] = useState(false);
   const [explainState, setExplainState] = useState<ExplainState>({ status: "idle" });
 
   function toggle() {
     if (!open && explainState.status === "idle") {
       setExplainState({ status: "loading" });
-      const url = `/api/recommendations/explain?canonicalUniversityId=${item.canonicalUniversityId}`;
+      const params = new URLSearchParams({
+        canonicalUniversityId: String(item.canonicalUniversityId),
+        rankingYear: String(rankingYear),
+      });
+      const url = `/api/recommendations/explain?${params.toString()}`;
       fetch(url, { cache: "no-store" })
         .then(async (res) => {
           const json = (await res.json()) as {
@@ -2667,7 +2726,7 @@ function ExplainPanel({ item }: { item: RecommendationItem }) {
                 ARWU: sc.arwu_available ?? false,
               },
               confidenceReason: json.data.confidence_evidence?.confidence_reason ?? "",
-              caveats: json.data.caveats ?? RC1_STANDARD_CAVEATS,
+              caveats: json.data.caveats ?? editionCaveats(rankingYear),
             });
           } else {
             setExplainState({ status: "error" });
@@ -2796,7 +2855,7 @@ function ExplainPanel({ item }: { item: RecommendationItem }) {
                 Data Caveats
               </div>
               <ul className="space-y-1">
-                {RC1_STANDARD_CAVEATS.map((c, i) => (
+                {editionCaveats(rankingYear).map((c, i) => (
                   <li key={i} className="text-xs text-[#6b554f]">
                     · {c}
                   </li>
@@ -3117,10 +3176,12 @@ function Section({
   title,
   description,
   items,
+  rankingYear,
 }: {
   title: string;
   description: string;
   items: RecommendationItem[];
+  rankingYear: number;
 }) {
   return (
     <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
@@ -3313,7 +3374,8 @@ function Section({
                 {item.explanation}
               </div>
 
-              <ExplainPanel item={item} />
+              {/* Keyed by edition: an explanation fetched for one edition is not reused for another. */}
+              <ExplainPanel key={`explain-${rankingYear}`} item={item} rankingYear={rankingYear} />
             </div>
           ))}
         </div>
