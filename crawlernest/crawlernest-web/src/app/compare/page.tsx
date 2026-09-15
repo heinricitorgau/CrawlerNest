@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { CaveatBanner } from "@/components/CaveatBanner";
 import { SourceRankChange, anyEntityChanged, anyRankChangeShown } from "@/components/SourceRankChange";
-import { CAVEAT_RANK_CHANGE } from "@/lib/caveatMessages";
+import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
+import { useSelectedYear } from "@/hooks/useSelectedYear";
+import { CAVEAT_RANK_CHANGE, editionCaveats } from "@/lib/caveatMessages";
+import { DEFAULT_RANKING_YEAR } from "@/lib/datasetScope";
 import { formatIelts, formatRank, formatScore } from "@/lib/format";
 import type {
   CompareResponse,
@@ -15,7 +19,6 @@ import type { UniversityRanking } from "@/types/university";
 
 const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
 const MAX_COMPARE_ITEMS = 4;
-const DEFAULT_RANKING_YEAR = 2026;
 const COMPARE_SOURCES = ["QS", "THE", "ARWU"] as const;
 
 /**
@@ -65,11 +68,40 @@ function agreementTone(level: CompareUniversityPayload["evidenceSummary"]["agree
   return "bg-[#f3e7e4] text-[#8b3a2b]";
 }
 
+/**
+ * Reads the edition from the URL. The page body takes it as a prop, so it can be
+ * rendered (and tested) without a router.
+ */
 export default function ComparePage() {
+  return (
+    <Suspense fallback={<ComparePageShell />}>
+      <ComparePageWithSelectedYear />
+    </Suspense>
+  );
+}
+
+function ComparePageWithSelectedYear() {
+  const { year } = useSelectedYear();
+  return <ComparePageContent rankingYear={year} yearSelector={<YearSelector variant="page" />} />;
+}
+
+type ComparePageContentProps = {
+  /** A held edition; the wrapper resolves it from `?year=`. */
+  rankingYear?: number;
+  yearSelector?: ReactNode;
+};
+
+export function ComparePageContent({
+  rankingYear = DEFAULT_RANKING_YEAR,
+  yearSelector = <YearSelectorFallback variant="page" />,
+}: ComparePageContentProps) {
   const [isClientReady, setIsClientReady] = useState(false);
   const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [comparison, setComparison] = useState<CompareResponse["data"] | null>(null);
+  // The edition the displayed comparison came from. While a refetch for another
+  // edition is in flight the old cards stay up, and their caveats must describe them.
+  const [comparisonYear, setComparisonYear] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,6 +154,7 @@ export default function ComparePage() {
   useEffect(() => {
     if (!isClientReady || selectedIds.length < 2) {
       setComparison(null);
+      setComparisonYear(null);
       return;
     }
 
@@ -139,7 +172,7 @@ export default function ComparePage() {
           },
           body: JSON.stringify({
             universityIds: selectedIds,
-            rankingYear: DEFAULT_RANKING_YEAR,
+            rankingYear,
           }),
         });
 
@@ -150,11 +183,13 @@ export default function ComparePage() {
         const payload = (await response.json()) as CompareResponse;
         if (!cancelled) {
           setComparison(payload.data ?? null);
+          setComparisonYear(payload.data ? rankingYear : null);
         }
       } catch {
         if (!cancelled) {
           setComparison(null);
-          setError("Unable to load comparison right now. Please try again.");
+          setComparisonYear(null);
+          setError(`Unable to load the ${rankingYear} comparison right now. Please try again.`);
         }
       } finally {
         if (!cancelled) {
@@ -168,7 +203,7 @@ export default function ComparePage() {
     return () => {
       cancelled = true;
     };
-  }, [isClientReady, selectedIds]);
+  }, [isClientReady, selectedIds, rankingYear]);
 
   const selectedCount = selectedIds.length;
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
@@ -277,8 +312,11 @@ export default function ComparePage() {
                     here without affecting your shortlist.
                   </p>
                 </div>
-                <div className="text-sm text-[#6b7068]">
-                  {selectedCount} selected / {MAX_COMPARE_ITEMS} max
+                <div className="flex flex-col gap-3 md:items-end">
+                  {yearSelector}
+                  <div className="text-sm text-[#6b7068]">
+                    {selectedCount} selected / {MAX_COMPARE_ITEMS} max
+                  </div>
                 </div>
               </div>
 
@@ -324,7 +362,14 @@ export default function ComparePage() {
                 {comparison ? (
                   <>
                     <section className="mt-6 rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-                      <h2 className="text-xl font-semibold text-[#1a3d2e]">Comparison Summary</h2>
+                      <h2 className="text-xl font-semibold text-[#1a3d2e]">
+                        Comparison Summary
+                        {comparisonYear != null ? (
+                          <span className="ml-2 align-middle text-sm font-medium text-[#6b7068]">
+                            {comparisonYear} edition
+                          </span>
+                        ) : null}
+                      </h2>
                       <p className="mt-3 text-sm leading-6 text-[#6b7068]">
                         {comparison.summary}
                       </p>
@@ -523,12 +568,18 @@ export default function ComparePage() {
                         );
                       })}
                     </section>
-                    {comparedUniversities.some((university) => {
-                      const rows = university.sourceRankings ?? [];
-                      return anyRankChangeShown(rows) || anyEntityChanged(rows);
-                    }) ? (
-                      <p className="mt-4 text-xs leading-5 text-[#6b7068]">{CAVEAT_RANK_CHANGE}</p>
-                    ) : null}
+                    <CaveatBanner
+                      className="mt-6"
+                      caveats={[
+                        ...editionCaveats(comparisonYear ?? rankingYear),
+                        comparedUniversities.some((university) => {
+                          const rows = university.sourceRankings ?? [];
+                          return anyRankChangeShown(rows) || anyEntityChanged(rows);
+                        })
+                          ? CAVEAT_RANK_CHANGE
+                          : null,
+                      ]}
+                    />
                   </>
                 ) : loading ? (
                   <section className="mt-6 grid gap-6 md:grid-cols-2 2xl:grid-cols-4">

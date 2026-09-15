@@ -139,6 +139,16 @@ export const STANDARD_CAVEATS: string[] = [
 ];
 
 /**
+ * The standard caveats for a view that shows one edition. STANDARD_CAVEATS names
+ * every edition held ("the 2025 and 2026 published tables"), which is true of the
+ * warehouse and wrong for a page showing only 2025 rows. Same template, same
+ * strings; only the edition named differs.
+ */
+export function editionCaveats(year: number): string[] {
+  return [snapshotCaveat([year]), CAVEAT_THE_PARTIAL, CAVEAT_ARWU_PARTIAL];
+}
+
+/**
  * @deprecated RC-1 naming, kept so existing imports keep working.
  * Prefer {@link STANDARD_CAVEATS}.
  */

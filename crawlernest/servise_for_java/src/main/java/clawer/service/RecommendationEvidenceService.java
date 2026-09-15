@@ -57,8 +57,30 @@ public class RecommendationEvidenceService {
             String country,
             String subjectKey
     ) {
+        return getEvidence(canonicalUniversityId, ieltsScore, targetRank, country, subjectKey, null);
+    }
+
+    /**
+     * Evidence for one edition. {@code rankingYear} null reads the default edition, as
+     * before; a year the release does not hold is refused rather than read as the
+     * default, because the page asking has told the user which edition it shows.
+     *
+     * <p>Only the ranking evidence is per edition. Admission requirements carry their
+     * own fetch and intake dates, which the admission caveats disclose, and are the
+     * same whichever ranking edition is selected.
+     */
+    public Map<String, Object> getEvidence(
+            long canonicalUniversityId,
+            Double ieltsScore,
+            Integer targetRank,
+            String country,
+            String subjectKey,
+            Integer rankingYear
+    ) {
+        int edition = datasetScope.resolveRankingYear(rankingYear).orElseThrow(() ->
+                new IllegalArgumentException("No ranking data is available for year " + rankingYear + "."));
         Map<String, Object> identity = fetchIdentity(canonicalUniversityId);
-        Map<String, Object> ranking = fetchRankingEvidence(canonicalUniversityId);
+        Map<String, Object> ranking = fetchRankingEvidence(canonicalUniversityId, edition);
         Map<String, Object> sourceCoverage = buildSourceCoverage(ranking);
         Optional<AdmissionSummaryRow> admissionSummary = admissionRecordRepository.findSummaryRow(canonicalUniversityId);
         Map<String, Object> ieltsEvidence = buildIeltsEvidence(admissionSummary, ieltsScore);
@@ -76,6 +98,9 @@ public class RecommendationEvidenceService {
         }
 
         Map<String, Object> response = new LinkedHashMap<>();
+        // The edition read, whether or not this university has a row in it: a null
+        // ranking_evidence.ranking_year alone cannot say which edition was missing.
+        response.put("ranking_year_requested", edition);
         response.put("university_identity", identity);
         response.put("ranking_evidence", ranking);
         response.put("source_coverage", sourceCoverage);
@@ -130,7 +155,7 @@ public class RecommendationEvidenceService {
 
     // ── Private: ranking ─────────────────────────────────────────────────────
 
-    private Map<String, Object> fetchRankingEvidence(long canonicalUniversityId) {
+    private Map<String, Object> fetchRankingEvidence(long canonicalUniversityId, int rankingYear) {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
                 SELECT
                     ar.display_rank,
@@ -149,7 +174,7 @@ public class RecommendationEvidenceService {
                   AND ar.ranking_year = ?
                 ORDER BY ar.display_rank ASC NULLS LAST
                 LIMIT 1
-                """, canonicalUniversityId, datasetScope.defaultRankingYear());
+                """, canonicalUniversityId, rankingYear);
 
         Map<String, Object> evidence = new LinkedHashMap<>();
         if (rows.isEmpty()) {
