@@ -17,7 +17,7 @@ import {
 import { CaveatBanner } from "@/components/CaveatBanner";
 import { YearSelector } from "@/components/YearSelector";
 import { editionCaveats } from "@/lib/caveatMessages";
-import { YEAR_QUERY_PARAM, resolveSelectedYear } from "@/lib/datasetScope";
+import { YEAR_QUERY_PARAM, hrefForEdition, resolveSelectedYear } from "@/lib/datasetScope";
 import { formatRank, formatScore } from "@/lib/format";
 import { countryBelongsToRegion, normalizeCountryName } from "@/lib/regionMap";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
@@ -280,6 +280,7 @@ function RankingsTable({
   onRowKeyDown,
   onToggleShortlist,
   onToggleSave,
+  universityHref,
 }: Readonly<{
   error: string | null;
   loading: boolean;
@@ -294,6 +295,8 @@ function RankingsTable({
   onRowKeyDown: (event: ReactKeyboardEvent<HTMLTableRowElement>, slug: string) => void;
   onToggleShortlist: (item: RankingItem) => void;
   onToggleSave: (item: RankingItem) => void;
+  /** The university page for the edition this table shows. */
+  universityHref: (slug: string) => string;
 }>) {
   if (pagedItems.length > 0) {
     return (
@@ -354,7 +357,7 @@ function RankingsTable({
                     </td>
 
                     <td className="px-6 py-5 align-top">
-                      <Link href={`/universities/${item.slug}`} className="block">
+                      <Link href={universityHref(item.slug)} className="block">
                         <div className="text-lg font-semibold text-[#1a1a1a] underline-offset-4 transition group-hover:text-[#1a3d2e] group-hover:underline">
                           {item.universityName}
                         </div>
@@ -478,6 +481,7 @@ function ShortlistPanel({
   canGoNext,
   onPreviousPage,
   onNextPage,
+  editionHref,
 }: Readonly<{
   shortlist: ShortlistItem[];
   onRemove: (id: number) => void;
@@ -486,6 +490,8 @@ function ShortlistPanel({
   canGoNext: boolean;
   onPreviousPage: () => void;
   onNextPage: () => void;
+  /** A link into another year-aware page, keeping the edition this page shows. */
+  editionHref: (href: string) => string;
 }>) {
   return (
     <div className="space-y-4">
@@ -509,7 +515,7 @@ function ShortlistPanel({
         ) : (
           <div className="mt-4 space-y-4">
             <Link
-              href="/recommendations"
+              href={editionHref("/recommendations")}
               className="inline-flex w-full items-center justify-center rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
             >
               Generate Recommendation
@@ -517,7 +523,7 @@ function ShortlistPanel({
 
             {shortlist.length >= 2 ? (
               <Link
-                href="/compare"
+                href={editionHref("/compare")}
                 className="inline-flex w-full items-center justify-center rounded-full border border-[#3d7a5a] bg-white px-4 py-3 text-sm font-semibold text-[#1a3d2e] transition hover:bg-[#e8f2ec]"
               >
                 Compare Selected
@@ -533,7 +539,7 @@ function ShortlistPanel({
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <Link
-                        href={`/universities/${item.slug}`}
+                        href={editionHref(`/universities/${item.slug}`)}
                         className="block text-sm font-semibold text-[#1a1a1a] underline-offset-4 transition hover:text-[#1a3d2e] hover:underline"
                       >
                         {item.universityName}
@@ -943,7 +949,7 @@ function RankingsHomeContent() {
       return;
     }
 
-    router.push(`/universities/${slug}`);
+    router.push(universityHref(slug));
   }
 
   function handleRowKeyDown(
@@ -952,8 +958,16 @@ function RankingsHomeContent() {
   ) {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      router.push(`/universities/${slug}`);
+      router.push(universityHref(slug));
     }
+  }
+
+  function editionHref(href: string) {
+    return hrefForEdition(href, year);
+  }
+
+  function universityHref(slug: string) {
+    return editionHref(`/universities/${slug}`);
   }
 
   function toggleShortlist(item: RankingItem) {
@@ -1040,7 +1054,7 @@ function RankingsHomeContent() {
             <div className="flex flex-col gap-3 lg:items-end">
               {shortlist.length > 0 ? (
                 <Link
-                  href="/recommendations"
+                  href={editionHref("/recommendations")}
                   className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
                 >
                   Generate Recommendation based on your shortlist
@@ -1250,6 +1264,7 @@ function RankingsHomeContent() {
                 onRowKeyDown={handleRowKeyDown}
                 onToggleShortlist={toggleShortlist}
                 onToggleSave={handleToggleSave}
+                universityHref={universityHref}
               />
             </section>
           </div>
@@ -1263,6 +1278,7 @@ function RankingsHomeContent() {
               canGoNext={canGoNext}
               onPreviousPage={() => handlePageChange(page - 1)}
               onNextPage={() => handlePageChange(page + 1)}
+              editionHref={editionHref}
             />
           </div>
         </div>

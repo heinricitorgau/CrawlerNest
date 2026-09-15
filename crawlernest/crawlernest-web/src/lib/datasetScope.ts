@@ -51,3 +51,12 @@ export function hrefWithYear(href: string, year: number): string {
   params.set(YEAR_QUERY_PARAM, String(year));
   return `${path}?${params.toString()}`;
 }
+
+/**
+ * An in-app link that keeps the edition being viewed. The default edition needs
+ * no parameter -- a plain link already shows it -- so only another edition is
+ * written into the URL. One rule for every link between year-aware pages.
+ */
+export function hrefForEdition(href: string, year: number): string {
+  return year === DEFAULT_RANKING_YEAR ? href : hrefWithYear(href, year);
+}

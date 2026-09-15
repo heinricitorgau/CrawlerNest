@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import { SNAPSHOT_CAVEAT_TEMPLATE, CAVEAT_ARWU_PARTIAL, CAVEAT_THE_PARTIAL, STANDARD_CAVEATS, editionCaveats } from "@/lib/caveatMessages";
-import { DATASET_YEARS, DEFAULT_RANKING_YEAR, hrefWithYear, resolveSelectedYear } from "@/lib/datasetScope";
+import { DATASET_YEARS, DEFAULT_RANKING_YEAR, hrefForEdition, hrefWithYear, resolveSelectedYear } from "@/lib/datasetScope";
 import { isYearAwarePath } from "@/components/NavBar";
 
 jest.mock("@/hooks/useAuthPlaceholder", () => ({ useAuth: () => ({}) }));
@@ -35,10 +35,21 @@ describe("hrefWithYear", () => {
   });
 });
 
+describe("hrefForEdition", () => {
+  it("writes only a non-default edition into a link", () => {
+    expect(hrefForEdition("/universities/mit", DEFAULT_RANKING_YEAR)).toBe("/universities/mit");
+    expect(hrefForEdition("/universities/mit", 2025)).toBe("/universities/mit?year=2025");
+  });
+});
+
 describe("isYearAwarePath", () => {
   it("covers the pages whose data depends on the edition and no others", () => {
-    for (const path of ["/", "/rankings", "/recommendations", "/compare"]) expect(isYearAwarePath(path)).toBe(true);
-    for (const path of ["/about", "/analytics", "/universities/mit", "/rankings/extra"]) expect(isYearAwarePath(path)).toBe(false);
+    for (const path of ["/", "/rankings", "/recommendations", "/compare", "/universities/mit", "/universities/mit/"]) {
+      expect(isYearAwarePath(path)).toBe(true);
+    }
+    for (const path of ["/about", "/analytics", "/universities", "/universities/mit/sources", "/rankings/extra"]) {
+      expect(isYearAwarePath(path)).toBe(false);
+    }
   });
 });
 

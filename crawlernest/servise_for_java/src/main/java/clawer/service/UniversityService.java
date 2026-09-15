@@ -61,8 +61,22 @@ public class UniversityService {
     }
 
     public UniversityDTO getUniversityBySlug(String slug) {
+        return getUniversityBySlug(slug, null);
+    }
+
+    /**
+     * The university as one edition shows it. {@code rankingYear} null reads the
+     * default edition, as before; a year the release does not hold is refused rather
+     * than read as the default, because the page asking has told the user which
+     * edition it shows. A held edition with no row for this university returns the
+     * university with no ranking, and {@link UniversityDTO#getRankingYear()} says
+     * which edition that was.
+     */
+    public UniversityDTO getUniversityBySlug(String slug, Integer rankingYear) {
+        int edition = datasetScope.resolveRankingYear(rankingYear).orElseThrow(() ->
+                new IllegalArgumentException("No ranking data is available for year " + rankingYear + "."));
         UniversityDTO legacy = universityRepository.findBySchoolSlug(slug)
-                .map(this::convertToCanonicalBackedDTO)
+                .map(university -> convertToCanonicalBackedDTO(university, edition))
                 .orElse(null);
 
         if (legacy != null) {
@@ -72,10 +86,10 @@ public class UniversityService {
         // Fallback: rankings UI uses canonical_slug (warehouse.canonical_university),
         // while the legacy university page endpoint originally queried only warehouse.universities.school_slug.
         // When a canonical university has no legacy university row/link, return a canonical-based DTO instead of 404.
-        return getUniversityByCanonicalSlug(slug);
+        return getUniversityByCanonicalSlug(slug, edition);
     }
 
-    private UniversityDTO getUniversityByCanonicalSlug(String canonicalSlug) {
+    private UniversityDTO getUniversityByCanonicalSlug(String canonicalSlug, int edition) {
         String canonicalSql = """
                 SELECT cu.canonical_university_id,
                        cu.display_name,
@@ -110,7 +124,8 @@ public class UniversityService {
         dto.setSlug(canonicalSlug);
         dto.setUniversityName((String) r.get("display_name"));
         dto.setCountry((String) r.get("country_name"));
-        hydrateCanonicalRankings(dto, canonicalUniversityId);
+        dto.setRankingYear(edition);
+        hydrateCanonicalRankings(dto, canonicalUniversityId, edition);
 
         dto.setAdmissionRequirements(admissionRecordRepository.findByCanonicalUniversityId(dto.getCanonicalUniversityId()));
         clawer.dto.DataQualityDTO quality = new clawer.dto.DataQualityDTO();
@@ -121,16 +136,17 @@ public class UniversityService {
         return dto;
     }
 
-    private UniversityDTO convertToCanonicalBackedDTO(University university) {
+    private UniversityDTO convertToCanonicalBackedDTO(University university, int edition) {
         UniversityDTO dto = new UniversityDTO();
         dto.setSlug(university.getSchoolSlug());
         dto.setUniversityName(university.getDisplayName());
         dto.setCountry(university.getCountry() != null ? university.getCountry().getCountryName() : null);
+        dto.setRankingYear(edition);
         Long canonicalUniversityId = resolveCanonicalUniversityId(university.getId());
         dto.setCanonicalUniversityId(canonicalUniversityId);
 
         if (canonicalUniversityId != null) {
-            hydrateCanonicalRankings(dto, canonicalUniversityId);
+            hydrateCanonicalRankings(dto, canonicalUniversityId, edition);
         } else {
             dto.setAggregatedRanking(null);
             dto.setSourceRankings(List.of());
@@ -218,10 +234,10 @@ public class UniversityService {
         return canonicalIds.isEmpty() ? null : canonicalIds.get(0);
     }
 
-    private void hydrateCanonicalRankings(UniversityDTO dto, Long canonicalUniversityId) {
-        // The default edition, not "the newest row for this university": that would
-        // hand a university missing from the current edition its rank from an older
-        // or unreleased one, labelled as current.
+    private void hydrateCanonicalRankings(UniversityDTO dto, Long canonicalUniversityId, int edition) {
+        // The requested edition, not "the newest row for this university": that would
+        // hand a university missing from this edition its rank from another one,
+        // labelled as this one.
         String aggSql = """
                 SELECT ranking_year, display_rank, composite_score, aggregation_method_version
                 FROM analytics.v_aggregated_rankings_latest
@@ -233,7 +249,7 @@ public class UniversityService {
 
         List<Map<String, Object>> aggRows = jdbcTemplate.query(
                 aggSql,
-                new Object[]{canonicalUniversityId, datasetScope.defaultRankingYear()},
+                new Object[]{canonicalUniversityId, edition},
                 (rs, rowNum) -> {
                     Map<String, Object> m = new java.util.HashMap<>();
                     m.put("ranking_year", rs.getInt("ranking_year"));
