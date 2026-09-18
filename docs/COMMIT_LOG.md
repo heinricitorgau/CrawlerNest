@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-09-10，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-09-18，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：392
-- **期間**：2026-03-16 ~ 2026-09-10
+- **Commit 總數**：411
+- **期間**：2026-03-16 ~ 2026-09-19
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,7 +34,26 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `0e83acc` | 2026-09-10 | heinricitorgau | 2 | +22 / −0 | feat(agent): enforce 2026 snapshot constraints in the web system prompt, pinned by a contract test **[main]** |
+| `3653204` | 2026-09-19 | heinricitorgau | 1 | +66 / −0 | chore(samples): add the ranking decision preview sample **[main]** |
+| `1bc78fc` | 2026-09-15 | heinricitorgau | 12 | +380 / −58 | feat(web): university detail pages follow the selected edition |
+| `16a8ab0` | 2026-09-15 | heinricitorgau | 16 | +885 / −78 | feat(web): edition selector on rankings, recommendations and compare, with per-edition caveats |
+| `6d1c9d8` | 2026-09-15 | heinricitorgau | 11 | +473 / −59 | feat(web): per-source rank change on the comparison, band intervals, entity-changed badge |
+| `b83e4c0` | 2026-09-14 | heinricitorgau | 13 | +632 / −39 | feat(admissions): record fetched_at and fetch_mode in the crawler |
+| `3e7be24` | 2026-09-14 | heinricitorgau | 37 | +2022 / −156 | feat(admissions): scope-aware readers and the IELTS-missing / stale-data caveats |
+| `841be8d` | 2026-09-14 | heinricitorgau | 18 | +1651 / −266 | feat(admissions): programme/intake granularity and unified entity resolution |
+| `624d7fd` | 2026-09-14 | heinricitorgau | 32 | +2326 / −344 | feat(agent-api): serve under Uvicorn and move agent state out of /tmp |
+| `32884be` | 2026-09-14 | heinricitorgau | 12 | +705 / −5 | fix(entity-resolution): stop a source entity flipping between canonical universities |
+| `d8a8d62` | 2026-09-14 | heinricitorgau | 4 | +136 / −28 | fix(analytics): count source coverage in the table the caveat describes |
+| `407df21` | 2026-09-14 | heinricitorgau | 58 | +643 / −558 | fix(ml): train on the edition-verified QS 2026 table, not the 2027 one |
+| `79eaa80` | 2026-09-14 | heinricitorgau | 1 | +2008 / −1000 | chore(data): refresh arwu_rankings_2026.json from the scheduled-refresh smoke run |
+| `6cc08b3` | 2026-09-14 | heinricitorgau | 4 | +10 / −4 | feat(dataset): release the 2025 edition -- DATASET_YEARS = (2026, 2025) |
+| `d40036b` | 2026-09-14 | heinricitorgau | 115 | +340296 / −110323 | fix(crawl): prove every edition before labelling it, and add per-source rank deltas, shrink guard and scheduler |
+| `1011f33` | 2026-09-13 | heinricitorgau | 45 | +1808 / −123 | feat(warehouse): isolate every serving read to one edition and withhold deltas across institution lineage |
+| `7afbccb` | 2026-09-13 | heinricitorgau | 30 | +1065 / −404 | feat(agent): remove the self-rewriting prompt loop and derive year rules from evidence |
+| `5932d32` | 2026-09-13 | heinricitorgau | 6 | +600 / −1 | feat(warehouse): record which source mapping each ranking_record came from |
+| `2ce28b0` | 2026-09-11 | heinricitorgau | 10 | +1077 / −22 | feat(ingest): key ARWU on the source's own slug and refuse to ingest past orphaned review decisions |
+| `d53ca66` | 2026-09-10 | heinricitorgau | 1 | +25 / −9 | docs: regenerate the commit log |
+| `0e83acc` | 2026-09-10 | heinricitorgau | 2 | +22 / −0 | feat(agent): enforce 2026 snapshot constraints in the web system prompt, pinned by a contract test |
 | `64d3d7b` | 2026-09-10 | heinricitorgau | 3 | +540 / −0 | Settle how rank movement is computed before there is a second year to compute it from |
 | `0598c66` | 2026-09-10 | heinricitorgau | 1 | +13 / −2 | Correct the next.config comment that sent people to a URL /agent cannot load on |
 | `1b60a63` | 2026-09-09 | heinricitorgau | 3 | +16 / −3 | Stop the agent surface claiming it runs no tools, now that it runs one |
@@ -463,8 +482,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 392 |
-| 檔案變更累計 | 6330 |
-| 新增行數累計 | +1381249 |
-| 刪除行數累計 | −699680 |
-| 淨增行數 | +681569 |
+| Commit 數 | 411 |
+| 檔案變更累計 | 6756 |
+| 新增行數累計 | +1738057 |
+| 刪除行數累計 | −813157 |
+| 淨增行數 | +924900 |
