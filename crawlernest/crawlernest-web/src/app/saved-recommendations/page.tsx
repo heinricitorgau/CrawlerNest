@@ -4,7 +4,39 @@ import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
 import { AUTH_MESSAGES } from "@/lib/authMessages";
-import { RC1_STANDARD_CAVEATS } from "@/lib/caveatMessages";
+import { STANDARD_CAVEATS, editionCaveats } from "@/lib/caveatMessages";
+import { DATASET_YEARS } from "@/lib/datasetScope";
+
+/**
+ * The ranking edition a saved snapshot was computed against, or null when the
+ * snapshot does not record one.
+ *
+ * A saved plan is a stored result, not a live query: it cannot be switched to
+ * another edition, only labelled with the one it used. Plans saved before the
+ * edition was recorded carry no year, and are labelled as such rather than
+ * assumed to be the current edition -- which is exactly the claim that would age
+ * badly, since the newest edition changes under them.
+ */
+export function savedEdition(
+  requestJson: Record<string, unknown> | undefined,
+  resultJson: Record<string, unknown> | undefined,
+): number | null {
+  const fromRequest = requestJson?.rankingYear;
+  const metadata = (resultJson as { metadata?: Record<string, unknown> } | undefined)?.metadata;
+  const fromResult = metadata?.ranking_year;
+  for (const value of [fromRequest, fromResult]) {
+    const year = typeof value === "string" ? Number(value) : value;
+    if (typeof year === "number" && Number.isInteger(year) && DATASET_YEARS.includes(year)) {
+      return year;
+    }
+  }
+  return null;
+}
+
+/** What a snapshot discloses: its own edition when recorded, else the editions held. */
+export function savedCaveats(edition: number | null): string[] {
+  return edition == null ? STANDARD_CAVEATS : editionCaveats(edition);
+}
 
 type RecommendationSummary = {
   id: number;
@@ -99,7 +131,7 @@ type SnapshotUniversity = {
   };
 };
 
-function SnapshotEvidenceSection({ items }: { items: SnapshotUniversity[] }) {
+function SnapshotEvidenceSection({ items, edition }: { items: SnapshotUniversity[]; edition: number | null }) {
   const withEvidence = items.filter((u) => u.recommendationExplain);
   if (withEvidence.length === 0) {
     return (
@@ -126,8 +158,8 @@ function SnapshotEvidenceSection({ items }: { items: SnapshotUniversity[] }) {
           Data Caveats
         </div>
         <ul className="space-y-0.5">
-          {RC1_STANDARD_CAVEATS.map((c, i) => (
-            <li key={i} className="text-xs text-[#6b554f]">· {c}</li>
+          {savedCaveats(edition).map((c) => (
+            <li key={c} className="text-xs text-[#6b554f]">· {c}</li>
           ))}
         </ul>
       </div>
@@ -148,6 +180,7 @@ function DetailPanel({ detail, onClose }: { detail: RecommendationDetail; onClos
   const target = result?.data?.target ?? [];
   const safety = result?.data?.safety ?? [];
   const allItems = [...reach, ...target, ...safety];
+  const edition = savedEdition(detail.requestJson, detail.resultJson);
 
   return (
     <div className="mt-4 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] p-5">
@@ -160,6 +193,20 @@ function DetailPanel({ detail, onClose }: { detail: RecommendationDetail; onClos
         >
           Close
         </button>
+      </div>
+
+      <div className="mb-4 rounded-xl border border-[#e0ddd8] bg-white px-3 py-2 text-xs text-[#6b7068]">
+        {edition != null ? (
+          <>
+            Ranked against the <span className="font-semibold text-[#1a3d2e]">{edition}</span> edition, as it stood when
+            this plan was saved. Newer editions may rank these universities differently.
+          </>
+        ) : (
+          <>
+            This plan does not record which ranking edition it used; it was saved before that was stored. It cannot be
+            attributed to any one edition.
+          </>
+        )}
       </div>
 
       <div className="mb-4">
@@ -216,7 +263,7 @@ function DetailPanel({ detail, onClose }: { detail: RecommendationDetail; onClos
           <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6b7068] mb-1">
             Evidence Details
           </div>
-          <SnapshotEvidenceSection items={allItems} />
+          <SnapshotEvidenceSection items={allItems} edition={edition} />
         </div>
       )}
     </div>

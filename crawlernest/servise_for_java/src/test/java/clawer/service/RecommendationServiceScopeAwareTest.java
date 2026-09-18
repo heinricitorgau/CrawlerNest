@@ -17,6 +17,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
@@ -137,6 +138,36 @@ class RecommendationServiceScopeAwareTest {
                 List.of(AnalyticsService.ADMISSION_STALE_UNDATED_TEMPLATE.replace("{date}", "2026-08-22")),
                 response.getMetadata().get("admission_caveats")
         );
+    }
+
+    @Test
+    void metadataNamesTheEditionTheRecommendationsWereReadFrom() {
+        RecommendationService service = service(new NoopScopedRankingReadAdapter());
+
+        // A saved plan keeps this metadata, which is the only record of the edition
+        // it ranked against once the page that made it is gone.
+        assertEquals(2025, service.getRecommendationsV3(
+                "United Kingdom", "global", null, null, "hard_filter", 6.5, 50, "balanced",
+                null, null, null, 2025, 5).getMetadata().get("ranking_year"));
+        assertEquals(DatasetScope.DEFAULT_RANKING_YEAR, service.getRecommendationsV3(
+                "United Kingdom", "global", null, null, "hard_filter", 6.5, 50, "balanced",
+                null, null, null, null, 5).getMetadata().get("ranking_year"));
+        assertEquals(2025, service.getRecommendationsV2(
+                "United Kingdom", "global", null, null, 6.5, 50, "balanced", null, 2025, 5)
+                .getMetadata().get("ranking_year"));
+    }
+
+    @Test
+    void anEditionTheReleaseDoesNotHoldIsNotNamedAsTheOneRead() {
+        // The adapter reads nothing for an unheld year; labelling the empty result
+        // with that year would present it as that edition's recommendations.
+        RecommendationService service = service(new NoopScopedRankingReadAdapter());
+        RecommendationGroupResponse response = service.getRecommendationsV3(
+                "United Kingdom", "global", null, null, "hard_filter", 6.5, 50, "balanced",
+                null, null, null, 1999, 5);
+
+        assertTrue(response.getMetadata().containsKey("ranking_year"));
+        assertNull(response.getMetadata().get("ranking_year"));
     }
 
     @Test
