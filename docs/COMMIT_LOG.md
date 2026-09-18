@@ -2,7 +2,7 @@
 
 產生於 2026-09-18，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：413
+- **Commit 總數**：415
 - **期間**：2026-03-16 ~ 2026-09-19
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `7de9053` | 2026-09-19 | heinricitorgau | 5 | +166 / −24 | feat(web): subject rankings follow the selected edition **[main]** |
+| `9ceabe0` | 2026-09-19 | heinricitorgau | 5 | +157 / −6 | feat(web): saved recommendation plans record and state their edition **[main]** |
+| `6deb6af` | 2026-09-18 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `7de9053` | 2026-09-19 | heinricitorgau | 5 | +166 / −24 | feat(web): subject rankings follow the selected edition |
 | `cacd682` | 2026-09-18 | github-actions[bot] | 1 | +28 / −9 | docs: regenerate the commit log |
 | `3653204` | 2026-09-19 | heinricitorgau | 1 | +66 / −0 | chore(samples): add the ranking decision preview sample |
 | `1bc78fc` | 2026-09-15 | heinricitorgau | 12 | +380 / −58 | feat(web): university detail pages follow the selected edition |
@@ -484,8 +486,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 413 |
-| 檔案變更累計 | 6762 |
-| 新增行數累計 | +1738251 |
-| 刪除行數累計 | −813190 |
-| 淨增行數 | +925061 |
+| Commit 數 | 415 |
+| 檔案變更累計 | 6768 |
+| 新增行數累計 | +1738417 |
+| 刪除行數累計 | −813203 |
+| 淨增行數 | +925214 |
