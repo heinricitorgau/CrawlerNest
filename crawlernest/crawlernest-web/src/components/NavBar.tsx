@@ -12,7 +12,13 @@ import { YEAR_QUERY_PARAM, hrefForEdition, resolveSelectedYear } from "@/lib/dat
  * selector only here -- on /about it would change nothing -- and links into these
  * pages carry the current `?year=` so moving between them keeps the edition.
  */
-export const YEAR_AWARE_PATHS: readonly string[] = ["/", "/rankings", "/recommendations", "/compare"];
+export const YEAR_AWARE_PATHS: readonly string[] = [
+  "/",
+  "/rankings",
+  "/recommendations",
+  "/compare",
+  "/subject-rankings",
+];
 
 /** A university's own page; its sources sub-page is not scoped to an edition. */
 const UNIVERSITY_DETAIL_PATH = /^\/universities\/[^/]+\/?$/;

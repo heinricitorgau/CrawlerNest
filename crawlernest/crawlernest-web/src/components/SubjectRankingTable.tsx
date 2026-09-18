@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 
+import { DEFAULT_RANKING_YEAR, hrefForEdition } from "@/lib/datasetScope";
 import type { SubjectRankingRow } from "@/types/subjectRanking";
 
 type Props = {
   items: SubjectRankingRow[];
   loading: boolean;
+  /** The edition these rows were read for; named in the empty state and kept on the links out. */
+  rankingYear?: number;
 };
 
 function formatScore(score?: number | null) {
@@ -17,7 +20,7 @@ function formatScore(score?: number | null) {
   return score.toFixed(1);
 }
 
-export default function SubjectRankingTable({ items, loading }: Props) {
+export default function SubjectRankingTable({ items, loading, rankingYear = DEFAULT_RANKING_YEAR }: Props) {
   const safeItems = Array.isArray(items) ? items : [];
 
   return (
@@ -44,13 +47,16 @@ export default function SubjectRankingTable({ items, loading }: Props) {
           ) : safeItems.length === 0 ? (
             <tr>
               <td colSpan={5} className="py-20 text-center text-slate-500">
-                No subject ranking data available for this selection.
+                {/* Names the edition: subject tables are ingested for fewer editions
+                    than world rankings, so this is our coverage rather than a
+                    statement that nothing was ranked. */}
+                No {rankingYear} subject rankings are held for this selection.
               </td>
             </tr>
           ) : (
             safeItems.map((item) => {
               const universityHref = item.canonicalSlug
-                ? `/universities/${item.canonicalSlug}`
+                ? hrefForEdition(`/universities/${item.canonicalSlug}`, rankingYear)
                 : "#";
 
               return (
