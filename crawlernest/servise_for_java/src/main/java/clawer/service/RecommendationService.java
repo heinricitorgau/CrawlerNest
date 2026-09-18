@@ -79,13 +79,35 @@ public class RecommendationService {
     private static final double AGGRESSIVE_SAFETY_PENALTY = -1.0;
     private static final int MAX_LIMIT = 50;
     private final ScopedRankingReadAdapter scopedRankingReadAdapter;
+    private final DatasetScope datasetScope;
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
 
-    public RecommendationService(ScopedRankingReadAdapter scopedRankingReadAdapter, JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    /** Spring builds this one; the three-argument constructor is for tests and non-Spring callers. */
+    @org.springframework.beans.factory.annotation.Autowired
+    public RecommendationService(ScopedRankingReadAdapter scopedRankingReadAdapter, JdbcTemplate jdbcTemplate,
+                                 ObjectMapper objectMapper, DatasetScope datasetScope) {
         this.scopedRankingReadAdapter = scopedRankingReadAdapter;
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.datasetScope = datasetScope;
+    }
+
+    public RecommendationService(ScopedRankingReadAdapter scopedRankingReadAdapter, JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+        this(scopedRankingReadAdapter, jdbcTemplate, objectMapper, DatasetScope.standard());
+    }
+
+    /**
+     * The edition these recommendations were read from, for {@code metadata.ranking_year}.
+     *
+     * <p>Null when the requested year is not held: the adapter then returns no
+     * candidates, and naming the requested year would label an empty result as that
+     * edition's. A saved plan carries this, so it can say which edition it ranked
+     * against however long it is kept.
+     */
+    private Integer editionRead(Integer rankingYear) {
+        java.util.OptionalInt edition = datasetScope.resolveRankingYear(rankingYear);
+        return edition.isPresent() ? edition.getAsInt() : null;
     }
 
     /**
@@ -210,6 +232,7 @@ public class RecommendationService {
         }
 
         Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("ranking_year", editionRead(rankingYear));
         metadata.put("target_rank", targetRank);
         metadata.put("scope", scopeContext.apiScope());
         metadata.put("region", scopeContext.region());
@@ -321,6 +344,7 @@ public class RecommendationService {
 
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("version", "v3");
+        metadata.put("ranking_year", editionRead(rankingYear));
         metadata.put("scope", scopeContext.apiScope());
         metadata.put("region", scopeContext.region());
         metadata.put("shortlist_count", shortlistCount(shortlist));

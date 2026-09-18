@@ -1756,6 +1756,9 @@ export function RecommendationPageContent({
     const effectiveTitle = saveTitle.trim() || autoTitle;
     try {
       const requestPayload = {
+        // The edition these results were ranked against. A saved plan outlives the
+        // page that made it, and without this it cannot say which edition it used.
+        rankingYear: resultYear ?? rankingYear,
         country,
         ielts,
         toefl: toefl !== "" ? toefl : null,
