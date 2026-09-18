@@ -44,7 +44,7 @@ describe("hrefForEdition", () => {
 
 describe("isYearAwarePath", () => {
   it("covers the pages whose data depends on the edition and no others", () => {
-    for (const path of ["/", "/rankings", "/recommendations", "/compare", "/universities/mit", "/universities/mit/"]) {
+    for (const path of ["/", "/rankings", "/recommendations", "/compare", "/subject-rankings", "/universities/mit", "/universities/mit/"]) {
       expect(isYearAwarePath(path)).toBe(true);
     }
     for (const path of ["/about", "/analytics", "/universities", "/universities/mit/sources", "/rankings/extra"]) {

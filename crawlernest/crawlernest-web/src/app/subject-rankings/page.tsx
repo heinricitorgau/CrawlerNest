@@ -1,9 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { CaveatBanner } from "@/components/CaveatBanner";
 import SubjectRankingTable from "@/components/SubjectRankingTable";
+import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
+import { useSelectedYear } from "@/hooks/useSelectedYear";
 import { useSubjectRankings } from "@/hooks/useSubjectRankings";
+import { CAVEAT_SUBJECT_QS_ONLY, editionCaveats } from "@/lib/caveatMessages";
+import { DEFAULT_RANKING_YEAR } from "@/lib/datasetScope";
 import type {
   SubjectOption,
   SubjectOptionsApiResponse,
@@ -11,7 +16,6 @@ import type {
 } from "@/types/subjectRanking";
 
 const DEFAULT_SUBJECT = "computer-science";
-const DEFAULT_YEAR = 2026;
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 const FALLBACK_SUBJECTS: SubjectOption[] = [
@@ -163,10 +167,34 @@ function SubjectInsight({ items, loading }: { items: SubjectRankingRow[]; loadin
   );
 }
 
+/** Reads the edition from the URL; the body takes it as a prop, router-free. */
 export default function SubjectRankingsPage() {
+  return (
+    // A placeholder, not the page itself: rendering the body here would fetch the
+    // default edition and then fetch again once the URL is readable.
+    <Suspense fallback={<main className="min-h-screen bg-slate-50" />}>
+      <SubjectRankingsPageWithSelectedYear />
+    </Suspense>
+  );
+}
+
+function SubjectRankingsPageWithSelectedYear() {
+  const { year } = useSelectedYear();
+  return <SubjectRankingsPageContent rankingYear={year} yearSelector={<YearSelector variant="page" />} />;
+}
+
+type SubjectRankingsPageContentProps = {
+  /** A held edition; the wrapper resolves it from `?year=`. */
+  rankingYear?: number;
+  yearSelector?: ReactNode;
+};
+
+export function SubjectRankingsPageContent({
+  rankingYear = DEFAULT_RANKING_YEAR,
+  yearSelector = <YearSelectorFallback variant="page" />,
+}: SubjectRankingsPageContentProps = {}) {
   const [subjects, setSubjects] = useState<SubjectOption[]>(FALLBACK_SUBJECTS);
   const [subject, setSubject] = useState(DEFAULT_SUBJECT);
-  const [year, setYear] = useState(DEFAULT_YEAR);
   const [countryInput, setCountryInput] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [country, setCountry] = useState("");
@@ -246,12 +274,21 @@ export default function SubjectRankingsPage() {
     totalPages,
   } = useSubjectRankings({
     subject,
-    year,
+    year: rankingYear,
     page,
     pageSize,
     country,
     search,
   });
+
+  // Page 7 of the 2026 table is not page 7 of another edition. Adjusted during
+  // render rather than in an effect, which would render the old page number
+  // against the new edition first and re-render to fix it.
+  const [pagedEdition, setPagedEdition] = useState(rankingYear);
+  if (pagedEdition !== rankingYear) {
+    setPagedEdition(rankingYear);
+    setPage(1);
+  }
 
   const selectedSubjectName = useMemo(() => {
     return (
@@ -277,7 +314,7 @@ export default function SubjectRankingsPage() {
               </h1>
             </div>
             <div className="text-sm text-slate-500">
-              {metadata.year ?? year} · {metadata.source ?? "QS"}
+              {metadata.year ?? rankingYear} edition · {metadata.source ?? "QS"}
             </div>
           </div>
         </div>
@@ -304,19 +341,7 @@ export default function SubjectRankingsPage() {
               </select>
             </label>
 
-            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-              Year
-              <select
-                value={year}
-                onChange={(event) => {
-                  setYear(Number(event.target.value));
-                  setPage(1);
-                }}
-                className="h-11 border border-slate-300 bg-white px-3 text-sm text-slate-950 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-              >
-                <option value={2026}>2026</option>
-              </select>
-            </label>
+            {yearSelector}
 
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
               Country
@@ -355,8 +380,13 @@ export default function SubjectRankingsPage() {
         {hasMounted ? <SubjectInsight items={items} loading={loading} /> : null}
 
         <div className="mt-6">
-          <SubjectRankingTable items={items} loading={loading} />
+          <SubjectRankingTable items={items} loading={loading} rankingYear={rankingYear} />
         </div>
+
+        <CaveatBanner
+          className="mt-4"
+          caveats={[...editionCaveats(metadata.year ?? rankingYear), CAVEAT_SUBJECT_QS_ONLY]}
+        />
 
         <div className="mt-4 flex flex-col gap-3 border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
