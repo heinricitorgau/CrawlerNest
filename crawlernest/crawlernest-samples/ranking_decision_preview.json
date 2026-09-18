@@ -1,0 +1,66 @@
+[
+  {
+    "normalized_university_name": "MIT",
+    "ranking_year": 2026,
+    "aggregated_rank": 1.0,
+    "source_count": 1,
+    "std_deviation": 0.0,
+    "trust_score": 60.0,
+    "trust_level": "medium",
+    "sources": {
+      "QS": 1
+    },
+    "aggregation_explain": {
+      "sources": {
+        "QS": 1
+      },
+      "aggregated_rank": 1.0,
+      "source_count": 1,
+      "std_deviation": 0.0,
+      "aggregation_method": "rank_agg_v1"
+    },
+    "trust_explain": {
+      "trust_score": 60.0,
+      "trust_level": "medium",
+      "coverage_score": 0.333333,
+      "consistency_score": 100.0,
+      "std_deviation": 0.0,
+      "notes": [
+        "Only one ranking source available.",
+        "Ranking sources show strong agreement."
+      ]
+    }
+  },
+  {
+    "normalized_university_name": "Oxford",
+    "ranking_year": 2026,
+    "aggregated_rank": 2.0,
+    "source_count": 1,
+    "std_deviation": 0.0,
+    "trust_score": 60.0,
+    "trust_level": "medium",
+    "sources": {
+      "QS": 2
+    },
+    "aggregation_explain": {
+      "sources": {
+        "QS": 2
+      },
+      "aggregated_rank": 2.0,
+      "source_count": 1,
+      "std_deviation": 0.0,
+      "aggregation_method": "rank_agg_v1"
+    },
+    "trust_explain": {
+      "trust_score": 60.0,
+      "trust_level": "medium",
+      "coverage_score": 0.333333,
+      "consistency_score": 100.0,
+      "std_deviation": 0.0,
+      "notes": [
+        "Only one ranking source available.",
+        "Ranking sources show strong agreement."
+      ]
+    }
+  }
+]
