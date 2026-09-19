@@ -209,29 +209,30 @@ CI is intentionally split:
 
 ## Minimal Identity Layer
 
-CrawlerNest includes a minimal in-process session-based identity and user-owned persistence layer. It is deliberately thin and scoped for local development use.
+CrawlerNest includes a minimal token-based identity and user-owned persistence layer. It is deliberately thin: a signed cookie, a filter chain, and per-user tables.
 
 ```mermaid
 flowchart TB
     browser["Browser"]
     nextjs["Next.js proxy<br/>crawlernest-web"]
     spring["Spring Boot<br/>AuthController + UserController"]
-    session["JVM in-memory<br/>HttpSession"]
+    filter["JwtCookieAuthenticationFilter<br/>+ SecurityConfig"]
     pg[("PostgreSQL<br/>warehouse.app_user<br/>warehouse.saved_university<br/>warehouse.saved_recommendation")]
 
-    browser -- "HttpOnly JSESSIONID cookie" --> nextjs
+    browser -- "HttpOnly crawlernest_token cookie" --> nextjs
     nextjs -- "Cookie header forwarded" --> spring
-    spring -- "resolveUserId(session)" --> session
-    spring -- "WHERE user_id = ? (from session)" --> pg
+    spring -- "verify signature, no stored state" --> filter
+    spring -- "WHERE user_id = ? (from token claims)" --> pg
 ```
 
-### Session Model
+### Token Model
 
-- **Engine:** Servlet container `HttpSession`. No Redis, no JWT, no distributed session infrastructure.
-- **Cookie:** `JSESSIONID` set as `HttpOnly=true`, `SameSite=Lax`. The `Secure` flag is absent — localhost HTTP assumption only.
-- **Timeout:** 30 minutes of inactivity (sliding).
-- **Restart behavior:** Backend restart terminates all active sessions; users must re-authenticate.
-- **Session content:** Only `user_id` (Long). Email and other fields are not kept in session state.
+- **Engine:** HS256 JWT issued and verified by `clawer.auth.jwt.JwtService`. Stateless: no session store, no Redis, nothing per-user held in the JVM.
+- **Cookie:** `crawlernest_token`, `HttpOnly=true`, `SameSite=Strict`, `Path=/`. `Secure` follows `CRAWLERNEST_JWT_COOKIE_SECURE` (off by default for plain-http local runs).
+- **Lifetime:** `crawlernest.jwt.ttl`, default 12 hours, fixed at issue — no sliding renewal, and no revocation before expiry.
+- **Secret:** `CRAWLERNEST_JWT_SECRET`, at least 32 bytes. Unset, a random key is generated per process and logged as a warning; nothing ships with a default key.
+- **Restart behavior:** Transparent when the secret is configured. With an ephemeral key, a restart signs everyone out.
+- **Claims:** `sub` (user id) and `email`. Nothing else, and nothing the client can choose.
 
 ### User-Owned Persistence
 
@@ -247,17 +248,17 @@ Tables are created idempotently on `ApplicationReadyEvent` via `AuthSchemaInitia
 
 This layer **provides:**
 - Account registration with BCrypt password hashing.
-- HttpOnly session cookies with session-fixation prevention.
-- Session-gated access to all user-owned API endpoints.
-- User-isolation enforcement: all data queries include `WHERE user_id = ?` from the session only.
+- An http-only, SameSite=Strict token cookie no script can read and no other site can send.
+- A Spring Security filter chain that closes `/api/v1/user/**` and `/api/v1/admin/**` while the read-only analytics API stays public.
+- User-isolation enforcement: all data queries include `WHERE user_id = ?` from the verified token only.
 - 404 (not 403) for cross-user record access, to avoid confirming record existence.
 
 This layer **does not provide** (explicit non-goals for the current scope):
 - No RBAC or role management.
 - No OAuth or third-party identity providers.
-- No JWT or token-based authentication.
+- No refresh tokens, and no revocation before expiry (rotating the secret invalidates everything at once).
 - No frontend route protection (pages render; data requests are gated at the API layer).
-- No distributed session infrastructure.
+- No rate limiting or account lockout.
 - No rate limiting, account lockout, or multi-factor authentication.
 - No admin tooling or user management surface.
 

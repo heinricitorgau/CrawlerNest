@@ -1,11 +1,10 @@
 package clawer.review.controller;
 
 import clawer.dto.ApiResponse;
+import clawer.auth.jwt.AuthenticatedUser;
 import clawer.review.dto.MappingReviewDecisionRequest;
 import clawer.review.service.MappingReviewService;
 import clawer.review.service.ReviewerAuthorization;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,8 +29,6 @@ import java.util.Optional;
 @RequestMapping("/api/v1/admin/mapping-reviews")
 public class MappingReviewController {
 
-    private static final String SESSION_KEY_USER_ID = "user_id";
-
     private final MappingReviewService mappingReviewService;
     private final ReviewerAuthorization reviewerAuthorization;
 
@@ -45,9 +42,8 @@ public class MappingReviewController {
     @GetMapping
     public ResponseEntity<?> list(
             @RequestParam(defaultValue = "pending") String status,
-            @RequestParam(defaultValue = "50") int limit,
-            HttpServletRequest httpRequest) {
-        Optional<String> reviewer = resolveReviewer(httpRequest);
+            @RequestParam(defaultValue = "50") int limit) {
+        Optional<String> reviewer = resolveReviewer();
         if (reviewer.isEmpty()) {
             return forbidden();
         }
@@ -60,9 +56,8 @@ public class MappingReviewController {
     @GetMapping("/canonical-search")
     public ResponseEntity<?> searchCanonical(
             @RequestParam(name = "q", defaultValue = "") String query,
-            @RequestParam(defaultValue = "20") int limit,
-            HttpServletRequest httpRequest) {
-        if (resolveReviewer(httpRequest).isEmpty()) {
+            @RequestParam(defaultValue = "20") int limit) {
+        if (resolveReviewer().isEmpty()) {
             return forbidden();
         }
         return ResponseEntity.ok(
@@ -71,9 +66,8 @@ public class MappingReviewController {
 
     @PostMapping
     public ResponseEntity<?> decide(
-            @RequestBody(required = false) MappingReviewDecisionRequest request,
-            HttpServletRequest httpRequest) {
-        Optional<String> reviewer = resolveReviewer(httpRequest);
+            @RequestBody(required = false) MappingReviewDecisionRequest request) {
+        Optional<String> reviewer = resolveReviewer();
         if (reviewer.isEmpty()) {
             return forbidden();
         }
@@ -86,16 +80,9 @@ public class MappingReviewController {
                 .body(ApiResponse.success(mappingReviewService.save(request, reviewer.get())));
     }
 
-    private Optional<String> resolveReviewer(HttpServletRequest httpRequest) {
-        HttpSession session = httpRequest.getSession(false);
-        if (session == null) {
-            return Optional.empty();
-        }
-        Object userId = session.getAttribute(SESSION_KEY_USER_ID);
-        if (!(userId instanceof Long)) {
-            return Optional.empty();
-        }
-        return reviewerAuthorization.reviewerEmail((Long) userId);
+    private Optional<String> resolveReviewer() {
+        return AuthenticatedUser.current()
+                .flatMap(user -> reviewerAuthorization.reviewerEmail(user.id()));
     }
 
     /**

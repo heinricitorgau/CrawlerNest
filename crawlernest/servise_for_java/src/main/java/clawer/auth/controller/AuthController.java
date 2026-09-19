@@ -6,9 +6,12 @@ import clawer.auth.dto.SignupRequest;
 import clawer.auth.service.AuthService;
 import clawer.auth.service.DuplicateEmailException;
 import clawer.auth.service.InvalidCredentialsException;
+import clawer.auth.jwt.AuthenticatedUser;
+import clawer.auth.jwt.JwtCookieAuthenticationFilter;
+import clawer.auth.jwt.JwtService;
 import clawer.dto.ApiResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +23,20 @@ import java.util.Map;
 @RequestMapping("/api/v1/auth")
 public class AuthController {
 
-    private static final String SESSION_KEY_USER_ID = "user_id";
-    private static final String SESSION_KEY_EMAIL   = "email";
-
     private final AuthService authService;
+    private final JwtService jwtService;
+    private final boolean cookieSecure;
 
-    public AuthController(AuthService authService) {
+    public AuthController(
+            AuthService authService,
+            JwtService jwtService,
+            @org.springframework.beans.factory.annotation.Value("${crawlernest.jwt.cookie-secure:false}") boolean cookieSecure
+    ) {
         this.authService = authService;
+        this.jwtService = jwtService;
+        // Off by default so a plain-http local run can sign in; a deployment sets
+        // crawlernest.jwt.cookie-secure=true and the cookie never leaves TLS.
+        this.cookieSecure = cookieSecure;
     }
 
     @PostMapping("/signup")
@@ -44,23 +54,16 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> signin(
-            @RequestBody SigninRequest request,
-            HttpServletRequest httpRequest) {
+    public ResponseEntity<?> signin(@RequestBody SigninRequest request) {
         try {
             AuthUserResponse user = authService.signin(request);
 
-            // Session-fixation prevention: discard any pre-existing session.
-            HttpSession existing = httpRequest.getSession(false);
-            if (existing != null) {
-                existing.invalidate();
-            }
-
-            HttpSession session = httpRequest.getSession(true);
-            session.setAttribute(SESSION_KEY_USER_ID, user.getId());
-            session.setAttribute(SESSION_KEY_EMAIL, user.getEmail());
-
-            return ResponseEntity.ok(ApiResponse.success(user));
+            // The identity now travels in a signed token rather than a server-side
+            // session, so any instance of the API accepts it. Session fixation has
+            // no purchase on a token the server did not take from the request.
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, tokenCookie(jwtService.issue(user.getId(), user.getEmail())).toString())
+                    .body(ApiResponse.success(user));
         } catch (InvalidCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(error("Invalid email or password."));
@@ -70,36 +73,50 @@ public class AuthController {
         }
     }
 
+    /**
+     * Clears the cookie. A token already in someone's hands stays valid until it
+     * expires -- that is the trade a stateless token makes, and why the lifetime is
+     * hours rather than weeks.
+     */
     @PostMapping("/signout")
-    public ResponseEntity<?> signout(HttpServletRequest httpRequest) {
-        HttpSession session = httpRequest.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-        return ResponseEntity.ok(ApiResponse.success(Map.of("message", "Signed out.")));
+    public ResponseEntity<?> signout() {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, expiredTokenCookie().toString())
+                .body(ApiResponse.success(Map.of("message", "Signed out.")));
     }
 
+    /** Open on purpose: this is how the frontend asks whether anyone is signed in. */
     @GetMapping("/me")
-    public ResponseEntity<?> me(HttpServletRequest httpRequest) {
-        HttpSession session = httpRequest.getSession(false);
-        if (session == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(error("No active session."));
-        }
+    public ResponseEntity<?> me() {
+        return AuthenticatedUser.current()
+                .<ResponseEntity<?>>map(user -> {
+                    Map<String, Object> payload = new LinkedHashMap<>();
+                    payload.put("id", user.id());
+                    payload.put("email", user.email());
+                    return ResponseEntity.ok(ApiResponse.success(payload));
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(error("Not signed in.")));
+    }
 
-        Long userId = (Long) session.getAttribute(SESSION_KEY_USER_ID);
-        String email = (String) session.getAttribute(SESSION_KEY_EMAIL);
+    private ResponseCookie tokenCookie(String token) {
+        return baseCookie(token).maxAge(jwtService.tokenTtl()).build();
+    }
 
-        if (userId == null || email == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(error("No active session."));
-        }
+    private ResponseCookie expiredTokenCookie() {
+        return baseCookie("").maxAge(0).build();
+    }
 
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("id", userId);
-        payload.put("email", email);
-
-        return ResponseEntity.ok(ApiResponse.success(payload));
+    private ResponseCookie.ResponseCookieBuilder baseCookie(String value) {
+        return ResponseCookie.from(JwtCookieAuthenticationFilter.COOKIE_NAME, value)
+                // http-only: no script can read the token, which is the reason it
+                // lives in a cookie rather than in storage the page can reach.
+                .httpOnly(true)
+                .secure(cookieSecure)
+                // Strict is what removes cross-site request forgery here: the
+                // browser attaches this cookie to no request another site starts.
+                .sameSite("Strict")
+                .path("/");
     }
 
     private static Map<String, Object> error(String message) {

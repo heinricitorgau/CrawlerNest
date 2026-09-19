@@ -4,6 +4,13 @@
 **Review date:** 2026-05-16  
 **Reviewer:** Claude Code (automated, human-supervised)
 
+> **Superseded in part (2026-09-19).** Session auth was replaced by a signed JWT in an
+> http-only cookie, verified by a Spring Security filter chain. Everything below about
+> `HttpSession`, `JSESSIONID`, session timeout and session fixation describes the model
+> as it stood at the review date. The data-isolation findings still hold — the user id
+> now comes from the token instead of a session attribute. See
+> [Auth Limitations](AUTH_LIMITATIONS.md) for the current model and its trade-offs.
+
 ---
 
 ## 1. Data Inventory

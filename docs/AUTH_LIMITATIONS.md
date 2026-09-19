@@ -6,25 +6,32 @@ This document records what the current CrawlerNest identity layer **does not do*
 
 ## Current Auth Model
 
-CrawlerNest uses servlet-container `HttpSession` managed by Spring Boot's default session handling. There is no JWT, no OAuth, no Spring Security filter chain, and no distributed session store.
+CrawlerNest authenticates with a **signed JWT in an http-only cookie**, verified by a Spring Security filter chain. Nothing per-user is stored server-side: there is no `HttpSession`, no `JSESSIONID`, and no session store to share between instances. There is still no OAuth, no refresh token, and no token revocation list.
 
 ### How it works
 
 1. Browser submits `{ email, password }` to `POST /api/v1/auth/signin`.
-2. Spring Boot verifies the BCrypt hash and creates an `HttpSession`. The session stores only `user_id` (Long).
-3. `JSESSIONID` is set in `Set-Cookie` and forwarded through the Next.js proxy to the browser.
-4. Subsequent requests carry `JSESSIONID`, which the proxy forwards to Spring Boot.
-5. All user-owned endpoints call `resolveUserId(httpRequest)`: `session.getSession(false)` → attribute `user_id`. Missing or expired session → 401.
+2. Spring Boot verifies the BCrypt hash and issues an HS256 token (`clawer.auth.jwt.JwtService`) whose claims are the user id (`sub`) and email.
+3. The token is set in `Set-Cookie` as `crawlernest_token` — `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age` = the token TTL — and forwarded through the Next.js proxy (`src/lib/authProxy.ts`) to the browser.
+4. Subsequent requests carry the cookie, which the proxy forwards to Spring Boot. `JwtCookieAuthenticationFilter` verifies it and puts an `AuthenticatedUser` in the security context. An `Authorization: Bearer <token>` header works too, for callers that are not browsers.
+5. `SecurityConfig` closes `/api/v1/user/**` and `/api/v1/admin/**` to unauthenticated callers; everything else — the whole read-only analytics API — stays public. User-owned endpoints read the id from `AuthenticatedUser.currentId()`, never from the request body.
+6. `POST /api/v1/auth/signout` returns the same cookie expired (`Max-Age=0`).
 
 ### What it provides
 
 | Guarantee | Mechanism |
 |---|---|
-| Session fixation prevention | Existing session invalidated before new session created on signin |
+| Identity cannot be forged | HS256 signature over the claims; an unsigned, re-signed or edited token verifies as nobody |
+| No shared server state | Stateless tokens: a second API instance accepts a token issued by the first |
 | Password confidentiality | BCrypt via `spring-security-crypto`; password hash never returned in responses |
-| User isolation | All user-data SQL includes `WHERE user_id = ?` from session attribute |
+| User isolation | All user-data SQL includes `WHERE user_id = ?` from the token's subject |
 | No record-existence leaking | Cross-user access returns 404 (not 403) |
-| Cookie security | `HttpOnly=true`, `SameSite=Lax` |
+| Closed by default | The filter chain gates the `/user/**` and `/admin/**` prefixes, so a new endpoint under either is protected before anyone remembers to check |
+| CSRF | `SameSite=Strict` — the browser attaches the cookie to no request another site starts |
+| Cookie confidentiality | `HttpOnly=true` (no script can read the token); `Secure` when `CRAWLERNEST_JWT_COOKIE_SECURE=true` |
+| No default signing key | With `CRAWLERNEST_JWT_SECRET` unset a random per-process key is generated and logged as a warning; nothing ships with a key an attacker could know |
+
+Covered by `JwtServiceTest`, `SecurityFilterChainIntegrationTest` and `AuthControllerCookieTest`.
 
 ---
 
@@ -34,13 +41,13 @@ These are explicitly out of scope and should not be added without a deliberate s
 
 | Non-goal | Reason |
 |---|---|
-| RBAC / roles / permissions | Single-user local model; no team or admin use case |
-| OAuth / OIDC / third-party login | No external identity provider integration needed for local demo |
-| JWT or token-based auth | Adds complexity without benefit at single-node local scale |
+| RBAC / roles / permissions | Entity review uses an e-mail allowlist (`crawlernest.reviewer.emails`); no broader role model is needed |
+| OAuth / OIDC / third-party login | No external identity provider integration needed |
+| Refresh tokens / silent renewal | A 12-hour token and a re-login is acceptable at this maturity |
+| Token revocation (denylist) | Would reintroduce the shared server-side state the token removed; see the trade-off below |
 | Frontend route protection | Routes render publicly; the data layer gating is the security boundary |
-| Redis or JDBC session store | Not needed for single-node development; required before horizontal scaling |
-| Rate limiting | No hardening needed for local dev; required before public deployment |
-| Account lockout | No brute-force protection; acceptable for local dev use |
+| Rate limiting | Required before public exposure; not implemented |
+| Account lockout | No brute-force protection |
 | Multi-factor authentication | Non-goal at current maturity |
 | Email verification | Non-goal at current maturity |
 | Account deletion / right to erasure | Non-goal for current scope |
@@ -49,33 +56,27 @@ These are explicitly out of scope and should not be added without a deliberate s
 
 ---
 
-## Localhost Assumptions
+## Deployment Requirements
 
-The current auth implementation is explicitly designed for `localhost` only. The following assumptions **must be revisited before any internet-accessible deployment**:
+### `CRAWLERNEST_JWT_SECRET` must be set
 
-### No `Secure` cookie flag
+Unset, `JwtService` generates a key for the process and logs a warning. Everyone is then signed out on restart, and two instances do not accept each other's tokens. That is deliberate — the alternative, a default secret in the repository, would let anyone mint a token for any user.
 
-`server.servlet.session.cookie.secure` is not set in `application.properties`. The `JSESSIONID` cookie will be sent over plain HTTP. This is intentional for local development but exposes the session cookie to interception over non-TLS connections.
+**Required in any deployment:** `CRAWLERNEST_JWT_SECRET`, at least 32 bytes (`openssl rand -base64 32`). A shorter value is refused at startup rather than padded. `docker-compose.yml` declares it with `${CRAWLERNEST_JWT_SECRET:?}`, so the stack refuses to start without it.
 
-**Before internet deployment:** Add `server.servlet.session.cookie.secure=true`.
+### `Secure` cookie flag is off by default
 
-### DB credentials are local dev values
+`crawlernest.jwt.cookie-secure` defaults to `false` so a plain-http local run can sign in. Over any non-loopback network the token would travel in the clear.
 
-`application.properties` uses `username=test` / `password=test`. These are hardcoded local dev values.
+**Before internet deployment:** `CRAWLERNEST_JWT_COOKIE_SECURE=true`, behind TLS.
 
-**Before internet deployment:** Use environment variables or a secrets manager for DB credentials.
+### DB credentials come from the environment
 
-### CORS allows all origins (local dev)
+`application.properties` reads `${SPRING_DATASOURCE_USERNAME:test}` / `${SPRING_DATASOURCE_PASSWORD:test}`. The defaults are the local development database; a deployment sets the variables and nothing in the file applies. `docker-compose.yml` requires them with `${VAR:?}`.
 
-`WebMvcConfigurer` allows all origins for development. This is appropriate for `localhost:3000` ↔ `localhost:8080` but is too permissive for any multi-origin deployment.
+### CORS is an explicit allowlist
 
-**Before internet deployment:** Restrict `allowedOrigins` to the actual frontend origin.
-
-### Single-node only
-
-`HttpSession` is stored in JVM heap. There is no session serialization, clustering, or external store.
-
-**Before multi-instance deployment:** Add Redis-backed or JDBC-backed session storage.
+`crawlernest.cors.allowed-origins` (default `http://localhost:3000`) is a comma-separated list; `*` is refused, because an API that allows credentials cannot accept every origin. Set `CRAWLERNEST_CORS_ALLOWED_ORIGINS` to the real frontend origin.
 
 ---
 
@@ -83,31 +84,32 @@ The current auth implementation is explicitly designed for `localhost` only. The
 
 | Limitation | Impact |
 |---|---|
-| Backend restart clears all sessions | All users are signed out silently; must re-authenticate |
-| No session persistence | Planned maintenance restarts are disruptive |
-| No refresh token | Sessions expire after 30 minutes of inactivity with no silent renewal |
-| No sign-out notification | Other browser tabs do not detect sign-out until the next API call |
-| No concurrent session limit | A user can have multiple active sessions from different browsers |
+| A token cannot be revoked before it expires | Sign-out clears the cookie, but a token already copied out of a browser stays valid until it expires. This is the trade a stateless token makes, and why the TTL is 12 hours rather than weeks. Rotating `CRAWLERNEST_JWT_SECRET` invalidates every outstanding token at once — the only revocation available. |
+| No refresh token | After the TTL the user is signed out and must sign in again; there is no silent renewal. |
+| Restarting with no configured secret signs everyone out | Only when `CRAWLERNEST_JWT_SECRET` is unset. With it set, restarts are transparent. |
+| No sign-out notification | Other browser tabs do not detect sign-out until the next API call. |
+| No concurrent session limit | A user can hold tokens in several browsers at once, and there is no way to enumerate or end them. |
+| Password change does not invalidate tokens | Tokens issued before the change keep working until they expire. |
 
 ---
 
 ## Future Risks
 
-### Horizontal scaling
-
-`HttpSession` cannot be shared across JVM instances. Adding a second Spring Boot instance would create session affinity problems. Migration to a distributed session store (Redis via Spring Session) or stateless tokens (JWT) is required before any load-balanced deployment.
-
 ### User data growth
 
 `warehouse.saved_recommendation.result_json` stores full recommendation API payloads as JSONB. There is no per-user quota and no automatic expiry. Storage growth should be monitored as user count or save frequency increases.
 
-### Cookie interception
+### Token interception
 
-Without `Secure=true` and HTTPS, `JSESSIONID` can be read in transit. This is a non-issue on `localhost` but becomes a serious risk the moment the application is served over any non-loopback network.
+Without `Secure=true` and HTTPS the cookie can be read in transit. A stolen token is worse than a stolen session id here, because it cannot be revoked — it is valid wherever it is replayed until it expires. This is a non-issue on `localhost` and a serious risk the moment the application is served over any non-loopback network.
+
+### Secret handling
+
+The signing key is the whole authentication system: anyone holding it can mint a token for any user. It must reach the process through the environment only, never a committed file, and rotating it is the only way to invalidate outstanding tokens.
 
 ### Account enumeration (residual)
 
-Signin returns a uniform 401 regardless of whether the email exists. However, the signup endpoint returns 409 on duplicate email. An attacker who can call signup can still determine whether a given email is registered. This is acceptable for a local dev / demo tool but should be reviewed for any public-facing deployment.
+Signin returns a uniform 401 regardless of whether the email exists. However, the signup endpoint returns 409 on duplicate email. An attacker who can call signup can still determine whether a given email is registered. This is acceptable for a demo tool but should be reviewed for any public-facing deployment.
 
 ---
 
@@ -115,12 +117,12 @@ Signin returns a uniform 401 regardless of whether the email exists. However, th
 
 | Boundary | Current Limit | Action Required |
 |---|---|---|
-| Session store | JVM heap only | Redis or JDBC session for multi-instance |
-| Cookie security | HTTP only (no `Secure` flag) | Enable `Secure` for HTTPS deployments |
-| DB credentials | Hardcoded test values | Environment-variable injection |
-| CORS | All origins allowed | Restrict to known frontend origins |
+| Auth scheme | Stateless HS256 tokens | Fine for multiple instances; all must share one secret |
+| Token revocation | None before expiry | Rotate the secret, or add a denylist (and the state that comes with it) |
+| Cookie security | `Secure` off by default | `CRAWLERNEST_JWT_COOKIE_SECURE=true` for HTTPS deployments |
+| DB credentials | Env vars with local-dev defaults | Set `SPRING_DATASOURCE_*` in every deployment |
+| CORS | Allowlist, default `localhost:3000` | Set `CRAWLERNEST_CORS_ALLOWED_ORIGINS` |
 | Rate limiting | None | Add before public exposure |
-| Auth scheme | Session cookies | Consider JWT for stateless horizontal scaling |
 
 ---
 
