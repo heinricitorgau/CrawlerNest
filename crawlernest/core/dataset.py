@@ -1,8 +1,10 @@
 """What the warehouse actually contains, stated once so nothing has to guess.
 
 Two facts about this release are load-bearing and were, until now, re-asserted
-independently by every caller that needed them: the warehouse holds ranking data
-for exactly one year, and which sources are actually in it.
+independently by every caller that needed them: which editions the warehouse
+holds, and which sources are actually in it. They are one fact now --
+:data:`DATASET_COVERAGE` -- because as of the 2015-2024 ARWU release the answer
+to the first depends on which source is being asked about.
 
 The second fact changed and nothing noticed. QS was the only ingested source for
 most of this project's life, and a good deal of prose still says so -- the repo
@@ -44,15 +46,48 @@ With one edition loaded both give the answers the single constant gave.
 
 from __future__ import annotations
 
+from types import MappingProxyType
+from typing import Mapping
+
+#: Which editions each source actually covers, newest first.
+#:
+#: This is the fact a flat list of years cannot state, and it stopped being
+#: optional with the 2015-2024 ARWU release. ARWU reaches back to 2015; QS and
+#: THE begin at 2025. The snapshot caveat names QS and rendered from
+#: :data:`DATASET_YEARS`, so extending the years alone would have told every
+#: reader that ten editions holding no QS row at all are "a snapshot of the QS
+#: published tables" -- a specific, confident, false disclosure, the kind
+#: ``docs/analytics/ANALYTICS_EXPLAINABILITY.md`` exists to prevent.
+#:
+#: A source belongs to a year here once the warehouse serves its ranks for that
+#: year: the same standard :data:`DATASET_SOURCES` applies to sources overall.
+DATASET_COVERAGE: Mapping[str, tuple[int, ...]] = MappingProxyType(
+    {
+        "QS": (2026, 2025),
+        "THE": (2026, 2025),
+        "ARWU": (2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015),
+    }
+)
+
 #: Every ranking edition the warehouse holds, newest first. Membership here is
 #: what "we have that year" means; nothing else should decide it.
+#:
+#: Derived from :data:`DATASET_COVERAGE` rather than written out, so the union
+#: cannot drift from the per-source truth underneath it. Java and TypeScript
+#: hold the same list as a literal and ``test_caveat_contract`` pins all three
+#: together, which is what keeps a literal safe there.
 #:
 #: 2025 released 2026-09-14, after its shadow ingest was audited unreachable from
 #: every serving surface. Every 2025 and 2026 world-ranking row was crawled
 #: through crawlernest-jobs/ranking_edition.py, which proves the edition from the
 #: page that names it -- the check whose absence had stored the QS 2027 table as
-#: 2026.
-DATASET_YEARS: tuple[int, ...] = (2026, 2025)
+#: 2026. 2015-2024 released 2026-09-20 to the same standard: every row came from
+#: crawlernest-jobs/arwu_crawler.py carrying verify_arwu_page_url edition proof,
+#: and each edition was audited servable through the crawlernest.dataset.years
+#: override before this constant moved.
+DATASET_YEARS: tuple[int, ...] = tuple(
+    sorted({year for years in DATASET_COVERAGE.values() for year in years}, reverse=True)
+)
 
 #: The year a query uses when the caller names none: the newest edition held.
 DEFAULT_RANKING_YEAR: int = max(DATASET_YEARS)
@@ -83,4 +118,24 @@ def resolve_ranking_year(requested: int | None) -> int | None:
 #: holds ranks from it, and coverage being partial is not a reason to omit it --
 #: claiming a source is absent while the API serves its figures is the worse
 #: error of the two.
+#:
+#: "Largest coverage" is by rows, not by editions: QS is still the widest source
+#: in the table it appears in, while ARWU is the only one reaching back to 2015.
+#: :data:`DATASET_COVERAGE` is what says which is which.
 DATASET_SOURCES = ("QS", "THE", "ARWU")
+
+
+def sources_for_year(year: int) -> tuple[str, ...]:
+    """The sources holding ranks for an edition, in :data:`DATASET_SOURCES` order.
+
+    Empty for an edition the warehouse does not hold. ``DatasetScope.sourcesFor``
+    in Java and ``sourcesForYear`` in TypeScript are the same rule; each surface
+    needs it to describe the edition it is showing rather than the release as a
+    whole.
+    """
+    return tuple(source for source in DATASET_SOURCES if year in DATASET_COVERAGE.get(source, ()))
+
+
+def years_for_source(source: str) -> tuple[int, ...]:
+    """The editions one source covers, newest first. Empty for an unknown source."""
+    return DATASET_COVERAGE.get(source, ())

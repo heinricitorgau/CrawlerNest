@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 
 import { CaveatBanner } from "@/components/CaveatBanner";
 import { YearSelector } from "@/components/YearSelector";
+import { DATASET_YEARS, DEFAULT_RANKING_YEAR } from "@/lib/datasetScope";
 
 const push = jest.fn();
 let currentQuery = "";
@@ -23,8 +24,13 @@ describe("YearSelector", () => {
   it("offers only the held editions, newest first, labelled for assistive technology", () => {
     render(<YearSelector />);
     const select = screen.getByLabelText("Ranking edition");
-    expect(within(select).getAllByRole("option").map((option) => option.textContent)).toEqual(["2026", "2025"]);
-    expect(select).toHaveValue("2026");
+    // Against DATASET_YEARS rather than a written-out list: this asserted
+    // ["2026", "2025"] and went stale the moment ten more editions were
+    // released, reporting a selector that had grown correctly as a failure.
+    expect(within(select).getAllByRole("option").map((option) => option.textContent)).toEqual(
+      DATASET_YEARS.map(String),
+    );
+    expect(select).toHaveValue(String(DEFAULT_RANKING_YEAR));
   });
 
   it("shows the edition a shared link names", () => {
@@ -52,12 +58,12 @@ describe("YearSelector", () => {
   });
 
   it("says so when a link names an edition that is not held, instead of silently showing another", () => {
-    currentQuery = "year=2019";
+    currentQuery = "year=1999";
     render(<YearSelector />);
     const select = screen.getByLabelText("Ranking edition");
     expect(select).toHaveValue("2026");
     const note = screen.getByRole("status");
-    expect(note).toHaveTextContent("No 2019 edition is held. Showing 2026.");
+    expect(note).toHaveTextContent("No 1999 edition is held. Showing 2026.");
     expect(select).toHaveAttribute("aria-describedby", note.id);
   });
 });

@@ -2,6 +2,9 @@ package clawer.service;
 
 import clawer.repository.AdmissionRecordRepository;
 import clawer.repository.AdmissionSummaryRow;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,9 @@ import java.util.Optional;
 public class RecommendationEvidenceService {
 
     private static final List<String> SOURCES = List.of("QS", "THE", "ARWU");
+
+    /** Reads source_ranks_json; a null value there means the source does not rank the university. */
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     /**
      * One definition, in AnalyticsService. This used to be a third copy of the
@@ -88,13 +94,21 @@ public class RecommendationEvidenceService {
         int sourceCount = (int) sourceCoverage.get("source_count");
         Map<String, Object> confidenceEvidence = buildConfidenceEvidence(ranking, ieltsEvidence, sourceCount);
 
-        List<String> caveats = new ArrayList<>(STANDARD_CAVEATS);
+        // Scoped to the edition read, not to the release. STANDARD_CAVEATS would
+        // open a 2018 response with QS's snapshot and a THE coverage note, beside
+        // a row holding neither; editionCaveats names the sources this edition
+        // holds and says which ones it does not.
+        List<String> caveats = new ArrayList<>(AnalyticsService.editionCaveats(edition));
         // CAVEAT_IELTS_MISSING and CAVEAT_ADMISSION_DATA_STALE, decided from the
         // same summary row the IELTS evidence reads. This used to carry its own
         // copy of the IELTS string and no staleness disclosure at all.
         caveats.addAll(AdmissionCaveats.forSummary(admissionSummary));
         if (sourceCount <= 1) {
-            caveats.add("This university has single-source ranking coverage (QS only). Multi-source agreement analysis is not available.");
+            // Named from the row rather than assumed. "(QS only)" was written in
+            // when QS was the only source ingested; for every university in the
+            // 2015-2024 editions the one source is ARWU, so the hardcoded version
+            // named the wrong source for each of them.
+            caveats.add(singleSourceCaveat(ranking));
         }
 
         Map<String, Object> response = new LinkedHashMap<>();
@@ -200,20 +214,73 @@ public class RecommendationEvidenceService {
 
     // ── Private: source coverage ─────────────────────────────────────────────
 
+    /**
+     * Which sources actually rank this university, from the stored ranks.
+     *
+     * <p>A missing source is a <em>null-valued key</em>, not an absent one:
+     * {@code {"QS": null, "THE": null, "ARWU": 151.0}} is what the warehouse
+     * stores for a university only ARWU ranks. This used to ask whether the
+     * rendered JSON contained {@code "QS"}, which is true of every row ever
+     * written, so every university was reported as three-source
+     * {@code multi_source} and the single-source caveat below could never fire.
+     * The 2015-2024 editions are single-source throughout, which turned a latent
+     * overstatement into one covering 7,466 rows.
+     */
     private Map<String, Object> buildSourceCoverage(Map<String, Object> ranking) {
-        Object jsonObj = ranking.get("source_ranks_json");
-        String json = jsonObj == null ? "" : jsonObj.toString();
+        Map<String, Double> ranks = parseSourceRanks(ranking.get("source_ranks_json"));
 
         Map<String, Object> coverage = new LinkedHashMap<>();
         int count = 0;
         for (String source : SOURCES) {
-            boolean present = json.contains("\"" + source + "\"");
+            boolean present = ranks.get(source) != null;
             coverage.put(source.toLowerCase() + "_available", present);
             if (present) count++;
         }
         coverage.put("source_count", count);
         coverage.put("coverage_label", count >= 3 ? "multi_source" : count == 1 ? "single_source" : count == 0 ? "no_source" : "partial_multi_source");
         return coverage;
+    }
+
+    /** Source to published rank, with null for a source that does not rank it. */
+    private Map<String, Double> parseSourceRanks(Object sourceRanksJson) {
+        Map<String, Double> ranks = new LinkedHashMap<>();
+        if (sourceRanksJson == null) {
+            return ranks;
+        }
+        // A jsonb column arrives as a PGobject, whose toString() is the JSON text.
+        // Naming that type here would not compile: the driver is a runtime
+        // dependency, deliberately absent from the compile classpath.
+        String json = sourceRanksJson.toString();
+        if (json.isBlank()) {
+            return ranks;
+        }
+        try {
+            Map<String, Object> parsed = OBJECT_MAPPER.readValue(json, new TypeReference<Map<String, Object>>() {});
+            for (Map.Entry<String, Object> entry : parsed.entrySet()) {
+                Object value = entry.getValue();
+                ranks.put(entry.getKey(), value instanceof Number number ? number.doubleValue() : null);
+            }
+        } catch (JsonProcessingException e) {
+            // An unreadable rank map is not a reason to claim coverage: every
+            // source stays absent, which understates rather than overstates.
+            return Map.of();
+        }
+        return ranks;
+    }
+
+    /**
+     * The single-source disclosure, naming the source from the row.
+     *
+     * <p>"(QS only)" was written in when QS was the only ingested source. For
+     * every university in the 2015-2024 editions the one source is ARWU, so the
+     * fixed wording named a source that has no rank for any of them.
+     */
+    private String singleSourceCaveat(Map<String, Object> ranking) {
+        Map<String, Double> ranks = parseSourceRanks(ranking.get("source_ranks_json"));
+        List<String> present = SOURCES.stream().filter(source -> ranks.get(source) != null).toList();
+        String named = present.isEmpty() ? "one source" : present.get(0) + " only";
+        return "This university has single-source ranking coverage (" + named
+                + "). Multi-source agreement analysis is not available.";
     }
 
     // ── Private: IELTS ────────────────────────────────────────────────────────

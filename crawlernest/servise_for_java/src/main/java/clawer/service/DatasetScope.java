@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
@@ -45,8 +46,61 @@ import java.util.stream.Collectors;
 @Component
 public class DatasetScope {
 
-    /** Every ranking edition the warehouse holds, newest first. Changing it is a data migration. */
-    public static final List<Integer> DATASET_YEARS = List.of(2026, 2025);
+    /**
+     * Which editions each source actually covers, newest first.
+     *
+     * <p>Mirrors {@code DATASET_COVERAGE} in {@code crawlernest/core/dataset.py}.
+     * ARWU reaches back to 2015; QS and THE begin at 2025. A flat list of years
+     * cannot say that, and the snapshot caveat names a source -- rendering it over
+     * every held edition would claim QS published tables for ten editions holding
+     * no QS row.
+     */
+    public static final Map<String, List<Integer>> DATASET_COVERAGE = Map.of(
+            "QS", List.of(2026, 2025),
+            "THE", List.of(2026, 2025),
+            "ARWU", List.of(2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015));
+
+    /** Ranking sources ingested, widest first. Mirrors {@code DATASET_SOURCES} in Python. */
+    public static final List<String> DATASET_SOURCES = List.of("QS", "THE", "ARWU");
+
+    /**
+     * Every ranking edition the warehouse holds, newest first. Changing it is a data migration.
+     *
+     * <p>The union of {@link #DATASET_COVERAGE}, written out because
+     * {@code test_caveat_contract.py} reads this literal and compares it with the
+     * Python and TypeScript ones; {@link #datasetYearsMatchCoverage} keeps the
+     * literal honest against the map beside it.
+     */
+    public static final List<Integer> DATASET_YEARS = List.of(
+            2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015);
+
+    static {
+        if (!datasetYearsMatchCoverage()) {
+            throw new IllegalStateException(
+                    "DATASET_YEARS is not the union of DATASET_COVERAGE; one of the two is wrong");
+        }
+    }
+
+    /** True when the literal list is exactly the editions some source covers. */
+    static boolean datasetYearsMatchCoverage() {
+        List<Integer> union = DATASET_COVERAGE.values().stream()
+                .flatMap(List::stream)
+                .distinct()
+                .sorted(Comparator.reverseOrder())
+                .toList();
+        return union.equals(DATASET_YEARS);
+    }
+
+    /**
+     * The sources holding ranks for an edition, in {@link #DATASET_SOURCES} order.
+     * Empty for an edition the warehouse does not hold. {@code sources_for_year} in
+     * Python and {@code sourcesForYear} in TypeScript are the same rule.
+     */
+    public static List<String> sourcesFor(int year) {
+        return DATASET_SOURCES.stream()
+                .filter(source -> DATASET_COVERAGE.getOrDefault(source, List.of()).contains(year))
+                .toList();
+    }
 
     /** The edition a read uses when the caller names none. */
     public static final int DEFAULT_RANKING_YEAR = Collections.max(DATASET_YEARS);
