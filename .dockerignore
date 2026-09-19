@@ -1,0 +1,14 @@
+.git/
+.claude/
+node_modules/
+**/node_modules/
+**/.next/
+**/target/
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+crawlernest/crawlernest-ml/artifacts/
+crawlernest-outputs/
+*.log

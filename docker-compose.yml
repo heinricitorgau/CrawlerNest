@@ -1,0 +1,122 @@
+# The whole stack: PostgreSQL, the Spring Boot read API, the Python agent API and
+# the Next.js frontend.
+#
+# Every credential comes from the environment (.env, from .env.example). Nothing
+# here carries a default password: a compose file that boots with "test/test" is
+# the thing that ends up on a server.
+#
+# There is no Redis service. Nothing in the codebase connects to Redis -- the agent
+# stores its state in PostgreSQL (CRAWLERNEST_AGENT_STORE_BACKEND=postgres) or in a
+# state directory, and no cache client exists to point at one. Adding the container
+# would only make the stack look like it has a cache tier it does not use.
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: crawlernest-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    ports:
+      # Bound to loopback: the database is for the other services, not the network.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - crawlernest_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  api:
+    build:
+      context: ./crawlernest/servise_for_java
+    container_name: crawlernest-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      # Which browser origins may call the API directly with credentials.
+      CRAWLERNEST_CORS_ALLOWED_ORIGINS: ${CRAWLERNEST_CORS_ALLOWED_ORIGINS:?set CRAWLERNEST_CORS_ALLOWED_ORIGINS in .env}
+      CRAWLERNEST_DATASET_YEARS: ${CRAWLERNEST_DATASET_YEARS:-}
+    ports:
+      - "127.0.0.1:${API_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/api/v1/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    container_name: crawlernest-agent
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # postgres is what lets the API run more than one worker; the server refuses
+      # to start multi-worker on the file backend rather than split its state.
+      CRAWLERNEST_AGENT_STORE_BACKEND: ${CRAWLERNEST_AGENT_STORE_BACKEND:-postgres}
+      CRAWLERNEST_AGENT_API_WORKERS: ${CRAWLERNEST_AGENT_API_WORKERS:-1}
+      CRAWLERNEST_PG_HOST: postgres
+      CRAWLERNEST_PG_PORT: "5432"
+      CRAWLERNEST_PG_DATABASE: ${POSTGRES_DB}
+      CRAWLERNEST_PG_USER: ${POSTGRES_USER}
+      CRAWLERNEST_PG_PASSWORD: ${POSTGRES_PASSWORD}
+      CRAWLERNEST_AGENT_API_LOG_LEVEL: ${CRAWLERNEST_AGENT_API_LOG_LEVEL:-INFO}
+    volumes:
+      # Only used by the file backend; harmless and empty under postgres.
+      - crawlernest_agent_state:/var/lib/crawlernest/agent
+    ports:
+      - "127.0.0.1:${AGENT_PORT:-8090}:8090"
+    healthcheck:
+      # /health is the liveness check that touches no dependency; /health/ready is
+      # the one that does, and a failing dependency should not restart the process.
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health').read()\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  web:
+    build:
+      context: ./crawlernest/crawlernest-web
+      args:
+        # Baked into the browser bundle at build time, so they are build args as
+        # well as runtime variables.
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
+        NEXT_PUBLIC_AGENT_API_BASE_URL: ${NEXT_PUBLIC_AGENT_API_BASE_URL:-}
+    container_name: crawlernest-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      agent:
+        condition: service_started
+    environment:
+      # Server-side proxy routes call the services by their compose names.
+      API_BASE_URL: http://api:8080
+      AGENT_API_BASE_URL: http://agent:8090
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  crawlernest_pgdata:
+  crawlernest_agent_state:

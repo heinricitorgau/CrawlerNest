@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The container image copies .next/standalone: the server plus only the
+  // node_modules Next traced, rather than the whole tree.
+  output: "standalone",
   // Lets a Windows browser load dev pages from the WSL NAT IP. Without it,
   // Next serves the chunks but never hydrates a non-localhost origin.
   //
