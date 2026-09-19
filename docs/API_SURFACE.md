@@ -66,16 +66,16 @@ This document lists the current Spring Boot API surface used by the product UI, 
 
 ## Auth API
 
-Auth endpoints live at `/api/v1/auth/` in Spring Boot. The Next.js proxy forwards them under `/api/auth/`. The session cookie (`JSESSIONID`) is set by Spring Boot and forwarded transparently through the Next.js proxy layer; the browser treats it as a first-party cookie for `localhost:3000`.
+Auth endpoints live at `/api/v1/auth/` in Spring Boot. The Next.js proxy forwards them under `/api/auth/`. Identity travels in a signed JWT set by Spring Boot as the `crawlernest_token` cookie (`HttpOnly`, `SameSite=Strict`) and forwarded transparently through the Next.js proxy layer; the browser treats it as a first-party cookie for `localhost:3000`. There is no server-side session — see [Auth Limitations](AUTH_LIMITATIONS.md).
 
 ### Summary
 
 | Method | Path | Auth required | Purpose |
 |---|---|---|---|
 | `POST` | `/api/v1/auth/signup` | No | Register a new account |
-| `POST` | `/api/v1/auth/signin` | No | Sign in and start a session |
-| `POST` | `/api/v1/auth/signout` | Optional | End the current session |
-| `GET` | `/api/v1/auth/me` | Session | Get the currently authenticated user |
+| `POST` | `/api/v1/auth/signin` | No | Sign in and receive a token cookie |
+| `POST` | `/api/v1/auth/signout` | Optional | Clear the token cookie |
+| `GET` | `/api/v1/auth/me` | Optional | Get the currently authenticated user, or 401 |
 
 ### `POST /api/v1/auth/signup`
 
@@ -93,7 +93,7 @@ Email is lowercased and trimmed. Password must be ≥ 8 characters.
 
 **Limitations:** No email verification. No password-strength enforcement beyond minimum length. No rate limiting.
 
-**Session:** Does not start a session. The user must call `signin` to obtain a cookie.
+**Token:** Issues none. The user must call `signin` to obtain a cookie.
 
 ---
 
@@ -103,9 +103,9 @@ Email is lowercased and trimmed. Password must be ≥ 8 characters.
 
 **Request:** `{ "email": "string", "password": "string" }`
 
-**Response (200 OK):** `{ "success": true, "data": { "id": number, "email": "string" } }`. Sets `JSESSIONID` HttpOnly cookie in `Set-Cookie` header.
+**Response (200 OK):** `{ "success": true, "data": { "id": number, "email": "string" } }`. Sets the `crawlernest_token` cookie in the `Set-Cookie` header: `HttpOnly`, `SameSite=Strict`, `Path=/`, and `Secure` when `CRAWLERNEST_JWT_COOKIE_SECURE=true`.
 
-**Session behavior:** Any existing session is invalidated before a new one is created (session-fixation prevention). The new session stores `user_id` (Long) and expires after 30 minutes of inactivity.
+**Token behavior:** The cookie holds an HS256 JWT whose claims are the user id (`sub`) and email. It is valid for `crawlernest.jwt.ttl` (default 12 hours) and cannot be revoked before then — signing out clears the browser's copy only. Nothing is stored server-side, so any API instance sharing the secret accepts it.
 
 **Error cases:**
 - 401 — credentials invalid. Response is uniform regardless of whether the email exists (prevents account enumeration).
@@ -120,22 +120,22 @@ Email is lowercased and trimmed. Password must be ≥ 8 characters.
 
 **Request:** Empty body.
 
-**Response (200 OK):** `{ "success": true }`. Sends `Set-Cookie` header to clear `JSESSIONID`.
+**Response (200 OK):** `{ "success": true }`. Sends a `Set-Cookie` header that expires `crawlernest_token` (`Max-Age=0`) with the same flags, so the browser replaces rather than keeps it.
 
-**Session behavior:** Invalidates the current session if one exists.
+**Token behavior:** Server-side there is nothing to invalidate. A token already copied out of the browser stays valid until it expires.
 
 ---
 
 ### `GET /api/v1/auth/me`
 
-**Auth required:** Session.
+**Auth required:** Optional. Deliberately open in the filter chain: this is how the frontend asks whether anyone is signed in, and it answers with its own JSON body rather than a bare 401.
 
-**Request:** No body. The `JSESSIONID` cookie is forwarded automatically by the Next.js proxy.
+**Request:** No body. The `crawlernest_token` cookie is forwarded automatically by the Next.js proxy. An `Authorization: Bearer <token>` header also works, for callers that are not browsers.
 
 **Response (200 OK):** `{ "success": true, "data": { "id": number, "email": "string" } }`
 
 **Error cases:**
-- 401 — no valid session.
+- 401 — no token, or one that is missing, malformed, expired, or signed with another key.
 
 **Limitations:** Returns only `id` and `email`. Password hash is never included in any auth response.
 
@@ -143,7 +143,7 @@ Email is lowercased and trimmed. Password must be ≥ 8 characters.
 
 ## User-Owned APIs
 
-User-owned endpoints live at `/api/v1/user/` in Spring Boot. The Next.js proxy forwards them under `/api/user/`. All endpoints require an active session (`JSESSIONID` cookie). Unauthenticated requests receive 401. All data queries are scoped to the authenticated user; `user_id` is derived only from the session, never from client-supplied parameters.
+User-owned endpoints live at `/api/v1/user/` in Spring Boot. The Next.js proxy forwards them under `/api/user/`. The Spring Security filter chain closes the whole `/api/v1/user/**` prefix, so an unauthenticated request receives 401 before reaching a controller — including any endpoint added there later. All data queries are scoped to the authenticated user; `user_id` comes only from the verified token, never from client-supplied parameters.
 
 ### Saved Universities
 

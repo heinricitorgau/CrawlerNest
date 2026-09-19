@@ -1,14 +1,13 @@
 package clawer.user.controller;
 
 import clawer.dto.ApiResponse;
+import clawer.auth.jwt.AuthenticatedUser;
 import clawer.user.dto.SaveRecommendationRequest;
 import clawer.user.dto.SavedRecommendationDetail;
 import clawer.user.dto.SavedRecommendationSummary;
 import clawer.user.dto.SavedUniversityResponse;
 import clawer.user.service.SavedRecommendationService;
 import clawer.user.service.SavedUniversityService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +19,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
-
-    private static final String SESSION_KEY_USER_ID = "user_id";
 
     private final SavedUniversityService savedUniversityService;
     private final SavedRecommendationService savedRecommendationService;
@@ -35,9 +32,8 @@ public class UserController {
 
     @PostMapping("/saved-universities/{canonicalUniversityId}")
     public ResponseEntity<?> save(
-            @PathVariable long canonicalUniversityId,
-            HttpServletRequest httpRequest) {
-        Long userId = resolveUserId(httpRequest);
+            @PathVariable long canonicalUniversityId) {
+        Long userId = resolveUserId();
         if (userId == null) {
             return unauthorized();
         }
@@ -48,9 +44,8 @@ public class UserController {
 
     @DeleteMapping("/saved-universities/{canonicalUniversityId}")
     public ResponseEntity<?> delete(
-            @PathVariable long canonicalUniversityId,
-            HttpServletRequest httpRequest) {
-        Long userId = resolveUserId(httpRequest);
+            @PathVariable long canonicalUniversityId) {
+        Long userId = resolveUserId();
         if (userId == null) {
             return unauthorized();
         }
@@ -59,8 +54,8 @@ public class UserController {
     }
 
     @GetMapping("/saved-universities")
-    public ResponseEntity<?> list(HttpServletRequest httpRequest) {
-        Long userId = resolveUserId(httpRequest);
+    public ResponseEntity<?> list() {
+        Long userId = resolveUserId();
         if (userId == null) {
             return unauthorized();
         }
@@ -72,9 +67,8 @@ public class UserController {
 
     @PostMapping("/saved-recommendations")
     public ResponseEntity<?> saveRecommendation(
-            @RequestBody SaveRecommendationRequest request,
-            HttpServletRequest httpRequest) {
-        Long userId = resolveUserId(httpRequest);
+            @RequestBody SaveRecommendationRequest request) {
+        Long userId = resolveUserId();
         if (userId == null) {
             return unauthorized();
         }
@@ -100,8 +94,8 @@ public class UserController {
     }
 
     @GetMapping("/saved-recommendations")
-    public ResponseEntity<?> listRecommendations(HttpServletRequest httpRequest) {
-        Long userId = resolveUserId(httpRequest);
+    public ResponseEntity<?> listRecommendations() {
+        Long userId = resolveUserId();
         if (userId == null) {
             return unauthorized();
         }
@@ -111,9 +105,8 @@ public class UserController {
 
     @GetMapping("/saved-recommendations/{id}")
     public ResponseEntity<?> getRecommendation(
-            @PathVariable long id,
-            HttpServletRequest httpRequest) {
-        Long userId = resolveUserId(httpRequest);
+            @PathVariable long id) {
+        Long userId = resolveUserId();
         if (userId == null) {
             return unauthorized();
         }
@@ -128,9 +121,8 @@ public class UserController {
 
     @DeleteMapping("/saved-recommendations/{id}")
     public ResponseEntity<?> deleteRecommendation(
-            @PathVariable long id,
-            HttpServletRequest httpRequest) {
-        Long userId = resolveUserId(httpRequest);
+            @PathVariable long id) {
+        Long userId = resolveUserId();
         if (userId == null) {
             return unauthorized();
         }
@@ -144,12 +136,13 @@ public class UserController {
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    private Long resolveUserId(HttpServletRequest httpRequest) {
-        HttpSession session = httpRequest.getSession(false);
-        if (session == null) {
-            return null;
-        }
-        return (Long) session.getAttribute(SESSION_KEY_USER_ID);
+    /**
+     * The signed-in user, from the request's verified token rather than a session
+     * attribute. The filter chain already refuses an anonymous caller on these
+     * paths; this stays so the controller keeps its own JSON 401 shape.
+     */
+    private Long resolveUserId() {
+        return AuthenticatedUser.currentId();
     }
 
     private ResponseEntity<?> unauthorized() {

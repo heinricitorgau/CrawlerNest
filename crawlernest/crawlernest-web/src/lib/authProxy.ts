@@ -31,7 +31,9 @@ async function proxy(
       headers: { "Content-Type": "application/json; charset=utf-8" },
     });
 
-    // Forward session cookie(s) from Spring Boot to browser.
+    // Forward the API's cookie to the browser. It carries the signed token
+    // (crawlernest_token); http-only, so the page never reads it itself, and
+    // SameSite=Strict, which the browser evaluates against this origin.
     const rawSetCookie = res.headers.get("set-cookie");
     if (rawSetCookie) {
       response.headers.set("Set-Cookie", rawSetCookie);

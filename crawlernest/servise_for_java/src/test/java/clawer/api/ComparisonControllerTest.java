@@ -4,7 +4,10 @@ import clawer.model.UniversityComparisonResult;
 import clawer.service.ComparisonService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import clawer.auth.jwt.JwtService;
+import clawer.config.SecurityConfig;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,6 +24,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+// The real filter chain, not the slice's default one: without it Spring Security's
+// fallback closes every path, and these endpoints are public by design. Importing
+// it here means a change that accidentally locks them shows up as a failure.
+@Import({SecurityConfig.class, JwtService.class})
 @WebMvcTest(ComparisonController.class)
 class ComparisonControllerTest {
 
