@@ -2,7 +2,7 @@
 
 產生於 2026-09-19，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：419
+- **Commit 總數**：421
 - **期間**：2026-03-16 ~ 2026-09-19
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `ad4515c` | 2026-09-19 | heinricitorgau | 13 | +410 / −11 | feat(ops): container images for the stack, and configuration out of the source **[main]** |
+| `0a65496` | 2026-09-19 | heinricitorgau | 27 | +1096 / −341 | Authenticate with a signed token instead of a server-side session **[main]** |
+| `bff3ae1` | 2026-09-19 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `ad4515c` | 2026-09-19 | heinricitorgau | 13 | +410 / −11 | feat(ops): container images for the stack, and configuration out of the source |
 | `2dbc95e` | 2026-09-19 | github-actions[bot] | 1 | +10 / −8 | docs: regenerate the commit log |
 | `e108e7a` | 2026-09-19 | heinricitorgau | 5 | +272 / −1 | feat(pipeline): build decision preview rows from the warehouse's own editions |
 | `2bcba37` | 2026-09-18 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
@@ -490,8 +492,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 419 |
-| 檔案變更累計 | 6788 |
-| 新增行數累計 | +1739118 |
-| 刪除行數累計 | −813230 |
-| 淨增行數 | +925888 |
+| Commit 數 | 421 |
+| 檔案變更累計 | 6816 |
+| 新增行數累計 | +1740223 |
+| 刪除行數累計 | −813578 |
+| 淨增行數 | +926645 |
