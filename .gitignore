@@ -92,3 +92,7 @@ deployment-support/
 # in warehouse.mapping_review once applied, so the file in between is scratch.
 decisions.csv
 decisions.csv.*
+
+# Real secrets for the docker stack; .env.example is the committed template.
+.env
+.env.local
