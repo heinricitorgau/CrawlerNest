@@ -213,6 +213,7 @@ def _aggregate_ranking_preview(
 
 def _decision_ranking_preview(
     *,
+    input_source: str,
     source_schema: str,
     source_table: str,
     target_schema: str,
@@ -234,6 +235,7 @@ def _decision_ranking_preview(
         build_decision_row,
         decision_write_summary_to_dict,
         load_aggregated_rows_from_postgres,
+        load_aggregated_rows_from_warehouse,
         write_decision_rows,
     )
     from crawlernest_ranking_crawler.explain_layer import build_explain  # noqa: E402
@@ -248,7 +250,11 @@ def _decision_ranking_preview(
         password=pg_password,
     )
     try:
-        aggregated_rows = load_aggregated_rows_from_postgres(conn)
+        aggregated_rows = (
+            load_aggregated_rows_from_warehouse(conn)
+            if input_source == "warehouse"
+            else load_aggregated_rows_from_postgres(conn)
+        )
         decision_rows = [build_decision_row(row, build_explain(row)) for row in aggregated_rows]
         output_path = Path(output_file)
         save_json_artifact(output_path, [asdict(row) for row in decision_rows])
@@ -393,6 +399,7 @@ def _cmd_decision_ranking_preview(args: argparse.Namespace) -> int:
     """Handler for the ``decision-ranking-preview`` command."""
     try:
         summary = _decision_ranking_preview(
+            input_source=str(getattr(args, "input_source", "preview-table")),
             source_schema=str(args.source_schema),
             source_table=str(args.source_table),
             target_schema=str(args.target_schema),

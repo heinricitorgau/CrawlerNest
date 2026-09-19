@@ -154,6 +154,9 @@ def run_all_tests():
         # mapper, so the stale-data caveat can say "fetched on"; staging and
         # landing against PostgreSQL are opt-in.
         "test_admission_fetch_provenance",
+        # Decision-preview rows built from the warehouse's own editions, which is
+        # what the recommendation reader serves candidates from.
+        "test_decision_preview_from_warehouse",
         # Cross-year rank movement, settled before a second year is ingested:
         # withheld for today's single-year dataset, intervals for banded ranks,
         # and no delta across a change of source identity.
