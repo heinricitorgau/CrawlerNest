@@ -611,6 +611,16 @@ def build_parser(
         help="Build decision-layer preview rows from aggregated rankings preview",
     )
     decision_ranking_preview_parser.add_argument(
+        "--input-source",
+        choices=["preview-table", "warehouse"],
+        default="preview-table",
+        help=(
+            "preview-table reads warehouse.aggregated_rankings_preview (the sample "
+            "artifact's two demo universities); warehouse reads the aggregated "
+            "rankings themselves, which is what the recommendation reader serves"
+        ),
+    )
+    decision_ranking_preview_parser.add_argument(
         "--source-schema",
         default="warehouse",
         help="Schema containing the aggregated rankings preview source table",

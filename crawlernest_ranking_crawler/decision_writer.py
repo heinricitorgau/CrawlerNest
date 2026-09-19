@@ -4,6 +4,8 @@ import json
 from dataclasses import asdict, dataclass
 from typing import Any
 
+from statistics import pstdev
+
 from crawlernest_ranking_crawler.aggregator import AggregatedRankingRow
 from crawlernest_ranking_crawler.explain_layer import RankingExplain
 from crawlernest_ranking_crawler.trust_layer import RankingTrust
@@ -63,6 +65,122 @@ def load_aggregated_rows_from_postgres(conn: Any) -> list[AggregatedRankingRow]:
             )
         )
     return payload
+
+
+#: The universe the recommendation reader serves. Region, subject and special
+#: universes rank a different population, and mixing them would put one
+#: university in the candidate pool several times over.
+WAREHOUSE_UNIVERSE_TYPE = "global"
+WAREHOUSE_UNIVERSE_KEY = "global"
+
+WAREHOUSE_AGGREGATED_SQL = """
+    SELECT cu.display_name_normalized,
+           v.ranking_year,
+           v.display_rank,
+           v.source_ranks_json,
+           v.aggregation_method_version
+    FROM analytics.v_aggregated_rankings_latest v
+    JOIN warehouse.canonical_university cu
+      ON cu.canonical_university_id = v.canonical_university_id
+    WHERE v.universe_type = %s
+      AND v.universe_key = %s
+      AND v.display_rank IS NOT NULL
+      AND cu.display_name_normalized IS NOT NULL
+      AND btrim(cu.display_name_normalized) <> ''
+    ORDER BY v.ranking_year, v.display_rank, cu.display_name_normalized
+"""
+
+
+def aggregated_rows_from_warehouse_records(records: Any) -> list[AggregatedRankingRow]:
+    """Decision-layer rows for the editions the warehouse actually holds.
+
+    The preview loader below reads ``warehouse.aggregated_rankings_preview``, which
+    is built from the sample artifact and holds two demo universities. The reader
+    that consumes the decision table serves real recommendations, so these rows
+    come from the aggregated rankings themselves.
+
+    Two fields are taken rather than recomputed: ``aggregated_rank`` is the
+    published composite position (the reader falls back to it for a global rank, so
+    a mean of source ranks would contradict the rank shown everywhere else), and
+    ``aggregation_method`` is the version that produced it. ``std_deviation`` is the
+    spread of the source ranks, as in ``aggregator.aggregate_rankings`` -- the trust
+    layer reads it, and it is not stored per row.
+
+    A university with no per-source rank is skipped: the reader takes its source
+    ranks from here, and a row with none would enter the candidate pool claiming no
+    sources at all. Names are the join key, so the first row of a repeated
+    (name, year) wins -- ordered by rank, that is the better-placed one, and the
+    table's own UNIQUE constraint would otherwise drop an arbitrary one.
+    """
+    rows: list[AggregatedRankingRow] = []
+    seen: set[tuple[str, int]] = set()
+    for record in records:
+        name = str(record[0] or "").strip()
+        ranking_year = _safe_int(record[1], default=0)
+        if not name or ranking_year == 0:
+            continue
+        key = (name, ranking_year)
+        if key in seen:
+            continue
+
+        sources: dict[str, int] = {}
+        for source, rank in dict(_as_mapping(record[3])).items():
+            if rank is None:
+                continue
+            source_name = str(source).strip().upper()
+            if source_name:
+                sources[source_name] = int(rank)
+        if not sources:
+            continue
+
+        seen.add(key)
+        ranks = list(sources.values())
+        rows.append(
+            AggregatedRankingRow(
+                normalized_university_name=name,
+                ranking_year=ranking_year,
+                aggregated_rank=float(_safe_float(record[2], default=0.0)),
+                source_count=len(ranks),
+                std_deviation=float(pstdev(ranks)) if len(ranks) > 1 else 0.0,
+                aggregation_method=str(record[4] or "rank_agg_v1"),
+                sources=dict(sorted(sources.items())),
+            )
+        )
+    return rows
+
+
+def load_aggregated_rows_from_warehouse(
+    conn: Any,
+    *,
+    universe_type: str = WAREHOUSE_UNIVERSE_TYPE,
+    universe_key: str = WAREHOUSE_UNIVERSE_KEY,
+) -> list[AggregatedRankingRow]:
+    with conn.cursor() as cur:
+        cur.execute(WAREHOUSE_AGGREGATED_SQL, (universe_type, universe_key))
+        records = cur.fetchall()
+    return aggregated_rows_from_warehouse_records(records)
+
+
+def _as_mapping(value: Any) -> dict[str, Any]:
+    if value is None:
+        return {}
+    if isinstance(value, dict):
+        return value
+    return json.loads(str(value))
+
+
+def _safe_int(value: Any, *, default: int) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_float(value: Any, *, default: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
 
 
 def build_decision_row(row: Any, explain: RankingExplain) -> RankingDecisionRow:
