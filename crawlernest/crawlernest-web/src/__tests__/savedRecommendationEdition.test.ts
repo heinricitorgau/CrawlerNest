@@ -26,7 +26,7 @@ describe("savedEdition", () => {
   it("refuses a year the warehouse does not hold, however it was stored", () => {
     // A stale or hand-edited snapshot cannot label itself with an edition that
     // does not exist here; it reads as unrecorded instead.
-    for (const value of [2019, 1999, "abc", null, true, 2025.5]) {
+    for (const value of [1999, 2014, "abc", null, true, 2025.5]) {
       expect(savedEdition({ rankingYear: value }, {})).toBeNull();
     }
   });

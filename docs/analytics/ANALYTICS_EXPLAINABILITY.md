@@ -98,20 +98,36 @@ looked complete and disclosed nothing.
 
 ### Year-bearing caveats
 
-The snapshot row above names the editions the warehouse holds, and a year written
-into a constant is a disclosure with an expiry date — the same failure as the old
-"RC-1 packaging" age. It is therefore rendered from a template. Each language
-keeps exactly one copy of it, filled from its own list of held editions:
-`DATASET_YEARS` in `crawlernest/core/dataset.py`, `DatasetScope.DATASET_YEARS`,
-and `DATASET_YEARS` in `crawlernest-web/src/lib/datasetScope.ts`.
-`test_caveat_contract.py` checks that the three lists and the three templates
-agree. The row in the table is what the template renders for the warehouse today.
+The snapshot row above names a source and the editions that source covers, and a
+year written into a constant is a disclosure with an expiry date — the same
+failure as the old "RC-1 packaging" age. It is therefore rendered from a
+template. Each language keeps exactly one copy of it, filled from its own copy of
+the coverage map: `DATASET_COVERAGE` in `crawlernest/core/dataset.py`,
+`DatasetScope.DATASET_COVERAGE`, and `DATASET_COVERAGE` in
+`crawlernest-web/src/lib/datasetScope.ts`, whose union is the `DATASET_YEARS`
+list beside each of them. `test_caveat_contract.py` checks that the three maps,
+the three lists and the three templates agree. The row in the table is what the
+template renders for QS today.
+
+**The source is a slot for the same reason the years are.** It was the literal
+"QS" until the 2015–2024 ARWU release. Ten of the twelve editions the warehouse
+now holds carry no QS row at all, so a sentence opening "QS ranking data" could
+not describe the edition a reader was looking at — and `editionCaveats(2018)`
+would have printed exactly that beside a table containing no QS rank. Each
+renderer therefore refuses to render a source over an edition
+`DATASET_COVERAGE` does not give it: the false sentence is unwritable rather
+than merely discouraged.
 
 Template:
 
-`QS ranking data is a point-in-time snapshot of the {years} published tables. Figures may not reflect rankings republished since this snapshot was ingested.`
+`{source} ranking data is a point-in-time snapshot of the {years} published tables. Figures may not reflect rankings republished since this snapshot was ingested.`
 
-`{years}` is the held editions in ascending order, without duplicates, joined as
+`{source}` is the sources being disclosed, in `DATASET_SOURCES` order, joined by
+the same rule as the years: `ARWU`, `QS and THE`, `QS, THE and ARWU`. A response
+showing one edition names the sources that edition holds; the warehouse-wide
+`STANDARD_CAVEATS` names QS over QS's own editions.
+
+`{years}` is the editions in ascending order, without duplicates, joined as
 below. This table is the specification: the Python, Java and TypeScript renderers
 are each tested against these rows.
 
@@ -122,7 +138,32 @@ are each tested against these rows.
 | 2025, 2026 | 2025 and 2026 |
 | 2026, 2025 | 2025 and 2026 |
 | 2024, 2025, 2026 | 2024, 2025 and 2026 |
+| 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026 | 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025 and 2026 |
 <!-- year-list-rendering:end -->
+
+The last row is ARWU's coverage as of the 2015–2024 release, and is there because
+a two-digit list is where a renderer that special-cases the last separator is
+most likely to drift: every join is a comma except the final one, which is
+` and `, with no serial comma before it at any length.
+
+### Per-edition source coverage
+
+An edition that does not hold every source says so, rather than leaving a reader
+to infer it from an empty column. A missing rank inside an edition that *does*
+hold the source is a different thing — that is the partial-coverage row above —
+and conflating the two is what this disclosure prevents.
+
+Template:
+
+`The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, so a position here rests on one source rather than on agreement between several.`
+
+`{present}` and `{absent}` use the same source-list rule, except that `{absent}`
+joins with `or`: "no QS and THE rank exists" reads as a claim about the pair
+rather than about each of them. The disclosure is omitted for an edition holding
+every source, so 2025 and 2026 do not carry it. It is rendered by
+`edition_source_coverage_caveat` in Python, `AnalyticsService
+.editionSourceCoverageCaveat` in Java, and `editionSourceCoverageCaveat` in
+`caveatMessages.ts`.
 
 ### Admission caveats
 

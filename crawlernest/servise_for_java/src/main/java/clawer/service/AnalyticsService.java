@@ -58,13 +58,20 @@ public class AnalyticsService {
     public static final List<Integer> DATASET_YEARS = DatasetScope.DATASET_YEARS;
 
     /**
-     * The snapshot disclosure with its editions left open. Byte-identical to
-     * {@code SNAPSHOT_CAVEAT_TEMPLATE} in caveats.py and caveatMessages.ts and to
-     * the copy in ANALYTICS_EXPLAINABILITY.md. {@code {years}} is replaced
-     * literally by {@link #formatEditionYears}.
+     * The snapshot disclosure with its source and editions left open.
+     * Byte-identical to {@code SNAPSHOT_CAVEAT_TEMPLATE} in caveats.py and
+     * caveatMessages.ts and to the copy in ANALYTICS_EXPLAINABILITY.md.
+     * {@code {source}} and {@code {years}} are replaced literally by
+     * {@link #snapshotCaveat}.
+     *
+     * <p>The source was written into the sentence until the 2015-2024 ARWU
+     * release. Ten of the twelve editions held now carry no QS row, so a sentence
+     * opening "QS ranking data" cannot describe the edition a reader is looking
+     * at; {@link #snapshotCaveat} refuses to render a source over an edition
+     * {@link DatasetScope#DATASET_COVERAGE} does not give it.
      */
     public static final String SNAPSHOT_CAVEAT_TEMPLATE =
-            "QS ranking data is a point-in-time snapshot of the {years} published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
+            "{source} ranking data is a point-in-time snapshot of the {years} published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
 
     /**
      * Snapshot disclosure for the ranking data.
@@ -75,11 +82,15 @@ public class AnalyticsService {
      * written into a constant is a disclosure with an expiry date, so this states
      * that the data is a snapshot without claiming a distance from it.
      *
-     * The year it names is the same kind of expiring fact, so it is rendered from
-     * {@link #DATASET_YEARS} through {@link #SNAPSHOT_CAVEAT_TEMPLATE}. For the
-     * single 2026 edition the result is the exact sentence this constant held.
+     * The year it names is the same kind of expiring fact, so it is rendered
+     * through {@link #SNAPSHOT_CAVEAT_TEMPLATE} -- over QS's own editions, not
+     * over {@link #DATASET_YEARS}. Those were the same list until the 2015-2024
+     * ARWU release; rendering from the union would now name ten editions in which
+     * QS published nothing here. The sentence is unchanged by that release, which
+     * is the point: it became true rather than being rewritten.
      */
-    public static final String SNAPSHOT_CAVEAT = snapshotCaveat(DATASET_YEARS);
+    public static final String SNAPSHOT_CAVEAT =
+            snapshotCaveat(List.of("QS"), DatasetScope.DATASET_COVERAGE.get("QS"));
 
     /**
      * Per-source coverage disclosures, for callers that need them as constants.
@@ -569,9 +580,9 @@ public class AnalyticsService {
      * published caveat read "THE covers 1637 of 9862 universities" and QS, as the
      * largest count, looked complete and disclosed nothing.
      */
-    private Map<String, Integer> sourceCoverage() {
-        // The default edition only. Counted over every edition, "N of M" doubles
-        // when a second edition is loaded and describes no table anyone is shown.
+    private Map<String, Integer> sourceCoverage(int year) {
+        // One edition. Counted over every edition, "N of M" doubles when a second
+        // edition is loaded and describes no table anyone is shown.
         Map<String, Integer> coverage = new LinkedHashMap<>();
         for (String source : List.of("QS", "THE", "ARWU")) {
             Integer count = jdbcTemplate.queryForObject("""
@@ -582,7 +593,7 @@ public class AnalyticsService {
                       AND ranking_year = ?
                       AND universe_type = 'global'
                       AND universe_key = 'global'
-                    """, Integer.class, source, source, datasetScope.defaultRankingYear());
+                    """, Integer.class, source, source, year);
             coverage.put(source, count == null ? 0 : count);
         }
         return coverage;
@@ -597,14 +608,14 @@ public class AnalyticsService {
      * THE, the widest, ranks 1,637), so a max-based M understates the table and
      * silences the widest source, which then looks complete.
      */
-    private int disclosedTableSize() {
+    private int disclosedTableSize(int year) {
         Integer total = jdbcTemplate.queryForObject("""
                 SELECT count(*)
                 FROM analytics.v_aggregated_rankings_latest
                 WHERE ranking_year = ?
                   AND universe_type = 'global'
                   AND universe_key = 'global'
-                """, Integer.class, datasetScope.defaultRankingYear());
+                """, Integer.class, year);
         return total == null ? 0 : total;
     }
 
@@ -617,18 +628,35 @@ public class AnalyticsService {
      * reporting it as the first would blame the institution for our gap.
      */
     public void appendSourceCoverageCaveats(List<String> caveats) {
-        Map<String, Integer> coverage = sourceCoverage();
+        appendSourceCoverageCaveats(caveats, datasetScope.defaultRankingYear());
+    }
+
+    /**
+     * The same disclosure for a named edition.
+     *
+     * <p>Counting always was edition-scoped -- to the default edition, which was
+     * the only one any caller showed. With twelve editions held that assumption
+     * became a misstatement rather than a simplification: a response showing 2018
+     * would have disclosed "QS covers 9,862 of 10,458 universities", a count of a
+     * table it is not showing, for a source with no row in the edition it is.
+     */
+    public void appendSourceCoverageCaveats(List<String> caveats, int year) {
+        Map<String, Integer> coverage = sourceCoverage(year);
         // The table's own size, floored at the widest source so a short count can
         // never print "1637 of 1502" or make a partial source look complete. In a
         // consistent warehouse the count wins: every counted source row is a row
         // of this table.
-        int total = Math.max(disclosedTableSize(),
+        int total = Math.max(disclosedTableSize(year),
                 coverage.values().stream().mapToInt(Integer::intValue).max().orElse(0));
 
         for (Map.Entry<String, String> entry : SOURCE_LABELS) {
             int covered = coverage.getOrDefault(entry.getKey(), 0);
             if (covered == 0) {
-                caveats.add(entry.getValue() + " data is not available. No university carries a rank from this source.");
+                // Naming the edition matters now that a source can be absent from
+                // one and present in another: unqualified, this reads as "this
+                // platform has no QS data", which for 2026 would be false.
+                caveats.add(entry.getValue() + " data is not available for the " + year
+                        + " edition. No university carries a rank from this source in it.");
             } else if (total > 0 && covered < total) {
                 // Two causes, and naming only one of them was wrong the moment a
                 // partial snapshot was ingested: ARWU's covers its top 30, so most
@@ -678,9 +706,115 @@ public class AnalyticsService {
                 + " and " + ordered.get(ordered.size() - 1);
     }
 
-    /** The snapshot disclosure for the given editions. */
-    public static String snapshotCaveat(Collection<Integer> years) {
-        return SNAPSHOT_CAVEAT_TEMPLATE.replace("{years}", formatEditionYears(years));
+    /**
+     * Sources as prose, in {@link DatasetScope#DATASET_SOURCES} order:
+     * {@code ARWU}, {@code QS and THE}. {@code conjunction} is "or" for a list
+     * inside a negation, where "no QS and THE rank exists" would read as a claim
+     * about the pair rather than about each of them.
+     */
+    public static String formatSources(Collection<String> sources, String conjunction) {
+        List<String> ordered = new ArrayList<>(DatasetScope.DATASET_SOURCES.stream()
+                .filter(sources::contains)
+                .toList());
+        sources.stream().filter(source -> !DatasetScope.DATASET_SOURCES.contains(source)).sorted()
+                .forEach(ordered::add);
+        if (ordered.isEmpty()) {
+            throw new IllegalArgumentException("a snapshot caveat has to name at least one source");
+        }
+        if (ordered.size() == 1) {
+            return ordered.get(0);
+        }
+        return String.join(", ", ordered.subList(0, ordered.size() - 1))
+                + " " + conjunction + " " + ordered.get(ordered.size() - 1);
+    }
+
+    /**
+     * The snapshot disclosure for the given sources over the given editions.
+     *
+     * <p>Refuses a source that does not cover every edition named. That is the
+     * disclosure this method exists to prevent: the sentence asserts the named
+     * source published the named tables, and for ten of the twelve editions held,
+     * QS did not.
+     */
+    public static String snapshotCaveat(Collection<String> sources, Collection<Integer> years) {
+        for (String source : sources) {
+            List<Integer> covered = DatasetScope.DATASET_COVERAGE.getOrDefault(source, List.of());
+            List<Integer> missing = years.stream().filter(year -> !covered.contains(year)).sorted().toList();
+            if (!missing.isEmpty()) {
+                throw new IllegalArgumentException(source + " holds no ranks for "
+                        + formatEditionYears(missing) + "; a snapshot caveat naming it would claim "
+                        + "published tables that are not in the warehouse");
+            }
+        }
+        return SNAPSHOT_CAVEAT_TEMPLATE
+                .replace("{source}", formatSources(sources, "and"))
+                .replace("{years}", formatEditionYears(years));
+    }
+
+    /**
+     * The snapshot disclosure for one edition, naming the sources that hold it.
+     * What a response showing a single edition carries: for 2026 that is every
+     * source, for 2018 it is ARWU alone.
+     */
+    public static String editionSnapshotCaveat(int year) {
+        List<String> sources = DatasetScope.sourcesFor(year);
+        if (sources.isEmpty()) {
+            throw new IllegalArgumentException("the warehouse holds no edition " + year);
+        }
+        return snapshotCaveat(sources, List.of(year));
+    }
+
+    /**
+     * An edition that does not hold every source says so. Byte-identical to
+     * {@code EDITION_SOURCE_COVERAGE_TEMPLATE} in caveats.py and caveatMessages.ts.
+     */
+    public static final String EDITION_SOURCE_COVERAGE_TEMPLATE =
+            "The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, so a position here rests on one source rather than on agreement between several.";
+
+    /**
+     * The standard caveats for a response showing one edition.
+     *
+     * <p>{@link #STANDARD_CAVEATS} describes the release, which is the wrong scope
+     * for a response about a single edition: it opens with QS's snapshot beside a
+     * 2018 table holding no QS rank, and carries a THE coverage note for an
+     * edition with no THE row to be partial about. Mirrors {@code editionCaveats}
+     * in caveatMessages.ts.
+     */
+    public static List<String> editionCaveats(int year) {
+        List<String> sources = DatasetScope.sourcesFor(year);
+        if (sources.isEmpty()) {
+            return STANDARD_CAVEATS;
+        }
+        List<String> caveats = new ArrayList<>();
+        caveats.add(snapshotCaveat(sources, List.of(year)));
+        String coverage = editionSourceCoverageCaveat(year);
+        if (coverage != null) {
+            caveats.add(coverage);
+        }
+        // A partial-coverage line describes a source that is present and sparse,
+        // so each belongs only to an edition that actually holds that source.
+        if (sources.contains("THE")) {
+            caveats.add(THE_PARTIAL_CAVEAT);
+        }
+        if (sources.contains("ARWU")) {
+            caveats.add(ARWU_PARTIAL_CAVEAT);
+        }
+        return List.copyOf(caveats);
+    }
+
+    /** Which sources an edition is missing, or null when it holds them all. */
+    public static String editionSourceCoverageCaveat(int year) {
+        List<String> present = DatasetScope.sourcesFor(year);
+        List<String> absent = DatasetScope.DATASET_SOURCES.stream()
+                .filter(source -> !present.contains(source))
+                .toList();
+        if (present.isEmpty() || absent.isEmpty()) {
+            return null;
+        }
+        return EDITION_SOURCE_COVERAGE_TEMPLATE
+                .replace("{year}", String.valueOf(year))
+                .replace("{present}", formatSources(present, "and"))
+                .replace("{absent}", formatSources(absent, "or"));
     }
 
     /**

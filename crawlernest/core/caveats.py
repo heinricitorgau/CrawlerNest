@@ -36,12 +36,20 @@ of a packaged demo at a point in the past. "RC-1 packaging" is the correct thing
 for a historical record to say.
 
 Year-bearing caveats are templates, not constants. ``CAVEAT_QS_STALE`` names the
-editions the warehouse holds, and a year written into a constant is the same
-kind of expiring disclosure the old "RC-1 packaging" age was. The template has
-one copy per language -- ``SNAPSHOT_CAVEAT_TEMPLATE`` here, in
-``AnalyticsService`` and in ``caveatMessages.ts`` -- and
-``ANALYTICS_EXPLAINABILITY.md`` holds the rule for rendering a list of years,
-which each language's renderer is tested against.
+editions QS covers, and a year written into a constant is the same kind of
+expiring disclosure the old "RC-1 packaging" age was. The template has one copy
+per language -- ``SNAPSHOT_CAVEAT_TEMPLATE`` here, in ``AnalyticsService`` and in
+``caveatMessages.ts`` -- and ``ANALYTICS_EXPLAINABILITY.md`` holds the rule for
+rendering a list of years, which each language's renderer is tested against.
+
+The source in that sentence is a slot for the same reason the years are. It was
+a literal "QS" until the 2015-2024 ARWU release gave the warehouse ten editions
+with no QS row in them, at which point a sentence that opens "QS ranking data"
+could no longer describe the edition a reader was looking at. Which sources hold
+which editions is :data:`crawlernest.core.dataset.DATASET_COVERAGE`, and
+:func:`snapshot_caveat` raises rather than render a source over an edition it
+does not cover -- the check that makes the false version unwritable instead of
+merely discouraged.
 """
 
 from __future__ import annotations
@@ -49,13 +57,25 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from datetime import date, datetime
 
-from crawlernest.core.dataset import DATASET_YEARS
+from crawlernest.core.dataset import (
+    DATASET_COVERAGE,
+    DATASET_SOURCES,
+    DATASET_YEARS,
+    sources_for_year,
+)
 
-#: Byte-identical in Java, TypeScript and the explainability doc. ``{years}`` is
-#: replaced literally, never through str.format, so the three renderers cannot
-#: disagree about escaping.
+#: Byte-identical in Java, TypeScript and the explainability doc. ``{source}``
+#: and ``{years}`` are replaced literally, never through str.format, so the three
+#: renderers cannot disagree about escaping.
+#:
+#: The source used to be written into the sentence. That was safe while every
+#: edition held QS, and became a false disclosure with the 2015-2024 ARWU
+#: release: ten of the twelve editions hold no QS row, so a sentence beginning
+#: "QS ranking data" could not describe them. Naming the source is now the
+#: caller's job, and :func:`snapshot_caveat` will not let a caller name one that
+#: does not cover the editions it is about.
 SNAPSHOT_CAVEAT_TEMPLATE = (
-    "QS ranking data is a point-in-time snapshot of the {years} published tables. "
+    "{source} ranking data is a point-in-time snapshot of the {years} published tables. "
     "Figures may not reflect rankings republished since this snapshot was ingested."
 )
 
@@ -75,16 +95,95 @@ def format_edition_years(years: Iterable[int]) -> str:
     return f"{', '.join(ordered[:-1])} and {ordered[-1]}"
 
 
-def snapshot_caveat(years: Iterable[int] = DATASET_YEARS) -> str:
-    """The snapshot disclosure for the editions held."""
-    return SNAPSHOT_CAVEAT_TEMPLATE.replace("{years}", format_edition_years(years))
+def format_sources(sources: Iterable[str], conjunction: str = "and") -> str:
+    """Sources as prose, in DATASET_SOURCES order: ``ARWU``, ``QS and THE``.
+
+    The same list rule :func:`format_edition_years` uses, so a reader meets one
+    way of writing a list across every caveat. ``conjunction`` is "or" for a list
+    inside a negation: "no QS and THE rank exists" reads as a claim about the
+    pair, when what is meant is that neither has one.
+    """
+    named = [source for source in DATASET_SOURCES if source in set(sources)]
+    unknown = sorted(set(sources) - set(DATASET_SOURCES))
+    ordered = named + unknown
+    if not ordered:
+        raise ValueError("a snapshot caveat has to name at least one source")
+    if len(ordered) == 1:
+        return ordered[0]
+    return f"{', '.join(ordered[:-1])} {conjunction} {ordered[-1]}"
+
+
+def snapshot_caveat(
+    source: str | Iterable[str] = "QS",
+    years: Iterable[int] = DATASET_YEARS,
+) -> str:
+    """The snapshot disclosure for one or more sources over the editions given.
+
+    Refuses a source that does not cover every edition named, because that is the
+    disclosure this function exists to prevent: the sentence asserts that the
+    named source published the named tables, and for ten of the twelve editions
+    held, QS did not.
+    """
+    sources = (source,) if isinstance(source, str) else tuple(source)
+    editions = tuple(sorted({int(year) for year in years}))
+    for name in sources:
+        covered = set(DATASET_COVERAGE.get(name, ()))
+        missing = [year for year in editions if year not in covered]
+        if missing:
+            raise ValueError(
+                f"{name} holds no ranks for {format_edition_years(missing)}; a snapshot "
+                f"caveat naming it would claim published tables that are not in the warehouse"
+            )
+    return SNAPSHOT_CAVEAT_TEMPLATE.replace("{source}", format_sources(sources)).replace(
+        "{years}", format_edition_years(editions)
+    )
+
+
+def edition_snapshot_caveat(year: int) -> str:
+    """The snapshot disclosure for one edition, naming the sources that hold it.
+
+    What a page showing a single edition should carry. For 2026 that is every
+    source; for 2018 it is ARWU alone, and saying "QS" there would be the false
+    sentence this whole arrangement exists to make unsayable.
+    """
+    sources = sources_for_year(year)
+    if not sources:
+        raise ValueError(f"the warehouse holds no edition {year}")
+    return snapshot_caveat(sources, (year,))
+
+
+#: An edition that does not hold every source says so, rather than leaving a
+#: reader to infer it from an absent rank. Without this, the 2015-2024 editions
+#: would present a single-source position with nothing stating that the other two
+#: sources are not merely sparse here but entirely absent.
+EDITION_SOURCE_COVERAGE_TEMPLATE = (
+    "The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, "
+    "so a position here rests on one source rather than on agreement between several."
+)
+
+
+def edition_source_coverage_caveat(year: int) -> str | None:
+    """Which sources an edition is missing, or None when it holds them all."""
+    present = sources_for_year(year)
+    absent = tuple(source for source in DATASET_SOURCES if source not in present)
+    if not present or not absent:
+        return None
+    return (
+        EDITION_SOURCE_COVERAGE_TEMPLATE.replace("{year}", str(year))
+        .replace("{present}", format_sources(present))
+        .replace("{absent}", format_sources(absent, "or"))
+    )
 
 
 #: Ranking data is a snapshot, and says so without naming an age. The previous
-#: wording carried one and was wrong within hours of the next crawl. Rendered
-#: from DATASET_YEARS; for the single 2026 edition it is the exact sentence this
-#: constant has always held.
-CAVEAT_QS_STALE = snapshot_caveat()
+#: wording carried one and was wrong within hours of the next crawl.
+#:
+#: Rendered over QS's own editions rather than over DATASET_YEARS. Those were the
+#: same list until the 2015-2024 ARWU release; rendering it from the union would
+#: now name ten editions in which QS published nothing here. The sentence this
+#: constant holds is unchanged -- which is the point: the release made it true
+#: rather than rewriting it.
+CAVEAT_QS_STALE = snapshot_caveat("QS", DATASET_COVERAGE["QS"])
 
 #: Partial coverage, phrased so absence is attributed to this platform rather
 #: than to the source. Mirrors the wording AnalyticsService generates per source.
@@ -242,3 +341,28 @@ STANDARD_CAVEATS: tuple[str, ...] = (
     CAVEAT_THE_PARTIAL,
     CAVEAT_ARWU_PARTIAL,
 )
+
+
+def edition_caveats(year: int) -> tuple[str, ...]:
+    """The standard set for a response showing one edition.
+
+    :data:`STANDARD_CAVEATS` describes the release, which is the wrong scope for
+    one edition: it opens with QS's snapshot beside a 2018 table holding no QS
+    rank, and carries a THE coverage line for an edition with no THE row to be
+    partial about. ``AnalyticsService.editionCaveats`` and ``editionCaveats`` in
+    caveatMessages.ts compose the same list from the same pieces.
+    """
+    sources = sources_for_year(year)
+    if not sources:
+        return STANDARD_CAVEATS
+    caveats = [edition_snapshot_caveat(year)]
+    coverage = edition_source_coverage_caveat(year)
+    if coverage:
+        caveats.append(coverage)
+    # A partial-coverage line describes a source that is present and sparse, so
+    # each belongs only to an edition that actually holds that source.
+    if "THE" in sources:
+        caveats.append(CAVEAT_THE_PARTIAL)
+    if "ARWU" in sources:
+        caveats.append(CAVEAT_ARWU_PARTIAL)
+    return tuple(caveats)

@@ -120,7 +120,7 @@ describe("University detail page edition", () => {
   });
 
   it("reads the default edition with plain links when the URL names none or an unheld one", async () => {
-    const searches: Record<string, string>[] = [{}, { year: "2019" }];
+    const searches: Record<string, string>[] = [{}, { year: "1999" }];
     for (const search of searches) {
       mockedFetchJson.mockReset();
       answer(detail({ rankingYear: 2026, aggregatedRanking: { displayRank: 2, compositeScore: 98, rankingYear: 2026, aggregationMethodVersion: "v2" } }));

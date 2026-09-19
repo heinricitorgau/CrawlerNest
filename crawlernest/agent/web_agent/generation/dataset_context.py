@@ -35,8 +35,11 @@ So both rules are computed from the rows being explained:
   :mod:`crawlernest.core.rank_delta`. ``indeterminate``, a withheld delta, or no
   field at all shows no movement, whatever the warehouse holds.
 
-For today's evidence -- 2026 rows, no rank-change field, one edition loaded -- the
-header and the rules render to exactly the text they had as constants.
+For evidence of 2026 rows with no rank-change field, the header and the rules
+render to exactly the text they had as constants -- including after the 2015-2024
+ARWU release took the warehouse to twelve editions, which is the point of
+deriving them from the rows: what the warehouse holds changed and what these rows
+support did not.
 :data:`DATASET_CONSTRAINTS` and :func:`build_dataset_header` with no argument are
 that rendering, and golden tests pin it.
 

@@ -26,15 +26,24 @@
  * the old "RC-1 packaging" age did.
  */
 
-import { DATASET_YEARS } from "@/lib/datasetScope";
+import {
+  DATASET_COVERAGE,
+  DATASET_SOURCES,
+  sourcesForYear,
+} from "@/lib/datasetScope";
 
 /**
  * Byte-identical to `SNAPSHOT_CAVEAT_TEMPLATE` in `crawlernest/core/caveats.py`,
  * `AnalyticsService.SNAPSHOT_CAVEAT_TEMPLATE`, and the copy in
- * `ANALYTICS_EXPLAINABILITY.md`. `{years}` is replaced literally.
+ * `ANALYTICS_EXPLAINABILITY.md`. `{source}` and `{years}` are replaced literally.
+ *
+ * The source was written into the sentence until the 2015-2024 ARWU release.
+ * `editionCaveats` renders this per edition, and for ten of the twelve editions
+ * held the answer is ARWU: a sentence opening "QS ranking data" would otherwise
+ * appear on those pages beside a table holding no QS rank at all.
  */
 export const SNAPSHOT_CAVEAT_TEMPLATE =
-  "QS ranking data is a point-in-time snapshot of the {years} published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
+  "{source} ranking data is a point-in-time snapshot of the {years} published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
 
 /**
  * Held editions as prose: `2026`, `2025 and 2026`, `2024, 2025 and 2026`.
@@ -53,12 +62,76 @@ export function formatEditionYears(years: readonly number[]): string {
   return `${ordered.slice(0, -1).join(", ")} and ${ordered[ordered.length - 1]}`;
 }
 
-/** The snapshot disclosure for the editions held. */
-export function snapshotCaveat(years: readonly number[] = DATASET_YEARS): string {
-  return SNAPSHOT_CAVEAT_TEMPLATE.replace("{years}", formatEditionYears(years));
+/**
+ * Sources as prose, in `DATASET_SOURCES` order: `ARWU`, `QS and THE`.
+ * `conjunction` is "or" inside a negation, where "no QS and THE rank exists"
+ * would read as a claim about the pair rather than about each of them.
+ */
+export function formatSources(sources: readonly string[], conjunction = "and"): string {
+  const known = DATASET_SOURCES.filter((source) => sources.includes(source));
+  const unknown = sources.filter((source) => !DATASET_SOURCES.includes(source)).sort();
+  const ordered = [...known, ...unknown];
+  if (ordered.length === 0) {
+    throw new Error("a snapshot caveat has to name at least one source");
+  }
+  if (ordered.length === 1) {
+    return ordered[0];
+  }
+  return `${ordered.slice(0, -1).join(", ")} ${conjunction} ${ordered[ordered.length - 1]}`;
 }
 
-export const CAVEAT_QS_STALE = snapshotCaveat();
+/**
+ * The snapshot disclosure for the given sources over the given editions.
+ *
+ * Throws for a source that does not cover every edition named: the sentence
+ * asserts that source published those tables, and for ten of the twelve editions
+ * held, QS did not.
+ */
+export function snapshotCaveat(
+  sources: readonly string[] = ["QS"],
+  years: readonly number[] = DATASET_COVERAGE.QS,
+): string {
+  for (const source of sources) {
+    const covered = DATASET_COVERAGE[source] ?? [];
+    const missing = years.filter((year) => !covered.includes(year));
+    if (missing.length > 0) {
+      throw new Error(
+        `${source} holds no ranks for ${formatEditionYears(missing)}; a snapshot caveat naming ` +
+          "it would claim published tables that are not in the warehouse",
+      );
+    }
+  }
+  return SNAPSHOT_CAVEAT_TEMPLATE.replace("{source}", formatSources(sources)).replace(
+    "{years}",
+    formatEditionYears(years),
+  );
+}
+
+/**
+ * Rendered over QS's own editions rather than over every edition held. Those were
+ * the same list until the 2015-2024 ARWU release; the sentence is unchanged by
+ * it, which is the point -- the release made it true rather than rewriting it.
+ */
+export const CAVEAT_QS_STALE = snapshotCaveat(["QS"], DATASET_COVERAGE.QS);
+
+/**
+ * An edition that does not hold every source says so. Byte-identical to
+ * `EDITION_SOURCE_COVERAGE_TEMPLATE` in caveats.py and AnalyticsService.java.
+ */
+export const EDITION_SOURCE_COVERAGE_TEMPLATE =
+  "The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, so a position here rests on one source rather than on agreement between several.";
+
+/** Which sources an edition is missing, or null when it holds them all. */
+export function editionSourceCoverageCaveat(year: number): string | null {
+  const present = sourcesForYear(year);
+  const absent = DATASET_SOURCES.filter((source) => !present.includes(source));
+  if (present.length === 0 || absent.length === 0) {
+    return null;
+  }
+  return EDITION_SOURCE_COVERAGE_TEMPLATE.replace("{year}", String(year))
+    .replace("{present}", formatSources(present))
+    .replace("{absent}", formatSources(absent, "or"));
+}
 
 export const CAVEAT_THE_PARTIAL =
   "THE (Times Higher Education) covers part of this dataset. A missing THE rank means either that the THE data ingested here does not include the university or that this platform could not match it. It does not mean THE declines to rank it.";
@@ -66,8 +139,19 @@ export const CAVEAT_THE_PARTIAL =
 export const CAVEAT_ARWU_PARTIAL =
   "ARWU (Academic Ranking of World Universities) covers part of this dataset. A missing ARWU rank means either that the ARWU data ingested here does not include the university or that this platform could not match it. It does not mean ARWU declines to rank it.";
 
-export const CAVEAT_SINGLE_SOURCE =
-  "This university has single-source ranking coverage (QS only). Multi-source agreement analysis is not available.";
+/**
+ * The source is named from the row rather than assumed. "(QS only)" was written
+ * in when QS was the only ingested source, and every university in the 2015-2024
+ * editions is ranked by ARWU alone. Mirrors `singleSourceCaveat` in
+ * RecommendationEvidenceService, which renders it for the API's own responses.
+ */
+export function singleSourceCaveat(source?: string | null): string {
+  const named = source ? `${source} only` : "one source";
+  return `This university has single-source ranking coverage (${named}). Multi-source agreement analysis is not available.`;
+}
+
+/** @deprecated Names QS whatever the row says; call {@link singleSourceCaveat}. */
+export const CAVEAT_SINGLE_SOURCE = singleSourceCaveat("QS");
 
 export const CAVEAT_IELTS_MISSING =
   "No IELTS requirement was found in stored admission data for this university. Language fit cannot be assessed.";
@@ -139,13 +223,35 @@ export const STANDARD_CAVEATS: string[] = [
 ];
 
 /**
- * The standard caveats for a view that shows one edition. STANDARD_CAVEATS names
- * every edition held ("the 2025 and 2026 published tables"), which is true of the
- * warehouse and wrong for a page showing only 2025 rows. Same template, same
- * strings; only the edition named differs.
+ * The standard caveats for a view that shows one edition.
+ *
+ * STANDARD_CAVEATS describes the release, which is the wrong scope for a page
+ * showing one edition: it names QS's editions beside a 2018 table holding no QS
+ * rank, and carries a THE coverage note for an edition with no THE row to be
+ * partial about. This names the sources the edition actually holds, and says
+ * which ones it does not.
  */
 export function editionCaveats(year: number): string[] {
-  return [snapshotCaveat([year]), CAVEAT_THE_PARTIAL, CAVEAT_ARWU_PARTIAL];
+  const sources = sourcesForYear(year);
+  if (sources.length === 0) {
+    return [...STANDARD_CAVEATS];
+  }
+  const caveats = [snapshotCaveat(sources, [year])];
+  // What the edition is missing, stated rather than left to be inferred from an
+  // empty column. Null for an edition that holds every source.
+  const coverage = editionSourceCoverageCaveat(year);
+  if (coverage) {
+    caveats.push(coverage);
+  }
+  // The partial-coverage lines describe a source that is present and sparse, so
+  // each belongs only to an edition that actually holds that source.
+  if (sources.includes("THE")) {
+    caveats.push(CAVEAT_THE_PARTIAL);
+  }
+  if (sources.includes("ARWU")) {
+    caveats.push(CAVEAT_ARWU_PARTIAL);
+  }
+  return caveats;
 }
 
 /**

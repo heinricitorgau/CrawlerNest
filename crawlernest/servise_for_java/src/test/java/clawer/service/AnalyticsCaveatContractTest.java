@@ -12,6 +12,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -69,10 +71,45 @@ class AnalyticsCaveatContractTest {
     @Test
     @DisplayName("the snapshot caveat for 2026 is the sentence the constant used to hold")
     void snapshotCaveatRendersBackwardIdentically() {
-        assertEquals(SNAPSHOT_CAVEAT_2026, AnalyticsService.snapshotCaveat(List.of(2026)));
-        assertEquals(AnalyticsService.snapshotCaveat(AnalyticsService.DATASET_YEARS),
+        assertEquals(SNAPSHOT_CAVEAT_2026,
+                AnalyticsService.snapshotCaveat(List.of("QS"), List.of(2026)));
+        // Over the editions QS covers, not over DATASET_YEARS. The two were the
+        // same list until the 2015-2024 ARWU release; rendering from the union
+        // would name ten editions in which QS published nothing here.
+        assertEquals(
+                AnalyticsService.snapshotCaveat(List.of("QS"), DatasetScope.DATASET_COVERAGE.get("QS")),
                 AnalyticsService.SNAPSHOT_CAVEAT);
         assertEquals(AnalyticsService.SNAPSHOT_CAVEAT, AnalyticsService.STANDARD_CAVEATS.get(0));
+    }
+
+    @Test
+    @DisplayName("a source is never named over an edition it does not cover")
+    void aSourceIsNeverNamedOverAnEditionItDoesNotCover() {
+        assertThrows(IllegalArgumentException.class,
+                () -> AnalyticsService.snapshotCaveat(List.of("QS"), List.of(2018)));
+        assertThrows(IllegalArgumentException.class,
+                () -> AnalyticsService.snapshotCaveat(List.of("THE"), List.of(2015, 2026)));
+        assertTrue(AnalyticsService.editionSnapshotCaveat(2018).startsWith("ARWU ranking data"));
+        assertFalse(AnalyticsService.editionSnapshotCaveat(2018).contains("QS"));
+    }
+
+    @Test
+    @DisplayName("an edition missing a source says so, and one holding them all does not")
+    void anEditionDisclosesTheSourcesItLacks() {
+        String coverage = AnalyticsService.editionSourceCoverageCaveat(2018);
+        assertTrue(coverage.contains("The 2018 edition holds ARWU ranks only"), coverage);
+        assertTrue(coverage.contains("No QS or THE rank exists"), coverage);
+        assertNull(AnalyticsService.editionSourceCoverageCaveat(2026));
+    }
+
+    @Test
+    @DisplayName("DATASET_YEARS is the union of the per-source coverage map")
+    void datasetYearsIsTheUnionOfCoverage() {
+        assertTrue(DatasetScope.datasetYearsMatchCoverage(),
+                "DatasetScope.DATASET_YEARS and DATASET_COVERAGE disagree about which editions exist");
+        assertEquals(List.of("ARWU"), DatasetScope.sourcesFor(2018));
+        assertEquals(List.of("QS", "THE", "ARWU"), DatasetScope.sourcesFor(2026));
+        assertEquals(List.of(), DatasetScope.sourcesFor(2014));
     }
 
     @Test

@@ -46,13 +46,25 @@ from crawlernest.core.caveats import (
     DISAGREEMENT_ESTIMATE_CAVEAT,
     ESTIMATED_VALUE_CAVEAT,
     RANK_CHANGE_CAVEAT,
+    EDITION_SOURCE_COVERAGE_TEMPLATE,
     SNAPSHOT_CAVEAT_TEMPLATE,
     STANDARD_CAVEATS,
     UNSUPPORTED_ESTIMATE_CAVEAT,
+    edition_caveats,
+    edition_snapshot_caveat,
+    edition_source_coverage_caveat,
     format_edition_years,
+    format_sources,
     snapshot_caveat,
 )
-from crawlernest.core.dataset import DATASET_YEAR, DATASET_YEARS, DEFAULT_RANKING_YEAR
+from crawlernest.core.dataset import (
+    DATASET_COVERAGE,
+    DATASET_SOURCES,
+    DATASET_YEAR,
+    DATASET_YEARS,
+    DEFAULT_RANKING_YEAR,
+    sources_for_year,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -97,6 +109,7 @@ CONSTANT_CAVEATS = (
 #: Templates that must be byte-identical in every language and in the doc.
 TEMPLATE_CAVEATS = (
     SNAPSHOT_CAVEAT_TEMPLATE,
+    EDITION_SOURCE_COVERAGE_TEMPLATE,
     ADMISSION_STALE_FETCHED_TEMPLATE,
     ADMISSION_STALE_UNDATED_TEMPLATE,
 )
@@ -181,12 +194,59 @@ class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
 
 class TestYearBearingCaveatTemplates(unittest.TestCase):
     def test_2026_renders_the_sentence_the_constant_used_to_hold(self) -> None:
-        self.assertEqual(SNAPSHOT_CAVEAT_2026, snapshot_caveat((2026,)))
+        self.assertEqual(SNAPSHOT_CAVEAT_2026, snapshot_caveat("QS", (2026,)))
 
-    def test_todays_warehouse_renders_backward_identically(self) -> None:
-        if DATASET_YEARS == (2026,):
-            self.assertEqual(SNAPSHOT_CAVEAT_2026, CAVEAT_QS_STALE)
-        self.assertEqual(snapshot_caveat(DATASET_YEARS), CAVEAT_QS_STALE)
+    def test_todays_constant_renders_from_the_editions_qs_covers(self) -> None:
+        # This asserted snapshot_caveat(DATASET_YEARS) until the 2015-2024 ARWU
+        # release. The two lists were the same one then; they are not now, and
+        # rendering QS over the union would name ten editions holding no QS row.
+        # The sentence itself is unchanged -- the release made it true rather
+        # than rewriting it, which is what the equality below pins.
+        self.assertEqual(snapshot_caveat("QS", DATASET_COVERAGE["QS"]), CAVEAT_QS_STALE)
+        self.assertNotIn("2024", CAVEAT_QS_STALE)
+
+    def test_a_source_cannot_be_named_over_an_edition_it_does_not_cover(self) -> None:
+        # The check that makes the false disclosure unwritable rather than merely
+        # discouraged. Java and TypeScript raise on the same inputs.
+        for source, years in (("QS", (2018,)), ("THE", (2015, 2026)), ("ARWU", (2014,))):
+            with self.subTest(source=source, years=years):
+                with self.assertRaises(ValueError):
+                    snapshot_caveat(source, years)
+
+    def test_an_edition_is_disclosed_with_the_sources_it_actually_holds(self) -> None:
+        self.assertEqual(sources_for_year(2018), ("ARWU",))
+        self.assertEqual(sources_for_year(2026), ("QS", "THE", "ARWU"))
+
+        arwu_only = edition_snapshot_caveat(2018)
+        self.assertTrue(arwu_only.startswith("ARWU ranking data"), arwu_only)
+        self.assertNotIn("QS", arwu_only)
+
+        # And an edition missing a source says so, in the negative ("or"), rather
+        # than leaving a reader to infer it from an empty column.
+        coverage = edition_source_coverage_caveat(2018)
+        self.assertIn("The 2018 edition holds ARWU ranks only", coverage)
+        self.assertIn("No QS or THE rank exists", coverage)
+        self.assertIsNone(edition_source_coverage_caveat(2026))
+
+    def test_source_lists_join_like_year_lists(self) -> None:
+        self.assertEqual(format_sources(("ARWU",)), "ARWU")
+        self.assertEqual(format_sources(("THE", "QS")), "QS and THE")
+        self.assertEqual(format_sources(DATASET_SOURCES), "QS, THE and ARWU")
+        self.assertEqual(format_sources(("THE", "QS"), "or"), "QS or THE")
+
+    def test_dataset_coverage_agrees_across_languages(self) -> None:
+        java = _read(DATASET_SCOPE_JAVA)
+        typescript = _read(DATASET_SCOPE_TS)
+        for source, years in DATASET_COVERAGE.items():
+            rendered = ", ".join(str(year) for year in years)
+            with self.subTest(language="Java", source=source):
+                self.assertIn(f'"{source}", List.of({rendered})', java)
+            with self.subTest(language="TypeScript", source=source):
+                self.assertIn(f"{source}: [{rendered}]", typescript)
+
+    def test_dataset_years_are_the_union_of_the_coverage_map(self) -> None:
+        union = sorted({year for years in DATASET_COVERAGE.values() for year in years}, reverse=True)
+        self.assertEqual(tuple(union), DATASET_YEARS)
 
     def test_the_doc_states_the_template_verbatim(self) -> None:
         self.assertIn(SNAPSHOT_CAVEAT_TEMPLATE, _read(EXPLAINABILITY_DOC))
@@ -210,16 +270,44 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
         self.assertEqual(DEFAULT_RANKING_YEAR, DATASET_YEAR, "the compatibility alias drifted")
 
     def test_frontend_agent_system_prompt_carries_dataset_constraints(self) -> None:
+        """The rules a model is given about editions.
+
+        This asserted the opposite until the 2015-2024 ARWU release: that the
+        warehouse held one year, that the data was a "single-year snapshot", and
+        that inferring any "cross-year trend" was forbidden. Each was correct for
+        one edition and false for twelve, and the trend ban would have forbidden
+        the capability this release exists to unlock.
+
+        What replaces it is not permission to narrate movement. The repo already
+        computes cross-edition movement under constraints -- rank_delta.py and
+        SourceRankDelta compare one source's published ranks and decline when the
+        rank is banded or the institution changed -- so the prompt states those
+        same constraints rather than routing around them.
+        """
         prompt = _read(AGENT_SYSTEM_PROMPT_TS)
-        self.assertIn(f"DATASET_YEAR = {DATASET_YEAR}", prompt)
-        self.assertIn(
-            f"Dataset year: the warehouse holds ${{DATASET_YEAR}} ranking data",
-            prompt,
-        )
-        self.assertIn("single-year snapshot", prompt)
-        self.assertIn("cross-year trend", prompt)
-        self.assertIn("Name no year other than", prompt)
-        self.assertIn("year after year", prompt)
+
+        # Derived, not written: a year literal here could drift from the release.
+        self.assertIn("export const DATASET_YEAR = DEFAULT_RANKING_YEAR;", prompt)
+        self.assertNotIn(f"DATASET_YEAR = {DATASET_YEAR};", prompt)
+
+        # The editions, and that coverage differs by source.
+        self.assertIn("Dataset editions: the warehouse holds ${editions(DATASET_YEARS)}", prompt)
+        self.assertIn("Coverage differs by source", prompt)
+        self.assertIn("name no source for a year it does not cover", prompt)
+
+        # Movement is reportable, but only the way the repo computes it.
+        self.assertIn("only one source at a time", prompt)
+        self.assertIn("Never compare composite or aggregated ranks between editions", prompt)
+        self.assertIn("banded rank is a range, not a number", prompt)
+        self.assertIn("merged, split or was renamed", prompt)
+
+        # The claim a missing rank must never be turned into.
+        self.assertIn("never means the source declines to rank it", prompt)
+
+        # The old single-year rules must be gone, not merely outnumbered.
+        for retired in ("single-year snapshot", "year after year", "has risen"):
+            with self.subTest(retired=retired):
+                self.assertNotIn(retired, prompt)
 
     def test_explainability_doc_carries_the_estimate_caveats(self) -> None:
         # The doc is the anchor AnalyticsCaveatContractTest already reads, so a
@@ -247,6 +335,38 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
             list(STANDARD_CAVEATS),
             [CAVEAT_QS_STALE, CAVEAT_THE_PARTIAL, CAVEAT_ARWU_PARTIAL],
         )
+
+    def test_a_single_edition_carries_only_what_that_edition_holds(self) -> None:
+        # The release scope and the edition scope differ now, and a response about
+        # one edition must use the second: STANDARD_CAVEATS opens with QS's
+        # snapshot, which beside a 2018 table holding no QS rank is true of the
+        # warehouse and useless to the reader.
+        arwu_only = edition_caveats(2018)
+        self.assertEqual(arwu_only[0], edition_snapshot_caveat(2018))
+        self.assertIn(edition_source_coverage_caveat(2018), arwu_only)
+        self.assertIn(CAVEAT_ARWU_PARTIAL, arwu_only)
+        # No THE line: there is no THE row in 2018 for its coverage to be partial about.
+        self.assertNotIn(CAVEAT_THE_PARTIAL, arwu_only)
+        self.assertNotIn(CAVEAT_QS_STALE, arwu_only)
+
+        every_source = edition_caveats(2026)
+        self.assertEqual(
+            list(every_source),
+            [edition_snapshot_caveat(2026), CAVEAT_THE_PARTIAL, CAVEAT_ARWU_PARTIAL],
+        )
+
+    def test_java_and_typescript_compose_edition_caveats_the_same_way(self) -> None:
+        # Each language composes the list from the same pieces; the pieces
+        # themselves are already compared byte for byte above.
+        java = _read(ANALYTICS_SERVICE)
+        typescript = _read(CAVEAT_MESSAGES_TS)
+        self.assertIn("public static List<String> editionCaveats(int year)", java)
+        self.assertIn("export function editionCaveats(year: number): string[]", typescript)
+        for source, guard in (("THE", "THE_PARTIAL_CAVEAT"), ("ARWU", "ARWU_PARTIAL_CAVEAT")):
+            with self.subTest(source=source):
+                self.assertIn(f'sources.contains("{source}")', java)
+                self.assertIn(guard, java)
+                self.assertIn(f'sources.includes("{source}")', typescript)
 
 
 class TestAdmissionCaveats(unittest.TestCase):
