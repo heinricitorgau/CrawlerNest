@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-09-19，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-09-20，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：421
-- **期間**：2026-03-16 ~ 2026-09-19
+- **Commit 總數**：425
+- **期間**：2026-03-16 ~ 2026-09-20
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,7 +34,11 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `0a65496` | 2026-09-19 | heinricitorgau | 27 | +1096 / −341 | Authenticate with a signed token instead of a server-side session **[main]** |
+| `0bc4c62` | 2026-09-20 | heinricitorgau | 6 | +203 / −29 | Tell the subject page what subject coverage actually is **[claude/arwu-editions-2015-2024, main]** |
+| `1888aa6` | 2026-09-20 | heinricitorgau | 17 | +972 / −117 | Release the 2015-2024 ARWU editions, per source rather than per year |
+| `e184ba3` | 2026-09-19 | heinricitorgau | 10 | +202590 / −0 | data(arwu): world ranking editions 2015-2024 |
+| `b11e99b` | 2026-09-19 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `0a65496` | 2026-09-19 | heinricitorgau | 27 | +1096 / −341 | Authenticate with a signed token instead of a server-side session |
 | `bff3ae1` | 2026-09-19 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `ad4515c` | 2026-09-19 | heinricitorgau | 13 | +410 / −11 | feat(ops): container images for the stack, and configuration out of the source |
 | `2dbc95e` | 2026-09-19 | github-actions[bot] | 1 | +10 / −8 | docs: regenerate the commit log |
@@ -492,8 +496,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 421 |
-| 檔案變更累計 | 6816 |
-| 新增行數累計 | +1740223 |
-| 刪除行數累計 | −813578 |
-| 淨增行數 | +926645 |
+| Commit 數 | 425 |
+| 檔案變更累計 | 6850 |
+| 新增行數累計 | +1943997 |
+| 刪除行數累計 | −813731 |
+| 淨增行數 | +1130266 |
