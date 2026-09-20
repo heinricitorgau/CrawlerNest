@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 
-import { DEFAULT_RANKING_YEAR, hrefForEdition } from "@/lib/datasetScope";
+import { DEFAULT_RANKING_YEAR, SUBJECT_DATASET_YEARS, hasSubjectData, hrefForEdition } from "@/lib/datasetScope";
+import { formatEditionYears } from "@/lib/caveatMessages";
 import type { SubjectRankingRow } from "@/types/subjectRanking";
 
 type Props = {
@@ -50,7 +51,10 @@ export default function SubjectRankingTable({ items, loading, rankingYear = DEFA
                 {/* Names the edition: subject tables are ingested for fewer editions
                     than world rankings, so this is our coverage rather than a
                     statement that nothing was ranked. */}
-                No {rankingYear} subject rankings are held for this selection.
+                {hasSubjectData(rankingYear)
+                  ? `No ${rankingYear} subject rankings are held for this selection.`
+                  : `No subject rankings are held for the ${rankingYear} edition at all. ` +
+                    `Subject data covers ${formatEditionYears(SUBJECT_DATASET_YEARS)}.`}
               </td>
             </tr>
           ) : (

@@ -43,6 +43,38 @@ export function sourcesForYear(year: number): string[] {
   return DATASET_SOURCES.filter((source) => (DATASET_COVERAGE[source] ?? []).includes(year));
 }
 
+/**
+ * Which editions hold *subject* ranking rows, per source.
+ *
+ * Separate from `DATASET_COVERAGE` because subject coverage is not world-ranking
+ * coverage: `warehouse.subject_ranking_record` holds 1,068 rows, all QS, all for
+ * 2026. QS's world ranks reach back to 2025 and ARWU's to 2015, and neither
+ * implies a subject table.
+ *
+ * Without this the subject page offered every edition the warehouse holds and
+ * eleven of the twelve returned nothing, under a heading that still read
+ * "2018 edition · QS" -- a source attributed to an edition it has no subject row
+ * in.
+ */
+export const SUBJECT_DATASET_COVERAGE: Readonly<Record<string, readonly number[]>> = {
+  QS: [2026],
+};
+
+/** Editions with subject ranking rows, newest first. */
+export const SUBJECT_DATASET_YEARS: readonly number[] = [2026];
+
+/** The sources holding subject rows for an edition; empty when none do. */
+export function subjectSourcesForYear(year: number): string[] {
+  return DATASET_SOURCES.filter(
+    (source) => (SUBJECT_DATASET_COVERAGE[source] ?? []).includes(year),
+  );
+}
+
+/** True when the edition has subject ranking rows at all. */
+export function hasSubjectData(year: number): boolean {
+  return subjectSourcesForYear(year).length > 0;
+}
+
 /** The year a query uses when the caller names none: the newest edition held. */
 export const DEFAULT_RANKING_YEAR: number = Math.max(...DATASET_YEARS);
 

@@ -7,8 +7,12 @@ import SubjectRankingTable from "@/components/SubjectRankingTable";
 import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
 import { useSelectedYear } from "@/hooks/useSelectedYear";
 import { useSubjectRankings } from "@/hooks/useSubjectRankings";
-import { CAVEAT_SUBJECT_QS_ONLY, editionCaveats } from "@/lib/caveatMessages";
-import { DEFAULT_RANKING_YEAR } from "@/lib/datasetScope";
+import { subjectEditionCaveats } from "@/lib/caveatMessages";
+import {
+  DEFAULT_RANKING_YEAR,
+  SUBJECT_DATASET_YEARS,
+  subjectSourcesForYear,
+} from "@/lib/datasetScope";
 import type {
   SubjectOption,
   SubjectOptionsApiResponse,
@@ -180,7 +184,12 @@ export default function SubjectRankingsPage() {
 
 function SubjectRankingsPageWithSelectedYear() {
   const { year } = useSelectedYear();
-  return <SubjectRankingsPageContent rankingYear={year} yearSelector={<YearSelector variant="page" />} />;
+  return (
+    <SubjectRankingsPageContent
+      rankingYear={year}
+      yearSelector={<YearSelector variant="page" years={SUBJECT_DATASET_YEARS} />}
+    />
+  );
 }
 
 type SubjectRankingsPageContentProps = {
@@ -290,6 +299,11 @@ export function SubjectRankingsPageContent({
     setPage(1);
   }
 
+  // The edition the page is showing. metadata.year comes back only when the
+  // query found rows, so for an edition with none it is the requested year that
+  // has to be named -- saying nothing would leave the empty table unexplained.
+  const editionShown = metadata.year ?? rankingYear;
+
   const selectedSubjectName = useMemo(() => {
     return (
       subjects.find((item) => item.subjectKey === subject)?.subjectName ??
@@ -314,7 +328,13 @@ export function SubjectRankingsPageContent({
               </h1>
             </div>
             <div className="text-sm text-slate-500">
-              {metadata.year ?? rankingYear} edition · {metadata.source ?? "QS"}
+              {/* The source is named only for an edition that has one. "2018
+                  edition · QS" attributed QS to an edition with no QS subject
+                  row in it. */}
+              {editionShown} edition
+              {subjectSourcesForYear(editionShown).length > 0
+                ? ` · ${metadata.source ?? subjectSourcesForYear(editionShown).join(", ")}`
+                : " · no subject data held"}
             </div>
           </div>
         </div>
@@ -383,10 +403,7 @@ export function SubjectRankingsPageContent({
           <SubjectRankingTable items={items} loading={loading} rankingYear={rankingYear} />
         </div>
 
-        <CaveatBanner
-          className="mt-4"
-          caveats={[...editionCaveats(metadata.year ?? rankingYear), CAVEAT_SUBJECT_QS_ONLY]}
-        />
+        <CaveatBanner className="mt-4" caveats={subjectEditionCaveats(editionShown)} />
 
         <div className="mt-4 flex flex-col gap-3 border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>

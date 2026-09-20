@@ -9,6 +9,16 @@ type YearSelectorProps = {
   /** "nav" is compact for the header; "page" matches the pages' filter controls. */
   variant?: "nav" | "page";
   className?: string;
+  /**
+   * Editions to offer. Defaults to every edition the warehouse holds, which is
+   * right for the world-ranking pages. A surface whose data covers fewer
+   * editions passes its own list -- the subject page offers only the editions
+   * that hold subject rows, so the control cannot propose eleven empty years.
+   *
+   * This changes what is offered, not how `?year=` is read: which editions exist
+   * is a fact about the warehouse and is resolved the same way on every page.
+   */
+  years?: readonly number[];
 };
 
 const SELECT_CLASS: Record<NonNullable<YearSelectorProps["variant"]>, string> = {
@@ -24,10 +34,18 @@ const SELECT_CLASS: Record<NonNullable<YearSelectorProps["variant"]>, string> = 
  * Uses `useSearchParams`: render inside `<Suspense>`, with
  * {@link YearSelectorFallback} as the fallback.
  */
-export function YearSelector({ variant = "page", className = "" }: YearSelectorProps) {
+export function YearSelector({
+  variant = "page",
+  className = "",
+  years = DATASET_YEARS,
+}: YearSelectorProps) {
   const id = useId();
   const noteId = `${id}-note`;
   const { year, requested, requestedHeld, setYear } = useSelectedYear();
+  // The selected edition is always offered, even when it is not one this
+  // surface has data for: a select whose value is absent from its options
+  // renders blank and hides which edition the page is actually showing.
+  const options = years.includes(year) ? years : [...years, year].sort((a, b) => b - a);
 
   return (
     <div className={`flex flex-col gap-1 ${className}`.trim()}>
@@ -45,7 +63,7 @@ export function YearSelector({ variant = "page", className = "" }: YearSelectorP
           aria-describedby={requestedHeld ? undefined : noteId}
           onChange={(event) => setYear(Number(event.target.value))}
         >
-          {DATASET_YEARS.map((option) => (
+          {options.map((option) => (
             <option key={option} value={option}>
               {option}
             </option>
@@ -62,15 +80,20 @@ export function YearSelector({ variant = "page", className = "" }: YearSelectorP
 }
 
 /** What renders before the URL is readable: the default edition, disabled. */
-export function YearSelectorFallback({ variant = "page", className = "" }: YearSelectorProps) {
+export function YearSelectorFallback({
+  variant = "page",
+  className = "",
+  years = DATASET_YEARS,
+}: YearSelectorProps) {
+  const first = years[0] ?? DATASET_YEARS[0];
   return (
     <div className={`flex flex-col gap-1 ${className}`.trim()} aria-hidden="true">
       <div className={variant === "nav" ? "flex items-center gap-2" : "flex flex-col gap-2"}>
         <span className={variant === "nav" ? "text-xs font-medium text-slate-500" : "text-sm font-medium text-[#1a3d2e]"}>
           {variant === "nav" ? "Edition" : "Ranking edition"}
         </span>
-        <select className={SELECT_CLASS[variant]} disabled value={DATASET_YEARS[0]} onChange={() => {}}>
-          <option value={DATASET_YEARS[0]}>{DATASET_YEARS[0]}</option>
+        <select className={SELECT_CLASS[variant]} disabled value={first} onChange={() => {}}>
+          <option value={first}>{first}</option>
         </select>
       </div>
     </div>

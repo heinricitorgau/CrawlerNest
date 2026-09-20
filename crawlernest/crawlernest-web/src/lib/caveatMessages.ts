@@ -29,7 +29,9 @@
 import {
   DATASET_COVERAGE,
   DATASET_SOURCES,
+  SUBJECT_DATASET_YEARS,
   sourcesForYear,
+  subjectSourcesForYear,
 } from "@/lib/datasetScope";
 
 /**
@@ -161,6 +163,51 @@ export const CAVEAT_SUBJECT_NO_DATA =
 
 export const CAVEAT_SUBJECT_QS_ONLY =
   "Subject rankings are QS-sourced only. THE and ARWU subject data is not available.";
+
+/**
+ * What a subject page must say when the edition it is showing holds no subject
+ * rows at all.
+ *
+ * The subject surface used to carry `editionCaveats(year)` -- the world-ranking
+ * disclosures -- so a 2018 subject page announced "The 2018 edition holds ARWU
+ * ranks only" beside "Subject rankings are QS-sourced only", two sentences that
+ * contradict each other, over a table that was empty for a third reason: there
+ * is no 2018 subject data from any source. World-ranking coverage says nothing
+ * about subject coverage, and this is the sentence that does.
+ */
+export const SUBJECT_EDITION_MISSING_TEMPLATE =
+  "No subject ranking data is held for the {year} edition. Subject rankings are QS-sourced and were crawled for {held} only, so this is a gap in what this platform ingested rather than a subject QS does not rank.";
+
+/** The subject snapshot line, naming the source that actually holds the edition. */
+export const SUBJECT_SNAPSHOT_TEMPLATE =
+  "{source} subject ranking data is a point-in-time snapshot of the {years} published tables. Figures may not reflect rankings republished since this snapshot was ingested.";
+
+/**
+ * The caveats for a subject page showing one edition.
+ *
+ * An edition with subject rows gets a snapshot line naming the source that has
+ * them, plus the QS-only scope. An edition without gets the missing-data line
+ * and nothing else: a coverage note about a source with no row here would be
+ * describing a table that does not exist.
+ */
+export function subjectEditionCaveats(year: number): string[] {
+  const sources = subjectSourcesForYear(year);
+  if (sources.length === 0) {
+    return [
+      SUBJECT_EDITION_MISSING_TEMPLATE.replace("{year}", String(year)).replace(
+        "{held}",
+        formatEditionYears(SUBJECT_DATASET_YEARS),
+      ),
+    ];
+  }
+  return [
+    SUBJECT_SNAPSHOT_TEMPLATE.replace("{source}", formatSources(sources)).replace(
+      "{years}",
+      formatEditionYears([year]),
+    ),
+    CAVEAT_SUBJECT_QS_ONLY,
+  ];
+}
 
 /**
  * CAVEAT_ADMISSION_DATA_STALE names a date, so it is a pair of templates rather
