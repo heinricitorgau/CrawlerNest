@@ -2251,8 +2251,8 @@
  },
  {
   "qs_name": "Kerman University of Medical Sciences",
-  "the_name": "University of Medical Sciences (ZBMU)",
-  "the_id": "730190"
+  "the_name": "Kerman University of Medical Sciences",
+  "the_id": "622245"
  },
  {
   "qs_name": "Kermanshah University of Medical Sciences",
@@ -4948,11 +4948,6 @@
   "qs_name": "Tokyo Institute of Technology (Tokyo Tech)",
   "the_name": "Institute of Science Tokyo",
   "the_id": "733829"
- },
- {
-  "qs_name": "Tokyo Medical University",
-  "the_name": "Dokkyo Medical University",
-  "the_id": "609390"
  },
  {
   "qs_name": "Tokyo Metropolitan University",
