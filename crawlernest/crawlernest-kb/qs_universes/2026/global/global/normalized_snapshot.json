@@ -16080,7 +16080,7 @@
     }
   },
   {
-    "university_name": "Karl-Franzens-Universitaet Graz",
+    "university_name": "Karl-Franzens-Universität Graz",
     "country": "Austria",
     "rank": "671",
     "score": "26.3",
@@ -16088,7 +16088,7 @@
     "universe_type": "global",
     "universe_key": "global",
     "year": 2026,
-    "detail_url": "/universities/karl-franzens-universitaet-graz",
+    "detail_url": "/universities/karl-franzens-universitat-graz",
     "table_metrics": {
       "Overall Score": "26.3",
       "Citations per Faculty": "13.6",

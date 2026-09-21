@@ -19,7 +19,7 @@
   "page_resolution_skipped": true,
   "page_resolution_attempted": false,
   "subregion_id": "",
-  "resolution_cache_path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.claude/worktrees/crawlernest-architecture-review-3b0e48/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
+  "resolution_cache_path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
   "universe": {
     "universe_type": "global",
     "universe_key": "global",
