@@ -98,6 +98,13 @@ ALLOWED: tuple[Allowed, ...] = (
         "the year predicate is in the where list, and fetch refuses an unheld year before querying",
         requires='"p.ranking_year = %s"',
     ),
+    Allowed(
+        "crawlernest/core/services/ml_service.py",
+        "SELECT DISTINCT p.ranking_year",
+        "coverage lookup: the edition is what this read returns, not what it filters on, and it "
+        "reads no estimate -- covered_years exists so an empty fetch can say whether the edition "
+        "or the universities are the reason",
+    ),
 )
 
 

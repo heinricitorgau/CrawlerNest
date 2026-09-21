@@ -234,6 +234,59 @@ UNSUPPORTED_ESTIMATE_CAVEAT = (
     "about the evidence behind the estimate, not a measurement of how wrong it is."
 )
 
+#: Why an estimate read came back with nothing, when the requested edition is
+#: the reason. Before the 2015-2024 ARWU release, resolve_ranking_year rejected
+#: 2018 outright and an agent asking for 2018 estimates got a refusal it could
+#: repeat. Those editions are now held, so the same request is valid, reaches the
+#: query and returns zero rows -- and an empty list with no caveat reads as "the
+#: model has nothing to say about these universities" when the truth is that this
+#: platform never modelled the edition at all.
+#:
+#: Agent-side only: the Java estimate endpoints pin ranking_year to
+#: DatasetScope.defaultRankingYear() and so cannot be asked about another
+#: edition. Both sentences are documented in ANALYTICS_EXPLAINABILITY.md.
+MODEL_EDITION_MISSING_TEMPLATE = (
+    "No model estimates exist for the {year} edition. The modelling layer has only been run "
+    "over {editions}, so this is a gap in what this platform modelled rather than a judgement "
+    "that the {year} edition cannot be estimated."
+)
+
+#: Byte-identical to the sentence AnalyticsService.getEstimatedScores returns
+#: when analytics.v_ml_predictions_latest is absent. A deployment that has never
+#: run the scoring job is a normal state, and the agent path used to answer it
+#: with silence while the API answered it in words.
+MODEL_NEVER_RUN_CAVEAT = (
+    "No model estimates are available. The modelling layer has not been run against this "
+    "database."
+)
+
+
+def model_edition_caveats(year: int, covered_years: Iterable[int]) -> list[str]:
+    """The disclosure for an empty estimate read, or ``[]`` when there is none to make.
+
+    ``covered_years`` is what the modelling tables actually hold: the caller reads
+    it off the stored predictions rather than declaring it here. A constant would
+    be a second source of truth about a table this module does not own, and the
+    one failure worse than silence is telling a reader an edition was never
+    modelled after someone has modelled it.
+
+    Conditional on the year, not on the emptiness alone: for an edition the model
+    does cover, an empty result means these particular universities carry no
+    estimate. That is a different fact, it is not a platform gap, and the caller
+    already discloses it by adding nothing.
+    """
+    editions = {int(value) for value in covered_years}
+    if not editions:
+        return [MODEL_NEVER_RUN_CAVEAT]
+    if int(year) in editions:
+        return []
+    return [
+        MODEL_EDITION_MISSING_TEMPLATE.replace("{year}", str(year)).replace(
+            "{editions}", format_edition_years(editions)
+        )
+    ]
+
+
 #: Carried wherever a per-source rank change is shown (rankDelta on a source
 #: ranking). Movement is computed by crawlernest/core/rank_delta.py and
 #: clawer.service.SourceRankDelta, source by source from printed ranks; this says

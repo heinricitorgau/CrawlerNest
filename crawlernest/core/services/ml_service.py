@@ -135,6 +135,49 @@ class MlService:
 
         return [self._to_item(row) for row in rows]
 
+    def covered_years(self) -> tuple[int, ...]:
+        """The editions the stored model actually holds estimates for, newest first.
+
+        Exists so a caller can tell an empty :meth:`fetch` apart from an
+        unmodelled edition. The warehouse holds twelve ranking editions and the
+        modelling job has been run over one of them, so "no rows for 2018" and
+        "no estimate for these universities" are different facts that look
+        identical at the call site.
+
+        Read from the view rather than declared as a constant next to
+        DATASET_YEARS: this module does not own the modelling tables, and a
+        constant would keep claiming an edition is unmodelled after someone has
+        modelled it. Absent tables mean the scoring job has never run here, which
+        is a normal state and comes back as no editions rather than an error --
+        the same rule :meth:`fetch` follows.
+        """
+        if psycopg2 is None:
+            raise RuntimeError("psycopg2 is required for MlService")
+
+        conn = psycopg2.connect(
+            host=self._db_settings.host,
+            port=self._db_settings.port,
+            dbname=self._db_settings.database,
+            user=self._db_settings.user,
+            password=self._db_settings.password,
+        )
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT to_regclass('analytics.v_ml_predictions_latest') IS NOT NULL")
+                row = cur.fetchone()
+                if not row or not row[0]:
+                    return ()
+                cur.execute(
+                    """
+                    SELECT DISTINCT p.ranking_year
+                      FROM analytics.v_ml_predictions_latest p
+                     ORDER BY p.ranking_year DESC
+                    """
+                )
+                return tuple(int(found[0]) for found in cur.fetchall())
+        finally:
+            conn.close()
+
     @staticmethod
     def _to_item(row: tuple[Any, ...]) -> dict[str, Any]:
         target = str(row[5])

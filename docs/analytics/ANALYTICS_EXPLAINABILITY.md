@@ -243,6 +243,36 @@ keeps `isEstimated`, which is what arms the `estimate_credited_to_source` rule i
 `provenance.py` — golden case faith-105 is unfaithful in a way no faithfulness
 rule reaches, and that flag is the only reason it is caught.
 
+#### Editions the model does not cover
+
+The warehouse holds twelve ranking editions; the scoring job has been run over
+one of them (QS 2026). So an estimate read can come back empty for two different
+reasons, and only one of them is about the universities asked for:
+
+| Situation | What the response says |
+| --- | --- |
+| The edition is modelled, these universities have no estimate | nothing — the empty list is the answer, and a caveat would claim a limitation the response does not have |
+| The edition is not modelled | "No model estimates exist for the 2018 edition. The modelling layer has only been run over 2026, so this is a gap in what this platform modelled rather than a judgement that the 2018 edition cannot be estimated." |
+| The modelling tables are absent | "No model estimates are available. The modelling layer has not been run against this database." |
+
+Before the 2015–2024 ARWU release, `resolve_ranking_year` rejected 2018 outright
+and an agent asking for 2018 estimates received a refusal it could repeat.
+Holding those editions made the same request valid, so it now reaches the query
+and returns zero rows: without the middle row of that table, releasing ten
+editions would have converted an honest refusal into silence.
+
+The covered editions are read from `analytics.v_ml_predictions_latest`, not
+declared alongside `DATASET_YEARS`. A constant would be a second source of truth
+about a table the caveat layer does not own, and the one failure worse than
+silence here is telling a reader an edition was never modelled after someone has
+modelled it. `MlService.covered_years()` is exempted in
+`test_year_isolation_audit.py` on the ground that the edition is what the read
+returns rather than what it filters on.
+
+This disclosure is agent-side only. `getEstimatedScores` and
+`getDisagreementRisk` pin `ranking_year` to `DatasetScope.defaultRankingYear()`,
+so the Java endpoints cannot be asked about another edition and never need it.
+
 ### Caveat Delivery
 
 Caveats are delivered in two places:
