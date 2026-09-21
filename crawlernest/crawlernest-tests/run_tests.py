@@ -93,6 +93,11 @@ def run_all_tests():
         # two disagreed about the same bytes -- which is how a Windows-1252 en
         # dash reached the warehouse as the control character U+0096.
         "test_http_text",
+        # And the door the names come through once fetched: a no-break space
+        # inside a name compares unequal to a space and sent City St George's to
+        # the unresolved log nine times, while a Windows-1252 en dash read as
+        # latin-1 put a C1 control in a university's name.
+        "test_text_hygiene",
         # The ranking_type/universe_type/universe_key scope that keeps a
         # university's ranking summary from mixing in the region/regional/
         # subject/special universes the QS crawler now also writes.

@@ -29,12 +29,14 @@ class QSAdapter(BaseSourceAdapter):
         out: list[StandardizedRankingRecord] = []
         for uni in payload:
             source_entity_id = (uni.qs_profile_path or uni.path or uni.name).strip()
+            cleaned_name = self._clean_name(uni.name)
+            cleaned_country = self._clean_name(uni.country)
             out.append(
                 StandardizedRankingRecord(
                     source=self.source_code,
                     source_entity_id=source_entity_id,
-                    university_name=uni.name,
-                    country_hint=uni.country or None,
+                    university_name=cleaned_name.text,
+                    country_hint=cleaned_country.text or None,
                     ranking_year=self.ranking_year,
                     ranking_type=self.ranking_type,
                     rank=self._safe_int(uni.rank),
@@ -51,6 +53,7 @@ class QSAdapter(BaseSourceAdapter):
                         # the sort ordinal; a year-over-year delta must read the
                         # band from here or claim precision QS never published.
                         "rank_display": str(getattr(uni, "rank_display", "") or "") or None,
+                        **self._hygiene_metadata(cleaned_name, cleaned_country),
                     },
                 )
             )
