@@ -18,6 +18,12 @@
 --   * Adelaide University began on 2026-01-01 from The University of Adelaide and
 --     the University of South Australia. Same shape: the 2026 rows sit on the
 --     University of Adelaide record.
+--   * Tampere University began on 2019-01-01 from the University of Tampere and
+--     Tampere University of Technology, and Lappeenranta University of Technology
+--     took the LUT name the same year. Both came out of the 2015-2024 ARWU
+--     release, where ARWU keeps printing the old name for an edition or two after
+--     the event: the predecessor records hold 2017-2019 and 2018-2020, so the
+--     comparison that spans the change is the one the window has to cover.
 --   * City St George's, University of London was formed on 2024-08-01 from City,
 --     University of London and St George's, University of London. Both predecessors
 --     have a record here, and the successor's rows sit on the St George's one
@@ -98,6 +104,12 @@ FROM (
         ('university-of-south-australia', 'the-university-of-adelaide',
          2026, DATE '2026-01-01', 'merger',
          'Adelaide University formed from The University of Adelaide and the University of South Australia. 2026 edition rows for Adelaide University resolve to the University of Adelaide record.'),
+        ('university-of-tampere', 'tampere-university',
+         2019, DATE '2019-01-01', 'merger',
+         'Tampere University was formed on 2019-01-01 by merging the University of Tampere with Tampere University of Technology. ARWU ranks the predecessor through its 2019 edition (the University of Tampere record holds 2017-2019) and the successor from 2020. The two were not merged into one canonical row: a merger creates a new institution, so attributing the predecessor''s ranks to it would misstate what was ranked.'),
+        ('lappeenranta-university-of-technology', 'lappeenranta-lahti-university-of-technology-lut',
+         2019, DATE '2019-01-01', 'rename',
+         'Lappeenranta University of Technology took the name Lappeenranta-Lahti University of Technology LUT in 2019, when Lahti University of Applied Sciences joined the LUT group. The university itself continued, so this is a rename rather than a merger. ARWU kept the old name through its 2020 edition (the old-name record holds 2018-2020).'),
         ('city-university-of-london', 'city-st-george-s-university-of-london',
          2024, DATE '2024-08-01', 'merger',
          'City St George''s, University of London formed on 2024-08-01 from City, University of London and St George''s, University of London. The successor''s rows resolve to the St George''s record, which therefore holds the specialist medical school through the 2024 editions and the merged university from 2025. City''s own record keeps its separate ranks up to THE 2025, where both predecessors were still ranked apart.')

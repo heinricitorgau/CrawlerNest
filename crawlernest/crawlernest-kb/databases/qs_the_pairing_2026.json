@@ -1735,6 +1735,11 @@
   "the_id": "131739"
  },
  {
+  "qs_name": "IISER Bhopal",
+  "the_name": "Indian Institute of Science Education and Research Bhopal",
+  "the_id": "691285"
+ },
+ {
   "qs_name": "IMT Atlantique",
   "the_name": "IMT Atlantique",
   "the_id": "622476"
@@ -1813,11 +1818,6 @@
   "qs_name": "Indian Institute of Technology Indore",
   "the_name": "Indian Institute of Technology Indore",
   "the_id": "131774"
- },
- {
-  "qs_name": "Indian Institutes of Science Education and Research (IISERs)",
-  "the_name": "Indian Institute of Science Education and Research Bhopal",
-  "the_id": "691285"
  },
  {
   "qs_name": "Indraprastha Institute of Information Technology, Delhi",
