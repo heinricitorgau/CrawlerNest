@@ -64,6 +64,11 @@ from typing import Any, Dict, Optional, Tuple
 
 import requests
 
+# crawlernest-core, on sys.path via bootstrap_module_paths. Shared with
+# crawlernest-crawler-core/http_client.py on purpose: the two fetch paths used
+# to disagree about the same bytes because each had its own idea of the default.
+from http_text import decode_http_text
+
 logger = logging.getLogger("UniversityFetcher.transport")
 
 BACKEND_REQUESTS = "requests"
@@ -244,6 +249,30 @@ def build_sync_session(choice: TransportChoice, *, user_agent: str, extra_header
     return session
 
 
+def response_text(response: Any) -> str:
+    """The body as text, read with the charset the response declares.
+
+    Replaces ``response.text`` at every call site that parses names out of a
+    page. The libraries disagree about what to do when nothing is declared:
+    ``requests`` returns ISO-8859-1 for ``text/html`` -- which maps 0x80-0x9F to
+    C1 controls and mangles every accent -- while curl_cffi returns UTF-8, so the
+    same page yielded different names depending on which backend was available.
+    ``http_text.decode_http_text`` decides once, for both.
+
+    Falls back to whatever the library produced only when the body cannot be
+    read as bytes, which is the shape a test double usually has.
+    """
+    body = getattr(response, "content", None)
+    if not isinstance(body, (bytes, bytearray)):
+        return getattr(response, "text", "") or ""
+    headers = getattr(response, "headers", None) or {}
+    try:
+        content_type = headers.get("Content-Type") or headers.get("content-type")
+    except AttributeError:
+        content_type = None
+    return decode_http_text(bytes(body), content_type).text
+
+
 # -- asynchronous --------------------------------------------------------------
 
 class _AiohttpShapedResponse:
@@ -270,7 +299,7 @@ class _AiohttpShapedResponse:
         return self._response.headers
 
     async def text(self) -> str:
-        return self._response.text or ""
+        return response_text(self._response)
 
     def json(self) -> Any:
         return self._response.json()

@@ -9,6 +9,10 @@ from urllib import request
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 
+# crawlernest-core, which bootstrap_module_paths puts on sys.path for every
+# pipeline command. The decode rule is shared with the extractor fetch path;
+# two copies of it are how the two paths came to disagree about the same bytes.
+from http_text import decode_http_text
 from rate_limit import RateLimiter
 from retry import retry_call
 
@@ -27,6 +31,10 @@ class ResponsePayload:
     url: str
     body: str
     headers: dict[str, str]
+    #: Which codec read the body, and whether the response declared it. Carried
+    #: so a caller can record a guess as a guess -- see http_text.DecodedText.
+    encoding: str = "utf-8"
+    encoding_source: str = "utf-8"
 
     def json(self) -> Any:
         return json.loads(self.body)
@@ -63,12 +71,19 @@ class HttpClient:
             headers = {"User-Agent": self.user_agent, **spec.headers}
             req = request.Request(spec.url, method=spec.method.upper(), headers=headers)
             with request.urlopen(req, timeout=spec.timeout_seconds) as response:
-                body = response.read().decode("utf-8", errors="replace")
+                headers = dict(response.headers.items())
+                # Was decode("utf-8", errors="replace"), which read a
+                # Windows-1252 page as damage: every accented character, and
+                # every en dash, became U+FFFD with nothing recording that it
+                # had happened.
+                decoded = decode_http_text(response.read(), headers.get("Content-Type"))
                 return ResponsePayload(
                     status_code=getattr(response, "status", 200),
                     url=response.geturl(),
-                    body=body,
-                    headers=dict(response.headers.items()),
+                    body=decoded.text,
+                    headers=headers,
+                    encoding=decoded.encoding,
+                    encoding_source=decoded.source,
                 )
 
         return retry_call(
