@@ -18,6 +18,14 @@
 --   * Adelaide University began on 2026-01-01 from The University of Adelaide and
 --     the University of South Australia. Same shape: the 2026 rows sit on the
 --     University of Adelaide record.
+--   * City St George's, University of London was formed on 2024-08-01 from City,
+--     University of London and St George's, University of London. Both predecessors
+--     have a record here, and the successor's rows sit on the St George's one
+--     (canonical_slug city-st-george-s-university-of-london), which is why that
+--     record holds ARWU 2016-2024 printed as "St George's Hospital Medical School"
+--     and "St George's, University of London" and then 2025-2026 printed as "City
+--     St George's". A 2024-to-2025 delta on it would compare a specialist medical
+--     school with a merged multi-faculty university.
 --
 -- One row records one structural event. crawlernest/core/institution_lineage.py
 -- and clawer.service.InstitutionLineage read it, and any comparison whose window
@@ -89,7 +97,10 @@ FROM (
          'Institute of Science Tokyo formed from Tokyo Tech and TMDU. 2026 edition rows for Institute of Science Tokyo resolve to the Tokyo Tech record.'),
         ('university-of-south-australia', 'the-university-of-adelaide',
          2026, DATE '2026-01-01', 'merger',
-         'Adelaide University formed from The University of Adelaide and the University of South Australia. 2026 edition rows for Adelaide University resolve to the University of Adelaide record.')
+         'Adelaide University formed from The University of Adelaide and the University of South Australia. 2026 edition rows for Adelaide University resolve to the University of Adelaide record.'),
+        ('city-university-of-london', 'city-st-george-s-university-of-london',
+         2024, DATE '2024-08-01', 'merger',
+         'City St George''s, University of London formed on 2024-08-01 from City, University of London and St George''s, University of London. The successor''s rows resolve to the St George''s record, which therefore holds the specialist medical school through the 2024 editions and the merged university from 2025. City''s own record keeps its separate ranks up to THE 2025, where both predecessors were still ranked apart.')
 ) AS event(predecessor_slug, successor_slug, effective_year, effective_date, kind, note)
 JOIN warehouse.canonical_university predecessor ON predecessor.canonical_slug = event.predecessor_slug
 JOIN warehouse.canonical_university successor ON successor.canonical_slug = event.successor_slug
