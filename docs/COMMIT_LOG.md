@@ -2,7 +2,7 @@
 
 產生於 2026-09-21，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：428
+- **Commit 總數**：430
 - **期間**：2026-03-16 ~ 2026-09-21
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `794274e` | 2026-09-21 | heinricitorgau | 8 | +554 / −166 | Take the weekly refresh's crawl, and re-export the pairing from it **[claude/arwu-editions-2015-2024, main]** |
+| `2a3aa3d` | 2026-09-21 | heinricitorgau | 1 | +2 / −7 | Withdraw four THE ranks credited to the wrong university **[claude/arwu-editions-2015-2024, main]** |
+| `3141002` | 2026-09-21 | github-actions[bot] | 1 | +12 / −9 | docs: regenerate the commit log |
+| `794274e` | 2026-09-21 | heinricitorgau | 8 | +554 / −166 | Take the weekly refresh's crawl, and re-export the pairing from it |
 | `48b8fb4` | 2026-09-21 | heinricitorgau | 7 | +309 / −5 | Say why an estimate read is empty when the edition is the reason |
 | `d37c68a` | 2026-09-20 | github-actions[bot] | 1 | +13 / −9 | docs: regenerate the commit log |
 | `0bc4c62` | 2026-09-20 | heinricitorgau | 6 | +203 / −29 | Tell the subject page what subject coverage actually is |
@@ -499,8 +501,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 428 |
-| 檔案變更累計 | 6866 |
-| 新增行數累計 | +1944873 |
-| 刪除行數累計 | −813911 |
-| 淨增行數 | +1130962 |
+| Commit 數 | 430 |
+| 檔案變更累計 | 6868 |
+| 新增行數累計 | +1944887 |
+| 刪除行數累計 | −813927 |
+| 淨增行數 | +1130960 |
