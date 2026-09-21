@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "",
   "message": "",
-  "run_id": "qs-global-global-2026-2026-09-14T02:52:12Z",
+  "run_id": "qs-global-global-2026-2026-09-21T08:58:33Z",
   "universe_type": "global",
   "universe_key": "global",
   "ranking_year": 2026,
@@ -27,7 +27,7 @@
     "page_resolution_skipped": true,
     "page_resolution_attempted": false,
     "subregion_id": "",
-    "resolution_cache_path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.claude/worktrees/crawlernest-architecture-review-3b0e48/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
+    "resolution_cache_path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/crawlernest/crawlernest-kb/qs_universe_resolution_cache.json",
     "universe": {
       "universe_type": "global",
       "universe_key": "global",
