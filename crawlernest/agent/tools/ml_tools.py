@@ -40,6 +40,7 @@ from crawlernest.core.caveats import (
     DISAGREEMENT_ESTIMATE_CAVEAT,
     ESTIMATED_VALUE_CAVEAT,
     UNSUPPORTED_ESTIMATE_CAVEAT,
+    model_edition_caveats,
 )
 from crawlernest.core.dataset import DEFAULT_RANKING_YEAR
 from crawlernest.core.services.ml_service import (
@@ -183,6 +184,14 @@ class MlTools:
         if risks.items:
             caveats.append(DISAGREEMENT_ESTIMATE_CAVEAT)
         caveats.extend(_support_caveats([*scores.items, *risks.items]))
+        if not scores.items and not risks.items:
+            # Rows come back unannotated either way. Silence would let a reader
+            # take that for "these universities have no estimate", which is true
+            # for a modelled edition and false for one the job never ran over.
+            # Forwarding what the two fetches already established, rather than
+            # asking a third time: on an empty read _fetch returns exactly the
+            # coverage disclosure, and both were asked about the same edition.
+            caveats.extend(scores.caveats or risks.caveats)
 
         return EstimateEvidence(items=merged, caveats=caveats)
 
@@ -205,6 +214,17 @@ class MlTools:
             fields["isEstimated"] = True
         return fields
 
+    def _coverage_caveats(self, year: int) -> list[str]:
+        """Why an empty estimate read is empty, asked of the modelling tables.
+
+        Only reached once a read has already come back with nothing, so the extra
+        query sits on the path where there is nothing else to report rather than
+        on every lookup. Deliberately not memoised: the guard against a stale
+        answer is that a year the job has since covered returns rows, and a read
+        that returned rows never asks.
+        """
+        return model_edition_caveats(year, self._service.covered_years())
+
     def _fetch(
         self,
         *,
@@ -222,10 +242,11 @@ class MlTools:
                 limit=limit,
             )
         )
-        # No rows, no disclosure: the caveat describes values in the response,
-        # and there are none.
+        # No rows: the value caveats describe values in the response and there
+        # are none, so those stay off. What goes on instead is the reason, and
+        # only when the edition is the reason -- see _coverage_caveats.
         if not items:
-            return EstimateEvidence(items=[], caveats=[])
+            return EstimateEvidence(items=[], caveats=self._coverage_caveats(year))
         return EstimateEvidence(items=items, caveats=[*caveats, *_support_caveats(items)])
 
 

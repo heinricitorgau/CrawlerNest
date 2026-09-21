@@ -49,11 +49,14 @@ from crawlernest.core.caveats import (
     EDITION_SOURCE_COVERAGE_TEMPLATE,
     SNAPSHOT_CAVEAT_TEMPLATE,
     STANDARD_CAVEATS,
+    MODEL_EDITION_MISSING_TEMPLATE,
+    MODEL_NEVER_RUN_CAVEAT,
     UNSUPPORTED_ESTIMATE_CAVEAT,
     edition_caveats,
     edition_snapshot_caveat,
     edition_source_coverage_caveat,
     format_edition_years,
+    model_edition_caveats,
     format_sources,
     snapshot_caveat,
 )
@@ -323,6 +326,44 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
         ):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(caveat, doc)
+
+    def test_explainability_doc_carries_the_model_coverage_disclosure(self) -> None:
+        """The doc's worked example is rendered by the code it documents.
+
+        Asserted against ``model_edition_caveats`` rather than against the raw
+        template, because the doc shows a reader the finished sentence. That
+        makes a reworded template fail here, which is the point: the doc is the
+        anchor the Java contract test reads.
+        """
+        doc = _read(EXPLAINABILITY_DOC)
+        self.assertIn(model_edition_caveats(2018, [2026])[0], doc)
+        self.assertIn(MODEL_NEVER_RUN_CAVEAT, doc)
+
+    def test_model_never_run_caveat_matches_the_java_wording(self) -> None:
+        # AnalyticsService answers an absent modelling layer inline rather than
+        # from a constant. One wording either way -- the agent path and the API
+        # must not describe the same empty database differently.
+        self.assertIn(MODEL_NEVER_RUN_CAVEAT, _read(ANALYTICS_SERVICE))
+
+    def test_model_coverage_disclosure_names_the_edition_asked_for(self) -> None:
+        """Both halves of the conditional, and what makes the sentence honest.
+
+        The template blames this platform for the gap, never the model: an
+        unmodelled edition is a job nobody ran, not a finding that the edition
+        resists estimation. Same rule the source-coverage caveats follow.
+        """
+        self.assertEqual([], model_edition_caveats(2026, [2026]))
+        self.assertEqual([MODEL_NEVER_RUN_CAVEAT], model_edition_caveats(2026, []))
+
+        sentence = model_edition_caveats(2018, [2026])[0]
+        self.assertIn("2018 edition", sentence)
+        self.assertIn("only been run over 2026", sentence)
+        self.assertIn("gap in what this platform modelled", sentence)
+        self.assertNotIn("{year}", sentence)
+        self.assertNotIn("{editions}", sentence)
+
+        # Newest first in prose is format_edition_years' job, not this one's.
+        self.assertIn("2025 and 2026", model_edition_caveats(2018, [2026, 2025])[0])
 
     def test_explainability_doc_carries_the_admission_caveats(self) -> None:
         doc = _read(EXPLAINABILITY_DOC)

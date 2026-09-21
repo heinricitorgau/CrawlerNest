@@ -28,7 +28,9 @@ from crawlernest.agent.web_agent.generation.provenance import check_provenance
 from crawlernest.core.caveats import (
     DISAGREEMENT_ESTIMATE_CAVEAT,
     ESTIMATED_VALUE_CAVEAT,
+    MODEL_NEVER_RUN_CAVEAT,
     UNSUPPORTED_ESTIMATE_CAVEAT,
+    model_edition_caveats,
 )
 from crawlernest.core.dataset import DATASET_YEAR
 from crawlernest.core.services.ml_service import (
@@ -71,18 +73,32 @@ _RISK_ROW = {
 
 
 class StubService:
-    """Stands in for MlService, recording the queries it was asked for."""
+    """Stands in for MlService, recording the queries it was asked for.
 
-    def __init__(self, rows_by_target: dict[str, list[dict[str, Any]]] | None = None) -> None:
+    ``covered_years`` defaults to the one edition the real scoring job has been
+    run over, so a stub built for any other test behaves like the deployment.
+    """
+
+    def __init__(
+        self,
+        rows_by_target: dict[str, list[dict[str, Any]]] | None = None,
+        covered: tuple[int, ...] = (DATASET_YEAR,),
+    ) -> None:
         self.rows_by_target = rows_by_target if rows_by_target is not None else {
             TARGET_OVERALL_SCORE: [dict(_SCORE_ROW)],
             TARGET_DISAGREEMENT: [dict(_RISK_ROW)],
         }
         self.queries: list[MlPredictionQuery] = []
+        self.coverage_lookups = 0
+        self._covered = covered
 
     def fetch(self, query: MlPredictionQuery) -> list[dict[str, Any]]:
         self.queries.append(query)
         return [dict(row) for row in self.rows_by_target.get(query.target, [])]
+
+    def covered_years(self) -> tuple[int, ...]:
+        self.coverage_lookups += 1
+        return self._covered
 
 
 class TestTargetsStaySeparate(unittest.TestCase):
@@ -293,6 +309,99 @@ class TestFaith105Guard(unittest.TestCase):
             caveats=evidence.caveats,
         )
         self.assertTrue(report.sound, f"false alarm: {report.kinds}")
+
+
+class TestAnUnmodelledEditionSaysSo(unittest.TestCase):
+    """An empty read for an edition nobody modelled must not answer with silence.
+
+    Before the 2015-2024 ARWU release, ``resolve_ranking_year`` rejected 2018 and
+    an agent asking for 2018 estimates got a refusal it could repeat to a user.
+    Those editions are now held, so the request is valid, reaches the query and
+    comes back with zero rows. Nothing about the response distinguishes it from
+    "the model has no estimate for these universities" -- which is the honest
+    answer for 2026 and a false one for 2018, where the scoring job never ran.
+
+    So the disclosure is conditional on the edition rather than on the emptiness:
+    the tests below assert both directions, because an always-on version would be
+    claiming a limitation that 2026 does not have.
+    """
+
+    _UNHELD = 2018
+
+    def test_an_unmodelled_edition_is_disclosed_as_a_platform_gap(self) -> None:
+        stub = StubService(rows_by_target={})
+        evidence = MlTools(service=stub).estimated_overall_scores(  # type: ignore[arg-type]
+            year=self._UNHELD
+        )
+
+        self.assertTrue(evidence.is_empty)
+        self.assertEqual(model_edition_caveats(self._UNHELD, [DATASET_YEAR]), evidence.caveats)
+        sentence = evidence.caveats[0]
+        self.assertIn(f"{self._UNHELD} edition", sentence)
+        self.assertIn(str(DATASET_YEAR), sentence)
+        # Our gap, never the model declining: the same attribution rule the
+        # source-coverage caveats follow.
+        self.assertIn("gap in what this platform modelled", sentence)
+
+    def test_the_year_asked_for_is_the_year_queried(self) -> None:
+        # Year isolation at the tool boundary: an unmodelled edition must not
+        # quietly fall back to the modelled one and return 2026 rows.
+        stub = StubService()
+        MlTools(service=stub).estimated_overall_scores(year=self._UNHELD)  # type: ignore[arg-type]
+        self.assertEqual([self._UNHELD], [query.year for query in stub.queries])
+
+    def test_no_estimate_rows_are_invented_for_an_unmodelled_edition(self) -> None:
+        stub = StubService(rows_by_target={})
+        for evidence in (
+            MlTools(service=stub).estimated_overall_scores(year=self._UNHELD),  # type: ignore[arg-type]
+            MlTools(service=stub).disagreement_probabilities(year=self._UNHELD),  # type: ignore[arg-type]
+        ):
+            self.assertEqual([], evidence.items)
+            # The value disclosures describe values in the response. There are
+            # none, so they stay off and only the reason is carried.
+            self.assertNotIn(ESTIMATED_VALUE_CAVEAT, evidence.caveats)
+            self.assertNotIn(DISAGREEMENT_ESTIMATE_CAVEAT, evidence.caveats)
+            self.assertNotIn(UNSUPPORTED_ESTIMATE_CAVEAT, evidence.caveats)
+
+    def test_a_modelled_edition_with_no_estimate_still_says_nothing(self) -> None:
+        # The other direction, and the reason this is not an always-on caveat: at
+        # 2026 an empty result is a fact about these universities, not a gap in
+        # what was modelled.
+        stub = StubService(rows_by_target={})
+        evidence = MlTools(service=stub).estimated_overall_scores(  # type: ignore[arg-type]
+            year=DATASET_YEAR
+        )
+        self.assertTrue(evidence.is_empty)
+        self.assertEqual([], evidence.caveats)
+
+    def test_annotated_ranking_rows_carry_the_same_reason(self) -> None:
+        # The path a 2018 rankings page takes: rows come back unannotated either
+        # way, so silence here would read as "no estimate for these".
+        stub = StubService(rows_by_target={})
+        evidence = MlTools(service=stub).annotate(  # type: ignore[arg-type]
+            [{"canonicalUniversityId": 4211, "aggregatedRank": 12}], year=self._UNHELD
+        )
+        self.assertEqual(model_edition_caveats(self._UNHELD, [DATASET_YEAR]), evidence.caveats)
+        self.assertNotIn("isEstimated", evidence.items[0])
+        # Asked once, not once per target: annotate forwards what the two
+        # fetches already established about the edition.
+        self.assertEqual(2, stub.coverage_lookups)
+
+    def test_a_database_without_the_modelling_tables_says_that_instead(self) -> None:
+        stub = StubService(rows_by_target={}, covered=())
+        evidence = MlTools(service=stub).estimated_overall_scores(  # type: ignore[arg-type]
+            year=DATASET_YEAR
+        )
+        self.assertEqual([MODEL_NEVER_RUN_CAVEAT], evidence.caveats)
+
+    def test_a_populated_read_never_asks_about_coverage(self) -> None:
+        # The staleness guard: the coverage lookup only happens where there is
+        # nothing else to report, so a memoised answer could not go wrong -- and
+        # the happy path pays for no extra query.
+        stub = StubService()
+        evidence = MlTools(service=stub).estimated_overall_scores()  # type: ignore[arg-type]
+        self.assertFalse(evidence.is_empty)
+        self.assertEqual(0, stub.coverage_lookups)
 
 
 if __name__ == "__main__":
