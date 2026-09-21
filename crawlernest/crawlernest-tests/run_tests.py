@@ -87,6 +87,12 @@ def run_all_tests():
         # non-retriable-exception rule that stops a 403 being re-sent, and the
         # host scheduler the admissions crawl now runs on.
         "test_crawler_core",
+        # The charset rule both fetch paths now share. It exists because each
+        # had its own default: requests invents ISO-8859-1 for undeclared
+        # text/html, http_client hard-coded utf-8 with errors="replace", and the
+        # two disagreed about the same bytes -- which is how a Windows-1252 en
+        # dash reached the warehouse as the control character U+0096.
+        "test_http_text",
         # The ranking_type/universe_type/universe_key scope that keeps a
         # university's ranking summary from mixing in the region/regional/
         # subject/special universes the QS crawler now also writes.

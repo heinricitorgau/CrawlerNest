@@ -50,6 +50,7 @@ from transport import (
     log_choice,
     request_headers,
     resolve_backend,
+    response_text,
 )
 
 logger = logging.getLogger("UniversityFetcher")
@@ -1365,7 +1366,7 @@ class UniversityFetcher:
                 # keeps _warm_session_for_endpoint from fetching the page twice.
                 setattr(self.config, "_session_warmed", True)
                 phdrs = _headers_from_requests_response(resp)
-                pcls, pmsg = _classify_qs_http_response(page_url, resp.status_code, resp.text or "", phdrs)
+                pcls, pmsg = _classify_qs_http_response(page_url, resp.status_code, response_text(resp), phdrs)
                 if pcls == "upstream_maintenance":
                     _set_failure_classification(self.config, pcls, pmsg)
                     logger.warning("QS entry resolution: maintenance page while fetching %s", page_url)
@@ -1376,15 +1377,15 @@ class UniversityFetcher:
                     logger.warning("QS entry resolution blocked on %s", page_url)
                     continue
                 resp.raise_for_status()
-                prefetched = _extract_prefetched_score_nodes_from_html(resp.text)
+                prefetched = _extract_prefetched_score_nodes_from_html(response_text(resp))
                 if prefetched and page_url == ranking_page_url:
                     self.config._prefetched_payload = prefetched
                 if page_url == ranking_page_url:
-                    sid = _extract_subregion_id_from_html(resp.text, str(getattr(self.config, "region_name", "") or ""))
+                    sid = _extract_subregion_id_from_html(response_text(resp), str(getattr(self.config, "region_name", "") or ""))
                     if sid:
                         self.config._subregion_id = sid
-                nids = _extract_nids_from_html(resp.text)
-                nid2 = nids[0] if nids else _extract_nid_from_html(resp.text)
+                nids = _extract_nids_from_html(response_text(resp))
+                nid2 = nids[0] if nids else _extract_nid_from_html(response_text(resp))
                 if not nid2:
                     continue
                 self.config._ranking_id_candidates = nids
@@ -1534,12 +1535,12 @@ class UniversityFetcher:
                                     classification, message = _classify_qs_http_response(
                                         url,
                                         resp.status_code,
-                                        resp.text or "",
+                                        response_text(resp),
                                         _headers_from_requests_response(resp),
                                     )
                                     _mark_pair_failed(self.config, pair_key)
                                     _set_failure_classification(self.config, classification, message)
-                                    preview = _safe_response_preview(resp.text)
+                                    preview = _safe_response_preview(response_text(resp))
                                     error_msg = (
                                         f"{url!r}: HTTP {resp.status_code}; "
                                         f"params={params}; body_preview={preview!r}"
@@ -1591,7 +1592,7 @@ class UniversityFetcher:
                                     f"Non-JSON or malformed response from {url!r}",
                                 )
                                 ct = resp.headers.get("Content-Type", "")
-                                snippet = _safe_response_preview(resp.text)
+                                snippet = _safe_response_preview(response_text(resp))
                                 errors.append(
                                     f"QS API did not return JSON from {url!r} "
                                     f"(status={resp.status_code}, content-type={ct}). "
@@ -1690,7 +1691,9 @@ class UniversityFetcher:
             purpose="detail_page",
         )
         resp.raise_for_status()
-        return resp.text
+        # The detail page is parsed for university fields, so it goes through the
+        # shared decoder rather than the library's guess.
+        return response_text(resp)
 
     # Backward-compat alias
     def fetch_detail(self, path: str) -> Optional[str]:
