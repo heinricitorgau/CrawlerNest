@@ -32,15 +32,17 @@ class THEAdapter(BaseSourceAdapter):
                 or row.get("name")
                 or row.get("university_name")
             )
-            university_name = self._to_optional_str(
+            cleaned_name = self._clean_name(
                 row.get("name") or row.get("university_name") or row.get("institution") or row.get("school")
             )
+            university_name = cleaned_name.text or None
+            cleaned_country = self._clean_name(row.get("country") or row.get("location"))
             out.append(
                 StandardizedRankingRecord(
                     source=self.source_code,
                     source_entity_id=source_entity_id or "",
                     university_name=university_name or "",
-                    country_hint=self._to_optional_str(row.get("country") or row.get("location")),
+                    country_hint=cleaned_country.text or None,
                     ranking_year=int(row.get("year") or self.default_year),
                     ranking_type=str(row.get("ranking_type") or self.ranking_type),
                     rank=self._safe_int(row.get("rank") or row.get("rank_position") or row.get("overall_rank")),
@@ -50,6 +52,7 @@ class THEAdapter(BaseSourceAdapter):
                     metadata={
                         "raw_source": "THE",
                         **metadata,
+                        **self._hygiene_metadata(cleaned_name, cleaned_country),
                     },
                 )
             )
