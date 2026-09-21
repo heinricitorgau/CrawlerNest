@@ -2,8 +2,8 @@
 
 產生於 2026-09-21，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：434
-- **期間**：2026-03-16 ~ 2026-09-21
+- **Commit 總數**：438
+- **期間**：2026-03-16 ~ 2026-09-22
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,7 +34,11 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `dc273f8` | 2026-09-21 | heinricitorgau | 2 | +17 / −5 | Clear the THE review queue, and seed the two lineage events that were data only **[claude/arwu-editions-2015-2024, main]** |
+| `287698e` | 2026-09-22 | heinricitorgau | 1 | +253 / −0 | Correct the two canonical names QS served damaged **[claude/arwu-editions-2015-2024, main]** |
+| `17f5039` | 2026-09-22 | heinricitorgau | 7 | +347 / −6 | Catch at the door the characters a university name cannot contain |
+| `5ace900` | 2026-09-22 | heinricitorgau | 6 | +544 / −13 | Read the charset the response declares, in one place for both fetch paths |
+| `8ee63d7` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `dc273f8` | 2026-09-21 | heinricitorgau | 2 | +17 / −5 | Clear the THE review queue, and seed the two lineage events that were data only |
 | `7b26457` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `b34b914` | 2026-09-21 | heinricitorgau | 1 | +12 / −1 | Record the City St George's merger, so deltas across it are withheld |
 | `7e1fc25` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
@@ -505,8 +509,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 434 |
-| 檔案變更累計 | 6873 |
-| 新增行數累計 | +1944934 |
-| 刪除行數累計 | −813947 |
-| 淨增行數 | +1130987 |
+| Commit 數 | 438 |
+| 檔案變更累計 | 6888 |
+| 新增行數累計 | +1946087 |
+| 刪除行數累計 | −813973 |
+| 淨增行數 | +1132114 |
