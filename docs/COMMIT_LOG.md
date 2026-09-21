@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-09-20，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-09-21，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：425
-- **期間**：2026-03-16 ~ 2026-09-20
+- **Commit 總數**：428
+- **期間**：2026-03-16 ~ 2026-09-21
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,7 +34,10 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `0bc4c62` | 2026-09-20 | heinricitorgau | 6 | +203 / −29 | Tell the subject page what subject coverage actually is **[claude/arwu-editions-2015-2024, main]** |
+| `794274e` | 2026-09-21 | heinricitorgau | 8 | +554 / −166 | Take the weekly refresh's crawl, and re-export the pairing from it **[claude/arwu-editions-2015-2024, main]** |
+| `48b8fb4` | 2026-09-21 | heinricitorgau | 7 | +309 / −5 | Say why an estimate read is empty when the edition is the reason |
+| `d37c68a` | 2026-09-20 | github-actions[bot] | 1 | +13 / −9 | docs: regenerate the commit log |
+| `0bc4c62` | 2026-09-20 | heinricitorgau | 6 | +203 / −29 | Tell the subject page what subject coverage actually is |
 | `1888aa6` | 2026-09-20 | heinricitorgau | 17 | +972 / −117 | Release the 2015-2024 ARWU editions, per source rather than per year |
 | `e184ba3` | 2026-09-19 | heinricitorgau | 10 | +202590 / −0 | data(arwu): world ranking editions 2015-2024 |
 | `b11e99b` | 2026-09-19 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
@@ -496,8 +499,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 425 |
-| 檔案變更累計 | 6850 |
-| 新增行數累計 | +1943997 |
-| 刪除行數累計 | −813731 |
-| 淨增行數 | +1130266 |
+| Commit 數 | 428 |
+| 檔案變更累計 | 6866 |
+| 新增行數累計 | +1944873 |
+| 刪除行數累計 | −813911 |
+| 淨增行數 | +1130962 |
