@@ -2,7 +2,7 @@
 
 產生於 2026-09-21，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：432
+- **Commit 總數**：434
 - **期間**：2026-03-16 ~ 2026-09-21
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `b34b914` | 2026-09-21 | heinricitorgau | 1 | +12 / −1 | Record the City St George's merger, so deltas across it are withheld **[claude/arwu-editions-2015-2024, main]** |
+| `dc273f8` | 2026-09-21 | heinricitorgau | 2 | +17 / −5 | Clear the THE review queue, and seed the two lineage events that were data only **[claude/arwu-editions-2015-2024, main]** |
+| `7b26457` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `b34b914` | 2026-09-21 | heinricitorgau | 1 | +12 / −1 | Record the City St George's merger, so deltas across it are withheld |
 | `7e1fc25` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `2a3aa3d` | 2026-09-21 | heinricitorgau | 1 | +2 / −7 | Withdraw four THE ranks credited to the wrong university |
 | `3141002` | 2026-09-21 | github-actions[bot] | 1 | +12 / −9 | docs: regenerate the commit log |
@@ -503,8 +505,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 432 |
-| 檔案變更累計 | 6870 |
-| 新增行數累計 | +1944908 |
-| 刪除行數累計 | −813935 |
-| 淨增行數 | +1130973 |
+| Commit 數 | 434 |
+| 檔案變更累計 | 6873 |
+| 新增行數累計 | +1944934 |
+| 刪除行數累計 | −813947 |
+| 淨增行數 | +1130987 |
