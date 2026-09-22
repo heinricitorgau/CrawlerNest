@@ -107,6 +107,18 @@ def replay_universe(pipeline: Any, spec: Any, rows: list[dict[str, Any]], rankin
     )
 
 
+def _print_frozen_reasons(reasons: set[str]) -> None:
+    """Say once why a frozen universe cannot be replayed.
+
+    Repeating a four-line explanation per universe is how output becomes
+    something people scroll past, and this one is the same sentence seven times.
+    """
+    for reason in sorted(r for r in reasons if r):
+        print()
+        print("  why the frozen universes cannot be replayed:")
+        print(f"    {reason}")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Replay saved QS crawl snapshots through the ingest pipeline")
@@ -134,12 +146,22 @@ def main() -> int:
 
     plan: list[tuple[Any, Path, list[dict[str, Any]]]] = []
     skipped: list[str] = []
+    frozen_reasons: set[str] = set()
     for spec in iter_all_qs_universes():
         if wanted is not None and spec.ranking_type not in wanted:
             continue
         path = snapshot_path(root, args.ranking_year, spec.universe_type, spec.universe_key)
         if not path.is_file():
-            skipped.append(f"{spec.ranking_type}: no snapshot at {path}")
+            if spec.is_frozen:
+                # "No snapshot" reads as an accident. For these it is the state
+                # of the source, so the line says which date the warehouse holds
+                # and the reason is printed once below rather than seven times.
+                frozen_reasons.add(spec.frozen_reason or "")
+                skipped.append(
+                    f"{spec.ranking_type}: frozen, warehouse holds the {spec.data_frozen_at} ingest"
+                )
+            else:
+                skipped.append(f"{spec.ranking_type}: no snapshot at {path}")
             continue
         rows = load_snapshot(path)
         if not rows:
@@ -157,6 +179,7 @@ def main() -> int:
         print("Nothing to replay.")
         for line in skipped:
             print(f"  skip {line}")
+        _print_frozen_reasons(frozen_reasons)
         return 1
 
     print(f"{len(plan)} universe(s) to replay for {args.ranking_year}:")
@@ -165,6 +188,7 @@ def main() -> int:
         print(f"  {spec.ranking_type:<28} {len(rows):>5} rows   snapshot {mtime}")
     for line in skipped:
         print(f"  skip {line}")
+    _print_frozen_reasons(frozen_reasons)
 
     if not args.commit:
         print("\nPlan only. Nothing was ingested. Re-run with --commit to apply.")

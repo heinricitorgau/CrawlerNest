@@ -98,6 +98,12 @@ def run_all_tests():
         # the unresolved log nine times, while a Windows-1252 en dash read as
         # latin-1 put a C1 control in a university's name.
         "test_text_hygiene",
+        # Universes the source stopped serving: QS's standalone regional
+        # rankings hold the 2026-09-04 ingest and no path returns them any
+        # more, so a re-crawl parses one row and the shrink guard refuses it.
+        # The date and the evidence live in the registry, not in a caveat --
+        # nothing serves these rows.
+        "test_frozen_universes",
         # The ranking_type/universe_type/universe_key scope that keeps a
         # university's ranking summary from mixing in the region/regional/
         # subject/special universes the QS crawler now also writes.
