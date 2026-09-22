@@ -1,8 +1,8 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-09-21，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-09-22，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：438
+- **Commit 總數**：440
 - **期間**：2026-03-16 ~ 2026-09-22
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `287698e` | 2026-09-22 | heinricitorgau | 1 | +253 / −0 | Correct the two canonical names QS served damaged **[claude/arwu-editions-2015-2024, main]** |
+| `7af71b4` | 2026-09-22 | heinricitorgau | 1 | +226 / −0 | Empty the entity-resolution queue, and repair the normalized names **[claude/arwu-editions-2015-2024, main]** |
+| `63690a2` | 2026-09-21 | github-actions[bot] | 1 | +12 / −8 | docs: regenerate the commit log |
+| `287698e` | 2026-09-22 | heinricitorgau | 1 | +253 / −0 | Correct the two canonical names QS served damaged |
 | `17f5039` | 2026-09-22 | heinricitorgau | 7 | +347 / −6 | Catch at the door the characters a university name cannot contain |
 | `5ace900` | 2026-09-22 | heinricitorgau | 6 | +544 / −13 | Read the charset the response declares, in one place for both fetch paths |
 | `8ee63d7` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
@@ -509,8 +511,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 438 |
-| 檔案變更累計 | 6888 |
-| 新增行數累計 | +1946087 |
-| 刪除行數累計 | −813973 |
-| 淨增行數 | +1132114 |
+| Commit 數 | 440 |
+| 檔案變更累計 | 6890 |
+| 新增行數累計 | +1946325 |
+| 刪除行數累計 | −813981 |
+| 淨增行數 | +1132344 |
