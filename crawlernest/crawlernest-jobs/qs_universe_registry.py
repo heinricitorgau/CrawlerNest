@@ -64,6 +64,21 @@ class QSUniverseSpec:
     enable_aggregation: bool = True
     #: Which of the two products above this universe is. See the module docstring.
     ranking_scope: str = RANKING_SCOPE_REGIONAL
+    #: The date the warehouse's copy of this universe was last ingested, set only
+    #: where the source has stopped serving it and a re-crawl therefore cannot
+    #: refresh it. None means the universe is live and crawls normally.
+    #:
+    #: This is not a caveat: nothing serves these rows, so nothing shows a reader
+    #: a stale figure. It is here because the crawler cannot tell "QS publishes
+    #: nothing today" apart from "QS stopped answering", and the second needs a
+    #: person. See frozen_reason for what was measured.
+    data_frozen_at: str | None = None
+    frozen_reason: str | None = None
+
+    @property
+    def is_frozen(self) -> bool:
+        """Is this universe's data held at a date a re-crawl cannot move?"""
+        return bool(self.data_frozen_at)
 
     @property
     def ranking_type(self) -> str:
@@ -132,8 +147,36 @@ def _regional(key: str, label: str, page_url: str, region_name: str) -> QSUniver
         ranking_page_url=page_url,
         region_name=region_name,
         ranking_scope=RANKING_SCOPE_REGIONAL,
+        data_frozen_at=REGIONAL_DATA_FROZEN_AT,
+        frozen_reason=REGIONAL_FROZEN_REASON,
     )
 
+
+#: What the warehouse holds for every standalone regional universe, and the date
+#: it stopped being refreshable. Measured on 2026-09-22 by re-crawling two of
+#: them and probing the third path by hand:
+#:
+#:   * ``/rankings/api/ranking/<id>``      404 for both families -- QS retired it
+#:   * the ranking page's embedded score_nodes   0 on both families
+#:   * ``/rankings/endpoint?nid=<id>``     1,000 rows for the world id (4061771),
+#:                                         45s timeout, 0 bytes, for the regional
+#:                                         id (4085811)
+#:
+#: So the world-slice family still crawls -- it rides the world ranking's id --
+#: while the standalone family has no path left. A crawl of it now parses one
+#: row off the rendered page, and the ingest's shrink guard refuses that batch
+#: rather than pruning the edition down to it, which is the behaviour to keep.
+#:
+#: The ids themselves are not the problem: the resolution cache has resolved the
+#: same ones since 2026-09-02.
+REGIONAL_DATA_FROZEN_AT = "2026-09-04"
+REGIONAL_FROZEN_REASON = (
+    "QS no longer serves this ranking through any path this crawler has: the REST "
+    "endpoint 404s, the page embeds no score_nodes, and /rankings/endpoint does not "
+    "answer for a regional ranking id. Re-crawling yields one row and the shrink "
+    "guard refuses it, so the warehouse keeps the 2026-09-04 ingest. Reviving this "
+    "family means finding how QS serves these tables now, not re-running the crawl."
+)
 
 #: QS's standalone regional rankings. Additive: new universe_type, so these get
 #: their own ranking_type ("regional:asia") and their own artifact directories,
