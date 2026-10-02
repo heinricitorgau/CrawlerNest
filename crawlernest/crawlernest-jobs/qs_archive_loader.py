@@ -598,6 +598,10 @@ def artifact_path(out_dir: Path, year: int) -> Path:
     return Path(out_dir) / f"qs_rankings_{year}.json"
 
 
+def render_artifact(artifact: dict[str, Any]) -> str:
+    return json.dumps(artifact, ensure_ascii=False, indent=2) + "\n"
+
+
 def write_artifact(artifact: dict[str, Any], out_dir: Path) -> Path:
     """Write the file, refusing to replace anything this loader did not write."""
     year = int(artifact["metadata"]["ranking_year"])
@@ -612,7 +616,7 @@ def write_artifact(artifact: dict[str, Any], out_dir: Path) -> Path:
             raise ArchiveIntegrityError(f"{path} exists and was not written by this loader; refusing to replace it")
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(artifact, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    tmp.write_text(render_artifact(artifact), encoding="utf-8")
     tmp.replace(path)
     return path
 
@@ -683,6 +687,285 @@ def show_hash(entry: ManifestEntry, fetch: FetchBytes, cache_dir: Optional[Path]
     return f"{entry.ranking_year} {entry.data_file.snapshot_ts} sha256={sha256_hex(data)} bytes={len(data)} rows={len(rows)}"
 
 
+# --------------------------------------------------------------------------- ingest
+
+BACKUP_DIR = _REPO_ROOT / "backups"
+RECEIPT_DIR = KB_DIR / "qs_archive" / "receipts"
+ARCHIVE_VERSION_PREFIX = "web_archive:"
+
+
+class IngestRefused(RuntimeError):
+    """The ingest was stopped before it wrote anything."""
+
+
+@dataclass(frozen=True)
+class PgConfig:
+    host: str = "localhost"
+    port: int = 5432
+    database: str = "clawer"
+    user: str = "test"
+    password: str = "test"
+
+
+@dataclass(frozen=True)
+class QsYearState:
+    """What the warehouse already holds for QS in one edition."""
+
+    ranking_records: int
+    archive_records: int
+    aggregated_with_qs: int
+
+
+def existing_qs_state(conn: Any, year: int) -> QsYearState:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT count(*),
+                   count(*) FILTER (WHERE rr.source_version LIKE %s)
+            FROM warehouse.ranking_record rr
+            JOIN warehouse.ranking_source rs ON rs.ranking_source_id = rr.ranking_source_id
+            WHERE rs.source_code = 'QS' AND rr.ranking_year = %s AND rr.ranking_type = 'world'
+            """,
+            (ARCHIVE_VERSION_PREFIX + "%", year),
+        )
+        records, archive = cur.fetchone()
+        cur.execute(
+            """
+            SELECT count(*) FROM analytics.aggregated_rankings
+            WHERE ranking_year = %s AND source_ranks_json->>'QS' IS NOT NULL
+            """,
+            (year,),
+        )
+        (aggregated,) = cur.fetchone()
+    return QsYearState(int(records), int(archive), int(aggregated))
+
+
+def check_ingest_allowed(state: QsYearState, *, year: int, replace: bool) -> None:
+    """The guard the pipeline's own shrink guard cannot be: it only looks at editions already held."""
+    if state.ranking_records == 0 and state.aggregated_with_qs == 0:
+        return
+    if not replace:
+        raise IngestRefused(
+            f"QS {year} is not empty (ranking_record {state.ranking_records}, aggregated rows with a QS rank "
+            f"{state.aggregated_with_qs}); the loader fills empty editions only. --replace is for re-loading an "
+            "earlier archive load"
+        )
+    if state.ranking_records != state.archive_records:
+        raise IngestRefused(
+            f"--replace would overwrite {state.ranking_records - state.archive_records} QS {year} rows that did "
+            "not come from this loader; refusing"
+        )
+
+
+def make_backup(
+    pg: PgConfig,
+    year: int,
+    backup_dir: Path,
+    *,
+    run: Callable[..., Any] = None,  # type: ignore[assignment]
+    now: Optional[str] = None,
+) -> Path:
+    """A custom-format dump, checked by listing it, before anything is written."""
+    import os
+    import subprocess
+
+    runner = run or subprocess.run
+    stamp = now or time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    path = Path(backup_dir) / f"qs_archive_pre_ingest_{year}_{pg.database}_{stamp}.dump"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    env = {**os.environ, "PGPASSWORD": pg.password}
+    runner(
+        ["pg_dump", "-Fc", "-h", pg.host, "-p", str(pg.port), "-U", pg.user, "-f", str(path), pg.database],
+        check=True, env=env, capture_output=True,
+    )
+    listing = runner(["pg_restore", "-l", str(path)], check=True, env=env, capture_output=True)
+    if not path.exists() or path.stat().st_size == 0 or not getattr(listing, "stdout", b"").strip():
+        raise IngestRefused(f"backup {path} is empty or unreadable; refusing to ingest")
+    return path
+
+
+def archive_universities(rows: Sequence[ArchiveRow]) -> tuple[list[Any], int]:
+    """University objects for the rows that have a rank, and the count that do not.
+
+    A row QS printed no rank for stays in the artifact so the count is honest, but a
+    rank-less row has nothing to contribute to a ranking and is not ingested.
+    """
+    from models import University  # crawlernest-core; on the path once run_pipeline is imported
+
+    out = []
+    skipped = 0
+    for row in rows:
+        if row.rank_position is None:
+            skipped += 1
+            continue
+        profile = row.profile_path
+        metrics = {"Overall Score": str(row.raw.get("score") or "").strip()} if row.score is not None else {}
+        out.append(
+            University(
+                rank=str(row.rank_position),
+                name=row.name,
+                country=row.country,
+                city_name=row.city,
+                qs_profile_path=profile,
+                path=profile,
+                table_metrics=metrics,
+                rank_display=row.rank_display,
+            )
+        )
+    return out, skipped
+
+
+@dataclass
+class IngestResult:
+    year: int
+    run_id: str
+    backup: Path
+    receipt: Path
+    ingested: int
+    unranked_skipped: int
+    matched: int
+    unresolved: int
+    rows_written: int
+    aggregated_rows: int
+    years_aggregated: list[int]
+
+
+def ingest_year(
+    entry: ManifestEntry,
+    fetch: FetchBytes,
+    *,
+    out_dir: Path,
+    cache_dir: Optional[Path],
+    pg: PgConfig,
+    replace: bool = False,
+    backup_dir: Path = BACKUP_DIR,
+    receipt_dir: Path = RECEIPT_DIR,
+    run_pipeline_module: Any = None,
+    backup: Callable[..., Path] = make_backup,
+    withhold: Sequence[str] = (),
+) -> IngestResult:
+    """Fill one empty QS edition from the pinned archive load. Nothing is written until every check passes."""
+    year = entry.ranking_year
+    acquired = acquire(entry, fetch, cache_dir)
+    edition = verify_entry(entry, acquired)
+    rows = parse_rows(acquired.data_bytes)
+    guard = check_guards(rows, neighbor=nearest_neighbor(out_dir, year), year=year)
+    if not guard.ok:
+        raise ArchiveGuardError("; ".join(guard.failures))
+    artifact = build_artifact(entry, edition, rows, payload_sha256=sha256_hex(acquired.data_bytes), guard=guard)
+    rendered = render_artifact(artifact)
+
+    # The file in the repository is what gets ingested, byte for byte.
+    on_disk = artifact_path(out_dir, year)
+    if not on_disk.exists() or on_disk.read_text(encoding="utf-8") != rendered:
+        raise IngestRefused(
+            f"{on_disk} is missing or differs from what the manifest produces; load the year again and "
+            "commit the file before ingesting it"
+        )
+
+    rp = run_pipeline_module
+    if rp is None:
+        from crawlernest import run_pipeline as rp  # noqa: PLC0415 - heavy, and only an ingest needs it
+
+    universities, skipped = archive_universities(rows)
+    normalized = rp.normalize_universities(universities)
+    version = f"{ARCHIVE_VERSION_PREFIX}{entry.data_file.snapshot_ts}"
+    started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    run_id = f"qs-archive-{year}-{started}"
+
+    conn = rp._connect_postgres(pg.host, pg.port, pg.database, pg.user, pg.password)
+    try:
+        state = existing_qs_state(conn, year)
+        check_ingest_allowed(state, year=year, replace=replace)
+        backup_path = backup(pg, year, backup_dir)
+        pipeline = rp._build_multi_source_pipeline(conn)
+        standardized = rp.QSAdapter(
+            ranking_year=year,
+            ranking_type="world",
+            source_version=version,
+            universe_type="global",
+            universe_key="global",
+        ).adapt(normalized)
+        provenance = {
+            "source_kind": SOURCE_KIND,
+            "archive_snapshot_url": entry.data_file.snapshot_url,
+            "snapshot_timestamp": entry.data_file.snapshot_ts,
+            "payload_sha256": sha256_hex(acquired.data_bytes),
+            "edition_page_snapshot_url": entry.edition_page.snapshot_url,
+            "loader_version": LOADER_VERSION,
+            "rank_convention": artifact["metadata"]["rank_convention"],
+        }
+        for record in standardized:
+            record.metadata["provenance"] = dict(provenance)
+        # Rows an operator chose to hold back, named on the command line and recorded in
+        # the receipt. The pipeline refuses a batch that would let the resolver re-decide
+        # a standing human review (a source id that changed spelling between editions);
+        # re-keying that decision is a person's work, so the loader never does it.
+        held = set(withhold)
+        withheld = [r.source_entity_id for r in standardized if r.source_entity_id in held]
+        unknown = held - set(withheld)
+        if unknown:
+            raise IngestRefused(f"--withhold-id names ids that are not in this edition: {sorted(unknown)}")
+        standardized = [r for r in standardized if r.source_entity_id not in held]
+        summary = pipeline.ingest_records(
+            standardized,
+            batch_id=run_id,
+            run_label_prefix="qs_archive",
+            ranking_type="world",
+            enable_aggregation=True,
+        )
+    finally:
+        conn.close()
+
+    receipt = {
+        "year": year,
+        "run_id": run_id,
+        "started_utc": started,
+        "finished_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "database": pg.database,
+        "manifest": {
+            "data_snapshot_url": entry.data_file.snapshot_url,
+            "payload_sha256": sha256_hex(acquired.data_bytes),
+            "expected_ranking_id": entry.expected_ranking_id,
+            "reviewed_by": entry.reviewed_by,
+        },
+        "artifact_sha256": sha256_hex(rendered.encode("utf-8")),
+        "before": {
+            "ranking_records": state.ranking_records,
+            "aggregated_with_qs": state.aggregated_with_qs,
+        },
+        "ingested": len(standardized),
+        "unranked_skipped": skipped,
+        "withheld_by_operator": withheld,
+        "summary": {
+            "standardized": summary.standardized_count,
+            "matched": summary.matched_count,
+            "unresolved": summary.unresolved_count,
+            "duplicates": summary.duplicate_input_count,
+            "rows_written": summary.rows_written,
+            "years_aggregated": list(summary.years_aggregated),
+            "aggregated_rows": summary.aggregated_row_count,
+        },
+        "backup": {"path": str(backup_path), "bytes": Path(backup_path).stat().st_size},
+        "rollback": {
+            "full": (
+                f"pg_restore -h {pg.host} -p {pg.port} -U {pg.user} -d {pg.database} --clean --if-exists "
+                f"{backup_path}"
+            ),
+            "note": "restores the whole database to its state before this ingest; anything written since is lost",
+        },
+    }
+    receipt_path = Path(receipt_dir) / f"{year}_{run_id}.json"
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    receipt_path.write_text(json.dumps(receipt, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return IngestResult(
+        year=year, run_id=run_id, backup=Path(backup_path), receipt=receipt_path, ingested=len(standardized),
+        unranked_skipped=skipped, matched=summary.matched_count, unresolved=summary.unresolved_count,
+        rows_written=summary.rows_written, aggregated_rows=summary.aggregated_row_count,
+        years_aggregated=list(summary.years_aggregated),
+    )
+
+
 def _offline_fetch(url: str) -> tuple[Optional[int], str, bytes]:
     raise ArchiveFetchError(f"--offline: {url} is not in the cache")
 
@@ -697,7 +980,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--offline", action="store_true", help="read only from the cache; no network")
     parser.add_argument("--show-hash", action="store_true", help="print the sha256 to pin after review; write nothing")
     parser.add_argument("--request-delay", type=float, default=2.0)
+    parser.add_argument("--ingest", action="store_true", help="after loading, fill the empty QS edition in PostgreSQL")
+    parser.add_argument("--replace", action="store_true", help="with --ingest: re-load an earlier archive load")
+    parser.add_argument("--withhold-id", action="append", default=[], metavar="SOURCE_ID",
+                        help="with --ingest: leave this QS source id out (repeatable); recorded in the receipt")
+    parser.add_argument("--backup-dir", type=Path, default=BACKUP_DIR)
+    parser.add_argument("--receipt-dir", type=Path, default=RECEIPT_DIR)
+    parser.add_argument("--pg-host", default="localhost")
+    parser.add_argument("--pg-port", type=int, default=5432)
+    parser.add_argument("--pg-database", default="clawer")
+    parser.add_argument("--pg-user", default="test")
+    parser.add_argument("--pg-password", default="test")
     args = parser.parse_args(argv)
+    if args.ingest and (args.all or not args.year):
+        parser.error("--ingest needs explicit --year values; it never runs for every edition at once")
 
     if not args.year and not args.all:
         parser.error("name --year or --all")
@@ -724,6 +1020,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         else:
             failed += 1
             print(f"{year}: {result.status.upper()} {result.detail}", file=sys.stderr)
+            continue
+        if args.ingest:
+            pg = PgConfig(args.pg_host, args.pg_port, args.pg_database, args.pg_user, args.pg_password)
+            try:
+                done = ingest_year(
+                    manifest[year], fetch, out_dir=args.out_dir, cache_dir=args.cache_dir, pg=pg,
+                    replace=args.replace, backup_dir=args.backup_dir, receipt_dir=args.receipt_dir,
+                    withhold=args.withhold_id,
+                )
+            except (IngestRefused, ArchiveIntegrityError, ArchiveGuardError, EditionMismatchError) as exc:
+                failed += 1
+                print(f"{year}: INGEST REFUSED {type(exc).__name__}: {exc}", file=sys.stderr)
+                continue
+            print(
+                f"{year}: ingested={done.ingested} (unranked skipped {done.unranked_skipped}) matched={done.matched} "
+                f"unresolved={done.unresolved} rows_written={done.rows_written} aggregated_rows={done.aggregated_rows} "
+                f"years_aggregated={done.years_aggregated}\n"
+                f"{year}:   run_id={done.run_id}\n{year}:   backup={done.backup}\n{year}:   receipt={done.receipt}"
+            )
     return 1 if failed else 0
 
 

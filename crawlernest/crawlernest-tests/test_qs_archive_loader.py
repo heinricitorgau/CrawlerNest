@@ -15,7 +15,7 @@ from pathlib import Path
 
 TESTS_DIR = Path(__file__).resolve().parent
 PACKAGE_ROOT = TESTS_DIR.parent
-for _p in (str(PACKAGE_ROOT / "crawlernest-jobs"), str(PACKAGE_ROOT.parent)):
+for _p in (str(PACKAGE_ROOT / "crawlernest-jobs"), str(PACKAGE_ROOT / "crawlernest-core"), str(PACKAGE_ROOT.parent)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
@@ -423,6 +423,276 @@ class TestNotMistakenForAnotherSource(unittest.TestCase):
         # The live crawl artifacts carry no source_kind; this one must never read as one.
         self.assertEqual(meta["source_kind"], L.SOURCE_KIND)
         self.assertIn("lower bound", meta["rank_convention"])
+
+
+# ----------------------------------------------------------------------------- ingest
+
+
+class _Cursor:
+    def __init__(self, conn):
+        self.conn = conn
+        self._rows = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def execute(self, sql, params=None):
+        if "ranking_record" in sql:
+            self._rows = [(self.conn.records, self.conn.archive_records)]
+        else:
+            self._rows = [(self.conn.aggregated,)]
+
+    def fetchone(self):
+        return self._rows[0]
+
+
+class FakeConn:
+    def __init__(self, records=0, archive_records=0, aggregated=0):
+        self.records, self.archive_records, self.aggregated = records, archive_records, aggregated
+        self.closed = False
+
+    def cursor(self):
+        return _Cursor(self)
+
+    def close(self):
+        self.closed = True
+
+
+class FakeSummary:
+    def __init__(self, records):
+        self.standardized_count = len(records)
+        self.matched_count = len(records) - 1
+        self.unresolved_count = 1
+        self.duplicate_input_count = 0
+        self.rows_written = len(records) - 1
+        self.years_aggregated = [YEAR]
+        self.aggregated_row_count = 123
+
+
+class FakePipeline:
+    def __init__(self, events):
+        self.events = events
+        self.records = None
+        self.kwargs = None
+
+    def ingest_records(self, records, **kwargs):
+        self.events.append("ingest")
+        self.records, self.kwargs = list(records), kwargs
+        return FakeSummary(self.records)
+
+
+class FakeRunPipeline:
+    """Stands in for crawlernest.run_pipeline: the same four names ingest_year uses."""
+
+    def __init__(self, conn):
+        from multi_source.adapters.qs_adapter import QSAdapter
+
+        self.QSAdapter = QSAdapter
+        self.conn = conn
+        self.events: list[str] = []
+        self.pipeline = FakePipeline(self.events)
+
+    def normalize_universities(self, universities):
+        return list(universities)
+
+    def _connect_postgres(self, *args):
+        self.events.append("connect")
+        return self.conn
+
+    def _build_multi_source_pipeline(self, conn):
+        return self.pipeline
+
+
+def fake_backup_factory(events, *, empty=False):
+    def backup(pg, year, backup_dir):
+        events.append("backup")
+        path = Path(backup_dir) / f"fake_{year}.dump"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"" if empty else b"PGDMP")
+        if empty:
+            raise L.IngestRefused("backup is empty")
+        return path
+
+    return backup
+
+
+class TestIngestGuards(unittest.TestCase):
+    def test_an_empty_edition_may_be_filled(self):
+        L.check_ingest_allowed(L.QsYearState(0, 0, 0), year=YEAR, replace=False)
+
+    def test_a_held_edition_is_refused_without_replace(self):
+        for state in (L.QsYearState(1, 0, 0), L.QsYearState(0, 0, 5), L.QsYearState(1500, 1500, 1500)):
+            with self.assertRaises(L.IngestRefused):
+                L.check_ingest_allowed(state, year=YEAR, replace=False)
+
+    def test_replace_reloads_an_archive_load_only(self):
+        L.check_ingest_allowed(L.QsYearState(1500, 1500, 1500), year=YEAR, replace=True)
+        with self.assertRaises(L.IngestRefused):
+            L.check_ingest_allowed(L.QsYearState(1500, 1499, 1500), year=YEAR, replace=True)
+
+    def test_the_state_query_reads_both_tables(self):
+        state = L.existing_qs_state(FakeConn(records=7, archive_records=3, aggregated=2), YEAR)
+        self.assertEqual(state, L.QsYearState(7, 3, 2))
+
+
+class TestBackup(unittest.TestCase):
+    def test_the_dump_is_listed_before_it_is_trusted(self):
+        calls = []
+
+        def run(cmd, **kwargs):
+            calls.append((cmd, kwargs))
+            if cmd[0] == "pg_dump":
+                Path(cmd[cmd.index("-f") + 1]).write_bytes(b"PGDMP")
+            return type("R", (), {"stdout": b"; archive listing"})()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = L.make_backup(L.PgConfig(database="clawer"), YEAR, Path(tmp), run=run, now="20261003T000000Z")
+            self.assertEqual(path.name, "qs_archive_pre_ingest_2024_clawer_20261003T000000Z.dump")
+        self.assertEqual([c[0][0] for c in calls], ["pg_dump", "pg_restore"])
+        self.assertIn("-Fc", calls[0][0])
+        self.assertEqual(calls[0][1]["env"]["PGPASSWORD"], "test")
+
+    def test_an_empty_dump_stops_the_ingest(self):
+        def run(cmd, **kwargs):
+            if cmd[0] == "pg_dump":
+                Path(cmd[cmd.index("-f") + 1]).write_bytes(b"")
+            return type("R", (), {"stdout": b""})()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(L.IngestRefused):
+                L.make_backup(L.PgConfig(), YEAR, Path(tmp), run=run)
+
+
+class TestArchiveUniversities(unittest.TestCase):
+    def test_ranks_are_lower_bounds_and_unranked_rows_are_left_out(self):
+        items = make_rows()
+        items.append({**items[-1], "nid": "99999", "title": cell("Unranked U", "unranked-u"), "rank_display": "NA"})
+        unis, skipped = L.archive_universities(L.parse_rows(payload(items)))
+        self.assertEqual(skipped, 1)
+        self.assertEqual(len(unis), len(items) - 1)
+        by = {u.rank_display: u for u in unis}
+        self.assertEqual(by["201-210"].rank, "201")
+        self.assertEqual(by["=151"].rank, "151")
+        self.assertEqual(by["1"].qs_profile_path, "/universities/university-0")
+        self.assertEqual(by["1"].table_metrics["Overall Score"], "100.0")
+
+
+class TestIngestYear(unittest.TestCase):
+    def setUp(self):
+        self.data = payload()
+        self.entry = entry_for(self.data)
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.out = Path(self.tmp.name) / "out"
+        self.receipts = Path(self.tmp.name) / "receipts"
+        self.backups = Path(self.tmp.name) / "backups"
+        written = L.load_year(self.entry, archive(self.data), out_dir=self.out)
+        assert written.status == "written", written.detail
+
+    def run_ingest(self, conn=None, *, withhold=(), backup=None, fetch=None):
+        rp = FakeRunPipeline(conn or FakeConn())
+        kwargs = dict(
+            out_dir=self.out, cache_dir=None, pg=L.PgConfig(database="trial"), backup_dir=self.backups,
+            receipt_dir=self.receipts, run_pipeline_module=rp, withhold=withhold,
+            backup=backup or fake_backup_factory(rp.events),
+        )
+        return rp, L.ingest_year(self.entry, fetch or archive(self.data), **kwargs)
+
+    def test_every_record_carries_where_it_came_from(self):
+        rp, result = self.run_ingest()
+        records = rp.pipeline.records
+        self.assertEqual(len(records), result.ingested)
+        for record in records:
+            self.assertEqual(record.source_version, f"web_archive:{DATA_TS}")
+            prov = record.metadata["provenance"]
+            self.assertEqual(prov["source_kind"], "web_archive")
+            self.assertEqual(prov["archive_snapshot_url"], DATA_URL)
+            self.assertEqual(prov["payload_sha256"], L.sha256_hex(self.data))
+            self.assertIn("rank_display", record.metadata)
+        self.assertEqual(rp.pipeline.kwargs["batch_id"], result.run_id)
+        self.assertEqual(rp.pipeline.kwargs["ranking_type"], "world")
+
+    def test_the_backup_is_taken_before_anything_is_written(self):
+        rp, _ = self.run_ingest()
+        self.assertEqual(rp.events, ["connect", "backup", "ingest"])
+
+    def test_a_held_edition_stops_before_the_backup_and_the_write(self):
+        rp = FakeRunPipeline(FakeConn(records=1))
+        with self.assertRaises(L.IngestRefused):
+            L.ingest_year(
+                self.entry, archive(self.data), out_dir=self.out, cache_dir=None, pg=L.PgConfig(),
+                backup_dir=self.backups, receipt_dir=self.receipts, run_pipeline_module=rp,
+                backup=fake_backup_factory(rp.events),
+            )
+        self.assertNotIn("ingest", rp.events)
+        self.assertNotIn("backup", rp.events)
+        self.assertTrue(rp.conn.closed)
+
+    def test_an_unusable_backup_stops_the_write(self):
+        rp = FakeRunPipeline(FakeConn())
+        with self.assertRaises(L.IngestRefused):
+            L.ingest_year(
+                self.entry, archive(self.data), out_dir=self.out, cache_dir=None, pg=L.PgConfig(),
+                backup_dir=self.backups, receipt_dir=self.receipts, run_pipeline_module=rp,
+                backup=fake_backup_factory(rp.events, empty=True),
+            )
+        self.assertNotIn("ingest", rp.events)
+
+    def test_withheld_ids_are_left_out_and_recorded(self):
+        held = "/universities/university-3"
+        rp, result = self.run_ingest(withhold=[held])
+        self.assertNotIn(held, [r.source_entity_id for r in rp.pipeline.records])
+        receipt = json.loads(result.receipt.read_text(encoding="utf-8"))
+        self.assertEqual(receipt["withheld_by_operator"], [held])
+        self.assertEqual(receipt["ingested"], len(rp.pipeline.records))
+
+    def test_withholding_an_id_that_is_not_there_is_refused(self):
+        rp = FakeRunPipeline(FakeConn())
+        with self.assertRaises(L.IngestRefused):
+            L.ingest_year(
+                self.entry, archive(self.data), out_dir=self.out, cache_dir=None, pg=L.PgConfig(),
+                backup_dir=self.backups, receipt_dir=self.receipts, run_pipeline_module=rp,
+                backup=fake_backup_factory(rp.events), withhold=["/universities/not-in-this-edition"],
+            )
+        self.assertNotIn("ingest", rp.events)
+
+    def test_the_file_in_the_repository_is_what_gets_ingested(self):
+        path = L.artifact_path(self.out, YEAR)
+        path.write_text(path.read_text(encoding="utf-8").replace("University & Number 1\"", "Changed\"", 1), encoding="utf-8")
+        rp = FakeRunPipeline(FakeConn())
+        with self.assertRaises(L.IngestRefused):
+            L.ingest_year(
+                self.entry, archive(self.data), out_dir=self.out, cache_dir=None, pg=L.PgConfig(),
+                backup_dir=self.backups, receipt_dir=self.receipts, run_pipeline_module=rp,
+                backup=fake_backup_factory(rp.events),
+            )
+        self.assertEqual(rp.events, [])
+
+    def test_an_edition_that_fails_verification_is_not_ingested(self):
+        rp = FakeRunPipeline(FakeConn())
+        with self.assertRaises(EditionMismatchError):
+            L.ingest_year(
+                self.entry, archive(self.data, html=page_html(title_year=2023)), out_dir=self.out, cache_dir=None,
+                pg=L.PgConfig(), backup_dir=self.backups, receipt_dir=self.receipts, run_pipeline_module=rp,
+                backup=fake_backup_factory(rp.events),
+            )
+        self.assertEqual(rp.events, [])
+
+    def test_the_receipt_says_how_to_undo_it(self):
+        _, result = self.run_ingest()
+        receipt = json.loads(result.receipt.read_text(encoding="utf-8"))
+        self.assertIn("pg_restore", receipt["rollback"]["full"])
+        self.assertIn(str(result.backup), receipt["rollback"]["full"])
+        self.assertEqual(receipt["manifest"]["payload_sha256"], L.sha256_hex(self.data))
+        self.assertEqual(receipt["before"], {"ranking_records": 0, "aggregated_with_qs": 0})
+        self.assertEqual(receipt["summary"]["years_aggregated"], [YEAR])
+
+    def test_the_connection_is_always_closed(self):
+        rp, _ = self.run_ingest()
+        self.assertTrue(rp.conn.closed)
 
 
 if __name__ == "__main__":
