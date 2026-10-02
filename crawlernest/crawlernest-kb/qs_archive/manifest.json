@@ -1,0 +1,115 @@
+{
+  "_comment": "Snapshots pinned by qs_archive_loader. expected_sha256 is the sha256 of the DECODED data bytes. Selection was automated and is pending human review; see docs/data/QS_ARCHIVE_LOADER_DESIGN.md.",
+  "2016": {
+    "ranking_year": 2016,
+    "edition_page": {
+      "snapshot_url": "https://web.archive.org/web/20160906074827id_/http://www.topuniversities.com/university-rankings/world-university-rankings/2016",
+      "snapshot_ts": "20160906074827"
+    },
+    "data_file": {
+      "snapshot_url": "https://web.archive.org/web/20220426065734id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/326584.txt",
+      "snapshot_ts": "20220426065734",
+      "expected_ranking_id": "326584",
+      "expected_sha256": "1ff8f9b5f0b3fe465ec2eb2f712342bc3982ebce5e4129d8a57e01112b6b6d3b"
+    },
+    "reviewed_by": "claude (automated selection, pending human review)",
+    "reviewed_on": "2026-10-03",
+    "notes": "2 captures, byte-identical content; earliest pinned."
+  },
+  "2018": {
+    "ranking_year": 2018,
+    "edition_page": {
+      "snapshot_url": "https://web.archive.org/web/20170609212134id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2018",
+      "snapshot_ts": "20170609212134"
+    },
+    "data_file": {
+      "snapshot_url": "https://web.archive.org/web/20210212130356id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/357051.txt",
+      "snapshot_ts": "20210212130356",
+      "expected_ranking_id": "357051",
+      "expected_sha256": "9145f409d5973fd159078f5e88277f02838c3044f0b58a305a272fae84e0679b"
+    },
+    "reviewed_by": "claude (automated selection, pending human review)",
+    "reviewed_on": "2026-10-03",
+    "notes": "2 captures differ in membership only (2 rows in the earlier one are absent from the later); no rank_display differs among the 977 common rows. Earliest pinned."
+  },
+  "2019": {
+    "ranking_year": 2019,
+    "edition_page": {
+      "snapshot_url": "https://web.archive.org/web/20180608073254id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2019",
+      "snapshot_ts": "20180608073254"
+    },
+    "data_file": {
+      "snapshot_url": "https://web.archive.org/web/20210221003034id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/397863.txt",
+      "snapshot_ts": "20210221003034",
+      "expected_ranking_id": "397863",
+      "expected_sha256": "f7a17d98cedc68a5be25b0a6921e492e1857c12977202b33bd7356887a4fd08b"
+    },
+    "reviewed_by": "claude (automated selection, pending human review)",
+    "reviewed_on": "2026-10-03",
+    "notes": "2 captures differ in membership only (10 vs 9 rows); no rank_display differs among the 1009 common rows. Earliest pinned."
+  },
+  "2020": {
+    "ranking_year": 2020,
+    "edition_page": {
+      "snapshot_url": "https://web.archive.org/web/20190619052537id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2020",
+      "snapshot_ts": "20190619052537"
+    },
+    "data_file": {
+      "snapshot_url": "https://web.archive.org/web/20210216165142id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/914824.txt",
+      "snapshot_ts": "20210216165142",
+      "expected_ranking_id": "914824",
+      "expected_sha256": "c463572b08cc7bead475744e73932f6243c0294512059fb0e0d6897a8a0d74d3"
+    },
+    "reviewed_by": "claude (automated selection, pending human review)",
+    "reviewed_on": "2026-10-03",
+    "notes": "Only capture of this data file."
+  },
+  "2022": {
+    "ranking_year": 2022,
+    "edition_page": {
+      "snapshot_url": "https://web.archive.org/web/20231204222903id_/https://www.topuniversities.com/world-university-rankings/2022",
+      "snapshot_ts": "20231204222903"
+    },
+    "data_file": {
+      "snapshot_url": "https://web.archive.org/web/20220409054926id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/3740566.txt",
+      "snapshot_ts": "20220409054926",
+      "expected_ranking_id": "3740566",
+      "expected_sha256": "935d09de845197e08698d37da003886ec9623c33d8affb6170cbe6788ae24e06"
+    },
+    "reviewed_by": "claude (automated selection, pending human review)",
+    "reviewed_on": "2026-10-03",
+    "notes": "4 captures differ in membership only (3-7 rows); no rank_display differs among common rows. Earliest pinned. The edition page is a later capture: the June 2021 captures declare 87 ranking ids and cannot pass the one-id rule."
+  },
+  "2023": {
+    "ranking_year": 2023,
+    "edition_page": {
+      "snapshot_url": "https://web.archive.org/web/20231119170727id_/https://www.topuniversities.com/world-university-rankings/2023",
+      "snapshot_ts": "20231119170727"
+    },
+    "data_file": {
+      "snapshot_url": "https://web.archive.org/web/20260510071517id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/3816281.txt",
+      "snapshot_ts": "20260510071517",
+      "expected_ranking_id": "3816281",
+      "expected_sha256": "716d0cfdcebbbac0b5b30366a3b552115c12cc4cdebd753eaa33e213208e0fa7"
+    },
+    "reviewed_by": "claude (automated selection, pending human review)",
+    "reviewed_on": "2026-10-03",
+    "notes": "Only capture of this data file. The edition page is a later capture: the June 2022 captures declare 43 ranking ids and cannot pass the one-id rule."
+  },
+  "2024": {
+    "ranking_year": 2024,
+    "edition_page": {
+      "snapshot_url": "https://web.archive.org/web/20230627200422id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2024",
+      "snapshot_ts": "20230627200422"
+    },
+    "data_file": {
+      "snapshot_url": "https://web.archive.org/web/20260329044711id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/3897789.txt",
+      "snapshot_ts": "20260329044711",
+      "expected_ranking_id": "3897789",
+      "expected_sha256": "df3a5e4493e74cda9b9f920a2f26d75f52f10b0ba88b578c235179e2b487be32"
+    },
+    "reviewed_by": "claude (automated selection, pending human review)",
+    "reviewed_on": "2026-10-03",
+    "notes": "Only capture of this data file."
+  }
+}
