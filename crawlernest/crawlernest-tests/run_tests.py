@@ -123,6 +123,9 @@ def run_all_tests():
         # Needs PostgreSQL; skips itself unless CRAWLERNEST_RUN_PG_TESTS=1.
         "test_legacy_source",
         "test_arwu_crawler",
+        # QS past editions from reviewed Internet Archive snapshots. Every refusal
+        # (edition, hash, redirect, guards) is tested; no test touches the network.
+        "test_qs_archive_loader",
         "test_analytics_bridge_weights",
         # Structural half runs anywhere; warehouse half is PostgreSQL-gated.
         "test_alias_files",
