@@ -1,0 +1,45 @@
+{
+  "year": 2023,
+  "run_id": "qs-archive-2023-2026-10-02T19:52:34Z",
+  "started_utc": "2026-10-02T19:52:34Z",
+  "finished_utc": "2026-10-02T19:52:36Z",
+  "database": "clawer",
+  "manifest": {
+    "data_snapshot_url": "https://web.archive.org/web/20260510071517id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/3816281.txt",
+    "payload_sha256": "716d0cfdcebbbac0b5b30366a3b552115c12cc4cdebd753eaa33e213208e0fa7",
+    "expected_ranking_id": "3816281",
+    "reviewed_by": "claude (automated selection, pending human review)"
+  },
+  "artifact_sha256": "893bdb36b791da2737e63dd370a6ca5216973becde7356cfd015797a4f8937ca",
+  "before": {
+    "ranking_records": 0,
+    "aggregated_with_qs": 0
+  },
+  "ingested": 1418,
+  "unranked_skipped": 0,
+  "withheld_by_operator": [
+    "/universities/university-miami",
+    "/universities/universita-degli-studi-di-perugia",
+    "/universities/miami-university",
+    "/universities/california-state-university-long-beach-college-business-administration"
+  ],
+  "summary": {
+    "standardized": 1418,
+    "matched": 1394,
+    "unresolved": 24,
+    "duplicates": 0,
+    "rows_written": 1394,
+    "years_aggregated": [
+      2023
+    ],
+    "aggregated_rows": 2025
+  },
+  "backup": {
+    "path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/backups/qs_archive_pre_ingest_2023_clawer_20261002T195234Z.dump",
+    "bytes": 7504716
+  },
+  "rollback": {
+    "full": "pg_restore -h localhost -p 5432 -U test -d clawer --clean --if-exists /home/torgau/dev/University-Data-Infrastructure-Web-Platform/backups/qs_archive_pre_ingest_2023_clawer_20261002T195234Z.dump",
+    "note": "restores the whole database to its state before this ingest; anything written since is lost"
+  }
+}
