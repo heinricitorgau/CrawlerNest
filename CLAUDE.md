@@ -108,8 +108,12 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   drifted — it matches exact substrings, so a reworded copy fails.
 - **The ranking crawler implements QS only**
   (`crawlernest_ranking_crawler/sources/qs.py`), but the warehouse is no longer
-  QS-only: as of the 2026-09-04 ingest it carries 9,530 QS, 1,637 THE and 838
-  ARWU ranks for 2026. Coverage is partial, so code must still handle a missing
+  QS-only: as of 2026-10-02 `analytics.aggregated_rankings` carries 9,864 QS, 1,712 THE
+  and 955 ARWU ranks for 2026 (2025: 1,512 / 1,663 / 961; 2015–2024 are
+  ARWU-only). The QS figure sums every universe type (global, region,
+  regional, special, subject); THE and ARWU exist only in `global`, where QS
+  is 1,502 of 2,240 universities (README quotes the `global` figures).
+  Coverage is partial, so code must still handle a missing
   source rank — but as *our* gap, never as the source declining to rank. Read
   the ingested set from `crawlernest/core/dataset.py:DATASET_SOURCES`; do not
   write "QS only" into new code or copy.
