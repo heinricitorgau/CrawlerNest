@@ -1,8 +1,8 @@
 /**
  * @jest-environment node
  */
-import { SNAPSHOT_CAVEAT_TEMPLATE, CAVEAT_ARWU_PARTIAL, CAVEAT_THE_PARTIAL, STANDARD_CAVEATS, editionCaveats, editionSourceCoverageCaveat } from "@/lib/caveatMessages";
-import { DATASET_YEARS, DEFAULT_RANKING_YEAR, hrefForEdition, hrefWithYear, resolveSelectedYear } from "@/lib/datasetScope";
+import { SNAPSHOT_CAVEAT_TEMPLATE, CAVEAT_ARWU_PARTIAL, CAVEAT_THE_PARTIAL, STANDARD_CAVEATS, archiveEditionCaveat, editionCaveats, editionSourceCoverageCaveat } from "@/lib/caveatMessages";
+import { DATASET_ARCHIVE_EDITIONS, DATASET_YEARS, DEFAULT_RANKING_YEAR, hrefForEdition, hrefWithYear, resolveSelectedYear } from "@/lib/datasetScope";
 import { isYearAwarePath } from "@/components/NavBar";
 
 jest.mock("@/hooks/useAuthPlaceholder", () => ({ useAuth: () => ({}) }));
@@ -65,25 +65,54 @@ describe("editionCaveats", () => {
     );
   });
 
-  it("names ARWU, not QS, for an edition only ARWU covers", () => {
-    // The defect this release had to fix: editionCaveats(2018) rendered "QS
-    // ranking data is a point-in-time snapshot of the 2018 published tables"
-    // onto a page whose table holds no QS rank at all.
-    const shown = editionCaveats(2018);
+  it("names THE and ARWU, not QS, for an edition QS does not cover", () => {
+    // The defect the 2015-2024 ARWU release had to fix, and still true for QS 2015,
+    // 2017 and 2021: editionCaveats(2017) must not render "QS ranking data is a
+    // point-in-time snapshot of the 2017 published tables" onto a table with no QS rank.
+    const shown = editionCaveats(2017);
     expect(shown[0]).toBe(
-      SNAPSHOT_CAVEAT_TEMPLATE.replace("{source}", "ARWU").replace("{years}", "2018"),
+      SNAPSHOT_CAVEAT_TEMPLATE.replace("{source}", "THE and ARWU").replace("{years}", "2017"),
     );
     expect(shown.join(" ")).not.toContain("QS ranking data");
-    expect(shown).toContain(editionSourceCoverageCaveat(2018));
-    // No THE line: there is no THE row in 2018 for its coverage to be partial about.
-    expect(shown).not.toContain(CAVEAT_THE_PARTIAL);
+    expect(shown).toContain(editionSourceCoverageCaveat(2017));
+    expect(shown).toContain(CAVEAT_THE_PARTIAL);
     expect(shown).toContain(CAVEAT_ARWU_PARTIAL);
+    expect(shown.some((c) => c.includes("Internet Archive"))).toBe(false);
   });
 
   it("says which sources an edition is missing, and nothing when it holds them all", () => {
-    expect(editionSourceCoverageCaveat(2018)).toContain("The 2018 edition holds ARWU ranks only");
-    expect(editionSourceCoverageCaveat(2018)).toContain("No QS or THE rank exists");
+    const caveat = editionSourceCoverageCaveat(2017);
+    expect(caveat).toContain("The 2017 edition holds THE and ARWU ranks only");
+    expect(caveat).toContain("No QS rank exists");
+    // Two of three sources are present, so it must not claim a single source.
+    expect(caveat).not.toContain("one source");
+    expect(editionSourceCoverageCaveat(2018)).toBeNull();
     expect(editionSourceCoverageCaveat(2026)).toBeNull();
+  });
+
+  it("discloses an archive-sourced edition, and only that", () => {
+    const shown = editionCaveats(2024);
+    expect(shown).toEqual([
+      SNAPSHOT_CAVEAT_TEMPLATE.replace("{source}", "QS, THE and ARWU").replace("{years}", "2024"),
+      archiveEditionCaveat("QS", 2024),
+      CAVEAT_THE_PARTIAL,
+      CAVEAT_ARWU_PARTIAL,
+    ]);
+    expect(shown[1]).toContain("2026-03-29");
+    expect(shown[1]).toContain("lower bound");
+    expect(shown[1]).toContain("2025 and 2026");
+    expect(shown[1]).not.toContain("{");
+    expect(archiveEditionCaveat("QS", 2026)).toBeNull();
+    expect(archiveEditionCaveat("THE", 2024)).toBeNull();
+    expect(editionCaveats(2026).some((c) => c.includes("Internet Archive"))).toBe(false);
+    expect(STANDARD_CAVEATS.some((c) => c.includes("Internet Archive"))).toBe(false);
+  });
+
+  it("gives every archive edition its line and no other edition one", () => {
+    for (const year of DATASET_YEARS) {
+      const has = editionCaveats(year).some((c) => c.includes("Internet Archive"));
+      expect(has).toBe(year in DATASET_ARCHIVE_EDITIONS.QS);
+    }
   });
 
   it("changes only the snapshot line between two editions holding the same sources", () => {

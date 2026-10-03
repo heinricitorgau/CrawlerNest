@@ -50,15 +50,27 @@ public class DatasetScope {
      * Which editions each source actually covers, newest first.
      *
      * <p>Mirrors {@code DATASET_COVERAGE} in {@code crawlernest/core/dataset.py}.
-     * ARWU reaches back to 2015; QS and THE begin at 2025. A flat list of years
+     * ARWU and THE reach back to 2015; QS has gaps (no 2015, 2017, 2021). A flat list of years
      * cannot say that, and the snapshot caveat names a source -- rendering it over
      * every held edition would claim QS published tables for ten editions holding
      * no QS row.
      */
     public static final Map<String, List<Integer>> DATASET_COVERAGE = Map.of(
-            "QS", List.of(2026, 2025),
-            "THE", List.of(2026, 2025),
+            "QS", List.of(2026, 2025, 2024, 2023, 2022, 2020, 2019, 2018, 2016),
+            "THE", List.of(2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015),
             "ARWU", List.of(2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015));
+
+    /**
+     * The (source, edition) pairs the warehouse holds that were not crawled from the
+     * source directly, with the date of the Internet Archive capture the ranks were
+     * read from. An edition in {@link #DATASET_COVERAGE} and not here was crawled live.
+     *
+     * <p>Mirrors {@code DATASET_ARCHIVE_EDITIONS} in {@code crawlernest/core/dataset.py};
+     * {@code test_caveat_contract.py} compares the literals, and compares the dates with
+     * the archive manifest and its ingest receipts.
+     */
+    public static final Map<String, Map<Integer, String>> DATASET_ARCHIVE_EDITIONS = Map.of(
+            "QS", Map.of(2024, "2026-03-29", 2023, "2026-05-10", 2022, "2022-04-09", 2020, "2021-02-16", 2019, "2021-02-21", 2018, "2021-02-12", 2016, "2022-04-26"));
 
     /** Ranking sources ingested, widest first. Mirrors {@code DATASET_SOURCES} in Python. */
     public static final List<String> DATASET_SOURCES = List.of("QS", "THE", "ARWU");
@@ -79,6 +91,28 @@ public class DatasetScope {
             throw new IllegalStateException(
                     "DATASET_YEARS is not the union of DATASET_COVERAGE; one of the two is wrong");
         }
+    }
+
+    static {
+        DATASET_ARCHIVE_EDITIONS.forEach((source, editions) -> {
+            if (!DATASET_COVERAGE.getOrDefault(source, List.of()).containsAll(editions.keySet())) {
+                throw new IllegalStateException(
+                        "DATASET_ARCHIVE_EDITIONS names " + source + " editions DATASET_COVERAGE does not hold");
+            }
+        });
+    }
+
+    /** The capture date of an archive-sourced edition, or null when it was crawled live. */
+    public static String archiveCaptureDate(String source, int year) {
+        return DATASET_ARCHIVE_EDITIONS.getOrDefault(source, Map.of()).get(year);
+    }
+
+    /** One source's editions that were crawled from it directly, newest first. */
+    public static List<Integer> liveYears(String source) {
+        Map<Integer, String> archived = DATASET_ARCHIVE_EDITIONS.getOrDefault(source, Map.of());
+        return DATASET_COVERAGE.getOrDefault(source, List.of()).stream()
+                .filter(year -> !archived.containsKey(year))
+                .toList();
     }
 
     /** True when the literal list is exactly the editions some source covers. */

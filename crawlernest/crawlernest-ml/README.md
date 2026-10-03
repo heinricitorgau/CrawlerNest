@@ -211,7 +211,7 @@ be re-read whenever the snapshot changes.
 ## Phase 3 results — cross-source disagreement
 
 Full detail in the [model card](model_cards/disagreement.md). QS and THE both
-rank 1,109 of the same universities, and they frequently disagree about them.
+rank 1,112 of the same universities, and they frequently disagree about them.
 The pairing comes from the warehouse — entity resolution seeded with reviewed
 aliases, ambiguous cases settled by hand — rather than being re-derived here
 from a name key, which reaches 842. On the 830 both methods place, they pick the
@@ -227,27 +227,39 @@ institutions at QS ingest time, before THE data arrives.
 
 | Feature set | Model | ROC-AUC | PR-AUC |
 |---|---|---:|---:|
-| **QS only** | **gradient boosting** | **0.8384** | **0.5201** |
-| QS only | logistic regression | 0.7460 | 0.3547 |
-| both sources *(ceiling)* | gradient boosting | 0.9258 | 0.7620 |
-| chance | — | 0.5000 | 0.2002 |
+| **QS only** | **gradient boosting** | **0.8437** | **0.5324** |
+| QS only | logistic regression | 0.7554 | 0.3607 |
+| both sources *(ceiling)* | gradient boosting | 0.9252 | 0.7794 |
+| chance | — | 0.5000 | 0.2005 |
 
 ![Disagreement diagnostics](artifacts/eda/disagreement_diagnostics.png)
 
-PR-AUC 0.520 against a 0.200 base rate is the honest headline — a 2.6× lift,
-where ROC-AUC would flatter an imbalanced problem. QS alone reaches 0.838 of a
-two-sided ceiling of 0.926, so most of what is predictable is already in QS's own
+PR-AUC 0.532 against a 0.201 base rate is the honest headline — a 2.7× lift,
+where ROC-AUC would flatter an imbalanced problem. QS alone reaches 0.844 of a
+two-sided ceiling of 0.925, so most of what is predictable is already in QS's own
 numbers. Gradient boosting beats the linear model here by a wide margin, the
 opposite of the overall-score result, because this relationship genuinely is not
-linear. Calibration holds in the low and middle range and goes over-confident in
-the top bin (0.72 predicted against 0.59 observed).
+linear. Calibration is close in the lowest bins, under-confident around a predicted
+0.3 (0.46 observed) and over-confident in the top bin (0.73 predicted against 0.58
+observed).
 
 These are lower than the numbers committed before (ROC-AUC 0.8662, PR-AUC
 0.5922), which were trained on the 2027 table mislabelled as 2026. Same code,
 different edition; the metrics gate refused the comparison on its `matched` and
 `positives` invariants.
 
-Among disagreeing pairs, **THE ranks the university higher 178 times to QS's
+The committed files were stale a second time, which nothing flagged because the
+checks that would have flagged it were failing. The weekly refresh of 2026-09-21
+(`794274e`: a new THE crawl and a re-exported pairing) moved `matched` 1,109 →
+1,112 and `positives` 222 → 223, and neither the MATLAB artifacts nor these
+metrics were regenerated; both `check_matlab_parity` and the metrics gate's
+invariants had been red since. They were regenerated on 2026-10-03. ROC-AUC moved
+0.8384 → 0.8437. The largest gap in the old dataset, 0.738, was a false pair: QS's
+Miami University (Ohio, rank 1,265) joined to THE's University of Miami through
+the merged canonical that the entity split of 2026-10-03 separated. The largest
+gap now is 0.673.
+
+Among disagreeing pairs, **THE ranks the university higher 179 times to QS's
 44** — the sources do not merely differ, they differ in a consistent direction.
 
 ## Phase 3 results — LLM evaluation
@@ -546,8 +558,8 @@ PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python \
     --pg-user test --pg-password test --pg-database clawer
 ```
 
-It trains on the 1,109 universities QS and THE both rank, then scores **all 1,504
-QS universities** — including the 395 outside that overlap. That is where the
+It trains on the 1,112 universities QS and THE both rank, then scores **all 1,504
+QS universities** — including the 392 outside that overlap. That is where the
 probability is useful: a contested institution can be flagged at QS ingest time
 rather than after a second source arrives.
 
@@ -728,14 +740,16 @@ Two kinds of guard, because they fail differently:
 
 | Kind | Checked how | Examples |
 |---|---|---|
-| **Invariant** | exactly, and first | `rows_labelled` = 705, `matched` = 1,109, `positives` = 222 |
+| **Invariant** | exactly, and first | `rows_labelled` = 705, `matched` = 1,112, `positives` = 223 |
 | **Metric** | against a direction and tolerance | `linear_renorm` RMSE (±0.05), weight-recovery error (±0.0005), disagreement ROC-AUC (±0.02) |
 
 Invariants come first because they describe the *data*: if the training set
 stops being 705 rows, no metric comparison below it means anything. Replacing the
 mislabelled 2027 snapshot with the verified 2026 one tripped exactly these
 (`rows_labelled` 700 → 705, `matched` 1,104 → 1,109), and the metrics files were
-recommitted from the new edition rather than compared against the old one.
+recommitted from the new edition rather than compared against the old one. They
+tripped again on 2026-09-21 (`matched` 1,109 → 1,112, `positives` 222 → 223), but
+nobody saw it until 2026-10-03, when the files were recommitted the same way.
 
 Training is seeded and reproducible — a rerun on the same snapshot reproduces
 every guarded number exactly, so the tolerances exist for library drift rather

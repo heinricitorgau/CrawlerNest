@@ -73,32 +73,43 @@ class AnalyticsCaveatContractTest {
     void snapshotCaveatRendersBackwardIdentically() {
         assertEquals(SNAPSHOT_CAVEAT_2026,
                 AnalyticsService.snapshotCaveat(List.of("QS"), List.of(2026)));
-        // Over the editions QS covers, not over DATASET_YEARS. The two were the
-        // same list until the 2015-2024 ARWU release; rendering from the union
-        // would name ten editions in which QS published nothing here.
+        // Over the editions QS was crawled for, not over every edition it covers: the
+        // sentence says the data is a snapshot of tables QS published, which is how
+        // 2025 and 2026 were obtained. Archive-sourced editions say how they were
+        // obtained in their own caveat, so this release-level sentence is unchanged.
         assertEquals(
-                AnalyticsService.snapshotCaveat(List.of("QS"), DatasetScope.DATASET_COVERAGE.get("QS")),
+                AnalyticsService.snapshotCaveat(List.of("QS"), DatasetScope.liveYears("QS")),
                 AnalyticsService.SNAPSHOT_CAVEAT);
+        assertEquals(List.of(2026, 2025), DatasetScope.liveYears("QS"));
+        for (Integer archived : DatasetScope.DATASET_ARCHIVE_EDITIONS.get("QS").keySet()) {
+            assertFalse(AnalyticsService.SNAPSHOT_CAVEAT.contains(String.valueOf(archived)));
+        }
         assertEquals(AnalyticsService.SNAPSHOT_CAVEAT, AnalyticsService.STANDARD_CAVEATS.get(0));
     }
 
     @Test
     @DisplayName("a source is never named over an edition it does not cover")
     void aSourceIsNeverNamedOverAnEditionItDoesNotCover() {
+        // QS holds no 2015, 2017 or 2021; no source holds 2014.
         assertThrows(IllegalArgumentException.class,
-                () -> AnalyticsService.snapshotCaveat(List.of("QS"), List.of(2018)));
+                () -> AnalyticsService.snapshotCaveat(List.of("QS"), List.of(2017)));
         assertThrows(IllegalArgumentException.class,
-                () -> AnalyticsService.snapshotCaveat(List.of("THE"), List.of(2015, 2026)));
-        assertTrue(AnalyticsService.editionSnapshotCaveat(2018).startsWith("ARWU ranking data"));
-        assertFalse(AnalyticsService.editionSnapshotCaveat(2018).contains("QS"));
+                () -> AnalyticsService.snapshotCaveat(List.of("QS"), List.of(2015, 2026)));
+        assertThrows(IllegalArgumentException.class,
+                () -> AnalyticsService.snapshotCaveat(List.of("THE"), List.of(2014)));
+        assertTrue(AnalyticsService.editionSnapshotCaveat(2017).startsWith("THE and ARWU ranking data"));
+        assertFalse(AnalyticsService.editionSnapshotCaveat(2017).contains("QS"));
     }
 
     @Test
     @DisplayName("an edition missing a source says so, and one holding them all does not")
     void anEditionDisclosesTheSourcesItLacks() {
-        String coverage = AnalyticsService.editionSourceCoverageCaveat(2018);
-        assertTrue(coverage.contains("The 2018 edition holds ARWU ranks only"), coverage);
-        assertTrue(coverage.contains("No QS or THE rank exists"), coverage);
+        String coverage = AnalyticsService.editionSourceCoverageCaveat(2017);
+        assertTrue(coverage.contains("The 2017 edition holds THE and ARWU ranks only"), coverage);
+        assertTrue(coverage.contains("No QS rank exists"), coverage);
+        // Two of three sources are present, so the sentence must not claim a single one.
+        assertFalse(coverage.contains("one source"), coverage);
+        assertNull(AnalyticsService.editionSourceCoverageCaveat(2018));
         assertNull(AnalyticsService.editionSourceCoverageCaveat(2026));
     }
 
@@ -107,9 +118,39 @@ class AnalyticsCaveatContractTest {
     void datasetYearsIsTheUnionOfCoverage() {
         assertTrue(DatasetScope.datasetYearsMatchCoverage(),
                 "DatasetScope.DATASET_YEARS and DATASET_COVERAGE disagree about which editions exist");
-        assertEquals(List.of("ARWU"), DatasetScope.sourcesFor(2018));
+        assertEquals(List.of("THE", "ARWU"), DatasetScope.sourcesFor(2017));
+        assertEquals(List.of("QS", "THE", "ARWU"), DatasetScope.sourcesFor(2018));
         assertEquals(List.of("QS", "THE", "ARWU"), DatasetScope.sourcesFor(2026));
         assertEquals(List.of(), DatasetScope.sourcesFor(2014));
+    }
+
+    /** The QS 2023 sentence as Python and TypeScript render it; one golden string in all three suites. */
+    private static final String ARCHIVE_CAVEAT_QS_2023 =
+            "QS 2023 ranks were recovered from an Internet Archive capture of QS's own data file taken on 2026-05-10, not crawled from QS directly, and QS may have revised the table since. QS prints many ranks as bands (for example 201-210); the rank shown here is the lower bound of the printed rank, so it is not comparable position by position with the QS ranks of 2025 and 2026, which are stored as one position per university. A composite or confidence that includes it inherits that imprecision.";
+
+    @Test
+    @DisplayName("an archive-sourced edition says so, and only that edition does")
+    void archiveEditionsAreDisclosed() throws IOException {
+        assertEquals(ARCHIVE_CAVEAT_QS_2023, AnalyticsService.archiveEditionCaveat("QS", 2023));
+        assertNull(AnalyticsService.archiveEditionCaveat("QS", 2026));
+        assertNull(AnalyticsService.archiveEditionCaveat("THE", 2024));
+        assertFalse(AnalyticsService.archiveEditionCaveat("QS", 2024).contains("{"));
+
+        List<String> shown = AnalyticsService.editionCaveats(2024);
+        assertEquals(List.of(
+                AnalyticsService.editionSnapshotCaveat(2024),
+                AnalyticsService.archiveEditionCaveat("QS", 2024),
+                AnalyticsService.THE_PARTIAL_CAVEAT,
+                AnalyticsService.ARWU_PARTIAL_CAVEAT), shown);
+        for (int year : DatasetScope.DATASET_YEARS) {
+            boolean has = AnalyticsService.editionCaveats(year).stream().anyMatch(c -> c.contains("Internet Archive"));
+            assertEquals(DatasetScope.archiveCaptureDate("QS", year) != null, has, "edition " + year);
+        }
+        assertFalse(AnalyticsService.STANDARD_CAVEATS.stream().anyMatch(c -> c.contains("Internet Archive")));
+
+        String contents = Files.readString(EXPLAINABILITY_DOC.toAbsolutePath().normalize(), StandardCharsets.UTF_8);
+        assertTrue(contents.contains(AnalyticsService.ARCHIVE_EDITION_CAVEAT_TEMPLATE),
+                "the doc no longer carries ARCHIVE_EDITION_CAVEAT_TEMPLATE verbatim");
     }
 
     @Test

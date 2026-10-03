@@ -53,7 +53,7 @@ from typing import Mapping
 #:
 #: This is the fact a flat list of years cannot state, and it stopped being
 #: optional with the 2015-2024 ARWU release. ARWU reaches back to 2015; QS and
-#: THE begin at 2025. The snapshot caveat names QS and rendered from
+#: THE began at 2025 then. The snapshot caveat names QS and rendered from
 #: :data:`DATASET_YEARS`, so extending the years alone would have told every
 #: reader that ten editions holding no QS row at all are "a snapshot of the QS
 #: published tables" -- a specific, confident, false disclosure, the kind
@@ -61,13 +61,64 @@ from typing import Mapping
 #:
 #: A source belongs to a year here once the warehouse serves its ranks for that
 #: year: the same standard :data:`DATASET_SOURCES` applies to sources overall.
+#:
+#: QS and THE reach back with ARWU as of the 2026-10-03 release. THE 2015-2024 was
+#: crawled live through ``ranking_edition.py`` like 2025 and 2026. QS 2016, 2018-2020
+#: and 2022-2024 were not: QS now blocks automated requests, so they were read from
+#: Internet Archive captures of its own data files (see
+#: :data:`DATASET_ARCHIVE_EDITIONS`). QS holds no 2015 (the archived page declares no
+#: ranking id), no 2017 (QS published no edition under that label) and no 2021 (no
+#: archived data file exists), and says so through the edition caveats.
 DATASET_COVERAGE: Mapping[str, tuple[int, ...]] = MappingProxyType(
     {
-        "QS": (2026, 2025),
-        "THE": (2026, 2025),
+        "QS": (2026, 2025, 2024, 2023, 2022, 2020, 2019, 2018, 2016),
+        "THE": (2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015),
         "ARWU": (2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015),
     }
 )
+
+#: The (source, edition) pairs the warehouse holds that were *not* crawled from the
+#: source directly, with the date of the Internet Archive capture the ranks were read
+#: from. An edition in :data:`DATASET_COVERAGE` and not here was crawled live.
+#:
+#: These dates are facts about what was ingested, not a setting. ``test_caveat_contract``
+#: compares them with ``crawlernest-kb/qs_archive/manifest.json`` and its ingest receipts,
+#: so a date cannot drift from the capture the rows actually came from. Java and
+#: TypeScript hold the same map as a literal, pinned by the same test.
+DATASET_ARCHIVE_EDITIONS: Mapping[str, Mapping[int, str]] = MappingProxyType(
+    {
+        "QS": MappingProxyType(
+            {
+                2024: "2026-03-29",
+                2023: "2026-05-10",
+                2022: "2022-04-09",
+                2020: "2021-02-16",
+                2019: "2021-02-21",
+                2018: "2021-02-12",
+                2016: "2022-04-26",
+            }
+        ),
+    }
+)
+
+
+def archive_capture_date(source: str, year: int) -> str | None:
+    """The capture date for an archive-sourced edition, or ``None`` if it was crawled live."""
+    return DATASET_ARCHIVE_EDITIONS.get(source, {}).get(int(year))
+
+
+def live_years(source: str) -> tuple[int, ...]:
+    """The editions of one source that were crawled from it directly, newest first."""
+    archived = DATASET_ARCHIVE_EDITIONS.get(source, {})
+    return tuple(year for year in DATASET_COVERAGE.get(source, ()) if year not in archived)
+
+
+for _source, _editions in DATASET_ARCHIVE_EDITIONS.items():
+    _missing = sorted(set(_editions) - set(DATASET_COVERAGE.get(_source, ())))
+    if _missing:
+        raise RuntimeError(
+            f"DATASET_ARCHIVE_EDITIONS names {_source} {_missing}, which DATASET_COVERAGE does not hold"
+        )
 
 #: Every ranking edition the warehouse holds, newest first. Membership here is
 #: what "we have that year" means; nothing else should decide it.

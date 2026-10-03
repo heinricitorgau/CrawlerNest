@@ -21,7 +21,7 @@ function [X, y, info] = build_cross_source_data(options)
 %
 %   On the QS 2026 edition, matching on a normalised name (letters only,
 %   lowercased) recovers 842 of the 1,504 QS universities. The warehouse
-%   pairing reaches 1,109 for the same two
+%   pairing reaches 1,112 for the same two
 %   snapshots, because its entity resolver is seeded with reviewed aliases and
 %   because a human went through the ambiguous cases. That decision is committed
 %   to qs_the_pairing_2026.json and is read here rather than re-derived, so

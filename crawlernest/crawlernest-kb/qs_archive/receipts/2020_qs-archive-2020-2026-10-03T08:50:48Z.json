@@ -1,0 +1,42 @@
+{
+  "year": 2020,
+  "run_id": "qs-archive-2020-2026-10-03T08:50:48Z",
+  "started_utc": "2026-10-03T08:50:48Z",
+  "finished_utc": "2026-10-03T08:50:51Z",
+  "database": "clawer",
+  "manifest": {
+    "data_snapshot_url": "https://web.archive.org/web/20210216165142id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/914824.txt",
+    "payload_sha256": "c463572b08cc7bead475744e73932f6243c0294512059fb0e0d6897a8a0d74d3",
+    "expected_ranking_id": "914824",
+    "reviewed_by": "claude (automated selection, pending human review)"
+  },
+  "artifact_sha256": "b98a93fb5d52567326a264234be901ffabecd160ef822654e5616786c987b944",
+  "before": {
+    "ranking_records": 1037,
+    "aggregated_with_qs": 1037
+  },
+  "ingested": 1068,
+  "unranked_skipped": 1,
+  "withheld_by_operator": [
+    "/universities/university-paris"
+  ],
+  "summary": {
+    "standardized": 1068,
+    "matched": 1038,
+    "unresolved": 30,
+    "duplicates": 0,
+    "rows_written": 1038,
+    "years_aggregated": [
+      2020
+    ],
+    "aggregated_rows": 1651
+  },
+  "backup": {
+    "path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/backups/qs_archive_pre_ingest_2020_clawer_20261003T085048Z.dump",
+    "bytes": 7578240
+  },
+  "rollback": {
+    "full": "pg_restore -h localhost -p 5432 -U test -d clawer --clean --if-exists /home/torgau/dev/University-Data-Infrastructure-Web-Platform/backups/qs_archive_pre_ingest_2020_clawer_20261003T085048Z.dump",
+    "note": "restores the whole database to its state before this ingest; anything written since is lost"
+  }
+}
