@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, Literal, Optional, List, Union
+from typing import Any, ClassVar, Dict, Literal, Optional, List, Union
 import json
 from pathlib import Path
 
@@ -120,6 +120,20 @@ class Config:
     _last_failure_classification: str = field(default="", init=False, repr=False)
     _last_failure_message: str = field(default="", init=False, repr=False)
     
+    #: The filter parameters QS's own page sends on every ranking request, all
+    #: empty when nothing is filtered. Sending only nid/page/items_per_page/tab
+    #: is what the crawler used to do, and the server tolerates it for the world
+    #: ranking's id while a regional ranking's id hangs instead of answering --
+    #: measured 2026-09-22: 45s timeout with the short set, HTTP 200 with 1,534
+    #: records in under a second with this one, same id, same session.
+    #:
+    #: They are not optional decoration. Keep them even though they are empty.
+    QS_FILTER_PARAMS: ClassVar[tuple[str, ...]] = (
+        "region", "countries", "cities", "search", "star", "sort_by", "order_by",
+        "program_type", "scholarship", "fee", "english_score", "academic_score",
+        "mix_student", "loggedincache",
+    )
+
     def get_api_params(self) -> Dict[str, str]:
 
         params = {
@@ -128,6 +142,9 @@ class Config:
             "items_per_page": str(self.items_per_page),
             "tab": "indicators",
         }
+        # Every filter the page would send, empty unless set below.
+        for key in self.QS_FILTER_PARAMS:
+            params[key] = ""
         
         # 處理單個或多個國家代碼
         if self.country is not None:
