@@ -2,7 +2,7 @@
 
 產生於 2026-10-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：491
+- **Commit 總數**：493
 - **期間**：2026-03-16 ~ 2026-10-04
 - **主分支**：`main`
 
@@ -34,8 +34,10 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `6583215` | 2026-10-04 | heinricitorgau | — | — | Merge branch 'chore/tidy-repo-root' **[main]** |
-| `6790bb5` | 2026-10-04 | heinricitorgau | 212 | +388 / −236 | chore: tidy the repository root to README.md, README.zh-TW.md, LICENSE and four folders **[chore/tidy-repo-root]** |
+| `72cfa0a` | 2026-10-04 | heinricitorgau | 10 | +11 / −12 | fix: the scripts that read releases/ still looked for it at the top level **[main]** |
+| `9e677ce` | 2026-10-03 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
+| `6583215` | 2026-10-04 | heinricitorgau | — | — | Merge branch 'chore/tidy-repo-root' |
+| `6790bb5` | 2026-10-04 | heinricitorgau | 212 | +388 / −236 | chore: tidy the repository root to README.md, README.zh-TW.md, LICENSE and four folders |
 | `efc9504` | 2026-10-03 | github-actions[bot] | 1 | +17 / −14 | docs: regenerate the commit log |
 | `7d29fdd` | 2026-10-04 | heinricitorgau | — | — | Merge branch 'fix/qs-crawler-regional-prefetch' |
 | `d44d4aa` | 2026-10-04 | heinricitorgau | 4 | +276 / −5 | fix(qs): ask a regional ranking endpoint like the page does, and do not take a one-row prefetch for a ranking |
@@ -567,8 +569,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 491 |
-| 檔案變更累計 | 7262 |
-| 新增行數累計 | +2877617 |
-| 刪除行數累計 | −815922 |
-| 淨增行數 | +2061695 |
+| Commit 數 | 493 |
+| 檔案變更累計 | 7273 |
+| 新增行數累計 | +2877639 |
+| 刪除行數累計 | −815942 |
+| 淨增行數 | +2061697 |
