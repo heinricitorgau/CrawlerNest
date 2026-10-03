@@ -38,9 +38,8 @@
 /.vscode            export-ignore
 .gitattributes      export-ignore
 .ignore             export-ignore
-/tests              export-ignore
-/legacy             export-ignore
-/releases           export-ignore
+/crawlernest/packages/legacy export-ignore
+/docs/releases     export-ignore
 crawlernest/crawlernest-tests      export-ignore
 crawlernest/crawlernest-autoeval   export-ignore
 crawlernest/crawlernest-agents     export-ignore

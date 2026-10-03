@@ -218,7 +218,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Build maintenance calm summary")
     parser.add_argument("--reports-dir", default=str(REPORTS_DIR))
     parser.add_argument("--snapshot-file", default=str(SNAPSHOT_FILE))
-    parser.add_argument("--releases-dir", default=str(REPO_ROOT / "releases"))
+    parser.add_argument("--releases-dir", default=str(REPO_ROOT / "docs" / "releases"))
     parser.add_argument("--output", default=str(OUTPUT_FILE))
     args = parser.parse_args()
 

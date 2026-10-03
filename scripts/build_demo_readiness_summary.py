@@ -17,7 +17,7 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).parent.parent
 REPORTS_DIR = REPO_ROOT / "reports"
-RELEASES_DIR = REPO_ROOT / "releases"
+RELEASES_DIR = REPO_ROOT / "docs" / "releases"
 SNAPSHOT_FILE = REPO_ROOT / "snapshots" / "latest_status.json"
 OUTPUT_FILE = REPORTS_DIR / "demo_readiness_summary.md"
 

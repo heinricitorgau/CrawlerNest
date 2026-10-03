@@ -44,7 +44,7 @@ def probe_reports(reports_dir: Path) -> dict[str, str]:
     for name in REPORT_CRITICALITY:
         candidate = reports_dir / name
         result[name] = probe_report(candidate)
-    smoke = REPO_ROOT / "releases" / "v0.1-demo" / "smoke_release_output.txt"
+    smoke = REPO_ROOT / "docs" / "releases" / "v0.1-demo" / "smoke_release_output.txt"
     result["smoke_release_output.txt"] = probe_report(smoke)
     return result
 
