@@ -38,6 +38,13 @@ jobs:
       - name: Run the test suite
         run: python crawlernest/crawlernest-tests/run_tests.py
 
+      # run_tests.py is unittest-only and names its modules, so these pytest-style
+      # tests of the admission crawler (admission_pytest/) were never part of it
+      # and sat unrun in CI. Their conftest.py puts crawlernest/packages on the
+      # path, so no PYTHONPATH is needed.
+      - name: Admission crawler tests (pytest)
+        run: python -m pytest crawlernest/crawlernest-tests/admission_pytest -q
+
       # These check the pipeline entry point and the modules extracted from it.
       # They import every command module, so a move that dropped a dependency
       # fails here rather than in a command a user happens to run.

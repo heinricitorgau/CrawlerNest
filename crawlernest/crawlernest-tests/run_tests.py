@@ -138,6 +138,8 @@ def run_all_tests():
         "test_split_false_entity_merges",
         "test_split_islamic_azad_karaj",
         # The recommender reads deadlines through an optional import that falls back to None silently; a wrong path would go unnoticed.
+        # The recommendation engine's own rules (deadline, language-score and confidence outcomes). It sat outside this list.
+        "test_recommendation_engine",
         "test_recommendation_engine_deadline_import",
         # What a warehouse drift check does when the warehouse is too small: skip, or fail when required.
         "test_warehouse_gate",
