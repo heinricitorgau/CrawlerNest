@@ -1,8 +1,8 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-10-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-10-04，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：481
+- **Commit 總數**：485
 - **期間**：2026-03-16 ~ 2026-10-04
 - **主分支**：`main`
 
@@ -34,522 +34,526 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `966efd4` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #27 from heinricitorgau/ci/ml-and-drift-guards **[main]** |
-| `4786693` | 2026-10-04 | heinricitorgau | 5 | +24 / −9 | data(entities): THE's Islamic Azad University Karaj is on a canonical of its own; re-export and re-run **[ci/ml-and-drift-guards]** |
-| `9a4a1ad` | 2026-10-04 | heinricitorgau | 1 | +8 / −0 | docs(ml): the cross-edition README says what CI now checks |
-| `05cee46` | 2026-10-04 | heinricitorgau | 3 | +436 / −0 | feat(entities): a script to take THE's Islamic Azad University Karaj off another entity's canonical (not applied) |
-| `0c56b03` | 2026-10-04 | heinricitorgau | 4 | +13 / −6 | docs(ml): the served estimates were regenerated on 2026-10-04; fix the University of Miami's two that were Ohio's |
-| `a052de3` | 2026-10-04 | heinricitorgau | 10 | +234 / −5 | test(warehouse): a drift gate that cannot pass by comparing nothing, and an offline check CI can run |
-| `e28a032` | 2026-10-04 | heinricitorgau | 1 | +30 / −0 | ci(ml): run the cross-edition forecast's parity check, on the committed artifacts and on a fresh MATLAB run |
-| `cd0a959` | 2026-10-03 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
-| `29ed8ab` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #26 from heinricitorgau/test/dataset-context-golden-runs |
-| `31c9002` | 2026-10-04 | heinricitorgau | 1 | +6 / −4 | test(agent): run the single-edition golden-text test it had been skipping since 2026 **[test/dataset-context-golden-runs]** |
-| `c71fd06` | 2026-10-03 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
-| `256635f` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #25 from heinricitorgau/test/ranking-scope-runs-in-ci |
-| `b644588` | 2026-10-04 | heinricitorgau | 1 | +29 / −7 | test(ranking-scope): run the two integration tests on a freshly bootstrapped database **[test/ranking-scope-runs-in-ci]** |
-| `1420daf` | 2026-10-03 | github-actions[bot] | 1 | +11 / −7 | docs: regenerate the commit log |
-| `26d5a98` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #24 from heinricitorgau/fix/ci-order-dependent-tests |
-| `4fdff12` | 2026-10-03 | heinricitorgau | 2 | +15 / −6 | fix(ci): stop the PostgreSQL test job hanging, and bootstrap the lineage table it needs **[fix/ci-order-dependent-tests]** |
-| `f8f504d` | 2026-10-03 | heinricitorgau | 1 | +8 / −7 | test(api): the security-chain tests create the views they read instead of relying on test order |
-| `a0dbcca` | 2026-10-03 | github-actions[bot] | 1 | +35 / −9 | docs: regenerate the commit log |
-| `1485af3` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #23 from heinricitorgau/fix/perugia-reappeared-review |
-| `8439626` | 2026-10-03 | heinricitorgau | 1 | +8 / −0 | test(api): the health test creates the views it counts instead of relying on test order **[fix/perugia-reappeared-review]** |
-| `ef53a30` | 2026-10-03 | heinricitorgau | 1 | +4 / −0 | docs(ml): record the 2026-10-03 re-run of the cross-edition experiment |
-| `139b92a` | 2026-10-03 | heinricitorgau | 10 | +111 / −85 | fix(ml): regenerate the Phase 3 artifacts that the 2026-09-21 refresh made stale |
-| `7bbe2e7` | 2026-10-03 | heinricitorgau | 10 | +433 / −418 | data(ml): re-export the cross-edition ranks and re-run the forecast after Perugia |
-| `8696976` | 2026-10-03 | heinricitorgau | 2 | +6 / −6 | fix(ml): bring the pairing export and the THE alias hint in line with the Miami rename |
-| `61185b1` | 2026-10-03 | heinricitorgau | 7 | +284 / −0 | data(qs): reload the seven QS archive editions with the University of Perugia |
-| `1d4db89` | 2026-10-03 | heinricitorgau | 2 | +134 / −1 | fix(reviews): a row decided under its own id is not a reappearance |
-| `bc5bf32` | 2026-10-03 | heinricitorgau | 12 | +1651 / −0 | feat(ml): cross-edition rank forecast in MATLAB, with an independent Python parity check **[data/qs-the-backfill]** |
-| `6ca94aa` | 2026-10-03 | heinricitorgau | 5 | +36382 / −0 | data(ml): export every world-ranking rank, per university, source and edition |
-| `b89a6d5` | 2026-10-03 | heinricitorgau | 8 | +313 / −8 | data(qs): reload the seven QS archive editions with both Miami universities |
-| `5ca0e69` | 2026-10-03 | heinricitorgau | 5 | +937 / −0 | fix(entities): take seven source entities off another university's canonical |
-| `d47448e` | 2026-10-03 | heinricitorgau | 14 | +752 / −88 | feat(caveats): release THE 2015-2024 and QS's archive editions, with their disclosure |
-| `72fd32e` | 2026-10-03 | heinricitorgau | 6 | +266 / −0 | data(qs): ingest receipts for QS 2016, 2018-2020, 2022-2023 (archive load) |
-| `7d66011` | 2026-10-03 | heinricitorgau | 1 | +44 / −0 | data(qs): ingest receipt for QS 2024 (archive load, pilot) |
-| `2a7447c` | 2026-10-03 | heinricitorgau | 2 | +587 / −2 | feat(qs): ingest step for the archive loader, guarded and reversible |
-| `d8dec15` | 2026-10-03 | heinricitorgau | 8 | +288847 / −0 | data(qs): world ranking editions 2016, 2018-2020, 2022-2024 from Internet Archive |
-| `e0c72a9` | 2026-10-03 | heinricitorgau | 5 | +1451 / −0 | feat(qs): loader for past QS editions from reviewed Internet Archive snapshots |
-| `350172b` | 2026-10-02 | heinricitorgau | 10 | +596305 / −0 | data(the): world ranking editions 2015-2024 |
-| `e295dce` | 2026-10-02 | heinricitorgau | 2 | +9 / −5 | docs: refresh 2026 source coverage counts in CLAUDE.md and README **[claude/arwu-editions-2015-2024]** |
+| `9ec9b14f` | 2026-10-04 | heinricitorgau | 2 | +512 / −481 | docs: regenerate the commit log, and have its header name main as main **[ci/ml-and-drift-guards]** |
+| `7a99e254` | 2026-10-04 | heinricitorgau | 1 | +29 / −4 | docs: README covers the historical editions, the cross-edition experiment, the new CI checks and the drift gate |
+| `24f4d661` | 2026-10-03 | github-actions[bot] | 1 | +15 / −7 | docs: regenerate the commit log **[main]** |
+| `966efd4f` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #27 from heinricitorgau/ci/ml-and-drift-guards |
+| `47866933` | 2026-10-04 | heinricitorgau | 5 | +24 / −9 | data(entities): THE's Islamic Azad University Karaj is on a canonical of its own; re-export and re-run **[ci/ml-and-drift-guards]** |
+| `9a4a1ad7` | 2026-10-04 | heinricitorgau | 1 | +8 / −0 | docs(ml): the cross-edition README says what CI now checks |
+| `05cee46d` | 2026-10-04 | heinricitorgau | 3 | +436 / −0 | feat(entities): a script to take THE's Islamic Azad University Karaj off another entity's canonical (not applied) |
+| `0c56b038` | 2026-10-04 | heinricitorgau | 4 | +13 / −6 | docs(ml): the served estimates were regenerated on 2026-10-04; fix the University of Miami's two that were Ohio's |
+| `a052de3c` | 2026-10-04 | heinricitorgau | 10 | +234 / −5 | test(warehouse): a drift gate that cannot pass by comparing nothing, and an offline check CI can run |
+| `e28a0329` | 2026-10-04 | heinricitorgau | 1 | +30 / −0 | ci(ml): run the cross-edition forecast's parity check, on the committed artifacts and on a fresh MATLAB run |
+| `cd0a9595` | 2026-10-03 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
+| `29ed8abd` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #26 from heinricitorgau/test/dataset-context-golden-runs |
+| `31c90022` | 2026-10-04 | heinricitorgau | 1 | +6 / −4 | test(agent): run the single-edition golden-text test it had been skipping since 2026 **[test/dataset-context-golden-runs]** |
+| `c71fd061` | 2026-10-03 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
+| `256635f5` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #25 from heinricitorgau/test/ranking-scope-runs-in-ci |
+| `b6445881` | 2026-10-04 | heinricitorgau | 1 | +29 / −7 | test(ranking-scope): run the two integration tests on a freshly bootstrapped database **[test/ranking-scope-runs-in-ci]** |
+| `1420daf8` | 2026-10-03 | github-actions[bot] | 1 | +11 / −7 | docs: regenerate the commit log |
+| `26d5a985` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #24 from heinricitorgau/fix/ci-order-dependent-tests |
+| `4fdff121` | 2026-10-03 | heinricitorgau | 2 | +15 / −6 | fix(ci): stop the PostgreSQL test job hanging, and bootstrap the lineage table it needs **[fix/ci-order-dependent-tests]** |
+| `f8f504d0` | 2026-10-03 | heinricitorgau | 1 | +8 / −7 | test(api): the security-chain tests create the views they read instead of relying on test order |
+| `a0dbcca3` | 2026-10-03 | github-actions[bot] | 1 | +35 / −9 | docs: regenerate the commit log |
+| `1485af32` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #23 from heinricitorgau/fix/perugia-reappeared-review |
+| `8439626e` | 2026-10-03 | heinricitorgau | 1 | +8 / −0 | test(api): the health test creates the views it counts instead of relying on test order **[fix/perugia-reappeared-review]** |
+| `ef53a309` | 2026-10-03 | heinricitorgau | 1 | +4 / −0 | docs(ml): record the 2026-10-03 re-run of the cross-edition experiment |
+| `139b92ae` | 2026-10-03 | heinricitorgau | 10 | +111 / −85 | fix(ml): regenerate the Phase 3 artifacts that the 2026-09-21 refresh made stale |
+| `7bbe2e7e` | 2026-10-03 | heinricitorgau | 10 | +433 / −418 | data(ml): re-export the cross-edition ranks and re-run the forecast after Perugia |
+| `86969769` | 2026-10-03 | heinricitorgau | 2 | +6 / −6 | fix(ml): bring the pairing export and the THE alias hint in line with the Miami rename |
+| `61185b12` | 2026-10-03 | heinricitorgau | 7 | +284 / −0 | data(qs): reload the seven QS archive editions with the University of Perugia |
+| `1d4db892` | 2026-10-03 | heinricitorgau | 2 | +134 / −1 | fix(reviews): a row decided under its own id is not a reappearance |
+| `bc5bf32d` | 2026-10-03 | heinricitorgau | 12 | +1651 / −0 | feat(ml): cross-edition rank forecast in MATLAB, with an independent Python parity check **[data/qs-the-backfill]** |
+| `6ca94aae` | 2026-10-03 | heinricitorgau | 5 | +36382 / −0 | data(ml): export every world-ranking rank, per university, source and edition |
+| `b89a6d56` | 2026-10-03 | heinricitorgau | 8 | +313 / −8 | data(qs): reload the seven QS archive editions with both Miami universities |
+| `5ca0e694` | 2026-10-03 | heinricitorgau | 5 | +937 / −0 | fix(entities): take seven source entities off another university's canonical |
+| `d47448e3` | 2026-10-03 | heinricitorgau | 14 | +752 / −88 | feat(caveats): release THE 2015-2024 and QS's archive editions, with their disclosure |
+| `72fd32ee` | 2026-10-03 | heinricitorgau | 6 | +266 / −0 | data(qs): ingest receipts for QS 2016, 2018-2020, 2022-2023 (archive load) |
+| `7d66011e` | 2026-10-03 | heinricitorgau | 1 | +44 / −0 | data(qs): ingest receipt for QS 2024 (archive load, pilot) |
+| `2a7447cd` | 2026-10-03 | heinricitorgau | 2 | +587 / −2 | feat(qs): ingest step for the archive loader, guarded and reversible |
+| `d8dec15f` | 2026-10-03 | heinricitorgau | 8 | +288847 / −0 | data(qs): world ranking editions 2016, 2018-2020, 2022-2024 from Internet Archive |
+| `e0c72a9f` | 2026-10-03 | heinricitorgau | 5 | +1451 / −0 | feat(qs): loader for past QS editions from reviewed Internet Archive snapshots |
+| `350172b2` | 2026-10-02 | heinricitorgau | 10 | +596305 / −0 | data(the): world ranking editions 2015-2024 |
+| `e295dcef` | 2026-10-02 | heinricitorgau | 2 | +9 / −5 | docs: refresh 2026 source coverage counts in CLAUDE.md and README **[claude/arwu-editions-2015-2024]** |
 
 ## 2026-09
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `fa3fa8f` | 2026-09-22 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `5e68f54` | 2026-09-22 | heinricitorgau | 4 | +152 / −1 | Record the date QS's standalone regional rankings stopped being refreshable |
-| `cc84836` | 2026-09-22 | github-actions[bot] | 1 | +10 / −8 | docs: regenerate the commit log |
-| `7af71b4` | 2026-09-22 | heinricitorgau | 1 | +226 / −0 | Empty the entity-resolution queue, and repair the normalized names |
-| `63690a2` | 2026-09-21 | github-actions[bot] | 1 | +12 / −8 | docs: regenerate the commit log |
-| `287698e` | 2026-09-22 | heinricitorgau | 1 | +253 / −0 | Correct the two canonical names QS served damaged |
-| `17f5039` | 2026-09-22 | heinricitorgau | 7 | +347 / −6 | Catch at the door the characters a university name cannot contain |
-| `5ace900` | 2026-09-22 | heinricitorgau | 6 | +544 / −13 | Read the charset the response declares, in one place for both fetch paths |
-| `8ee63d7` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `dc273f8` | 2026-09-21 | heinricitorgau | 2 | +17 / −5 | Clear the THE review queue, and seed the two lineage events that were data only |
-| `7b26457` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `b34b914` | 2026-09-21 | heinricitorgau | 1 | +12 / −1 | Record the City St George's merger, so deltas across it are withheld |
-| `7e1fc25` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `2a3aa3d` | 2026-09-21 | heinricitorgau | 1 | +2 / −7 | Withdraw four THE ranks credited to the wrong university |
-| `3141002` | 2026-09-21 | github-actions[bot] | 1 | +12 / −9 | docs: regenerate the commit log |
-| `794274e` | 2026-09-21 | heinricitorgau | 8 | +554 / −166 | Take the weekly refresh's crawl, and re-export the pairing from it |
-| `48b8fb4` | 2026-09-21 | heinricitorgau | 7 | +309 / −5 | Say why an estimate read is empty when the edition is the reason |
-| `d37c68a` | 2026-09-20 | github-actions[bot] | 1 | +13 / −9 | docs: regenerate the commit log |
-| `0bc4c62` | 2026-09-20 | heinricitorgau | 6 | +203 / −29 | Tell the subject page what subject coverage actually is |
-| `1888aa6` | 2026-09-20 | heinricitorgau | 17 | +972 / −117 | Release the 2015-2024 ARWU editions, per source rather than per year |
-| `e184ba3` | 2026-09-19 | heinricitorgau | 10 | +202590 / −0 | data(arwu): world ranking editions 2015-2024 |
-| `b11e99b` | 2026-09-19 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `0a65496` | 2026-09-19 | heinricitorgau | 27 | +1096 / −341 | Authenticate with a signed token instead of a server-side session |
-| `bff3ae1` | 2026-09-19 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `ad4515c` | 2026-09-19 | heinricitorgau | 13 | +410 / −11 | feat(ops): container images for the stack, and configuration out of the source |
-| `2dbc95e` | 2026-09-19 | github-actions[bot] | 1 | +10 / −8 | docs: regenerate the commit log |
-| `e108e7a` | 2026-09-19 | heinricitorgau | 5 | +272 / −1 | feat(pipeline): build decision preview rows from the warehouse's own editions |
-| `2bcba37` | 2026-09-18 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `9ceabe0` | 2026-09-19 | heinricitorgau | 5 | +157 / −6 | feat(web): saved recommendation plans record and state their edition |
-| `6deb6af` | 2026-09-18 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `7de9053` | 2026-09-19 | heinricitorgau | 5 | +166 / −24 | feat(web): subject rankings follow the selected edition |
-| `cacd682` | 2026-09-18 | github-actions[bot] | 1 | +28 / −9 | docs: regenerate the commit log |
-| `3653204` | 2026-09-19 | heinricitorgau | 1 | +66 / −0 | chore(samples): add the ranking decision preview sample |
-| `1bc78fc` | 2026-09-15 | heinricitorgau | 12 | +380 / −58 | feat(web): university detail pages follow the selected edition |
-| `16a8ab0` | 2026-09-15 | heinricitorgau | 16 | +885 / −78 | feat(web): edition selector on rankings, recommendations and compare, with per-edition caveats |
-| `6d1c9d8` | 2026-09-15 | heinricitorgau | 11 | +473 / −59 | feat(web): per-source rank change on the comparison, band intervals, entity-changed badge |
-| `b83e4c0` | 2026-09-14 | heinricitorgau | 13 | +632 / −39 | feat(admissions): record fetched_at and fetch_mode in the crawler |
-| `3e7be24` | 2026-09-14 | heinricitorgau | 37 | +2022 / −156 | feat(admissions): scope-aware readers and the IELTS-missing / stale-data caveats |
-| `841be8d` | 2026-09-14 | heinricitorgau | 18 | +1651 / −266 | feat(admissions): programme/intake granularity and unified entity resolution |
-| `624d7fd` | 2026-09-14 | heinricitorgau | 32 | +2326 / −344 | feat(agent-api): serve under Uvicorn and move agent state out of /tmp |
-| `32884be` | 2026-09-14 | heinricitorgau | 12 | +705 / −5 | fix(entity-resolution): stop a source entity flipping between canonical universities |
-| `d8a8d62` | 2026-09-14 | heinricitorgau | 4 | +136 / −28 | fix(analytics): count source coverage in the table the caveat describes |
-| `407df21` | 2026-09-14 | heinricitorgau | 58 | +643 / −558 | fix(ml): train on the edition-verified QS 2026 table, not the 2027 one |
-| `79eaa80` | 2026-09-14 | heinricitorgau | 1 | +2008 / −1000 | chore(data): refresh arwu_rankings_2026.json from the scheduled-refresh smoke run |
-| `6cc08b3` | 2026-09-14 | heinricitorgau | 4 | +10 / −4 | feat(dataset): release the 2025 edition -- DATASET_YEARS = (2026, 2025) |
-| `d40036b` | 2026-09-14 | heinricitorgau | 115 | +340296 / −110323 | fix(crawl): prove every edition before labelling it, and add per-source rank deltas, shrink guard and scheduler |
-| `1011f33` | 2026-09-13 | heinricitorgau | 45 | +1808 / −123 | feat(warehouse): isolate every serving read to one edition and withhold deltas across institution lineage |
-| `7afbccb` | 2026-09-13 | heinricitorgau | 30 | +1065 / −404 | feat(agent): remove the self-rewriting prompt loop and derive year rules from evidence |
-| `5932d32` | 2026-09-13 | heinricitorgau | 6 | +600 / −1 | feat(warehouse): record which source mapping each ranking_record came from |
-| `2ce28b0` | 2026-09-11 | heinricitorgau | 10 | +1077 / −22 | feat(ingest): key ARWU on the source's own slug and refuse to ingest past orphaned review decisions |
-| `d53ca66` | 2026-09-10 | heinricitorgau | 1 | +25 / −9 | docs: regenerate the commit log |
-| `0e83acc` | 2026-09-10 | heinricitorgau | 2 | +22 / −0 | feat(agent): enforce 2026 snapshot constraints in the web system prompt, pinned by a contract test |
-| `64d3d7b` | 2026-09-10 | heinricitorgau | 3 | +540 / −0 | Settle how rank movement is computed before there is a second year to compute it from |
-| `0598c66` | 2026-09-10 | heinricitorgau | 1 | +13 / −2 | Correct the next.config comment that sent people to a URL /agent cannot load on |
-| `1b60a63` | 2026-09-09 | heinricitorgau | 3 | +16 / −3 | Stop the agent surface claiming it runs no tools, now that it runs one |
-| `1d4c562` | 2026-09-09 | heinricitorgau | 10 | +747 / −3 | Ask the engine first, so the chat answer can say which year it describes |
-| `b740af2` | 2026-09-05 | heinricitorgau | 10 | +715 / −0 | Say which year the answer describes, when it is not the year that was asked for |
-| `57f44d7` | 2026-09-05 | heinricitorgau | 8 | +815 / −15 | Stream the explanation to the page, after it has been verified rather than before |
-| `f238bb2` | 2026-09-05 | heinricitorgau | 2 | +109 / −2 | Give the multi-turn chat path the dataset declaration it never had |
-| `d41c95e` | 2026-09-05 | heinricitorgau | 2 | +45 / −2 | Say that ds4 has two switches, and that setting one of them is the usual mistake |
-| `1c5e1fc` | 2026-09-05 | heinricitorgau | 4 | +121 / −3 | State the dataset year and its rules in the system turn, not only the user turn |
-| `1af9e26` | 2026-09-05 | heinricitorgau | 1 | +19 / −0 | Skip the MATLAB re-execution job while the repository is private |
-| `6724463` | 2026-09-05 | heinricitorgau | 4 | +204 / −0 | ci(release): add automated snapshot restore verification and v0.3 roadmap |
-| `4bd24cd` | 2026-09-05 | heinricitorgau | 4 | +137 / −0 | release: freeze 2026 database snapshot **[tag: v0.2-2026-snapshot]** |
-| `bbb59e9` | 2026-09-05 | heinricitorgau | 6 | +129 / −83 | docs(competition): align demo narrative with 2026 live three-source coverage |
-| `9813bcb` | 2026-09-05 | heinricitorgau | 5 | +25 / −12 | Correct the operational baselines that still describe a QS-only 1,499-row warehouse |
-| `4569cef` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `42f0f4f` | 2026-09-04 | heinricitorgau | 9 | +279 / −113 | Stop the summary generators re-emitting a warehouse that no longer exists |
-| `a844293` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `f17d7da` | 2026-09-04 | heinricitorgau | 2 | +22 / −10 | Correct the two documents that still describe a warehouse we no longer have |
-| `75278f3` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `12a783f` | 2026-09-04 | heinricitorgau | 7 | +125 / −8 | Say when an estimate is unsupported, instead of only recording that it is |
-| `ff0a616` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `00d88d4` | 2026-09-04 | heinricitorgau | 20 | +1069 / −56 | Wire the modelling layer into the agent, and stop the caveats lying about coverage |
-| `966e1b8` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `54d55f2` | 2026-09-04 | heinricitorgau | 16 | +454 / −16 | Pin the web agent to the 2026 snapshot it actually queries |
-| `0204417` | 2026-09-04 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
-| `708f751` | 2026-09-04 | heinricitorgau | 1 | +48 / −0 | Retire aggregated rows whose university has dropped out of the universe |
-| `2620a11` | 2026-09-04 | heinricitorgau | 1 | +15 / −20 | Judge the THE and ARWU fuzzy backlog the canonical reseed produced |
-| `24eae13` | 2026-09-04 | github-actions[bot] | 1 | +13 / −17 | docs: regenerate the commit log |
-| `75daa7c` | 2026-09-04 | heinricitorgau | 31 | +2863 / −230 | Retrain the ML layer on the re-crawled 2026 QS data and the widened pairing |
-| `e7a1ae9` | 2026-09-04 | heinricitorgau | 2 | +30 / −2 | Make seed-canonical-from-missing honour its year, and skip non-universities |
-| `f74b73d` | 2026-09-04 | heinricitorgau | 3 | +669 / −0 | Add post-ingest verification and a snapshot replay for the ranking year |
-| `d87b2ca` | 2026-09-03 | github-actions[bot] | 1 | +12 / −9 | docs: regenerate the commit log |
-| `24cf49e` | 2026-09-03 | heinricitorgau | — | — | Merge claude/mapping-review-decided-tab |
-| `87259e2` | 2026-09-03 | heinricitorgau | 8 | +371 / −3 | Scope every ranking summary to the world ranking |
-| `749e1e0` | 2026-09-02 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
-| `7c39325` | 2026-09-02 | heinricitorgau | — | — | Merge origin/main: the commit-log bot's run for the previous push |
-| `993ed73` | 2026-09-02 | heinricitorgau | 7 | +435 / −40 | Give the Decided tab a query that can return something |
-| `c28472a` | 2026-09-02 | github-actions[bot] | 1 | +21 / −10 | docs: regenerate the commit log |
-| `3b8bd39` | 2026-09-02 | heinricitorgau | — | — | Merge origin/main: pick up the bot-regenerated commit log |
-| `1338ccf` | 2026-09-02 | heinricitorgau | 1 | +109 / −0 | Fix flaky API Tests CI failure: order-dependent pipeline table check |
-| `fe65d0a` | 2026-09-02 | heinricitorgau | 68 | +173148 / −264407 | Re-crawl all 21 QS universes for 2026 |
-| `1b5bfe2` | 2026-09-02 | heinricitorgau | 24 | +3821 / −162 | Fix QS crawler: TLS transport, ranking id resolution, admissions concurrency |
+| `fa3fa8f8` | 2026-09-22 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log **[claude/crawlernest-architecture-review-3b0e48]** |
+| `5e68f54b` | 2026-09-22 | heinricitorgau | 4 | +152 / −1 | Record the date QS's standalone regional rankings stopped being refreshable |
+| `cc848368` | 2026-09-22 | github-actions[bot] | 1 | +10 / −8 | docs: regenerate the commit log |
+| `7af71b4d` | 2026-09-22 | heinricitorgau | 1 | +226 / −0 | Empty the entity-resolution queue, and repair the normalized names |
+| `63690a26` | 2026-09-21 | github-actions[bot] | 1 | +12 / −8 | docs: regenerate the commit log |
+| `287698ea` | 2026-09-22 | heinricitorgau | 1 | +253 / −0 | Correct the two canonical names QS served damaged |
+| `17f50393` | 2026-09-22 | heinricitorgau | 7 | +347 / −6 | Catch at the door the characters a university name cannot contain |
+| `5ace9000` | 2026-09-22 | heinricitorgau | 6 | +544 / −13 | Read the charset the response declares, in one place for both fetch paths |
+| `8ee63d73` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `dc273f89` | 2026-09-21 | heinricitorgau | 2 | +17 / −5 | Clear the THE review queue, and seed the two lineage events that were data only |
+| `7b26457b` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `b34b914d` | 2026-09-21 | heinricitorgau | 1 | +12 / −1 | Record the City St George's merger, so deltas across it are withheld |
+| `7e1fc251` | 2026-09-21 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `2a3aa3d2` | 2026-09-21 | heinricitorgau | 1 | +2 / −7 | Withdraw four THE ranks credited to the wrong university |
+| `3141002e` | 2026-09-21 | github-actions[bot] | 1 | +12 / −9 | docs: regenerate the commit log |
+| `794274e1` | 2026-09-21 | heinricitorgau | 8 | +554 / −166 | Take the weekly refresh's crawl, and re-export the pairing from it |
+| `48b8fb47` | 2026-09-21 | heinricitorgau | 7 | +309 / −5 | Say why an estimate read is empty when the edition is the reason |
+| `d37c68a8` | 2026-09-20 | github-actions[bot] | 1 | +13 / −9 | docs: regenerate the commit log |
+| `0bc4c625` | 2026-09-20 | heinricitorgau | 6 | +203 / −29 | Tell the subject page what subject coverage actually is |
+| `1888aa67` | 2026-09-20 | heinricitorgau | 17 | +972 / −117 | Release the 2015-2024 ARWU editions, per source rather than per year |
+| `e184ba3d` | 2026-09-19 | heinricitorgau | 10 | +202590 / −0 | data(arwu): world ranking editions 2015-2024 |
+| `b11e99b5` | 2026-09-19 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `0a654967` | 2026-09-19 | heinricitorgau | 27 | +1096 / −341 | Authenticate with a signed token instead of a server-side session |
+| `bff3ae16` | 2026-09-19 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `ad4515cf` | 2026-09-19 | heinricitorgau | 13 | +410 / −11 | feat(ops): container images for the stack, and configuration out of the source |
+| `2dbc95eb` | 2026-09-19 | github-actions[bot] | 1 | +10 / −8 | docs: regenerate the commit log |
+| `e108e7ab` | 2026-09-19 | heinricitorgau | 5 | +272 / −1 | feat(pipeline): build decision preview rows from the warehouse's own editions |
+| `2bcba372` | 2026-09-18 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `9ceabe0f` | 2026-09-19 | heinricitorgau | 5 | +157 / −6 | feat(web): saved recommendation plans record and state their edition |
+| `6deb6afc` | 2026-09-18 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `7de90532` | 2026-09-19 | heinricitorgau | 5 | +166 / −24 | feat(web): subject rankings follow the selected edition |
+| `cacd6820` | 2026-09-18 | github-actions[bot] | 1 | +28 / −9 | docs: regenerate the commit log |
+| `3653204d` | 2026-09-19 | heinricitorgau | 1 | +66 / −0 | chore(samples): add the ranking decision preview sample |
+| `1bc78fcc` | 2026-09-15 | heinricitorgau | 12 | +380 / −58 | feat(web): university detail pages follow the selected edition |
+| `16a8ab0d` | 2026-09-15 | heinricitorgau | 16 | +885 / −78 | feat(web): edition selector on rankings, recommendations and compare, with per-edition caveats |
+| `6d1c9d88` | 2026-09-15 | heinricitorgau | 11 | +473 / −59 | feat(web): per-source rank change on the comparison, band intervals, entity-changed badge |
+| `b83e4c06` | 2026-09-14 | heinricitorgau | 13 | +632 / −39 | feat(admissions): record fetched_at and fetch_mode in the crawler |
+| `3e7be24b` | 2026-09-14 | heinricitorgau | 37 | +2022 / −156 | feat(admissions): scope-aware readers and the IELTS-missing / stale-data caveats |
+| `841be8da` | 2026-09-14 | heinricitorgau | 18 | +1651 / −266 | feat(admissions): programme/intake granularity and unified entity resolution |
+| `624d7fdf` | 2026-09-14 | heinricitorgau | 32 | +2326 / −344 | feat(agent-api): serve under Uvicorn and move agent state out of /tmp |
+| `32884beb` | 2026-09-14 | heinricitorgau | 12 | +705 / −5 | fix(entity-resolution): stop a source entity flipping between canonical universities |
+| `d8a8d627` | 2026-09-14 | heinricitorgau | 4 | +136 / −28 | fix(analytics): count source coverage in the table the caveat describes |
+| `407df213` | 2026-09-14 | heinricitorgau | 58 | +643 / −558 | fix(ml): train on the edition-verified QS 2026 table, not the 2027 one |
+| `1dfcf65b` | 2026-09-14 | heinricitorgau | 17 | +427 / −56 | wip: preserve the main checkout's uncommitted Step 4 draft (not for merge) **[wip/main-checkout-step4-draft-2026-09-14]** |
+| `79eaa80c` | 2026-09-14 | heinricitorgau | 1 | +2008 / −1000 | chore(data): refresh arwu_rankings_2026.json from the scheduled-refresh smoke run |
+| `6cc08b3f` | 2026-09-14 | heinricitorgau | 4 | +10 / −4 | feat(dataset): release the 2025 edition -- DATASET_YEARS = (2026, 2025) |
+| `d40036bd` | 2026-09-14 | heinricitorgau | 115 | +340296 / −110323 | fix(crawl): prove every edition before labelling it, and add per-source rank deltas, shrink guard and scheduler |
+| `1011f331` | 2026-09-13 | heinricitorgau | 45 | +1808 / −123 | feat(warehouse): isolate every serving read to one edition and withhold deltas across institution lineage |
+| `7afbccba` | 2026-09-13 | heinricitorgau | 30 | +1065 / −404 | feat(agent): remove the self-rewriting prompt loop and derive year rules from evidence |
+| `5932d324` | 2026-09-13 | heinricitorgau | 6 | +600 / −1 | feat(warehouse): record which source mapping each ranking_record came from |
+| `2ce28b09` | 2026-09-11 | heinricitorgau | 10 | +1077 / −22 | feat(ingest): key ARWU on the source's own slug and refuse to ingest past orphaned review decisions |
+| `d53ca668` | 2026-09-10 | heinricitorgau | 1 | +25 / −9 | docs: regenerate the commit log |
+| `0e83accb` | 2026-09-10 | heinricitorgau | 2 | +22 / −0 | feat(agent): enforce 2026 snapshot constraints in the web system prompt, pinned by a contract test **[claude/unsupported-year-warning-cdebdb]** |
+| `64d3d7b8` | 2026-09-10 | heinricitorgau | 3 | +540 / −0 | Settle how rank movement is computed before there is a second year to compute it from |
+| `0598c66e` | 2026-09-10 | heinricitorgau | 1 | +13 / −2 | Correct the next.config comment that sent people to a URL /agent cannot load on |
+| `1b60a639` | 2026-09-09 | heinricitorgau | 3 | +16 / −3 | Stop the agent surface claiming it runs no tools, now that it runs one |
+| `1d4c5620` | 2026-09-09 | heinricitorgau | 10 | +747 / −3 | Ask the engine first, so the chat answer can say which year it describes |
+| `b740af22` | 2026-09-05 | heinricitorgau | 10 | +715 / −0 | Say which year the answer describes, when it is not the year that was asked for |
+| `57f44d74` | 2026-09-05 | heinricitorgau | 8 | +815 / −15 | Stream the explanation to the page, after it has been verified rather than before **[claude/remote-ci-2026-release-099135]** |
+| `f238bb29` | 2026-09-05 | heinricitorgau | 2 | +109 / −2 | Give the multi-turn chat path the dataset declaration it never had |
+| `d41c95e4` | 2026-09-05 | heinricitorgau | 2 | +45 / −2 | Say that ds4 has two switches, and that setting one of them is the usual mistake |
+| `1c5e1fca` | 2026-09-05 | heinricitorgau | 4 | +121 / −3 | State the dataset year and its rules in the system turn, not only the user turn |
+| `1af9e265` | 2026-09-05 | heinricitorgau | 1 | +19 / −0 | Skip the MATLAB re-execution job while the repository is private |
+| `67244630` | 2026-09-05 | heinricitorgau | 4 | +204 / −0 | ci(release): add automated snapshot restore verification and v0.3 roadmap |
+| `4bd24cd2` | 2026-09-05 | heinricitorgau | 4 | +137 / −0 | release: freeze 2026 database snapshot **[tag: v0.2-2026-snapshot]** |
+| `bbb59e94` | 2026-09-05 | heinricitorgau | 6 | +129 / −83 | docs(competition): align demo narrative with 2026 live three-source coverage |
+| `9813bcb8` | 2026-09-05 | heinricitorgau | 5 | +25 / −12 | Correct the operational baselines that still describe a QS-only 1,499-row warehouse |
+| `4569cef6` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `42f0f4fd` | 2026-09-04 | heinricitorgau | 9 | +279 / −113 | Stop the summary generators re-emitting a warehouse that no longer exists **[claude/web-agent-2026-alignment-6e0ddb]** |
+| `a8442932` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `f17d7dad` | 2026-09-04 | heinricitorgau | 2 | +22 / −10 | Correct the two documents that still describe a warehouse we no longer have |
+| `75278f33` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `12a783f7` | 2026-09-04 | heinricitorgau | 7 | +125 / −8 | Say when an estimate is unsupported, instead of only recording that it is |
+| `ff0a6168` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `00d88d4e` | 2026-09-04 | heinricitorgau | 20 | +1069 / −56 | Wire the modelling layer into the agent, and stop the caveats lying about coverage |
+| `966e1b83` | 2026-09-04 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `54d55f26` | 2026-09-04 | heinricitorgau | 16 | +454 / −16 | Pin the web agent to the 2026 snapshot it actually queries |
+| `02044176` | 2026-09-04 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
+| `708f751b` | 2026-09-04 | heinricitorgau | 1 | +48 / −0 | Retire aggregated rows whose university has dropped out of the universe **[claude/2026-data-validation-ml-retrain-5fa558, claude/web-agent-2026-alignment-a09871]** |
+| `2620a11b` | 2026-09-04 | heinricitorgau | 1 | +15 / −20 | Judge the THE and ARWU fuzzy backlog the canonical reseed produced |
+| `24eae138` | 2026-09-04 | github-actions[bot] | 1 | +13 / −17 | docs: regenerate the commit log |
+| `75daa7c6` | 2026-09-04 | heinricitorgau | 31 | +2863 / −230 | Retrain the ML layer on the re-crawled 2026 QS data and the widened pairing |
+| `e7a1ae9a` | 2026-09-04 | heinricitorgau | 2 | +30 / −2 | Make seed-canonical-from-missing honour its year, and skip non-universities |
+| `f74b73d3` | 2026-09-04 | heinricitorgau | 3 | +669 / −0 | Add post-ingest verification and a snapshot replay for the ranking year |
+| `d87b2caf` | 2026-09-03 | github-actions[bot] | 1 | +12 / −9 | docs: regenerate the commit log |
+| `24cf49ef` | 2026-09-03 | heinricitorgau | — | — | Merge claude/mapping-review-decided-tab |
+| `87259e2c` | 2026-09-03 | heinricitorgau | 8 | +371 / −3 | Scope every ranking summary to the world ranking |
+| `749e1e0e` | 2026-09-02 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
+| `7c393250` | 2026-09-02 | heinricitorgau | — | — | Merge origin/main: the commit-log bot's run for the previous push |
+| `993ed730` | 2026-09-02 | heinricitorgau | 7 | +435 / −40 | Give the Decided tab a query that can return something |
+| `c28472a1` | 2026-09-02 | github-actions[bot] | 1 | +21 / −10 | docs: regenerate the commit log |
+| `3b8bd397` | 2026-09-02 | heinricitorgau | — | — | Merge origin/main: pick up the bot-regenerated commit log |
+| `1338ccf3` | 2026-09-02 | heinricitorgau | 1 | +109 / −0 | Fix flaky API Tests CI failure: order-dependent pipeline table check |
+| `fe65d0a2` | 2026-09-02 | heinricitorgau | 68 | +173148 / −264407 | Re-crawl all 21 QS universes for 2026 |
+| `1b5bfe23` | 2026-09-02 | heinricitorgau | 24 | +3821 / −162 | Fix QS crawler: TLS transport, ranking id resolution, admissions concurrency |
 
 ## 2026-08
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `8d01ac2` | 2026-08-25 | github-actions[bot] | 1 | +11 / −9 | docs: regenerate the commit log |
-| `09b2c0c` | 2026-08-25 | heinricitorgau | 8 | +1419 / −35 | feat(agent): close the loop with conversation history and restore |
-| `ea1b634` | 2026-08-25 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `249a6ec` | 2026-08-25 | heinricitorgau | 20 | +1909 / −12 | feat(agent): wake the web agent up behind ds4, with a Java-owned save path |
-| `3acdcbd` | 2026-08-25 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
-| `ce7ba49` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #22 from heinricitorgau/claude/remove-ranking-records-preview-996301 |
-| `3386c7f` | 2026-08-25 | heinricitorgau | 24 | +1468 / −57 | feat(admissions): surface structured entry requirements end to end |
-| `4c48513` | 2026-08-25 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `48a2382` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #19 from heinricitorgau/ml/diagnostics-parity |
-| `0200f98` | 2026-08-25 | github-actions[bot] | 1 | +20 / −10 | docs: regenerate the commit log |
-| `1ba3d96` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #21 from heinricitorgau/claude/remove-ranking-records-preview-996301 |
-| `43217f7` | 2026-08-24 | heinricitorgau | 16 | +209 / −1286 | refactor(warehouse): drop ranking_records_preview end to end |
-| `3a16a53` | 2026-08-23 | github-actions[bot] | 1 | +14 / −10 | docs: regenerate the commit log |
-| `eef516c` | 2026-08-23 | KAO,EN-TSAI | — | — | Merge pull request #17 from heinricitorgau/feat/admission-ranking-convergence |
-| `85c5889` | 2026-08-22 | heinricitorgau | 57 | +3425 / −447 | Converge the admission pipeline onto the ranking entity-resolution stack |
-| `92099fa` | 2026-08-22 | heinricitorgau | 5 | +439 / −11 | Cover plot_disagreement_diagnostics.m against sklearn, and fix its binning |
-| `1dcd8aa` | 2026-08-22 | github-actions[bot] | 1 | +14 / −11 | docs: regenerate the commit log |
-| `aeda786` | 2026-08-22 | KAO,EN-TSAI | — | — | Merge pull request #16 from heinricitorgau/test/inference-batch-invariants |
-| `fb4289a` | 2026-08-22 | heinricitorgau | 3 | +214 / −2 | Cover the one MATLAB port parity cannot reach |
-| `be32c9d` | 2026-08-21 | github-actions[bot] | 1 | +26 / −8 | docs: regenerate the commit log |
-| `3d6c08f` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #15 from heinricitorgau/fix/entity-resolution-blocking |
-| `900c5e9` | 2026-08-21 | heinricitorgau | 2 | +30 / −30 | Retrain the disagreement model on the corrected pairing |
-| `a7dc734` | 2026-08-21 | heinricitorgau | 1 | +7 / −7 | Re-run build_cross_source_data.m against the corrected pairing |
-| `2c15519` | 2026-08-21 | heinricitorgau | 1 | +77 / −24 | Point the analytics smoke at the path that now exists |
-| `4f38d3e` | 2026-08-21 | heinricitorgau | 1 | +29 / −2 | Fold review_queue.sql into mapping_review_queue.sql |
-| `17bd1e6` | 2026-08-21 | heinricitorgau | 1 | +6 / −21 | Re-export the pairing after clearing the review backlog |
-| `36d587a` | 2026-08-21 | heinricitorgau | 1 | +6 / −1 | Keep the whole note, commas and all |
-| `cea607d` | 2026-08-21 | heinricitorgau | 3 | +32 / −7 | Put the decision slot where the eye already is |
-| `d79fec7` | 2026-08-21 | heinricitorgau | 1 | +213 / −0 | Make re-exporting the QS-THE pairing a script, not a one-off |
-| `bb54267` | 2026-08-21 | heinricitorgau | 3 | +538 / −0 | Add batch tooling for the entity-resolution backlog |
-| `290ae7b` | 2026-08-21 | heinricitorgau | 1 | +230 / −15 | Re-export the QS-THE pairing the warehouse now holds |
-| `1fdeedd` | 2026-08-21 | heinricitorgau | 3 | +177 / −1 | Take the current rank, not the best one ever recorded |
-| `5a3066f` | 2026-08-21 | heinricitorgau | 1 | +2 / −2 | Stop labelling three different stages [4/4] |
-| `830234d` | 2026-08-21 | heinricitorgau | 3 | +133 / −16 | Persist the QS profile path instead of dropping it |
-| `92a7bf8` | 2026-08-21 | heinricitorgau | 4 | +484 / −165 | Give warehouse.ranking_record one writer |
-| `f7c42f8` | 2026-08-21 | heinricitorgau | 1 | +29 / −23 | Let the QS multi-source sync fail loudly |
-| `c603d55` | 2026-08-21 | heinricitorgau | 1 | +4 / −1 | Stop pinning the QS run id too |
-| `7fb3e23` | 2026-08-21 | github-actions[bot] | 1 | +18 / −9 | docs: regenerate the commit log |
-| `608ab2c` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #14 from heinricitorgau/fix/entity-resolution-blocking |
-| `6798057` | 2026-08-21 | heinricitorgau | 1 | +6 / −2 | Stop pinning a constant run id, which made the prune inert |
-| `73736db` | 2026-08-21 | heinricitorgau | 1 | +7000 / −1000 | Refresh the ARWU 2026 crawl output |
-| `5f89da9` | 2026-08-21 | heinricitorgau | 2 | +184 / −5 | Keep the ARWU source row, in the shape everything downstream expects |
-| `e1950cd` | 2026-08-21 | heinricitorgau | 12 | +1255 / −0 | Give the fuzzy-match backlog a review screen |
-| `de9e240` | 2026-08-21 | heinricitorgau | 9 | +788 / −0 | Let a reviewer overrule the fuzzy matcher, durably |
-| `58ef9fa` | 2026-08-21 | heinricitorgau | 1 | +42 / −42 | Refresh the THE 2026 crawl output |
-| `10d184e` | 2026-08-21 | heinricitorgau | 6 | +444 / −28 | Make entity resolution reach the names it was already close to |
-| `43bc57c` | 2026-08-20 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
-| `246dffa` | 2026-08-20 | heinricitorgau | 1 | +735 / −0 | Add the read-only entity-resolution backlog dry run |
-| `4f9c241` | 2026-08-20 | github-actions[bot] | 1 | +8 / −7 | docs: regenerate the commit log |
-| `7d87cc5` | 2026-08-20 | heinricitorgau | 3 | +400 / −13 | Regenerate the commit log from CI instead of by hand |
-| `3c61988` | 2026-08-20 | KAO,EN-TSAI | — | — | Merge pull request #13 from heinricitorgau/docs/commit-log |
-| `ca4ed73` | 2026-08-20 | heinricitorgau | 1 | +29 / −5 | Report the artifact-ordering check instead of enforcing it |
-| `50050cf` | 2026-08-20 | heinricitorgau | 3 | +128 / −0 | Make the disagreement inference use the shared cross-source builder |
-| `08daf6e` | 2026-08-20 | heinricitorgau | 5 | +226 / −7 | Reproduce the Phase 3 diagnostics figure in MATLAB |
-| `5b84ab1` | 2026-08-18 | heinricitorgau | 52 | +9523 / −9492 | Store and check out LF everywhere, and renormalise |
-| `dcf06d6` | 2026-08-18 | KAO,EN-TSAI | — | — | Merge pull request #12 from heinricitorgau/docs/commit-log |
-| `d3d4991` | 2026-08-18 | heinricitorgau | 13 | +1237 / −241 | Port Phase 3 to MATLAB and generalise the parity guard |
-| `5a88eaf` | 2026-08-18 | heinricitorgau | 3 | +364 / −0 | docs: add a generated commit log with per-commit change statistics |
-| `449980c` | 2026-08-17 | heinricitorgau | 11 | +446 / −0 | update |
-| `170f0e2` | 2026-08-17 | heinricitorgau | 8 | +945 / −55 | Seed 43 more ARWU aliases; ARWU coverage 637 -> 686 |
-| `952224a` | 2026-08-17 | heinricitorgau | 5 | +1793 / −197 | Allow $ in minified names; ARWU extraction 897 -> 1000 |
-| `339fc69` | 2026-08-17 | heinricitorgau | 2 | +4 / −0 | Link the two READMEs to each other |
-| `f54674f` | 2026-08-17 | heinricitorgau | 2 | +79 / −6 | Add contents, prerequisites and a licence section to both READMEs |
-| `b13e238` | 2026-08-17 | heinricitorgau | 1 | +111 / −3 | Sync the Chinese README with the English one |
-| `232ce5e` | 2026-08-17 | heinricitorgau | 2 | +177 / −2 | Seed 25 reviewed ARWU aliases; three-source coverage 495 -> 508 |
-| `58ecdf7` | 2026-08-17 | heinricitorgau | 3 | +341 / −0 | Score the served predictions, not just their shape |
-| `6d1293a` | 2026-08-17 | heinricitorgau | 3 | +188 / −0 | Fail loudly when the exported QS-THE pairing goes stale |
-| `707329f` | 2026-08-17 | heinricitorgau | 1 | +47 / −6 | Give the idempotency test its own universities |
-| `ca254a3` | 2026-08-17 | heinricitorgau | 6 | +338 / −1 | Make source ingestion idempotent |
-| `e7820b5` | 2026-08-17 | heinricitorgau | 3 | +14264 / −518 | Read the whole ARWU table from the Nuxt payload, not the 30 rendered rows |
-| `6c1692e` | 2026-08-16 | heinricitorgau | 5 | +865 / −13 | Ingest ARWU 2026; 29 universities reach three sources |
-| `fb74248` | 2026-08-16 | heinricitorgau | 4 | +63 / −823 | Stop the ARWU crawler labelling old tables with the requested year |
-| `b7c6556` | 2026-08-16 | heinricitorgau | 6 | +5542 / −68 | Join QS and THE on the warehouse's reviewed pairing, not a name key |
-| `8d88b76` | 2026-08-16 | heinricitorgau | 3 | +844 / −1 | Seed 112 reviewed THE aliases; two-source coverage 969 -> 1080 |
-| `0814317` | 2026-08-16 | heinricitorgau | 4 | +212 / −18 | Derive the source-coverage caveats from the warehouse |
-| `691ba90` | 2026-08-16 | heinricitorgau | 2 | +49 / −3 | Document what CI actually executes |
-| `d2d017e` | 2026-08-16 | heinricitorgau | 4 | +190 / −37 | Re-execute the MATLAB sources in CI now the repository is public |
-| `deaf9bf` | 2026-08-16 | heinricitorgau | 6 | +36 / −48 | Drop the skipping API step from smoke_release.sh |
-| `69004a6` | 2026-08-16 | heinricitorgau | 3 | +80 / −34 | Run the API endpoint checks in CI instead of skipping them |
-| `b3aef36` | 2026-08-16 | heinricitorgau | 2 | +157 / −0 | Run smoke_analytics_bridge in CI against a live API |
-| `7f17082` | 2026-08-16 | heinricitorgau | 2 | +88 / −7 | Run the opt-in PostgreSQL tests in CI |
-| `76cab93` | 2026-08-16 | heinricitorgau | 2 | +157 / −0 | Cover the superseded-row prune with a regression test |
-| `5f793b5` | 2026-08-16 | heinricitorgau | 1 | +65 / −0 | Prune superseded rows from analytics.aggregated_rankings |
-| `af3f033` | 2026-08-15 | heinricitorgau | 11 | +183 / −35 | Set source weights to QS 0.222 / THE 0.654 / ARWU 0.124 |
-| `98619fc` | 2026-08-15 | heinricitorgau | 3 | +314 / −36 | Catch faith-108: ordering claims over dimensions the evidence lacks |
-| `432c608` | 2026-08-15 | heinricitorgau | 8 | +548 / −41 | Add a structured provenance signal to explanation verification |
-| `4f16aab` | 2026-08-15 | heinricitorgau | 3 | +265 / −20 | eval(agent): nine more cases beyond the rules, and what the judge misses has a shape |
-| `cd95973` | 2026-08-15 | heinricitorgau | 4 | +143 / −18 | fix(agent): the dark-judge warning was going to the wrong stream, and the recovery never appeared |
-| `10e1539` | 2026-08-15 | heinricitorgau | 3 | +117 / −4 | feat(agent): make a judge that has gone dark say so |
-| `5a65e8b` | 2026-08-15 | heinricitorgau | 4 | +204 / −5 | feat(agent): serve the verification counters at GET /api/v1/agent/stats |
-| `a495284` | 2026-08-15 | heinricitorgau | 3 | +118 / −4 | feat(agent): count verification outcomes, and say what still is not watched |
-| `7ba7736` | 2026-08-15 | heinricitorgau | 19 | +539 / −52 | feat(agent): verify explanations at generation time, with the judge as second signal |
-| `bc635f6` | 2026-08-15 | heinricitorgau | 5 | +437 / −36 | eval(agent): add cases the rules cannot express, which reverses the judge verdict |
-| `f618502` | 2026-08-15 | heinricitorgau | 2 | +34 / −2 | fix(ml): the MATLAB freshness guard could never fire in CI |
-| `67eefc3` | 2026-08-15 | heinricitorgau | 3 | +117 / −16 | test(ml): guard the MATLAB artifacts against going stale |
-| `18d5999` | 2026-08-15 | heinricitorgau | 7 | +500 / −4 | ci(ml): exercise the serving write path, and fix the bug that found |
-| `36beb97` | 2026-08-15 | heinricitorgau | 9 | +475 / −9 | feat(ml): serve the disagreement probability, and stop the two targets mixing |
-| `2874e64` | 2026-08-15 | heinricitorgau | 4 | +600 / −3 | eval(agent): measure an LLM judge against the rule checker, and reject it |
-| `d292984` | 2026-08-15 | heinricitorgau | 2 | +58 / −1 | fix(tests): un-rot a cache fixture, and run this suite in CI so it cannot rot again |
-| `a05ff8a` | 2026-08-15 | heinricitorgau | 4 | +1479 / −1355 | refactor(pipeline): move the canonical and source-ingestion commands out |
-| `a23e94b` | 2026-08-15 | heinricitorgau | 2 | +71 / −33 | refactor(pipeline): share the PostgreSQL helpers, unblocking the last group |
-| `e28859f` | 2026-08-15 | heinricitorgau | 4 | +814 / −750 | refactor(pipeline): move the ranking commands into pipeline/commands/ |
-| `ab99047` | 2026-08-15 | heinricitorgau | 2 | +165 / −2 | fix(pipeline): repair two NameErrors, and add the check that found them |
-| `924febc` | 2026-08-15 | heinricitorgau | 3 | +588 / −544 | refactor(pipeline): move the admission commands into pipeline/commands/ |
-| `dde37a6` | 2026-08-12 | heinricitorgau | 1 | +911 / −806 | refactor(pipeline): replace the 900-line dispatch ladder with a command registry |
-| `ab122cf` | 2026-08-12 | heinricitorgau | 1 | +68 / −0 | tooling: add a CLI-surface snapshot for refactoring run_pipeline.py |
-| `9af329d` | 2026-08-12 | heinricitorgau | 3 | +17 / −0 | docs: show the running application in the README |
-| `d027bce` | 2026-08-12 | heinricitorgau | 8 | +250 / −16 | test(ml): verify the MATLAB EDA port against the Python one |
-| `56d0380` | 2026-08-12 | heinricitorgau | 5 | +558 / −4 | ci: guard the modelling layer with feature tests and a metrics gate |
-| `1238178` | 2026-08-09 | heinricitorgau | 12 | +743 / −12 | feat(ml): store estimates in analytics.ml_predictions and serve them |
-| `07901c4` | 2026-08-09 | heinricitorgau | 11 | +717 / −0 | Add MATLAB port of the QS indicator EDA |
-| `8e18beb` | 2026-08-09 | heinricitorgau | 6 | +134 / −4 | fix: correct subject rankings assertion and make API tests DB-independent |
-| `1900f04` | 2026-08-09 | heinricitorgau | 4 | +163 / −6 | feat(api): add the model-estimate caveat to the analytics honesty contract |
-| `2800602` | 2026-08-09 | heinricitorgau | 8 | +1122 / −13 | feat(ml): add the cross-source disagreement classifier and score the faithfulness checker |
-| `8a10e05` | 2026-08-09 | heinricitorgau | 12 | +1062 / −10 | feat(ml): train and evaluate the QS overall-score estimator |
-| `9118c94` | 2026-08-09 | heinricitorgau | 14 | +957 / −0 | feat(ml): add the modelling layer's feature contract and EDA |
-| `7f3664f` | 2026-08-08 | heinricitorgau | 11 | +642 / −24 | feat(agent): comparison and application-plan explanation surfaces |
-| `7c4b106` | 2026-08-08 | heinricitorgau | 340 | +25 / −98562 | chore: remove vendored mini-agent and generated lobster-01 runtime copy |
-| `76340bb` | 2026-08-08 | heinricitorgau | 2 | +25 / −4 | feat: trim the downloadable source archive to a runnable package |
-| `7f45cde` | 2026-08-08 | heinricitorgau | 10 | +659 / −3 | feat: surface ds4 explanations on the recommendations page |
-| `5edd128` | 2026-08-08 | heinricitorgau | 3 | +224 / −2 | feat(agent): SSE streaming transport for ds4 generation |
-| `4a00860` | 2026-08-08 | heinricitorgau | 6 | +629 / −7 | feat(autoeval): mechanical faithfulness eval for generated explanations |
-| `cf93e35` | 2026-08-08 | heinricitorgau | 4 | +153 / −9 | feat(agent): configurable ds4 timeout and generation observability |
+| `8d01ac2b` | 2026-08-25 | github-actions[bot] | 1 | +11 / −9 | docs: regenerate the commit log |
+| `09b2c0c8` | 2026-08-25 | heinricitorgau | 8 | +1419 / −35 | feat(agent): close the loop with conversation history and restore |
+| `ea1b634a` | 2026-08-25 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `249a6ec7` | 2026-08-25 | heinricitorgau | 20 | +1909 / −12 | feat(agent): wake the web agent up behind ds4, with a Java-owned save path |
+| `3acdcbd7` | 2026-08-25 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
+| `ce7ba49f` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #22 from heinricitorgau/claude/remove-ranking-records-preview-996301 |
+| `3386c7f5` | 2026-08-25 | heinricitorgau | 24 | +1468 / −57 | feat(admissions): surface structured entry requirements end to end |
+| `4c485131` | 2026-08-25 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `48a23828` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #19 from heinricitorgau/ml/diagnostics-parity |
+| `0200f989` | 2026-08-25 | github-actions[bot] | 1 | +20 / −10 | docs: regenerate the commit log |
+| `1ba3d96b` | 2026-08-25 | KAO,EN-TSAI | — | — | Merge pull request #21 from heinricitorgau/claude/remove-ranking-records-preview-996301 |
+| `43217f76` | 2026-08-24 | heinricitorgau | 16 | +209 / −1286 | refactor(warehouse): drop ranking_records_preview end to end |
+| `3a16a533` | 2026-08-23 | github-actions[bot] | 1 | +14 / −10 | docs: regenerate the commit log |
+| `eef516cd` | 2026-08-23 | KAO,EN-TSAI | — | — | Merge pull request #17 from heinricitorgau/feat/admission-ranking-convergence |
+| `85c58895` | 2026-08-22 | heinricitorgau | 57 | +3425 / −447 | Converge the admission pipeline onto the ranking entity-resolution stack |
+| `92099fae` | 2026-08-22 | heinricitorgau | 5 | +439 / −11 | Cover plot_disagreement_diagnostics.m against sklearn, and fix its binning |
+| `1dcd8aa0` | 2026-08-22 | github-actions[bot] | 1 | +14 / −11 | docs: regenerate the commit log |
+| `aeda7869` | 2026-08-22 | KAO,EN-TSAI | — | — | Merge pull request #16 from heinricitorgau/test/inference-batch-invariants |
+| `fb4289a0` | 2026-08-22 | heinricitorgau | 3 | +214 / −2 | Cover the one MATLAB port parity cannot reach |
+| `be32c9d9` | 2026-08-21 | github-actions[bot] | 1 | +26 / −8 | docs: regenerate the commit log |
+| `3d6c08fe` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #15 from heinricitorgau/fix/entity-resolution-blocking |
+| `900c5e92` | 2026-08-21 | heinricitorgau | 2 | +30 / −30 | Retrain the disagreement model on the corrected pairing |
+| `a7dc7348` | 2026-08-21 | heinricitorgau | 1 | +7 / −7 | Re-run build_cross_source_data.m against the corrected pairing |
+| `2c155197` | 2026-08-21 | heinricitorgau | 1 | +77 / −24 | Point the analytics smoke at the path that now exists |
+| `4f38d3e1` | 2026-08-21 | heinricitorgau | 1 | +29 / −2 | Fold review_queue.sql into mapping_review_queue.sql |
+| `17bd1e6f` | 2026-08-21 | heinricitorgau | 1 | +6 / −21 | Re-export the pairing after clearing the review backlog |
+| `36d587ab` | 2026-08-21 | heinricitorgau | 1 | +6 / −1 | Keep the whole note, commas and all |
+| `cea607db` | 2026-08-21 | heinricitorgau | 3 | +32 / −7 | Put the decision slot where the eye already is |
+| `d79fec73` | 2026-08-21 | heinricitorgau | 1 | +213 / −0 | Make re-exporting the QS-THE pairing a script, not a one-off |
+| `bb542674` | 2026-08-21 | heinricitorgau | 3 | +538 / −0 | Add batch tooling for the entity-resolution backlog |
+| `290ae7b3` | 2026-08-21 | heinricitorgau | 1 | +230 / −15 | Re-export the QS-THE pairing the warehouse now holds |
+| `1fdeedd8` | 2026-08-21 | heinricitorgau | 3 | +177 / −1 | Take the current rank, not the best one ever recorded |
+| `5a3066f8` | 2026-08-21 | heinricitorgau | 1 | +2 / −2 | Stop labelling three different stages [4/4] |
+| `830234db` | 2026-08-21 | heinricitorgau | 3 | +133 / −16 | Persist the QS profile path instead of dropping it |
+| `92a7bf8b` | 2026-08-21 | heinricitorgau | 4 | +484 / −165 | Give warehouse.ranking_record one writer |
+| `f7c42f8e` | 2026-08-21 | heinricitorgau | 1 | +29 / −23 | Let the QS multi-source sync fail loudly |
+| `c603d554` | 2026-08-21 | heinricitorgau | 1 | +4 / −1 | Stop pinning the QS run id too |
+| `7fb3e230` | 2026-08-21 | github-actions[bot] | 1 | +18 / −9 | docs: regenerate the commit log |
+| `608ab2c2` | 2026-08-21 | KAO,EN-TSAI | — | — | Merge pull request #14 from heinricitorgau/fix/entity-resolution-blocking |
+| `67980575` | 2026-08-21 | heinricitorgau | 1 | +6 / −2 | Stop pinning a constant run id, which made the prune inert |
+| `73736dbc` | 2026-08-21 | heinricitorgau | 1 | +7000 / −1000 | Refresh the ARWU 2026 crawl output |
+| `5f89da98` | 2026-08-21 | heinricitorgau | 2 | +184 / −5 | Keep the ARWU source row, in the shape everything downstream expects |
+| `e1950cd6` | 2026-08-21 | heinricitorgau | 12 | +1255 / −0 | Give the fuzzy-match backlog a review screen |
+| `de9e2407` | 2026-08-21 | heinricitorgau | 9 | +788 / −0 | Let a reviewer overrule the fuzzy matcher, durably |
+| `58ef9faf` | 2026-08-21 | heinricitorgau | 1 | +42 / −42 | Refresh the THE 2026 crawl output |
+| `10d184e4` | 2026-08-21 | heinricitorgau | 6 | +444 / −28 | Make entity resolution reach the names it was already close to |
+| `43bc57c6` | 2026-08-20 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `246dffae` | 2026-08-20 | heinricitorgau | 1 | +735 / −0 | Add the read-only entity-resolution backlog dry run |
+| `4f9c241d` | 2026-08-20 | github-actions[bot] | 1 | +8 / −7 | docs: regenerate the commit log |
+| `7d87cc5f` | 2026-08-20 | heinricitorgau | 3 | +400 / −13 | Regenerate the commit log from CI instead of by hand |
+| `3c619886` | 2026-08-20 | KAO,EN-TSAI | — | — | Merge pull request #13 from heinricitorgau/docs/commit-log |
+| `ca4ed73d` | 2026-08-20 | heinricitorgau | 1 | +29 / −5 | Report the artifact-ordering check instead of enforcing it |
+| `50050cf3` | 2026-08-20 | heinricitorgau | 3 | +128 / −0 | Make the disagreement inference use the shared cross-source builder |
+| `08daf6e9` | 2026-08-20 | heinricitorgau | 5 | +226 / −7 | Reproduce the Phase 3 diagnostics figure in MATLAB |
+| `5b84ab1f` | 2026-08-18 | heinricitorgau | 52 | +9523 / −9492 | Store and check out LF everywhere, and renormalise |
+| `dcf06d6e` | 2026-08-18 | KAO,EN-TSAI | — | — | Merge pull request #12 from heinricitorgau/docs/commit-log |
+| `d3d49913` | 2026-08-18 | heinricitorgau | 13 | +1237 / −241 | Port Phase 3 to MATLAB and generalise the parity guard |
+| `5a88eaf1` | 2026-08-18 | heinricitorgau | 3 | +364 / −0 | docs: add a generated commit log with per-commit change statistics |
+| `449980c3` | 2026-08-17 | heinricitorgau | 11 | +446 / −0 | update |
+| `170f0e22` | 2026-08-17 | heinricitorgau | 8 | +945 / −55 | Seed 43 more ARWU aliases; ARWU coverage 637 -> 686 |
+| `952224a9` | 2026-08-17 | heinricitorgau | 5 | +1793 / −197 | Allow $ in minified names; ARWU extraction 897 -> 1000 |
+| `339fc699` | 2026-08-17 | heinricitorgau | 2 | +4 / −0 | Link the two READMEs to each other |
+| `f54674ff` | 2026-08-17 | heinricitorgau | 2 | +79 / −6 | Add contents, prerequisites and a licence section to both READMEs |
+| `b13e238c` | 2026-08-17 | heinricitorgau | 1 | +111 / −3 | Sync the Chinese README with the English one |
+| `232ce5ea` | 2026-08-17 | heinricitorgau | 2 | +177 / −2 | Seed 25 reviewed ARWU aliases; three-source coverage 495 -> 508 |
+| `58ecdf78` | 2026-08-17 | heinricitorgau | 3 | +341 / −0 | Score the served predictions, not just their shape |
+| `6d1293a8` | 2026-08-17 | heinricitorgau | 3 | +188 / −0 | Fail loudly when the exported QS-THE pairing goes stale |
+| `707329f8` | 2026-08-17 | heinricitorgau | 1 | +47 / −6 | Give the idempotency test its own universities |
+| `ca254a30` | 2026-08-17 | heinricitorgau | 6 | +338 / −1 | Make source ingestion idempotent |
+| `e7820b5e` | 2026-08-17 | heinricitorgau | 3 | +14264 / −518 | Read the whole ARWU table from the Nuxt payload, not the 30 rendered rows |
+| `6c1692e0` | 2026-08-16 | heinricitorgau | 5 | +865 / −13 | Ingest ARWU 2026; 29 universities reach three sources |
+| `fb74248c` | 2026-08-16 | heinricitorgau | 4 | +63 / −823 | Stop the ARWU crawler labelling old tables with the requested year |
+| `b7c65567` | 2026-08-16 | heinricitorgau | 6 | +5542 / −68 | Join QS and THE on the warehouse's reviewed pairing, not a name key |
+| `8d88b763` | 2026-08-16 | heinricitorgau | 3 | +844 / −1 | Seed 112 reviewed THE aliases; two-source coverage 969 -> 1080 |
+| `08143171` | 2026-08-16 | heinricitorgau | 4 | +212 / −18 | Derive the source-coverage caveats from the warehouse |
+| `691ba900` | 2026-08-16 | heinricitorgau | 2 | +49 / −3 | Document what CI actually executes |
+| `d2d017e3` | 2026-08-16 | heinricitorgau | 4 | +190 / −37 | Re-execute the MATLAB sources in CI now the repository is public |
+| `deaf9bf1` | 2026-08-16 | heinricitorgau | 6 | +36 / −48 | Drop the skipping API step from smoke_release.sh |
+| `69004a69` | 2026-08-16 | heinricitorgau | 3 | +80 / −34 | Run the API endpoint checks in CI instead of skipping them |
+| `b3aef366` | 2026-08-16 | heinricitorgau | 2 | +157 / −0 | Run smoke_analytics_bridge in CI against a live API |
+| `7f170828` | 2026-08-16 | heinricitorgau | 2 | +88 / −7 | Run the opt-in PostgreSQL tests in CI |
+| `76cab934` | 2026-08-16 | heinricitorgau | 2 | +157 / −0 | Cover the superseded-row prune with a regression test |
+| `5f793b58` | 2026-08-16 | heinricitorgau | 1 | +65 / −0 | Prune superseded rows from analytics.aggregated_rankings |
+| `af3f0331` | 2026-08-15 | heinricitorgau | 11 | +183 / −35 | Set source weights to QS 0.222 / THE 0.654 / ARWU 0.124 |
+| `98619fc6` | 2026-08-15 | heinricitorgau | 3 | +314 / −36 | Catch faith-108: ordering claims over dimensions the evidence lacks |
+| `432c608c` | 2026-08-15 | heinricitorgau | 8 | +548 / −41 | Add a structured provenance signal to explanation verification |
+| `4f16aab4` | 2026-08-15 | heinricitorgau | 3 | +265 / −20 | eval(agent): nine more cases beyond the rules, and what the judge misses has a shape |
+| `cd959738` | 2026-08-15 | heinricitorgau | 4 | +143 / −18 | fix(agent): the dark-judge warning was going to the wrong stream, and the recovery never appeared |
+| `10e15395` | 2026-08-15 | heinricitorgau | 3 | +117 / −4 | feat(agent): make a judge that has gone dark say so |
+| `5a65e8b7` | 2026-08-15 | heinricitorgau | 4 | +204 / −5 | feat(agent): serve the verification counters at GET /api/v1/agent/stats |
+| `a4952841` | 2026-08-15 | heinricitorgau | 3 | +118 / −4 | feat(agent): count verification outcomes, and say what still is not watched |
+| `7ba77368` | 2026-08-15 | heinricitorgau | 19 | +539 / −52 | feat(agent): verify explanations at generation time, with the judge as second signal |
+| `bc635f6b` | 2026-08-15 | heinricitorgau | 5 | +437 / −36 | eval(agent): add cases the rules cannot express, which reverses the judge verdict |
+| `f6185026` | 2026-08-15 | heinricitorgau | 2 | +34 / −2 | fix(ml): the MATLAB freshness guard could never fire in CI |
+| `67eefc38` | 2026-08-15 | heinricitorgau | 3 | +117 / −16 | test(ml): guard the MATLAB artifacts against going stale |
+| `18d59995` | 2026-08-15 | heinricitorgau | 7 | +500 / −4 | ci(ml): exercise the serving write path, and fix the bug that found |
+| `36beb972` | 2026-08-15 | heinricitorgau | 9 | +475 / −9 | feat(ml): serve the disagreement probability, and stop the two targets mixing |
+| `2874e642` | 2026-08-15 | heinricitorgau | 4 | +600 / −3 | eval(agent): measure an LLM judge against the rule checker, and reject it |
+| `d2929845` | 2026-08-15 | heinricitorgau | 2 | +58 / −1 | fix(tests): un-rot a cache fixture, and run this suite in CI so it cannot rot again |
+| `a05ff8a4` | 2026-08-15 | heinricitorgau | 4 | +1479 / −1355 | refactor(pipeline): move the canonical and source-ingestion commands out |
+| `a23e94b8` | 2026-08-15 | heinricitorgau | 2 | +71 / −33 | refactor(pipeline): share the PostgreSQL helpers, unblocking the last group |
+| `e28859f3` | 2026-08-15 | heinricitorgau | 4 | +814 / −750 | refactor(pipeline): move the ranking commands into pipeline/commands/ |
+| `ab99047a` | 2026-08-15 | heinricitorgau | 2 | +165 / −2 | fix(pipeline): repair two NameErrors, and add the check that found them |
+| `924febc0` | 2026-08-15 | heinricitorgau | 3 | +588 / −544 | refactor(pipeline): move the admission commands into pipeline/commands/ |
+| `dde37a6c` | 2026-08-12 | heinricitorgau | 1 | +911 / −806 | refactor(pipeline): replace the 900-line dispatch ladder with a command registry |
+| `ab122cf5` | 2026-08-12 | heinricitorgau | 1 | +68 / −0 | tooling: add a CLI-surface snapshot for refactoring run_pipeline.py |
+| `9af329da` | 2026-08-12 | heinricitorgau | 3 | +17 / −0 | docs: show the running application in the README |
+| `d027bce6` | 2026-08-12 | heinricitorgau | 8 | +250 / −16 | test(ml): verify the MATLAB EDA port against the Python one |
+| `56d0380f` | 2026-08-12 | heinricitorgau | 5 | +558 / −4 | ci: guard the modelling layer with feature tests and a metrics gate |
+| `1238178d` | 2026-08-09 | heinricitorgau | 12 | +743 / −12 | feat(ml): store estimates in analytics.ml_predictions and serve them |
+| `07901c42` | 2026-08-09 | heinricitorgau | 11 | +717 / −0 | Add MATLAB port of the QS indicator EDA |
+| `8e18beba` | 2026-08-09 | heinricitorgau | 6 | +134 / −4 | fix: correct subject rankings assertion and make API tests DB-independent |
+| `1900f049` | 2026-08-09 | heinricitorgau | 4 | +163 / −6 | feat(api): add the model-estimate caveat to the analytics honesty contract |
+| `2800602a` | 2026-08-09 | heinricitorgau | 8 | +1122 / −13 | feat(ml): add the cross-source disagreement classifier and score the faithfulness checker |
+| `8a10e053` | 2026-08-09 | heinricitorgau | 12 | +1062 / −10 | feat(ml): train and evaluate the QS overall-score estimator |
+| `9118c94d` | 2026-08-09 | heinricitorgau | 14 | +957 / −0 | feat(ml): add the modelling layer's feature contract and EDA |
+| `7f3664f4` | 2026-08-08 | heinricitorgau | 11 | +642 / −24 | feat(agent): comparison and application-plan explanation surfaces |
+| `7c4b106f` | 2026-08-08 | heinricitorgau | 340 | +25 / −98562 | chore: remove vendored mini-agent and generated lobster-01 runtime copy |
+| `76340bb9` | 2026-08-08 | heinricitorgau | 2 | +25 / −4 | feat: trim the downloadable source archive to a runnable package |
+| `7f45cdea` | 2026-08-08 | heinricitorgau | 10 | +659 / −3 | feat: surface ds4 explanations on the recommendations page |
+| `5edd1288` | 2026-08-08 | heinricitorgau | 3 | +224 / −2 | feat(agent): SSE streaming transport for ds4 generation |
+| `4a008603` | 2026-08-08 | heinricitorgau | 6 | +629 / −7 | feat(autoeval): mechanical faithfulness eval for generated explanations |
+| `cf93e35a` | 2026-08-08 | heinricitorgau | 4 | +153 / −9 | feat(agent): configurable ds4 timeout and generation observability |
 
 ## 2026-07
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `1af6acc` | 2026-07-23 | heinricitorgau | 1 | +4 / −0 | docs: add CI badges to README.zh-TW.md |
-| `c560d80` | 2026-07-23 | heinricitorgau | 1 | +11 / −0 | docs(ds4): show CI status in the tests section |
-| `050486d` | 2026-07-23 | heinricitorgau | 1 | +2 / −0 | docs: add Data Quality and Release Smoke CI badges to README |
-| `e6dab02` | 2026-07-23 | heinricitorgau | 1 | +2 / −0 | docs: add Agent Tests CI badge to README |
-| `35b5362` | 2026-07-23 | heinricitorgau | 1 | +45 / −0 | ci: run ds4 / web-agent generation tests on push and PR |
-| `20bfb7e` | 2026-07-23 | heinricitorgau | 2 | +174 / −3 | test(agent): add mock-server live-path integration test for ds4 |
-| `8a781e7` | 2026-07-23 | heinricitorgau | 1 | +1 / −1 | docs: note remote ds4-server setup in the README doc link |
-| `39590b5` | 2026-07-23 | heinricitorgau | 1 | +55 / −0 | docs(ds4): document pointing CrawlerNest at a remote ds4-server |
-| `2cde8a3` | 2026-07-23 | heinricitorgau | 4 | +684 / −346 | refactor(agent): split context-builder god method and table-drive prompt builder |
-| `e1ca8a9` | 2026-07-22 | heinricitorgau | 10 | +248 / −292 | refactor(agent): dedup the web-agent generation layer (simplify sweep) |
-| `2660932` | 2026-07-22 | heinricitorgau | 5 | +184 / −220 | refactor(agent): extract shared GroundedExplainer base for the ds4 explainers |
-| `c7f8158` | 2026-07-22 | heinricitorgau | 8 | +621 / −12 | feat(agent): add ds4 explainers for university_lookup and data_query |
-| `db60854` | 2026-07-22 | heinricitorgau | 7 | +336 / −7 | feat(agent): add ds4 ranking-explain explanation generator |
-| `f9877c6` | 2026-07-22 | heinricitorgau | 3 | +43 / −0 | feat(agent): wire ds4 recommendation explainer into the live web-agent path |
-| `85899d9` | 2026-07-22 | heinricitorgau | 4 | +500 / −0 | feat(agent): add ds4 local-model provider and recommendation explainer |
-| `d2296ec` | 2026-07-14 | heinricitorgau | 1 | +89 / −26 | docs: expand landing page with Why CrawlerNest and design principles |
-| `f642a96` | 2026-07-14 | heinricitorgau | 2 | +140 / −0 | feat: add GitHub Pages landing page with download links |
-| `7229ded` | 2026-07-14 | heinricitorgau | 3 | +222 / −3 | feat: add one-command first-time setup for self-hosted data |
-| `d76e99a` | 2026-07-14 | heinricitorgau | 1 | +22 / −0 | feat(web): harden robots.txt against crawler overload |
-| `a965936` | 2026-07-14 | heinricitorgau | 1 | +2 / −5 | feat(web): add crawl-delay and query-string disallow to robots.txt |
-| `585211d` | 2026-07-14 | heinricitorgau | 1 | +14 / −0 | feat(web): add robots.txt excluding API routes and user pages |
-| `0ffc9cc` | 2026-07-14 | heinricitorgau | 1 | +4 / −1 | fix(web): allow dev access from WSL NAT IP via allowedDevOrigins |
-| `6ceb3d2` | 2026-07-06 | heinricitorgau | 99 | +17 / −278 | chore: untrack build artifacts and deprecated ranking-crawler copy |
-| `bce364c` | 2026-07-04 | heinricitorgau | 4 | +136 / −10 | fix: correct source count in analytics trends; add banner anchor links and root CLAUDE.md |
-| `9234990` | 2026-07-04 | heinricitorgau | 3 | +356 / −1136 | docs: rewrite READMEs as project overview, extract setup to GETTING_STARTED.md |
-| `2769920` | 2026-07-04 | heinricitorgau | 102 | +41 / −42 | refactor: move crawlernest-agents and C engine into crawlernest/ module tree |
-| `9a578d5` | 2026-07-04 | heinricitorgau | 45 | +7 / −244 | chore: clean up repo root — untrack runtime artifacts, consolidate samples, move tests |
-| `e80265a` | 2026-07-04 | heinricitorgau | 51 | +15 / −4404 | refactor: consolidate C normalization engine into Clawer-C-Data-Normalization-Engine |
-| `805ea5a` | 2026-07-04 | heinricitorgau | 96 | +11502 / −9 | chore: add Clawer-C-Data-Normalization-Engine and crawlernest-agents, update docs |
+| `1af6acce` | 2026-07-23 | heinricitorgau | 1 | +4 / −0 | docs: add CI badges to README.zh-TW.md |
+| `c560d806` | 2026-07-23 | heinricitorgau | 1 | +11 / −0 | docs(ds4): show CI status in the tests section |
+| `050486da` | 2026-07-23 | heinricitorgau | 1 | +2 / −0 | docs: add Data Quality and Release Smoke CI badges to README |
+| `e6dab022` | 2026-07-23 | heinricitorgau | 1 | +2 / −0 | docs: add Agent Tests CI badge to README |
+| `35b53623` | 2026-07-23 | heinricitorgau | 1 | +45 / −0 | ci: run ds4 / web-agent generation tests on push and PR |
+| `20bfb7e8` | 2026-07-23 | heinricitorgau | 2 | +174 / −3 | test(agent): add mock-server live-path integration test for ds4 |
+| `8a781e72` | 2026-07-23 | heinricitorgau | 1 | +1 / −1 | docs: note remote ds4-server setup in the README doc link |
+| `39590b54` | 2026-07-23 | heinricitorgau | 1 | +55 / −0 | docs(ds4): document pointing CrawlerNest at a remote ds4-server |
+| `2cde8a38` | 2026-07-23 | heinricitorgau | 4 | +684 / −346 | refactor(agent): split context-builder god method and table-drive prompt builder |
+| `e1ca8a9a` | 2026-07-22 | heinricitorgau | 10 | +248 / −292 | refactor(agent): dedup the web-agent generation layer (simplify sweep) |
+| `26609326` | 2026-07-22 | heinricitorgau | 5 | +184 / −220 | refactor(agent): extract shared GroundedExplainer base for the ds4 explainers |
+| `c7f81589` | 2026-07-22 | heinricitorgau | 8 | +621 / −12 | feat(agent): add ds4 explainers for university_lookup and data_query |
+| `db60854f` | 2026-07-22 | heinricitorgau | 7 | +336 / −7 | feat(agent): add ds4 ranking-explain explanation generator |
+| `f9877c69` | 2026-07-22 | heinricitorgau | 3 | +43 / −0 | feat(agent): wire ds4 recommendation explainer into the live web-agent path |
+| `85899d95` | 2026-07-22 | heinricitorgau | 4 | +500 / −0 | feat(agent): add ds4 local-model provider and recommendation explainer |
+| `d2296ecc` | 2026-07-14 | heinricitorgau | 1 | +89 / −26 | docs: expand landing page with Why CrawlerNest and design principles |
+| `f642a96e` | 2026-07-14 | heinricitorgau | 2 | +140 / −0 | feat: add GitHub Pages landing page with download links |
+| `7229dedb` | 2026-07-14 | heinricitorgau | 3 | +222 / −3 | feat: add one-command first-time setup for self-hosted data |
+| `d76e99a4` | 2026-07-14 | heinricitorgau | 1 | +22 / −0 | feat(web): harden robots.txt against crawler overload |
+| `a965936e` | 2026-07-14 | heinricitorgau | 1 | +2 / −5 | feat(web): add crawl-delay and query-string disallow to robots.txt |
+| `585211d1` | 2026-07-14 | heinricitorgau | 1 | +14 / −0 | feat(web): add robots.txt excluding API routes and user pages |
+| `0ffc9ccb` | 2026-07-14 | heinricitorgau | 1 | +4 / −1 | fix(web): allow dev access from WSL NAT IP via allowedDevOrigins |
+| `6ceb3d2f` | 2026-07-06 | heinricitorgau | 99 | +17 / −278 | chore: untrack build artifacts and deprecated ranking-crawler copy |
+| `bce364c8` | 2026-07-04 | heinricitorgau | 4 | +136 / −10 | fix: correct source count in analytics trends; add banner anchor links and root CLAUDE.md |
+| `9234990c` | 2026-07-04 | heinricitorgau | 3 | +356 / −1136 | docs: rewrite READMEs as project overview, extract setup to GETTING_STARTED.md |
+| `2769920d` | 2026-07-04 | heinricitorgau | 102 | +41 / −42 | refactor: move crawlernest-agents and C engine into crawlernest/ module tree |
+| `9a578d56` | 2026-07-04 | heinricitorgau | 45 | +7 / −244 | chore: clean up repo root — untrack runtime artifacts, consolidate samples, move tests |
+| `e80265ae` | 2026-07-04 | heinricitorgau | 51 | +15 / −4404 | refactor: consolidate C normalization engine into Clawer-C-Data-Normalization-Engine |
+| `805ea5a0` | 2026-07-04 | heinricitorgau | 96 | +11502 / −9 | chore: add Clawer-C-Data-Normalization-Engine and crawlernest-agents, update docs |
 
 ## 2026-06
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `3654ac8` | 2026-06-12 | heinricitorgau | 6 | +97 / −11 | feat: add business-management subject rankings ingestion and cookie consent banner |
-| `108f7ea` | 2026-06-12 | heinricitorgau | 98 | +261 / −261 | refactor(docs): reorganize flat docs/ into 7 subdirectories with corrected cross-references |
-| `8d668d8` | 2026-06-09 | heinricitorgau | 6 | +941 / −0 | docs: add Phase 4 competition demo rehearsal — judge simulation, narrative audit, timing scripts, screenshot priorities, agent value assessment, and readiness scorecard |
-| `2b0457a` | 2026-06-06 | heinricitorgau | 9 | +379 / −0 | docs: prepare readonly agent for competition demo |
-| `7c6b2fd` | 2026-06-06 | heinricitorgau | 5 | +270 / −27 | feat: align agent responses with readonly system prompt |
-| `1f34d8a` | 2026-06-06 | heinricitorgau | 34 | +5002 / −136 | feat: add readonly agent model provider bridge |
+| `3654ac81` | 2026-06-12 | heinricitorgau | 6 | +97 / −11 | feat: add business-management subject rankings ingestion and cookie consent banner |
+| `108f7ea5` | 2026-06-12 | heinricitorgau | 98 | +261 / −261 | refactor(docs): reorganize flat docs/ into 7 subdirectories with corrected cross-references |
+| `8d668d8c` | 2026-06-09 | heinricitorgau | 6 | +941 / −0 | docs: add Phase 4 competition demo rehearsal — judge simulation, narrative audit, timing scripts, screenshot priorities, agent value assessment, and readiness scorecard |
+| `2b0457ab` | 2026-06-06 | heinricitorgau | 9 | +379 / −0 | docs: prepare readonly agent for competition demo |
+| `7c6b2fd0` | 2026-06-06 | heinricitorgau | 5 | +270 / −27 | feat: align agent responses with readonly system prompt |
+| `1f34d8a4` | 2026-06-06 | heinricitorgau | 34 | +5002 / −136 | feat: add readonly agent model provider bridge |
 
 ## 2026-05
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `f9d5299` | 2026-05-24 | heinricitorgau | 1 | +3 / −3 | test: align maintenance phase 6 validation with overview steps |
-| `45abbc7` | 2026-05-23 | heinricitorgau | 1 | +63 / −0 | add cross-repo AI debug review wrapper |
-| `92266f4` | 2026-05-23 | heinricitorgau | 54 | +6521 / −85 | feat: add explainable analytics and recommendation evidence |
-| `06ec731` | 2026-05-23 | heinricitorgau | 58 | +7268 / −41 | feat: add competition analytics prototype |
-| `c42f2f8` | 2026-05-16 | heinricitorgau | 80 | +1736 / −339 | chore: stabilize auth UX and prepare RC-1 operational freeze documentation |
-| `e6bee26` | 2026-05-16 | heinricitorgau | 4 | +208 / −8 | chore: harden user data safety review and validation |
-| `8ea3404` | 2026-05-16 | heinricitorgau | 15 | +942 / −1 | feat: add saved recommendation plans for signed-in users |
-| `9fce0eb` | 2026-05-16 | heinricitorgau | 42 | +1735 / −36 | feat: add saved universities for signed-in users |
-| `caa34bf` | 2026-05-16 | heinricitorgau | 20 | +3388 / −0 | docs: package v0.1 demo release milestone **[tag: v0.1-demo]** |
-| `c03ecb6` | 2026-05-09 | heinricitorgau | 1 | +10 / −1 | update whitepaper |
-| `181d977` | 2026-05-09 | heinricitorgau | 29 | +757 / −529 | update architecture pic |
-| `7b6279f` | 2026-05-09 | heinricitorgau | 18 | +1113 / −21 | chore: reduce operational risk with env, backup, and fixture checks |
-| `c3e59b9` | 2026-05-08 | heinricitorgau | 5 | +466 / −2 | docs: add full project state review |
-| `362423c` | 2026-05-08 | heinricitorgau | 6 | +856 / −8 | chore: add operational reliability checks and cleanup tooling |
-| `f61bd12` | 2026-05-08 | heinricitorgau | 7 | +645 / −0 | chore: add readonly repo-aware agent context snapshots |
-| `a0eb90b` | 2026-05-08 | heinricitorgau | 12 | +887 / −710 | chore: add readonly crawlernest-agents debug wrapper |
-| `28a1b87` | 2026-05-08 | heinricitorgau | 12 | +1243 / −67 | docs: sync architecture and operational documentation |
-| `0bdeeab` | 2026-05-08 | heinricitorgau | 10 | +1170 / −5 | feat: add cross-source ranking intelligence and explainability |
-| `4a99140` | 2026-05-08 | heinricitorgau | 9 | +516 / −9 | ci: add continuous verification workflows and fixture-based regression checks |
-| `91a9c1a` | 2026-05-08 | heinricitorgau | 24 | +3360 / −32 | feat: add operational automation and system snapshots |
-| `67f0e7e` | 2026-05-08 | heinricitorgau | 5 | +721 / −0 | docs: add demo checklist and local troubleshooting guide |
-| `ede8116` | 2026-05-08 | heinricitorgau | 20 | +1728 / −26 | feat: add freshness checks and incremental ingestion guards |
-| `e8ed031` | 2026-05-08 | heinricitorgau | 27 | +1128 / −988 | feat(local-stack): stabilize WSL localhost pipeline, PostgreSQL integration, and rankings API startup |
+| `f9d52990` | 2026-05-24 | heinricitorgau | 1 | +3 / −3 | test: align maintenance phase 6 validation with overview steps |
+| `45abbc71` | 2026-05-23 | heinricitorgau | 1 | +63 / −0 | add cross-repo AI debug review wrapper |
+| `92266f44` | 2026-05-23 | heinricitorgau | 54 | +6521 / −85 | feat: add explainable analytics and recommendation evidence |
+| `06ec7310` | 2026-05-23 | heinricitorgau | 58 | +7268 / −41 | feat: add competition analytics prototype |
+| `c42f2f83` | 2026-05-16 | heinricitorgau | 80 | +1736 / −339 | chore: stabilize auth UX and prepare RC-1 operational freeze documentation |
+| `e6bee26c` | 2026-05-16 | heinricitorgau | 4 | +208 / −8 | chore: harden user data safety review and validation |
+| `8ea34043` | 2026-05-16 | heinricitorgau | 15 | +942 / −1 | feat: add saved recommendation plans for signed-in users |
+| `9fce0eb3` | 2026-05-16 | heinricitorgau | 42 | +1735 / −36 | feat: add saved universities for signed-in users |
+| `caa34bf3` | 2026-05-16 | heinricitorgau | 20 | +3388 / −0 | docs: package v0.1 demo release milestone **[tag: v0.1-demo]** |
+| `c03ecb6e` | 2026-05-09 | heinricitorgau | 1 | +10 / −1 | update whitepaper |
+| `181d9776` | 2026-05-09 | heinricitorgau | 29 | +757 / −529 | update architecture pic |
+| `7b6279f1` | 2026-05-09 | heinricitorgau | 18 | +1113 / −21 | chore: reduce operational risk with env, backup, and fixture checks |
+| `c3e59b91` | 2026-05-08 | heinricitorgau | 5 | +466 / −2 | docs: add full project state review |
+| `362423c2` | 2026-05-08 | heinricitorgau | 6 | +856 / −8 | chore: add operational reliability checks and cleanup tooling |
+| `f61bd12b` | 2026-05-08 | heinricitorgau | 7 | +645 / −0 | chore: add readonly repo-aware agent context snapshots |
+| `a0eb90be` | 2026-05-08 | heinricitorgau | 12 | +887 / −710 | chore: add readonly crawlernest-agents debug wrapper |
+| `28a1b873` | 2026-05-08 | heinricitorgau | 12 | +1243 / −67 | docs: sync architecture and operational documentation |
+| `0bdeeabb` | 2026-05-08 | heinricitorgau | 10 | +1170 / −5 | feat: add cross-source ranking intelligence and explainability |
+| `4a991407` | 2026-05-08 | heinricitorgau | 9 | +516 / −9 | ci: add continuous verification workflows and fixture-based regression checks |
+| `91a9c1a4` | 2026-05-08 | heinricitorgau | 24 | +3360 / −32 | feat: add operational automation and system snapshots |
+| `67f0e7ee` | 2026-05-08 | heinricitorgau | 5 | +721 / −0 | docs: add demo checklist and local troubleshooting guide |
+| `ede8116e` | 2026-05-08 | heinricitorgau | 20 | +1728 / −26 | feat: add freshness checks and incremental ingestion guards |
+| `e8ed0313` | 2026-05-08 | heinricitorgau | 27 | +1128 / −988 | feat(local-stack): stabilize WSL localhost pipeline, PostgreSQL integration, and rankings API startup |
 
 ## 2026-04
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `16a3841` | 2026-04-29 | Heinrici Torgau | 50 | +4349 / −684 | feat: add subject rankings pipeline, API, web UI, and bootstrap support |
-| `9130862` | 2026-04-28 | Heinrici Torgau | 6 | +231 / −17 | fix(agent): extract country from prompt in RankingTools |
-| `102a9dc` | 2026-04-28 | Heinrici Torgau | 13 | +2459 / −2382 | update |
-| `fda9ba0` | 2026-04-28 | Heinrici Torgau | 1 | +29 / −0 | reflesh scripts/start_localhost.sh |
-| `bbfa852` | 2026-04-28 | Heinrici Torgau | 3 | +35 / −6 | add scripts/start_localhost.sh |
-| `83c08e3` | 2026-04-26 | Heinrici Torgau | 1 | +2 / −1 | update whitepaper |
-| `f1d507a` | 2026-04-26 | Heinrici Torgau | 29 | +1312 / −496 | 2026-04-26 - Added analytics bridge for legacy QS rankings. - Seeded ranking_source and canonical_university automatically. - Synced warehouse.rankings into warehouse.ranking_record. - Added aggregation run and populated analytics.aggregated_rankings. - Fixed duplicate legacy ranking rows using DISTINCT ON before ON CONFLICT. - Verified /api/v1/rankings returns 1499 total records. |
-| `70e3894` | 2026-04-24 | Heinrici Torgau | 5 | +29 / −0 | update readme and whitepaper |
-| `2333ef2` | 2026-04-24 | Heinrici Torgau | 15 | +2366 / −877 | update readme and whitepaper |
-| `c8d2f39` | 2026-04-24 | Heinrici Torgau | 4 | +312 / −40 | docs: productize README with system flow, demo script, and clear decision-support positioning |
-| `d99a881` | 2026-04-24 | Heinrici Torgau | 8 | +3239 / −45 | feat: add deterministic decision summary export with readable text format and clipboard support |
-| `4514b54` | 2026-04-23 | Heinrici Torgau | 5 | +1725 / −17 | Add deterministic multi-scenario comparison layer to identify highest-impact profile improvements without altering core recommendation logic. |
-| `bb6607b` | 2026-04-22 | Heinrici Torgau | 6 | +1581 / −3 | add application plan comparison matrix |
-| `ce6c0e4` | 2026-04-22 | Heinrici Torgau | 17 | +506 / −27 | docs(architecture): define shared crawler-core boundary |
-| `e9f73af` | 2026-04-22 | Heinrici Torgau | 21 | +3314 / −69 | feat(recommendation): introduce structured decision, concern, and surface-priority layers |
-| `12454bd` | 2026-04-19 | Heinrici Torgau | 7 | +11 / −16 | chore: remove lobster compatibility shim |
-| `372479a` | 2026-04-19 | Heinrici Torgau | 3 | +143 / −4 | chore: remove top-level scripts compatibility shim |
-| `2d550e0` | 2026-04-19 | Heinrici Torgau | 6 | +0 / −6 | chore: remove legacy top-level compatibility symlinks |
-| `4dfc06c` | 2026-04-19 | Heinrici Torgau | 3 | +0 / −3 | docs: remove redundant docs root entries |
-| `7ee2635` | 2026-04-19 | Heinrici Torgau | 2 | +0 / −0 | update /docs file |
-| `1376385` | 2026-04-19 | Heinrici Torgau | 18 | +358 / −507 | update /docs file |
-| `1c3f243` | 2026-04-19 | Heinrici Torgau | 175 | +19160 / −74 | update .md file |
-| `a454939` | 2026-04-18 | Heinrici Torgau | 54 | +5465 / −337 | docs: translate system architecture docs to English and add regression-safe pipeline & eval loop sectio |
-| `b5c1f4e` | 2026-04-18 | Heinrici Torgau | 9 | +223 / −613 | update .md file |
-| `c5eb8d7` | 2026-04-18 | Heinrici Torgau | 6 | +645 / −0 | update system engine structure |
-| `41c9c67` | 2026-04-18 | Heinrici Torgau | 3 | +45 / −17 | update system structure |
-| `bbb1831` | 2026-04-18 | Heinrici Torgau | 1 | +10 / −84 | update system engine structure |
-| `45538dd` | 2026-04-18 | Heinrici Torgau | 11 | +725 / −244 | update system engine structure |
-| `a1ccb05` | 2026-04-18 | Heinrici Torgau | 48 | +5453 / −399 | update structure |
-| `026d720` | 2026-04-17 | Heinrici Torgau | 135 | +11124 / −2899 | feat: ship product-facing rankings and generative web agent foundation |
-| `01ac004` | 2026-04-15 | Heinrici Torgau | 16 | +422 / −801 | feat(preview-pipeline): add rebuild-preview-and-resolve orchestration command |
-| `4bae59c` | 2026-04-15 | Heinrici Torgau | 16 | +1148 / −0 | feat(university-preview-api): add thin canonical university detail preview endpoint |
-| `5043ae0` | 2026-04-15 | Heinrici Torgau | 4 | +576 / −0 | feat(detail-preview): add canonical university detail preview from shared identity and preview tables |
-| `cace412` | 2026-04-15 | Heinrici Torgau | 2 | +54 / −21 | feat(convergence-preview): validate ranking and admission convergence on shared canonical identity |
-| `99d1685` | 2026-04-15 | Heinrici Torgau | 3 | +359 / −0 | feat(convergence-preview): add ranking-admission convergence preview on shared canonical identity |
-| `48b298e` | 2026-04-14 | Heinrici Torgau | 4 | +188 / −19 | feat(admission-resolution): add deterministic entity resolution and unresolved reporting |
-| `34eca7d` | 2026-04-14 | Heinrici Torgau | 19 | +1776 / −15 | feat(admission-pipeline): add first-pass admission staging and warehouse preview flow |
-| `a0ac18b` | 2026-04-13 | Heinrici Torgau | 23 | +1286 / −41 | refactor(ranking-api): make decision table the single source of truth for ranking read path |
-| `6145040` | 2026-04-13 | Heinrici Torgau | 6 | +76 / −143 | update timeline |
-| `22088f2` | 2026-04-13 | Heinrici Torgau | 2 | +99 / −41 | update structure pic |
-| `7899643` | 2026-04-12 | Heinrici Torgau | 1 | +97 / −97 | update .md file |
-| `b8bfb3f` | 2026-04-12 | Heinrici Torgau | 12 | +469 / −138 | update .md file |
-| `7eb6298` | 2026-04-12 | Heinrici Torgau | 7 | +552 / −5 | feat(ranking-resolution): add unresolved reporting and manual alias seeding workflow |
-| `a268682` | 2026-04-12 | Heinrici Torgau | 3 | +223 / −0 | feat(ranking-pipeline): add deterministic entity resolution for warehouse preview rows |
-| `7bce873` | 2026-04-12 | Heinrici Torgau | 3 | +34 / −14 | fix(ranking-pipeline): align PostgreSQL driver loading across staging ingest and warehouse landing writes |
-| `0f0dc94` | 2026-04-12 | Heinrici Torgau | 3 | +340 / −0 | feat(ranking-pipeline): add warehouse preview mapper for staging-to-warehouse contract |
-| `1ee7261` | 2026-04-12 | Heinrici Torgau | 4 | +280 / −0 | feat(ranking-pipeline): enable real PostgreSQL staging ingestion via write adapter |
-| `a97b565` | 2026-04-12 | Heinrici Torgau | 5 | +144 / −36 | feat(ranking-pipeline): add PostgreSQL staging write adapter for target-agnostic ingest |
-| `6a4ccea` | 2026-04-12 | Heinrici Torgau | 6 | +218 / −67 | feat(ranking-pipeline): add staging ingest layer with SQLite persistence |
-| `9807668` | 2026-04-12 | Heinrici Torgau | 6 | +244 / −19 | feat(ranking-pipeline): add staging validation gate before ingest |
-| `2fde582` | 2026-04-12 | Heinrici Torgau | 27 | +706 / −0 | feat(ranking-pipeline): add staging JSONL writer and extend crawl-ranking data flow |
-| `d5eb96a` | 2026-04-12 | Heinrici Torgau | 2 | +385 / −360 | rewrite repo structure and write system/engine structure |
-| `9e7c716` | 2026-04-12 | Heinrici Torgau | 11 | +194 / −47 | def initial crawler engine into ranking/admission crawler |
-| `c7fb963` | 2026-04-12 | Heinrici Torgau | 16 | +557 / −0 | def initial crawler engine into ranking/admission crawler |
-| `37cc438` | 2026-04-12 | Heinrici Torgau | 1 | +339 / −184 | draw system structure pic into REPO_STRUCTURE.md |
-| `63ef2dc` | 2026-04-12 | Heinrici Torgau | 1 | +211 / −107 | draw structure into REPO_STRUCTURE.md |
-| `40b5175` | 2026-04-11 | Heinrici Torgau | 9 | +1 / −3537 | delet crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_001.prompt.md crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_002.prompt.md crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_003.prompt.md crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_004.prompt.md crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_005.prompt.md docs/foundation/SESSION_REPORT_2026_04_02.md docs/foundation/progress_report_20260401.md docs/archive/POSTGRES_MIGRATION_HISTORY.md |
-| `04abf72` | 2026-04-11 | Heinrici Torgau | 4 | +155 / −380 | delet crawlernest/crawlernest-mini-agent/rust/USAGE.md crawlernest/crawlernest-mini-agent/rust/PARITY.md crawlernest/crawlernest-mini-agent/rust/.omc/plans/tui-enhancement-plan.md |
-| `d06ac84` | 2026-04-10 | Heinrici Torgau | 21 | +2111 / −196 | feat(agent): add evaluation-driven dev-agent loop with validation pipeline and initial file-aware scaffolding |
-| `a84dc1a` | 2026-04-10 | Heinrici Torgau | 1 | +1 / −0 | add ./mvnw clean in readme |
-| `173163b` | 2026-04-10 | Heinrici Torgau | 1 | +1 / −0 | add ./mvnw clean in readme |
-| `2cf44e6` | 2026-04-10 | Heinrici Torgau | 2 | +0 / −2 | delet repeat in readme |
-| `22feb16` | 2026-04-10 | Heinrici Torgau | 13 | +534 / −0 | record detial for autoeval |
-| `fd87e59` | 2026-04-08 | Heinrici Torgau | 472 | +81728 / −37996 | change file |
-| `179968e` | 2026-04-08 | Heinrici Torgau | 1 | +0 / −0 | rename |
-| `d933610` | 2026-04-08 | Heinrici Torgau | 6 | +214 / −600 | delet repeat file and match chinese readme with english and rename license |
-| `83ce9c0` | 2026-04-08 | Heinrici Torgau | 1 | +7 / −24 | update timeline in whitepaper |
-| `19e50ab` | 2026-04-08 | Heinrici Torgau | 1 | +40 / −6 | update whitepaper |
-| `206fbe1` | 2026-04-08 | Heinrici Torgau | 2 | +120 / −4 | update readme and whitepaper |
-| `1ee5cf0` | 2026-04-08 | Heinrici Torgau | 1 | +1 / −0 | add mini agent |
-| `441b814` | 2026-04-08 | Heinrici Torgau | 4 | +0 / −947 | del repeat |
-| `41693b2` | 2026-04-08 | Heinrici Torgau | 237 | +40289 / −67 | add lobster file |
-| `50bea92` | 2026-04-06 | Heinrici Torgau | 18 | +1293 / −1274 | update struct |
-| `d090a78` | 2026-04-06 | Heinrici Torgau | 1 | +302 / −0 | update |
-| `a070e2e` | 2026-04-06 | Heinrici Torgau | 3 | +45 / −3 | update readme whitepaper |
-| `3a8662a` | 2026-04-05 | Heinrici Torgau | 25 | +673 / −166 | feat(country-normalization): introduce canonical country handling and fix inconsistent filtering across variants |
-| `f1ae58b` | 2026-04-05 | Heinrici Torgau | 2 | +74 / −66 | Refactor RankingService and JdbcScopedRankingReadAdapter for improved country handling |
-| `199664a` | 2026-04-05 | Heinrici Torgau | 3 | +77 / −65 | Refactor JdbcScopedRankingReadAdapter to streamline SQL query construction |
-| `5ec7cac` | 2026-04-05 | Heinrici Torgau | 134 | +2247 / −1271 | Refactor JdbcScopedRankingReadAdapter to improve country filtering functionality |
-| `6f0a1b9` | 2026-04-05 | Heinrici Torgau | 1 | +131 / −63 | Enhance JdbcScopedRankingReadAdapter to support country filtering |
-| `4b9cf81` | 2026-04-03 | Heinrici Torgau | 92 | +2441 / −1961 | update fronted |
-| `e2bbfcb` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #11 from heinricitorgau/feat/normalization-bridge |
-| `31d9557` | 2026-04-03 | Heinrici Torgau | 14 | +652 / −99 | Refine ranking aggregation truth and ranking presentation |
-| `73d54c3` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #10 from heinricitorgau/feat/normalization-bridge |
-| `f0d1ad5` | 2026-04-03 | Heinrici Torgau | 1 | +162 / −2 | Enhance UniversityService to support fallback retrieval of university data |
-| `a1110e3` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #9 from heinricitorgau/feat/normalization-bridge |
-| `67e2b64` | 2026-04-03 | Heinrici Torgau | 11 | +828 / −2001 | Remove unused pipeline checkpoint journal file and update compiled Python files for config and fetcher modules. |
-| `4284977` | 2026-04-03 | Heinrici Torgau | 3 | +42 / −4 | Add ARWU world rankings ingestion to run_production_safe.sh |
-| `adfc6c8` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #8 from heinricitorgau/feat/normalization-bridge |
-| `c5e46de` | 2026-04-03 | Heinrici Torgau | 2 | +82 / −12 | Update README files to enhance THE rankings ingestion documentation |
-| `084834f` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #7 from heinricitorgau/feat/normalization-bridge |
-| `3eb8a95` | 2026-04-03 | Heinrici Torgau | 30 | +1002 / −70 | Implement THE rankings ingestion and related enhancements |
-| `d48d123` | 2026-04-03 | Heinrici Torgau | 4 | +1197 / −0 | Update compiled Python bytecode files in the __pycache__ directories for run_pipeline, config, and fetcher modules. |
-| `873768d` | 2026-04-03 | Heinrici Torgau | 4 | +344 / −146 | Refactor error handling and user agent configuration in CrawlerNest |
-| `5f0f7c7` | 2026-04-03 | Heinrici Torgau | 71 | +1928 / −26687 | Enhance run_production_safe.sh and run_pipeline.py for improved error handling and timestamp formatting |
-| `e0ca080` | 2026-04-03 | Heinrici Torgau | 2 | +591 / −106 | update |
-| `1cd9e43` | 2026-04-03 | Heinrici Torgau | 3 | +470 / −10 | fff |
-| `a2f1d0c` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #3 from heinricitorgau/claude/infallible-chatterjee |
-| `48ae054` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge branch 'main' into claude/infallible-chatterjee |
-| `82b323a` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #6 from heinricitorgau/feat/normalization-bridge |
-| `e787cbd` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #5 from heinricitorgau/claude/pensive-goldwasser |
-| `da984d7` | 2026-04-03 | Heinrici Torgau | 5 | +37 / −3 | feat(web): Phase 2 UX polish — metadata, rank format, page titles |
-| `eb0ce37` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #4 from heinricitorgau/claude/loving-swirles |
-| `f8a60c4` | 2026-04-03 | Heinrici Torgau | 1 | +1 / −1 | fix: resolve country filter causing 500 error in recommendations endpoint |
-| `a7c68f5` | 2026-04-02 | Heinrici Torgau | 6 | +973 / −15 | feat: enhance C normalizer engine + Python subprocess bridge |
-| `61734c8` | 2026-04-02 | KAO,EN-TSAI | — | — | Merge pull request #2 from heinricitorgau/feat/normalization-bridge |
-| `6ac9910` | 2026-04-02 | Heinrici Torgau | 10 | +571 / −56 | feat: CrawlerNest full maintenance session 2026-04-02 |
-| `b7f0f8b` | 2026-04-02 | Heinrici Torgau | 1 | +5 / −2 | chore: ignore local tool and build artifacts |
-| `d658724` | 2026-04-02 | Heinrici Torgau | 5 | +338 / −54 | feat: add pageSize support and normalization bridge |
-| `8a05e7b` | 2026-04-02 | Heinrici Torgau | 5 | +1 / −4 | remove claude worktrees from repository |
-| `91ab0c6` | 2026-04-02 | Heinrici Torgau | 2 | +143 / −0 | merge claude |
-| `cd95e2a` | 2026-04-01 | Heinrici Torgau | 7 | +63 / −447 | update |
-| `2784c13` | 2026-04-01 | Heinrici Torgau | 3 | +0 / −3 | remove embedded git repo (.claude) |
-| `070f1c3` | 2026-04-01 | Heinrici Torgau | — | — | merge claude branch |
-| `ae41613` | 2026-04-01 | Heinrici Torgau | 84 | +158411 / −12270 | cloude help |
-| `22e4a09` | 2026-04-01 | Heinrici Torgau | 14 | +7567 / −2584 | feat: Skeleton Loading, ErrorBanner, Jest setup, 51 frontend tests (2026-04-01 PM) |
+| `16a38410` | 2026-04-29 | Heinrici Torgau | 50 | +4349 / −684 | feat: add subject rankings pipeline, API, web UI, and bootstrap support |
+| `9130862c` | 2026-04-28 | Heinrici Torgau | 6 | +231 / −17 | fix(agent): extract country from prompt in RankingTools |
+| `102a9dca` | 2026-04-28 | Heinrici Torgau | 13 | +2459 / −2382 | update |
+| `fda9ba0d` | 2026-04-28 | Heinrici Torgau | 1 | +29 / −0 | reflesh scripts/start_localhost.sh |
+| `bbfa8525` | 2026-04-28 | Heinrici Torgau | 3 | +35 / −6 | add scripts/start_localhost.sh |
+| `83c08e39` | 2026-04-26 | Heinrici Torgau | 1 | +2 / −1 | update whitepaper |
+| `f1d507a1` | 2026-04-26 | Heinrici Torgau | 29 | +1312 / −496 | 2026-04-26 - Added analytics bridge for legacy QS rankings. - Seeded ranking_source and canonical_university automatically. - Synced warehouse.rankings into warehouse.ranking_record. - Added aggregation run and populated analytics.aggregated_rankings. - Fixed duplicate legacy ranking rows using DISTINCT ON before ON CONFLICT. - Verified /api/v1/rankings returns 1499 total records. |
+| `70e38942` | 2026-04-24 | Heinrici Torgau | 5 | +29 / −0 | update readme and whitepaper |
+| `2333ef2e` | 2026-04-24 | Heinrici Torgau | 15 | +2366 / −877 | update readme and whitepaper |
+| `c8d2f390` | 2026-04-24 | Heinrici Torgau | 4 | +312 / −40 | docs: productize README with system flow, demo script, and clear decision-support positioning |
+| `d99a881b` | 2026-04-24 | Heinrici Torgau | 8 | +3239 / −45 | feat: add deterministic decision summary export with readable text format and clipboard support |
+| `4514b549` | 2026-04-23 | Heinrici Torgau | 5 | +1725 / −17 | Add deterministic multi-scenario comparison layer to identify highest-impact profile improvements without altering core recommendation logic. |
+| `bb6607bc` | 2026-04-22 | Heinrici Torgau | 6 | +1581 / −3 | add application plan comparison matrix |
+| `ce6c0e4e` | 2026-04-22 | Heinrici Torgau | 17 | +506 / −27 | docs(architecture): define shared crawler-core boundary |
+| `e9f73af9` | 2026-04-22 | Heinrici Torgau | 21 | +3314 / −69 | feat(recommendation): introduce structured decision, concern, and surface-priority layers |
+| `12454bd0` | 2026-04-19 | Heinrici Torgau | 7 | +11 / −16 | chore: remove lobster compatibility shim |
+| `372479a9` | 2026-04-19 | Heinrici Torgau | 3 | +143 / −4 | chore: remove top-level scripts compatibility shim |
+| `2d550e09` | 2026-04-19 | Heinrici Torgau | 6 | +0 / −6 | chore: remove legacy top-level compatibility symlinks |
+| `4dfc06ce` | 2026-04-19 | Heinrici Torgau | 3 | +0 / −3 | docs: remove redundant docs root entries |
+| `7ee26352` | 2026-04-19 | Heinrici Torgau | 2 | +0 / −0 | update /docs file |
+| `1376385d` | 2026-04-19 | Heinrici Torgau | 18 | +358 / −507 | update /docs file |
+| `1c3f2434` | 2026-04-19 | Heinrici Torgau | 175 | +19160 / −74 | update .md file |
+| `a4549393` | 2026-04-18 | Heinrici Torgau | 54 | +5465 / −337 | docs: translate system architecture docs to English and add regression-safe pipeline & eval loop sectio |
+| `b5c1f4e1` | 2026-04-18 | Heinrici Torgau | 9 | +223 / −613 | update .md file |
+| `c5eb8d7e` | 2026-04-18 | Heinrici Torgau | 6 | +645 / −0 | update system engine structure |
+| `41c9c674` | 2026-04-18 | Heinrici Torgau | 3 | +45 / −17 | update system structure |
+| `bbb18319` | 2026-04-18 | Heinrici Torgau | 1 | +10 / −84 | update system engine structure |
+| `45538dd9` | 2026-04-18 | Heinrici Torgau | 11 | +725 / −244 | update system engine structure |
+| `a1ccb055` | 2026-04-18 | Heinrici Torgau | 48 | +5453 / −399 | update structure |
+| `026d7208` | 2026-04-17 | Heinrici Torgau | 135 | +11124 / −2899 | feat: ship product-facing rankings and generative web agent foundation |
+| `01ac0041` | 2026-04-15 | Heinrici Torgau | 16 | +422 / −801 | feat(preview-pipeline): add rebuild-preview-and-resolve orchestration command |
+| `4bae59cd` | 2026-04-15 | Heinrici Torgau | 16 | +1148 / −0 | feat(university-preview-api): add thin canonical university detail preview endpoint |
+| `5043ae0a` | 2026-04-15 | Heinrici Torgau | 4 | +576 / −0 | feat(detail-preview): add canonical university detail preview from shared identity and preview tables |
+| `cace4124` | 2026-04-15 | Heinrici Torgau | 2 | +54 / −21 | feat(convergence-preview): validate ranking and admission convergence on shared canonical identity |
+| `99d16854` | 2026-04-15 | Heinrici Torgau | 3 | +359 / −0 | feat(convergence-preview): add ranking-admission convergence preview on shared canonical identity |
+| `48b298e0` | 2026-04-14 | Heinrici Torgau | 4 | +188 / −19 | feat(admission-resolution): add deterministic entity resolution and unresolved reporting |
+| `34eca7d2` | 2026-04-14 | Heinrici Torgau | 19 | +1776 / −15 | feat(admission-pipeline): add first-pass admission staging and warehouse preview flow |
+| `a0ac18b8` | 2026-04-13 | Heinrici Torgau | 23 | +1286 / −41 | refactor(ranking-api): make decision table the single source of truth for ranking read path |
+| `6145040c` | 2026-04-13 | Heinrici Torgau | 6 | +76 / −143 | update timeline |
+| `22088f26` | 2026-04-13 | Heinrici Torgau | 2 | +99 / −41 | update structure pic |
+| `78996431` | 2026-04-12 | Heinrici Torgau | 1 | +97 / −97 | update .md file |
+| `b8bfb3f8` | 2026-04-12 | Heinrici Torgau | 12 | +469 / −138 | update .md file |
+| `7eb62980` | 2026-04-12 | Heinrici Torgau | 7 | +552 / −5 | feat(ranking-resolution): add unresolved reporting and manual alias seeding workflow |
+| `a268682f` | 2026-04-12 | Heinrici Torgau | 3 | +223 / −0 | feat(ranking-pipeline): add deterministic entity resolution for warehouse preview rows |
+| `7bce8735` | 2026-04-12 | Heinrici Torgau | 3 | +34 / −14 | fix(ranking-pipeline): align PostgreSQL driver loading across staging ingest and warehouse landing writes |
+| `0f0dc944` | 2026-04-12 | Heinrici Torgau | 3 | +340 / −0 | feat(ranking-pipeline): add warehouse preview mapper for staging-to-warehouse contract |
+| `1ee7261c` | 2026-04-12 | Heinrici Torgau | 4 | +280 / −0 | feat(ranking-pipeline): enable real PostgreSQL staging ingestion via write adapter |
+| `a97b565b` | 2026-04-12 | Heinrici Torgau | 5 | +144 / −36 | feat(ranking-pipeline): add PostgreSQL staging write adapter for target-agnostic ingest |
+| `6a4ccea7` | 2026-04-12 | Heinrici Torgau | 6 | +218 / −67 | feat(ranking-pipeline): add staging ingest layer with SQLite persistence |
+| `9807668c` | 2026-04-12 | Heinrici Torgau | 6 | +244 / −19 | feat(ranking-pipeline): add staging validation gate before ingest |
+| `2fde5824` | 2026-04-12 | Heinrici Torgau | 27 | +706 / −0 | feat(ranking-pipeline): add staging JSONL writer and extend crawl-ranking data flow |
+| `d5eb96ad` | 2026-04-12 | Heinrici Torgau | 2 | +385 / −360 | rewrite repo structure and write system/engine structure |
+| `9e7c7165` | 2026-04-12 | Heinrici Torgau | 11 | +194 / −47 | def initial crawler engine into ranking/admission crawler |
+| `c7fb9638` | 2026-04-12 | Heinrici Torgau | 16 | +557 / −0 | def initial crawler engine into ranking/admission crawler |
+| `37cc4387` | 2026-04-12 | Heinrici Torgau | 1 | +339 / −184 | draw system structure pic into REPO_STRUCTURE.md |
+| `63ef2dcd` | 2026-04-12 | Heinrici Torgau | 1 | +211 / −107 | draw structure into REPO_STRUCTURE.md |
+| `40b51754` | 2026-04-11 | Heinrici Torgau | 9 | +1 / −3537 | delet crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_001.prompt.md crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_002.prompt.md crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_003.prompt.md crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_004.prompt.md crawlernest/crawlernest-autoeval/sandbox/autoloop/prompts/iter_005.prompt.md docs/foundation/SESSION_REPORT_2026_04_02.md docs/foundation/progress_report_20260401.md docs/archive/POSTGRES_MIGRATION_HISTORY.md |
+| `04abf72c` | 2026-04-11 | Heinrici Torgau | 4 | +155 / −380 | delet crawlernest/crawlernest-mini-agent/rust/USAGE.md crawlernest/crawlernest-mini-agent/rust/PARITY.md crawlernest/crawlernest-mini-agent/rust/.omc/plans/tui-enhancement-plan.md |
+| `d06ac845` | 2026-04-10 | Heinrici Torgau | 21 | +2111 / −196 | feat(agent): add evaluation-driven dev-agent loop with validation pipeline and initial file-aware scaffolding |
+| `a84dc1ab` | 2026-04-10 | Heinrici Torgau | 1 | +1 / −0 | add ./mvnw clean in readme |
+| `173163b6` | 2026-04-10 | Heinrici Torgau | 1 | +1 / −0 | add ./mvnw clean in readme |
+| `2cf44e64` | 2026-04-10 | Heinrici Torgau | 2 | +0 / −2 | delet repeat in readme |
+| `22feb16f` | 2026-04-10 | Heinrici Torgau | 13 | +534 / −0 | record detial for autoeval |
+| `fd87e593` | 2026-04-08 | Heinrici Torgau | 472 | +81728 / −37996 | change file |
+| `179968ee` | 2026-04-08 | Heinrici Torgau | 1 | +0 / −0 | rename |
+| `d9336100` | 2026-04-08 | Heinrici Torgau | 6 | +214 / −600 | delet repeat file and match chinese readme with english and rename license |
+| `83ce9c05` | 2026-04-08 | Heinrici Torgau | 1 | +7 / −24 | update timeline in whitepaper |
+| `19e50aba` | 2026-04-08 | Heinrici Torgau | 1 | +40 / −6 | update whitepaper |
+| `206fbe16` | 2026-04-08 | Heinrici Torgau | 2 | +120 / −4 | update readme and whitepaper |
+| `1ee5cf0a` | 2026-04-08 | Heinrici Torgau | 1 | +1 / −0 | add mini agent |
+| `441b8140` | 2026-04-08 | Heinrici Torgau | 4 | +0 / −947 | del repeat |
+| `41693b25` | 2026-04-08 | Heinrici Torgau | 237 | +40289 / −67 | add lobster file |
+| `50bea92e` | 2026-04-06 | Heinrici Torgau | 18 | +1293 / −1274 | update struct |
+| `d090a785` | 2026-04-06 | Heinrici Torgau | 1 | +302 / −0 | update |
+| `a070e2e4` | 2026-04-06 | Heinrici Torgau | 3 | +45 / −3 | update readme whitepaper |
+| `3a8662ab` | 2026-04-05 | Heinrici Torgau | 25 | +673 / −166 | feat(country-normalization): introduce canonical country handling and fix inconsistent filtering across variants |
+| `f1ae58b1` | 2026-04-05 | Heinrici Torgau | 2 | +74 / −66 | Refactor RankingService and JdbcScopedRankingReadAdapter for improved country handling |
+| `199664a5` | 2026-04-05 | Heinrici Torgau | 3 | +77 / −65 | Refactor JdbcScopedRankingReadAdapter to streamline SQL query construction |
+| `5ec7cacd` | 2026-04-05 | Heinrici Torgau | 134 | +2247 / −1271 | Refactor JdbcScopedRankingReadAdapter to improve country filtering functionality |
+| `6f0a1b98` | 2026-04-05 | Heinrici Torgau | 1 | +131 / −63 | Enhance JdbcScopedRankingReadAdapter to support country filtering |
+| `4b9cf816` | 2026-04-03 | Heinrici Torgau | 92 | +2441 / −1961 | update fronted |
+| `e2bbfcb2` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #11 from heinricitorgau/feat/normalization-bridge |
+| `31d95573` | 2026-04-03 | Heinrici Torgau | 14 | +652 / −99 | Refine ranking aggregation truth and ranking presentation |
+| `73d54c39` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #10 from heinricitorgau/feat/normalization-bridge |
+| `f0d1ad53` | 2026-04-03 | Heinrici Torgau | 1 | +162 / −2 | Enhance UniversityService to support fallback retrieval of university data |
+| `a1110e39` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #9 from heinricitorgau/feat/normalization-bridge |
+| `67e2b64f` | 2026-04-03 | Heinrici Torgau | 11 | +828 / −2001 | Remove unused pipeline checkpoint journal file and update compiled Python files for config and fetcher modules. |
+| `42849773` | 2026-04-03 | Heinrici Torgau | 3 | +42 / −4 | Add ARWU world rankings ingestion to run_production_safe.sh |
+| `adfc6c8a` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #8 from heinricitorgau/feat/normalization-bridge |
+| `c5e46de5` | 2026-04-03 | Heinrici Torgau | 2 | +82 / −12 | Update README files to enhance THE rankings ingestion documentation |
+| `084834f8` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #7 from heinricitorgau/feat/normalization-bridge |
+| `3eb8a954` | 2026-04-03 | Heinrici Torgau | 30 | +1002 / −70 | Implement THE rankings ingestion and related enhancements |
+| `d48d1237` | 2026-04-03 | Heinrici Torgau | 4 | +1197 / −0 | Update compiled Python bytecode files in the __pycache__ directories for run_pipeline, config, and fetcher modules. |
+| `873768dd` | 2026-04-03 | Heinrici Torgau | 4 | +344 / −146 | Refactor error handling and user agent configuration in CrawlerNest |
+| `5f0f7c70` | 2026-04-03 | Heinrici Torgau | 71 | +1928 / −26687 | Enhance run_production_safe.sh and run_pipeline.py for improved error handling and timestamp formatting |
+| `e0ca0807` | 2026-04-03 | Heinrici Torgau | 2 | +591 / −106 | update |
+| `1cd9e43a` | 2026-04-03 | Heinrici Torgau | 3 | +470 / −10 | fff |
+| `a2f1d0c2` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #3 from heinricitorgau/claude/infallible-chatterjee |
+| `48ae0547` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge branch 'main' into claude/infallible-chatterjee |
+| `82b323a2` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #6 from heinricitorgau/feat/normalization-bridge |
+| `e787cbd1` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #5 from heinricitorgau/claude/pensive-goldwasser |
+| `da984d78` | 2026-04-03 | Heinrici Torgau | 5 | +37 / −3 | feat(web): Phase 2 UX polish — metadata, rank format, page titles |
+| `eb0ce37a` | 2026-04-03 | KAO,EN-TSAI | — | — | Merge pull request #4 from heinricitorgau/claude/loving-swirles |
+| `f8a60c41` | 2026-04-03 | Heinrici Torgau | 1 | +1 / −1 | fix: resolve country filter causing 500 error in recommendations endpoint |
+| `a7c68f5a` | 2026-04-02 | Heinrici Torgau | 6 | +973 / −15 | feat: enhance C normalizer engine + Python subprocess bridge |
+| `61734c87` | 2026-04-02 | KAO,EN-TSAI | — | — | Merge pull request #2 from heinricitorgau/feat/normalization-bridge |
+| `6ac99106` | 2026-04-02 | Heinrici Torgau | 10 | +571 / −56 | feat: CrawlerNest full maintenance session 2026-04-02 |
+| `b7f0f8ba` | 2026-04-02 | Heinrici Torgau | 1 | +5 / −2 | chore: ignore local tool and build artifacts |
+| `d6587247` | 2026-04-02 | Heinrici Torgau | 5 | +338 / −54 | feat: add pageSize support and normalization bridge |
+| `8a05e7b0` | 2026-04-02 | Heinrici Torgau | 5 | +1 / −4 | remove claude worktrees from repository |
+| `91ab0c6d` | 2026-04-02 | Heinrici Torgau | 2 | +143 / −0 | merge claude |
+| `cd95e2ae` | 2026-04-01 | Heinrici Torgau | 7 | +63 / −447 | update |
+| `2784c13a` | 2026-04-01 | Heinrici Torgau | 3 | +0 / −3 | remove embedded git repo (.claude) |
+| `070f1c38` | 2026-04-01 | Heinrici Torgau | — | — | merge claude branch |
+| `ae41613b` | 2026-04-01 | Heinrici Torgau | 84 | +158411 / −12270 | cloude help |
+| `22e4a090` | 2026-04-01 | Heinrici Torgau | 14 | +7567 / −2584 | feat: Skeleton Loading, ErrorBanner, Jest setup, 51 frontend tests (2026-04-01 PM) |
 
 ## 2026-03
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `cbf998f` | 2026-03-30 | Heinrici Torgau | 6 | +502 / −103 | update many |
-| `dd07319` | 2026-03-30 | Heinrici Torgau | 25 | +384 / −41934 | update gitignore |
-| `8ca5eed` | 2026-03-30 | Heinrici Torgau | 1 | +1 / −1 | update readme |
-| `eb3e033` | 2026-03-30 | Heinrici Torgau | 7 | +11 / −79617 | update readme |
-| `854a510` | 2026-03-30 | Heinrici Torgau | 23 | +5680 / −65 | update readme |
-| `b900b94` | 2026-03-30 | Heinrici Torgau | 92 | +103320 / −31732 | update |
-| `19c4cc7` | 2026-03-29 | Heinrici Torgau | 26 | +231116 / −58 | uodate |
-| `e994898` | 2026-03-29 | Heinrici Torgau | 91 | +198470 / −64 | fix the front problem |
-| `3c31fec` | 2026-03-29 | Heinrici Torgau | 9 | +191 / −97 | update license |
-| `75e50b9` | 2026-03-29 | Heinrici Torgau | 17 | +96 / −10625 | update |
-| `36dc2e8` | 2026-03-28 | Heinrici Torgau | 41 | +1012 / −16278 | update crawlernest-engine |
-| `4ac4927` | 2026-03-27 | Heinrici Torgau | 3 | +54 / −0 | update readme |
-| `5d3ee1b` | 2026-03-27 | Heinrici Torgau | 2 | +765 / −833 | update whitepaper |
-| `5a206ca` | 2026-03-27 | Heinrici Torgau | 210 | +65451 / −1334 | big update |
-| `1b90781` | 2026-03-26 | Heinrici Torgau | 155 | +14348 / −4342 | update |
-| `5c98813` | 2026-03-24 | Heinrici Torgau | 55 | +1623 / −1461 | update recommend-v3 |
-| `3c2eff2` | 2026-03-23 | Heinrici Torgau | 4 | +561 / −56 | update |
-| `728de2a` | 2026-03-23 | Heinrici Torgau | 137 | +7080 / −537 | update |
-| `b2f19cb` | 2026-03-23 | Heinrici Torgau | 8 | +273 / −11 | up |
-| `e034a7b` | 2026-03-23 | Heinrici Torgau | 143 | +4312 / −377 | add function |
-| `0772307` | 2026-03-23 | Heinrici Torgau | 18 | +709 / −0 | add Entity Resolution System |
-| `1edd8d7` | 2026-03-23 | Heinrici Torgau | 11 | +500 / −33 | f |
-| `ddf2b14` | 2026-03-23 | Heinrici Torgau | 3 | +23 / −0 | update readme whitepaper test-guide |
-| `5e322db` | 2026-03-23 | Heinrici Torgau | 24 | +837 / −121 | add speed |
-| `7771201` | 2026-03-22 | Heinrici Torgau | 57 | +2407 / −3247 | update all |
-| `f1f46c1` | 2026-03-22 | Heinrici Torgau | 18 | +5500 / −896 | update |
-| `3f7f5f4` | 2026-03-22 | Heinrici Torgau | 36 | +6631 / −3496 | update auroeval |
-| `dd896ba` | 2026-03-22 | Heinrici Torgau | 2 | +11 / −1 | add function |
-| `b6e281f` | 2026-03-22 | Heinrici Torgau | 3 | +378 / −125 | mess |
-| `985d8c6` | 2026-03-22 | Heinrici Torgau | 1 | +5 / −1 | update .ignore |
-| `79d9c0f` | 2026-03-22 | Heinrici Torgau | 11 | +3619 / −1 | update |
-| `ee3aa0a` | 2026-03-22 | Heinrici Torgau | 28 | +20 / −0 | cleanup: remove build artifacts and add gitignore |
-| `2d8ade6` | 2026-03-22 | Heinrici Torgau | 4 | +94 / −3 | add crawlernest-autoeval and update license/readme |
-| `568d644` | 2026-03-22 | Heinrici Torgau | 1 | +0 / −201 | delet license |
-| `3543abf` | 2026-03-21 | Heinrici Torgau | 41 | +340 / −167 | update white paper |
-| `63305e1` | 2026-03-20 | Heinrici Torgau | 5 | +500 / −0 | feat: add minimal qs pipeline entry and admissions read-only api |
-| `e631763` | 2026-03-20 | Heinrici Torgau | 2 | +269 / −311 | update the guid |
-| `7154052` | 2026-03-20 | Heinrici Torgau | 1 | +326 / −675 | update readme/white-paper |
-| `5394d1b` | 2026-03-20 | Heinrici Torgau | 29 | +1880 / −173 | update readme/white-paper |
-| `d8e5559` | 2026-03-19 | Heinrici Torgau | 2 | +22 / −16 | update readme and white-paper |
-| `fbd73f8` | 2026-03-19 | Heinrici Torgau | 34 | +916 / −2088 | 已成功完成 CrawlerNest 從 SQLite 原型資料庫升級到 PostgreSQL 並打通 Java Spring Boot 後端服務的基礎系統整合測試。 |
-| `a15af44` | 2026-03-18 | Heinrici Torgau | 2 | +48 / −9 | update white_paper |
-| `a432bed` | 2026-03-18 | Heinrici Torgau | 4 | +110 / −22 | message |
-| `662375d` | 2026-03-18 | Heinrici Torgau | 46 | +684 / −182 | java模組與主程式資料連接 |
-| `124a65f` | 2026-03-18 | Heinrici Torgau | 37 | +198 / −0 | message |
-| `aa92ffe` | 2026-03-16 | Heinrici Torgau | 12 | +252 / −2 | update something |
-| `47c3905` | 2026-03-16 | Heinrici Torgau | 16 | +117 / −0 | update readme |
-| `ff2a3c3` | 2026-03-16 | Heinrici Torgau | 63 | +2759 / −85 | add api servise |
-| `aaab5fb` | 2026-03-16 | Heinrici Torgau | 2 | +243 / −26 | update readme and add a license |
-| `6a79ba8` | 2026-03-16 | Heinrici Torgau | 1 | +0 / −1 | movie into floder |
-| `565cfb8` | 2026-03-16 | Heinrici Torgau | 127 | +0 / −0 | movie into floder |
-| `b16eb43` | 2026-03-16 | Heinrici Torgau | 128 | +9264 / −0 | initial crawlernest platform |
+| `cbf998f4` | 2026-03-30 | Heinrici Torgau | 6 | +502 / −103 | update many |
+| `dd073193` | 2026-03-30 | Heinrici Torgau | 25 | +384 / −41934 | update gitignore |
+| `8ca5eed3` | 2026-03-30 | Heinrici Torgau | 1 | +1 / −1 | update readme |
+| `eb3e033f` | 2026-03-30 | Heinrici Torgau | 7 | +11 / −79617 | update readme |
+| `854a510b` | 2026-03-30 | Heinrici Torgau | 23 | +5680 / −65 | update readme |
+| `b900b943` | 2026-03-30 | Heinrici Torgau | 92 | +103320 / −31732 | update |
+| `19c4cc7a` | 2026-03-29 | Heinrici Torgau | 26 | +231116 / −58 | uodate |
+| `e994898c` | 2026-03-29 | Heinrici Torgau | 91 | +198470 / −64 | fix the front problem |
+| `3c31fec2` | 2026-03-29 | Heinrici Torgau | 9 | +191 / −97 | update license |
+| `75e50b94` | 2026-03-29 | Heinrici Torgau | 17 | +96 / −10625 | update |
+| `36dc2e8a` | 2026-03-28 | Heinrici Torgau | 41 | +1012 / −16278 | update crawlernest-engine |
+| `4ac4927a` | 2026-03-27 | Heinrici Torgau | 3 | +54 / −0 | update readme |
+| `5d3ee1b8` | 2026-03-27 | Heinrici Torgau | 2 | +765 / −833 | update whitepaper |
+| `5a206cab` | 2026-03-27 | Heinrici Torgau | 210 | +65451 / −1334 | big update |
+| `1b907811` | 2026-03-26 | Heinrici Torgau | 155 | +14348 / −4342 | update |
+| `5c988134` | 2026-03-24 | Heinrici Torgau | 55 | +1623 / −1461 | update recommend-v3 |
+| `3c2eff20` | 2026-03-23 | Heinrici Torgau | 4 | +561 / −56 | update |
+| `728de2af` | 2026-03-23 | Heinrici Torgau | 137 | +7080 / −537 | update |
+| `b2f19cba` | 2026-03-23 | Heinrici Torgau | 8 | +273 / −11 | up |
+| `e034a7b5` | 2026-03-23 | Heinrici Torgau | 143 | +4312 / −377 | add function |
+| `0772307b` | 2026-03-23 | Heinrici Torgau | 18 | +709 / −0 | add Entity Resolution System |
+| `1edd8d71` | 2026-03-23 | Heinrici Torgau | 11 | +500 / −33 | f |
+| `ddf2b142` | 2026-03-23 | Heinrici Torgau | 3 | +23 / −0 | update readme whitepaper test-guide |
+| `5e322db3` | 2026-03-23 | Heinrici Torgau | 24 | +837 / −121 | add speed |
+| `7771201b` | 2026-03-22 | Heinrici Torgau | 57 | +2407 / −3247 | update all |
+| `f1f46c14` | 2026-03-22 | Heinrici Torgau | 18 | +5500 / −896 | update |
+| `3f7f5f4f` | 2026-03-22 | Heinrici Torgau | 36 | +6631 / −3496 | update auroeval |
+| `dd896bab` | 2026-03-22 | Heinrici Torgau | 2 | +11 / −1 | add function |
+| `b6e281f9` | 2026-03-22 | Heinrici Torgau | 3 | +378 / −125 | mess |
+| `985d8c65` | 2026-03-22 | Heinrici Torgau | 1 | +5 / −1 | update .ignore |
+| `79d9c0f4` | 2026-03-22 | Heinrici Torgau | 11 | +3619 / −1 | update |
+| `ee3aa0ac` | 2026-03-22 | Heinrici Torgau | 28 | +20 / −0 | cleanup: remove build artifacts and add gitignore |
+| `2d8ade64` | 2026-03-22 | Heinrici Torgau | 4 | +94 / −3 | add crawlernest-autoeval and update license/readme |
+| `568d6442` | 2026-03-22 | Heinrici Torgau | 1 | +0 / −201 | delet license |
+| `3543abf7` | 2026-03-21 | Heinrici Torgau | 41 | +340 / −167 | update white paper |
+| `63305e1c` | 2026-03-20 | Heinrici Torgau | 5 | +500 / −0 | feat: add minimal qs pipeline entry and admissions read-only api |
+| `e631763e` | 2026-03-20 | Heinrici Torgau | 2 | +269 / −311 | update the guid |
+| `7154052d` | 2026-03-20 | Heinrici Torgau | 1 | +326 / −675 | update readme/white-paper |
+| `5394d1b5` | 2026-03-20 | Heinrici Torgau | 29 | +1880 / −173 | update readme/white-paper |
+| `d8e55597` | 2026-03-19 | Heinrici Torgau | 2 | +22 / −16 | update readme and white-paper |
+| `fbd73f84` | 2026-03-19 | Heinrici Torgau | 34 | +916 / −2088 | 已成功完成 CrawlerNest 從 SQLite 原型資料庫升級到 PostgreSQL 並打通 Java Spring Boot 後端服務的基礎系統整合測試。 |
+| `a15af446` | 2026-03-18 | Heinrici Torgau | 2 | +48 / −9 | update white_paper |
+| `a432bedd` | 2026-03-18 | Heinrici Torgau | 4 | +110 / −22 | message |
+| `662375d1` | 2026-03-18 | Heinrici Torgau | 46 | +684 / −182 | java模組與主程式資料連接 |
+| `124a65f9` | 2026-03-18 | Heinrici Torgau | 37 | +198 / −0 | message |
+| `aa92ffe4` | 2026-03-16 | Heinrici Torgau | 12 | +252 / −2 | update something |
+| `47c39050` | 2026-03-16 | Heinrici Torgau | 16 | +117 / −0 | update readme |
+| `ff2a3c36` | 2026-03-16 | Heinrici Torgau | 63 | +2759 / −85 | add api servise |
+| `aaab5fb4` | 2026-03-16 | Heinrici Torgau | 2 | +243 / −26 | update readme and add a license |
+| `6a79ba85` | 2026-03-16 | Heinrici Torgau | 1 | +0 / −1 | movie into floder |
+| `565cfb8c` | 2026-03-16 | Heinrici Torgau | 127 | +0 / −0 | movie into floder |
+| `b16eb432` | 2026-03-16 | Heinrici Torgau | 128 | +9264 / −0 | initial crawlernest platform |
 
 ---
 
@@ -557,8 +561,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 481 |
-| 檔案變更累計 | 7040 |
-| 新增行數累計 | +2875890 |
-| 刪除行數累計 | −814685 |
-| 淨增行數 | +2061205 |
+| Commit 數 | 485 |
+| 檔案變更累計 | 7061 |
+| 新增行數累計 | +2876873 |
+| 刪除行數累計 | −815233 |
+| 淨增行數 | +2061640 |
