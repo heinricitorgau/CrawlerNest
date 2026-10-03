@@ -245,6 +245,15 @@ def apply_mapping_reviews(
 # needs two different institutions with the same name in one source -- and
 # when that happens the run stops and names the pair, which is the safe way to
 # be wrong.
+#
+# One batch row is not a reappearance: a row whose own id carries a decision
+# that applied in this run and assigns the same canonical as the unapplied one.
+# QS prints Perugia as "/universita-degli-..." in its archive editions and
+# "/universit-degli-..." live, and both spellings slug to the same name, so a
+# batch holding either one finds the other's decision unapplied. The resolver
+# does not re-decide that row -- a person already did, with the same answer.
+# Anything short of that (no decision on the row, a rejection, a different
+# canonical, a decision that itself did not apply) is still refused.
 
 _SLUG_JUNK = re.compile(r"[^a-z0-9]+")
 
@@ -261,6 +270,13 @@ def _id_tail(source_entity_id: Optional[str]) -> Optional[str]:
 
 def _handles(*values: Optional[str]) -> frozenset[str]:
     return frozenset(v for v in values if v)
+
+
+def _assigned_canonical(review: MappingReview) -> Optional[int]:
+    """The canonical a decision assigns; None for a rejection or a malformed one."""
+    if review.decision not in (CONFIRMED, REMAPPED):
+        return None
+    return review.decided_canonical_university_id
 
 
 @dataclass(frozen=True)
@@ -317,10 +333,22 @@ def find_reappeared_reviews(
     source whose ids are URLs: admission pages end in the same
     ``english-language-requirements`` at a dozen universities, and matching on
     that would refuse every run. Such a source passes its own (the host).
+
+    A batch row is skipped when its own id has a decision that applied and
+    assigns the same canonical as the unapplied one: that entity was decided by
+    a person under both ids, so nothing is left for the resolver to re-decide.
     """
-    unapplied = [reviews[key] for key in unapplied_keys if key in reviews]
+    unapplied_set = set(unapplied_keys)
+    unapplied = [reviews[key] for key in unapplied_set if key in reviews]
     if not unapplied:
         return ()
+
+    # What each applied decision assigns, keyed the way batch rows are compared.
+    applied_canonical = {
+        (review.source_code.upper(), review.source_entity_id): _assigned_canonical(review)
+        for key, review in reviews.items()
+        if key not in unapplied_set
+    }
 
     by_handle: dict[tuple[str, str], list[tuple[str, str, str]]] = {}
     for source_code, entity_id, name in batch:
@@ -337,12 +365,17 @@ def find_reappeared_reviews(
     for review in sorted(unapplied, key=lambda r: r.key):
         source_code = review.source_code.upper()
         handles = _handles(_slug(review.reviewed_source_name), id_handle(review.source_entity_id))
+        target = _assigned_canonical(review)
         hit = next(
             (
                 match
                 for handle in sorted(handles)
                 for match in by_handle.get((source_code, handle), ())
                 if match[0] != review.source_entity_id
+                and not (
+                    target is not None
+                    and applied_canonical.get((source_code, match[0])) == target
+                )
             ),
             None,
         )

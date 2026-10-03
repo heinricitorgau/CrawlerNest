@@ -332,5 +332,105 @@ class TestReappearedReviews(unittest.TestCase):
         refuse_reappeared_reviews(reviews, stats, [])  # does not raise
 
 
+class TestReappearedUnderAnIdWithItsOwnDecision(unittest.TestCase):
+    """One university, two source ids, a decision on each.
+
+    The live case: QS prints Perugia as ``/universities/universita-degli-...``
+    in its archive editions and ``/universities/universit-degli-...`` live.
+    Both printed names slug to the same handle, so a batch holding either
+    spelling finds the other's decision unapplied and matching on name. That is
+    only let through when the row in the batch was itself decided by a person,
+    and decided the same way.
+    """
+
+    LIVE_ID = "/universities/universit-degli-studi-di-perugia"
+    ARCHIVE_ID = "/universities/universita-degli-studi-di-perugia"
+    ARCHIVE_NAME = "Università degli Studi di Perugia"
+    BATCH = [("QS", ARCHIVE_ID, ARCHIVE_NAME)]
+
+    def _live(self, decision="confirmed", target=844) -> MappingReview:
+        return MappingReview(
+            "QS", self.LIVE_ID, decision, target,
+            reviewed_source_name="universit degli studi di perugia",
+        )
+
+    def _archive(self, decision="confirmed", target=844) -> MappingReview:
+        return MappingReview(
+            "QS", self.ARCHIVE_ID, decision, target,
+            reviewed_source_name="università degli studi di perugia",
+        )
+
+    def _found(self, *reviews: MappingReview, batch=None):
+        batch = self.BATCH if batch is None else batch
+        table = _reviews(*reviews)
+        rows = [_row(source=s, source_entity_id=e, canonical_university_id=844) for s, e, _ in batch]
+        _, stats = apply_mapping_reviews(rows, table)
+        return find_reappeared_reviews(table, stats.unapplied_reviews, batch)
+
+    def test_the_two_spellings_do_match_on_name(self):
+        # The premise of everything below; without it the other tests pass vacuously.
+        found = self._found(self._live())
+        self.assertEqual(1, len(found))
+        self.assertEqual("name", found[0].matched_on)
+
+    def test_both_ids_confirmed_to_the_same_canonical_is_let_through(self):
+        self.assertEqual((), self._found(self._live(), self._archive()))
+
+    def test_confirmed_and_remapped_to_the_same_canonical_is_let_through(self):
+        self.assertEqual((), self._found(self._live("remapped"), self._archive()))
+        self.assertEqual((), self._found(self._live(), self._archive("remapped")))
+
+    def test_decided_to_a_different_canonical_is_still_refused(self):
+        found = self._found(self._live(), self._archive(target=845))
+        self.assertEqual(1, len(found))
+        self.assertEqual(self.ARCHIVE_ID, found[0].batch_source_entity_id)
+
+    def test_batch_id_without_a_decision_is_still_refused(self):
+        self.assertEqual(1, len(self._found(self._live())))
+
+    def test_batch_id_rejected_is_still_refused(self):
+        self.assertEqual(1, len(self._found(self._live(), self._archive("rejected", None))))
+
+    def test_batch_id_rejected_is_refused_even_if_the_row_names_a_canonical(self):
+        # The table's CHECK constraint forbids a rejection with a target; the
+        # decision, not the stray id, is what has to be read.
+        self.assertEqual(1, len(self._found(self._live(), self._archive("rejected", 844))))
+
+    def test_unapplied_rejection_is_still_refused(self):
+        # A rejected entity that came back is the case this guard exists for.
+        # A confirmation on the new id contradicts it rather than settling it.
+        self.assertEqual(1, len(self._found(self._live("rejected", None), self._archive())))
+        self.assertEqual(1, len(self._found(self._live("rejected", 844), self._archive())))
+
+    def test_two_decisions_without_a_target_do_not_agree(self):
+        self.assertEqual(1, len(self._found(self._live(target=None), self._archive(target=None))))
+
+    def test_batch_id_whose_own_decision_did_not_apply_is_still_refused(self):
+        # Not reachable through apply_mapping_reviews, which marks a decision
+        # applied whenever its row is present; a caller that hands over a batch
+        # and an application that disagree must not be let through on it.
+        table = _reviews(self._live(), self._archive())
+        found = find_reappeared_reviews(table, sorted(table), self.BATCH)
+        self.assertIn(self.LIVE_ID, {r.reviewed_source_entity_id for r in found})
+
+    def test_an_undecided_row_beside_a_decided_one_is_still_refused(self):
+        # One decided row must not excuse a second, undecided id for the same name.
+        other = "/universities/university-of-perugia"
+        found = self._found(
+            self._live(),
+            self._archive(),
+            batch=self.BATCH + [("QS", other, self.ARCHIVE_NAME)],
+        )
+        self.assertEqual(1, len(found))
+        self.assertEqual(other, found[0].batch_source_entity_id)
+
+    def test_another_source_decision_does_not_excuse_the_row(self):
+        the_review = MappingReview("THE", self.ARCHIVE_ID, "confirmed", 844)
+        found = self._found(
+            self._live(), the_review, batch=self.BATCH + [("THE", self.ARCHIVE_ID, "x")]
+        )
+        self.assertEqual(1, len(found))
+
+
 if __name__ == "__main__":
     unittest.main()
