@@ -11,16 +11,38 @@
  * Which editions each source actually covers, newest first.
  *
  * Mirrors `DATASET_COVERAGE` in `crawlernest/core/dataset.py` and
- * `DatasetScope.DATASET_COVERAGE` in Java. ARWU reaches back to 2015; QS and THE
- * begin at 2025. The snapshot caveat names a source, so rendering it over every
+ * `DatasetScope.DATASET_COVERAGE` in Java. ARWU and THE reach back to 2015; QS has
+ * gaps (no 2015, 2017, 2021). The snapshot caveat names a source, so rendering it over every
  * held edition would tell a reader that ten editions with no QS row in them are
  * a snapshot of the QS published tables.
  */
 export const DATASET_COVERAGE: Readonly<Record<string, readonly number[]>> = {
-  QS: [2026, 2025],
-  THE: [2026, 2025],
+  QS: [2026, 2025, 2024, 2023, 2022, 2020, 2019, 2018, 2016],
+  THE: [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015],
   ARWU: [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015],
 };
+
+/**
+ * The (source, edition) pairs the warehouse holds that were not crawled from the source
+ * directly, with the date of the Internet Archive capture the ranks were read from. An
+ * edition in `DATASET_COVERAGE` and not here was crawled live.
+ *
+ * Mirrors `DATASET_ARCHIVE_EDITIONS` in `crawlernest/core/dataset.py`; `test_caveat_contract`
+ * compares the literals, and the dates with the archive manifest and its ingest receipts.
+ */
+export const DATASET_ARCHIVE_EDITIONS: Readonly<Record<string, Readonly<Record<number, string>>>> = {
+  QS: { 2024: "2026-03-29", 2023: "2026-05-10", 2022: "2022-04-09", 2020: "2021-02-16", 2019: "2021-02-21", 2018: "2021-02-12", 2016: "2022-04-26" },
+};
+
+/** The capture date of an archive-sourced edition, or null when it was crawled live. */
+export function archiveCaptureDate(source: string, year: number): string | null {
+  return DATASET_ARCHIVE_EDITIONS[source]?.[year] ?? null;
+}
+
+/** One source's editions that were crawled from it directly, newest first. */
+export function liveYears(source: string): number[] {
+  return (DATASET_COVERAGE[source] ?? []).filter((year) => archiveCaptureDate(source, year) === null);
+}
 
 /** Ranking sources ingested, widest first. Mirrors `DATASET_SOURCES` in Python. */
 export const DATASET_SOURCES: readonly string[] = ["QS", "THE", "ARWU"];

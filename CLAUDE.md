@@ -108,8 +108,16 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   drifted — it matches exact substrings, so a reworded copy fails.
 - **The ranking crawler implements QS only**
   (`crawlernest_ranking_crawler/sources/qs.py`), but the warehouse is no longer
-  QS-only: as of the 2026-09-04 ingest it carries 9,530 QS, 1,637 THE and 838
-  ARWU ranks for 2026. Coverage is partial, so code must still handle a missing
+  QS-only: as of 2026-10-02 `analytics.aggregated_rankings` carries 9,864 QS, 1,712 THE
+  and 955 ARWU ranks for 2026 (2025: 1,512 / 1,663 / 961). THE and ARWU also hold
+  every edition 2015–2024. QS holds 2016, 2018–2020 and 2022–2024, read from
+  Internet Archive captures (`crawlernest-jobs/qs_archive_loader.py`, pinned in
+  `crawlernest-kb/qs_archive/manifest.json`) with `rank` stored as the lower bound
+  of the printed rank; it has no 2015, 2017 or 2021. Those editions carry their own
+  caveat (`DATASET_ARCHIVE_EDITIONS`). The QS figure sums every universe type (global, region,
+  regional, special, subject); THE and ARWU exist only in `global`, where QS
+  is 1,502 of 2,240 universities (README quotes the `global` figures).
+  Coverage is partial, so code must still handle a missing
   source rank — but as *our* gap, never as the source declining to rank. Read
   the ingested set from `crawlernest/core/dataset.py:DATASET_SOURCES`; do not
   write "QS only" into new code or copy.
@@ -118,6 +126,16 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   and `crawlernest/agent/tools/ml_tools.py`. Every row keeps `isEstimated` —
   that field, not the caveat text, is what arms the `estimate_credited_to_source`
   provenance rule. Never surface a predicted value without it.
+
+## Entity resolution traps
+
+- Two universities on one canonical keep one rank per edition and silently drop the other. Name normalisation
+  treats "Miami University" and "University of Miami" as the same string, and a fuzzy match (0.85-0.90) can attach
+  a new source id to a different university. After any backfill that adds editions, run
+  `crawlernest/scripts/split_false_entity_merges.py verify` (read-only) and read
+  `docs/data/ENTITY_SPLIT_2026-10-03.md`. Creating a canonical can itself attract fuzzy matches: rehearse on a copy.
+- `ranking_decision_preview` is a derived table written with `ON CONFLICT DO NOTHING`; re-running its command does not
+  repair a stale row. It joins on the canonical's `display_name_normalized`, so renaming a canonical needs its rows rewritten.
 
 ## Key docs
 

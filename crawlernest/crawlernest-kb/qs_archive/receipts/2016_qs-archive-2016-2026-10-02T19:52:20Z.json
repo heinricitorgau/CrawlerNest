@@ -1,0 +1,44 @@
+{
+  "year": 2016,
+  "run_id": "qs-archive-2016-2026-10-02T19:52:20Z",
+  "started_utc": "2026-10-02T19:52:20Z",
+  "finished_utc": "2026-10-02T19:52:23Z",
+  "database": "clawer",
+  "manifest": {
+    "data_snapshot_url": "https://web.archive.org/web/20220426065734id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/326584.txt",
+    "payload_sha256": "1ff8f9b5f0b3fe465ec2eb2f712342bc3982ebce5e4129d8a57e01112b6b6d3b",
+    "expected_ranking_id": "326584",
+    "reviewed_by": "claude (automated selection, pending human review)"
+  },
+  "artifact_sha256": "874a184bf6e3245c70f8fca132d18707b07e47ff7858dd9619fdf566dcc786eb",
+  "before": {
+    "ranking_records": 0,
+    "aggregated_with_qs": 0
+  },
+  "ingested": 911,
+  "unranked_skipped": 19,
+  "withheld_by_operator": [
+    "/universities/university-miami",
+    "/universities/miami-university",
+    "/universities/universita-degli-studi-di-perugia"
+  ],
+  "summary": {
+    "standardized": 911,
+    "matched": 887,
+    "unresolved": 24,
+    "duplicates": 0,
+    "rows_written": 887,
+    "years_aggregated": [
+      2016
+    ],
+    "aggregated_rows": 1096
+  },
+  "backup": {
+    "path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/backups/qs_archive_pre_ingest_2016_clawer_20261002T195220Z.dump",
+    "bytes": 7201073
+  },
+  "rollback": {
+    "full": "pg_restore -h localhost -p 5432 -U test -d clawer --clean --if-exists /home/torgau/dev/University-Data-Infrastructure-Web-Platform/backups/qs_archive_pre_ingest_2016_clawer_20261002T195220Z.dump",
+    "note": "restores the whole database to its state before this ingest; anything written since is lost"
+  }
+}

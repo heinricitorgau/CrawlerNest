@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 
 import clawer.auth.jwt.JwtCookieAuthenticationFilter;
@@ -46,7 +47,14 @@ class SecurityFilterChainIntegrationTest {
 
     // ─── The public read API stays public ─────────────────────────────────────
 
+    // The health endpoint counts rows in the analytics views. On an empty database those
+    // views exist only if another test class's setup script ran first, so this test creates
+    // them itself rather than depending on the order the classes run in.
     @Test
+    @Sql(scripts = {
+            "classpath:sql/rankings_integration_setup.sql",
+            "classpath:sql/subject_rankings_integration_setup.sql"
+    })
     void healthAnswersWithoutAToken() throws Exception {
         mockMvc.perform(get("/api/v1/health"))
                 .andExpect(status().isOk());

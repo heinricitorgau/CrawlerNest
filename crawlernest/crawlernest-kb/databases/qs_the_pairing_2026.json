@@ -2860,11 +2860,6 @@
   "the_id": "645425"
  },
  {
-  "qs_name": "Miami University",
-  "the_name": "University of Miami",
-  "the_id": "636"
- },
- {
   "qs_name": "Michigan State University",
   "the_name": "Michigan State University",
   "the_id": "560"
@@ -6948,6 +6943,11 @@
   "qs_name": "University of Messina (UniME)",
   "the_name": "University of Messina",
   "the_id": "623967"
+ },
+ {
+  "qs_name": "University of Miami",
+  "the_name": "University of Miami",
+  "the_id": "636"
  },
  {
   "qs_name": "University of Michigan-Ann Arbor",

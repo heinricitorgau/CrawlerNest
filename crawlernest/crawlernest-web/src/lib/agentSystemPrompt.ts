@@ -1,7 +1,9 @@
 import {
+  DATASET_ARCHIVE_EDITIONS,
   DATASET_COVERAGE,
   DATASET_YEARS,
   DEFAULT_RANKING_YEAR,
+  liveYears,
 } from "@/lib/datasetScope";
 
 /** The edition a question is about when it names none: the newest one held. */
@@ -13,6 +15,20 @@ const editions = (years: readonly number[]): string => {
     ? ordered[0]
     : `${ordered.slice(0, -1).join(", ")} and ${ordered[ordered.length - 1]}`;
 };
+
+/** The held editions a source has no row in. Derived, so it cannot drift from the coverage map. */
+const missingEditions = (source: string): number[] =>
+  DATASET_YEARS.filter((year) => !(DATASET_COVERAGE[source] ?? []).includes(year));
+
+const qsMissing = missingEditions("QS");
+/** The newest edition QS has and the one before it lacks: a real coverage change to use as the example. */
+const qsBegins = DATASET_YEARS.find(
+  (year) =>
+    (DATASET_COVERAGE.QS ?? []).includes(year) &&
+    DATASET_YEARS.includes(year - 1) &&
+    !(DATASET_COVERAGE.QS ?? []).includes(year - 1),
+);
+const qsArchived = Object.keys(DATASET_ARCHIVE_EDITIONS.QS ?? {}).map(Number);
 
 /**
  * What the model is allowed to say about editions, and why each limit is there.
@@ -35,15 +51,18 @@ export const AGENT_SYSTEM_PROMPT = [
   `Dataset editions: the warehouse holds ${editions(DATASET_YEARS)} ranking data and no other year.`,
   `Coverage differs by source and this is the constraint most easily got wrong: ARWU covers ${editions(
     DATASET_COVERAGE.ARWU,
-  )}, QS covers ${editions(DATASET_COVERAGE.QS)}, THE covers ${editions(
-    DATASET_COVERAGE.THE,
-  )}. Before ${Math.min(
-    ...DATASET_COVERAGE.QS,
-  )} the data is ARWU alone, so no QS or THE figure, movement or comparison exists for those editions.`,
+  )}, THE covers ${editions(DATASET_COVERAGE.THE)}, QS covers ${editions(
+    DATASET_COVERAGE.QS,
+  )}. QS holds no row for ${editions(qsMissing)}, so no QS figure, movement or comparison exists for ${
+    qsMissing.length === 1 ? "that edition" : "those editions"
+  }.`,
+  `QS ${editions(qsArchived)} were read from Internet Archive captures, not crawled from QS, and their rank is the lower bound of the rank QS printed. QS ${editions(
+    liveYears("QS"),
+  )} are one position per university. The two are not the same quantity, so never report a numeric QS movement between an archive edition and a crawled one; say the ranks are not comparable position by position.`,
   `Name no year outside ${editions(DATASET_YEARS)}, and name no source for a year it does not cover. Either would be invented.`,
   `A question that names no edition is about ${DATASET_YEAR}, the newest one held.`,
   "Cross-edition movement is reportable, but only one source at a time and only from that source's own published ranks. Say which source and which two editions any movement comes from.",
-  "Never compare composite or aggregated ranks between editions. A composite position moves when source coverage changes, so a university whose composite rank changed between 2024 and 2025 may not have moved at all -- two more sources began covering it.",
+  `Never compare composite or aggregated ranks between editions. A composite position moves when source coverage changes, so a university whose composite rank changed between ${(qsBegins ?? DATASET_YEAR) - 1} and ${qsBegins ?? DATASET_YEAR} may not have moved at all -- QS began covering it.`,
   "A banded rank is a range, not a number. Between banded editions report that the band held or changed, never a numeric movement within or across bands.",
   "Report no movement for an institution that merged, split or was renamed between the two editions, or whose entry in that source changed. The same identifier can mean a different institution either side of such a year.",
   "A missing rank is this platform's gap: either the ingested data does not include the university or it could not be matched. It never means the source declines to rank it.",
