@@ -87,12 +87,15 @@ class TestRankingSummaryReadersIgnoreOtherUniverses(unittest.TestCase):
 
     def setUp(self):
         self.conn = self.psycopg2.connect(**self.dsn)
+        # tearDown does not run when setUp raises (a skip included), so the connection is
+        # closed by a cleanup instead. A connection left open with its insert uncommitted
+        # holds the fixture's slug, and the next test's setUp waits on it forever.
+        self.addCleanup(self.conn.close)
         self._clear()
         self.canonical_university_id = self._seed()
 
     def tearDown(self):
         self._clear()
-        self.conn.close()
 
     def _clear(self):
         with self.conn.cursor() as cur:
@@ -118,6 +121,15 @@ class TestRankingSummaryReadersIgnoreOtherUniverses(unittest.TestCase):
         back 2 instead of 1.
         """
         with self.conn.cursor() as cur:
+            # Look the source up before writing anything: a skip after the insert would
+            # leave the insert uncommitted.
+            cur.execute("SELECT ranking_source_id FROM warehouse.ranking_source WHERE source_code = 'QS'")
+            row = cur.fetchone()
+            if row is None:
+                self.conn.rollback()
+                self.skipTest("warehouse.ranking_source has no QS row to attach the fixture to")
+            ranking_source_id = row[0]
+
             cur.execute(
                 "INSERT INTO warehouse.canonical_university"
                 " (canonical_slug, display_name, display_name_normalized)"
@@ -128,11 +140,6 @@ class TestRankingSummaryReadersIgnoreOtherUniverses(unittest.TestCase):
             )
             canonical_university_id = cur.fetchone()[0]
 
-            cur.execute("SELECT ranking_source_id FROM warehouse.ranking_source WHERE source_code = 'QS'")
-            row = cur.fetchone()
-            if row is None:
-                self.skipTest("warehouse.ranking_source has no QS row to attach the fixture to")
-            ranking_source_id = row[0]
 
             for ranking_type, universe_type, universe_key, rank_position in (
                 ("world", "global", "global", WORLD_RANK),
