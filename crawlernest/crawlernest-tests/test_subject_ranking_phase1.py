@@ -1,6 +1,8 @@
 import unittest
 from pathlib import Path
 
+import sys
+sys.path.append(str(Path(__file__).resolve().parents[1] / "packages"))  # crawlernest/packages: where the crawler packages live
 from crawlernest_ranking_crawler.subjects.contracts import (
     NormalizedSubjectRankingRow,
     build_source_entity_id,

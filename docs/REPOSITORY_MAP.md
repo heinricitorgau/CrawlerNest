@@ -6,27 +6,22 @@ This document explains the major directories in the repository and what to inspe
 
 ```mermaid
 flowchart TB
-    root["Repository root"]
-    crawlernest["crawlernest/"]
-    samples["crawlernest-samples/"]
-    docs["docs/"]
-    scripts["scripts/"]
-    snapshots["snapshots/"]
-    reports["reports/"]
-    backups["backups/"]
+    root["Repository root<br/>README.md, README.zh-TW.md, LICENSE"]
+    crawlernest["crawlernest/<br/>application, tests, requirements"]
+    docs["docs/<br/>documentation, docs/releases/"]
+    scripts["scripts/<br/>operations, scripts/hooks/"]
+    deploy["deploy/<br/>Docker, compose, systemd"]
     workflows[".github/workflows/"]
-    legacy["legacy/"]
 
     root --> crawlernest
-    root --> samples
     root --> docs
     root --> scripts
-    root --> snapshots
-    root --> reports
-    root --> backups
+    root --> deploy
     root --> workflows
-    root --> legacy
 ```
+
+Everything else you may see at the top of a working copy -- `backups/`, `snapshots/`, `reports/`, `logs/`, `tmp/`,
+`crawlernest-samples/`, `.venv/` -- is generated or local, untracked, and not part of the layout.
 
 ## Core Directories
 
@@ -38,11 +33,13 @@ Important subdirectories:
 
 - `crawlernest/run_pipeline.py`: primary Python CLI for bootstrap, ingestion, aggregation, subject ranking, and maintenance tasks.
 - `crawlernest/crawlernest-core/`: core Python packages for multi-source ingestion, ranking aggregation, entity resolution, comparison, and recommendation logic.
-- `crawlernest_ranking_crawler/` (repo root, underscores): the live ranking pipeline package imported by `run_pipeline.py`. A diverged hyphenated copy formerly at `crawlernest/crawlernest-ranking-crawler/` is deprecated, untracked, and gitignored — do not edit it.
+- `crawlernest/packages/crawlernest_ranking_crawler/` (underscores): the live ranking pipeline package imported by `run_pipeline.py`. Its siblings in `crawlernest/packages/` are `crawlernest_admission_crawler/`, `crawlernest_crawler_core/` and the archived `legacy/`; all are imported by their own top-level names. A diverged hyphenated copy formerly at `crawlernest/crawlernest-ranking-crawler/` is deprecated, untracked, and gitignored — do not edit it.
 - `crawlernest/crawlernest-admission-crawler/`: admission crawler and extraction support.
 - `crawlernest/crawlernest-schema/`: PostgreSQL schema definitions for warehouse, analytics, recommendation, and ranking support.
 - `crawlernest/db/`: analytics bridge helpers used to sync and backfill database outputs.
 - `crawlernest/scripts/`: CrawlerNest-specific utility scripts.
+- `crawlernest/requirements.txt`, `crawlernest/requirements-ml.txt`: Python dependencies.
+- `crawlernest/crawlernest-tests/`: the Python test suite (`run_tests.py`), and `admission_pytest/` for the pytest-style admission tests.
 
 ### `crawlernest/crawlernest-web/`
 
@@ -122,7 +119,7 @@ Important scripts:
 - `scripts/build_failure_summary.py`
 - `scripts/run_ci_locally.sh`
 
-### `snapshots/`
+### `snapshots/` (generated, untracked)
 
 Operational snapshot output directory. Typical files include:
 
@@ -131,11 +128,11 @@ Operational snapshot output directory. Typical files include:
 
 Snapshots summarize health, freshness, drift warnings, regression status, and table counts for handoff or incident review.
 
-### `reports/`
+### `reports/` (generated, untracked)
 
 Generated human-readable reports. This directory is used by diagnostics and CI support scripts, including failure summaries and autoeval artifacts.
 
-### `backups/`
+### `backups/` (generated, untracked)
 
 Local backup output area. Use this for manual database exports or operational backup files. Do not treat it as a source-of-truth schema location.
 
@@ -152,13 +149,20 @@ CI definitions:
 - `release-smoke.yml`: compile/build/syntax smoke workflow.
 - `data-quality.yml`: fixture-mode data quality workflow.
 
-### `crawlernest-samples/`
+### `crawlernest-samples/` (generated, untracked)
 
 Sample data used for local development, previews, and crawler/export demonstrations.
 
-### `legacy/`
+### `deploy/`
 
-Historical code retained for reference. Prefer current paths under `crawlernest/`, `scripts/`, and `docs/` for active development.
+`Dockerfile.agent` (with its `Dockerfile.agent.dockerignore`), `docker-compose.yml`, `docker-compose.postgres.yml` and `.env.example`, plus the
+systemd units under `deploy/agent-api/` and `deploy/scheduler/`. Run compose from the repository root with `-f deploy/docker-compose.yml`;
+compose reads `.env` from `deploy/`.
+
+### `crawlernest/packages/legacy/`
+
+Historical code retained for reference, importable as `legacy` (one live caller: the admission crawler's quality summary). Prefer current
+paths under `crawlernest/`, `scripts/` and `docs/` for active development.
 
 ## Where To Start
 

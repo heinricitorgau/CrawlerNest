@@ -17,7 +17,7 @@ def get_psycopg2():
 
 
 def _maybe_add_repo_venv_site_packages() -> None:
-    repo_root = Path(__file__).resolve().parent.parent
+    repo_root = Path(__file__).resolve().parents[3]  # this file sits in crawlernest/packages/<package>/
     candidates = sorted((repo_root / ".venv" / "lib").glob("python*/site-packages"))
     for candidate in candidates:
         if candidate.is_dir():

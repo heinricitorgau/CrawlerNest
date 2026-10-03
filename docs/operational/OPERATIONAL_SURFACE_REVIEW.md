@@ -52,7 +52,7 @@ Do not delete current artifacts during Phase 1. Instead:
 4. Avoid creating another top-level summary unless it replaces an existing
    report role.
 5. Keep generated evidence under `reports/`, `snapshots/`, `tmp/`, or
-   `releases/`.
+   `docs/releases/`.
 
 ---
 

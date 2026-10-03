@@ -32,7 +32,7 @@ Ranking acquisition starts with source-specific crawlers and adapters.
 Main entry points:
 
 - `crawlernest/run_pipeline.py`
-- `crawlernest_ranking_crawler/sources/qs.py`
+- `crawlernest/packages/crawlernest_ranking_crawler/sources/qs.py`
 - `crawlernest/crawlernest-core/multi_source/adapters/qs_adapter.py`
 - `crawlernest/crawlernest-core/multi_source/adapters/the_adapter.py`
 - `crawlernest/crawlernest-core/multi_source/adapters/arwu_adapter.py`
@@ -62,8 +62,8 @@ Resolution outputs and diagnostics can include:
 Relevant paths:
 
 - `crawlernest/crawlernest-core/entity_resolution/`
-- `crawlernest_ranking_crawler/entity_resolver.py`
-- `crawlernest_admission_crawler/entity_resolver.py`
+- `crawlernest/packages/crawlernest_ranking_crawler/entity_resolver.py`
+- `crawlernest/packages/crawlernest_admission_crawler/entity_resolver.py`
 
 ### 4. Ranking Records
 
@@ -154,7 +154,7 @@ Subject rankings are intentionally separate from global aggregation. They provid
 
 Important paths:
 
-- `crawlernest_ranking_crawler/subjects/`
+- `crawlernest/packages/crawlernest_ranking_crawler/subjects/`
 - `crawlernest/scripts/smoke_subject_rankings.py`
 - `crawlernest/servise_for_java/src/main/java/clawer/api/SubjectRankingController.java`
 - `crawlernest/crawlernest-web/src/app/subject-rankings/page.tsx`

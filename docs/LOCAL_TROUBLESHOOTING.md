@@ -91,13 +91,13 @@ ModuleNotFoundError: No module named 'psycopg2'
 
 **Cause**
 
-The Python virtual environment is not activated, or `pip install -r requirements.txt` was not run.
+The Python virtual environment is not activated, or `pip install -r crawlernest/requirements.txt` was not run.
 
 **Fix**
 
 ```bash
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r crawlernest/requirements.txt
 ```
 
 If `psycopg2` still fails to build from source, install the binary wheel:

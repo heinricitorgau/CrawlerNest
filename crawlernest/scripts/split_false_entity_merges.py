@@ -73,6 +73,7 @@ _REPO_ROOT = _HERE.parents[2]
 for _path in (
     _REPO_ROOT,
     _MODULE_ROOT,
+    _MODULE_ROOT / "packages",
     _MODULE_ROOT / "crawlernest-core",
     _MODULE_ROOT / "crawlernest-jobs",
     _MODULE_ROOT / "crawlernest-analytics",

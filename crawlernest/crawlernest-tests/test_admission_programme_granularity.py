@@ -16,6 +16,7 @@ TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
+sys.path.append(str(Path(__file__).resolve().parents[1] / "packages"))  # crawlernest/packages: where the crawler packages live
 from crawlernest_admission_crawler.models import WarehouseReadyAdmissionRow  # noqa: E402
 from crawlernest_admission_crawler.source_identity import (  # noqa: E402
     admission_entity_host,

@@ -17,7 +17,7 @@ release right now?"
 
 | Signal | Location | Why High-Value |
 | --- | --- | --- |
-| Smoke release result | `releases/v0.1-demo/smoke_release_output.txt` | Confirms the build, startup, and basic API surface are healthy. Release-blocking. |
+| Smoke release result | `docs/releases/v0.1-demo/smoke_release_output.txt` | Confirms the build, startup, and basic API surface are healthy. Release-blocking. |
 | Demo caveats | `reports/demo_caveats.md` | The authoritative list of caveats a presenter must state. Demo-blocking if unread. |
 | Freshness escalation | `reports/freshness_escalation.md` | Classifies source data age into escalation states. Directly affects demo honesty. |
 | Operational trust summary | `reports/operational_trust_summary.md` | Confidence rollup across all observable surfaces. Release-facing synthesis. |
@@ -44,7 +44,7 @@ current-state authority.
 | Signal | Location | Why Reference Only |
 | --- | --- | --- |
 | Named snapshots | `snapshots/system_snapshot_*.json` | Frozen at capture time. Not live. |
-| Bundle report copies | `releases/v0.1-demo/*.md` | Copied at bundle time. May be stale relative to `reports/`. |
+| Bundle report copies | `docs/releases/v0.1-demo/*.md` | Copied at bundle time. May be stale relative to `reports/`. |
 | Snapshot timeline JSON | `reports/snapshot_timeline.json` | Machine-readable form of historical snapshots. Not human-first. |
 | Failure summary | `reports/latest_failure_summary.md` | Diagnostics-era failure log. Useful only when debugging a specific past failure. |
 | Agent context | `tmp/agent-context/` | Ephemeral AI reasoning context. Not authoritative operational state. |
@@ -62,7 +62,7 @@ point for a maintenance or release check:
   not recurring operator checks.
 - `reports/operational_summary.md` — Source-detail view. Useful after, not
   instead of, `operational_trust_summary.md`.
-- `releases/v0.1-demo/operational_trust_summary.md` — Bundle copy. The live
+- `docs/releases/v0.1-demo/operational_trust_summary.md` — Bundle copy. The live
   version is `reports/operational_trust_summary.md`.
 
 ---
@@ -86,7 +86,7 @@ point for a maintenance or release check:
 1. `reports/demo_caveats.md` — Start here. Non-negotiable.
 2. `reports/operational_trust_summary.md` — Confidence and accepted limitations.
 3. `reports/maintenance_readiness_summary.md` — Pre-release caveat detail.
-4. `releases/v0.1-demo/smoke_release_output.txt` — Verify smoke passed.
+4. `docs/releases/v0.1-demo/smoke_release_output.txt` — Verify smoke passed.
 5. `docs/DEMO_HONESTY_GUIDELINES.md` — Confirm phrasing is compliant.
 
 ### New Operator Onboarding
@@ -113,7 +113,7 @@ The following behaviors increase signal noise without adding signal value.
 Avoid them:
 
 1. **Reading bundle copies instead of live reports.** Always prefer
-   `reports/*.md` over `releases/v0.1-demo/*.md` for current state.
+   `reports/*.md` over `docs/releases/v0.1-demo/*.md` for current state.
 2. **Running all build scripts before checking `maintenance_overview.sh`.**
    The overview already calls the key builders. Build separately only when
    you need a fresh regeneration.

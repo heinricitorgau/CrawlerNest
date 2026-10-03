@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-ml.txt
+          pip install -r crawlernest/requirements-ml.txt
           pip install pytest
 
       # Fast, no database, no training. These guard the assumptions the models
@@ -152,7 +152,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-ml.txt
+          pip install -r crawlernest/requirements.txt -r crawlernest/requirements-ml.txt
 
       - name: Create the schema
         run: |
@@ -267,7 +267,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-ml.txt
+          pip install -r crawlernest/requirements-ml.txt
 
       # Every registered port is re-executed, each into its own scratch
       # subdirectory named after the artifact directory it mirrors, never over

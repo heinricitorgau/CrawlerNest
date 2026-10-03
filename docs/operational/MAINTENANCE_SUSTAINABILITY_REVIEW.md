@@ -15,7 +15,7 @@ The review covers:
 - Scripts under `scripts/`
 - Generated reports under `reports/`
 - Documentation under `docs/`
-- Release artifacts under `releases/v0.1-demo/`
+- Release artifacts under `docs/releases/v0.1-demo/`
 - The operational validation suite (`validate_maintenance_*.py`)
 
 ---
@@ -70,7 +70,7 @@ The `reports/` directory now has ten files. Several overlap in scope:
 | --- | --- |
 | `operational_summary.md` and `operational_index_summary.md` | First-stop ambiguity. A maintainer may read the wrong one. |
 | `operational_trust_summary.md` and `maintenance_readiness_summary.md` | Both carry confidence/caveat framing. Divergence is possible over time. |
-| Release bundle copies in `releases/v0.1-demo/` | Reports are duplicated outside `reports/`. Bundle copies may become stale. |
+| Release bundle copies in `docs/releases/v0.1-demo/` | Reports are duplicated outside `reports/`. Bundle copies may become stale. |
 
 ### Docs Sprawl
 
@@ -117,7 +117,7 @@ identify which five documents they actually need to read.
 
 | Area | Debt Risk | Why |
 | --- | --- | --- |
-| Release bundle report copies | Medium | Bundle artifacts in `releases/v0.1-demo/` are point-in-time; they diverge from live `reports/` without notice. |
+| Release bundle report copies | Medium | Bundle artifacts in `docs/releases/v0.1-demo/` are point-in-time; they diverge from live `reports/` without notice. |
 | Phase validation scripts | Low-Medium | If each maintenance phase adds a new `validate_maintenance_phaseN.py`, the suite becomes hard to survey. |
 | Docs freshness docs cluster | Medium | Five freshness-related docs may diverge semantically as source state changes. |
 | `operational_index_summary.md` vs `operational_summary.md` | Low | Well-differentiated today, but the distinction may erode if one author reads only one file. |
@@ -140,7 +140,7 @@ None are urgent for RC-1.
    always-current `validate_current_state.py` that does not carry phase history.
 
 3. **Bundle artifact staleness policy** — Explicitly document that
-   `releases/v0.1-demo/*.md` report copies are point-in-time and the live
+   `docs/releases/v0.1-demo/*.md` report copies are point-in-time and the live
    source of truth is `reports/`. Add a one-line staleness warning to bundle
    report headers.
 

@@ -59,7 +59,7 @@ a university.
 
 ## Snapshot Artifact
 
-See [the snapshot manifest](../../releases/v0.2-2026-snapshot/README.md) and
+See [the snapshot manifest](../releases/v0.2-2026-snapshot/README.md) and
 `clawer-2026-09-04-release-freeze.dump` for the PostgreSQL custom-format archive.
 The manifest records the SHA-256 checksum and the verified restore procedure.
 

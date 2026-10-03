@@ -21,7 +21,7 @@ operational memory or institutional recall.
 
 ### 2. Bundle-Frozen Release Evidence
 
-The `releases/v0.1-demo/` bundle captures the release posture at bundle-build
+The `docs/releases/v0.1-demo/` bundle captures the release posture at bundle-build
 time. Future operators can read it to understand the v0.1 confidence basis,
 accepted limitations, and communication posture without needing to understand
 the current live state.
@@ -115,7 +115,7 @@ include release honesty reminders.
 ### 4. Bundle Archival Ambiguity
 
 **Risk:** Future operators may not distinguish between live `reports/*.md`
-(current state, regenerated) and bundle copies in `releases/v0.1-demo/`
+(current state, regenerated) and bundle copies in `docs/releases/v0.1-demo/`
 (historical, frozen). Reading a bundle copy as current-state authority leads
 to incorrect operational decisions.
 
@@ -208,8 +208,8 @@ operationalize how to present it calmly and consistently.
 
 ```
 smoke_release_output.txt (live)
-    → releases/v0.1-demo/smoke_release_output.txt (bundle frozen)
-    → releases/v0.1-demo/OPERATIONAL_ARTIFACTS.md (reading guide)
+    → docs/releases/v0.1-demo/smoke_release_output.txt (bundle frozen)
+    → docs/releases/v0.1-demo/OPERATIONAL_ARTIFACTS.md (reading guide)
 ```
 
 The live smoke output is authoritative for current health. The bundle copy is

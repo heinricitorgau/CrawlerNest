@@ -85,7 +85,7 @@ if [[ ! -x .venv/bin/python ]]; then
   echo "Created .venv"
 fi
 ./.venv/bin/pip install --quiet --upgrade pip
-./.venv/bin/pip install --quiet -r requirements.txt
+./.venv/bin/pip install --quiet -r crawlernest/requirements.txt
 echo "Dependencies installed."
 
 # ── 3. PostgreSQL ────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ step "PostgreSQL at ${PGHOST}:${PGPORT}/${PGDATABASE}"
 if ! pg_isready -h "${PGHOST}" -p "${PGPORT}" >/dev/null 2>&1; then
   if command -v docker >/dev/null 2>&1; then
     echo "PostgreSQL is not running — starting it via Docker Compose..."
-    docker compose -f docker-compose.postgres.yml up -d
+    docker compose -f deploy/docker-compose.postgres.yml up -d
     for _ in $(seq 1 15); do
       pg_isready -h "${PGHOST}" -p "${PGPORT}" >/dev/null 2>&1 && break
       sleep 2
@@ -104,7 +104,7 @@ if ! pg_isready -h "${PGHOST}" -p "${PGPORT}" >/dev/null 2>&1; then
     echo "Either start a local PostgreSQL:"
     echo "  sudo service postgresql start"
     echo "or install Docker and re-run this script (it will use"
-    echo "docker-compose.postgres.yml, which provides the expected"
+    echo "deploy/docker-compose.postgres.yml, which provides the expected"
     echo "user/password/database out of the box)."
     exit 1
   fi

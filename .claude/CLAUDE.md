@@ -16,25 +16,43 @@ them without a coordinated rename, and remember them when searching:
 - Java root package is `clawer` (not `crawler`). Grepping for "crawler" will miss all Java code.
 - The PostgreSQL database is named `clawer` (user `test`, password `test`, localhost:5432).
 
+## Repository layout (read before moving or searching for files)
+
+The top level holds only `README.md`, `README.zh-TW.md`, `LICENSE` and four folders: `crawlernest/` (all code,
+tests and `requirements*.txt`), `docs/` (including `docs/releases/`), `scripts/` (including `scripts/hooks/`) and
+`deploy/` (Dockerfile, compose files, systemd units, `.env.example`). Hidden files that git and GitHub require there
+(`.github/`, `.gitignore`, `.gitattributes`) stay; this file is `.claude/CLAUDE.md`.
+
+- The crawler packages (`crawlernest_ranking_crawler`, `crawlernest_admission_crawler`, `crawlernest_crawler_core`,
+  and the archived `legacy`) are in `crawlernest/packages/` but are imported by their own top-level names.
+  `crawlernest/__init__.py`, `crawlernest/pipeline/__init__.py` and `recommendation_engine/engine.py` put that
+  directory on `sys.path`; an entry point that imports one of them before importing any of those must add it itself.
+  **A missing package can be silent**: `recommendation_engine/engine.py` falls back to `None` on `ImportError` and
+  the recommender simply stops reading deadlines. `test_recommendation_engine_deadline_import.py` guards it.
+- `legacy/root_models.py` is the old top-level `models.py`. Nothing imports it, and it must not go anywhere on
+  `sys.path` ahead of `crawlernest-core`: several `models.py` files share that name and `sys.path` order picks the winner.
+- Generated, untracked directories (`backups/`, `snapshots/`, `reports/`, `logs/`, `tmp/`, `crawlernest-samples/`)
+  appear at the top level of a working copy when scripts run. They are gitignored and are not part of the layout.
+
 ## Live code vs. stale duplicates
 
-- **`crawlernest_ranking_crawler/` at the repo root (underscores) is the live
+- **`crawlernest/packages/crawlernest_ranking_crawler/` (underscores) is the live
   ranking pipeline package.** It is what `crawlernest/run_pipeline.py` imports.
 - `crawlernest/crawlernest-ranking-crawler/` (hyphens) was a diverged copy that no
   Python code imports. It is untracked and gitignored now; if it still exists on
   disk, do not edit it.
-- Same pattern applies to root `crawlernest_admission_crawler/` and
-  `crawlernest_crawler_core/` — verify imports before choosing where to edit.
+- Same pattern applies to `crawlernest/packages/crawlernest_admission_crawler/` and
+  `crawlernest/packages/crawlernest_crawler_core/` — verify imports before choosing where to edit.
 - Build artifacts (`__pycache__/`, `*.pyc`, `crawlernest/clawer.db`, `*.db.bak`)
   were untracked from git and are gitignored, but stale copies may remain on
   disk. Never edit or read these as source.
 - Some docs exist in two copies (e.g. `docs/demo/DEMO_SCRIPT_v0.1.md` and
-  `releases/v0.1-demo/DEMO_SCRIPT_v0.1.md`). Update both or note the divergence.
+  `docs/releases/v0.1-demo/DEMO_SCRIPT_v0.1.md`). Update both or note the divergence.
 
 ## Architecture
 
 ```
-Python pipeline (crawlernest/run_pipeline.py + crawlernest_ranking_crawler/)
+Python pipeline (crawlernest/run_pipeline.py + crawlernest/packages/crawlernest_ranking_crawler/)
   → PostgreSQL: staging → warehouse.canonical_university → analytics.aggregated_rankings
     (one row per university per year per aggregation_run; source_ranks_json holds
      {"QS": rank, "THE": null, "ARWU": null} — missing sources are null-valued keys)
@@ -51,7 +69,7 @@ Core aggregation logic lives in `crawlernest/crawlernest-core/ranking_aggregatio
 
 ```bash
 # One-time setup
-python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+python3 -m venv .venv && source .venv/bin/activate && pip install -r crawlernest/requirements.txt
 python3 -m crawlernest.run_pipeline bootstrap-postgres --pg-user test --pg-password test --pg-database clawer
 
 # Load ranking data
@@ -60,6 +78,9 @@ python3 -m crawlernest.run_pipeline bootstrap-postgres --pg-user test --pg-passw
 
 # Start everything (PostgreSQL + API + web)
 ./scripts/start_localhost.sh
+
+# The Docker stack (copy deploy/.env.example to deploy/.env first)
+docker compose -f deploy/docker-compose.yml up --build
 
 # Individual services
 cd crawlernest/servise_for_java && ./mvnw -Dmaven.test.skip=true spring-boot:run
@@ -75,7 +96,7 @@ python3 crawlernest/crawlernest-tests/run_tests.py
 ./scripts/smoke_local_stack.sh
 ```
 
-CI: six workflows, ten jobs — see the table in [README.md](README.md#continuous-integration).
+CI: six workflows, ten jobs — see the table in [README.md](../README.md#continuous-integration).
 `crawlernest/crawlernest-tests/` now runs in `python-tests.yml`, in two jobs: fixture
 mode, and a PostgreSQL job that opts the database tests in with
 `CRAWLERNEST_RUN_PG_TESTS=1`. Locally those tests skip unless you set the same
@@ -121,7 +142,7 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   `crawlernest-tests/test_caveat_contract.py` tells you which of the others
   drifted — it matches exact substrings, so a reworded copy fails.
 - **The ranking crawler implements QS only**
-  (`crawlernest_ranking_crawler/sources/qs.py`), but the warehouse is no longer
+  (`crawlernest/packages/crawlernest_ranking_crawler/sources/qs.py`), but the warehouse is no longer
   QS-only: as of 2026-10-02 `analytics.aggregated_rankings` carries 9,864 QS, 1,712 THE
   and 955 ARWU ranks for 2026 (2025: 1,512 / 1,663 / 961). THE and ARWU also hold
   every edition 2015–2024. QS holds 2016, 2018–2020 and 2022–2024, read from

@@ -15,14 +15,12 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends build-essential libpq-dev \
  && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt ./
+COPY crawlernest/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt \
  && apt-get purge -y --auto-remove build-essential
 
+# The crawler packages are in crawlernest/packages/; `import crawlernest` puts that directory on sys.path.
 COPY crawlernest ./crawlernest
-COPY crawlernest_ranking_crawler ./crawlernest_ranking_crawler
-COPY crawlernest_admission_crawler ./crawlernest_admission_crawler
-COPY crawlernest_crawler_core ./crawlernest_crawler_core
 
 # State belongs on a volume, not in the container's writable layer, and never in
 # /tmp -- a reboot clears /tmp on most systems and takes saved conversations with it.

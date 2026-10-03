@@ -50,7 +50,7 @@ Scan for three things only:
 1. `reports/maintenance_calm_summary.md` — calm posture overview first
 2. `reports/demo_caveats.md` — required reading; confirms what you must state
 3. `reports/operational_trust_summary.md` — confidence dimensions and release posture
-4. `releases/v0.1-demo/smoke_release_output.txt` — confirm smoke passed
+4. `docs/releases/v0.1-demo/smoke_release_output.txt` — confirm smoke passed
 5. `docs/DEMO_HONESTY_GUIDELINES.md` — phrasing compliance check
 
 **Escalation path:**
@@ -110,7 +110,7 @@ breaks, or any signal that was previously healthy becomes degraded.
 **Reading order:**
 
 1. `./scripts/maintenance_overview.sh` — immediate readout of all signals
-2. `releases/v0.1-demo/smoke_release_output.txt` — specific failure detail
+2. `docs/releases/v0.1-demo/smoke_release_output.txt` — specific failure detail
 3. `reports/freshness_escalation.md` — check if freshness changed
 4. `reports/operational_trust_summary.md` — confidence delta since last check
 5. `docs/MAINTENANCE_PRIORITY_MATRIX.md` — triage classification

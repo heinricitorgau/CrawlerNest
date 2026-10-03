@@ -21,8 +21,8 @@ Generated: 2026-05-22T19:11:06.428592+00:00
 | Drift timeline | `reports/drift_timeline.md` | Historical drift event classification. |
 | Latest snapshot | `snapshots/latest_status.json` | Latest compact snapshot pointer. |
 | Validation results | `docs/RC1_VALIDATION_RESULTS.md` | Latest recorded validation table. |
-| Release bundle manifest | `releases/v0.1-demo/MANIFEST.txt` | Latest bundle contents and timestamp. |
-| Smoke output | `releases/v0.1-demo/smoke_release_output.txt` | Latest bundle-captured smoke run. |
+| Release bundle manifest | `docs/releases/v0.1-demo/MANIFEST.txt` | Latest bundle contents and timestamp. |
+| Smoke output | `docs/releases/v0.1-demo/smoke_release_output.txt` | Latest bundle-captured smoke run. |
 
 ## Readonly Boundary
 

@@ -23,7 +23,7 @@ These reports must be present and reviewed before any demo or release.
 
 | Report | Location | Role |
 | --- | --- | --- |
-| `smoke_release_output.txt` | `releases/v0.1-demo/smoke_release_output.txt` | Build and API smoke validation. Release-blocking if absent or failed. |
+| `smoke_release_output.txt` | `docs/releases/v0.1-demo/smoke_release_output.txt` | Build and API smoke validation. Release-blocking if absent or failed. |
 | `operational_trust_summary.md` | `reports/operational_trust_summary.md` | Confidence rollup across freshness, sources, drift, and maintenance. Single-sentence release confidence answer. |
 | `freshness_escalation.md` | `reports/freshness_escalation.md` | Source data age classification with escalation states. Directly informs demo honesty. |
 | `demo_caveats.md` | `reports/demo_caveats.md` | The authoritative list of caveats that must be stated to any demo audience. Demo-blocking if unread. |
@@ -73,7 +73,7 @@ Do not use them as the basis for current-state decisions.
 | `latest_failure_summary.md` | `reports/latest_failure_summary.md` | Diagnostics-era failure detail. Use when investigating a specific past failure. |
 | `system_snapshot_*.json` | `snapshots/` | Point-in-time snapshots. Frozen at capture time. |
 | `maintenance_navigation.md` | `reports/maintenance_navigation.md` | Operator navigation guide. Meta-reference. |
-| Release bundle copies | `releases/v0.1-demo/*.md` | Bundle-time copies of reports. May be stale relative to `reports/`. |
+| Release bundle copies | `docs/releases/v0.1-demo/*.md` | Bundle-time copies of reports. May be stale relative to `reports/`. |
 | Agent context | `tmp/agent-context/` | Ephemeral AI context. Not operational authority. |
 | `latest_status.json` | `snapshots/latest_status.json` | Compact latest state pointer. Input to report builders, not a reading artifact. |
 
@@ -95,7 +95,7 @@ An unread caveats file is an operational gap, not a stylistic choice.
 
 ### Why Bundle Copies Are Reference Only
 
-Report copies in `releases/v0.1-demo/` were accurate at bundle time. The live
+Report copies in `docs/releases/v0.1-demo/` were accurate at bundle time. The live
 operational state is in `reports/`. Bundle copies must not be used to assess
 current freshness or confidence — only the live `reports/` files are authoritative
 after the bundle was created.

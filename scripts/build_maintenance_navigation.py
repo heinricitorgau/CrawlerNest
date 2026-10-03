@@ -87,7 +87,7 @@ def build(reports_dir: Path) -> str:
         "| Daily check | `reports/operational_trust_summary.md` |",
         "| Pre-demo | `reports/demo_caveats.md` |",
         "| Freshness concern | `reports/freshness_escalation.md` |",
-        "| Release gate | `releases/v0.1-demo/smoke_release_output.txt` |",
+        "| Release gate | `docs/releases/v0.1-demo/smoke_release_output.txt` |",
         "| New operator onboarding | `docs/README.md` |",
         "",
         "---",
@@ -102,7 +102,7 @@ def build(reports_dir: Path) -> str:
     ]
 
     authoritative = [
-        ("smoke_release_output.txt", "releases/v0.1-demo/smoke_release_output.txt"),
+        ("smoke_release_output.txt", "docs/releases/v0.1-demo/smoke_release_output.txt"),
         ("operational_trust_summary.md", "reports/operational_trust_summary.md"),
         ("freshness_escalation.md", "reports/freshness_escalation.md"),
         ("demo_caveats.md", "reports/demo_caveats.md"),
@@ -169,7 +169,7 @@ def build(reports_dir: Path) -> str:
         "- `snapshots/system_snapshot_*.json` — named point-in-time snapshots",
         "- `reports/snapshot_timeline.md` / `snapshot_timeline.json` — historical comparison",
         "- `reports/latest_failure_summary.md` — diagnostics-era failure log",
-        "- `releases/v0.1-demo/*.md` (report copies) — bundle time snapshots",
+        "- `docs/releases/v0.1-demo/*.md` (report copies) — bundle time snapshots",
         "",
         "For current state, always use live `reports/` files.",
         "",

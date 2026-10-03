@@ -23,6 +23,6 @@ USER crawlernest
 
 EXPOSE 8080
 # Every setting the app needs at runtime comes from the environment; see
-# .env.example. The image carries no credentials.
+# deploy/.env.example. The image carries no credentials.
 ENV JAVA_OPTS=""
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/api.jar"]

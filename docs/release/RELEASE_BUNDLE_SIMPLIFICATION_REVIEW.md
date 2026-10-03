@@ -1,6 +1,6 @@
 # Release Bundle Simplification Review
 
-This document classifies the current `releases/v0.1-demo/` bundle artifacts,
+This document classifies the current `docs/releases/v0.1-demo/` bundle artifacts,
 identifies which are essential, which are supporting context, and which could
 become optional in future releases.
 

@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r crawlernest/requirements.txt
 
       # The suite skips its PostgreSQL and live-HTTP tests unless opted into, so
       # this job needs no services and stays fast. The PostgreSQL half runs in
@@ -81,7 +81,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r crawlernest/requirements.txt
 
       # Schemas only -- no ranking data is loaded. The tests that need rows
       # create and remove their own, so they do not depend on what a crawl

@@ -52,7 +52,7 @@ later.
 
 Source credibility (an official admission page is first-hand, a ranking table
 is not) is a *confidence* concern, not a *review* concern. It belongs in
-`SOURCE_TYPE_PRIORITY` in `crawlernest_admission_crawler/resolver.py`, which
+`SOURCE_TYPE_PRIORITY` in `crawlernest/packages/crawlernest_admission_crawler/resolver.py`, which
 already ranks `official_admission_page` first.
 
 ---
@@ -78,7 +78,7 @@ https://www.ucl.ac.uk/prospective-students/graduate/taught-degrees/english-langu
 ```
 
 The Python definition lives in
-`crawlernest_admission_crawler/source_identity.py` and is mirrored by the
+`crawlernest/packages/crawlernest_admission_crawler/source_identity.py` and is mirrored by the
 backfill in `crawlernest/crawlernest-schema/admission_postgresql.sql`. The two
 must agree; `crawlernest/crawlernest-tests/test_admission_source_identity.py`
 pins the Python side.
@@ -200,7 +200,7 @@ or bookmarked script using the old field will be refused with
 
 ## Phase 4 — admission entity resolution (landed)
 
-`crawlernest_admission_crawler/entity_resolver.py` no longer carries a resolver
+`crawlernest/packages/crawlernest_admission_crawler/entity_resolver.py` no longer carries a resolver
 of its own. It loads canonical profiles through `EntityResolutionRepository`,
 resolves with `EntityResolver`, applies standing decisions, then writes
 `warehouse.source_mapping`, `analytics.entity_resolution_event` and the
@@ -212,7 +212,7 @@ landing in the review queue.
 
 | File | Change |
 |---|---|
-| `crawlernest_admission_crawler/entity_resolver.py` | Rewritten around `EntityResolver`; `EntityResolutionSummary` reports exact / normalized / fuzzy / awaiting-review / retired / human-decisions-applied instead of the old canonical-exact and alias-exact pair |
+| `crawlernest/packages/crawlernest_admission_crawler/entity_resolver.py` | Rewritten around `EntityResolver`; `EntityResolutionSummary` reports exact / normalized / fuzzy / awaiting-review / retired / human-decisions-applied instead of the old canonical-exact and alias-exact pair |
 | `crawlernest/crawlernest-core/multi_source/reviews.py` | `apply_mapping_reviews` takes `source_of`, so it applies to `ResolutionResult` (which spells the field `source_name`) as well as `UnifiedRankingRecord` |
 | `crawlernest/pipeline/commands/admission.py` | Summary keys and printed lines follow |
 | `crawlernest/crawlernest-tests/test_admission_entity_resolution.py` | 23 new tests, registered in `run_tests.py` |
@@ -297,7 +297,7 @@ dimension, add `warehouse.admission_deadline` — do not widen this table into
 
 ### Call sites (30)
 
-**Python defaults** — `crawlernest_admission_crawler/warehouse_writer.py:65`,
+**Python defaults** — `crawlernest/packages/crawlernest_admission_crawler/warehouse_writer.py:65`,
 `entity_resolver.py:72`, `unresolved_report.py:27`;
 `crawlernest/pipeline/convergence_preview.py:54`,
 `canonical_university_detail_preview.py:80`; `crawlernest/pipeline/cli.py`
@@ -331,7 +331,7 @@ fields were missing — and dropped `record.requirements`, so not one extracted
 number ever reached a database. The pipeline's only input was one hardcoded MIT
 record.
 
-`crawlernest_admission_crawler/crawl_bridge.py` converts the crawler's
+`crawlernest/packages/crawlernest_admission_crawler/crawl_bridge.py` converts the crawler's
 `AdmissionRecord` into the pipeline's. It adds no extraction logic: everything
 it reports was already being computed and thrown away.
 
@@ -341,9 +341,9 @@ python3 -m crawlernest.run_pipeline crawl-admission --write-staging
 
 | File | Change |
 |---|---|
-| `crawlernest_admission_crawler/crawl_bridge.py` | New. Drives the crawler, converts records, reports what it skipped |
-| `crawlernest_admission_crawler/engine.py` | Drives the bridge instead of the stand-in; anomaly counts come from real `flagged_fields` |
-| `crawlernest_admission_crawler/crawlers/example_university.py` | **Deleted.** The hardcoded MIT record it returned is what made the pipeline look like it worked |
+| `crawlernest/packages/crawlernest_admission_crawler/crawl_bridge.py` | New. Drives the crawler, converts records, reports what it skipped |
+| `crawlernest/packages/crawlernest_admission_crawler/engine.py` | Drives the bridge instead of the stand-in; anomaly counts come from real `flagged_fields` |
+| `crawlernest/packages/crawlernest_admission_crawler/crawlers/example_university.py` | **Deleted.** The hardcoded MIT record it returned is what made the pipeline look like it worked |
 | `crawlernest/crawlernest-admission-crawler/site_profiles/universities.py` | `UniversityProfile.country`, populated for all eight. No admission page states its own country, and without it the resolver loses country blocking |
 | `crawlernest/pipeline/cli.py`, `run_pipeline.py`, `sample_crawl_exports.py` | `--snapshot-dir`, `--only`, `--rate-limit`, `--live` |
 | `crawlernest/crawlernest-tests/test_admission_crawl_bridge.py` | New, registered in CI |
@@ -398,7 +398,7 @@ does not hold, so nothing is queued for review twice.
 
 Writers that had to supply `source_code`: `MultiSourceRepository`
 (`upsert_entity_mappings`, which the ranking `upsert_source_university_mappings`
-now delegates to), `crawlernest_ranking_crawler/subjects/qs_subject.py`, and the
+now delegates to), `crawlernest/packages/crawlernest_ranking_crawler/subjects/qs_subject.py`, and the
 `test_mapping_provenance` fixture, which also has to register its test source in
 `entity_source`.
 
@@ -425,7 +425,7 @@ tiered 6.5 / 7.0 by programme. Nothing was inferred in SQL.
 
 ### The resolver now meets the ranking standard
 
-`crawlernest_admission_crawler/entity_resolver.py`, in order and before any
+`crawlernest/packages/crawlernest_admission_crawler/entity_resolver.py`, in order and before any
 write: resolve per page (rows of one page are one entity), apply
 `mapping_review`, **refuse** a run where a decision's page came back under a new
 id (`refuse_reappeared_reviews`, matched on printed name or URL host — the last
