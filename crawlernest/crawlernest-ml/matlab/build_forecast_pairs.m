@@ -36,7 +36,7 @@ function P = build_forecast_pairs(T)
 %   Only universities ranked by the source in both editions. A university that
 %   drops off the list, or enters it, has no pair, so this describes movement
 %   among universities that stay listed. The lists also grow (ARWU 500 -> 1000
-%   places, THE 401 -> 2,191, QS 889 -> 1,503 here) and entries arrive at the
+%   places, THE 401 -> 2,191, QS 890 -> 1,503 here) and entries arrive at the
 %   bottom, which the persistence baseline cannot know.
 %
 %   ## Columns

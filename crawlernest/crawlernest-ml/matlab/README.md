@@ -109,9 +109,9 @@ is the error saved against `persist_drift`, with its 95% interval.
 
 | Source | Pairs scored | `persist_mid` | `persist_drift` | `linear_own` | `linear` | vs drift (`linear`) | `gbt` | vs drift (`gbt`) |
 |---|---|---|---|---|---|---|---|---|
-| ARWU | 6,457 | 0.02406 | 0.02406 | 0.02398 | **0.02302** | +0.00104 [+0.00078, +0.00130] | 0.02368 | +0.00038 [-0.00057, +0.00110] |
-| THE | 9,541 | 0.02451 | 0.02429 | 0.02337 | **0.02205** | +0.00224 [+0.00200, +0.00247] | 0.02374 | +0.00055 [+0.00001, +0.00105] |
-| QS | 6,436 | 0.03202 | 0.03184 | 0.03708 | 0.03738 | -0.00554 [-0.00660, -0.00449] | 0.03735 | -0.00551 [-0.00673, -0.00453] |
+| ARWU | 6,457 | 0.02406 | 0.02406 | 0.02398 | **0.02302** | +0.00104 [+0.00077, +0.00130] | 0.02365 | +0.00041 [-0.00060, +0.00113] |
+| THE | 9,541 | 0.02451 | 0.02429 | 0.02337 | **0.02205** | +0.00224 [+0.00200, +0.00248] | 0.02375 | +0.00054 [+0.00001, +0.00103] |
+| QS | 6,440 | 0.03204 | 0.03186 | 0.03709 | 0.03739 | -0.00553 [-0.00668, -0.00454] | 0.03741 | -0.00555 [-0.00678, -0.00452] |
 
 ![Error by test edition](../artifacts/cross_edition_matlab/forecast_error_by_year.png)
 
@@ -143,7 +143,7 @@ is the error saved against `persist_drift`, with its 95% interval.
   methodology, which no rank history could predict.
 
 **What it does not show.** Only universities ranked in both editions are in it, so it says nothing about who
-enters or leaves a list, and the lists grow (ARWU 500 -> 1,000 places, THE 401 -> 2,191, QS 889 -> 1,503 here).
+enters or leaves a list, and the lists grow (ARWU 500 -> 1,000 places, THE 401 -> 2,191, QS 890 -> 1,503 here).
 QS's pairs are 2018-19, 2019-20 and 2022-26 only. A university the warehouse still holds on the wrong canonical
 is one series. QS's 2016-2024 editions come from Internet Archive captures, and their ranks are the printed
 band's lower bound parsed from the printed text, never the warehouse's `rank_position` (an ordinal for QS 2025
