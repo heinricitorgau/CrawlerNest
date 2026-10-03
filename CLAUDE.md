@@ -127,6 +127,16 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   that field, not the caveat text, is what arms the `estimate_credited_to_source`
   provenance rule. Never surface a predicted value without it.
 
+## Entity resolution traps
+
+- Two universities on one canonical keep one rank per edition and silently drop the other. Name normalisation
+  treats "Miami University" and "University of Miami" as the same string, and a fuzzy match (0.85-0.90) can attach
+  a new source id to a different university. After any backfill that adds editions, run
+  `crawlernest/scripts/split_false_entity_merges.py verify` (read-only) and read
+  `docs/data/ENTITY_SPLIT_2026-10-03.md`. Creating a canonical can itself attract fuzzy matches: rehearse on a copy.
+- `ranking_decision_preview` is a derived table written with `ON CONFLICT DO NOTHING`; re-running its command does not
+  repair a stale row. It joins on the canonical's `display_name_normalized`, so renaming a canonical needs its rows rewritten.
+
 ## Key docs
 
 - `docs/GETTING_STARTED.md` — canonical setup steps and troubleshooting

@@ -126,6 +126,9 @@ def run_all_tests():
         # QS past editions from reviewed Internet Archive snapshots. Every refusal
         # (edition, hash, redirect, guards) is tested; no test touches the network.
         "test_qs_archive_loader",
+        # The decision table and the refusals of the 2026-10-03 entity split: seven source entities
+        # that were on another university's canonical. The row-rewriting phases are rehearsed, not unit-tested.
+        "test_split_false_entity_merges",
         "test_analytics_bridge_weights",
         # Structural half runs anywhere; warehouse half is PostgreSQL-gated.
         "test_alias_files",
