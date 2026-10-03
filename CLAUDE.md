@@ -86,6 +86,20 @@ CRAWLERNEST_RUN_PG_TESTS=1 CRAWLERNEST_PG_PASSWORD=test \
   python3 crawlernest/crawlernest-tests/run_tests.py
 ```
 
+Three committed files are derived from the warehouse: `crawlernest-kb/databases/cross_edition_ranks.csv`,
+`qs_the_pairing_2026.json` and the `*_university_aliases_*.json` files. CI cannot hold them against the
+warehouse (its database is bootstrapped empty, and the real one is on your machine), and those checks skip
+where the warehouse is too small, so a green CI run says nothing about them. This is the gate, and it fails
+where the suite would skip:
+
+```bash
+./scripts/check_warehouse_drift.sh      # exit 1 on drift, 2 if the database is unreachable
+./scripts/install_git_hooks.sh          # once per clone: runs it before every push when the database is reachable
+```
+
+`CRAWLERNEST_REQUIRE_WAREHOUSE=1` is what turns the skip into a failure. What CI does check without a database is
+that the export code and the committed CSV agree (`TestTheExportCodeAndTheCommittedFileAgree`).
+
 `run_tests.py` names its modules explicitly. Adding a test file does not put it in
 CI — several sat unrun for months that way. Add it to the `test_modules` list.
 
@@ -122,7 +136,7 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   the ingested set from `crawlernest/core/dataset.py:DATASET_SOURCES`; do not
   write "QS only" into new code or copy.
 - Model estimates (`analytics.ml_predictions`, populated from the edition-verified
-  QS 2026 snapshot: 787 overall-score and 1,482 disagreement rows) are read through `crawlernest/core/services/ml_service.py`
+  QS 2026 snapshot: 787 overall-score and 1,483 disagreement rows) are read through `crawlernest/core/services/ml_service.py`
   and `crawlernest/agent/tools/ml_tools.py`. Every row keeps `isEstimated` —
   that field, not the caveat text, is what arms the `estimate_credited_to_source`
   provenance rule. Never surface a predicted value without it.

@@ -24,6 +24,8 @@ import os
 import unittest
 from pathlib import Path
 
+import warehouse_gate
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 #: The pairing describes one edition, and the comparison must too: read across
 #: editions, the 2025 THE load made every 2025-only university look missing from
@@ -45,7 +47,7 @@ class TestPairingMatchesWarehouse(unittest.TestCase):
         import psycopg2
 
         if not PAIRING_FILE.is_file():
-            raise unittest.SkipTest(f"no pairing file at {PAIRING_FILE}")
+            warehouse_gate.too_small(f"no pairing file at {PAIRING_FILE}")
 
         dsn = {
             "host": os.getenv("CRAWLERNEST_PG_HOST", "localhost"),
@@ -72,7 +74,7 @@ class TestPairingMatchesWarehouse(unittest.TestCase):
             conn.close()
 
         if len(cls.warehouse) < MINIMUM_WAREHOUSE_PAIRS:
-            raise unittest.SkipTest(
+            warehouse_gate.too_small(
                 f"warehouse holds {len(cls.warehouse)} THE pairs, too few to compare "
                 "an export against"
             )
