@@ -166,6 +166,14 @@ only to within sampling noise.
 PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.evaluation.check_cross_edition_parity
 ```
 
+In CI (`.github/workflows/ml-tests.yml`) this runs twice. In `ml-metrics` it compares the committed artifacts, on every
+push, with no MATLAB needed. In `matlab-reexecution` (only while the repository is public, like the other re-executions)
+the experiment is run on the runner into a scratch directory and that fresh output is held to the same Python numbers
+with `--matlab-dir`. Only the deterministic columns are asserted there: the boosted model and the bootstrap depend on
+MATLAB's random stream and on the toolbox version the runner installs, so asserting that a fresh run equals the
+committed CSV would fail on a MATLAB update with no source wrong. (Run locally on 2026-10-04 with R2026a Update 4, the
+fresh output equalled the committed CSVs apart from line endings.)
+
 ## Files
 
 ```
