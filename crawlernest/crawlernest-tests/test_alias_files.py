@@ -22,6 +22,8 @@ import unittest
 from collections import Counter
 from pathlib import Path
 
+import warehouse_gate
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ALIAS_DIR = REPO_ROOT / "crawlernest" / "crawlernest-kb" / "databases"
 ALIAS_FILES = sorted(ALIAS_DIR.glob("*_university_aliases_*.json"))
@@ -102,7 +104,7 @@ class TestAliasFilesAgainstWarehouse(unittest.TestCase):
             cur.execute("SELECT canonical_university_id FROM warehouse.canonical_university")
             cls.canonical_ids = {int(r[0]) for r in cur.fetchall()}
         if not cls.canonical_ids:
-            raise unittest.SkipTest("warehouse has no canonical universities")
+            warehouse_gate.too_small("warehouse has no canonical universities")
 
     @classmethod
     def tearDownClass(cls):
