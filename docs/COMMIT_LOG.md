@@ -2,7 +2,7 @@
 
 產生於 2026-10-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：497
+- **Commit 總數**：499
 - **期間**：2026-03-16 ~ 2026-10-04
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `f62990c` | 2026-10-04 | heinricitorgau | 108 | +589 / −577 | chore: move the local working folders (reports, snapshots, backups, logs, tmp, ...) into a hidden .local/ **[main]** |
+| `679fa94` | 2026-10-04 | heinricitorgau | 1 | +1 / −1 | docs(readme): zh-TW API Tests row said 97 tests; it is 257 **[main]** |
+| `8f26d97` | 2026-10-03 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `f62990c` | 2026-10-04 | heinricitorgau | 108 | +589 / −577 | chore: move the local working folders (reports, snapshots, backups, logs, tmp, ...) into a hidden .local/ |
 | `f74b493` | 2026-10-03 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `561b741` | 2026-10-04 | heinricitorgau | 4 | +13 / −4 | test(ci): run the tests that sat outside the suite, and correct the README's Agent Tests numbers |
 | `e0af98e` | 2026-10-03 | github-actions[bot] | 1 | +10 / −8 | docs: regenerate the commit log |
@@ -573,8 +575,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 497 |
-| 檔案變更累計 | 7387 |
-| 新增行數累計 | +2878260 |
-| 刪除行數累計 | −816538 |
-| 淨增行數 | +2061722 |
+| Commit 數 | 499 |
+| 檔案變更累計 | 7389 |
+| 新增行數累計 | +2878270 |
+| 刪除行數累計 | −816546 |
+| 淨增行數 | +2061724 |
