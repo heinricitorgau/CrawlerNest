@@ -18,6 +18,8 @@ import sys
 import unittest
 from pathlib import Path
 
+import warehouse_gate
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT / "crawlernest" / "scripts"))
 sys.path.insert(0, str(REPO_ROOT))
@@ -32,7 +34,7 @@ class TestCrossEditionExportMatchesWarehouse(unittest.TestCase):
         import psycopg2
 
         if not export.CSV_FILE.is_file():
-            self.skipTest("no export committed")
+            warehouse_gate.too_small("no export committed")
         conn = psycopg2.connect(
             host=os.getenv("CRAWLERNEST_PG_HOST", "localhost"),
             port=int(os.getenv("CRAWLERNEST_PG_PORT", "5432")),
@@ -48,7 +50,7 @@ class TestCrossEditionExportMatchesWarehouse(unittest.TestCase):
         finally:
             conn.close()
         if len(records) < MINIMUM_RECORDS:
-            self.skipTest(f"only {len(records)} ranking records: a scratch warehouse, nothing to compare against")
+            warehouse_gate.too_small(f"only {len(records)} ranking records: a scratch warehouse, nothing to compare against")
         rows, _dropped = export.build_rows(records)
         self.assertEqual(
             export.render_csv(rows),
@@ -56,6 +58,47 @@ class TestCrossEditionExportMatchesWarehouse(unittest.TestCase):
             "cross_edition_ranks.csv differs from the warehouse; run export_cross_edition_ranks.py --commit "
             "and re-run the MATLAB experiment",
         )
+
+
+class TestTheExportCodeAndTheCommittedFileAgree(unittest.TestCase):
+    """Runs everywhere, database or not.
+
+    The test above holds the file against the warehouse, which only a populated database can answer. This holds it
+    against the export *code*: the committed rows are turned back into what the query returns -- one record per
+    ranking row, with the printed text -- and fed through ``build_rows`` and ``render_csv``. If the parser that reads a
+    printed rank, or the way a row is written, changes without a re-export, the next export would differ from the
+    committed file in ways nobody chose. This fails the day that change is made, instead of at the next export.
+    """
+
+    def test_the_committed_rows_survive_the_exporters_own_transformation(self):
+        import csv
+
+        import export_cross_edition_ranks as export
+
+        self.assertTrue(export.CSV_FILE.is_file(), "the cross-edition export is not committed")
+        text = export.CSV_FILE.read_text(encoding="utf-8")
+        records = [
+            (int(r["canonical_university_id"]), r["canonical_slug"], int(r["year"]), r["source"], r["printed"],
+             r["source_kind"] == "web_archive")
+            for r in csv.DictReader(text.splitlines())
+        ]
+        self.assertGreater(len(records), 1000, "the committed export is implausibly small")
+        rows, dropped = export.build_rows(records)
+        self.assertEqual(dict(dropped), {}, f"rows the exporter now refuses to parse: {dict(dropped)}")
+        self.assertEqual(export.render_csv(rows), text)
+
+    def test_the_meta_file_describes_the_csv_beside_it(self):
+        import hashlib
+        import json
+
+        import export_cross_edition_ranks as export
+
+        self.assertTrue(export.CSV_FILE.is_file() and export.META_FILE.is_file(),
+                        "the cross-edition export and its meta file are not both committed")
+        meta = json.loads(export.META_FILE.read_text(encoding="utf-8"))
+        data = export.CSV_FILE.read_bytes().replace(b"\r\n", b"\n")
+        self.assertEqual(meta["csv_sha256"], hashlib.sha256(data).hexdigest())
+        self.assertEqual(meta["rows"], data.count(b"\n") - 1)
 
 
 if __name__ == "__main__":
