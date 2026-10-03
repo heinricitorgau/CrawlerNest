@@ -2,7 +2,7 @@
 
 產生於 2026-10-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：463
+- **Commit 總數**：467
 - **期間**：2026-03-16 ~ 2026-10-03
 - **主分支**：`main`
 
@@ -34,7 +34,11 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `1485af3` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #23 from heinricitorgau/fix/perugia-reappeared-review **[main]** |
+| `26d5a98` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #24 from heinricitorgau/fix/ci-order-dependent-tests **[main]** |
+| `4fdff12` | 2026-10-03 | heinricitorgau | 2 | +15 / −6 | fix(ci): stop the PostgreSQL test job hanging, and bootstrap the lineage table it needs **[fix/ci-order-dependent-tests]** |
+| `f8f504d` | 2026-10-03 | heinricitorgau | 1 | +8 / −7 | test(api): the security-chain tests create the views they read instead of relying on test order |
+| `a0dbcca` | 2026-10-03 | github-actions[bot] | 1 | +35 / −9 | docs: regenerate the commit log |
+| `1485af3` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #23 from heinricitorgau/fix/perugia-reappeared-review |
 | `8439626` | 2026-10-03 | heinricitorgau | 1 | +8 / −0 | test(api): the health test creates the views it counts instead of relying on test order **[fix/perugia-reappeared-review]** |
 | `ef53a30` | 2026-10-03 | heinricitorgau | 1 | +4 / −0 | docs(ml): record the 2026-10-03 re-run of the cross-edition experiment |
 | `139b92a` | 2026-10-03 | heinricitorgau | 10 | +111 / −85 | fix(ml): regenerate the Phase 3 artifacts that the 2026-09-21 refresh made stale |
@@ -539,8 +543,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 463 |
-| 檔案變更累計 | 7007 |
-| 新增行數累計 | +2875020 |
-| 刪除行數累計 | −814610 |
-| 淨增行數 | +2060410 |
+| Commit 數 | 467 |
+| 檔案變更累計 | 7011 |
+| 新增行數累計 | +2875078 |
+| 刪除行數累計 | −814632 |
+| 淨增行數 | +2060446 |
