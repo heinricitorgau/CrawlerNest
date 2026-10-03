@@ -105,7 +105,7 @@ Run these before any demo presentation or before creating a release bundle.
 2. `reports/maintenance_steadiness_summary.md` — steadiness and caution level
 3. `reports/demo_caveats.md` — required presenter caveats
 4. `reports/operational_trust_summary.md` — confidence and release posture
-5. `releases/v0.1-demo/smoke_release_output.txt` — smoke passed confirmation
+5. `docs/releases/v0.1-demo/smoke_release_output.txt` — smoke passed confirmation
 
 **Purpose:** Ensure all evidence is fresh, all caveats are accurate, smoke
 passes, and the presenter is informed of the current posture.
@@ -154,7 +154,7 @@ only when their specific question is raised.
 | `docs/STABLE_DEGRADED_STATE.md` | When explaining the RC-1 posture to a new operator |
 | `reports/snapshot_timeline.md` | When investigating a historical trend question |
 | `reports/latest_failure_summary.md` | When investigating a specific past failure |
-| `releases/v0.1-demo/*.md` (bundle copies) | When reviewing the state at release time |
+| `docs/releases/v0.1-demo/*.md` (bundle copies) | When reviewing the state at release time |
 
 **Do NOT read these reports routinely.** They accumulate historical context
 that is irrelevant to current-state maintenance.

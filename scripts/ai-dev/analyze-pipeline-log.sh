@@ -10,9 +10,9 @@ fi
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-if [[ -f "$REPO_ROOT/.ai-dev.config" ]]; then
+if [[ -f "$REPO_ROOT/scripts/ai-dev/ai-dev.config" ]]; then
   # shellcheck disable=SC1091
-  source "$REPO_ROOT/.ai-dev.config"
+  source "$REPO_ROOT/scripts/ai-dev/ai-dev.config"
 fi
 
 AI_DEV_TMP_DIR="${AI_DEV_TMP_DIR:-tmp/ai-dev}"

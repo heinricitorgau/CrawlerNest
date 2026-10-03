@@ -16,7 +16,8 @@ import sys
 from pathlib import Path
 from typing import Any, Callable
 
-#: Git repository root, where the crawlernest_admission_crawler package lives.
+#: Git repository root. The crawlernest_admission_crawler package itself is in crawlernest/packages/, which
+#: pipeline/__init__.py puts on sys.path.
 #:
 #: run_pipeline.py derives this as ``Path(__file__).resolve().parent.parent``
 #: because it sits one level down; from this module it is three. Getting that

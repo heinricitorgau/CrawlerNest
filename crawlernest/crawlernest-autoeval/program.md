@@ -67,7 +67,7 @@ Experiments must follow strict boundaries.
 Depending on experiment scope:
 
 - Ranking crawler extraction rules
-  - `crawlernest_ranking_crawler/` (repo root)
+  - `crawlernest/packages/crawlernest_ranking_crawler/`
 
 - Admission crawler extraction rules
   - `crawlernest-admission-crawler/`

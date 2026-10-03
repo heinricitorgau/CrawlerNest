@@ -12,6 +12,6 @@ It should support crawler engines with fetch / parse utilities without owning ra
 ## Boundary
 
 - shared retry / rate-limit / logging / snapshot concerns belong in `crawlernest-crawler-core/`
-- ranking-source execution belongs in `crawlernest_ranking_crawler/` (repo root)
+- ranking-source execution belongs in `crawlernest/packages/crawlernest_ranking_crawler/`
 - university-site admission execution belongs in `crawlernest-admission-crawler/`
 - this module should hold reusable fetchers and extractors that those engines can call

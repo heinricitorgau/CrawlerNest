@@ -11,7 +11,7 @@ aggressive auto-pruning or automatic cleanup daemons.
 | --- | --- |
 | `snapshots/` | Keep dated release/handoff snapshots. Cleanup only after confirming no active comparison depends on them. |
 | `reports/` | Keep latest generated reports for handoff and demo context. They are reproducible but useful as current evidence. |
-| `releases/` | Keep release bundles as historical evidence. Do not delete milestone bundles casually. |
+| `docs/releases/` | Keep release bundles as historical evidence. Do not delete milestone bundles casually. |
 | `tmp/` | Safe to clean when no active agent/debug prompt workflow is using it. |
 | `backups/` | Treat as recovery evidence. Follow backup/restore docs before deletion. |
 
@@ -54,7 +54,7 @@ Review before deleting. Prefer keeping snapshots around release boundaries.
 
 ## Bundle Cleanup
 
-Release bundles under `releases/` are historical. Keep milestone bundles unless
+Release bundles under `docs/releases/` are historical. Keep milestone bundles unless
 there is a conscious archival decision.
 
 ---

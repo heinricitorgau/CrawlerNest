@@ -37,7 +37,7 @@ demo-facing, maintenance-facing, or escalation-facing.
 1. `reports/demo_caveats.md`
 2. `reports/operational_trust_summary.md`
 3. `reports/operational_index_summary.md`
-4. `releases/v0.1-demo/smoke_release_output.txt`
+4. `docs/releases/v0.1-demo/smoke_release_output.txt`
 5. `docs/DEMO_HONESTY_GUIDELINES.md`
 
 ---

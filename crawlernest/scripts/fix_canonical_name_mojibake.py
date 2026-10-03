@@ -46,7 +46,7 @@ from typing import Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 MODULE_ROOT = REPO_ROOT / "crawlernest"
-for _path in (MODULE_ROOT / "crawlernest-core", REPO_ROOT):
+for _path in (MODULE_ROOT / "crawlernest-core", MODULE_ROOT / "packages", REPO_ROOT):
     if str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
 

@@ -60,7 +60,7 @@ _CORE_DIR = _CRAWLERNEST_DIR / "crawlernest-core"
 _CRAWLER_CORE_DIR = _CRAWLERNEST_DIR / "crawlernest-crawler-core"
 
 # The admission crawler package imports its own modules by flat name
-# (``from models import ...``), and the repository root also has a models.py.
+# (``from models import ...``), and crawlernest-core also has a models.py.
 # Its directories therefore go in front of everything else, exactly as
 # crawlernest-admission-crawler/scripts/run_admission_crawl.py does it.
 for _path in (

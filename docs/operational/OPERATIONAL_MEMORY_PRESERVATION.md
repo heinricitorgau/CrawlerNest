@@ -33,13 +33,13 @@ documentation:
 | Knowledge Item | Preserved In |
 | --- | --- |
 | RC-1 scope decisions (what was explicitly excluded) | `docs/RC1_FREEZE_SCOPE.md`, `docs/VERSION_SCOPE_v0.1.md` |
-| Accepted limitations at release time | `releases/v0.1-demo/demo_caveats.md` |
+| Accepted limitations at release time | `docs/releases/v0.1-demo/demo_caveats.md` |
 | Source availability posture at RC-1 | `docs/STABLE_DEGRADED_STATE.md` |
 | Intentional non-implementations | `docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md` |
 | Demo honesty requirements | `docs/DEMO_HONESTY_GUIDELINES.md` |
-| Confidence basis for the release claim | `releases/v0.1-demo/operational_trust_summary.md` (bundle copy) |
-| Build and runtime validation evidence | `releases/v0.1-demo/smoke_release_output.txt` |
-| Snapshot state at release time | `releases/v0.1-demo/system_snapshot_*.json` |
+| Confidence basis for the release claim | `docs/releases/v0.1-demo/operational_trust_summary.md` (bundle copy) |
+| Build and runtime validation evidence | `docs/releases/v0.1-demo/smoke_release_output.txt` |
+| Snapshot state at release time | `docs/releases/v0.1-demo/system_snapshot_*.json` |
 
 These documents are the institutional memory of the RC-1 release. They answer
 the question: "Why did we say it was releasable, and what were the known
@@ -76,11 +76,11 @@ The distinction:
 | Report Location | Role |
 | --- | --- |
 | `reports/*.md` | Current operational state; regenerated regularly |
-| `releases/v0.1-demo/*.md` | Historical evidence frozen at bundle-build time |
+| `docs/releases/v0.1-demo/*.md` | Historical evidence frozen at bundle-build time |
 
 **Reading rule:** When assessing the current system state, read `reports/`.
 When reconstructing the state at the time of a specific release, read the
-bundle copy in `releases/v0.1-demo/`.
+bundle copy in `docs/releases/v0.1-demo/`.
 
 A bundle copy that shows `release confidence: limited` is not a current problem
 — it is historical documentation of the posture at release time.
@@ -89,7 +89,7 @@ A bundle copy that shows `release confidence: limited` is not a current problem
 
 ## Bundle Archival Semantics
 
-The `releases/v0.1-demo/` directory is the primary archival record for the v0.1
+The `docs/releases/v0.1-demo/` directory is the primary archival record for the v0.1
 demo milestone. It was created by `build_demo_bundle.sh` at a specific point in
 time and should not be modified after creation.
 
@@ -172,7 +172,7 @@ be explicitly communicated:
    `docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md`.
 3. **How to maintain the system** — Refer to `docs/MAINTENANCE_CADENCE_REVIEW.md`
    and `docs/MAINTENANCE_READING_MODES.md`.
-4. **What the release evidence is** — Refer to `releases/v0.1-demo/` bundle.
+4. **What the release evidence is** — Refer to `docs/releases/v0.1-demo/` bundle.
 5. **What NOT to do** — Refer to `docs/MAINTENANCE_DISCIPLINE.md` and
    `docs/OPERATIONAL_RESTRAINT_GUIDELINES.md`.
 

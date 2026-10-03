@@ -82,7 +82,7 @@ prepare_layout() {
 
 copy_runtime_templates() {
   echo "[build] Using runtime assets already stored in ${RUNTIME_ROOT}..."
-  cp "${REPO_ROOT}/requirements.txt" "${RUNTIME_ROOT}/requirements.txt"
+  cp "${SOURCE_ROOT}/requirements.txt" "${RUNTIME_ROOT}/requirements.txt"
   chmod +x "${RUNTIME_ROOT}/run_lobster.sh"
 }
 

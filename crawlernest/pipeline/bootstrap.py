@@ -21,3 +21,7 @@ def bootstrap_module_paths(module_root: Path) -> None:
     for mod_dir in module_dirs:
         if mod_dir.is_dir() and str(mod_dir) not in sys.path:
             sys.path.insert(0, str(mod_dir))
+    # The crawler packages (crawlernest_ranking_crawler and the others) are imported by their own names.
+    packages = module_root / "packages"
+    if packages.is_dir() and str(packages) not in sys.path:
+        sys.path.append(str(packages))

@@ -2,7 +2,7 @@
 set -e
 
 echo "[1/3] Starting PostgreSQL..."
-docker compose -f docker-compose.postgres.yml up -d
+docker compose -f deploy/docker-compose.postgres.yml up -d
 
 echo "[2/3] Starting Spring Boot API..."
 cd crawlernest/servise_for_java

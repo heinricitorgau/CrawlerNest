@@ -4,12 +4,12 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "releases/v0.2-2026-snapshot/**"
+      - "docs/releases/v0.2-2026-snapshot/**"
       - "scripts/restore_release_snapshot.sh"
       - ".github/workflows/release-snapshot.yml"
   pull_request:
     paths:
-      - "releases/v0.2-2026-snapshot/**"
+      - "docs/releases/v0.2-2026-snapshot/**"
       - "scripts/restore_release_snapshot.sh"
       - ".github/workflows/release-snapshot.yml"
   workflow_dispatch:

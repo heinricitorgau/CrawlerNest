@@ -22,7 +22,7 @@ import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-for path in (str(REPO_ROOT), str(REPO_ROOT / "crawlernest" / "crawlernest-core")):
+for path in (str(REPO_ROOT), str(REPO_ROOT / "crawlernest" / "crawlernest-core"), str(REPO_ROOT / "crawlernest" / "packages")):
     if path not in sys.path:
         sys.path.insert(0, path)
 

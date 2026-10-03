@@ -171,7 +171,7 @@ def main() -> int:
         import psycopg2
         from psycopg2.extras import execute_values
     except ImportError:
-        print("ERROR psycopg2 is required to write predictions; install requirements.txt", file=sys.stderr)
+        print("ERROR psycopg2 is required to write predictions; install crawlernest/requirements.txt", file=sys.stderr)
         return 2
 
     connection = psycopg2.connect(

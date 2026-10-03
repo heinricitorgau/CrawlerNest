@@ -11,7 +11,7 @@ CrawlerNest's Python validation and ingestion commands should run inside the pro
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r crawlernest/requirements.txt
 ```
 
 If `.venv` already exists, prefer invoking Python explicitly as:

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the v0.1 demo release bundle.
 #
-# Creates releases/v0.1-demo/ with release documentation, operational artifacts,
+# Creates docs/releases/v0.1-demo/ with release documentation, operational artifacts,
 # and smoke output. READONLY-SAFE: does not modify runtime state, does not delete
 # data, does not run the pipeline. Missing artifacts are marked [missing] rather
 # than causing a crash.
@@ -469,5 +469,5 @@ echo ""
 echo "Next steps:"
 echo "  1. Review smoke_release_output.txt for any build failures"
 echo "  2. Capture screenshots per SCREENSHOT_CHECKLIST_v0.1.md"
-echo "  3. Place screenshots in releases/v0.1-demo/screenshots/"
-echo "  4. Share releases/v0.1-demo/ as the v0.1 demo package"
+echo "  3. Place screenshots in docs/releases/v0.1-demo/screenshots/"
+echo "  4. Share docs/releases/v0.1-demo/ as the v0.1 demo package"

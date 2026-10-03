@@ -106,7 +106,7 @@ smoke="${ROOT_DIR}/releases/v0.1-demo/smoke_release_output.txt"
 if [[ -f "${smoke}" ]]; then
   grep -E "Results:|Release smoke" "${smoke}" | tail -5 || true
 else
-  echo "[missing] releases/v0.1-demo/smoke_release_output.txt"
+  echo "[missing] docs/releases/v0.1-demo/smoke_release_output.txt"
 fi
 echo ""
 

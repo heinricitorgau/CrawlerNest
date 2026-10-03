@@ -102,6 +102,6 @@ Any change in the "permitted" category that touches the following files must re-
 
 - Any file under `crawlernest/servise_for_java/src/`
 - Any file under `crawlernest/crawlernest-web/src/`
-- `requirements.txt`
+- `crawlernest/requirements.txt`
 - `pom.xml`
 - `package.json` / `package-lock.json`

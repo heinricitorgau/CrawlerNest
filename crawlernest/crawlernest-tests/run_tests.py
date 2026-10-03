@@ -32,6 +32,11 @@ def run_all_tests():
     REPO_ROOT = ROOT.parent
     if str(REPO_ROOT) not in sys.path:
         sys.path.insert(0, str(REPO_ROOT))
+    # The crawler packages (crawlernest_ranking_crawler and the others) live in crawlernest/packages/. A test that
+    # imports one before anything from `crawlernest` would not find it through the package's own shim.
+    PACKAGES_DIR = ROOT / "packages"
+    if PACKAGES_DIR.is_dir() and str(PACKAGES_DIR) not in sys.path:
+        sys.path.append(str(PACKAGES_DIR))
     # Add the current directory (tests) to path too
     sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
     
@@ -132,6 +137,8 @@ def run_all_tests():
         # that were on another university's canonical. The row-rewriting phases are rehearsed, not unit-tested.
         "test_split_false_entity_merges",
         "test_split_islamic_azad_karaj",
+        # The recommender reads deadlines through an optional import that falls back to None silently; a wrong path would go unnoticed.
+        "test_recommendation_engine_deadline_import",
         # What a warehouse drift check does when the warehouse is too small: skip, or fail when required.
         "test_warehouse_gate",
         # The cross-edition rank export the MATLAB forecast reads. Needs PostgreSQL; skips itself unless

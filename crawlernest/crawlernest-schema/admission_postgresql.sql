@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS warehouse.admission_record (
     -- Normalised faculty|programme, '' when both are NULL. The natural key
     -- needs a value that does not change with case or spacing, which the
     -- printed names do. Computed by admission_programme_key() in
-    -- crawlernest_admission_crawler/source_identity.py.
+    -- crawlernest/packages/crawlernest_admission_crawler/source_identity.py.
     programme_key TEXT NOT NULL DEFAULT '',
     requirement_scope TEXT NOT NULL DEFAULT 'unspecified',
 
@@ -203,7 +203,7 @@ WHERE degree_level = 'unknown'
   AND raw_payload ->> 'degree_level' IN ('undergraduate', 'postgraduate', 'doctoral');
 
 -- Mirrors admission_source_entity_id() in
--- crawlernest_admission_crawler/source_identity.py. The two must agree.
+-- crawlernest/packages/crawlernest_admission_crawler/source_identity.py. The two must agree.
 UPDATE warehouse.admission_record
 SET source_entity_id = RTRIM(
         REGEXP_REPLACE(
