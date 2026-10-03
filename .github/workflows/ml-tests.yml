@@ -53,6 +53,20 @@ jobs:
           PYTHONPATH: crawlernest/crawlernest-ml
         run: python -m ranking_ml.evaluation.check_matlab_parity
 
+      # The cross-edition forecast is not a port, so check_matlab_parity does not
+      # know it. Its deterministic half -- the consecutive-edition pairs, the
+      # persistence baselines and the least-squares models -- is recomputed here
+      # from crawlernest-kb/databases/cross_edition_ranks.csv with no code shared
+      # with the MATLAB side, and compared to the committed forecast_metrics.csv
+      # at 1e-9 (1e-7 for least squares). Every learned-model claim in the README
+      # is measured against those baselines, so an off-by-one in the pairs would
+      # corrupt the conclusion without failing anything else. The input file is
+      # hash-checked against its meta file on load.
+      - name: Cross-edition forecast parity (committed artifacts)
+        env:
+          PYTHONPATH: crawlernest/crawlernest-ml
+        run: python -m ranking_ml.evaluation.check_cross_edition_parity
+
       # The training scripts overwrite artifacts/metrics/*.json in place, so the
       # committed files have to be copied aside before they are clobbered. Those
       # copies are the baseline; what training writes is the candidate.
@@ -281,6 +295,7 @@ jobs:
             recover_qs_weights(OutDir = root + "/weights_matlab");
             qs_support_flagger(OutDir = root + "/support_matlab");
             build_cross_source_data(OutDir = root + "/cross_source_matlab");
+            run_cross_edition_forecast(OutDir = root + "/cross_edition_matlab");
             predict_qs_disagreement(OutputCSV = root + "/cross_source_matlab/predicted_disagreements.csv");
             fixture = readtable("crawlernest/crawlernest-ml/tests/fixtures/diagnostics_fixture.csv");
             plot_disagreement_diagnostics(fixture.y, fixture.proba, ...
@@ -301,6 +316,21 @@ jobs:
         run: |
           python -m ranking_ml.evaluation.check_matlab_parity \
             --fresh-root /tmp/matlab_fresh
+
+      # run_cross_edition_forecast.m is not a registered port either, so the step above
+      # does not see it. This compares what it just wrote against the Python
+      # re-implementation. Only the deterministic columns are asserted: the boosted
+      # model and the bootstrap intervals depend on MATLAB's own random stream and
+      # on the toolbox version the runner installed, which is not pinned, so
+      # "identical to the committed CSV" would fail on a MATLAB update without any
+      # of the sources being wrong. The committed copy is held to the same Python
+      # numbers in the ml-metrics job, so both ends are pinned to one reference.
+      - name: Cross-edition parity against freshly executed sources
+        env:
+          PYTHONPATH: crawlernest/crawlernest-ml
+        run: |
+          python -m ranking_ml.evaluation.check_cross_edition_parity \
+            --matlab-dir /tmp/matlab_fresh/cross_edition_matlab
 
       # predict_qs_disagreement.m has no committed artifact to compare against --
       # its output is gitignored -- so the parity module cannot cover it. What
