@@ -44,7 +44,7 @@ investigate stable signals.
 
 ### 2. Use the Calm Summary as the First Read
 
-`reports/maintenance_calm_summary.md` explicitly separates:
+`.local/reports/maintenance_calm_summary.md` explicitly separates:
 - RC-1 known stable conditions (background, expected, not actionable)
 - New signals (genuinely outside the known stable posture)
 
@@ -57,7 +57,7 @@ Over time, the temptation grows to omit caveats for audiences who have "heard
 it before" or who "obviously know about the freshness issue." This is incorrect.
 
 Every audience receives the same caveats. Oral tradition is not a substitute
-for the documented disclosure. Read `reports/demo_caveats.md` before every
+for the documented disclosure. Read `.local/reports/demo_caveats.md` before every
 demo, regardless of how familiar the audience seems.
 
 ### 4. Treat Increasing Age as Expected, Not Alarming
@@ -196,7 +196,7 @@ When any of these changes occur:
 2. Run `build_drift_timeline.py` to classify the change
 3. Regenerate all summaries
 4. Update `docs/STABLE_DEGRADED_STATE.md` to reflect the new posture
-5. Update `reports/demo_caveats.md` if any caveat is resolved
+5. Update `.local/reports/demo_caveats.md` if any caveat is resolved
 
 Until those actions are taken, the current posture is correct and the long-term
 maintenance discipline described in this document applies.

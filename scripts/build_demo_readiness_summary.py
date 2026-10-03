@@ -16,9 +16,9 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).parent.parent
-REPORTS_DIR = REPO_ROOT / "reports"
+REPORTS_DIR = REPO_ROOT / ".local" / "reports"
 RELEASES_DIR = REPO_ROOT / "docs" / "releases"
-SNAPSHOT_FILE = REPO_ROOT / "snapshots" / "latest_status.json"
+SNAPSHOT_FILE = REPO_ROOT / ".local" / "snapshots" / "latest_status.json"
 OUTPUT_FILE = REPORTS_DIR / "demo_readiness_summary.md"
 
 # Shared release posture; see scripts/_release_posture.py for why the RC-1 copies
@@ -282,7 +282,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "",
         "2. **This file** — printable posture summary, verbal caveats, and what NOT to claim.",
         "",
-        "3. **reports/competition_demo_summary.md** — elevator pitch, differentiators, demo route.",
+        "3. **.local/reports/competition_demo_summary.md** — elevator pitch, differentiators, demo route.",
         "",
         "See [DEMO_FAILURE_RECOVERY.md](DEMO_FAILURE_RECOVERY.md) for per-failure recovery steps.",
         "",
@@ -312,7 +312,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "This script reads existing report and snapshot files only.",
         "It does not connect to PostgreSQL, mutate application state,",
         "rerun crawlers, or change any operational artifact other than",
-        "`reports/demo_readiness_summary.md`.",
+        "`.local/reports/demo_readiness_summary.md`.",
     ]
 
     if warnings:

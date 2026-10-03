@@ -41,7 +41,7 @@ resolve it through maintenance actions (it requires a new crawl, which is a
 deliberate human decision), and therefore accumulates unresolvable alarm
 exposure.
 
-**Mitigation:** Read `reports/maintenance_calm_summary.md` first, which
+**Mitigation:** Read `.local/reports/maintenance_calm_summary.md` first, which
 contextualizes freshness state against known RC-1 scope before presenting
 escalation language.
 
@@ -102,7 +102,7 @@ not recurring checks.
 
 | Risk | Source | Symptom |
 | --- | --- | --- |
-| Report proliferation | 10 reports in `reports/`, many with overlapping scope | Operator reads wrong report or reads both when one would suffice |
+| Report proliferation | 10 reports in `.local/reports/`, many with overlapping scope | Operator reads wrong report or reads both when one would suffice |
 | Docs sprawl | 50+ files in `docs/` | Operator cannot name the relevant doc for their question |
 | Escalation saturation | "critical" and "low" appearing in every session | Operator stops distinguishing signal severity |
 | Known-state blindness | Repeated exposure to same known limitations | Operator stops reading caveat details |
@@ -152,13 +152,13 @@ overview already surfaced unless you have a specific follow-up question.
 
 ### 2. Calm Summary First
 
-Read `reports/maintenance_calm_summary.md` before detailed reports. The calm
+Read `.local/reports/maintenance_calm_summary.md` before detailed reports. The calm
 summary distinguishes known-stable conditions from conditions that require
 attention, reducing the alarm load of the detailed reports.
 
 ### 3. Caveat Check, Not Caveat Re-Read
 
-Before a demo, check that `reports/demo_caveats.md` exists and was regenerated
+Before a demo, check that `.local/reports/demo_caveats.md` exists and was regenerated
 in this session. Read it once. Do not re-read every report that contributed to
 the caveats.
 
@@ -169,9 +169,9 @@ Only drill into detailed reports when a specific threshold is crossed:
 | Condition | Follow-Up |
 | --- | --- |
 | Smoke output changes | Read `smoke_release_output.txt` carefully |
-| Aggregation count changes | Read `reports/operational_summary.md` |
-| New source appears or disappears | Read `reports/freshness_escalation.md` |
-| Trust summary confidence level changes | Read `reports/operational_trust_summary.md` |
+| Aggregation count changes | Read `.local/reports/operational_summary.md` |
+| New source appears or disappears | Read `.local/reports/freshness_escalation.md` |
+| Trust summary confidence level changes | Read `.local/reports/operational_trust_summary.md` |
 | Nothing changed from last session | No follow-up needed |
 
 ### 5. Healthy Operator Workflow

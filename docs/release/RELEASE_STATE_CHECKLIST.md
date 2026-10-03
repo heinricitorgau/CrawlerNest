@@ -9,16 +9,16 @@ Use this before any demo, handoff, or early release candidate.
 | Check | Command / Evidence | Status |
 | --- | --- | --- |
 | Release smoke passes | `./scripts/smoke_release.sh` | Required |
-| Latest snapshot exists | `ls snapshots/latest_status.json` | Required |
+| Latest snapshot exists | `ls .local/snapshots/latest_status.json` | Required |
 | Operational summary generated | `./scripts/build_operational_index_summary.py` | Required |
 | Source freshness inspected | `./scripts/inspect_source_freshness.py` | Required |
 | Demo caveats generated | `./scripts/build_demo_caveats.py` | Required |
 | Maintenance overview checked | `./scripts/maintenance_overview.sh` | Recommended |
-| Freshness escalation reviewed | `reports/freshness_escalation.md` | Required |
-| Drift severity reviewed | `reports/drift_timeline.md` | Required |
+| Freshness escalation reviewed | `.local/reports/freshness_escalation.md` | Required |
+| Drift severity reviewed | `.local/reports/drift_timeline.md` | Required |
 | Release bundle rebuilt | `./scripts/build_demo_bundle.sh` | Required |
-| Stale warnings documented | `reports/maintenance_readiness_summary.md` or demo notes | Required if stale |
-| Source availability documented | `reports/maintenance_readiness_summary.md` | Required |
+| Stale warnings documented | `.local/reports/maintenance_readiness_summary.md` or demo notes | Required if stale |
+| Source availability documented | `.local/reports/maintenance_readiness_summary.md` | Required |
 
 ---
 

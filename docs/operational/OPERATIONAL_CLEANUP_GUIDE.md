@@ -9,11 +9,11 @@ aggressive auto-pruning or automatic cleanup daemons.
 
 | Artifact Area | Retention Guidance |
 | --- | --- |
-| `snapshots/` | Keep dated release/handoff snapshots. Cleanup only after confirming no active comparison depends on them. |
-| `reports/` | Keep latest generated reports for handoff and demo context. They are reproducible but useful as current evidence. |
+| `.local/snapshots/` | Keep dated release/handoff snapshots. Cleanup only after confirming no active comparison depends on them. |
+| `.local/reports/` | Keep latest generated reports for handoff and demo context. They are reproducible but useful as current evidence. |
 | `docs/releases/` | Keep release bundles as historical evidence. Do not delete milestone bundles casually. |
-| `tmp/` | Safe to clean when no active agent/debug prompt workflow is using it. |
-| `backups/` | Treat as recovery evidence. Follow backup/restore docs before deletion. |
+| `.local/tmp/` | Safe to clean when no active agent/debug prompt workflow is using it. |
+| `.local/backups/` | Treat as recovery evidence. Follow backup/restore docs before deletion. |
 
 ---
 
@@ -22,7 +22,7 @@ aggressive auto-pruning or automatic cleanup daemons.
 Cleanup is usually safe when:
 
 - reports have been regenerated and copied into the release bundle
-- old `tmp/` prompts are no longer needed
+- old `.local/tmp/` prompts are no longer needed
 - snapshots are not part of an active before/after comparison
 - bundle artifacts have been archived or are no longer needed
 
@@ -32,7 +32,7 @@ Cleanup is usually safe when:
 
 Do not delete:
 
-- the newest `snapshots/latest_status.json`
+- the newest `.local/snapshots/latest_status.json`
 - the newest dated snapshot used by reports or bundles
 - release bundles needed for handoff
 - backup/restore drill artifacts without confirming recovery policy
@@ -61,7 +61,7 @@ there is a conscious archival decision.
 
 ## Tmp Cleanup
 
-`tmp/agent-context/`, `tmp/agent-debug/`, and `tmp/agent-analysis/` are
+`.local/tmp/agent-context/`, `.local/tmp/agent-debug/`, and `.local/tmp/agent-analysis/` are
 generated context artifacts. They can be removed after the relevant prompt or
 debug session is finished.
 

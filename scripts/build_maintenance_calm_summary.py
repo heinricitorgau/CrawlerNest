@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).parent.parent
-REPORTS_DIR = REPO_ROOT / "reports"
-SNAPSHOT_FILE = REPO_ROOT / "snapshots" / "latest_status.json"
+REPORTS_DIR = REPO_ROOT / ".local" / "reports"
+SNAPSHOT_FILE = REPO_ROOT / ".local" / "snapshots" / "latest_status.json"
 OUTPUT_FILE = REPORTS_DIR / "maintenance_calm_summary.md"
 
 # Shared release posture. These used to be a per-script copy of the RC-1
@@ -189,7 +189,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "",
         "Before any demo or release, verify:",
         "",
-        "1. `reports/demo_caveats.md` exists and was regenerated this session.",
+        "1. `.local/reports/demo_caveats.md` exists and was regenerated this session.",
         "2. The caveats listed are stated honestly to the audience.",
         "3. Smoke passed in this session.",
         "4. No new signals (above) appeared since the last session.",
@@ -203,7 +203,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "This script reads existing report and snapshot files only.",
         "It does not connect to PostgreSQL, mutate application state,",
         "rerun crawlers, or change any operational artifact other than",
-        "`reports/maintenance_calm_summary.md`.",
+        "`.local/reports/maintenance_calm_summary.md`.",
     ]
 
     if warnings:

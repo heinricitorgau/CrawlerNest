@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).parent.parent
-REPORTS_DIR = REPO_ROOT / "reports"
-SNAPSHOT_FILE = REPO_ROOT / "snapshots" / "latest_status.json"
+REPORTS_DIR = REPO_ROOT / ".local" / "reports"
+SNAPSHOT_FILE = REPO_ROOT / ".local" / "snapshots" / "latest_status.json"
 OUTPUT_FILE = REPORTS_DIR / "maintenance_continuity_summary.md"
 
 # Shared release posture. These used to be a per-script copy of the RC-1
@@ -175,7 +175,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "| --- | --- |",
         "| Named snapshots | append-only; durable |",
         f"| Release bundle (v0.1-demo) | frozen at bundle-build time; durable |",
-        "| Live reports (reports/*.md) | ephemeral; regenerated each session |",
+        "| Live reports (.local/reports/*.md) | ephemeral; regenerated each session |",
         "| Demo caveats | " + honesty_status + " |",
         "",
         "See `docs/OPERATIONAL_MEMORY_DURABILITY.md` for full durability classification.",
@@ -190,7 +190,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         lines += [
             "demo_caveats.md is present. Before any demo or release:",
             "",
-            "1. Read `reports/demo_caveats.md` in full.",
+            "1. Read `.local/reports/demo_caveats.md` in full.",
             "2. State all listed caveats to the audience explicitly.",
             "3. Do not omit caveats for audiences who have heard them before.",
             "",
@@ -255,8 +255,8 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
     lines += [
         "## Maintenance Steadiness Posture",
         "",
-        "See `reports/maintenance_steadiness_summary.md` for caution level and",
-        "steadiness guidance. See `reports/maintenance_calm_summary.md` for the",
+        "See `.local/reports/maintenance_steadiness_summary.md` for caution level and",
+        "steadiness guidance. See `.local/reports/maintenance_calm_summary.md` for the",
         "full calm posture context.",
         "",
         "---",
@@ -266,7 +266,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "This script reads existing report and snapshot files only.",
         "It does not connect to PostgreSQL, mutate application state,",
         "rerun crawlers, or change any operational artifact other than",
-        "`reports/maintenance_continuity_summary.md`.",
+        "`.local/reports/maintenance_continuity_summary.md`.",
     ]
 
     if warnings:

@@ -10,8 +10,8 @@ behavior.
 
 `scripts/export_system_snapshot.py` reads PostgreSQL and writes:
 
-- `snapshots/system_snapshot_<timestamp>.json`
-- `snapshots/latest_status.json`
+- `.local/snapshots/system_snapshot_<timestamp>.json`
+- `.local/snapshots/latest_status.json`
 
 The script captures health, freshness, unresolved counts, drift warnings,
 regression summary, and latest ingestion metadata. It does not modify database
@@ -33,11 +33,11 @@ state.
 
 ## Timeline Derivation
 
-`scripts/build_snapshot_timeline.py` reads all `snapshots/*.json`, tolerates
+`scripts/build_snapshot_timeline.py` reads all `.local/snapshots/*.json`, tolerates
 missing fields, skips malformed files with warnings, and emits:
 
-- `reports/snapshot_timeline.md`
-- `reports/snapshot_timeline.json`
+- `.local/reports/snapshot_timeline.md`
+- `.local/reports/snapshot_timeline.json`
 
 The timeline deduplicates equivalent latest/named snapshots so readers see
 historical states rather than duplicate pointers.

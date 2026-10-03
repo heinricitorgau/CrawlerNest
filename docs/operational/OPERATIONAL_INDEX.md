@@ -21,8 +21,8 @@ semantics, or agent autonomy.
 
 | Artifact | Purpose | Producer Script | Readonly Status | Expected Frequency | Consumed By | Operational Importance |
 | --- | --- | --- | --- | --- | --- | --- |
-| `snapshots/system_snapshot_*.json` | Dated historical snapshot of health, freshness, unresolved counts, drift warnings, regression summary, and last ingestion. | `scripts/export_system_snapshot.py` | Writes files only; reads PostgreSQL; does not mutate DB. | After pipeline runs, release validation, or handoff checkpoints. | timeline, drift, freshness, compare, release bundle. | High: primary historical evidence. |
-| `snapshots/latest_status.json` | Compact pointer to the latest exported state. | `scripts/export_system_snapshot.py` | File write only; no runtime mutation. | Overwritten with each export. | frontend snapshot info route, reports, release bundle. | High: latest evidence pointer. |
+| `.local/snapshots/system_snapshot_*.json` | Dated historical snapshot of health, freshness, unresolved counts, drift warnings, regression summary, and last ingestion. | `scripts/export_system_snapshot.py` | Writes files only; reads PostgreSQL; does not mutate DB. | After pipeline runs, release validation, or handoff checkpoints. | timeline, drift, freshness, compare, release bundle. | High: primary historical evidence. |
+| `.local/snapshots/latest_status.json` | Compact pointer to the latest exported state. | `scripts/export_system_snapshot.py` | File write only; no runtime mutation. | Overwritten with each export. | frontend snapshot info route, reports, release bundle. | High: latest evidence pointer. |
 
 Retention expectation: append dated snapshots for release and handoff windows;
 clean manually with operational approval. `latest_status.json` is replaceable.
@@ -33,13 +33,13 @@ clean manually with operational approval. `latest_status.json` is replaceable.
 
 | Artifact | Purpose | Producer Script | Readonly Status | Expected Frequency | Consumed By | Operational Importance |
 | --- | --- | --- | --- | --- | --- | --- |
-| `reports/latest_failure_summary.md` | Human summary of freshness, drift, regression, unresolved, and source coverage. | `scripts/build_failure_summary.py` | Reads snapshots and optional readonly checks. | Release validation and demos. | release bundle, agent context. | High. |
-| `reports/snapshot_timeline.md` / `.json` | Timeline of aggregation count, unresolved trend, source coverage, freshness, and warnings. | `scripts/build_snapshot_timeline.py` | Reads `snapshots/*.json`; writes report files only. | After snapshot export or before demos. | operational summary, reviewers. | High. |
-| `reports/operational_summary.md` | Demo-friendly latest state summary with source health. | `scripts/build_operational_summary.py` | Reads snapshots/reports/docs only. | Before demos or handoff. | release bundle, operational index summary. | High. |
-| `reports/operational_index_summary.md` | Single-entry consolidated operational status. | `scripts/build_operational_index_summary.py` | Reads reports/snapshots/docs/bundle outputs only. | Before release bundle creation or handoff. | release bundle, humans. | High. |
-| `reports/maintenance_readiness_summary.md` | Maintenance-oriented freshness, source, unresolved, and release/demo caveat summary. | `scripts/inspect_source_freshness.py --summary-output ...` | Reads snapshot JSON only; writes report file only. | Before maintenance windows, demos, or source recovery. | release checklist, release bundle, humans. | High. |
-| `reports/demo_caveats.md` | Presenter-facing caveats derived from freshness, operational, maintenance, and snapshot evidence. | `scripts/build_demo_caveats.py` | Reads reports and snapshot JSON only; writes report file only. | Before demos and bundle rebuilds. | release bundle, presenters. | High. |
-| `reports/operational_trust_summary.md` | Conservative confidence rollup across freshness, source completeness, release, demo, maintenance, and operational trust. | `scripts/build_operational_trust_summary.py` | Reads reports and snapshot JSON only; writes report file only. | Before demos, release review, and maintenance handoff. | release bundle, overview, humans. | High. |
+| `.local/reports/latest_failure_summary.md` | Human summary of freshness, drift, regression, unresolved, and source coverage. | `scripts/build_failure_summary.py` | Reads snapshots and optional readonly checks. | Release validation and demos. | release bundle, agent context. | High. |
+| `.local/reports/snapshot_timeline.md` / `.json` | Timeline of aggregation count, unresolved trend, source coverage, freshness, and warnings. | `scripts/build_snapshot_timeline.py` | Reads `.local/snapshots/*.json`; writes report files only. | After snapshot export or before demos. | operational summary, reviewers. | High. |
+| `.local/reports/operational_summary.md` | Demo-friendly latest state summary with source health. | `scripts/build_operational_summary.py` | Reads .local/snapshots/reports/docs only. | Before demos or handoff. | release bundle, operational index summary. | High. |
+| `.local/reports/operational_index_summary.md` | Single-entry consolidated operational status. | `scripts/build_operational_index_summary.py` | Reads .local/reports/snapshots/docs/bundle outputs only. | Before release bundle creation or handoff. | release bundle, humans. | High. |
+| `.local/reports/maintenance_readiness_summary.md` | Maintenance-oriented freshness, source, unresolved, and release/demo caveat summary. | `scripts/inspect_source_freshness.py --summary-output ...` | Reads snapshot JSON only; writes report file only. | Before maintenance windows, demos, or source recovery. | release checklist, release bundle, humans. | High. |
+| `.local/reports/demo_caveats.md` | Presenter-facing caveats derived from freshness, operational, maintenance, and snapshot evidence. | `scripts/build_demo_caveats.py` | Reads reports and snapshot JSON only; writes report file only. | Before demos and bundle rebuilds. | release bundle, presenters. | High. |
+| `.local/reports/operational_trust_summary.md` | Conservative confidence rollup across freshness, source completeness, release, demo, maintenance, and operational trust. | `scripts/build_operational_trust_summary.py` | Reads reports and snapshot JSON only; writes report file only. | Before demos, release review, and maintenance handoff. | release bundle, overview, humans. | High. |
 
 Retention expectation: generated reports are reproducible and can be refreshed;
 keep latest reports for release evidence, do not treat them as runtime truth.
@@ -73,7 +73,7 @@ Retention expectation: keep with release bundle for reproducibility evidence.
 
 | Artifact | Purpose | Producer Script | Readonly Status | Expected Frequency | Consumed By | Operational Importance |
 | --- | --- | --- | --- | --- | --- | --- |
-| `reports/drift_timeline.md` | Classifies unresolved growth, source disappearance, stale transitions, aggregation drops, and drift warnings. | `scripts/build_drift_timeline.py` | Reads snapshots only. | Before demos and release handoffs. | operational summary, bundle. | Medium-high. |
+| `.local/reports/drift_timeline.md` | Classifies unresolved growth, source disappearance, stale transitions, aggregation drops, and drift warnings. | `scripts/build_drift_timeline.py` | Reads snapshots only. | Before demos and release handoffs. | operational summary, bundle. | Medium-high. |
 | `scripts/compare_snapshots.py` output | Compares two selected snapshots for count, coverage, stale, and drift differences. | `scripts/compare_snapshots.py` | Reads JSON files only. | Ad hoc drift review or smoke fixture validation. | smoke, humans. | Medium-high. |
 
 Retention expectation: latest generated drift timeline is enough for most
@@ -85,9 +85,9 @@ demos; compare outputs may remain ad hoc unless captured.
 
 | Artifact | Purpose | Producer Script | Readonly Status | Expected Frequency | Consumed By | Operational Importance |
 | --- | --- | --- | --- | --- | --- | --- |
-| `reports/freshness_escalation.md` | Classifies latest freshness as healthy/degraded/stale/critical. | `scripts/build_freshness_escalation.py` | Reads snapshots only. | Before demos and handoff. | operational summary, bundle. | High. |
+| `.local/reports/freshness_escalation.md` | Classifies latest freshness as healthy/degraded/stale/critical. | `scripts/build_freshness_escalation.py` | Reads snapshots only. | Before demos and handoff. | operational summary, bundle. | High. |
 | `scripts/inspect_source_freshness.py` output | Summarizes latest source state, aggregation age, source coverage, unresolved trend, and subject freshness. | `scripts/inspect_source_freshness.py` | Reads snapshot JSON only. | Maintenance inspection and source recovery planning. | maintenance readiness summary, humans. | High. |
-| `scripts/maintenance_overview.sh` output | Single-entry maintenance overview combining source freshness, operational summary, latest snapshot comparison hint, and smoke summary. | `scripts/maintenance_overview.sh` | Reads reports/snapshots and runs readonly file-based helpers. | Operator first look. | humans. | High. |
+| `scripts/maintenance_overview.sh` output | Single-entry maintenance overview combining source freshness, operational summary, latest snapshot comparison hint, and smoke summary. | `scripts/maintenance_overview.sh` | Reads .local/reports/snapshots and runs readonly file-based helpers. | Operator first look. | humans. | High. |
 | Freshness API `/api/v1/freshness` | Live freshness surface. | Spring Boot API. | GET-only. | While stack is running. | demos, smoke checks. | High. |
 
 Retention expectation: report output is refreshable; API output is live and not
@@ -99,8 +99,8 @@ retained unless copied into bundle/logs.
 
 | Artifact | Purpose | Producer Script | Readonly Status | Expected Frequency | Consumed By | Operational Importance |
 | --- | --- | --- | --- | --- | --- | --- |
-| `tmp/agent-context/context_snapshot.md` | Bounded repo and operational evidence snapshot for sibling agents. | `scripts/agent_context_snapshot.sh` | Reads repo and reports; writes `tmp/` only. | Per debugging or review session. | `agent_repo_prompt.sh`. | Medium. |
-| `tmp/agent-context/repo-aware-prompt.md` | Prompt-ready context package. | `scripts/agent_repo_prompt.sh` | Writes `tmp/` only; no source mutation. | Per prompt generation. | sibling `crawlernest-agents`. | Medium. |
+| `.local/tmp/agent-context/context_snapshot.md` | Bounded repo and operational evidence snapshot for sibling agents. | `scripts/agent_context_snapshot.sh` | Reads repo and reports; writes `.local/tmp/` only. | Per debugging or review session. | `agent_repo_prompt.sh`. | Medium. |
+| `.local/tmp/agent-context/repo-aware-prompt.md` | Prompt-ready context package. | `scripts/agent_repo_prompt.sh` | Writes `.local/tmp/` only; no source mutation. | Per prompt generation. | sibling `crawlernest-agents`. | Medium. |
 
 Agent wrappers may consume latest smoke summaries, failure summaries,
 diagnostic snapshots, freshness snapshots, and regression summaries. They do

@@ -34,9 +34,9 @@ Scan for three things only:
 **Optional deeper reads:** None needed if nothing changed.
 
 **Skip initially:**
-- `reports/operational_trust_summary.md`
-- `reports/drift_timeline.md`
-- `reports/maintenance_readiness_summary.md`
+- `.local/reports/operational_trust_summary.md`
+- `.local/reports/drift_timeline.md`
+- `.local/reports/maintenance_readiness_summary.md`
 - All `docs/` files
 
 ---
@@ -47,9 +47,9 @@ Scan for three things only:
 
 **Reading order:**
 
-1. `reports/maintenance_calm_summary.md` — calm posture overview first
-2. `reports/demo_caveats.md` — required reading; confirms what you must state
-3. `reports/operational_trust_summary.md` — confidence dimensions and release posture
+1. `.local/reports/maintenance_calm_summary.md` — calm posture overview first
+2. `.local/reports/demo_caveats.md` — required reading; confirms what you must state
+3. `.local/reports/operational_trust_summary.md` — confidence dimensions and release posture
 4. `docs/releases/v0.1-demo/smoke_release_output.txt` — confirm smoke passed
 5. `docs/DEMO_HONESTY_GUIDELINES.md` — phrasing compliance check
 
@@ -57,16 +57,16 @@ Scan for three things only:
 
 - If caveats are missing or outdated → run `./scripts/build_demo_caveats.py`
 - If smoke shows failures → pause demo prep; switch to Mode 5
-- If confidence levels changed since last release → read `reports/freshness_escalation.md`
+- If confidence levels changed since last release → read `.local/reports/freshness_escalation.md`
 
 **Optional deeper reads:**
-- `reports/maintenance_readiness_summary.md` — if you need detail behind a caveat
-- `reports/operational_summary.md` — if a stakeholder asks about specific source coverage
+- `.local/reports/maintenance_readiness_summary.md` — if you need detail behind a caveat
+- `.local/reports/operational_summary.md` — if a stakeholder asks about specific source coverage
 
 **Skip initially:**
-- `reports/drift_timeline.md`
-- `reports/snapshot_timeline.md`
-- `reports/operational_index_summary.md`
+- `.local/reports/drift_timeline.md`
+- `.local/reports/snapshot_timeline.md`
+- `.local/reports/operational_index_summary.md`
 - Phase maintenance docs
 
 ---
@@ -78,10 +78,10 @@ shows different counts, or when planning source recovery.
 
 **Reading order:**
 
-1. `reports/freshness_escalation.md` — escalation state and source-level detail
-2. `reports/maintenance_readiness_summary.md` — source coverage breakdown
-3. `reports/operational_summary.md` — per-source counts and state
-4. `reports/drift_timeline.md` — historical drift context
+1. `.local/reports/freshness_escalation.md` — escalation state and source-level detail
+2. `.local/reports/maintenance_readiness_summary.md` — source coverage breakdown
+3. `.local/reports/operational_summary.md` — per-source counts and state
+4. `.local/reports/drift_timeline.md` — historical drift context
 
 **Escalation path:**
 
@@ -96,8 +96,8 @@ shows different counts, or when planning source recovery.
 - `docs/SOURCE_STATE_EXPLAINABILITY.md` — explainability for demo/release contexts
 
 **Skip initially:**
-- `reports/operational_trust_summary.md`
-- `reports/demo_caveats.md`
+- `.local/reports/operational_trust_summary.md`
+- `.local/reports/demo_caveats.md`
 - Smoke output
 
 ---
@@ -111,8 +111,8 @@ breaks, or any signal that was previously healthy becomes degraded.
 
 1. `./scripts/maintenance_overview.sh` — immediate readout of all signals
 2. `docs/releases/v0.1-demo/smoke_release_output.txt` — specific failure detail
-3. `reports/freshness_escalation.md` — check if freshness changed
-4. `reports/operational_trust_summary.md` — confidence delta since last check
+3. `.local/reports/freshness_escalation.md` — check if freshness changed
+4. `.local/reports/operational_trust_summary.md` — confidence delta since last check
 5. `docs/MAINTENANCE_PRIORITY_MATRIX.md` — triage classification
 
 **Escalation path:**
@@ -123,7 +123,7 @@ breaks, or any signal that was previously healthy becomes degraded.
 - Priority 2 (docs, UX polish): batch for next maintenance window
 
 **Optional deeper reads:**
-- `reports/drift_timeline.md` — if count drift is the issue
+- `.local/reports/drift_timeline.md` — if count drift is the issue
 - `docs/LOCAL_TROUBLESHOOTING.md` — if service startup is the issue
 - `docs/OPERATIONAL_RECOVERY.md` — if rollback is needed
 
@@ -142,11 +142,11 @@ phase, or when assessing system maturity for a stakeholder review.
 **Reading order:**
 
 1. `docs/PROJECT_STATE_REVIEW.md` — overall maturity and next priorities
-2. `reports/operational_index_summary.md` — full operational state inventory
-3. `reports/operational_trust_summary.md` — current confidence posture
+2. `.local/reports/operational_index_summary.md` — full operational state inventory
+3. `.local/reports/operational_trust_summary.md` — current confidence posture
 4. `docs/MAINTENANCE_SUSTAINABILITY_REVIEW.md` — maintenance debt analysis
 5. `docs/OPERATIONAL_COHERENCE_REVIEW.md` — coherence and cleanup opportunities
-6. `reports/drift_timeline.md` — historical trend
+6. `.local/reports/drift_timeline.md` — historical trend
 
 **Escalation path:**
 
@@ -161,7 +161,7 @@ phase, or when assessing system maturity for a stakeholder review.
 - `docs/RC1_FREEZE_SCOPE.md` — if scope changes are being considered
 
 **Skip initially:**
-- Individual report files under `reports/`
+- Individual report files under `.local/reports/`
 - Phase validation scripts
 - `docs/LOCAL_TROUBLESHOOTING.md`
 
@@ -177,8 +177,8 @@ phase, or when assessing system maturity for a stakeholder review.
 2. `docs/README.md` — documentation hub and reading order
 3. `docs/ARCHITECTURE_OVERVIEW.md` — system structure
 4. `docs/OPERATIONAL_RUNBOOK.md` — startup, smoke, daily ops
-5. `reports/maintenance_calm_summary.md` — current state in calm framing
-6. `reports/operational_index_summary.md` — operational state inventory
+5. `.local/reports/maintenance_calm_summary.md` — current state in calm framing
+6. `.local/reports/operational_index_summary.md` — operational state inventory
 7. `docs/MAINTENANCE_READING_MODES.md` — this document (bookmark for future use)
 
 **After onboarding, use Mode 1 for daily checks.**

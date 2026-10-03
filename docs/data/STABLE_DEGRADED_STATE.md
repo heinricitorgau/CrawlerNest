@@ -88,7 +88,7 @@ should treat it as a reminder of the known posture, not a new alarm.
 
 ### To a Demo Audience
 
-State the caveats from `reports/demo_caveats.md` clearly. Do not soften or
+State the caveats from `.local/reports/demo_caveats.md` clearly. Do not soften or
 omit them. The caveats are the honest disclosure of the degraded conditions.
 
 Acceptable phrasing:
@@ -110,8 +110,8 @@ Refer to this document and `docs/OPERATIONAL_MEMORY_PRESERVATION.md`. Explain:
 
 ### To a Stakeholder Review
 
-Present the `reports/maintenance_calm_summary.md` or
-`reports/maintenance_steadiness_summary.md` output. These contextualize the
+Present the `.local/reports/maintenance_calm_summary.md` or
+`.local/reports/maintenance_steadiness_summary.md` output. These contextualize the
 posture without alarm amplification while being fully honest.
 
 ---

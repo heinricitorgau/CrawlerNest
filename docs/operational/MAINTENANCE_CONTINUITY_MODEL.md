@@ -37,9 +37,9 @@ See `docs/STABLE_DEGRADED_CONTINUITY.md` for the full long-term guidance.
 semantics, naming, and interpretation across sessions and operators.
 
 **What it means in practice:**
-- `reports/freshness_escalation.md` always means the same thing: the current
+- `.local/reports/freshness_escalation.md` always means the same thing: the current
   freshness state as classified against the escalation policy.
-- `reports/maintenance_calm_summary.md` always distinguishes RC-1 stable
+- `.local/reports/maintenance_calm_summary.md` always distinguishes RC-1 stable
   conditions from genuinely new signals.
 - Each report's meaning does not change between regenerations.
 

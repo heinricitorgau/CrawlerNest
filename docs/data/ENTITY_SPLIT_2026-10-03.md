@@ -34,7 +34,7 @@ replayed from the committed files; QS 2026 `world` and `region:north-america` re
 Ohio's QS rows for 2025 global and 2026 special/sustainability moved by id; four rows of the derived
 `ranking_decision_preview` rewritten. No row count went down anywhere; rows that had been displaced came back
 (THE +1 to +2 per affected edition, QS 2026 +1 global and +1 North America, the new canonicals' own rows).
-Backup: `backups/entity_split_before_20261003T035124Z.dump`, restore with
+Backup: `.local/backups/entity_split_before_20261003T035124Z.dump`, restore with
 `pg_restore -h localhost -U test -d clawer --clean --if-exists <that file>`.
 
 **Why not the obvious shortcuts.**
@@ -58,7 +58,7 @@ Backup: `backups/entity_split_before_20261003T035124Z.dump`, restore with
   Ohio's is 0.4164). The disagreement run now has 1,483 rows, up from 1,482, and records the retrained model
   (1,112 training rows, ROC-AUC 0.8437) instead of the 2026-09-14 one (1,109 rows, 0.8384): the other 1,470 rows moved
   by 0.023 on average because the model was retrained after the 2026-09-21 refresh, not because of the split. Backup
-  taken first (`backups/ml_predictions_regen_pre_clawer_20261003T170618Z.dump`, a UTC stamp; gitignored).
+  taken first (`.local/backups/ml_predictions_regen_pre_clawer_20261003T170618Z.dump`, a UTC stamp; gitignored).
 - Nothing in the QS archive load is withheld for the entity split any more. QS's two Miami ids were reloaded into all
   seven archive editions on 2026-10-03 (`b89a6d5`), and so was Perugia (receipts under
   `crawlernest-kb/qs_archive/receipts/`). Perugia was not a missing review: a review for the new spelling was refused
@@ -84,5 +84,5 @@ proof, and it can be reversed. `split_islamic_azad_karaj.py` created c767310 "Is
 recorded a `remapped` review and replayed THE 2017. The `verify` phase reports no problems and no collisions. Nothing
 was lost (the university has THE 2017 alone on either canonical) and no cross-edition pair changed: only that row's
 canonical id and slug in `cross_edition_ranks.csv`. Backup before the run:
-`backups/karaj_split_pre_clawer_20261003T172455Z.dump` (a UTC stamp; gitignored). To undo: restore it, or delete the review
+`.local/backups/karaj_split_pre_clawer_20261003T172455Z.dump` (a UTC stamp; gitignored). To undo: restore it, or delete the review
 and the canonical and replay THE 2017.

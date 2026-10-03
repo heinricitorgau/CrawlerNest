@@ -17,7 +17,7 @@ delete artifacts or change runtime behavior.
 | Operational summary | `operational_summary.md` | Demo-friendly current state. |
 | Operational index summary | `operational_index_summary.md` | Preferred single-entry summary for handoff. |
 | Bundle diagnostics | `diagnostics_summary.txt`, `smoke_release_output.txt` | Necessary release evidence. |
-| Agent context | `tmp/agent-context/*` | Useful but temporary and non-authoritative. |
+| Agent context | `.local/tmp/agent-context/*` | Useful but temporary and non-authoritative. |
 
 ---
 
@@ -47,11 +47,11 @@ delete artifacts or change runtime behavior.
 Do not delete current artifacts during Phase 1. Instead:
 
 1. Point handoff readers to `docs/OPERATIONAL_INDEX.md`.
-2. Point demo readers to `reports/operational_index_summary.md`.
+2. Point demo readers to `.local/reports/operational_index_summary.md`.
 3. Use `REPORT_RELATIONSHIPS.md` to decide where a future report belongs.
 4. Avoid creating another top-level summary unless it replaces an existing
    report role.
-5. Keep generated evidence under `reports/`, `snapshots/`, `tmp/`, or
+5. Keep generated evidence under `.local/reports/`, `.local/snapshots/`, `.local/tmp/`, or
    `docs/releases/`.
 
 ---

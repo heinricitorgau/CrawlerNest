@@ -11,7 +11,7 @@ with readonly checks unless a human has explicitly approved a data refresh.
 ./scripts/maintenance_overview.sh
 ./scripts/inspect_source_freshness.py
 ./scripts/build_operational_index_summary.py
-sed -n '1,160p' reports/operational_index_summary.md
+sed -n '1,160p' .local/reports/operational_index_summary.md
 ```
 
 ---
@@ -19,9 +19,9 @@ sed -n '1,160p' reports/operational_index_summary.md
 ## Verify Freshness
 
 ```bash
-./scripts/inspect_source_freshness.py --summary-output reports/maintenance_readiness_summary.md
+./scripts/inspect_source_freshness.py --summary-output .local/reports/maintenance_readiness_summary.md
 ./scripts/build_freshness_escalation.py
-sed -n '1,160p' reports/freshness_escalation.md
+sed -n '1,160p' .local/reports/freshness_escalation.md
 ```
 
 ---
@@ -31,7 +31,7 @@ sed -n '1,160p' reports/freshness_escalation.md
 ```bash
 ./scripts/build_snapshot_timeline.py
 ./scripts/build_drift_timeline.py
-sed -n '1,160p' reports/drift_timeline.md
+sed -n '1,160p' .local/reports/drift_timeline.md
 ```
 
 ---
@@ -40,7 +40,7 @@ sed -n '1,160p' reports/drift_timeline.md
 
 ```bash
 ./scripts/build_snapshot_timeline.py
-rg -n "Unresolved|unresolved|trend" reports/snapshot_timeline.md
+rg -n "Unresolved|unresolved|trend" .local/reports/snapshot_timeline.md
 ```
 
 ---
@@ -61,8 +61,8 @@ rg -n "Unresolved|unresolved|trend" reports/snapshot_timeline.md
 
 ```bash
 python3 scripts/compare_snapshots.py \
-  snapshots/system_snapshot_YYYYMMDD_HHMMSS.json \
-  snapshots/latest_status.json
+  .local/snapshots/system_snapshot_YYYYMMDD_HHMMSS.json \
+  .local/snapshots/latest_status.json
 ```
 
 ---
@@ -84,7 +84,7 @@ After refresh:
 
 ```bash
 ./.venv/bin/python scripts/export_system_snapshot.py --pg-host 127.0.0.1 --pg-user test --pg-password test --pg-database clawer
-./scripts/inspect_source_freshness.py --summary-output reports/maintenance_readiness_summary.md
+./scripts/inspect_source_freshness.py --summary-output .local/reports/maintenance_readiness_summary.md
 ./scripts/smoke_release.sh
 ```
 

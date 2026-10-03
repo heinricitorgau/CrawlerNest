@@ -31,7 +31,7 @@ PYTHON_BIN="${REPO_ROOT}/.venv/bin/python"
 # ---------------------------------------------------------------------------
 # 2. Timestamped log file
 # ---------------------------------------------------------------------------
-LOG_DIR="${REPO_ROOT}/logs"
+LOG_DIR="${REPO_ROOT}/.local/logs"
 mkdir -p "${LOG_DIR}"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 LOG_FILE="${LOG_DIR}/run_${TIMESTAMP}.log"

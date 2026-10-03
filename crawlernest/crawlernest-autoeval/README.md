@@ -95,7 +95,7 @@ flowchart TB
     baselines["baselines/<br/>Baseline outputs"]
     adapters["adapters/<br/>Bridge to CrawlerNest modules"]
     runners["runners/<br/>Evaluation runners"]
-    reports["reports/<br/>Output summaries"]
+    reports[".local/reports/<br/>Output summaries"]
     sandbox["sandbox/<br/>Temporary experiment space"]
 
     root --> readme

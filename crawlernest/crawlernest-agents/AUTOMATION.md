@@ -78,7 +78,7 @@ Prevent broken or inconsistent state from entering the repository.
 **Output:**
 
 ```text
-tmp/latest-debug-prompt.md
+.local/tmp/latest-debug-prompt.md
 ```
 
 **Agent Used:**
@@ -106,7 +106,7 @@ Convert raw test failures into actionable debugging context.
 **Output:**
 
 ```text
-tmp/pipeline-analysis-prompt.md
+.local/tmp/pipeline-analysis-prompt.md
 ```
 
 **Agents Used:**
@@ -223,7 +223,7 @@ If tests fail:
 ### Pipeline Analysis Flow
 
 ```bash
-./scripts/analyze-pipeline-log.sh tmp/pipeline.log
+./scripts/analyze-pipeline-log.sh .local/tmp/pipeline.log
 ```
 
 ---

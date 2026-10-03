@@ -55,7 +55,7 @@ CRAWLERNEST_PG_PASSWORD=test ./.venv/bin/python scripts/check_pipeline_health.py
 Readonly or file-output-only:
 
 ```bash
-./scripts/inspect_source_freshness.py --summary-output reports/maintenance_readiness_summary.md
+./scripts/inspect_source_freshness.py --summary-output .local/reports/maintenance_readiness_summary.md
 ./.venv/bin/python scripts/export_system_snapshot.py --pg-host 127.0.0.1 --pg-user test --pg-password test --pg-database clawer
 ./scripts/build_snapshot_timeline.py
 ./scripts/build_freshness_escalation.py

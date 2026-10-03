@@ -74,9 +74,9 @@ The explainability layer reads stored aggregation output. It does not recalculat
 | Script | Purpose |
 |--------|---------|
 | `scripts/run_daily_pipeline.sh` | Orchestrates daily crawl, subject run, snapshot, bundle, smoke |
-| `scripts/export_system_snapshot.py` | Writes `snapshots/system_snapshot_*.json` and `snapshots/latest_status.json` |
-| `scripts/export_metadata_bundle.sh` | Creates compressed backup bundle in `backups/` |
-| `scripts/build_failure_summary.py` | Generates `reports/latest_failure_summary.md` from snapshot |
+| `scripts/export_system_snapshot.py` | Writes `.local/snapshots/system_snapshot_*.json` and `.local/snapshots/latest_status.json` |
+| `scripts/export_metadata_bundle.sh` | Creates compressed backup bundle in `.local/backups/` |
+| `scripts/build_failure_summary.py` | Generates `.local/reports/latest_failure_summary.md` from snapshot |
 | `scripts/check_pipeline_health.py` | Readonly diagnostic health check |
 | `scripts/compare_snapshots.py` | Diff two snapshot files for drift detection |
 | `scripts/smoke_local_stack.sh` | Validates all live services are up and responding |

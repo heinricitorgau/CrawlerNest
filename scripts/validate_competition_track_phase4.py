@@ -101,7 +101,7 @@ def check_demo_summary_script() -> None:
         check("script defines DEMO_CAVEATS", "DEMO_CAVEATS" in text)
         check("script defines WHAT_NOT_TO_CLAIM", "WHAT_NOT_TO_CLAIM" in text)
         check("script has _validate() self-test", "_validate" in text)
-        check("script outputs to reports/competition_demo_summary.md", "competition_demo_summary" in text)
+        check("script outputs to .local/reports/competition_demo_summary.md", "competition_demo_summary" in text)
 
 
 # ---------------------------------------------------------------------------
@@ -118,7 +118,7 @@ def check_demo_summary_output() -> None:
     )
     check("script runs without error", result.returncode == 0, result.stderr[:200])
 
-    output = REPO_ROOT / "reports/competition_demo_summary.md"
+    output = REPO_ROOT / ".local/reports/competition_demo_summary.md"
     check("competition_demo_summary.md generated", output.exists(), "file not created")
 
     if output.exists():

@@ -200,7 +200,7 @@ If the live demo cannot continue:
 
 1. **Priority 1 screenshots** — cover disagreement, posture, evidence, caveats
 2. **Narrate the evidence from memory** — the core argument is: "sources disagree, we show it; evidence is stored data, not generated; caveats are unconditional"
-3. **Use the competition demo summary** — `reports/competition_demo_summary.md` has the elevator pitch, differentiators, and required caveats in printable form
+3. **Use the competition demo summary** — `.local/reports/competition_demo_summary.md` has the elevator pitch, differentiators, and required caveats in printable form
 
 A demo that uses fallback screenshots and delivers the core argument clearly is a
 complete and credible demonstration.

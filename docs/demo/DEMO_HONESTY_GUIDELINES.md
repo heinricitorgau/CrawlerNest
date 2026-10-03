@@ -47,7 +47,7 @@ freshness or source limitations.
 
 ## Presenter Checklist
 
-1. Read `reports/demo_caveats.md`.
-2. Confirm smoke result from `reports/operational_trust_summary.md` or bundle output.
+1. Read `.local/reports/demo_caveats.md`.
+2. Confirm smoke result from `.local/reports/operational_trust_summary.md` or bundle output.
 3. State data freshness and source caveats before showing rankings.
 4. Avoid broad source completeness claims.

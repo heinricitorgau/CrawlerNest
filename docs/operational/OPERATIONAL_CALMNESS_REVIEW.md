@@ -28,9 +28,9 @@ The three primary operational limitations are documented and accepted:
 
 | Limitation | Where Documented |
 | --- | --- |
-| QS data is stale (~354h old) | `reports/demo_caveats.md`, `reports/freshness_escalation.md` |
-| THE and ARWU are unavailable | `reports/demo_caveats.md`, `reports/operational_summary.md` |
-| Subject ranking rows are zero | `reports/maintenance_readiness_summary.md` |
+| QS data is stale (~354h old) | `.local/reports/demo_caveats.md`, `.local/reports/freshness_escalation.md` |
+| THE and ARWU are unavailable | `.local/reports/demo_caveats.md`, `.local/reports/operational_summary.md` |
+| Subject ranking rows are zero | `.local/reports/maintenance_readiness_summary.md` |
 
 These are RC-1 scope conditions. They are not emergency signals requiring
 immediate response each time a maintenance check runs.
@@ -49,9 +49,9 @@ Operators can run the full maintenance suite with no risk of state mutation.
 
 The word `critical` appears in:
 
-- `reports/maintenance_readiness_summary.md` — `Freshness state: **critical**`
-- `reports/freshness_escalation.md` — escalation state
-- `reports/demo_caveats.md` — "critical freshness warnings"
+- `.local/reports/maintenance_readiness_summary.md` — `Freshness state: **critical**`
+- `.local/reports/freshness_escalation.md` — escalation state
+- `.local/reports/demo_caveats.md` — "critical freshness warnings"
 - `docs/MAINTENANCE_PRIORITY_MATRIX.md` — Priority 0 framing
 - `docs/REPORT_CRITICALITY.md` — report criticality tier
 
@@ -142,7 +142,7 @@ multiple maintenance cycles represent accepted posture, not open incidents.
 
 ### 5. Calm Summary Before Full Report Review
 
-Run `build_maintenance_calm_summary.py` (or read `reports/maintenance_calm_summary.md`)
+Run `build_maintenance_calm_summary.py` (or read `.local/reports/maintenance_calm_summary.md`)
 before diving into detailed reports. The calm summary contextualizes the current
 posture without alarm amplification.
 

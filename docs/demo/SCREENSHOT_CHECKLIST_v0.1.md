@@ -139,7 +139,7 @@ Capture these to document system state at time of milestone.
 | Field | Value |
 |-------|-------|
 | Route | N/A — terminal |
-| Command | `cat snapshots/latest_status.json \| python3 -m json.tool` |
+| Command | `cat .local/snapshots/latest_status.json \| python3 -m json.tool` |
 | Viewport | Terminal |
 | State | Shows aggregated_count, source_counts, unresolved_total, overall_stale |
 | Filename | `snapshot_latest_status.png` |
@@ -151,7 +151,7 @@ Capture these to document system state at time of milestone.
 | Field | Value |
 |-------|-------|
 | Route | N/A — terminal |
-| Command | `cat reports/latest_failure_summary.md` |
+| Command | `cat .local/reports/latest_failure_summary.md` |
 | Viewport | Terminal |
 | State | Shows overall status table, unresolved count, staleness, regression coverage |
 | Filename | `failure_summary_report.png` |

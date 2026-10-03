@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Build a human-readable failure summary from the latest system snapshot.
 
-Reads: snapshots/latest_status.json
+Reads: .local/snapshots/latest_status.json
 Optionally runs regression and drift scripts for live data.
-Writes: reports/latest_failure_summary.md
+Writes: .local/reports/latest_failure_summary.md
 
 Usage
 -----
@@ -20,8 +20,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
 AUTOEVAL_ROOT = REPO_ROOT / "crawlernest" / "crawlernest-autoeval"
-DEFAULT_SNAPSHOT_FILE = REPO_ROOT / "snapshots" / "latest_status.json"
-REPORTS_DIR = REPO_ROOT / "reports"
+DEFAULT_SNAPSHOT_FILE = REPO_ROOT / ".local" / "snapshots" / "latest_status.json"
+REPORTS_DIR = REPO_ROOT / ".local" / "reports"
 
 
 def load_snapshot(snapshot_path: Path) -> dict:
@@ -222,7 +222,7 @@ def main() -> int:
         "--snapshot-file",
         metavar="PATH",
         default=str(DEFAULT_SNAPSHOT_FILE),
-        help="Path to snapshot JSON file (default: snapshots/latest_status.json). "
+        help="Path to snapshot JSON file (default: .local/snapshots/latest_status.json). "
              "Use a fixture path for CI / no-database mode.",
     )
     args = parser.parse_args()

@@ -18,9 +18,9 @@ Operational automation guide for CrawlerNest. Covers crontab setup, pipeline sch
 | Script | Purpose |
 |--------|---------|
 | `scripts/run_daily_pipeline.sh` | Full daily pipeline from bootstrap through bundle export. |
-| `scripts/export_system_snapshot.py` | Export system state to `snapshots/system_snapshot_YYYYMMDD_HHMMSS.json` |
-| `scripts/build_failure_summary.py` | Build `reports/latest_failure_summary.md` from latest snapshot |
-| `scripts/export_metadata_bundle.sh` | Bundle snapshots, reports, logs into `backups/metadata_bundle_YYYYMMDD.tar.gz` |
+| `scripts/export_system_snapshot.py` | Export system state to `.local/snapshots/system_snapshot_YYYYMMDD_HHMMSS.json` |
+| `scripts/build_failure_summary.py` | Build `.local/reports/latest_failure_summary.md` from latest snapshot |
+| `scripts/export_metadata_bundle.sh` | Bundle snapshots, reports, logs into `.local/backups/metadata_bundle_YYYYMMDD.tar.gz` |
 | `scripts/smoke_release.sh` | Static build verification: Spring Boot compile + Next.js build + Python syntax |
 | `scripts/smoke_local_stack.sh` | Live stack smoke test: PostgreSQL + API + frontend |
 
@@ -40,24 +40,24 @@ Add these to `crontab -e`. Adjust paths to your repo root.
     --pg-password test \
     --ranking-year 2026 \
     --limit 30 \
-    >> logs/cron_daily.log 2>&1
+    >> .local/logs/cron_daily.log 2>&1
 
 # Weekly full regression on Sundays at 03:00 UTC
 0 3 * * 0 cd /home/torgau/dev/University-Data-Infrastructure-Web-Platform && \
   source .venv/bin/activate && \
   python crawlernest/crawlernest-autoeval/runners/run_ranking_regression.py \
-    --pg-password test >> logs/weekly_regression.log 2>&1
+    --pg-password test >> .local/logs/weekly_regression.log 2>&1
 
 # Monthly snapshot bundle export on the 1st at 04:00 UTC
 0 4 1 * * cd /home/torgau/dev/University-Data-Infrastructure-Web-Platform && \
-  ./scripts/export_metadata_bundle.sh >> logs/cron_bundle.log 2>&1
+  ./scripts/export_metadata_bundle.sh >> .local/logs/cron_bundle.log 2>&1
 
 # Daily snapshot export + failure summary at 02:30 UTC
 30 2 * * * cd /home/torgau/dev/University-Data-Infrastructure-Web-Platform && \
   source .venv/bin/activate && \
   python scripts/export_system_snapshot.py --pg-password test && \
   python scripts/build_failure_summary.py --pg-password test \
-    >> logs/cron_snapshot.log 2>&1
+    >> .local/logs/cron_snapshot.log 2>&1
 ```
 
 ---
@@ -98,11 +98,11 @@ The `--skip-existing-source` and `--skip-existing-year` flags are passed automat
 
 **Output artifacts:**
 ```text
-logs/daily_pipeline_YYYYMMDD.log
-snapshots/system_snapshot_YYYYMMDD_HHMMSS.json
-snapshots/latest_status.json
-reports/latest_failure_summary.md
-backups/metadata_bundle_YYYYMMDD_HHMMSS.tar.gz
+.local/logs/daily_pipeline_YYYYMMDD.log
+.local/snapshots/system_snapshot_YYYYMMDD_HHMMSS.json
+.local/snapshots/latest_status.json
+.local/reports/latest_failure_summary.md
+.local/backups/metadata_bundle_YYYYMMDD_HHMMSS.tar.gz
 ```
 
 ---
@@ -138,10 +138,10 @@ To manually clean old snapshots (keep last 30 days):
 
 ```bash
 # Keep snapshots from last 30 days
-find snapshots/ -name "system_snapshot_*.json" -mtime +30 -delete
+find .local/snapshots/ -name "system_snapshot_*.json" -mtime +30 -delete
 
 # Keep reports from last 30 days
-find reports/ -name "*.md" -mtime +30 -delete
+find .local/reports/ -name "*.md" -mtime +30 -delete
 ```
 
 ---
@@ -150,26 +150,26 @@ find reports/ -name "*.md" -mtime +30 -delete
 
 | Artifact | Retention | Location |
 |----------|-----------|----------|
-| Daily pipeline logs | 90 days | `logs/daily_pipeline_*.log` |
-| System snapshots | 30 days | `snapshots/system_snapshot_*.json` |
-| Failure summaries | 30 days | `reports/*.md` |
-| Metadata bundles | 30 bundles (auto-enforced) | `backups/metadata_bundle_*.tar.gz` |
+| Daily pipeline logs | 90 days | `.local/logs/daily_pipeline_*.log` |
+| System snapshots | 30 days | `.local/snapshots/system_snapshot_*.json` |
+| Failure summaries | 30 days | `.local/reports/*.md` |
+| Metadata bundles | 30 bundles (auto-enforced) | `.local/backups/metadata_bundle_*.tar.gz` |
 
 Manual cleanup:
 
 ```bash
 # Remove pipeline logs older than 90 days
-find logs/ -name "daily_pipeline_*.log" -mtime +90 -delete
+find .local/logs/ -name "daily_pipeline_*.log" -mtime +90 -delete
 
 # Remove old bundles (keep last 10)
-ls -1t backups/metadata_bundle_*.tar.gz 2>/dev/null | tail -n +11 | xargs -r rm
+ls -1t .local/backups/metadata_bundle_*.tar.gz 2>/dev/null | tail -n +11 | xargs -r rm
 ```
 
 ---
 
 ## Snapshot Structure
 
-`snapshots/latest_status.json` is a compact status file written after every `export_system_snapshot.py` run. It is read by the `/system-status` page to show operational context.
+`.local/snapshots/latest_status.json` is a compact status file written after every `export_system_snapshot.py` run. It is read by the `/system-status` page to show operational context.
 
 Key fields:
 

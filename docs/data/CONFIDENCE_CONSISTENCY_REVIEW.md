@@ -9,12 +9,12 @@ not change report logic or runtime semantics.
 
 | Surface | Current Role |
 | --- | --- |
-| `reports/operational_summary.md` | Demo-friendly state and source health. |
-| `reports/maintenance_readiness_summary.md` | Maintenance confidence and readiness caveats. |
-| `reports/freshness_escalation.md` | Freshness/source-gap escalation. |
-| `reports/drift_timeline.md` | Historical drift severity. |
-| `reports/demo_caveats.md` | Presenter-facing caveats. |
-| `reports/operational_trust_summary.md` | Conservative confidence rollup. |
+| `.local/reports/operational_summary.md` | Demo-friendly state and source health. |
+| `.local/reports/maintenance_readiness_summary.md` | Maintenance confidence and readiness caveats. |
+| `.local/reports/freshness_escalation.md` | Freshness/source-gap escalation. |
+| `.local/reports/drift_timeline.md` | Historical drift severity. |
+| `.local/reports/demo_caveats.md` | Presenter-facing caveats. |
+| `.local/reports/operational_trust_summary.md` | Conservative confidence rollup. |
 
 ---
 

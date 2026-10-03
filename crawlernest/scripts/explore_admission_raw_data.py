@@ -39,7 +39,7 @@ Usage
 
     # keep the full report for later diffing
     ./.venv/bin/python crawlernest/scripts/explore_admission_raw_data.py \
-        --pg-password test --output-json reports/admission_raw_survey.json
+        --pg-password test --output-json .local/reports/admission_raw_survey.json
 """
 
 from __future__ import annotations

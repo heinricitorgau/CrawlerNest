@@ -176,7 +176,7 @@ Rollback should be scoped to the smallest changed surface:
 
 - code rollback: use git history and avoid resetting unrelated local work
 - DB rollback: restore from an intentional database backup
-- artifact rollback: restore the needed snapshot/report from `backups/`
+- artifact rollback: restore the needed snapshot/report from `.local/backups/`
 - config rollback: restore datasource and environment variables to known-good values
 
 Do not use cleanup, diagnostics, or smoke scripts as rollback mechanisms. They

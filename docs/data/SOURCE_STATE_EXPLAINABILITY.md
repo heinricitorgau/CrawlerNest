@@ -32,7 +32,7 @@ be avoided.
 Maintainer response:
 
 1. Run `./scripts/inspect_source_freshness.py`.
-2. Review `reports/freshness_escalation.md`.
+2. Review `.local/reports/freshness_escalation.md`.
 3. Decide whether to run a human-approved refresh.
 
 Caveat: "QS is present, but the latest aggregation is stale."

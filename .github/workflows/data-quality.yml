@@ -81,7 +81,7 @@ jobs:
       # ── Failure summary (snapshot fixture mode) ───────────────────────────
       - name: Build failure summary (snapshot fixture mode)
         run: |
-          mkdir -p reports
+          mkdir -p .local/reports
           python3 scripts/build_failure_summary.py \
             --snapshot-file crawlernest/crawlernest-autoeval/datasets/ci_fixtures/snapshot_fixture.json \
             --output /tmp/ci_failure_summary.md

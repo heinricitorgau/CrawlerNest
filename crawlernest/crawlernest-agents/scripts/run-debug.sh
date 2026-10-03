@@ -4,7 +4,7 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-TMP_DIR="tmp"
+TMP_DIR=".local/tmp"
 LOG_FILE="$TMP_DIR/latest-test-output.log"
 PROMPT_FILE="$TMP_DIR/latest-debug-prompt.md"
 

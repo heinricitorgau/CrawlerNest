@@ -10,9 +10,9 @@ they diverge. It is documentation only; runtime semantics are not changed.
 | Surface | Evidence Source | Current Signal |
 | --- | --- | --- |
 | `scripts/check_pipeline_health.py` | Live readonly PostgreSQL query | `stale` because aggregation age exceeds 36h and THE/ARWU are missing. |
-| `reports/freshness_escalation.md` | Latest snapshot-derived report | `critical` because aggregation age is very old and THE/ARWU are missing. |
-| `reports/operational_summary.md` | Snapshot/report-derived summary | `critical`, with QS stale and THE/ARWU unavailable. |
-| `snapshots/latest_status.json` compact field | Snapshot export compact status | `overall_stale=false` in the current compact snapshot. |
+| `.local/reports/freshness_escalation.md` | Latest snapshot-derived report | `critical` because aggregation age is very old and THE/ARWU are missing. |
+| `.local/reports/operational_summary.md` | Snapshot/report-derived summary | `critical`, with QS stale and THE/ARWU unavailable. |
+| `.local/snapshots/latest_status.json` compact field | Snapshot export compact status | `overall_stale=false` in the current compact snapshot. |
 
 ---
 

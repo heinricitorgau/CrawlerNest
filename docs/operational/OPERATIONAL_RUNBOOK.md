@@ -121,7 +121,7 @@ Useful options:
 ./scripts/run_daily_pipeline.sh --skip-smoke
 ```
 
-The daily script runs ranking and subject operations, diagnostics, snapshots, and metadata bundle export. Logs are written under `logs/`.
+The daily script runs ranking and subject operations, diagnostics, snapshots, and metadata bundle export. Logs are written under `.local/logs/`.
 
 ## Snapshot Export
 
@@ -137,16 +137,16 @@ python3 scripts/export_system_snapshot.py \
 Outputs:
 
 ```text
-snapshots/system_snapshot_YYYYMMDD_HHMMSS.json
-snapshots/latest_status.json
+.local/snapshots/system_snapshot_YYYYMMDD_HHMMSS.json
+.local/snapshots/latest_status.json
 ```
 
 Build a human-readable failure summary:
 
 ```bash
 python3 scripts/build_failure_summary.py \
-  --snapshot-file snapshots/latest_status.json \
-  --output reports/failure_summary.md
+  --snapshot-file .local/snapshots/latest_status.json \
+  --output .local/reports/failure_summary.md
 ```
 
 ## Metadata Bundle Export
@@ -199,7 +199,7 @@ Snapshot:
 
 ```bash
 python3 scripts/export_system_snapshot.py --pg-password test
-cat snapshots/latest_status.json
+cat .local/snapshots/latest_status.json
 ```
 
 Investigate stale data by checking:
@@ -264,7 +264,7 @@ If a recent ingestion produced bad data:
 If an automation script changed behavior unexpectedly:
 
 1. Disable the scheduler or cron entry.
-2. Preserve `logs/daily_pipeline_*.log`.
+2. Preserve `.local/logs/daily_pipeline_*.log`.
 3. Export metadata bundle.
 4. Revert the script change.
 5. Run `scripts/run_daily_pipeline.sh --dry-run`.

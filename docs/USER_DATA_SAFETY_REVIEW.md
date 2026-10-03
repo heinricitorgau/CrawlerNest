@@ -75,7 +75,7 @@ Every data access query includes `WHERE user_id = ?` bound to the session-derive
 - **User data stays in PostgreSQL** (`warehouse` schema). No user data is written to application logs (log statements use `user_id` integers only, never email or payload content).
 - **Diagnostics endpoints** (`/api/v1/diagnostics/rankings`, `/subjects`, `/source-agreement`) access only the `analytics` and `warehouse.ranking_*` schemas — no user tables.
 - **Health endpoint** (`/api/v1/health`, unauthenticated) reports: Postgres connectivity, aggregated/subject ranking counts, ranking years, source record counts. It does **not** expose `app_user_count` or any user-derived metric. (User count was removed as a user enumeration risk — see §8.)
-- **No user data in snapshots/exports:** `export_metadata_bundle.sh` bundles only `snapshots/*.json`, `reports/*.md`, and pipeline logs. `agent_context_snapshot.sh` uses only repository diagnostics files. Neither script touches user tables.
+- **No user data in .local/snapshots/exports:** `export_metadata_bundle.sh` bundles only `.local/snapshots/*.json`, `.local/reports/*.md`, and pipeline logs. `agent_context_snapshot.sh` uses only repository diagnostics files. Neither script touches user tables.
 
 ---
 
@@ -153,7 +153,7 @@ The following were explicitly excluded from this review and implementation:
 | Cross-user data access | 404 for wrong-owner records | All queries include `WHERE user_id = ?` from session |
 | Oversized title injection | DB VARCHAR(255) + controller 200-char cap | Returns 400 before service call |
 | Null/malformed JSON body | Spring deserializes to null; controller null-checks → 400 | Validated before service call |
-| Password in logs/response | BCrypt hash; `AppUser` entity never serializes `passwordHash` | `AuthUserResponse` DTO excludes it |
+| Password in .local/logs/response | BCrypt hash; `AppUser` entity never serializes `passwordHash` | `AuthUserResponse` DTO excludes it |
 | Email enumeration (signin) | Signin returns generic 401 regardless of whether email exists | Uniform response |
 
 ---

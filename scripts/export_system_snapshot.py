@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export a full system snapshot to snapshots/system_snapshot_YYYYMMDD_HHMMSS.json.
+"""Export a full system snapshot to .local/snapshots/system_snapshot_YYYYMMDD_HHMMSS.json.
 
 Queries PostgreSQL directly — does not require Spring Boot to be running.
 
@@ -330,7 +330,7 @@ def main() -> int:
     parser.add_argument("--pg-database", default="clawer")
     parser.add_argument("--pg-user", default="test")
     parser.add_argument("--pg-password", default="")
-    parser.add_argument("--output-dir", default=str(REPO_ROOT / "snapshots"),
+    parser.add_argument("--output-dir", default=str(REPO_ROOT / ".local" / "snapshots"),
                         help="Directory for snapshot output")
     args = parser.parse_args()
 

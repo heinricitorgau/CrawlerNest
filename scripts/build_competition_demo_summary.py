@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
-REPORTS_DIR = REPO_ROOT / "reports"
+REPORTS_DIR = REPO_ROOT / ".local" / "reports"
 OUTPUT_FILE = REPORTS_DIR / "competition_demo_summary.md"
 
 # Shared release posture. These were a per-script copy of the RC-1 conditions and

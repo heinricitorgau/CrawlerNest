@@ -12,7 +12,7 @@
 #   8. build_failure_summary.py
 #   9. export_metadata_bundle.sh
 #
-# All output is tee'd to logs/daily_pipeline_YYYYMMDD.log
+# All output is tee'd to .local/logs/daily_pipeline_YYYYMMDD.log
 #
 # Usage:
 #   ./scripts/run_daily_pipeline.sh [--dry-run] [--skip-smoke]
@@ -51,7 +51,7 @@ done
 
 # ── Logging setup ─────────────────────────────────────────────────────────────
 DATESTAMP="$(date +%Y%m%d)"
-LOG_DIR="${ROOT_DIR}/logs"
+LOG_DIR="${ROOT_DIR}/.local/logs"
 mkdir -p "${LOG_DIR}"
 LOG_FILE="${LOG_DIR}/daily_pipeline_${DATESTAMP}.log"
 
@@ -189,6 +189,6 @@ echo ""
 echo "============================================================"
 echo "Pipeline finished: ${PIPELINE_END}"
 echo "Log: ${LOG_FILE}"
-echo "Snapshot: ${ROOT_DIR}/snapshots/latest_status.json"
-echo "Report:   ${ROOT_DIR}/reports/latest_failure_summary.md"
+echo "Snapshot: ${ROOT_DIR}/.local/snapshots/latest_status.json"
+echo "Report:   ${ROOT_DIR}/.local/reports/latest_failure_summary.md"
 echo "============================================================"

@@ -24,9 +24,9 @@ These reports must be present and reviewed before any demo or release.
 | Report | Location | Role |
 | --- | --- | --- |
 | `smoke_release_output.txt` | `docs/releases/v0.1-demo/smoke_release_output.txt` | Build and API smoke validation. Release-blocking if absent or failed. |
-| `operational_trust_summary.md` | `reports/operational_trust_summary.md` | Confidence rollup across freshness, sources, drift, and maintenance. Single-sentence release confidence answer. |
-| `freshness_escalation.md` | `reports/freshness_escalation.md` | Source data age classification with escalation states. Directly informs demo honesty. |
-| `demo_caveats.md` | `reports/demo_caveats.md` | The authoritative list of caveats that must be stated to any demo audience. Demo-blocking if unread. |
+| `operational_trust_summary.md` | `.local/reports/operational_trust_summary.md` | Confidence rollup across freshness, sources, drift, and maintenance. Single-sentence release confidence answer. |
+| `freshness_escalation.md` | `.local/reports/freshness_escalation.md` | Source data age classification with escalation states. Directly informs demo honesty. |
+| `demo_caveats.md` | `.local/reports/demo_caveats.md` | The authoritative list of caveats that must be stated to any demo audience. Demo-blocking if unread. |
 
 **Regeneration commands:**
 
@@ -46,15 +46,15 @@ Read these when a critical report raises a concern or when planning a release.
 
 | Report | Location | Role | When To Read |
 | --- | --- | --- | --- |
-| `operational_summary.md` | `reports/operational_summary.md` | Source-health detail. Per-source coverage and freshness breakdown. | When `operational_trust_summary.md` shows source completeness concerns. |
-| `maintenance_readiness_summary.md` | `reports/maintenance_readiness_summary.md` | Caveat and confidence detail. Pre-release maintenance scope. | Before release when caveats need to be documented or accepted. |
-| `drift_timeline.md` | `reports/drift_timeline.md` | Historical drift classification. Shows whether counts are trending. | When `freshness_escalation.md` shows degraded or critical state. |
+| `operational_summary.md` | `.local/reports/operational_summary.md` | Source-health detail. Per-source coverage and freshness breakdown. | When `operational_trust_summary.md` shows source completeness concerns. |
+| `maintenance_readiness_summary.md` | `.local/reports/maintenance_readiness_summary.md` | Caveat and confidence detail. Pre-release maintenance scope. | Before release when caveats need to be documented or accepted. |
+| `drift_timeline.md` | `.local/reports/drift_timeline.md` | Historical drift classification. Shows whether counts are trending. | When `freshness_escalation.md` shows degraded or critical state. |
 
 **Regeneration commands:**
 
 ```bash
 ./scripts/build_operational_summary.py
-./scripts/inspect_source_freshness.py --summary-output reports/maintenance_readiness_summary.md
+./scripts/inspect_source_freshness.py --summary-output .local/reports/maintenance_readiness_summary.md
 ./scripts/build_drift_timeline.py
 ```
 
@@ -67,15 +67,15 @@ Do not use them as the basis for current-state decisions.
 
 | Artifact | Location | Role |
 | --- | --- | --- |
-| `snapshot_timeline.md` | `reports/snapshot_timeline.md` | Narrative comparison of snapshot history. Historical. |
-| `snapshot_timeline.json` | `reports/snapshot_timeline.json` | Machine-readable snapshot history. Not human-first. |
-| `operational_index_summary.md` | `reports/operational_index_summary.md` | Handoff and onboarding summary. One-time read, not recurring. |
-| `latest_failure_summary.md` | `reports/latest_failure_summary.md` | Diagnostics-era failure detail. Use when investigating a specific past failure. |
-| `system_snapshot_*.json` | `snapshots/` | Point-in-time snapshots. Frozen at capture time. |
-| `maintenance_navigation.md` | `reports/maintenance_navigation.md` | Operator navigation guide. Meta-reference. |
-| Release bundle copies | `docs/releases/v0.1-demo/*.md` | Bundle-time copies of reports. May be stale relative to `reports/`. |
-| Agent context | `tmp/agent-context/` | Ephemeral AI context. Not operational authority. |
-| `latest_status.json` | `snapshots/latest_status.json` | Compact latest state pointer. Input to report builders, not a reading artifact. |
+| `snapshot_timeline.md` | `.local/reports/snapshot_timeline.md` | Narrative comparison of snapshot history. Historical. |
+| `snapshot_timeline.json` | `.local/reports/snapshot_timeline.json` | Machine-readable snapshot history. Not human-first. |
+| `operational_index_summary.md` | `.local/reports/operational_index_summary.md` | Handoff and onboarding summary. One-time read, not recurring. |
+| `latest_failure_summary.md` | `.local/reports/latest_failure_summary.md` | Diagnostics-era failure detail. Use when investigating a specific past failure. |
+| `system_snapshot_*.json` | `.local/snapshots/` | Point-in-time snapshots. Frozen at capture time. |
+| `maintenance_navigation.md` | `.local/reports/maintenance_navigation.md` | Operator navigation guide. Meta-reference. |
+| Release bundle copies | `docs/releases/v0.1-demo/*.md` | Bundle-time copies of reports. May be stale relative to `.local/reports/`. |
+| Agent context | `.local/tmp/agent-context/` | Ephemeral AI context. Not operational authority. |
+| `latest_status.json` | `.local/snapshots/latest_status.json` | Compact latest state pointer. Input to report builders, not a reading artifact. |
 
 ---
 
@@ -96,8 +96,8 @@ An unread caveats file is an operational gap, not a stylistic choice.
 ### Why Bundle Copies Are Reference Only
 
 Report copies in `docs/releases/v0.1-demo/` were accurate at bundle time. The live
-operational state is in `reports/`. Bundle copies must not be used to assess
-current freshness or confidence — only the live `reports/` files are authoritative
+operational state is in `.local/reports/`. Bundle copies must not be used to assess
+current freshness or confidence — only the live `.local/reports/` files are authoritative
 after the bundle was created.
 
 ### Why Snapshot Timeline Is Reference Only

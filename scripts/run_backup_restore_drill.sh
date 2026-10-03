@@ -3,8 +3,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BACKUP_DIR="${ROOT_DIR}/backups"
-SNAPSHOT_DIR="${ROOT_DIR}/snapshots"
+BACKUP_DIR="${ROOT_DIR}/.local/backups"
+SNAPSHOT_DIR="${ROOT_DIR}/.local/snapshots"
 PGHOST="${CRAWLERNEST_PG_HOST:-127.0.0.1}"
 PGPORT="${CRAWLERNEST_PG_PORT:-5432}"
 PGDATABASE="${CRAWLERNEST_PG_DATABASE:-clawer}"
@@ -47,17 +47,17 @@ if [[ -d "${SNAPSHOT_DIR}" ]]; then
     warn "snapshot directory exists but contains no JSON snapshots"
   fi
 else
-  warn "snapshot directory missing: snapshots/"
+  warn "snapshot directory missing: .local/snapshots/"
 fi
 
 if [[ -d "${BACKUP_DIR}" ]]; then
   if [[ -w "${BACKUP_DIR}" ]]; then
-    pass "backup directory writable: backups/"
+    pass "backup directory writable: .local/backups/"
   else
-    fail "backup directory is not writable: backups/"
+    fail "backup directory is not writable: .local/backups/"
   fi
 else
-  warn "backup directory missing: backups/"
+  warn "backup directory missing: .local/backups/"
 fi
 
 timestamp="$(date -u +"%Y%m%d_%H%M%S")"

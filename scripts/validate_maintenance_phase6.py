@@ -72,8 +72,8 @@ def check_steadiness_output() -> None:
         result.returncode == 0,
         f"rc={result.returncode} stderr={result.stderr[:120]}",
     )
-    output_file = REPO_ROOT / "reports" / "maintenance_steadiness_summary.md"
-    check("reports/maintenance_steadiness_summary.md exists", output_file.exists(), "file not written")
+    output_file = REPO_ROOT / ".local" / "reports" / "maintenance_steadiness_summary.md"
+    check(".local/reports/maintenance_steadiness_summary.md exists", output_file.exists(), "file not written")
     if output_file.exists():
         content = output_file.read_text(encoding="utf-8")
         check(

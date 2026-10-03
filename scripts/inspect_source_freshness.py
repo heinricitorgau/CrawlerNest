@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).parent.parent
-DEFAULT_SNAPSHOT = REPO_ROOT / "snapshots" / "latest_status.json"
-DEFAULT_SUMMARY = REPO_ROOT / "reports" / "maintenance_readiness_summary.md"
+DEFAULT_SNAPSHOT = REPO_ROOT / ".local" / "snapshots" / "latest_status.json"
+DEFAULT_SUMMARY = REPO_ROOT / ".local" / "reports" / "maintenance_readiness_summary.md"
 EXPECTED_SOURCES = ("QS", "THE", "ARWU")
 STALE_HOURS = 36.0
 CRITICAL_HOURS = 168.0
@@ -234,7 +234,7 @@ def markdown(report: dict[str, Any], maintenance: bool = False) -> str:
             "",
             "## Maintenance Readiness",
             "",
-            f"- Drift state: see `reports/drift_timeline.md`",
+            f"- Drift state: see `.local/reports/drift_timeline.md`",
             f"- Known stale sources: {', '.join(stale_sources) if stale_sources else '[none]'}",
             f"- Known unavailable sources: {', '.join(missing) if missing else '[none]'}",
             f"- Known blockers: {', '.join(blockers) if blockers else '[none]'}",

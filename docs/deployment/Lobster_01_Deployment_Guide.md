@@ -21,7 +21,7 @@ flowchart TB
     repo["crawlernest/<br/>Clone of the repository"]
     scripts["scripts/"]
     runner["run_production_safe.sh"]
-    logs["logs/<br/>Log directory"]
+    logs[".local/logs/<br/>Log directory"]
 
     root --> venv
     root --> env

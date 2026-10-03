@@ -23,7 +23,7 @@ which are permanently historical.
 
 ## Report Registry
 
-### `reports/demo_caveats.md`
+### `.local/reports/demo_caveats.md`
 
 | Field | Value |
 | --- | --- |
@@ -37,7 +37,7 @@ which are permanently historical.
 
 ---
 
-### `reports/operational_trust_summary.md`
+### `.local/reports/operational_trust_summary.md`
 
 | Field | Value |
 | --- | --- |
@@ -51,7 +51,7 @@ which are permanently historical.
 
 ---
 
-### `reports/freshness_escalation.md`
+### `.local/reports/freshness_escalation.md`
 
 | Field | Value |
 | --- | --- |
@@ -65,7 +65,7 @@ which are permanently historical.
 
 ---
 
-### `reports/maintenance_readiness_summary.md`
+### `.local/reports/maintenance_readiness_summary.md`
 
 | Field | Value |
 | --- | --- |
@@ -79,7 +79,7 @@ which are permanently historical.
 
 ---
 
-### `reports/operational_summary.md`
+### `.local/reports/operational_summary.md`
 
 | Field | Value |
 | --- | --- |
@@ -93,7 +93,7 @@ which are permanently historical.
 
 ---
 
-### `reports/drift_timeline.md`
+### `.local/reports/drift_timeline.md`
 
 | Field | Value |
 | --- | --- |
@@ -107,7 +107,7 @@ which are permanently historical.
 
 ---
 
-### `reports/maintenance_calm_summary.md`
+### `.local/reports/maintenance_calm_summary.md`
 
 | Field | Value |
 | --- | --- |
@@ -121,7 +121,7 @@ which are permanently historical.
 
 ---
 
-### `reports/maintenance_navigation.md`
+### `.local/reports/maintenance_navigation.md`
 
 | Field | Value |
 | --- | --- |
@@ -135,7 +135,7 @@ which are permanently historical.
 
 ---
 
-### `reports/operational_index_summary.md`
+### `.local/reports/operational_index_summary.md`
 
 | Field | Value |
 | --- | --- |
@@ -149,7 +149,7 @@ which are permanently historical.
 
 ---
 
-### `reports/snapshot_timeline.md` / `snapshot_timeline.json`
+### `.local/reports/snapshot_timeline.md` / `snapshot_timeline.json`
 
 | Field | Value |
 | --- | --- |
@@ -163,7 +163,7 @@ which are permanently historical.
 
 ---
 
-### `reports/latest_failure_summary.md`
+### `.local/reports/latest_failure_summary.md`
 
 | Field | Value |
 | --- | --- |
@@ -177,7 +177,7 @@ which are permanently historical.
 
 ---
 
-### `snapshots/system_snapshot_*.json`
+### `.local/snapshots/system_snapshot_*.json`
 
 | Field | Value |
 | --- | --- |
@@ -191,7 +191,7 @@ which are permanently historical.
 
 ---
 
-### `snapshots/latest_status.json`
+### `.local/snapshots/latest_status.json`
 
 | Field | Value |
 | --- | --- |
@@ -212,7 +212,7 @@ which are permanently historical.
 | Producer | `scripts/build_demo_bundle.sh` |
 | Consumer | Demo recipients; release reviewers |
 | Lifecycle | **historical** (frozen at bundle-build time) |
-| Freshness expectation | Accurate at bundle-build time only. After the bundle is created, live `reports/` files are authoritative. |
+| Freshness expectation | Accurate at bundle-build time only. After the bundle is created, live `.local/reports/` files are authoritative. |
 | Archival expectation | Retain as the versioned release evidence. Do not update bundle copies after creation. |
 | Release-facing | These are the release-facing copies |
 | Criticality | **reference** for ongoing ops (critical only for the specific release being evaluated) |
@@ -225,9 +225,9 @@ which are permanently historical.
 | --- | --- |
 | Regenerated on every `maintenance_overview.sh` run | `operational_trust_summary`, `operational_index_summary`, `maintenance_calm_summary`, `maintenance_navigation` |
 | Regenerated on explicit operator action | `freshness_escalation`, `drift_timeline`, `operational_summary`, `demo_caveats`, `maintenance_readiness_summary` |
-| Point-in-time, never overwritten | `snapshots/system_snapshot_*.json` |
+| Point-in-time, never overwritten | `.local/snapshots/system_snapshot_*.json` |
 | Frozen at bundle-build time | `docs/releases/v0.1-demo/*` copies |
-| Grows as history accumulates | `snapshot_timeline.md/json` (content), `snapshots/` (files) |
+| Grows as history accumulates | `snapshot_timeline.md/json` (content), `.local/snapshots/` (files) |
 
 ---
 

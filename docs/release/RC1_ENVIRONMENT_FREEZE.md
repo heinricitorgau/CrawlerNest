@@ -89,5 +89,5 @@ The following are explicitly out of scope for RC-1:
 2. **Python venv:** Create with `python3 -m venv .venv && .venv/bin/pip install -r crawlernest/requirements.txt`. Activate before running pipeline scripts.
 3. **Node deps:** run `nvm use`, then `cd crawlernest/crawlernest-web && npm ci` (uses lockfile exactly; prefer over `npm install` for reproducibility).
 4. **PostgreSQL bootstrap:** Schema init is handled by `AuthSchemaInitializer` on Spring Boot startup (via `ApplicationReadyEvent`). No manual SQL migrations are required for the identity tables. The ranking schema must be present (loaded by the data pipeline).
-5. **Build artifacts:** `crawlernest/servise_for_java/target/`, `node_modules/`, `.next/`, `.venv/`, generated operational evidence, and `tmp/` are excluded from git. See [`RC1_RELEASE_HYGIENE.md`](RC1_RELEASE_HYGIENE.md).
+5. **Build artifacts:** `crawlernest/servise_for_java/target/`, `node_modules/`, `.next/`, `.venv/`, generated operational evidence, and `.local/tmp/` are excluded from git. See [`RC1_RELEASE_HYGIENE.md`](RC1_RELEASE_HYGIENE.md).
 6. **Maven wrapper:** Use `./mvnw` not `mvn`. The wrapper `.jar` is committed and downloads the correct Maven version on first use.

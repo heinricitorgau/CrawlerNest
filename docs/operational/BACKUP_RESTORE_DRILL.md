@@ -30,7 +30,7 @@ PGPASSWORD="$CRAWLERNEST_PG_PASSWORD" pg_dump \
   --port="${CRAWLERNEST_PG_PORT:-5432}" \
   --username="${CRAWLERNEST_PG_USER:-test}" \
   --dbname="${CRAWLERNEST_PG_DATABASE:-clawer}" \
-  --file="backups/crawlernest_clawer_YYYYMMDD_HHMMSS.dump"
+  --file=".local/backups/crawlernest_clawer_YYYYMMDD_HHMMSS.dump"
 ```
 
 Before backup:
@@ -53,7 +53,7 @@ PGPASSWORD="$CRAWLERNEST_PG_PASSWORD" pg_restore \
   --port="${CRAWLERNEST_PG_PORT:-5432}" \
   --username="${CRAWLERNEST_PG_USER:-test}" \
   --dbname="${CRAWLERNEST_PG_DATABASE:-clawer}" \
-  backups/crawlernest_clawer_YYYYMMDD_HHMMSS.dump
+  .local/backups/crawlernest_clawer_YYYYMMDD_HHMMSS.dump
 ```
 
 Before restore:
@@ -70,7 +70,7 @@ Rollback should be scoped:
 
 - code rollback through git
 - DB rollback through reviewed backup restore
-- artifact rollback from retained `snapshots/`, `reports/`, or `backups/`
+- artifact rollback from retained `.local/snapshots/`, `.local/reports/`, or `.local/backups/`
 - config rollback through known-good environment variables and datasource files
 
 Do not use cleanup or health scripts as rollback tools. They observe state.
@@ -83,9 +83,9 @@ and restore decisions. Keep a latest snapshot before and after a restore drill.
 Useful files:
 
 ```text
-snapshots/latest_status.json
-snapshots/system_snapshot_*.json
-reports/latest_failure_summary.md
+.local/snapshots/latest_status.json
+.local/snapshots/system_snapshot_*.json
+.local/reports/latest_failure_summary.md
 ```
 
 ## Disaster Recovery Assumptions
@@ -93,7 +93,7 @@ reports/latest_failure_summary.md
 Current assumptions:
 
 - PostgreSQL is the durable data store.
-- Local backups are filesystem artifacts under `backups/`.
+- Local backups are filesystem artifacts under `.local/backups/`.
 - Restore is a manual operator action.
 - Application services can be restarted after DB restoration.
 - Snapshots help validate state but cannot reconstruct the database.

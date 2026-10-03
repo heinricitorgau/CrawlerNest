@@ -129,7 +129,7 @@ def check_readiness_output() -> None:
     )
     check("script runs without error", result.returncode == 0, result.stderr[:200])
 
-    output = REPO_ROOT / "reports" / "demo_readiness_summary.md"
+    output = REPO_ROOT / ".local" / "reports" / "demo_readiness_summary.md"
     check("demo_readiness_summary.md generated", output.exists(), "file not created")
 
     if output.exists():

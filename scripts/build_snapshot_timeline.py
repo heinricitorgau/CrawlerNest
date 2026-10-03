@@ -11,8 +11,8 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).parent.parent
-SNAPSHOT_DIR = REPO_ROOT / "snapshots"
-REPORTS_DIR = REPO_ROOT / "reports"
+SNAPSHOT_DIR = REPO_ROOT / ".local" / "snapshots"
+REPORTS_DIR = REPO_ROOT / ".local" / "reports"
 
 
 def parse_time(value: Any) -> dt.datetime | None:
