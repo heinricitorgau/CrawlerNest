@@ -753,6 +753,33 @@ def _find_score_nodes(obj: Any) -> Optional[List[Dict[str, Any]]]:
     return None
 
 
+#: The smallest page QS's own table serves. A prefetched payload holding fewer
+#: rows than this is not a page of results -- it is a fragment the page happened
+#: to embed, and taking it as the whole ranking is how a 1,533-row edition
+#: arrives as one row.
+MIN_PREFETCH_ROWS = 10
+
+
+def _prefetch_is_a_whole_page(payload: Dict[str, Any]) -> bool:
+    """Is this embedded payload the ranking's first page, or a scrap of it?
+
+    The prefetch exists to save a round trip when the page already carries the
+    table. It is only a saving when the table is actually there: QS's regional
+    ranking pages embed a single featured row, and accepting that short-circuits
+    the endpoint that would have returned all 1,534 -- with the ingest's shrink
+    guard the only thing standing between the crawl and an edition pruned to one
+    university. Measured 2026-09-22: regional:asia and regional:caribbean both
+    prefetched exactly one node while the endpoint held 1,534 and 28.
+
+    Erring toward the endpoint costs one request; erring toward the prefetch
+    costs the edition.
+    """
+    nodes = payload.get("score_nodes") if isinstance(payload, dict) else None
+    if not isinstance(nodes, list):
+        return False
+    return len(nodes) >= MIN_PREFETCH_ROWS
+
+
 def _extract_prefetched_score_nodes_from_html(html: str) -> Optional[Dict[str, Any]]:
 
     script_matches = re.findall(r"<script[^>]*>(.*?)</script>", html, flags=re.IGNORECASE | re.DOTALL)
@@ -1415,7 +1442,9 @@ class UniversityFetcher:
                 continue
         # If nid cannot be resolved but page contains prefetched score_nodes,
         # allow caller to use that payload for page 0.
-        if getattr(self.config, "_prefetched_payload", None):
+        # Only a whole page is worth abandoning the id for: ranking_id "0" means
+        # "the page already has the table", and a one-row fragment does not.
+        if _prefetch_is_a_whole_page(getattr(self.config, "_prefetched_payload", None) or {}):
             self.config.ranking_id = "0"
             self.config._ranking_id_from_cache = False
             self.config._used_resolution_cache = False
@@ -1476,7 +1505,11 @@ class UniversityFetcher:
         nid = self._ensure_ranking_id()
         self._warm_session_for_endpoint()
         prefetched = getattr(self.config, "_prefetched_payload", None)
-        if prefetched and int(getattr(self.config, "page", 0) or 0) == 0:
+        if (
+            prefetched
+            and int(getattr(self.config, "page", 0) or 0) == 0
+            and _prefetch_is_a_whole_page(prefetched)
+        ):
             self.config._used_prefetched_payload = True
             _clear_failure_classification(self.config)
             _log_qs_acquire_event(
@@ -1935,7 +1968,9 @@ class AsyncUniversityFetcher:
             except Exception:
                 continue
 
-        if getattr(self.config, "_prefetched_payload", None):
+        # Only a whole page is worth abandoning the id for: ranking_id "0" means
+        # "the page already has the table", and a one-row fragment does not.
+        if _prefetch_is_a_whole_page(getattr(self.config, "_prefetched_payload", None) or {}):
             self.config.ranking_id = "0"
             self.config._ranking_id_from_cache = False
             self.config._used_resolution_cache = False
@@ -1994,7 +2029,11 @@ class AsyncUniversityFetcher:
         nid = await self._ensure_ranking_id()
         await self._warm_session_for_endpoint()
         prefetched = getattr(self.config, "_prefetched_payload", None)
-        if prefetched and int(getattr(self.config, "page", 0) or 0) == 0:
+        if (
+            prefetched
+            and int(getattr(self.config, "page", 0) or 0) == 0
+            and _prefetch_is_a_whole_page(prefetched)
+        ):
             self.config._used_prefetched_payload = True
             _clear_failure_classification(self.config)
             _log_qs_acquire_event(

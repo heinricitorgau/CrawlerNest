@@ -39,6 +39,8 @@ def run_all_tests():
 
     test_modules = [
         "test_fetcher",
+        # QS regional rankings: the full filter set on the endpoint request, and a one-row prefetched fragment is not a ranking.
+        "test_qs_regional_fetch",
         # Backend selection and the header policy that goes with it. Sending the
         # hand-built browser header set through an impersonated stack re-triggers
         # the Cloudflare challenge the stack exists to avoid.
