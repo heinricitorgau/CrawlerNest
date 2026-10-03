@@ -2,7 +2,7 @@
 
 產生於 2026-10-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：473
+- **Commit 總數**：481
 - **期間**：2026-03-16 ~ 2026-10-04
 - **主分支**：`main`
 
@@ -34,7 +34,15 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `29ed8ab` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #26 from heinricitorgau/test/dataset-context-golden-runs **[main]** |
+| `966efd4` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #27 from heinricitorgau/ci/ml-and-drift-guards **[main]** |
+| `4786693` | 2026-10-04 | heinricitorgau | 5 | +24 / −9 | data(entities): THE's Islamic Azad University Karaj is on a canonical of its own; re-export and re-run **[ci/ml-and-drift-guards]** |
+| `9a4a1ad` | 2026-10-04 | heinricitorgau | 1 | +8 / −0 | docs(ml): the cross-edition README says what CI now checks |
+| `05cee46` | 2026-10-04 | heinricitorgau | 3 | +436 / −0 | feat(entities): a script to take THE's Islamic Azad University Karaj off another entity's canonical (not applied) |
+| `0c56b03` | 2026-10-04 | heinricitorgau | 4 | +13 / −6 | docs(ml): the served estimates were regenerated on 2026-10-04; fix the University of Miami's two that were Ohio's |
+| `a052de3` | 2026-10-04 | heinricitorgau | 10 | +234 / −5 | test(warehouse): a drift gate that cannot pass by comparing nothing, and an offline check CI can run |
+| `e28a032` | 2026-10-04 | heinricitorgau | 1 | +30 / −0 | ci(ml): run the cross-edition forecast's parity check, on the committed artifacts and on a fresh MATLAB run |
+| `cd0a959` | 2026-10-03 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
+| `29ed8ab` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #26 from heinricitorgau/test/dataset-context-golden-runs |
 | `31c9002` | 2026-10-04 | heinricitorgau | 1 | +6 / −4 | test(agent): run the single-edition golden-text test it had been skipping since 2026 **[test/dataset-context-golden-runs]** |
 | `c71fd06` | 2026-10-03 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
 | `256635f` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #25 from heinricitorgau/test/ranking-scope-runs-in-ci |
@@ -549,8 +557,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 473 |
-| 檔案變更累計 | 7015 |
-| 新增行數累計 | +2875135 |
-| 刪除行數累計 | −814658 |
-| 淨增行數 | +2060477 |
+| Commit 數 | 481 |
+| 檔案變更累計 | 7040 |
+| 新增行數累計 | +2875890 |
+| 刪除行數累計 | −814685 |
+| 淨增行數 | +2061205 |
