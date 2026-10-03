@@ -8,7 +8,7 @@ CRAWLERNEST_REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PARENT_DIR="$(cd "${CRAWLERNEST_REPO_ROOT}/.." && pwd)"
 AGENTS_REPO_ROOT="${PARENT_DIR}/crawlernest-agents"
 AGENTS_RUN_DEBUG="${AGENTS_REPO_ROOT}/scripts/run-debug.sh"
-CRAWLERNEST_AGENT_OUTPUT_DIR="${CRAWLERNEST_REPO_ROOT}/tmp/agent-debug"
+CRAWLERNEST_AGENT_OUTPUT_DIR="${CRAWLERNEST_REPO_ROOT}/.local/tmp/agent-debug"
 
 log() {
   printf '[agent-debug] %s\n' "$*"

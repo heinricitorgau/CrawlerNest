@@ -8,7 +8,7 @@ export const revalidate = 0;
 export async function GET() {
   // Resolve path relative to the Next.js project root (crawlernest/crawlernest-web)
   // process.cwd() = crawlernest/crawlernest-web when running npm run dev / start
-  const snapshotPath = path.resolve(process.cwd(), "../../snapshots/latest_status.json");
+  const snapshotPath = path.resolve(process.cwd(), "../../.local/snapshots/latest_status.json");
 
   if (!existsSync(snapshotPath)) {
     return NextResponse.json(

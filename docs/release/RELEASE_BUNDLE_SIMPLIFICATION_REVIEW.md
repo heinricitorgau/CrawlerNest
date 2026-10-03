@@ -75,14 +75,14 @@ or replaceable in future releases when operational confidence is higher.
 ## Staleness Risk
 
 Bundle report copies (`demo_caveats.md`, `operational_trust_summary.md`, etc.)
-are accurate at bundle time. After the bundle is created, the live `reports/`
+are accurate at bundle time. After the bundle is created, the live `.local/reports/`
 directory may be updated while bundle copies remain frozen.
 
 **Implication:** When using a bundle for demo preparation, verify that the
 bundle was created from the same snapshot state as the current live reports.
 The `MANIFEST.txt` build timestamp provides the reference point.
 
-If the live `reports/` directory shows more recent freshness or trust state,
+If the live `.local/reports/` directory shows more recent freshness or trust state,
 use the live reports for the demo, not the bundle copies.
 
 ---
@@ -104,7 +104,7 @@ optional hierarchy above before including.
 
 1. **Document staleness risk explicitly.** Add a one-line note to the bundle
    `OPERATIONAL_ARTIFACTS.md` stating that report copies are point-in-time and
-   the live `reports/` directory is authoritative after bundle creation.
+   the live `.local/reports/` directory is authoritative after bundle creation.
 
 2. **Classify `latest_status.json` as input artifact.** It is a machine-readable
    input for report builders, not a human-reading artifact. Consider moving it

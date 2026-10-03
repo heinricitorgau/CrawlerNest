@@ -56,7 +56,7 @@ Do not add new diagnostic scripts when:
 
 Do not add new generated reports when:
 
-- An existing report under `reports/` already covers the signal class.
+- An existing report under `.local/reports/` already covers the signal class.
 - The new report would require a reader to compare it against another report
   to resolve disagreement.
 - The report output cannot be explained to a demo presenter in two sentences.

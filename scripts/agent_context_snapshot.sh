@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-OUTPUT_DIR="${REPO_ROOT}/tmp/agent-context"
+OUTPUT_DIR="${REPO_ROOT}/.local/tmp/agent-context"
 OUTPUT_FILE="${OUTPUT_DIR}/context_snapshot.md"
 
 latest_file() {
@@ -51,32 +51,32 @@ if [[ -z "${GIT_STATUS}" ]]; then
   GIT_STATUS="(clean)"
 fi
 
-SMOKE_SUMMARY="$(latest_file "reports/*smoke*.md")"
+SMOKE_SUMMARY="$(latest_file ".local/reports/*smoke*.md")"
 if [[ -z "${SMOKE_SUMMARY}" ]]; then
-  SMOKE_SUMMARY="$(latest_file "reports/*smoke*.txt")"
+  SMOKE_SUMMARY="$(latest_file ".local/reports/*smoke*.txt")"
 fi
 if [[ -z "${SMOKE_SUMMARY}" ]]; then
-  SMOKE_SUMMARY="$(latest_file "logs/*smoke*.log")"
+  SMOKE_SUMMARY="$(latest_file ".local/logs/*smoke*.log")"
 fi
 
-FAILURE_SUMMARY="$(latest_file "reports/latest_failure_summary.md")"
+FAILURE_SUMMARY="$(latest_file ".local/reports/latest_failure_summary.md")"
 if [[ -z "${FAILURE_SUMMARY}" ]]; then
-  FAILURE_SUMMARY="$(latest_file "reports/*failure*summary*.md")"
+  FAILURE_SUMMARY="$(latest_file ".local/reports/*failure*summary*.md")"
 fi
 
-DIAGNOSTICS_SNAPSHOT="$(latest_file "snapshots/latest_status.json")"
+DIAGNOSTICS_SNAPSHOT="$(latest_file ".local/snapshots/latest_status.json")"
 if [[ -z "${DIAGNOSTICS_SNAPSHOT}" ]]; then
-  DIAGNOSTICS_SNAPSHOT="$(latest_file "snapshots/system_snapshot_*.json")"
+  DIAGNOSTICS_SNAPSHOT="$(latest_file ".local/snapshots/system_snapshot_*.json")"
 fi
 
-FRESHNESS_SNAPSHOT="$(latest_file "snapshots/*freshness*.json")"
+FRESHNESS_SNAPSHOT="$(latest_file ".local/snapshots/*freshness*.json")"
 if [[ -z "${FRESHNESS_SNAPSHOT}" ]]; then
   FRESHNESS_SNAPSHOT="${DIAGNOSTICS_SNAPSHOT}"
 fi
 
-REGRESSION_SUMMARY="$(latest_file "reports/*regression*.md")"
+REGRESSION_SUMMARY="$(latest_file ".local/reports/*regression*.md")"
 if [[ -z "${REGRESSION_SUMMARY}" ]]; then
-  REGRESSION_SUMMARY="$(latest_file "reports/*regression*.json")"
+  REGRESSION_SUMMARY="$(latest_file ".local/reports/*regression*.json")"
 fi
 if [[ -z "${REGRESSION_SUMMARY}" ]]; then
   REGRESSION_SUMMARY="${FAILURE_SUMMARY}"

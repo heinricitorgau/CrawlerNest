@@ -689,7 +689,7 @@ def show_hash(entry: ManifestEntry, fetch: FetchBytes, cache_dir: Optional[Path]
 
 # --------------------------------------------------------------------------- ingest
 
-BACKUP_DIR = _REPO_ROOT / "backups"
+BACKUP_DIR = _REPO_ROOT / ".local" / "backups"
 RECEIPT_DIR = KB_DIR / "qs_archive" / "receipts"
 ARCHIVE_VERSION_PREFIX = "web_archive:"
 

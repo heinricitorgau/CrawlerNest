@@ -89,18 +89,18 @@ echo ""
 echo "[3/7] Copying latest snapshot..."
 
 copy_or_missing \
-  "${ROOT_DIR}/snapshots/latest_status.json" \
+  "${ROOT_DIR}/.local/snapshots/latest_status.json" \
   "${BUNDLE_DIR}/latest_status.json" \
   "snapshots/latest_status.json"
 
 # Also try the most recent named snapshot
-latest_snapshot="$(ls -t "${ROOT_DIR}/snapshots/system_snapshot_"*.json 2>/dev/null | head -1 || true)"
+latest_snapshot="$(ls -t "${ROOT_DIR}/.local/snapshots/system_snapshot_"*.json 2>/dev/null | head -1 || true)"
 if [[ -n "${latest_snapshot}" ]]; then
   snapshot_name="$(basename "${latest_snapshot}")"
   cp "${latest_snapshot}" "${BUNDLE_DIR}/${snapshot_name}"
   ok "Latest named snapshot: ${snapshot_name}"
 else
-  echo "[missing — no system_snapshot_*.json found in snapshots/]" \
+  echo "[missing — no system_snapshot_*.json found in .local/snapshots/]" \
     > "${BUNDLE_DIR}/system_snapshot_MISSING.json"
   missing "Named system snapshot"
 fi
@@ -113,57 +113,57 @@ echo ""
 echo "[4/7] Copying latest failure summary and operational intelligence reports..."
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/latest_failure_summary.md" \
+  "${ROOT_DIR}/.local/reports/latest_failure_summary.md" \
   "${BUNDLE_DIR}/latest_failure_summary.md" \
   "reports/latest_failure_summary.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/operational_summary.md" \
+  "${ROOT_DIR}/.local/reports/operational_summary.md" \
   "${BUNDLE_DIR}/operational_summary.md" \
   "reports/operational_summary.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/operational_index_summary.md" \
+  "${ROOT_DIR}/.local/reports/operational_index_summary.md" \
   "${BUNDLE_DIR}/operational_index_summary.md" \
   "reports/operational_index_summary.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/operational_trust_summary.md" \
+  "${ROOT_DIR}/.local/reports/operational_trust_summary.md" \
   "${BUNDLE_DIR}/operational_trust_summary.md" \
   "reports/operational_trust_summary.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/maintenance_readiness_summary.md" \
+  "${ROOT_DIR}/.local/reports/maintenance_readiness_summary.md" \
   "${BUNDLE_DIR}/maintenance_readiness_summary.md" \
   "reports/maintenance_readiness_summary.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/demo_caveats.md" \
+  "${ROOT_DIR}/.local/reports/demo_caveats.md" \
   "${BUNDLE_DIR}/demo_caveats.md" \
   "reports/demo_caveats.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/drift_timeline.md" \
+  "${ROOT_DIR}/.local/reports/drift_timeline.md" \
   "${BUNDLE_DIR}/drift_timeline.md" \
   "reports/drift_timeline.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/freshness_escalation.md" \
+  "${ROOT_DIR}/.local/reports/freshness_escalation.md" \
   "${BUNDLE_DIR}/freshness_escalation.md" \
   "reports/freshness_escalation.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/maintenance_calm_summary.md" \
+  "${ROOT_DIR}/.local/reports/maintenance_calm_summary.md" \
   "${BUNDLE_DIR}/maintenance_calm_summary.md" \
   "reports/maintenance_calm_summary.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/maintenance_steadiness_summary.md" \
+  "${ROOT_DIR}/.local/reports/maintenance_steadiness_summary.md" \
   "${BUNDLE_DIR}/maintenance_steadiness_summary.md" \
   "reports/maintenance_steadiness_summary.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/reports/maintenance_continuity_summary.md" \
+  "${ROOT_DIR}/.local/reports/maintenance_continuity_summary.md" \
   "${BUNDLE_DIR}/maintenance_continuity_summary.md" \
   "reports/maintenance_continuity_summary.md"
 
@@ -297,8 +297,8 @@ release/demo artifacts, not runtime authority.
 
 ## Snapshot Evidence
 
-- `latest_status.json`: compact latest snapshot copied from `snapshots/`.
-- `system_snapshot_*.json`: dated snapshot evidence copied from `snapshots/`.
+- `latest_status.json`: compact latest snapshot copied from `.local/snapshots/`.
+- `system_snapshot_*.json`: dated snapshot evidence copied from `.local/snapshots/`.
 
 Snapshots are append-oriented historical evidence. Runtime behavior remains
 owned by PostgreSQL and running services.
@@ -356,7 +356,7 @@ flowchart TD
 ## Report Lifecycle Notes
 
 All report files in this bundle are historical — accurate at bundle-build time.
-After the bundle is created, the live `reports/` directory is authoritative.
+After the bundle is created, the live `.local/reports/` directory is authoritative.
 
 | Lifecycle | Reports in This Bundle |
 | --- | --- |

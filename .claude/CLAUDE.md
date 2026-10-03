@@ -31,8 +31,11 @@ tests and `requirements*.txt`), `docs/` (including `docs/releases/`), `scripts/`
   the recommender simply stops reading deadlines. `test_recommendation_engine_deadline_import.py` guards it.
 - `legacy/root_models.py` is the old top-level `models.py`. Nothing imports it, and it must not go anywhere on
   `sys.path` ahead of `crawlernest-core`: several `models.py` files share that name and `sys.path` order picks the winner.
-- Generated, untracked directories (`backups/`, `snapshots/`, `reports/`, `logs/`, `tmp/`, `crawlernest-samples/`)
-  appear at the top level of a working copy when scripts run. They are gitignored and are not part of the layout.
+- Everything the scripts write that is not source -- `.local/reports/`, `.local/snapshots/`, `.local/backups/`, `.local/logs/`,
+  `.local/tmp/`, `.local/crawlernest-samples/`, `.local/snapshot_htmls/` -- lives under the gitignored `.local/`, so the top
+  level stays clean. Python builds those paths as `REPO_ROOT / ".local" / "reports"`, shell as `${ROOT_DIR}/.local/reports`;
+  the Next.js `snapshot-info` route reads `.local/snapshots/latest_status.json`. A new script that writes to a bare
+  `reports/` at the top level is a regression. (`.venv/` and `.pytest_cache/` are hidden by their own names and stay.)
 
 ## Live code vs. stale duplicates
 

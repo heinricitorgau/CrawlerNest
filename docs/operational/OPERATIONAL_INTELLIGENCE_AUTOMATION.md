@@ -27,11 +27,11 @@ does not repair.
 
 The Phase 1 scripts read from:
 
-- `snapshots/*.json`
-- generated reports under `reports/`
+- `.local/snapshots/*.json`
+- generated reports under `.local/reports/`
 - release validation docs under `docs/`
 
-They write only generated report files under `reports/`:
+They write only generated report files under `.local/reports/`:
 
 - `snapshot_timeline.md`
 - `snapshot_timeline.json`

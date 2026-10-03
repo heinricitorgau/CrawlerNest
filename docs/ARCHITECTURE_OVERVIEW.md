@@ -154,7 +154,7 @@ flowchart TB
     autoeval["Autoeval diagnostics"]
     snapshot["scripts/export_system_snapshot.py"]
     bundle["scripts/export_metadata_bundle.sh"]
-    evidence["logs/ + snapshots/ + reports/"]
+    evidence[".local/logs/ + .local/snapshots/ + .local/reports/"]
 
     trigger --> daily
     daily --> ranking --> evidence
@@ -167,10 +167,10 @@ flowchart TB
 
 The operational scripts create evidence that can be inspected without rerunning the full system:
 
-- `snapshots/latest_status.json`
-- `snapshots/system_snapshot_*.json`
-- `reports/`
-- `logs/daily_pipeline_*.log`
+- `.local/snapshots/latest_status.json`
+- `.local/snapshots/system_snapshot_*.json`
+- `.local/reports/`
+- `.local/logs/daily_pipeline_*.log`
 
 ## CI/CD Flow
 
@@ -274,7 +274,7 @@ See [AUTH_LIMITATIONS.md](AUTH_LIMITATIONS.md) for the full non-goals list and s
 runtime dependency). It provides readonly development analysis agents — debug,
 pipeline, and code-review roles — and shell scripts that wrap them. No agent
 writes to the database, calls the API, or modifies source files. Output artifacts
-are written to `tmp/` directories only.
+are written to `.local/tmp/` directories only.
 
 ### crawlernest-normalization
 

@@ -29,7 +29,7 @@ if [ ! -f "$GENERATOR" ]; then
 fi
 
 # Prepare output directory
-OUT_DIR="$MAIN_ROOT/tmp/ai-dev"
+OUT_DIR="$MAIN_ROOT/.local/tmp/ai-dev"
 mkdir -p "$OUT_DIR"
 
 # Determine test command (allow override via env)

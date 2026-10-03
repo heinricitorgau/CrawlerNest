@@ -189,8 +189,8 @@ Diagnostics use the same database state as product reads, which keeps operationa
 flowchart TB
     database[("Live database")]
     export["scripts/export_system_snapshot.py"]
-    snapshot["snapshots/system_snapshot_*.json"]
-    latest["snapshots/latest_status.json"]
+    snapshot[".local/snapshots/system_snapshot_*.json"]
+    latest[".local/snapshots/latest_status.json"]
     summary["scripts/build_failure_summary.py"]
     report["Reports or CI artifact"]
 

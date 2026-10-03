@@ -10,12 +10,12 @@ usage() {
 Usage: ./scripts/cleanup_old_artifacts.sh [--dry-run]
 
 Retention:
-  snapshots/          keep latest 30 files
-  reports/            keep latest 30 files
-  backups/            keep latest 30 files
-  tmp/agent-context/  keep latest 20 files
-  tmp/agent-debug/    keep latest 20 files
-  tmp/agent-analysis/ keep latest 20 files
+  .local/snapshots/          keep latest 30 files
+  .local/reports/            keep latest 30 files
+  .local/backups/            keep latest 30 files
+  .local/tmp/agent-context/  keep latest 20 files
+  .local/tmp/agent-debug/    keep latest 20 files
+  .local/tmp/agent-analysis/ keep latest 20 files
 USAGE
 }
 
@@ -86,9 +86,9 @@ cleanup_dir() {
   echo "OK ${rel_dir} candidates=${#files[@]} removed=${removed}"
 }
 
-cleanup_dir "snapshots" 30
-cleanup_dir "reports" 30
-cleanup_dir "backups" 30
-cleanup_dir "tmp/agent-context" 20
-cleanup_dir "tmp/agent-debug" 20
-cleanup_dir "tmp/agent-analysis" 20
+cleanup_dir ".local/snapshots" 30
+cleanup_dir ".local/reports" 30
+cleanup_dir ".local/backups" 30
+cleanup_dir ".local/tmp/agent-context" 20
+cleanup_dir ".local/tmp/agent-debug" 20
+cleanup_dir ".local/tmp/agent-analysis" 20

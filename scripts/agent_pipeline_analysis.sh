@@ -8,7 +8,7 @@ CRAWLERNEST_REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PARENT_DIR="$(cd "${CRAWLERNEST_REPO_ROOT}/.." && pwd)"
 AGENTS_REPO_ROOT="${CRAWLERNEST_AGENTS_REPO_ROOT:-${PARENT_DIR}/crawlernest-agents}"
 AGENTS_PIPELINE_ANALYSIS="${AGENTS_REPO_ROOT}/scripts/generate-pipeline-analysis.py"
-CRAWLERNEST_AGENT_OUTPUT_DIR="${CRAWLERNEST_REPO_ROOT}/tmp/agent-analysis"
+CRAWLERNEST_AGENT_OUTPUT_DIR="${CRAWLERNEST_REPO_ROOT}/.local/tmp/agent-analysis"
 DEFAULT_OUTPUT_FILE="${CRAWLERNEST_AGENT_OUTPUT_DIR}/pipeline-analysis-prompt.md"
 
 log() {

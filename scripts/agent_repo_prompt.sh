@@ -8,9 +8,9 @@ PARENT_DIR="$(cd "${REPO_ROOT}/.." && pwd)"
 AGENTS_REPO_ROOT="${CRAWLERNEST_AGENTS_REPO_ROOT:-${PARENT_DIR}/crawlernest-agents}"
 PROMPT_GENERATOR="${CRAWLERNEST_AGENT_PROMPT_GENERATOR:-${AGENTS_REPO_ROOT}/scripts/generate-debug-prompt.py}"
 
-CONTEXT_DIR="${REPO_ROOT}/tmp/agent-context"
-DEBUG_DIR="${REPO_ROOT}/tmp/agent-debug"
-ANALYSIS_DIR="${REPO_ROOT}/tmp/agent-analysis"
+CONTEXT_DIR="${REPO_ROOT}/.local/tmp/agent-context"
+DEBUG_DIR="${REPO_ROOT}/.local/tmp/agent-debug"
+ANALYSIS_DIR="${REPO_ROOT}/.local/tmp/agent-analysis"
 CONTEXT_SNAPSHOT="${CONTEXT_DIR}/context_snapshot.md"
 PROMPT_INPUT="${CONTEXT_DIR}/repo_prompt_input.md"
 DEFAULT_OUTPUT_FILE="${CONTEXT_DIR}/repo-aware-prompt.md"
@@ -23,7 +23,7 @@ usage() {
   cat <<USAGE
 Usage: ./scripts/agent_repo_prompt.sh [log_or_note_file] [output_file]
 
-Builds tmp/agent-context/context_snapshot.md, injects that path into a readonly
+Builds .local/tmp/agent-context/context_snapshot.md, injects that path into a readonly
 prompt input, then calls the sibling crawlernest-agents prompt generator.
 
 Allowed outputs:

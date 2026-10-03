@@ -12,7 +12,7 @@ echo "CrawlerNest Maintenance Overview"
 echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo ""
 echo "--- Calm Posture Summary ---"
-echo "Read reports/maintenance_calm_summary.md first to distinguish"
+echo "Read .local/reports/maintenance_calm_summary.md first to distinguish"
 echo "known stable RC-1 conditions from signals that need attention."
 echo "Calm summary is regenerated in step [7/9] below."
 echo ""
@@ -57,28 +57,28 @@ echo ""
 
 echo "[2/9] Operational trust summary"
 "${PYTHON_BIN}" "${ROOT_DIR}/scripts/build_operational_trust_summary.py" >/dev/null 2>&1 || true
-if [[ -f "${ROOT_DIR}/reports/operational_trust_summary.md" ]]; then
-  sed -n '1,42p' "${ROOT_DIR}/reports/operational_trust_summary.md"
+if [[ -f "${ROOT_DIR}/.local/reports/operational_trust_summary.md" ]]; then
+  sed -n '1,42p' "${ROOT_DIR}/.local/reports/operational_trust_summary.md"
 else
-  echo "[missing] reports/operational_trust_summary.md"
+  echo "[missing] .local/reports/operational_trust_summary.md"
 fi
 echo ""
 
 echo "[3/9] Operational index summary"
 "${PYTHON_BIN}" "${ROOT_DIR}/scripts/build_operational_index_summary.py" >/dev/null 2>&1 || true
-if [[ -f "${ROOT_DIR}/reports/operational_index_summary.md" ]]; then
-  sed -n '1,32p' "${ROOT_DIR}/reports/operational_index_summary.md"
+if [[ -f "${ROOT_DIR}/.local/reports/operational_index_summary.md" ]]; then
+  sed -n '1,32p' "${ROOT_DIR}/.local/reports/operational_index_summary.md"
 else
-  echo "[missing] reports/operational_index_summary.md"
+  echo "[missing] .local/reports/operational_index_summary.md"
 fi
 echo ""
 
 echo "[4/9] Latest snapshot comparison hint"
-latest_named="$(ls -t "${ROOT_DIR}/snapshots/system_snapshot_"*.json 2>/dev/null | head -1 || true)"
-if [[ -n "${latest_named}" && -f "${ROOT_DIR}/snapshots/latest_status.json" ]]; then
+latest_named="$(ls -t "${ROOT_DIR}/.local/snapshots/system_snapshot_"*.json 2>/dev/null | head -1 || true)"
+if [[ -n "${latest_named}" && -f "${ROOT_DIR}/.local/snapshots/latest_status.json" ]]; then
   "${PYTHON_BIN}" "${ROOT_DIR}/scripts/compare_snapshots.py" \
     "${latest_named}" \
-    "${ROOT_DIR}/snapshots/latest_status.json" \
+    "${ROOT_DIR}/.local/snapshots/latest_status.json" \
     --json 2>/dev/null | "${PYTHON_BIN}" -c '
 import json, sys
 try:
@@ -91,15 +91,15 @@ except Exception as exc:
     print("[warning] snapshot comparison unavailable:", exc)
 '
 else
-  echo "[missing] latest named snapshot or snapshots/latest_status.json"
+  echo "[missing] latest named snapshot or .local/snapshots/latest_status.json"
 fi
 echo ""
 
 echo "[5/9] Demo caveat hint and latest smoke summary"
-if [[ -f "${ROOT_DIR}/reports/demo_caveats.md" ]]; then
-  grep -E "^- " "${ROOT_DIR}/reports/demo_caveats.md" | sed -n '1,8p' || true
+if [[ -f "${ROOT_DIR}/.local/reports/demo_caveats.md" ]]; then
+  grep -E "^- " "${ROOT_DIR}/.local/reports/demo_caveats.md" | sed -n '1,8p' || true
 else
-  echo "[missing] reports/demo_caveats.md"
+  echo "[missing] .local/reports/demo_caveats.md"
 fi
 echo ""
 smoke="${ROOT_DIR}/docs/releases/v0.1-demo/smoke_release_output.txt"
@@ -112,35 +112,35 @@ echo ""
 
 echo "[6/9] Maintenance navigation report"
 "${PYTHON_BIN}" "${ROOT_DIR}/scripts/build_maintenance_navigation.py" >/dev/null 2>&1 || true
-if [[ -f "${ROOT_DIR}/reports/maintenance_navigation.md" ]]; then
-  grep -E "^##|^\-\-\-|missing" "${ROOT_DIR}/reports/maintenance_navigation.md" | head -12 || true
+if [[ -f "${ROOT_DIR}/.local/reports/maintenance_navigation.md" ]]; then
+  grep -E "^##|^\-\-\-|missing" "${ROOT_DIR}/.local/reports/maintenance_navigation.md" | head -12 || true
 else
-  echo "[missing] reports/maintenance_navigation.md"
+  echo "[missing] .local/reports/maintenance_navigation.md"
 fi
 echo ""
 
 echo "[7/9] Maintenance calm summary"
 "${PYTHON_BIN}" "${ROOT_DIR}/scripts/build_maintenance_calm_summary.py" >/dev/null 2>&1 || true
-if [[ -f "${ROOT_DIR}/reports/maintenance_calm_summary.md" ]]; then
-  sed -n '1,30p' "${ROOT_DIR}/reports/maintenance_calm_summary.md"
+if [[ -f "${ROOT_DIR}/.local/reports/maintenance_calm_summary.md" ]]; then
+  sed -n '1,30p' "${ROOT_DIR}/.local/reports/maintenance_calm_summary.md"
 else
-  echo "[missing] reports/maintenance_calm_summary.md"
+  echo "[missing] .local/reports/maintenance_calm_summary.md"
 fi
 echo ""
 
 echo "[8/9] Maintenance steadiness summary"
 "${PYTHON_BIN}" "${ROOT_DIR}/scripts/build_maintenance_steadiness_summary.py" >/dev/null 2>&1 || true
-if [[ -f "${ROOT_DIR}/reports/maintenance_steadiness_summary.md" ]]; then
-  sed -n '1,30p' "${ROOT_DIR}/reports/maintenance_steadiness_summary.md"
+if [[ -f "${ROOT_DIR}/.local/reports/maintenance_steadiness_summary.md" ]]; then
+  sed -n '1,30p' "${ROOT_DIR}/.local/reports/maintenance_steadiness_summary.md"
 else
-  echo "[missing] reports/maintenance_steadiness_summary.md"
+  echo "[missing] .local/reports/maintenance_steadiness_summary.md"
 fi
 echo ""
 
 echo "[9/9] Maintenance continuity summary"
 "${PYTHON_BIN}" "${ROOT_DIR}/scripts/build_maintenance_continuity_summary.py" >/dev/null 2>&1 || true
-if [[ -f "${ROOT_DIR}/reports/maintenance_continuity_summary.md" ]]; then
-  sed -n '1,30p' "${ROOT_DIR}/reports/maintenance_continuity_summary.md"
+if [[ -f "${ROOT_DIR}/.local/reports/maintenance_continuity_summary.md" ]]; then
+  sed -n '1,30p' "${ROOT_DIR}/.local/reports/maintenance_continuity_summary.md"
 else
-  echo "[missing] reports/maintenance_continuity_summary.md"
+  echo "[missing] .local/reports/maintenance_continuity_summary.md"
 fi

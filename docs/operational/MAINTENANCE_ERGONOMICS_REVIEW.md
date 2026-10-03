@@ -43,7 +43,7 @@ Use this path for maintenance without changing runtime state:
 For deeper freshness review:
 
 ```bash
-./scripts/inspect_source_freshness.py --summary-output reports/maintenance_readiness_summary.md
+./scripts/inspect_source_freshness.py --summary-output .local/reports/maintenance_readiness_summary.md
 ./scripts/build_freshness_escalation.py
 ./scripts/build_drift_timeline.py
 ```

@@ -15,11 +15,11 @@ opportunities.
 Surfaces reviewed:
 
 - `docs/` — 55+ operational documentation files
-- `reports/` — 10 generated report files
+- `.local/reports/` — 10 generated report files
 - `scripts/` — 30+ operational and maintenance scripts
 - `docs/releases/v0.1-demo/` — release bundle artifacts
-- Trust summary: `reports/operational_trust_summary.md`
-- Caveat summary: `reports/demo_caveats.md`
+- Trust summary: `.local/reports/operational_trust_summary.md`
+- Caveat summary: `.local/reports/demo_caveats.md`
 
 ---
 
@@ -143,10 +143,10 @@ review documents. Standing operational docs remain in `docs/`.
 ### Risk 4: Release Bundle Copies vs Live Reports
 
 The `docs/releases/v0.1-demo/` bundle contains copies of 8 reports. These copies
-are frozen at bundle-build time. The live `reports/` directory continues to
+are frozen at bundle-build time. The live `.local/reports/` directory continues to
 be updated. Over time:
 
-- Live `reports/operational_trust_summary.md` may show different values than
+- Live `.local/reports/operational_trust_summary.md` may show different values than
   `docs/releases/v0.1-demo/operational_trust_summary.md`.
 - An operator checking the bundle copy will see stale confidence values.
 
@@ -154,7 +154,7 @@ be updated. Over time:
 release/demo artifacts, not runtime authority"). The `RELEASE_LIFECYCLE.md`
 (new in Phase 5) provides per-report lifecycle documentation.
 
-**Mitigation:** Always check live `reports/` for current state. Treat bundle
+**Mitigation:** Always check live `.local/reports/` for current state. Treat bundle
 copies as historical evidence for the specific release, not the current state.
 
 ---

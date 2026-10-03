@@ -29,8 +29,8 @@ Records the RC-1 operational validation run performed on 2026-05-22.
 | `cd crawlernest/crawlernest-web && npm run build` | Pass | Production build completed on Node 20.20.2 with Next.js 16.2.6. |
 | `cd crawlernest/servise_for_java && ./mvnw test` | Pass | 84 tests passed, 0 failures, 0 errors, 0 skipped. |
 | Python syntax checks | Pass | `run_pipeline.py`, pipeline CLI, health / compare / snapshot scripts compiled successfully. |
-| Readonly agent wrappers | Pass | `agent_context_snapshot.sh` and `agent_repo_prompt.sh` completed; outputs stayed under `tmp/agent-context/`. |
-| Snapshot export | Pass | Wrote `snapshots/system_snapshot_20260522_152944.json` and refreshed `snapshots/latest_status.json`. Required elevated local execution because sandboxed commands could not connect to localhost PostgreSQL. |
+| Readonly agent wrappers | Pass | `agent_context_snapshot.sh` and `agent_repo_prompt.sh` completed; outputs stayed under `.local/tmp/agent-context/`. |
+| Snapshot export | Pass | Wrote `.local/snapshots/system_snapshot_20260522_152944.json` and refreshed `.local/snapshots/latest_status.json`. Required elevated local execution because sandboxed commands could not connect to localhost PostgreSQL. |
 | Snapshot comparison | Pass | Fixture comparison completed successfully with `compare_snapshots.py --json`. |
 | `git diff --check` | Pass | No whitespace errors found after RC-1 doc updates. |
 | Local Markdown link validation | Pass | Local relative Markdown links resolve across tracked project docs. |

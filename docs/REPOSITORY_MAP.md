@@ -20,8 +20,9 @@ flowchart TB
     root --> workflows
 ```
 
-Everything else you may see at the top of a working copy -- `backups/`, `snapshots/`, `reports/`, `logs/`, `tmp/`,
-`crawlernest-samples/`, `.venv/` -- is generated or local, untracked, and not part of the layout.
+Everything the scripts write that is not source -- `.local/reports/`, `.local/snapshots/`, `.local/backups/`, `.local/logs/`, `.local/tmp/`,
+`.local/crawlernest-samples/`, `.local/snapshot_htmls/` -- lives under the gitignored `.local/`, so the top level of a working copy stays clean.
+`.venv/` and `.pytest_cache/` are hidden by their own names and stay where tools expect them.
 
 ## Core Directories
 
@@ -119,7 +120,7 @@ Important scripts:
 - `scripts/build_failure_summary.py`
 - `scripts/run_ci_locally.sh`
 
-### `snapshots/` (generated, untracked)
+### `.local/snapshots/` (generated, untracked)
 
 Operational snapshot output directory. Typical files include:
 
@@ -128,11 +129,11 @@ Operational snapshot output directory. Typical files include:
 
 Snapshots summarize health, freshness, drift warnings, regression status, and table counts for handoff or incident review.
 
-### `reports/` (generated, untracked)
+### `.local/reports/` (generated, untracked)
 
 Generated human-readable reports. This directory is used by diagnostics and CI support scripts, including failure summaries and autoeval artifacts.
 
-### `backups/` (generated, untracked)
+### `.local/backups/` (generated, untracked)
 
 Local backup output area. Use this for manual database exports or operational backup files. Do not treat it as a source-of-truth schema location.
 
@@ -149,7 +150,7 @@ CI definitions:
 - `release-smoke.yml`: compile/build/syntax smoke workflow.
 - `data-quality.yml`: fixture-mode data quality workflow.
 
-### `crawlernest-samples/` (generated, untracked)
+### `.local/crawlernest-samples/` (generated, untracked)
 
 Sample data used for local development, previews, and crawler/export demonstrations.
 

@@ -2,11 +2,11 @@
 # Export a metadata bundle containing diagnostics artifacts (no DB dump).
 #
 # Bundles:
-#   - snapshots/*.json
-#   - reports/*.md
-#   - logs/daily_pipeline_*.log (last 7 days)
+#   - .local/snapshots/*.json
+#   - .local/reports/*.md
+#   - .local/logs/daily_pipeline_*.log (last 7 days)
 #
-# Output: backups/metadata_bundle_YYYYMMDD_HHMMSS.tar.gz
+# Output: .local/backups/metadata_bundle_YYYYMMDD_HHMMSS.tar.gz
 #
 # Usage:
 #   ./scripts/export_metadata_bundle.sh [--output-dir /custom/path]
@@ -14,7 +14,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-OUTPUT_DIR="${ROOT_DIR}/backups"
+OUTPUT_DIR="${ROOT_DIR}/.local/backups"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 BUNDLE_NAME="metadata_bundle_${TIMESTAMP}.tar.gz"
 
@@ -42,8 +42,8 @@ add_glob() {
   done
 }
 
-add_glob "${ROOT_DIR}/snapshots/*.json"
-add_glob "${ROOT_DIR}/reports/*.md"
+add_glob "${ROOT_DIR}/.local/snapshots/*.json"
+add_glob "${ROOT_DIR}/.local/reports/*.md"
 
 # Only recent pipeline logs (last 7 days by filename YYYYMMDD suffix)
 CUTOFF="$(date -d '7 days ago' +%Y%m%d 2>/dev/null || date -v-7d +%Y%m%d 2>/dev/null || echo "00000000")"

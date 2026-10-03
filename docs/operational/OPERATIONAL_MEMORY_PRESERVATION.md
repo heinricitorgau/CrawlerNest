@@ -54,13 +54,13 @@ regularly and are not archival:
 
 | Artifact | Why Temporary |
 | --- | --- |
-| `reports/maintenance_calm_summary.md` | Regenerated every session; reflects current posture, not history |
-| `reports/operational_trust_summary.md` (live) | Regenerated before each release decision |
-| `reports/freshness_escalation.md` | Reflects current snapshot; overwritten on each run |
-| `reports/demo_caveats.md` (live) | Regenerated before each demo |
-| `reports/maintenance_readiness_summary.md` | Overwritten on each inspection |
-| `reports/maintenance_steadiness_summary.md` | Regenerated each session |
-| `tmp/agent-context/` | Ephemeral AI reasoning context; never authoritative |
+| `.local/reports/maintenance_calm_summary.md` | Regenerated every session; reflects current posture, not history |
+| `.local/reports/operational_trust_summary.md` (live) | Regenerated before each release decision |
+| `.local/reports/freshness_escalation.md` | Reflects current snapshot; overwritten on each run |
+| `.local/reports/demo_caveats.md` (live) | Regenerated before each demo |
+| `.local/reports/maintenance_readiness_summary.md` | Overwritten on each inspection |
+| `.local/reports/maintenance_steadiness_summary.md` | Regenerated each session |
+| `.local/tmp/agent-context/` | Ephemeral AI reasoning context; never authoritative |
 
 Temporary state is useful for current-session decisions. It should not be
 treated as archival evidence. The release bundle copies provide the archival
@@ -75,10 +75,10 @@ The distinction:
 
 | Report Location | Role |
 | --- | --- |
-| `reports/*.md` | Current operational state; regenerated regularly |
+| `.local/reports/*.md` | Current operational state; regenerated regularly |
 | `docs/releases/v0.1-demo/*.md` | Historical evidence frozen at bundle-build time |
 
-**Reading rule:** When assessing the current system state, read `reports/`.
+**Reading rule:** When assessing the current system state, read `.local/reports/`.
 When reconstructing the state at the time of a specific release, read the
 bundle copy in `docs/releases/v0.1-demo/`.
 
@@ -97,7 +97,7 @@ time and should not be modified after creation.
 
 - Files in the bundle are frozen at the bundle-build timestamp in `MANIFEST.txt`
 - The bundle is self-contained: a reader of the bundle does not need the live
-  `reports/` directory to understand the release posture
+  `.local/reports/` directory to understand the release posture
 - The bundle captures confidence, caveats, smoke, freshness, and snapshot
   evidence as a coherent point-in-time record
 - Future bundles (v0.2, etc.) will create new directories; v0.1 remains unchanged
@@ -113,12 +113,12 @@ time and should not be modified after creation.
 
 ## Snapshot Historical Semantics
 
-Snapshots under `snapshots/` serve as the raw evidence layer. Their semantics:
+Snapshots under `.local/snapshots/` serve as the raw evidence layer. Their semantics:
 
 | File | Semantic |
 | --- | --- |
-| `snapshots/system_snapshot_YYYYMMDD_HHMMSS.json` | Point-in-time state capture; never modified after creation |
-| `snapshots/latest_status.json` | Current-state pointer; overwritten when a new snapshot is taken |
+| `.local/snapshots/system_snapshot_YYYYMMDD_HHMMSS.json` | Point-in-time state capture; never modified after creation |
+| `.local/snapshots/latest_status.json` | Current-state pointer; overwritten when a new snapshot is taken |
 
 **Append-only principle:** Named snapshots are never deleted or overwritten.
 They accumulate as an append-only historical record. `latest_status.json` is
@@ -166,7 +166,7 @@ All four of these are documented for the RC-1 posture.
 When handing off the project to a new operator, the following memory must
 be explicitly communicated:
 
-1. **Current operational posture** — Refer to `reports/maintenance_calm_summary.md`
+1. **Current operational posture** — Refer to `.local/reports/maintenance_calm_summary.md`
    and `docs/STABLE_DEGRADED_STATE.md`.
 2. **Why limitations exist** — Refer to `docs/RC1_FREEZE_SCOPE.md` and
    `docs/OPERATIONAL_BOUNDARY_REINFORCEMENT.md`.

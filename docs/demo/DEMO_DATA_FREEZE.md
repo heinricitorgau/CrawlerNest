@@ -24,7 +24,7 @@ unexpected output is harder to explain than a consistently stale dataset.
 **Status:** Ingested at RC-1 packaging (~354 hours stale at time of demo).
 **Action:** Freeze — do not re-run ingestion.
 **Why:** The stale caveat is already disclosed and caveat-covered in:
-- `reports/demo_caveats.md`
+- `.local/reports/demo_caveats.md`
 - The Data Caveats section of every recommendation explain panel
 - The `RC1_STANDARD_CAVEATS` in `caveatMessages.ts`
 
@@ -120,12 +120,12 @@ Scenario B generates questions you cannot answer: "Why did the count change?",
 
 Perform 24 hours before the demo:
 
-- [ ] Confirm `reports/demo_caveats.md` exists and its caveats match what you plan to say aloud
+- [ ] Confirm `.local/reports/demo_caveats.md` exists and its caveats match what you plan to say aloud
 - [ ] Confirm Source Coverage shows: `QS ✓`, `THE —`, `ARWU —` (no unexpected changes)
 - [ ] Confirm aggregated count is ~1,499 (within 10 rows)
 - [ ] Confirm no `scripts/` or `maintenance/` runs are scheduled during the demo window
 - [ ] Confirm database is not being migrated, reset, or updated during the demo window
-- [ ] Confirm the report in `reports/competition_demo_summary.md` is current
+- [ ] Confirm the report in `.local/reports/competition_demo_summary.md` is current
 
 ---
 

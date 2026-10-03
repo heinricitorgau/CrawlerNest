@@ -53,7 +53,7 @@ and does not trigger automatic release gates or repair actions.
 
 ## Recommended Maintainer Behavior
 
-1. Read `reports/operational_trust_summary.md`.
-2. Read `reports/demo_caveats.md` before demos.
+1. Read `.local/reports/operational_trust_summary.md`.
+2. Read `.local/reports/demo_caveats.md` before demos.
 3. Use `docs/SOURCE_FRESHNESS_RECOVERY.md` for human-led recovery.
 4. Do not inflate confidence without new evidence.

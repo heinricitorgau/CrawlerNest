@@ -203,7 +203,7 @@ When there is pressure to make the system look better before a demo:
 
 Instead:
 - Present `docs/DEMO_HONESTY_GUIDELINES.md` to confirm phrasing
-- Read `reports/demo_caveats.md` to ensure the presentation covers all required
+- Read `.local/reports/demo_caveats.md` to ensure the presentation covers all required
   disclosures
 - Use the steadiness summary to frame the posture calmly and accurately
 

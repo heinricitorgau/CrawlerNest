@@ -13,7 +13,7 @@ It does not prescribe a rewrite. It classifies, explains, and recommends.
 The review covers:
 
 - Scripts under `scripts/`
-- Generated reports under `reports/`
+- Generated reports under `.local/reports/`
 - Documentation under `docs/`
 - Release artifacts under `docs/releases/v0.1-demo/`
 - The operational validation suite (`validate_maintenance_*.py`)
@@ -41,10 +41,10 @@ The following reports have stable, non-overlapping roles:
 
 | Report | Assessment |
 | --- | --- |
-| `reports/demo_caveats.md` | Singular demo-facing caveat source. Sustainable. |
-| `reports/freshness_escalation.md` | Authoritative freshness escalation signal. Sustainable. |
-| `reports/operational_trust_summary.md` | Confidence rollup. Occupies a unique role. Sustainable. |
-| `reports/drift_timeline.md` | Historical drift classification. Sustainable. |
+| `.local/reports/demo_caveats.md` | Singular demo-facing caveat source. Sustainable. |
+| `.local/reports/freshness_escalation.md` | Authoritative freshness escalation signal. Sustainable. |
+| `.local/reports/operational_trust_summary.md` | Confidence rollup. Occupies a unique role. Sustainable. |
+| `.local/reports/drift_timeline.md` | Historical drift classification. Sustainable. |
 
 ### Operational Documentation
 
@@ -64,13 +64,13 @@ These documents have clear, non-redundant roles:
 
 ### Report Proliferation
 
-The `reports/` directory now has ten files. Several overlap in scope:
+The `.local/reports/` directory now has ten files. Several overlap in scope:
 
 | Overlap | Risk |
 | --- | --- |
 | `operational_summary.md` and `operational_index_summary.md` | First-stop ambiguity. A maintainer may read the wrong one. |
 | `operational_trust_summary.md` and `maintenance_readiness_summary.md` | Both carry confidence/caveat framing. Divergence is possible over time. |
-| Release bundle copies in `docs/releases/v0.1-demo/` | Reports are duplicated outside `reports/`. Bundle copies may become stale. |
+| Release bundle copies in `docs/releases/v0.1-demo/` | Reports are duplicated outside `.local/reports/`. Bundle copies may become stale. |
 
 ### Docs Sprawl
 
@@ -117,11 +117,11 @@ identify which five documents they actually need to read.
 
 | Area | Debt Risk | Why |
 | --- | --- | --- |
-| Release bundle report copies | Medium | Bundle artifacts in `docs/releases/v0.1-demo/` are point-in-time; they diverge from live `reports/` without notice. |
+| Release bundle report copies | Medium | Bundle artifacts in `docs/releases/v0.1-demo/` are point-in-time; they diverge from live `.local/reports/` without notice. |
 | Phase validation scripts | Low-Medium | If each maintenance phase adds a new `validate_maintenance_phaseN.py`, the suite becomes hard to survey. |
 | Docs freshness docs cluster | Medium | Five freshness-related docs may diverge semantically as source state changes. |
 | `operational_index_summary.md` vs `operational_summary.md` | Low | Well-differentiated today, but the distinction may erode if one author reads only one file. |
-| Agent context artifacts in `tmp/` | Low | Temporary, but may be confused with authoritative artifacts by future operators. |
+| Agent context artifacts in `.local/tmp/` | Low | Temporary, but may be confused with authoritative artifacts by future operators. |
 
 ---
 
@@ -141,14 +141,14 @@ None are urgent for RC-1.
 
 3. **Bundle artifact staleness policy** — Explicitly document that
    `docs/releases/v0.1-demo/*.md` report copies are point-in-time and the live
-   source of truth is `reports/`. Add a one-line staleness warning to bundle
+   source of truth is `.local/reports/`. Add a one-line staleness warning to bundle
    report headers.
 
 4. **Docs README grouping** — Reorganize the `docs/README.md` table into
    semantic groups (Core Ops, Freshness, Confidence, Release, Maintenance) to
    reduce orientation time from ten minutes to two.
 
-5. **Agent context cleanup policy** — Document that `tmp/agent-context/` is
+5. **Agent context cleanup policy** — Document that `.local/tmp/agent-context/` is
    ephemeral and not authoritative. Include it in the `cleanup_old_artifacts.sh`
    scope.
 

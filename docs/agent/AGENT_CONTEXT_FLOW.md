@@ -18,7 +18,7 @@ Run:
 flowchart TB
     run["agent_context_snapshot.sh"]
     evidence["Repository and operational evidence"]
-    snapshot["tmp/agent-context/context_snapshot.md"]
+    snapshot[".local/tmp/agent-context/context_snapshot.md"]
 
     evidence --> run --> snapshot
 ```
@@ -26,7 +26,7 @@ flowchart TB
 The script reads repository and operational evidence, then writes:
 
 ```text
-tmp/agent-context/context_snapshot.md
+.local/tmp/agent-context/context_snapshot.md
 ```
 
 The snapshot is temporary. It is meant to be regenerated whenever a debugging or
@@ -52,8 +52,8 @@ flowchart TB
 It then creates:
 
 ```text
-tmp/agent-context/repo_prompt_input.md
-tmp/agent-context/repo-aware-prompt.md
+.local/tmp/agent-context/repo_prompt_input.md
+.local/tmp/agent-context/repo-aware-prompt.md
 ```
 
 The prompt input records the context snapshot path and embeds a bounded copy of
@@ -78,7 +78,7 @@ It does not:
 - add git submodules
 - make `crawlernest-agents` a dependency
 
-The only main-repo writes are temporary prompt artifacts under `tmp/`.
+The only main-repo writes are temporary prompt artifacts under `.local/tmp/`.
 
 ## Operational Guarantees
 
@@ -88,9 +88,9 @@ permission to act.
 Allowed output directories are:
 
 ```text
-tmp/agent-context/
-tmp/agent-debug/
-tmp/agent-analysis/
+.local/tmp/agent-context/
+.local/tmp/agent-debug/
+.local/tmp/agent-analysis/
 ../crawlernest-agents/tmp/
 ```
 
@@ -129,12 +129,12 @@ instead of failing.
 
 The agent context wrappers may consume generated evidence from:
 
-- `reports/latest_failure_summary.md`
-- `reports/operational_summary.md`
-- `reports/operational_index_summary.md`
-- `reports/drift_timeline.md`
-- `reports/freshness_escalation.md`
-- `snapshots/latest_status.json`
+- `.local/reports/latest_failure_summary.md`
+- `.local/reports/operational_summary.md`
+- `.local/reports/operational_index_summary.md`
+- `.local/reports/drift_timeline.md`
+- `.local/reports/freshness_escalation.md`
+- `.local/snapshots/latest_status.json`
 - `docs/releases/v0.1-demo/smoke_release_output.txt`
 
 They do not consume live runtime authority. In particular, the wrappers do not

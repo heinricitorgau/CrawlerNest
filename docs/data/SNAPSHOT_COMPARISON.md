@@ -7,8 +7,8 @@ changing pipeline state.
 ## Command
 
 ```bash
-python3 scripts/compare_snapshots.py snapshots/old.json snapshots/new.json
-python3 scripts/compare_snapshots.py snapshots/old.json snapshots/new.json --json
+python3 scripts/compare_snapshots.py .local/snapshots/old.json .local/snapshots/new.json
+python3 scripts/compare_snapshots.py .local/snapshots/old.json .local/snapshots/new.json --json
 ```
 
 The command is readonly. It reads two JSON files and writes the comparison to

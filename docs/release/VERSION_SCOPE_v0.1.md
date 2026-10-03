@@ -217,7 +217,7 @@ v0.1 was frozen with the following known state:
 - All diagnostics and explainability endpoints operational
 - Readonly agent integration present but non-production
 - CI passing (release-smoke + data-quality) without live database
-- Snapshot: `snapshots/system_snapshot_20260508_072113.json`
+- Snapshot: `.local/snapshots/system_snapshot_20260508_072113.json`
 - Last aggregation run: 2026-05-08T06:24:35 (UTC+8)
 
 This document is frozen at v0.1. Do not update it for post-v0.1 changes — create a new `VERSION_SCOPE_vX.Y.md`.

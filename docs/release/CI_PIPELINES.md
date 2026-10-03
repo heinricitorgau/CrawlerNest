@@ -44,7 +44,7 @@ Validates data quality assertions using committed fixtures — no live PostgreSQ
 Both CI workflows run **without a live database**. The key design:
 
 - `run_ranking_regression.py --fixture-file PATH` reads a JSON list of university records instead of querying PostgreSQL. The assertion logic (`run_assertions()`) is identical — only the data source changes.
-- `build_failure_summary.py --snapshot-file PATH` reads a committed snapshot fixture instead of `snapshots/latest_status.json`.
+- `build_failure_summary.py --snapshot-file PATH` reads a committed snapshot fixture instead of `.local/snapshots/latest_status.json`.
 
 Fixture files live at:
 ```
@@ -96,8 +96,8 @@ cd crawlernest/crawlernest-web && npm run build
 |----------|---------|------------|
 | Regression result (JSON) | `data-quality-report/regression_result.json` | `/tmp/regression_result.json` |
 | CI failure summary | `data-quality-report/ci_failure_summary.md` | `/tmp/ci_failure_summary.md` |
-| Live failure summary | — | `reports/latest_failure_summary.md` |
-| Live snapshot | — | `snapshots/latest_status.json` |
+| Live failure summary | — | `.local/reports/latest_failure_summary.md` |
+| Live snapshot | — | `.local/snapshots/latest_status.json` |
 
 Download CI artifacts from **Actions → data-quality run → Artifacts → data-quality-report**.
 

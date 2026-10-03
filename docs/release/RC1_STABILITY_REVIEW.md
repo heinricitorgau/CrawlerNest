@@ -52,7 +52,7 @@ Assesses the long-run operational behavior of the current system under sustained
 
 | Risk | Assessment |
 |---|---|
-| Snapshot files accumulate in `snapshots/` | Low. Snapshots are small JSON files (~1–3 KB each). The `snapshots/` directory is gitignored. Manual cleanup is sufficient at current frequency. |
+| Snapshot files accumulate in `.local/snapshots/` | Low. Snapshots are small JSON files (~1–3 KB each). The `.local/snapshots/` directory is gitignored. Manual cleanup is sufficient at current frequency. |
 | No automatic rotation | Current policy: manual. The `scripts/cleanup_old_artifacts.sh` script exists for rotation. Acceptable for RC-1 demo cadence. |
 | `latest_status.json` overwrites on each run | By design. No historical version is lost since dated snapshot files are also written. |
 

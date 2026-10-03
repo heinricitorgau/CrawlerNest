@@ -37,7 +37,7 @@ flowchart TB
     envRoot["Export CRAWLERNEST_REPO_ROOT"]
     envMode["Export CRAWLERNEST_AGENT_MODE=readonly"]
     call["Call agents pipeline analysis tool"]
-    output["Write tmp/agent-analysis/pipeline-analysis-prompt.md"]
+    output["Write .local/tmp/agent-analysis/pipeline-analysis-prompt.md"]
 
     locate --> repo --> tool --> envRoot --> envMode --> call --> output
 ```
@@ -46,8 +46,8 @@ You can pass a custom output file:
 
 ```bash
 ./scripts/agent_pipeline_analysis.sh \
-  tmp/pipeline.log \
-  tmp/agent-analysis/my-pipeline-analysis.md
+  .local/tmp/pipeline.log \
+  .local/tmp/agent-analysis/my-pipeline-analysis.md
 ```
 
 ## Readonly Guarantees
@@ -79,7 +79,7 @@ crawlernest/tmp/agent-analysis/
 The default main-repo output is:
 
 ```text
-tmp/agent-analysis/pipeline-analysis-prompt.md
+.local/tmp/agent-analysis/pipeline-analysis-prompt.md
 ```
 
 ## Operational Boundaries
@@ -102,15 +102,15 @@ Do not use it to:
 Analyze a saved pipeline log:
 
 ```bash
-./scripts/agent_pipeline_analysis.sh tmp/latest-pipeline.log
+./scripts/agent_pipeline_analysis.sh .local/tmp/latest-pipeline.log
 ```
 
 Analyze a log and write to a named prompt:
 
 ```bash
 ./scripts/agent_pipeline_analysis.sh \
-  reports/daily-pipeline.log \
-  tmp/agent-analysis/daily-pipeline-analysis.md
+  .local/reports/daily-pipeline.log \
+  .local/tmp/agent-analysis/daily-pipeline-analysis.md
 ```
 
 The debug wrapper is separate:

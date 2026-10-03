@@ -72,9 +72,9 @@ def check_continuity_output() -> None:
         result.returncode == 0,
         f"rc={result.returncode} stderr={result.stderr[:120]}",
     )
-    output_file = REPO_ROOT / "reports" / "maintenance_continuity_summary.md"
+    output_file = REPO_ROOT / ".local" / "reports" / "maintenance_continuity_summary.md"
     check(
-        "reports/maintenance_continuity_summary.md exists",
+        ".local/reports/maintenance_continuity_summary.md exists",
         output_file.exists(),
         "file not written",
     )

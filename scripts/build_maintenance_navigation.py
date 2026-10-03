@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
-REPORTS_DIR = REPO_ROOT / "reports"
+REPORTS_DIR = REPO_ROOT / ".local" / "reports"
 OUTPUT_FILE = REPORTS_DIR / "maintenance_navigation.md"
 
 REPORT_CRITICALITY: dict[str, str] = {
@@ -84,9 +84,9 @@ def build(reports_dir: Path) -> str:
         "",
         "| Context | First Report |",
         "| --- | --- |",
-        "| Daily check | `reports/operational_trust_summary.md` |",
-        "| Pre-demo | `reports/demo_caveats.md` |",
-        "| Freshness concern | `reports/freshness_escalation.md` |",
+        "| Daily check | `.local/reports/operational_trust_summary.md` |",
+        "| Pre-demo | `.local/reports/demo_caveats.md` |",
+        "| Freshness concern | `.local/reports/freshness_escalation.md` |",
         "| Release gate | `docs/releases/v0.1-demo/smoke_release_output.txt` |",
         "| New operator onboarding | `docs/README.md` |",
         "",
@@ -103,9 +103,9 @@ def build(reports_dir: Path) -> str:
 
     authoritative = [
         ("smoke_release_output.txt", "docs/releases/v0.1-demo/smoke_release_output.txt"),
-        ("operational_trust_summary.md", "reports/operational_trust_summary.md"),
-        ("freshness_escalation.md", "reports/freshness_escalation.md"),
-        ("demo_caveats.md", "reports/demo_caveats.md"),
+        ("operational_trust_summary.md", ".local/reports/operational_trust_summary.md"),
+        ("freshness_escalation.md", ".local/reports/freshness_escalation.md"),
+        ("demo_caveats.md", ".local/reports/demo_caveats.md"),
     ]
     for name, display_path in authoritative:
         icon = status_icon(statuses.get(name, "missing"))
@@ -122,13 +122,13 @@ def build(reports_dir: Path) -> str:
     caveats_status = statuses.get("demo_caveats.md", "missing")
     if caveats_status == "present":
         lines += [
-            "Demo caveats file is present. Read `reports/demo_caveats.md` for the",
+            "Demo caveats file is present. Read `.local/reports/demo_caveats.md` for the",
             "current list of caveats that must be stated before any demo or release.",
             "",
         ]
     else:
         lines += [
-            f"[{caveats_status.upper()}] `reports/demo_caveats.md` — regenerate with:",
+            f"[{caveats_status.upper()}] `.local/reports/demo_caveats.md` — regenerate with:",
             "",
             "```bash",
             "./scripts/build_demo_caveats.py",
@@ -155,7 +155,7 @@ def build(reports_dir: Path) -> str:
             "Historical" if name in HISTORICAL else "Maintenance"
         )
         icon = status_icon(statuses.get(name, "missing"))
-        lines.append(f"| `reports/{name}` | {audience} | {icon} |")
+        lines.append(f"| `.local/reports/{name}` | {audience} | {icon} |")
 
     lines += [
         "",
@@ -166,12 +166,12 @@ def build(reports_dir: Path) -> str:
         "Do not use these for current-state decisions. They are point-in-time",
         "evidence and may be stale:",
         "",
-        "- `snapshots/system_snapshot_*.json` — named point-in-time snapshots",
-        "- `reports/snapshot_timeline.md` / `snapshot_timeline.json` — historical comparison",
-        "- `reports/latest_failure_summary.md` — diagnostics-era failure log",
+        "- `.local/snapshots/system_snapshot_*.json` — named point-in-time snapshots",
+        "- `.local/reports/snapshot_timeline.md` / `snapshot_timeline.json` — historical comparison",
+        "- `.local/reports/latest_failure_summary.md` — diagnostics-era failure log",
         "- `docs/releases/v0.1-demo/*.md` (report copies) — bundle time snapshots",
         "",
-        "For current state, always use live `reports/` files.",
+        "For current state, always use live `.local/reports/` files.",
         "",
         "---",
         "",
@@ -193,7 +193,7 @@ def build(reports_dir: Path) -> str:
         "This script reads existing report files and generates a static Markdown",
         "summary. It does not connect to PostgreSQL, modify application state,",
         "retrigger crawlers, or mutate any operational artifact other than",
-        "`reports/maintenance_navigation.md`.",
+        "`.local/reports/maintenance_navigation.md`.",
     ]
 
     missing_critical = [

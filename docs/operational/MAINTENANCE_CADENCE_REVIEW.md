@@ -50,9 +50,9 @@ has gone missing — a signal to investigate, not background noise.
 
 **Reports to skip during daily check:**
 
-- `reports/drift_timeline.md` — read only if aggregation count changed
-- `reports/freshness_escalation.md` — read only if freshness state changed
-- `reports/operational_summary.md` — read only if a source state changed
+- `.local/reports/drift_timeline.md` — read only if aggregation count changed
+- `.local/reports/freshness_escalation.md` — read only if freshness state changed
+- `.local/reports/operational_summary.md` — read only if a source state changed
 - All `docs/` files — no changes needed for routine daily check
 
 ---
@@ -69,9 +69,9 @@ has gone missing — a signal to investigate, not background noise.
 
 **Reports to read:**
 
-- `reports/maintenance_calm_summary.md` — calm posture review
-- `reports/demo_caveats.md` — confirm caveats are current
-- `reports/operational_trust_summary.md` — confidence posture review
+- `.local/reports/maintenance_calm_summary.md` — calm posture review
+- `.local/reports/demo_caveats.md` — confirm caveats are current
+- `.local/reports/operational_trust_summary.md` — confidence posture review
 
 **Purpose:** Confirm the stable degraded posture has not drifted. Verify that
 demo caveats are accurate and up to date. This takes approximately 10 minutes.
@@ -101,10 +101,10 @@ Run these before any demo presentation or before creating a release bundle.
 
 **Reports to read (in order):**
 
-1. `reports/maintenance_calm_summary.md` — calm posture first
-2. `reports/maintenance_steadiness_summary.md` — steadiness and caution level
-3. `reports/demo_caveats.md` — required presenter caveats
-4. `reports/operational_trust_summary.md` — confidence and release posture
+1. `.local/reports/maintenance_calm_summary.md` — calm posture first
+2. `.local/reports/maintenance_steadiness_summary.md` — steadiness and caution level
+3. `.local/reports/demo_caveats.md` — required presenter caveats
+4. `.local/reports/operational_trust_summary.md` — confidence and release posture
 5. `docs/releases/v0.1-demo/smoke_release_output.txt` — smoke passed confirmation
 
 **Purpose:** Ensure all evidence is fresh, all caveats are accurate, smoke
@@ -152,8 +152,8 @@ only when their specific question is raised.
 | `docs/SNAPSHOT_COMPARISON.md` | When doing a targeted snapshot diff |
 | `docs/OPERATIONAL_MEMORY_PRESERVATION.md` | When planning a bundle or archival action |
 | `docs/STABLE_DEGRADED_STATE.md` | When explaining the RC-1 posture to a new operator |
-| `reports/snapshot_timeline.md` | When investigating a historical trend question |
-| `reports/latest_failure_summary.md` | When investigating a specific past failure |
+| `.local/reports/snapshot_timeline.md` | When investigating a historical trend question |
+| `.local/reports/latest_failure_summary.md` | When investigating a specific past failure |
 | `docs/releases/v0.1-demo/*.md` (bundle copies) | When reviewing the state at release time |
 
 **Do NOT read these reports routinely.** They accumulate historical context
@@ -166,7 +166,7 @@ that is irrelevant to current-state maintenance.
 | Anti-Pattern | Why It Causes Problems |
 | --- | --- |
 | Running all build scripts before checking the overview | Over-generates reports that may not be needed; adds noise to the session |
-| Reading all 10 reports in `reports/` on every check | Most reports carry the same stable information; redundant reads increase fatigue |
+| Reading all 10 reports in `.local/reports/` on every check | Most reports carry the same stable information; redundant reads increase fatigue |
 | Exporting a new snapshot every session | Snapshots should capture meaningful state changes, not routine observation |
 | Reading drift timeline daily | Drift is a slow signal; daily reads of a non-changing timeline add no information |
 | Re-running phase validation scripts routinely | Phase scripts validate milestones, not current operational state |
@@ -188,7 +188,7 @@ that is irrelevant to current-state maintenance.
 | `build_freshness_escalation.py` | | | | ✓ | |
 | `build_drift_timeline.py` | | | | ✓ | |
 | `export_system_snapshot.py` | | | | ✓ | |
-| `reports/snapshot_timeline.md` | | | | | ✓ |
+| `.local/reports/snapshot_timeline.md` | | | | | ✓ |
 | `docs/STABLE_DEGRADED_STATE.md` | | | | | ✓ |
 
 ---

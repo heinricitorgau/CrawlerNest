@@ -20,7 +20,7 @@ runtime API semantics or change any diagnostic behavior.
 | `aggregation collapse` | Aggregated ranking count drops to zero or falls sharply compared with earlier snapshots. | Critical drift signal; reports observe it only. |
 | `snapshot lineage` | The relationship between dated snapshots, `latest_status.json`, derived timeline reports, and release bundle copies. | Lineage is historical evidence, not runtime authority. |
 | `release-ready` | Build/test/smoke evidence passes and known data limitations are documented honestly. | Does not require perfect freshness if the demo claim is scoped correctly. |
-| `readonly-safe` | A script or report reads evidence and writes generated files only; it does not mutate runtime data or behavior. | File outputs under `reports/`, `snapshots/`, `tmp/`, or `docs/releases/` are allowed when documented. |
+| `readonly-safe` | A script or report reads evidence and writes generated files only; it does not mutate runtime data or behavior. | File outputs under `.local/reports/`, `.local/snapshots/`, `.local/tmp/`, or `docs/releases/` are allowed when documented. |
 | `operational intelligence` | Derived summaries and classifications that help humans understand operational evidence. | Not autonomous repair or decision-making. |
 | `validation surface` | The set of scripts, docs, reports, snapshots, and bundle files used to judge release/demo health. | Larger surfaces need indexes and relationship docs to avoid fragmentation. |
 

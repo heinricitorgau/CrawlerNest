@@ -5,7 +5,7 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-LOG_DIR="$REPO_ROOT/tmp"
+LOG_DIR="$REPO_ROOT/.local/tmp"
 mkdir -p "$LOG_DIR"
 
 TEST_LOG="$LOG_DIR/latest-test-output.log"

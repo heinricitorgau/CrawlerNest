@@ -11,8 +11,8 @@ from typing import Any
 from build_snapshot_timeline import load_snapshot_records
 
 REPO_ROOT = Path(__file__).parent.parent
-SNAPSHOT_DIR = REPO_ROOT / "snapshots"
-REPORTS_DIR = REPO_ROOT / "reports"
+SNAPSHOT_DIR = REPO_ROOT / ".local" / "snapshots"
+REPORTS_DIR = REPO_ROOT / ".local" / "reports"
 EXPECTED_SOURCES = ("QS", "THE", "ARWU")
 
 

@@ -117,7 +117,7 @@ Run tests and generate a debug prompt on failure:
 Analyze a pipeline log into an agent-ready prompt:
 
 ```bash
-./scripts/analyze-pipeline-log.sh tmp/pipeline.log
+./scripts/analyze-pipeline-log.sh .local/tmp/pipeline.log
 ```
 
 ## Naming Recommendation

@@ -268,3 +268,7 @@ load-qs-archive --year 2024 --ingest --replace   # 該年份已有 QS 資料時�
 4. **`qs_archive/raw/` 原始檔進不進 git。** 建議不進,只進 manifest 與 sha256。
 5. **要不要同時處理第 5 節的 crawler 缺口。** 建議獨立處理,先於 P3。
 6. **揭露設計。** 必須在 P5 之前決定,但不阻擋 P0–P4。
+
+**備註(2026-10-04):備份檔搬家。** 這個載入器的預設備份資料夾現在是 `.local/backups/`(原本在倉儲根目錄的 `backups/`,
+所有執行期資料夾都收進了被 gitignore 的 `.local/`)。`crawlernest-kb/qs_archive/receipts/` 裡 2026-10-02/03 寫下的收據是當時的紀錄,
+沒有改寫:它們記錄的備份路徑 `…/backups/…dump` 與其中的 `pg_restore` 指令,實際檔案現在在 `…/.local/backups/…dump`。

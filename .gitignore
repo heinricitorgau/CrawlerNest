@@ -18,6 +18,10 @@ target/
 *.class
 
 # Logs / local artifacts
+# Local working data. Everything the scripts write that is not source lives under .local/ (reports, snapshots, backups,
+# logs, tmp, crawlernest-samples, snapshot_htmls), so the top level of a working copy stays the README files, the licence
+# and four folders. The per-name rules below still apply wherever those names appear.
+.local/
 logs/
 *.log
 tmp/

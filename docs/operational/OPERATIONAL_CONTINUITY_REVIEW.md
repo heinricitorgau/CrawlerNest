@@ -12,7 +12,7 @@ These aspects of the maintenance system are well-suited for long-term continuity
 
 ### 1. Snapshot-Anchored Historical Evidence
 
-Named snapshots (`snapshots/system_snapshot_YYYYMMDD_HHMMSS.json`) are
+Named snapshots (`.local/snapshots/system_snapshot_YYYYMMDD_HHMMSS.json`) are
 append-only and never overwritten. A future operator reading any named snapshot
 can reconstruct what the system state was at that moment without relying on
 operational memory or institutional recall.
@@ -114,7 +114,7 @@ include release honesty reminders.
 
 ### 4. Bundle Archival Ambiguity
 
-**Risk:** Future operators may not distinguish between live `reports/*.md`
+**Risk:** Future operators may not distinguish between live `.local/reports/*.md`
 (current state, regenerated) and bundle copies in `docs/releases/v0.1-demo/`
 (historical, frozen). Reading a bundle copy as current-state authority leads
 to incorrect operational decisions.

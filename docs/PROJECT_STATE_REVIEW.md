@@ -138,7 +138,7 @@ Diagnostics exist in three layers:
 Maturity: good observability foundation. The next need is clearer alerting and
 trend comparison across snapshots.
 
-### `snapshots/`
+### `.local/snapshots/`
 
 Generated operational state. Current examples include `latest_status.json` and
 timestamped `system_snapshot_*.json` files.
@@ -146,7 +146,7 @@ timestamped `system_snapshot_*.json` files.
 Maturity: useful manual evidence. Risk is retention growth and stale snapshot
 interpretation if operators do not check timestamps.
 
-### `reports/`
+### `.local/reports/`
 
 Generated human-readable and machine-readable evidence. Current examples include
 `latest_failure_summary.md`.
@@ -154,7 +154,7 @@ Generated human-readable and machine-readable evidence. Current examples include
 Maturity: useful for triage and handoff. Needs stronger conventions as report
 types multiply.
 
-### `backups/`
+### `.local/backups/`
 
 Generated backup bundles such as metadata archives.
 
@@ -288,7 +288,7 @@ retry budgets, source-specific status pages, or incident timelines.
 ### Rollback Readiness
 
 Current state: partial. Code rollback is git-based; DB rollback depends on
-intentional backups; artifact rollback depends on retained snapshots/bundles.
+intentional backups; artifact rollback depends on retained .local/snapshots/bundles.
 
 Risk: database restore and schema rollback procedures are not routinely tested.
 
