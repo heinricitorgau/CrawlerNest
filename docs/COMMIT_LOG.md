@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-09-22，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-10-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：442
-- **期間**：2026-03-16 ~ 2026-09-22
+- **Commit 總數**：463
+- **期間**：2026-03-16 ~ 2026-10-03
 - **主分支**：`main`
 
 ## 欄位說明
@@ -30,11 +30,37 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 ---
 
+## 2026-10
+
+| Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
+|---|---|---|---|---|---|
+| `1485af3` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #23 from heinricitorgau/fix/perugia-reappeared-review **[main]** |
+| `8439626` | 2026-10-03 | heinricitorgau | 1 | +8 / −0 | test(api): the health test creates the views it counts instead of relying on test order **[fix/perugia-reappeared-review]** |
+| `ef53a30` | 2026-10-03 | heinricitorgau | 1 | +4 / −0 | docs(ml): record the 2026-10-03 re-run of the cross-edition experiment |
+| `139b92a` | 2026-10-03 | heinricitorgau | 10 | +111 / −85 | fix(ml): regenerate the Phase 3 artifacts that the 2026-09-21 refresh made stale |
+| `7bbe2e7` | 2026-10-03 | heinricitorgau | 10 | +433 / −418 | data(ml): re-export the cross-edition ranks and re-run the forecast after Perugia |
+| `8696976` | 2026-10-03 | heinricitorgau | 2 | +6 / −6 | fix(ml): bring the pairing export and the THE alias hint in line with the Miami rename |
+| `61185b1` | 2026-10-03 | heinricitorgau | 7 | +284 / −0 | data(qs): reload the seven QS archive editions with the University of Perugia |
+| `1d4db89` | 2026-10-03 | heinricitorgau | 2 | +134 / −1 | fix(reviews): a row decided under its own id is not a reappearance |
+| `bc5bf32` | 2026-10-03 | heinricitorgau | 12 | +1651 / −0 | feat(ml): cross-edition rank forecast in MATLAB, with an independent Python parity check **[data/qs-the-backfill]** |
+| `6ca94aa` | 2026-10-03 | heinricitorgau | 5 | +36382 / −0 | data(ml): export every world-ranking rank, per university, source and edition |
+| `b89a6d5` | 2026-10-03 | heinricitorgau | 8 | +313 / −8 | data(qs): reload the seven QS archive editions with both Miami universities |
+| `5ca0e69` | 2026-10-03 | heinricitorgau | 5 | +937 / −0 | fix(entities): take seven source entities off another university's canonical |
+| `d47448e` | 2026-10-03 | heinricitorgau | 14 | +752 / −88 | feat(caveats): release THE 2015-2024 and QS's archive editions, with their disclosure |
+| `72fd32e` | 2026-10-03 | heinricitorgau | 6 | +266 / −0 | data(qs): ingest receipts for QS 2016, 2018-2020, 2022-2023 (archive load) |
+| `7d66011` | 2026-10-03 | heinricitorgau | 1 | +44 / −0 | data(qs): ingest receipt for QS 2024 (archive load, pilot) |
+| `2a7447c` | 2026-10-03 | heinricitorgau | 2 | +587 / −2 | feat(qs): ingest step for the archive loader, guarded and reversible |
+| `d8dec15` | 2026-10-03 | heinricitorgau | 8 | +288847 / −0 | data(qs): world ranking editions 2016, 2018-2020, 2022-2024 from Internet Archive |
+| `e0c72a9` | 2026-10-03 | heinricitorgau | 5 | +1451 / −0 | feat(qs): loader for past QS editions from reviewed Internet Archive snapshots |
+| `350172b` | 2026-10-02 | heinricitorgau | 10 | +596305 / −0 | data(the): world ranking editions 2015-2024 |
+| `e295dce` | 2026-10-02 | heinricitorgau | 2 | +9 / −5 | docs: refresh 2026 source coverage counts in CLAUDE.md and README **[claude/arwu-editions-2015-2024]** |
+
 ## 2026-09
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `5e68f54` | 2026-09-22 | heinricitorgau | 4 | +152 / −1 | Record the date QS's standalone regional rankings stopped being refreshable **[claude/arwu-editions-2015-2024, main]** |
+| `fa3fa8f` | 2026-09-22 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `5e68f54` | 2026-09-22 | heinricitorgau | 4 | +152 / −1 | Record the date QS's standalone regional rankings stopped being refreshable |
 | `cc84836` | 2026-09-22 | github-actions[bot] | 1 | +10 / −8 | docs: regenerate the commit log |
 | `7af71b4` | 2026-09-22 | heinricitorgau | 1 | +226 / −0 | Empty the entity-resolution queue, and repair the normalized names |
 | `63690a2` | 2026-09-21 | github-actions[bot] | 1 | +12 / −8 | docs: regenerate the commit log |
@@ -513,8 +539,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 442 |
-| 檔案變更累計 | 6895 |
-| 新增行數累計 | +1946487 |
-| 刪除行數累計 | −813990 |
-| 淨增行數 | +1132497 |
+| Commit 數 | 463 |
+| 檔案變更累計 | 7007 |
+| 新增行數累計 | +2875020 |
+| 刪除行數累計 | −814610 |
+| 淨增行數 | +2060410 |
