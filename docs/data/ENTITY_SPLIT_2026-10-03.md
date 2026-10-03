@@ -24,8 +24,8 @@ rehearsing on a copy, not by guessing.
 (`exact`), which is how the University of Miami reached a canonical that was seeded from QS's Miami University
 (the legacy bridge, `warehouse.universities` 1262, is Ohio's). The other five were fuzzy matches (0.85-0.90) made
 when THE 2015-2024 was ingested on 2026-10-02. The other 30 fuzzy mappings made that day (QS and THE) were read
-one by one and look right, except THE "Islamic Azad University Karaj" -> "Islamic Azad University." (c364060),
-which is **unchanged and unverified**.
+one by one and look right, except THE "Islamic Azad University Karaj" -> "Islamic Azad University." (c364060). That one
+could not be confirmed and was split on 2026-10-04 (see **Karaj** below); the other 30 are unchanged.
 
 **What changed in the database** (rehearsed on a restored copy first; the real run matched it exactly):
 the rename; five canonicals; the legacy bridge row of 1262 moved to the Ohio canonical; seven `remapped` and one
@@ -74,3 +74,15 @@ Backup: `backups/entity_split_before_20261003T035124Z.dump`, restore with
 **Checking again.** `split_false_entity_merges.py verify --pg-password test` is read-only. It re-runs the collision scan
 (a canonical with two actively mapped universities in one THE or ARWU edition), confirms the seven remaps, and fails if
 anything other than those entities sits on a canonical this script created. Run it after any backfill that adds editions.
+
+**Karaj (2026-10-04).** THE 587685 "Islamic Azad University Karaj" (Iran; THE 2017, 801+) was on c364060, QS's
+`/universities/islamic-azad-university` ("Islamic Azad University.", no branch or city, QS 2026 1201-1400), by
+`fuzzy_review` at 0.851, never reviewed. THE's entry is one branch with a page of its own, and every other Islamic Azad
+branch the warehouse holds (Khorasgan, Najafabad, Science and Research) is on a canonical of its own. QS's own page could
+not be read (HTTP 403), so what its unnamed entry covers is not known: this is a judgement from the evidence, not a
+proof, and it can be reversed. `split_islamic_azad_karaj.py` created c767310 "Islamic Azad University, Karaj Branch",
+recorded a `remapped` review and replayed THE 2017. The `verify` phase reports no problems and no collisions. Nothing
+was lost (the university has THE 2017 alone on either canonical) and no cross-edition pair changed: only that row's
+canonical id and slug in `cross_edition_ranks.csv`. Backup before the run:
+`backups/karaj_split_pre_clawer_20261003T172455Z.dump` (a UTC stamp; gitignored). To undo: restore it, or delete the review
+and the canonical and replay THE 2017.

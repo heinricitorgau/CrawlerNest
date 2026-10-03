@@ -1,7 +1,7 @@
 {
-  "exported_utc": "2026-10-03T08:51:13Z",
+  "exported_utc": "2026-10-03T17:26:40Z",
   "database": "clawer",
-  "csv_sha256": "a829c5446a8d89f8a9ec22365e4a0f0cc77f07afd4866333bdc476e495d79139",
+  "csv_sha256": "421ad2feb3894e246aa51f22d23581f5212cfbd6bdbf47a94aee5655d8d09357",
   "rows": 36101,
   "rows_per_source_year": {
     "ARWU 2015": 498,
