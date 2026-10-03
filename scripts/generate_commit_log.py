@@ -61,6 +61,21 @@ def _run(*args: str) -> str:
     return result.stdout
 
 
+def _main_branch() -> str:
+    """The branch the log calls main: ``main`` if the repository has one, else the checked-out branch.
+
+    This used to be the checked-out branch unconditionally, which is right on main -- where the workflow runs it --
+    and wrong anywhere else: regenerated on a feature branch, the header named that branch as the main one.
+    """
+    for ref in ("refs/heads/main", "refs/remotes/origin/main"):
+        try:
+            _run("rev-parse", "--verify", "--quiet", ref)
+            return "main"
+        except Exception:
+            continue
+    return _run("rev-parse", "--abbrev-ref", "HEAD").strip() or "main"
+
+
 def collect_commits() -> list[dict]:
     """Every commit reachable from any ref, newest first, with its shortstat."""
     raw = _run(
@@ -174,7 +189,7 @@ def render(commits: list[dict], generated_on: str) -> str:
     total_insertions = sum(c["insertions"] or 0 for c in commits)
     total_deletions = sum(c["deletions"] or 0 for c in commits)
 
-    main_branch = _run("rev-parse", "--abbrev-ref", "HEAD").strip() or "main"
+    main_branch = _main_branch()
 
     lines = [
         "# CrawlerNest — 完整 Commit 紀錄",
