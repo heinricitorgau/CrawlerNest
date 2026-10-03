@@ -185,12 +185,14 @@ class TestConstraintsFollowTheEvidence(unittest.TestCase):
         ctx.DATASET_YEARS = years
         self.addCleanup(setattr, ctx, "DATASET_YEARS", original)
 
-    def test_todays_evidence_renders_the_constants_byte_for_byte(self) -> None:
-        if DATASET_YEARS != (2026,):
-            self.skipTest("golden text describes the 2026-only warehouse")
+    def test_a_single_edition_renders_the_golden_text_byte_for_byte(self) -> None:
+        # This used to skip itself unless the real DATASET_YEARS was (2026,), which stopped being
+        # true when the second edition was released: it has not run since. The functions take
+        # the years from the module at call time, so forcing one edition pins the text the
+        # agent is told when a single year is all there is.
+        self._with_editions((2026,))
         self.assertEqual(GOLDEN_HEADER_2026, build_dataset_header())
         self.assertEqual(GOLDEN_HEADER_2026, build_dataset_header(_ITEMS))
-        self.assertEqual(GOLDEN_CONSTRAINTS_2026, DATASET_CONSTRAINTS)
         self.assertEqual(GOLDEN_CONSTRAINTS_2026, dataset_constraints(_ITEMS))
 
     def test_loading_a_second_edition_does_not_unlock_trend_wording(self) -> None:
