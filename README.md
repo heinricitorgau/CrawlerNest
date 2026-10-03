@@ -132,6 +132,22 @@ All of these figures come from the edition-verified QS 2026 table (nid 4061771).
 The snapshot committed before 2026-09-14 was the 2027 table saved under the 2026
 name; see [crawlernest-ml/README.md](crawlernest/crawlernest-ml/README.md#the-data).
 
+**A second question, asked of the historical editions: does a university's next rank
+depend on more than its last one?** For every university a source ranks in two
+consecutive editions, the next printed band is predicted from the band before it, the
+edition before that, and what the other sources printed — fitted only on earlier
+editions, scored against the *printed band* rather than a point. It is written in
+MATLAB first, with an independent Python re-implementation of its deterministic half
+checked against it at 1e-9. The answer is small and uneven: a least-squares model beats
+"stay where you were" for ARWU (6,457 pairs) and THE (9,541) by about 4% and 9% of the
+error, with intervals that exclude zero, and nothing learned beats it for QS (6,440),
+where one edition (2023) accounts for the loss. It does not improve how
+often the printed band is hit, and an error of 0.022 in log10 rank is about 5% of the
+rank. It is not a forecasting model, and it says nothing causal. Results, the
+publication-timing rule that keeps the experiment from using a number that did not yet
+exist, and the limits:
+[crawlernest-ml/matlab/README.md](crawlernest/crawlernest-ml/matlab/README.md#cross-edition-forecast).
+
 → **[crawlernest/crawlernest-ml/](crawlernest/crawlernest-ml/)** — feature
 contract, EDA, metrics, and model cards.
 
@@ -235,9 +251,9 @@ so that is what this table records rather than a list of names.
 | Workflow | What it actually executes |
 |---|---|
 | **Agent Tests** | 126 tests over the web-agent generation layer, then the faithfulness eval across all 55 golden cases. Both mechanical verification signals — the faithfulness rules and the provenance/absence/completeness checker — are scored as detectors, with false positives on clean text reported separately from recall. |
-| **ML Tests** | Three jobs. Feature-layer invariants and a metrics regression gate that retrains both models from the committed snapshot and fails on a real drop. A serving job that writes predictions to a throwaway PostgreSQL, verifies the rows, then *scores* them against the published data each target can be checked against — rank order for the estimated scores, observed disagreement for the probabilities. A MATLAB job that installs MATLAB, re-executes `run_qs_eda.m`, and compares the fresh output both against Python and against the committed artifacts. |
-| **Python Tests** | Two jobs. Fixture mode with no services, and a PostgreSQL job that runs the opt-in database tests — the aggregation maths, source-weight consistency, the superseded-row prune, and ingest idempotency. Also runs weekly on a schedule, because one failure here was caused by time passing rather than by a commit. |
-| **API Tests** | The Spring Boot suite against a real PostgreSQL service, 97 tests, with the surefire reports uploaded as artifacts. |
+| **ML Tests** | Three jobs. Feature-layer invariants and a metrics regression gate that retrains both models from the committed snapshot and fails on a real drop. A serving job that writes predictions to a throwaway PostgreSQL, verifies the rows, then *scores* them against the published data each target can be checked against — rank order for the estimated scores, observed disagreement for the probabilities. A MATLAB job that installs MATLAB, re-executes the ports and the cross-edition forecast, and compares the fresh output both against Python and against the committed artifacts (for the forecast, only the deterministic columns: the boosted model and the bootstrap depend on the MATLAB version). The committed forecast artifacts are also checked against Python on every push, with no MATLAB. |
+| **Python Tests** | Two jobs. Fixture mode with no services, and a PostgreSQL job that runs the opt-in database tests — the aggregation maths, source-weight consistency, the superseded-row prune, ingest idempotency, and the world-ranking scope of the detail and convergence previews. Also runs weekly on a schedule, because one failure here was caused by time passing rather than by a commit. |
+| **API Tests** | The Spring Boot suite against a real PostgreSQL service, 257 tests, with the surefire reports uploaded as artifacts. Each integration class creates the tables and views it reads, because the service database starts empty and a test that relied on another class having run first passed locally and failed here. |
 | **Release Smoke** | Two jobs. Build artefacts — Java compile, Next.js build, Python syntax, readonly fixtures — and an analytics-bridge job that bootstraps PostgreSQL, seeds six universities, runs the warehouse→analytics bridge twice, starts Spring Boot, and checks that `/api/v1/rankings` serves what was written, followed by the endpoint liveness checks. |
 | **Data Quality** | Validates the golden regression dataset and the CI fixture files, then runs the ranking-regression and failure-summary runners in fixture mode — no database, no network. |
 
@@ -246,7 +262,15 @@ Two things this deliberately does *not* claim:
 - **A skip is not a pass.** Several of these checks used to skip silently — the
   PostgreSQL tests had no database, the API endpoint checks had no server, the
   MATLAB sources were never re-executed. Each now runs somewhere that cannot skip
-  it, and the jobs that legitimately skip say so in their names.
+  it, and the jobs that legitimately skip say so in their names. One thing CI
+  still cannot do, and says so: hold the three files derived from the warehouse
+  (`cross_edition_ranks.csv`, `qs_the_pairing_2026.json`, the alias files) against
+  the warehouse, because its database is bootstrapped empty and the real one is on
+  the developer's machine. Those checks skip there, and a skip is not a pass, so the
+  gate is local — `./scripts/check_warehouse_drift.sh`, run by a pre-push hook
+  (`./scripts/install_git_hooks.sh`, once per clone) — and it fails where the suite
+  would skip. The hook is a local setting and binds only whoever installs it. What CI
+  does check without a database is that the export code and the committed CSV agree.
 - **Green means the checks ran, not that the system is correct.** The gaps that
   remain are recorded as limits in
   [`crawlernest-ml/README.md`](crawlernest/crawlernest-ml/README.md), not hidden
@@ -267,6 +291,7 @@ CrawlerNest v0.1 is an operational MVP — reproducible and demonstrable, not a 
 
 - All three ranking sources are ingested for 2026: QS covers 1,502 universities, THE 1,712, ARWU 955, across a global universe of 2,240
 - 610 universities reach three sources (confidence high), 709 reach two, and 921 remain single-source (low)
+- Historical editions are held too: THE and ARWU for every edition 2015–2026; QS for 2016, 2018–2020 and 2022–2024, recovered from Internet Archive captures of QS's own data files (pinned by hash, each load reversible) with `rank` stored as the lower bound of the printed rank, and disclosed by a caveat of their own. QS has no 2015, 2017 or 2021
 - Coverage is partial, not complete — 528 universities carry no THE rank and 1,285 carry no ARWU rank. Every 2026 ranking record now resolves to a canonical university, so what remains is snapshot scope rather than unmatched entities
 - Model estimates are stored separately and never enter `analytics.aggregated_rankings`: 787 estimated overall scores (351 of them outside the model's training support, and disclosed as such) and 1,483 disagreement probabilities, from the edition-verified QS 2026 snapshot
 - A missing rank is disclosed as **our** gap — not ingested, or not matched — rather than as the source declining to rank the university
