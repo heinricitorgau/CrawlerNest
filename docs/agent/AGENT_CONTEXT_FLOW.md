@@ -135,7 +135,7 @@ The agent context wrappers may consume generated evidence from:
 - `reports/drift_timeline.md`
 - `reports/freshness_escalation.md`
 - `snapshots/latest_status.json`
-- `releases/v0.1-demo/smoke_release_output.txt`
+- `docs/releases/v0.1-demo/smoke_release_output.txt`
 
 They do not consume live runtime authority. In particular, the wrappers do not
 read from PostgreSQL directly, do not call mutation endpoints, do not rerun the

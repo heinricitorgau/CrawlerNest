@@ -36,6 +36,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from crawlernest.core.caveats import admission_stale_caveat  # noqa: E402
+sys.path.append(str(Path(__file__).resolve().parents[1] / "packages"))  # crawlernest/packages: where the crawler packages live
 from crawlernest_admission_crawler.crawl_bridge import (  # noqa: E402
     _crawler_imports,
     _ensure_crawler_importable,

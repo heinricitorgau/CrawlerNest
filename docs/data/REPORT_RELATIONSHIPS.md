@@ -27,7 +27,7 @@ flowchart TD
     trust["reports/operational_trust_summary.md"]
     validation["docs/RC1_VALIDATION_RESULTS.md"]
     smoke["smoke_release.sh output"]
-    bundle["releases/v0.1-demo/"]
+    bundle["docs/releases/v0.1-demo/"]
     agents["tmp/agent-context/*"]
 
     db --> export

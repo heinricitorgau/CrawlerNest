@@ -34,7 +34,8 @@ try:
 except ImportError:  # pragma: no cover - handled by the callers
     psycopg2 = None  # type: ignore
 
-#: Git repository root, where the crawlernest_ranking_crawler package lives.
+#: Git repository root. The crawlernest_ranking_crawler package itself is in crawlernest/packages/, which
+#: pipeline/__init__.py puts on sys.path.
 #:
 #: run_pipeline.py derives this as ``Path(__file__).resolve().parent.parent``
 #: because it sits one level below the root; from this module it is three.

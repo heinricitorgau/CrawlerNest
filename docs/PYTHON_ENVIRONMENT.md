@@ -12,7 +12,7 @@ Create and activate the environment:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r crawlernest/requirements.txt
 ```
 
 Run project commands through the venv:
@@ -36,7 +36,7 @@ Preferred local install:
 
 ```bash
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r crawlernest/requirements.txt
 python -c "import psycopg2"
 ```
 
@@ -85,7 +85,7 @@ Do not force install project dependencies into system Python. Use `.venv`:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r crawlernest/requirements.txt
 ```
 
 This keeps OS Python stable and keeps CrawlerNest dependencies local to the
@@ -121,7 +121,7 @@ Repair:
 
 ```bash
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r crawlernest/requirements.txt
 python -c "import psycopg2"
 ```
 

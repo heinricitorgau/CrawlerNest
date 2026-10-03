@@ -1,13 +1,13 @@
 # CrawlerNest Release Bundle Structure
 
-This document describes the contents and purpose of the `releases/v0.1-demo/` bundle, the meaning of each artifact, and the reproducibility assumptions behind them.
+This document describes the contents and purpose of the `docs/releases/v0.1-demo/` bundle, the meaning of each artifact, and the reproducibility assumptions behind them.
 
 ---
 
 ## Bundle Location
 
 ```
-releases/
+docs/releases/
 └── v0.1-demo/
     ├── MANIFEST.txt
     ├── RELEASE_NOTES_v0.1.md
@@ -324,7 +324,7 @@ This script is:
 - **Idempotent**: safe to run multiple times; overwrites the bundle directory
 - **Missing-artifact safe**: if any artifact is missing, writes a `[missing]` marker file instead of crashing
 
-After bundle creation, capture screenshots per `SCREENSHOT_CHECKLIST_v0.1.md` and place them in `releases/v0.1-demo/screenshots/`.
+After bundle creation, capture screenshots per `SCREENSHOT_CHECKLIST_v0.1.md` and place them in `docs/releases/v0.1-demo/screenshots/`.
 
 ---
 

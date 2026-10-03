@@ -9,7 +9,7 @@ Included:
 - Root docs
 - `docs/`
 - Module `README.md` and design docs under `crawlernest/`
-- `legacy/mini_agent/README.md`
+- `crawlernest/packages/legacy/mini_agent/README.md`
 
 Excluded from this index:
 - `.venv/`, `.venv-1/`
@@ -191,7 +191,7 @@ If someone is new to the repo, this is the fastest path:
 
 ## 9. Mini-Agent Track
 
-`legacy/mini_agent/` is the lightweight Python mini-agent project. The former
+`crawlernest/packages/legacy/mini_agent/` is the lightweight Python mini-agent project. The former
 `crawlernest/crawlernest-mini-agent/` tree was a vendored third-party "Claw Code"
 checkout (Python + Rust) that no CrawlerNest code imported and that shipped
 without its own LICENSE; it has been removed from the repository along with its
@@ -199,7 +199,7 @@ docs.
 
 | File | Purpose |
 | --- | --- |
-| `legacy/mini_agent/README.md` | Entry doc for the lightweight Python mini-agent project. |
+| `crawlernest/packages/legacy/mini_agent/README.md` | Entry doc for the lightweight Python mini-agent project. |
 
 ## 10. Legacy And Compatibility Docs
 

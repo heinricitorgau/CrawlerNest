@@ -63,7 +63,7 @@ bundle/report output.
 | Artifact | Purpose | Producer Script | Readonly Status | Expected Frequency | Consumed By | Operational Importance |
 | --- | --- | --- | --- | --- | --- | --- |
 | `docs/RC1_VALIDATION_RESULTS.md` | Recorded release-candidate validation evidence and accepted limitations. | Manual validation pass. | Documentation only. | RC/handoff milestones. | operational index summary, docs readers. | High. |
-| `releases/v0.1-demo/smoke_release_output.txt` | Captured bundle-time smoke run. | `scripts/build_demo_bundle.sh` | Runs readonly/build checks; no pipeline mutation. | Each bundle build. | operational index summary, release reviewers. | High. |
+| `docs/releases/v0.1-demo/smoke_release_output.txt` | Captured bundle-time smoke run. | `scripts/build_demo_bundle.sh` | Runs readonly/build checks; no pipeline mutation. | Each bundle build. | operational index summary, release reviewers. | High. |
 
 Retention expectation: keep with release bundle for reproducibility evidence.
 
@@ -113,8 +113,8 @@ make `crawlernest-agents` a runtime dependency.
 
 | Artifact | Purpose | Producer Script | Readonly Status | Expected Frequency | Consumed By | Operational Importance |
 | --- | --- | --- | --- | --- | --- | --- |
-| `releases/v0.1-demo/` | Demo/release evidence package. | `scripts/build_demo_bundle.sh` | Copies docs/reports/snapshots and runs smoke; no pipeline mutation. | Before demos, releases, or handoff. | humans, demo reviewers. | High. |
-| `releases/v0.1-demo/OPERATIONAL_ARTIFACTS.md` | Bundle-local relationship map for included operational artifacts. | `scripts/build_demo_bundle.sh` | File write only in bundle. | Each bundle build. | bundle readers. | High. |
+| `docs/releases/v0.1-demo/` | Demo/release evidence package. | `scripts/build_demo_bundle.sh` | Copies docs/reports/snapshots and runs smoke; no pipeline mutation. | Before demos, releases, or handoff. | humans, demo reviewers. | High. |
+| `docs/releases/v0.1-demo/OPERATIONAL_ARTIFACTS.md` | Bundle-local relationship map for included operational artifacts. | `scripts/build_demo_bundle.sh` | File write only in bundle. | Each bundle build. | bundle readers. | High. |
 
 Retention expectation: release bundles are historical evidence and should be
 kept per release milestone.

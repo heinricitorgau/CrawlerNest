@@ -156,20 +156,28 @@ contract, EDA, metrics, and model cards.
 ## Repository Layout
 
 ```
-crawlernest/
-  crawlernest-web/          Next.js frontend
-  servise_for_java/         Spring Boot API
-  crawlernest-core/         canonical resolution, aggregation
-  crawlernest-ml/           feature layer, EDA, and models over the QS indicators
-  pipeline/                 CLI entry points
-  crawlernest-normalization/ C-language CSV normalizer (research component)
-  crawlernest-agents/       AI dev agent collection (readonly, optional)
-crawlernest_ranking_crawler/ Python ranking ingestion package
-crawlernest_admission_crawler/ Python admission ingestion package
-docs/                       architecture, operations, release docs
-scripts/                    startup, smoke checks, operational automation
-tests/                      integration tests
+README.md, README.zh-TW.md, LICENSE
+crawlernest/                  the application
+  crawlernest-web/            Next.js frontend
+  servise_for_java/           Spring Boot API
+  crawlernest-core/           canonical resolution, aggregation
+  crawlernest-ml/             feature layer, EDA, and models over the QS indicators
+  crawlernest-tests/          the Python test suite (run_tests.py, plus admission_pytest/)
+  pipeline/                   CLI entry points
+  packages/                   Python crawler packages, imported by their own names:
+    crawlernest_ranking_crawler/    ranking ingestion
+    crawlernest_admission_crawler/  admission ingestion
+    crawlernest_crawler_core/       shared crawler logger
+    legacy/                         archived earlier agent code, not maintained
+  requirements.txt, requirements-ml.txt
+docs/                         architecture, operations, release docs (docs/releases/ holds the release bundles)
+scripts/                      startup, smoke checks, operational automation; git hooks in scripts/hooks/
+deploy/                       Dockerfile, docker-compose files, systemd units, .env.example
 ```
+
+Only the two READMEs and the licence sit at the top level; everything else is in one of the four folders. Hidden files
+that git and GitHub require there (`.github/`, `.gitignore`, `.gitattributes`) stay, and the project's instructions for
+Claude Code are in `.claude/CLAUDE.md`.
 
 ---
 
@@ -192,7 +200,7 @@ First-time setup (fresh clone → runnable, one command):
 ```
 
 The script creates the Python venv, installs dependencies, starts PostgreSQL
-(local install or Docker via `docker-compose.postgres.yml`), bootstraps the
+(local install or Docker via `deploy/docker-compose.postgres.yml`), bootstraps the
 schema, runs the first data crawl, and installs frontend dependencies. It is
 idempotent — re-run it after fixing whatever it reports.
 

@@ -62,7 +62,7 @@ These are explicitly out of scope and should not be added without a deliberate s
 
 Unset, `JwtService` generates a key for the process and logs a warning. Everyone is then signed out on restart, and two instances do not accept each other's tokens. That is deliberate — the alternative, a default secret in the repository, would let anyone mint a token for any user.
 
-**Required in any deployment:** `CRAWLERNEST_JWT_SECRET`, at least 32 bytes (`openssl rand -base64 32`). A shorter value is refused at startup rather than padded. `docker-compose.yml` declares it with `${CRAWLERNEST_JWT_SECRET:?}`, so the stack refuses to start without it.
+**Required in any deployment:** `CRAWLERNEST_JWT_SECRET`, at least 32 bytes (`openssl rand -base64 32`). A shorter value is refused at startup rather than padded. `deploy/docker-compose.yml` declares it with `${CRAWLERNEST_JWT_SECRET:?}`, so the stack refuses to start without it.
 
 ### `Secure` cookie flag is off by default
 
@@ -72,7 +72,7 @@ Unset, `JwtService` generates a key for the process and logs a warning. Everyone
 
 ### DB credentials come from the environment
 
-`application.properties` reads `${SPRING_DATASOURCE_USERNAME:test}` / `${SPRING_DATASOURCE_PASSWORD:test}`. The defaults are the local development database; a deployment sets the variables and nothing in the file applies. `docker-compose.yml` requires them with `${VAR:?}`.
+`application.properties` reads `${SPRING_DATASOURCE_USERNAME:test}` / `${SPRING_DATASOURCE_PASSWORD:test}`. The defaults are the local development database; a deployment sets the variables and nothing in the file applies. `deploy/docker-compose.yml` requires them with `${VAR:?}`.
 
 ### CORS is an explicit allowlist
 

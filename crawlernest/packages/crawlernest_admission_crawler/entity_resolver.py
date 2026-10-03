@@ -51,7 +51,7 @@ from crawlernest_admission_crawler.source_identity import (
 # run_pipeline bootstraps these, but the package is also imported directly by
 # tests and by ad-hoc scripts, where nothing has put crawlernest-core on the
 # path yet.
-_MODULE_ROOT = Path(__file__).resolve().parent.parent / "crawlernest" / "crawlernest-core"
+_MODULE_ROOT = Path(__file__).resolve().parents[2] / "crawlernest-core"  # crawlernest/ is two levels above this package
 if _MODULE_ROOT.is_dir() and str(_MODULE_ROOT) not in sys.path:
     sys.path.insert(0, str(_MODULE_ROOT))
 

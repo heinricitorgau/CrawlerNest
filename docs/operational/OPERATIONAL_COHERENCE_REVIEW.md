@@ -17,7 +17,7 @@ Surfaces reviewed:
 - `docs/` — 55+ operational documentation files
 - `reports/` — 10 generated report files
 - `scripts/` — 30+ operational and maintenance scripts
-- `releases/v0.1-demo/` — release bundle artifacts
+- `docs/releases/v0.1-demo/` — release bundle artifacts
 - Trust summary: `reports/operational_trust_summary.md`
 - Caveat summary: `reports/demo_caveats.md`
 
@@ -142,12 +142,12 @@ review documents. Standing operational docs remain in `docs/`.
 
 ### Risk 4: Release Bundle Copies vs Live Reports
 
-The `releases/v0.1-demo/` bundle contains copies of 8 reports. These copies
+The `docs/releases/v0.1-demo/` bundle contains copies of 8 reports. These copies
 are frozen at bundle-build time. The live `reports/` directory continues to
 be updated. Over time:
 
 - Live `reports/operational_trust_summary.md` may show different values than
-  `releases/v0.1-demo/operational_trust_summary.md`.
+  `docs/releases/v0.1-demo/operational_trust_summary.md`.
 - An operator checking the bundle copy will see stale confidence values.
 
 `OPERATIONAL_ARTIFACTS.md` in the bundle documents this risk ("historical
@@ -213,7 +213,7 @@ each operator role.
    remain at the `docs/` root.
 
 2. **Bundle lifecycle annotation** — Add a one-line "frozen at bundle-build time"
-   note to the header of each report copy in `releases/v0.1-demo/`. This can
+   note to the header of each report copy in `docs/releases/v0.1-demo/`. This can
    be added by `build_demo_bundle.sh` without changing the copy's content
    (prepend a comment line).
 

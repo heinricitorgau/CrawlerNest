@@ -40,7 +40,7 @@ Create or select an empty PostgreSQL database, then run:
 ```bash
 PGPASSWORD=test pg_restore -h localhost -U test -d clawer \
   --no-owner --exit-on-error \
-  releases/v0.2-2026-snapshot/clawer-2026-09-04-release-freeze.dump
+  docs/releases/v0.2-2026-snapshot/clawer-2026-09-04-release-freeze.dump
 ```
 
 After restore, run `scripts/start_localhost.sh`. The launcher is intentionally

@@ -397,7 +397,7 @@ possible invented entity.
 
 The [`Agent Tests`](../.github/workflows/agent-tests.yml) workflow runs the test
 files above **and** the fixture-mode faithfulness eval on every push and pull
-request to `main` (Ubuntu, Python 3.12, `pip install -r requirements.txt`). The
+request to `main` (Ubuntu, Python 3.12, `pip install -r crawlernest/requirements.txt`). The
 badge above reflects the latest run. Model-output-quality checks against a real
 `ds4-server` — including `--live` faithfulness — remain out of CI, since they
 need a GPU/large-memory host.

@@ -35,7 +35,7 @@ capture. No subsequent operation should modify it.
 
 ### Release Bundle Artifacts
 
-`releases/v0.1-demo/` (all files)
+`docs/releases/v0.1-demo/` (all files)
 
 - Written by `build_demo_bundle.sh` at bundle-build time
 - Semantically frozen at the MANIFEST.txt build timestamp
@@ -159,7 +159,7 @@ versions as evidence.
 
 ## Bundle Durability Semantics
 
-The release bundle (`releases/v0.1-demo/`) deserves special attention because
+The release bundle (`docs/releases/v0.1-demo/`) deserves special attention because
 it contains both durable and ephemeral artifacts, frozen at bundle-build time.
 
 **Semantics:**
@@ -171,7 +171,7 @@ it contains both durable and ephemeral artifacts, frozen at bundle-build time.
 
 **Reading rule:**
 - When assessing current system state: read `reports/`
-- When reconstructing release-time posture: read `releases/v0.1-demo/`
+- When reconstructing release-time posture: read `docs/releases/v0.1-demo/`
 
 **Modification rule:**
 - Do not modify files inside the bundle after creation.

@@ -13,7 +13,7 @@ from crawlernest_crawler_core.logger import Logger
 #: The HTML checked in beside the crawler. Used unless a caller explicitly
 #: asks to go live.
 DEFAULT_SNAPSHOT_DIR = (
-    Path(__file__).resolve().parent.parent
+    Path(__file__).resolve().parents[3]  # repo root: this file sits in crawlernest/packages/<package>/
     / "crawlernest"
     / "crawlernest-admission-crawler"
     / "crawl_snapshots"

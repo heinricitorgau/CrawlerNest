@@ -18,6 +18,7 @@ REPO_ROOT = PACKAGE_ROOT.parent
 
 sys.path.insert(0, str(REPO_ROOT))
 
+sys.path.append(str(Path(__file__).resolve().parents[1] / "packages"))  # crawlernest/packages: where the crawler packages live
 from crawlernest_admission_crawler.crawl_bridge import (  # noqa: E402
     bridge_summary_to_dict,
     crawl_admission_records,

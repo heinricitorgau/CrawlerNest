@@ -72,7 +72,7 @@ flowchart LR
 | QS + ARWU | 113 | 0.346 | medium |
 | 僅 QS | 306 | 0.222 | low |
 
-信心等級由來源數**機械推導**，不由人工指定——這是 [`CLAUDE.md`](CLAUDE.md)
+信心等級由來源數**機械推導**，不由人工指定——這是 [`CLAUDE.md`](.claude/CLAUDE.md)
 裡「No black-box scores」規則的一部分。
 
 跨來源的實體解析（「哪個 QS 大學等於哪個 THE 大學」）不使用相似度評分。在這份
@@ -130,20 +130,27 @@ EDA、指標與 model cards。
 ## 目錄結構
 
 ```
-crawlernest/
-  crawlernest-web/          Next.js 前端
-  servise_for_java/         Spring Boot API
-  crawlernest-core/         canonical 解析、aggregation
-  crawlernest-ml/           QS 指標的特徵層、EDA 與模型
-  pipeline/                 CLI 進入點
-  crawlernest-normalization/ C 語言 CSV 標準化引擎（研究元件）
-  crawlernest-agents/       AI 開發 agent 集合（readonly，選用）
-crawlernest_ranking_crawler/ Python 排名匯入套件
-crawlernest_admission_crawler/ Python 申請資訊匯入套件
-docs/                       架構、營運、發佈文件
-scripts/                    啟動、smoke check、營運自動化
-tests/                      整合測試
+README.md、README.zh-TW.md、LICENSE
+crawlernest/                  應用程式本體
+  crawlernest-web/            Next.js 前端
+  servise_for_java/           Spring Boot API
+  crawlernest-core/           canonical 解析、aggregation
+  crawlernest-ml/             QS 指標的特徵層、EDA 與模型
+  crawlernest-tests/          Python 測試（run_tests.py,以及 admission_pytest/）
+  pipeline/                   CLI 進入點
+  packages/                   Python 爬蟲套件,以各自的名稱 import:
+    crawlernest_ranking_crawler/    排名匯入
+    crawlernest_admission_crawler/  申請資訊匯入
+    crawlernest_crawler_core/       共用的爬蟲 logger
+    legacy/                         封存的舊版 agent 程式碼,不再維護
+  requirements.txt、requirements-ml.txt
+docs/                         架構、營運、發佈文件(docs/releases/ 放發佈封包)
+scripts/                      啟動、smoke check、營運自動化;git hooks 在 scripts/hooks/
+deploy/                       Dockerfile、docker-compose、systemd 單元、.env.example
 ```
+
+頂層只有兩份 README 與授權檔,其餘全部在這四個資料夾裡。git 與 GitHub 規定要放在頂層的隱藏檔
+(`.github/`、`.gitignore`、`.gitattributes`)維持原位,給 Claude Code 的專案指示在 `.claude/CLAUDE.md`。
 
 ---
 

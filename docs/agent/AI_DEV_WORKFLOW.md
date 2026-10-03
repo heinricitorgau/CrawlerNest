@@ -154,7 +154,7 @@ rerun pipelines, modify PostgreSQL, commit code, open pull requests, or make the
 
 ## Configuration
 
-Local integration defaults live in `.ai-dev.config`.
+Local integration defaults live in `scripts/ai-dev/ai-dev.config`.
 
 Use this file to set:
 

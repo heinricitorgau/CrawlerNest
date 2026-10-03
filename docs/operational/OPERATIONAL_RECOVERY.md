@@ -133,7 +133,7 @@ Recovery:
 
 ```bash
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r crawlernest/requirements.txt
 python3 -c "import psycopg2"
 ```
 
