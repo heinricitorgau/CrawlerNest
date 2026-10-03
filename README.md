@@ -268,7 +268,7 @@ CrawlerNest v0.1 is an operational MVP — reproducible and demonstrable, not a 
 - All three ranking sources are ingested for 2026: QS covers 1,502 universities, THE 1,712, ARWU 955, across a global universe of 2,240
 - 610 universities reach three sources (confidence high), 709 reach two, and 921 remain single-source (low)
 - Coverage is partial, not complete — 528 universities carry no THE rank and 1,285 carry no ARWU rank. Every 2026 ranking record now resolves to a canonical university, so what remains is snapshot scope rather than unmatched entities
-- Model estimates are stored separately and never enter `analytics.aggregated_rankings`: 787 estimated overall scores (351 of them outside the model's training support, and disclosed as such) and 1,482 disagreement probabilities, from the edition-verified QS 2026 snapshot
+- Model estimates are stored separately and never enter `analytics.aggregated_rankings`: 787 estimated overall scores (351 of them outside the model's training support, and disclosed as such) and 1,483 disagreement probabilities, from the edition-verified QS 2026 snapshot
 - A missing rank is disclosed as **our** gap — not ingested, or not matched — rather than as the source declining to rank the university
 - The agent page defaults to a mock provider and does not write to the database
 

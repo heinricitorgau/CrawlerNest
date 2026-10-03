@@ -136,7 +136,7 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   the ingested set from `crawlernest/core/dataset.py:DATASET_SOURCES`; do not
   write "QS only" into new code or copy.
 - Model estimates (`analytics.ml_predictions`, populated from the edition-verified
-  QS 2026 snapshot: 787 overall-score and 1,482 disagreement rows) are read through `crawlernest/core/services/ml_service.py`
+  QS 2026 snapshot: 787 overall-score and 1,483 disagreement rows) are read through `crawlernest/core/services/ml_service.py`
   and `crawlernest/agent/tools/ml_tools.py`. Every row keeps `isEstimated` —
   that field, not the caveat text, is what arms the `estimate_credited_to_source`
   provenance rule. Never surface a predicted value without it.
