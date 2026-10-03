@@ -1,0 +1,42 @@
+{
+  "year": 2018,
+  "run_id": "qs-archive-2018-2026-10-03T04:20:36Z",
+  "started_utc": "2026-10-03T04:20:36Z",
+  "finished_utc": "2026-10-03T04:20:38Z",
+  "database": "clawer",
+  "manifest": {
+    "data_snapshot_url": "https://web.archive.org/web/20210212130356id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/357051.txt",
+    "payload_sha256": "9145f409d5973fd159078f5e88277f02838c3044f0b58a305a272fae84e0679b",
+    "expected_ranking_id": "357051",
+    "reviewed_by": "claude (automated selection, pending human review)"
+  },
+  "artifact_sha256": "32ad56c877299e75170851872b5b09fa09781074f6c81273479dc9d9f3c18b50",
+  "before": {
+    "ranking_records": 943,
+    "aggregated_with_qs": 943
+  },
+  "ingested": 977,
+  "unranked_skipped": 1,
+  "withheld_by_operator": [
+    "/universities/universita-degli-studi-di-perugia"
+  ],
+  "summary": {
+    "standardized": 977,
+    "matched": 945,
+    "unresolved": 32,
+    "duplicates": 0,
+    "rows_written": 945,
+    "years_aggregated": [
+      2018
+    ],
+    "aggregated_rows": 1464
+  },
+  "backup": {
+    "path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/backups/qs_archive_pre_ingest_2018_clawer_20261003T042036Z.dump",
+    "bytes": 7507454
+  },
+  "rollback": {
+    "full": "pg_restore -h localhost -p 5432 -U test -d clawer --clean --if-exists /home/torgau/dev/University-Data-Infrastructure-Web-Platform/backups/qs_archive_pre_ingest_2018_clawer_20261003T042036Z.dump",
+    "note": "restores the whole database to its state before this ingest; anything written since is lost"
+  }
+}
