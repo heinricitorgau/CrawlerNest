@@ -2,7 +2,7 @@
 
 產生於 2026-10-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：470
+- **Commit 總數**：473
 - **期間**：2026-03-16 ~ 2026-10-04
 - **主分支**：`main`
 
@@ -34,7 +34,10 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `256635f` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #25 from heinricitorgau/test/ranking-scope-runs-in-ci **[main]** |
+| `29ed8ab` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #26 from heinricitorgau/test/dataset-context-golden-runs **[main]** |
+| `31c9002` | 2026-10-04 | heinricitorgau | 1 | +6 / −4 | test(agent): run the single-edition golden-text test it had been skipping since 2026 **[test/dataset-context-golden-runs]** |
+| `c71fd06` | 2026-10-03 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
+| `256635f` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #25 from heinricitorgau/test/ranking-scope-runs-in-ci |
 | `b644588` | 2026-10-04 | heinricitorgau | 1 | +29 / −7 | test(ranking-scope): run the two integration tests on a freshly bootstrapped database **[test/ranking-scope-runs-in-ci]** |
 | `1420daf` | 2026-10-03 | github-actions[bot] | 1 | +11 / −7 | docs: regenerate the commit log |
 | `26d5a98` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #24 from heinricitorgau/fix/ci-order-dependent-tests |
@@ -546,8 +549,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 470 |
-| 檔案變更累計 | 7013 |
-| 新增行數累計 | +2875118 |
-| 刪除行數累計 | −814646 |
-| 淨增行數 | +2060472 |
+| Commit 數 | 473 |
+| 檔案變更累計 | 7015 |
+| 新增行數累計 | +2875135 |
+| 刪除行數累計 | −814658 |
+| 淨增行數 | +2060477 |
