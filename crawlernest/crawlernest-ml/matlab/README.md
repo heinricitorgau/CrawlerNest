@@ -104,9 +104,12 @@ June of year T; ARWU edition T appears in August of year T, after it. A QS forec
 ARWU's edition T. The first version of the experiment did, which is a leak however it is labelled; QS's
 numbers barely moved when it was removed, but it was the wrong comparison.
 
-Last re-run 2026-10-03 (MATLAB R2026a Update 4) on `cross_edition_ranks.csv` with SHA-256 `a829c544…9139`,
-the file committed after the Perugia load. It reproduced every number below and every committed CSV byte for
-byte; the figure was re-rendered with different bytes (same size) and the committed one was kept.
+Last re-run 2026-10-04 (MATLAB R2026a Update 4) on `cross_edition_ranks.csv` with SHA-256 `421ad2fe…9357`. The
+input changed by one row since the previous run (`a829c544…9139`, after the Perugia load): THE's "Islamic Azad
+University Karaj" (2017) moved to a canonical of its own, so its canonical id and slug differ. That university has a
+single edition, so it forms no pair and no number below moved. The re-run reproduced every committed CSV (the line
+endings differ: MATLAB on Windows writes CRLF, git stores LF) and only `data_sha256` in `forecast_run.json` changed.
+The figure is re-rendered with different bytes each time; the committed one was kept.
 
 Pooled over test editions, all strata. Error is mean distance to the printed band in log10 rank; "vs drift"
 is the error saved against `persist_drift`, with its 95% interval.
@@ -165,6 +168,14 @@ only to within sampling noise.
 ```bash
 PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.evaluation.check_cross_edition_parity
 ```
+
+In CI (`.github/workflows/ml-tests.yml`) this runs twice. In `ml-metrics` it compares the committed artifacts, on every
+push, with no MATLAB needed. In `matlab-reexecution` (only while the repository is public, like the other re-executions)
+the experiment is run on the runner into a scratch directory and that fresh output is held to the same Python numbers
+with `--matlab-dir`. Only the deterministic columns are asserted there: the boosted model and the bootstrap depend on
+MATLAB's random stream and on the toolbox version the runner installs, so asserting that a fresh run equals the
+committed CSV would fail on a MATLAB update with no source wrong. (Run locally on 2026-10-04 with R2026a Update 4, the
+fresh output equalled the committed CSVs apart from line endings.)
 
 ## Files
 

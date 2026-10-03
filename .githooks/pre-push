@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Runs the warehouse drift check before a push, when the local database is reachable.
+# Install once:  ./scripts/install_git_hooks.sh
+# Skip once, deliberately:  CRAWLERNEST_SKIP_DRIFT_CHECK=1 git push     (or: git push --no-verify)
+ROOT="$(git rev-parse --show-toplevel)"
+[ "${CRAWLERNEST_SKIP_DRIFT_CHECK:-}" = "1" ] && exit 0
+"$ROOT/scripts/check_warehouse_drift.sh" --if-available

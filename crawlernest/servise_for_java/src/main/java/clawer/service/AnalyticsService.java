@@ -882,8 +882,8 @@ public class AnalyticsService {
      * figures, and a caveat that appears when it does not apply teaches readers
      * to skip the caveats array.
      *
-     * {@code analytics.ml_predictions} is populated as of the 2026-09-14 run --
-     * 787 overall-score estimates and 1,482 disagreement probabilities -- so the
+     * {@code analytics.ml_predictions} is populated as of the 2026-10-04 run --
+     * 787 overall-score estimates and 1,483 disagreement probabilities -- so the
      * flag is now reachable rather than hypothetical. Callers that join an
      * estimate in must pass {@code true}; the Python read path in
      * {@code agent/tools/ml_tools.py} enforces the same pairing structurally, by

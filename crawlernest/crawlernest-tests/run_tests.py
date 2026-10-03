@@ -129,6 +129,9 @@ def run_all_tests():
         # The decision table and the refusals of the 2026-10-03 entity split: seven source entities
         # that were on another university's canonical. The row-rewriting phases are rehearsed, not unit-tested.
         "test_split_false_entity_merges",
+        "test_split_islamic_azad_karaj",
+        # What a warehouse drift check does when the warehouse is too small: skip, or fail when required.
+        "test_warehouse_gate",
         # The cross-edition rank export the MATLAB forecast reads. Needs PostgreSQL; skips itself unless
         # CRAWLERNEST_RUN_PG_TESTS=1. Fails when the committed CSV no longer matches the warehouse.
         "test_cross_edition_export_matches_warehouse",
