@@ -202,7 +202,7 @@ deploy/                       Dockerfile、docker-compose、systemd 單元、.en
 | **Agent Tests** | web-agent 生成層的 285 個測試，接著跑完整 57 筆 golden case 的忠實性評估。兩個機械驗證訊號（忠實性規則與出處／缺席／完整性檢查）都被當成偵測器評分，clean text 上的誤報與召回率分開report。 |
 | **ML Tests** | 三個 job。特徵層不變量與指標回歸閘門（從已提交快照重訓兩個模型，真實退步會擋下）。一個 serving job，把預測寫進拋棄式 PostgreSQL 並驗證資料列。一個 MATLAB job，安裝 MATLAB、重新執行 `run_qs_eda.m`，把新產出同時比對 Python 與已提交的 artifacts。 |
 | **Python Tests** | 兩個 job。fixture 模式不起任何服務；PostgreSQL job 跑 opt-in 的資料庫測試——彙整數學、來源權重一致性、陳舊列清理、ingest 冪等性。fixture job 另外跑 pytest 風格的申請資訊爬蟲測試。另外有每週排程，因為這裡曾有一次失敗是**時間流逝**造成的，不是某次 commit。 |
-| **API Tests** | Spring Boot 測試套件，對真實 PostgreSQL service 執行，97 個測試，surefire 報告會上傳成 artifact。 |
+| **API Tests** | Spring Boot 測試套件，對真實 PostgreSQL service 執行，257 個測試，surefire 報告會上傳成 artifact。每個整合測試類別都自己建立所讀取的資料表與 view，因為 service 資料庫一開始是空的；依賴「別的類別先跑過」的測試，在本機會過、在這裡會失敗。 |
 | **Release Smoke** | 兩個 job。建置產物——Java 編譯、Next.js build、Python 語法、唯讀 fixture；以及一個 analytics-bridge job，bootstrap PostgreSQL、種入六所大學、跑兩次 warehouse→analytics bridge、啟動 Spring Boot，確認 `/api/v1/rankings` 回得出寫進去的東西，最後跑端點存活檢查。 |
 | **Data Quality** | 驗證 golden 回歸資料集與 CI fixture 檔案，然後以 fixture 模式跑 ranking-regression 與 failure-summary runner——不需資料庫、不需網路。 |
 
