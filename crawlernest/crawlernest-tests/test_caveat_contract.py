@@ -502,19 +502,28 @@ class TestArchiveEditions(unittest.TestCase):
         # A receipt is what the ingest writes. An edition claimed as archive-sourced
         # with no receipt was never ingested; a receipt for an edition not claimed
         # means rows are in the warehouse that the caveats do not describe.
-        receipts: dict[int, dict] = {}
+        #
+        # An edition may have several receipts: the first fills an empty edition, and a
+        # later --replace reloads an earlier archive load (the Miami ids were withheld
+        # until the entity split of 2026-10-03). The chain has to be unbroken: the first
+        # found the edition empty, and each later one found exactly what the one before it wrote.
+        chains: dict[int, list[dict]] = {}
         for path in sorted((QS_ARCHIVE_DIR / "receipts").glob("*.json")):
             data = json.loads(_read(path))
             if data["database"] == "clawer":
-                receipts[int(data["year"])] = data
-        self.assertEqual(set(receipts), set(DATASET_ARCHIVE_EDITIONS["QS"]))
+                chains.setdefault(int(data["year"]), []).append(data)
+        self.assertEqual(set(chains), set(DATASET_ARCHIVE_EDITIONS["QS"]))
         manifest = json.loads(_read(QS_ARCHIVE_DIR / "manifest.json"))
-        for year, receipt in receipts.items():
+        for year, chain in chains.items():
+            chain.sort(key=lambda r: r["started_utc"])
             with self.subTest(year=year):
-                self.assertEqual(
-                    receipt["manifest"]["payload_sha256"], manifest[str(year)]["data_file"]["expected_sha256"]
-                )
-                self.assertEqual(receipt["before"]["ranking_records"], 0)
+                self.assertEqual(chain[0]["before"]["ranking_records"], 0)
+                for earlier, later in zip(chain, chain[1:]):
+                    self.assertEqual(later["before"]["ranking_records"], earlier["summary"]["matched"])
+                for receipt in chain:
+                    self.assertEqual(
+                        receipt["manifest"]["payload_sha256"], manifest[str(year)]["data_file"]["expected_sha256"]
+                    )
 
     def test_the_template_names_what_a_reader_would_otherwise_assume(self) -> None:
         for phrase in ("Internet Archive", "not crawled", "may have revised", "lower bound", "composite or confidence"):
