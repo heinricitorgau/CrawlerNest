@@ -23503,7 +23503,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 363748,ehime-university,2017,THE,601,800,601-800,live
 363957,hosei-university,2017,THE,801,,801+,live
 363975,i-shou-university,2017,THE,801,,801+,live
-364060,islamic-azad-university,2017,THE,801,,801+,live
 364071,iwate-university,2017,THE,801,,801+,live
 364093,jiangsu-university,2017,THE,801,,801+,live
 364111,k-n-toosi-university-of-technology,2017,THE,601,800,601-800,live
@@ -23611,6 +23610,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 561099,federico-santa-mar-a-technical-university,2017,THE,401,500,401-500,live
 694537,miami-university,2017,THE,601,800,601-800,live
 694539,ecole-normale-superieure-paris-saclay,2017,THE,401,500,401-500,live
+767310,islamic-azad-university-karaj-branch,2017,THE,801,,801+,live
 1,massachusetts-institute-of-technology-mit,2018,THE,5,5,5,live
 2,imperial-college-london,2018,THE,8,8,8,live
 3,university-of-oxford,2018,THE,1,1,1,live
