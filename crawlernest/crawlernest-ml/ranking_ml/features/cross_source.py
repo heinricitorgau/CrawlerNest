@@ -61,7 +61,7 @@ def load_pairing(path: Path | str | None = None) -> dict[str, str]:
     """Which QS university is which THE university, as the warehouse decided.
 
     On the QS 2026 edition, joining on a normalised name recovers 842 of the
-    1,504 QS universities. The warehouse pairing reaches 1,109 for the same two
+    1,504 QS universities. The warehouse pairing reaches 1,112 for the same two
     snapshots, because its entity resolver is seeded with reviewed aliases --
     ``Universidade de São Paulo`` is ``University of São Paulo``, ``Osaka
     University`` is ``The University of Osaka`` -- and because a human went
