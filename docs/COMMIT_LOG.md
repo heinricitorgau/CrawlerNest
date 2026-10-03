@@ -2,7 +2,7 @@
 
 產生於 2026-10-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：485
+- **Commit 總數**：488
 - **期間**：2026-03-16 ~ 2026-10-04
 - **主分支**：`main`
 
@@ -34,12 +34,15 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `1e61ae9` | 2026-10-04 | heinricitorgau | — | — | Merge branch 'ci/ml-and-drift-guards' **[main]** |
+| `7d29fdd` | 2026-10-04 | heinricitorgau | — | — | Merge branch 'fix/qs-crawler-regional-prefetch' **[main]** |
+| `d44d4aa` | 2026-10-04 | heinricitorgau | 4 | +276 / −5 | fix(qs): ask a regional ranking endpoint like the page does, and do not take a one-row prefetch for a ranking **[fix/qs-crawler-regional-prefetch]** |
+| `880d2e1` | 2026-10-03 | github-actions[bot] | 1 | +490 / −490 | docs: regenerate the commit log |
+| `1e61ae9` | 2026-10-04 | heinricitorgau | — | — | Merge branch 'ci/ml-and-drift-guards' |
 | `9ec9b14` | 2026-10-04 | heinricitorgau | 2 | +512 / −481 | docs: regenerate the commit log, and have its header name main as main |
 | `7a99e25` | 2026-10-04 | heinricitorgau | 1 | +29 / −4 | docs: README covers the historical editions, the cross-edition experiment, the new CI checks and the drift gate |
 | `24f4d66` | 2026-10-03 | github-actions[bot] | 1 | +15 / −7 | docs: regenerate the commit log |
 | `966efd4` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #27 from heinricitorgau/ci/ml-and-drift-guards |
-| `4786693` | 2026-10-04 | heinricitorgau | 5 | +24 / −9 | data(entities): THE's Islamic Azad University Karaj is on a canonical of its own; re-export and re-run **[ci/ml-and-drift-guards]** |
+| `4786693` | 2026-10-04 | heinricitorgau | 5 | +24 / −9 | data(entities): THE's Islamic Azad University Karaj is on a canonical of its own; re-export and re-run |
 | `9a4a1ad` | 2026-10-04 | heinricitorgau | 1 | +8 / −0 | docs(ml): the cross-edition README says what CI now checks |
 | `05cee46` | 2026-10-04 | heinricitorgau | 3 | +436 / −0 | feat(entities): a script to take THE's Islamic Azad University Karaj off another entity's canonical (not applied) |
 | `0c56b03` | 2026-10-04 | heinricitorgau | 4 | +13 / −6 | docs(ml): the served estimates were regenerated on 2026-10-04; fix the University of Miami's two that were Ohio's |
@@ -47,24 +50,24 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 | `e28a032` | 2026-10-04 | heinricitorgau | 1 | +30 / −0 | ci(ml): run the cross-edition forecast's parity check, on the committed artifacts and on a fresh MATLAB run |
 | `cd0a959` | 2026-10-03 | github-actions[bot] | 1 | +10 / −7 | docs: regenerate the commit log |
 | `29ed8ab` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #26 from heinricitorgau/test/dataset-context-golden-runs |
-| `31c9002` | 2026-10-04 | heinricitorgau | 1 | +6 / −4 | test(agent): run the single-edition golden-text test it had been skipping since 2026 **[test/dataset-context-golden-runs]** |
+| `31c9002` | 2026-10-04 | heinricitorgau | 1 | +6 / −4 | test(agent): run the single-edition golden-text test it had been skipping since 2026 |
 | `c71fd06` | 2026-10-03 | github-actions[bot] | 1 | +11 / −8 | docs: regenerate the commit log |
 | `256635f` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #25 from heinricitorgau/test/ranking-scope-runs-in-ci |
-| `b644588` | 2026-10-04 | heinricitorgau | 1 | +29 / −7 | test(ranking-scope): run the two integration tests on a freshly bootstrapped database **[test/ranking-scope-runs-in-ci]** |
+| `b644588` | 2026-10-04 | heinricitorgau | 1 | +29 / −7 | test(ranking-scope): run the two integration tests on a freshly bootstrapped database |
 | `1420daf` | 2026-10-03 | github-actions[bot] | 1 | +11 / −7 | docs: regenerate the commit log |
 | `26d5a98` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #24 from heinricitorgau/fix/ci-order-dependent-tests |
-| `4fdff12` | 2026-10-03 | heinricitorgau | 2 | +15 / −6 | fix(ci): stop the PostgreSQL test job hanging, and bootstrap the lineage table it needs **[fix/ci-order-dependent-tests]** |
+| `4fdff12` | 2026-10-03 | heinricitorgau | 2 | +15 / −6 | fix(ci): stop the PostgreSQL test job hanging, and bootstrap the lineage table it needs |
 | `f8f504d` | 2026-10-03 | heinricitorgau | 1 | +8 / −7 | test(api): the security-chain tests create the views they read instead of relying on test order |
 | `a0dbcca` | 2026-10-03 | github-actions[bot] | 1 | +35 / −9 | docs: regenerate the commit log |
 | `1485af3` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #23 from heinricitorgau/fix/perugia-reappeared-review |
-| `8439626` | 2026-10-03 | heinricitorgau | 1 | +8 / −0 | test(api): the health test creates the views it counts instead of relying on test order **[fix/perugia-reappeared-review]** |
+| `8439626` | 2026-10-03 | heinricitorgau | 1 | +8 / −0 | test(api): the health test creates the views it counts instead of relying on test order |
 | `ef53a30` | 2026-10-03 | heinricitorgau | 1 | +4 / −0 | docs(ml): record the 2026-10-03 re-run of the cross-edition experiment |
 | `139b92a` | 2026-10-03 | heinricitorgau | 10 | +111 / −85 | fix(ml): regenerate the Phase 3 artifacts that the 2026-09-21 refresh made stale |
 | `7bbe2e7` | 2026-10-03 | heinricitorgau | 10 | +433 / −418 | data(ml): re-export the cross-edition ranks and re-run the forecast after Perugia |
 | `8696976` | 2026-10-03 | heinricitorgau | 2 | +6 / −6 | fix(ml): bring the pairing export and the THE alias hint in line with the Miami rename |
 | `61185b1` | 2026-10-03 | heinricitorgau | 7 | +284 / −0 | data(qs): reload the seven QS archive editions with the University of Perugia |
 | `1d4db89` | 2026-10-03 | heinricitorgau | 2 | +134 / −1 | fix(reviews): a row decided under its own id is not a reappearance |
-| `bc5bf32` | 2026-10-03 | heinricitorgau | 12 | +1651 / −0 | feat(ml): cross-edition rank forecast in MATLAB, with an independent Python parity check **[data/qs-the-backfill]** |
+| `bc5bf32` | 2026-10-03 | heinricitorgau | 12 | +1651 / −0 | feat(ml): cross-edition rank forecast in MATLAB, with an independent Python parity check |
 | `6ca94aa` | 2026-10-03 | heinricitorgau | 5 | +36382 / −0 | data(ml): export every world-ranking rank, per university, source and edition |
 | `b89a6d5` | 2026-10-03 | heinricitorgau | 8 | +313 / −8 | data(qs): reload the seven QS archive editions with both Miami universities |
 | `5ca0e69` | 2026-10-03 | heinricitorgau | 5 | +937 / −0 | fix(entities): take seven source entities off another university's canonical |
@@ -75,7 +78,7 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 | `d8dec15` | 2026-10-03 | heinricitorgau | 8 | +288847 / −0 | data(qs): world ranking editions 2016, 2018-2020, 2022-2024 from Internet Archive |
 | `e0c72a9` | 2026-10-03 | heinricitorgau | 5 | +1451 / −0 | feat(qs): loader for past QS editions from reviewed Internet Archive snapshots |
 | `350172b` | 2026-10-02 | heinricitorgau | 10 | +596305 / −0 | data(the): world ranking editions 2015-2024 |
-| `e295dce` | 2026-10-02 | heinricitorgau | 2 | +9 / −5 | docs: refresh 2026 source coverage counts in CLAUDE.md and README **[claude/arwu-editions-2015-2024]** |
+| `e295dce` | 2026-10-02 | heinricitorgau | 2 | +9 / −5 | docs: refresh 2026 source coverage counts in CLAUDE.md and README |
 
 ## 2026-09
 
@@ -561,8 +564,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 485 |
-| 檔案變更累計 | 7044 |
-| 新增行數累計 | +2876446 |
-| 刪除行數累計 | −815177 |
-| 淨增行數 | +2061269 |
+| Commit 數 | 488 |
+| 檔案變更累計 | 7049 |
+| 新增行數累計 | +2877212 |
+| 刪除行數累計 | −815672 |
+| 淨增行數 | +2061540 |
