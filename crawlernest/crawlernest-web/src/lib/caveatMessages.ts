@@ -30,6 +30,8 @@ import {
   DATASET_COVERAGE,
   DATASET_SOURCES,
   SUBJECT_DATASET_YEARS,
+  archiveCaptureDate,
+  liveYears,
   sourcesForYear,
   subjectSourcesForYear,
 } from "@/lib/datasetScope";
@@ -91,7 +93,7 @@ export function formatSources(sources: readonly string[], conjunction = "and"): 
  */
 export function snapshotCaveat(
   sources: readonly string[] = ["QS"],
-  years: readonly number[] = DATASET_COVERAGE.QS,
+  years: readonly number[] = liveYears("QS"),
 ): string {
   for (const source of sources) {
     const covered = DATASET_COVERAGE[source] ?? [];
@@ -114,14 +116,45 @@ export function snapshotCaveat(
  * the same list until the 2015-2024 ARWU release; the sentence is unchanged by
  * it, which is the point -- the release made it true rather than rewriting it.
  */
-export const CAVEAT_QS_STALE = snapshotCaveat(["QS"], DATASET_COVERAGE.QS);
+export const CAVEAT_QS_STALE = snapshotCaveat(["QS"], liveYears("QS"));
+
+/**
+ * The disclosure for an edition read from an Internet Archive capture rather than crawled
+ * from the source. Byte-identical to `ARCHIVE_EDITION_CAVEAT_TEMPLATE` in caveats.py and
+ * AnalyticsService.java and to the copy in ANALYTICS_EXPLAINABILITY.md. `{source}`, `{year}`,
+ * `{captured}` and `{live_editions}` are replaced literally.
+ */
+export const ARCHIVE_EDITION_CAVEAT_TEMPLATE =
+  "{source} {year} ranks were recovered from an Internet Archive capture of {source}'s own data file taken on {captured}, not crawled from {source} directly, and {source} may have revised the table since. {source} prints many ranks as bands (for example 201-210); the rank shown here is the lower bound of the printed rank, so it is not comparable position by position with the {source} ranks of {live_editions}, which are stored as one position per university. A composite or confidence that includes it inherits that imprecision.";
+
+/** The archive disclosure for one source's edition, or null when it was crawled live. */
+export function archiveEditionCaveat(source: string, year: number): string | null {
+  const captured = archiveCaptureDate(source, year);
+  if (captured === null) {
+    return null;
+  }
+  const live = liveYears(source);
+  if (live.length === 0) {
+    throw new Error(
+      `${source} has no live-crawled edition for the archive caveat to compare ${year} with`,
+    );
+  }
+  // split/join, not replace: the template names the source several times, and a string
+  // pattern given to String.replace changes only the first. Python and Java replace all.
+  const fill = (text: string, slot: string, value: string): string => text.split(slot).join(value);
+  let text = ARCHIVE_EDITION_CAVEAT_TEMPLATE;
+  text = fill(text, "{source}", source);
+  text = fill(text, "{year}", String(year));
+  text = fill(text, "{captured}", captured);
+  return fill(text, "{live_editions}", formatEditionYears(live));
+}
 
 /**
  * An edition that does not hold every source says so. Byte-identical to
  * `EDITION_SOURCE_COVERAGE_TEMPLATE` in caveats.py and AnalyticsService.java.
  */
 export const EDITION_SOURCE_COVERAGE_TEMPLATE =
-  "The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, so a position here rests on one source rather than on agreement between several.";
+  "The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, so a position here rests on fewer sources than an edition that holds all of them.";
 
 /** Which sources an edition is missing, or null when it holds them all. */
 export function editionSourceCoverageCaveat(year: number): string | null {
@@ -289,6 +322,13 @@ export function editionCaveats(year: number): string[] {
   const coverage = editionSourceCoverageCaveat(year);
   if (coverage) {
     caveats.push(coverage);
+  }
+  // A source read from the Internet Archive says so for exactly the editions it was.
+  for (const source of sources) {
+    const archived = archiveEditionCaveat(source, year);
+    if (archived) {
+      caveats.push(archived);
+    }
   }
   // The partial-coverage lines describe a source that is present and sparse, so
   // each belongs only to an edition that actually holds that source.

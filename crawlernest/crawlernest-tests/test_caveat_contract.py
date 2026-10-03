@@ -29,17 +29,20 @@ sentence the constant used to hold.
 from __future__ import annotations
 
 
+import json
 import re
 import unittest
 from pathlib import Path
 
 from crawlernest.core.caveats import (
+    ARCHIVE_EDITION_CAVEAT_TEMPLATE,
     ADMISSION_STALE_FETCHED_TEMPLATE,
     ADMISSION_STALE_UNDATED_TEMPLATE,
     CAVEAT_ARWU_PARTIAL,
     CAVEAT_IELTS_MISSING,
     admission_caveats,
     admission_stale_caveat,
+    archive_edition_caveat,
     COMPOSITE_RANK_NOT_COMPARED_CAVEAT,
     CAVEAT_QS_STALE,
     CAVEAT_THE_PARTIAL,
@@ -61,11 +64,14 @@ from crawlernest.core.caveats import (
     snapshot_caveat,
 )
 from crawlernest.core.dataset import (
+    DATASET_ARCHIVE_EDITIONS,
     DATASET_COVERAGE,
     DATASET_SOURCES,
     DATASET_YEAR,
     DATASET_YEARS,
     DEFAULT_RANKING_YEAR,
+    archive_capture_date,
+    live_years,
     sources_for_year,
 )
 
@@ -87,6 +93,7 @@ DATASET_SCOPE_JAVA = ANALYTICS_SERVICE.with_name("DatasetScope.java")
 DATASET_SCOPE_TS = (
     REPO_ROOT / "crawlernest" / "crawlernest-web" / "src" / "lib" / "datasetScope.ts"
 )
+QS_ARCHIVE_DIR = REPO_ROOT / "crawlernest" / "crawlernest-kb" / "qs_archive"
 
 #: The sentence CAVEAT_QS_STALE held as a literal before it became a template.
 #: Rendering the template for the 2026-only warehouse must reproduce it byte for
@@ -95,6 +102,13 @@ DATASET_SCOPE_TS = (
 SNAPSHOT_CAVEAT_2026 = (
     "QS ranking data is a point-in-time snapshot of the 2026 published tables. "
     "Figures may not reflect rankings republished since this snapshot was ingested."
+)
+
+#: The QS 2023 archive sentence as every language must render it. One golden string, held
+#: identically in the Python, Java (AnalyticsCaveatContractTest) and TypeScript suites, so a
+#: renderer cannot drift -- the TypeScript one did, replacing only the first {source}.
+ARCHIVE_CAVEAT_QS_2023 = (
+    "QS 2023 ranks were recovered from an Internet Archive capture of QS's own data file taken on 2026-05-10, not crawled from QS directly, and QS may have revised the table since. QS prints many ranks as bands (for example 201-210); the rank shown here is the lower bound of the printed rank, so it is not comparable position by position with the QS ranks of 2025 and 2026, which are stored as one position per university. A composite or confidence that includes it inherits that imprecision."
 )
 
 #: Every caveat that is still a constant in all four places.
@@ -113,6 +127,7 @@ CONSTANT_CAVEATS = (
 TEMPLATE_CAVEATS = (
     SNAPSHOT_CAVEAT_TEMPLATE,
     EDITION_SOURCE_COVERAGE_TEMPLATE,
+    ARCHIVE_EDITION_CAVEAT_TEMPLATE,
     ADMISSION_STALE_FETCHED_TEMPLATE,
     ADMISSION_STALE_UNDATED_TEMPLATE,
 )
@@ -199,36 +214,46 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
     def test_2026_renders_the_sentence_the_constant_used_to_hold(self) -> None:
         self.assertEqual(SNAPSHOT_CAVEAT_2026, snapshot_caveat("QS", (2026,)))
 
-    def test_todays_constant_renders_from_the_editions_qs_covers(self) -> None:
+    def test_todays_constant_renders_from_the_editions_qs_was_crawled_for(self) -> None:
         # This asserted snapshot_caveat(DATASET_YEARS) until the 2015-2024 ARWU
-        # release. The two lists were the same one then; they are not now, and
-        # rendering QS over the union would name ten editions holding no QS row.
-        # The sentence itself is unchanged -- the release made it true rather
-        # than rewriting it, which is what the equality below pins.
-        self.assertEqual(snapshot_caveat("QS", DATASET_COVERAGE["QS"]), CAVEAT_QS_STALE)
-        self.assertNotIn("2024", CAVEAT_QS_STALE)
+        # release, then DATASET_COVERAGE["QS"] until the QS archive release. Both
+        # lists grew past what this release-level sentence is true of: it says the
+        # data is a snapshot of tables QS published, which is how 2025 and 2026 were
+        # obtained. The archive-sourced editions say how they were obtained in their
+        # own caveat, so the sentence here is unchanged by that release.
+        self.assertEqual(snapshot_caveat("QS", live_years("QS")), CAVEAT_QS_STALE)
+        self.assertEqual(live_years("QS"), (2026, 2025))
+        for archived_year in DATASET_ARCHIVE_EDITIONS["QS"]:
+            self.assertNotIn(str(archived_year), CAVEAT_QS_STALE)
 
     def test_a_source_cannot_be_named_over_an_edition_it_does_not_cover(self) -> None:
         # The check that makes the false disclosure unwritable rather than merely
         # discouraged. Java and TypeScript raise on the same inputs.
-        for source, years in (("QS", (2018,)), ("THE", (2015, 2026)), ("ARWU", (2014,))):
+        # QS holds no 2015, 2017 or 2021; no source holds 2014.
+        for source, years in (
+            ("QS", (2017,)), ("QS", (2015, 2026)), ("QS", (2021,)), ("THE", (2014,)), ("ARWU", (2014,)),
+        ):
             with self.subTest(source=source, years=years):
                 with self.assertRaises(ValueError):
                     snapshot_caveat(source, years)
 
     def test_an_edition_is_disclosed_with_the_sources_it_actually_holds(self) -> None:
-        self.assertEqual(sources_for_year(2018), ("ARWU",))
+        self.assertEqual(sources_for_year(2017), ("THE", "ARWU"))
+        self.assertEqual(sources_for_year(2018), ("QS", "THE", "ARWU"))
         self.assertEqual(sources_for_year(2026), ("QS", "THE", "ARWU"))
 
-        arwu_only = edition_snapshot_caveat(2018)
-        self.assertTrue(arwu_only.startswith("ARWU ranking data"), arwu_only)
-        self.assertNotIn("QS", arwu_only)
+        no_qs = edition_snapshot_caveat(2017)
+        self.assertTrue(no_qs.startswith("THE and ARWU ranking data"), no_qs)
+        self.assertNotIn("QS", no_qs)
 
         # And an edition missing a source says so, in the negative ("or"), rather
-        # than leaving a reader to infer it from an empty column.
-        coverage = edition_source_coverage_caveat(2018)
-        self.assertIn("The 2018 edition holds ARWU ranks only", coverage)
-        self.assertIn("No QS or THE rank exists", coverage)
+        # than leaving a reader to infer it from an empty column. Two of the three
+        # sources are present here, so the sentence must not say "one source".
+        coverage = edition_source_coverage_caveat(2017)
+        self.assertIn("The 2017 edition holds THE and ARWU ranks only", coverage)
+        self.assertIn("No QS rank exists", coverage)
+        self.assertNotIn("one source", coverage)
+        self.assertIsNone(edition_source_coverage_caveat(2018))
         self.assertIsNone(edition_source_coverage_caveat(2026))
 
     def test_source_lists_join_like_year_lists(self) -> None:
@@ -382,19 +407,54 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
         # one edition must use the second: STANDARD_CAVEATS opens with QS's
         # snapshot, which beside a 2018 table holding no QS rank is true of the
         # warehouse and useless to the reader.
-        arwu_only = edition_caveats(2018)
-        self.assertEqual(arwu_only[0], edition_snapshot_caveat(2018))
-        self.assertIn(edition_source_coverage_caveat(2018), arwu_only)
-        self.assertIn(CAVEAT_ARWU_PARTIAL, arwu_only)
-        # No THE line: there is no THE row in 2018 for its coverage to be partial about.
-        self.assertNotIn(CAVEAT_THE_PARTIAL, arwu_only)
-        self.assertNotIn(CAVEAT_QS_STALE, arwu_only)
+        no_qs = edition_caveats(2017)
+        self.assertEqual(no_qs[0], edition_snapshot_caveat(2017))
+        self.assertIn(edition_source_coverage_caveat(2017), no_qs)
+        self.assertIn(CAVEAT_ARWU_PARTIAL, no_qs)
+        self.assertIn(CAVEAT_THE_PARTIAL, no_qs)
+        self.assertNotIn(CAVEAT_QS_STALE, no_qs)
+        # Nothing archive-sourced is held for 2017, so no archive disclosure either.
+        self.assertFalse(any("Internet Archive" in caveat for caveat in no_qs))
 
         every_source = edition_caveats(2026)
         self.assertEqual(
             list(every_source),
             [edition_snapshot_caveat(2026), CAVEAT_THE_PARTIAL, CAVEAT_ARWU_PARTIAL],
         )
+
+    def test_an_archive_sourced_edition_says_so_in_the_one_place_it_belongs(self) -> None:
+        caveats = edition_caveats(2024)
+        self.assertEqual(
+            list(caveats),
+            [
+                edition_snapshot_caveat(2024),
+                archive_edition_caveat("QS", 2024),
+                CAVEAT_THE_PARTIAL,
+                CAVEAT_ARWU_PARTIAL,
+            ],
+        )
+        self.assertIn("2026-03-29", caveats[1])
+        self.assertIn("lower bound", caveats[1])
+        self.assertIn("2025 and 2026", caveats[1])
+        # An edition holding every source carries no coverage line.
+        self.assertIsNone(edition_source_coverage_caveat(2024))
+        # The same source, crawled live, carries no archive line.
+        self.assertFalse(any("Internet Archive" in caveat for caveat in edition_caveats(2026)))
+        self.assertIsNone(archive_edition_caveat("QS", 2026))
+        self.assertIsNone(archive_edition_caveat("THE", 2024))
+
+    def test_every_archive_edition_gets_the_line_and_nothing_else_does(self) -> None:
+        for year in DATASET_YEARS:
+            with self.subTest(year=year):
+                expected = [c for c in (archive_edition_caveat(s, year) for s in sources_for_year(year)) if c]
+                got = [c for c in edition_caveats(year) if "Internet Archive" in c]
+                self.assertEqual(got, expected)
+                self.assertEqual(bool(expected), archive_capture_date("QS", year) is not None)
+
+    def test_the_standard_release_caveats_do_not_describe_archive_editions(self) -> None:
+        # STANDARD_CAVEATS is the release scope, and its QS sentence is rendered over
+        # QS's live editions. Archive editions are disclosed per edition.
+        self.assertFalse(any("Internet Archive" in caveat for caveat in STANDARD_CAVEATS))
 
     def test_java_and_typescript_compose_edition_caveats_the_same_way(self) -> None:
         # Each language composes the list from the same pieces; the pieces
@@ -403,11 +463,72 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
         typescript = _read(CAVEAT_MESSAGES_TS)
         self.assertIn("public static List<String> editionCaveats(int year)", java)
         self.assertIn("export function editionCaveats(year: number): string[]", typescript)
+        self.assertIn("archiveEditionCaveat(source, year)", java)
+        self.assertIn("archiveEditionCaveat(source, year)", typescript)
         for source, guard in (("THE", "THE_PARTIAL_CAVEAT"), ("ARWU", "ARWU_PARTIAL_CAVEAT")):
             with self.subTest(source=source):
                 self.assertIn(f'sources.contains("{source}")', java)
                 self.assertIn(guard, java)
                 self.assertIn(f'sources.includes("{source}")', typescript)
+
+
+class TestArchiveEditions(unittest.TestCase):
+    """DATASET_ARCHIVE_EDITIONS is a fact about what was ingested, so it is checked against that."""
+
+    def test_the_archive_map_agrees_across_languages(self) -> None:
+        java = _read(DATASET_SCOPE_JAVA)
+        typescript = _read(DATASET_SCOPE_TS)
+        for source, editions in DATASET_ARCHIVE_EDITIONS.items():
+            java_entries = ", ".join(f'{year}, "{date}"' for year, date in editions.items())
+            ts_entries = ", ".join(f'{year}: "{date}"' for year, date in editions.items())
+            with self.subTest(language="Java", source=source):
+                self.assertIn(f'"{source}", Map.of({java_entries})', java)
+            with self.subTest(language="TypeScript", source=source):
+                self.assertIn(f"{source}: {{ {ts_entries} }}", typescript)
+
+    def test_an_archive_edition_is_one_the_warehouse_holds(self) -> None:
+        for source, editions in DATASET_ARCHIVE_EDITIONS.items():
+            self.assertLessEqual(set(editions), set(DATASET_COVERAGE[source]))
+            self.assertTrue(live_years(source), f"{source} needs a live edition to compare against")
+
+    def test_the_capture_dates_are_the_ones_in_the_manifest(self) -> None:
+        manifest = json.loads(_read(QS_ARCHIVE_DIR / "manifest.json"))
+        for year, date in DATASET_ARCHIVE_EDITIONS["QS"].items():
+            ts = manifest[str(year)]["data_file"]["snapshot_ts"]
+            with self.subTest(year=year):
+                self.assertEqual(date, f"{ts[0:4]}-{ts[4:6]}-{ts[6:8]}")
+
+    def test_every_archive_edition_was_ingested_and_nothing_else_was(self) -> None:
+        # A receipt is what the ingest writes. An edition claimed as archive-sourced
+        # with no receipt was never ingested; a receipt for an edition not claimed
+        # means rows are in the warehouse that the caveats do not describe.
+        receipts: dict[int, dict] = {}
+        for path in sorted((QS_ARCHIVE_DIR / "receipts").glob("*.json")):
+            data = json.loads(_read(path))
+            if data["database"] == "clawer":
+                receipts[int(data["year"])] = data
+        self.assertEqual(set(receipts), set(DATASET_ARCHIVE_EDITIONS["QS"]))
+        manifest = json.loads(_read(QS_ARCHIVE_DIR / "manifest.json"))
+        for year, receipt in receipts.items():
+            with self.subTest(year=year):
+                self.assertEqual(
+                    receipt["manifest"]["payload_sha256"], manifest[str(year)]["data_file"]["expected_sha256"]
+                )
+                self.assertEqual(receipt["before"]["ranking_records"], 0)
+
+    def test_the_template_names_what_a_reader_would_otherwise_assume(self) -> None:
+        for phrase in ("Internet Archive", "not crawled", "may have revised", "lower bound", "composite or confidence"):
+            self.assertIn(phrase, ARCHIVE_EDITION_CAVEAT_TEMPLATE)
+        for slot in ("{source}", "{year}", "{captured}", "{live_editions}"):
+            self.assertIn(slot, ARCHIVE_EDITION_CAVEAT_TEMPLATE)
+        # One golden sentence, pinned in the Python, Java and TypeScript suites alike.
+        self.assertEqual(ARCHIVE_CAVEAT_QS_2023, archive_edition_caveat("QS", 2023))
+        rendered = archive_edition_caveat("QS", 2016)
+        self.assertNotIn("{", rendered)
+        self.assertIn("2022-04-26", rendered)
+
+    def test_the_doc_states_the_archive_template_verbatim(self) -> None:
+        self.assertIn(ARCHIVE_EDITION_CAVEAT_TEMPLATE, _read(EXPLAINABILITY_DOC))
 
 
 class TestAdmissionCaveats(unittest.TestCase):

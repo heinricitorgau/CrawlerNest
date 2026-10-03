@@ -107,13 +107,16 @@ the coverage map: `DATASET_COVERAGE` in `crawlernest/core/dataset.py`,
 `crawlernest-web/src/lib/datasetScope.ts`, whose union is the `DATASET_YEARS`
 list beside each of them. `test_caveat_contract.py` checks that the three maps,
 the three lists and the three templates agree. The row in the table is what the
-template renders for QS today.
+template renders for QS over its live-crawled editions, 2025 and 2026; QS's
+archive-sourced editions are disclosed per edition, below.
 
 **The source is a slot for the same reason the years are.** It was the literal
-"QS" until the 2015–2024 ARWU release. Ten of the twelve editions the warehouse
-now holds carry no QS row at all, so a sentence opening "QS ranking data" could
-not describe the edition a reader was looking at — and `editionCaveats(2018)`
-would have printed exactly that beside a table containing no QS rank. Each
+"QS" until the 2015–2024 ARWU release, when ten of the twelve editions the
+warehouse held carried no QS row at all, so a sentence opening "QS ranking data"
+could not describe the edition a reader was looking at — and `editionCaveats(2018)`
+would have printed exactly that beside a table containing no QS rank. QS still
+holds no 2015, 2017 or 2021 (QS published no 2017 edition, the archived 2015 page
+declares no ranking id, and no data file for 2021 exists in the archive). Each
 renderer therefore refuses to render a source over an edition
 `DATASET_COVERAGE` does not give it: the false sentence is unwritable rather
 than merely discouraged.
@@ -155,7 +158,11 @@ and conflating the two is what this disclosure prevents.
 
 Template:
 
-`The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, so a position here rests on one source rather than on agreement between several.`
+`The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, so a position here rests on fewer sources than an edition that holds all of them.`
+
+The closing clause used to say "rests on one source rather than on agreement between several". That
+was exact while ARWU alone held the 2015–2024 editions and became false with the THE release, which
+leaves 2015, 2017 and 2021 holding two of the three sources.
 
 `{present}` and `{absent}` use the same source-list rule, except that `{absent}`
 joins with `or`: "no QS and THE rank exists" reads as a claim about the pair
@@ -164,6 +171,34 @@ every source, so 2025 and 2026 do not carry it. It is rendered by
 `edition_source_coverage_caveat` in Python, `AnalyticsService
 .editionSourceCoverageCaveat` in Java, and `editionSourceCoverageCaveat` in
 `caveatMessages.ts`.
+
+### Editions read from an Internet Archive capture
+
+QS does not answer automated requests, so QS 2016, 2018–2020 and 2022–2024 were read from
+Internet Archive captures of QS's own data files rather than crawled. An edition read that way
+says so, for exactly the (source, edition) pairs in `DATASET_ARCHIVE_EDITIONS`
+(`crawlernest/core/dataset.py`, mirrored in `DatasetScope.java` and `datasetScope.ts`). The
+capture dates are facts about what was ingested: `test_caveat_contract` compares them with
+`crawlernest-kb/qs_archive/manifest.json` and its ingest receipts.
+
+Template:
+
+`{source} {year} ranks were recovered from an Internet Archive capture of {source}'s own data file taken on {captured}, not crawled from {source} directly, and {source} may have revised the table since. {source} prints many ranks as bands (for example 201-210); the rank shown here is the lower bound of the printed rank, so it is not comparable position by position with the {source} ranks of {live_editions}, which are stored as one position per university. A composite or confidence that includes it inherits that imprecision.`
+
+`{source}` is the source; `{year}` the edition; `{captured}` the capture date as a UTC ISO date;
+`{live_editions}` the same source's editions that were crawled directly, joined by the year-list
+rule above (QS: `2025 and 2026`). It is read from the coverage tables, so it cannot name an
+edition that is itself archive-sourced, and it is never rendered for a source with no live
+edition. It is carried by `archive_edition_caveat` in Python, `AnalyticsService
+.archiveEditionCaveat` in Java and `archiveEditionCaveat` in `caveatMessages.ts`, and is added to
+`edition_caveats` for an edition holding an archive-sourced source. It is not part of the release-level
+`STANDARD_CAVEATS`, whose QS snapshot sentence is rendered over QS's live editions only.
+
+The four things it says, and why each is there: where the rows came from; that the capture can
+postdate later revisions by the source; that the stored rank is the *lower bound* of the rank the
+source printed (QS prints many ranks as bands such as `201-210`, so it is not the same quantity as
+the live editions' one-position-per-university ranks and the two are not compared position by
+position); and that a composite or confidence built on it inherits that.
 
 ### Admission caveats
 

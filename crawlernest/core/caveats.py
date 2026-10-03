@@ -61,6 +61,8 @@ from crawlernest.core.dataset import (
     DATASET_COVERAGE,
     DATASET_SOURCES,
     DATASET_YEARS,
+    archive_capture_date,
+    live_years,
     sources_for_year,
 )
 
@@ -158,7 +160,7 @@ def edition_snapshot_caveat(year: int) -> str:
 #: sources are not merely sparse here but entirely absent.
 EDITION_SOURCE_COVERAGE_TEMPLATE = (
     "The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, "
-    "so a position here rests on one source rather than on agreement between several."
+    "so a position here rests on fewer sources than an edition that holds all of them."
 )
 
 
@@ -183,7 +185,52 @@ def edition_source_coverage_caveat(year: int) -> str | None:
 #: now name ten editions in which QS published nothing here. The sentence this
 #: constant holds is unchanged -- which is the point: the release made it true
 #: rather than rewriting it.
-CAVEAT_QS_STALE = snapshot_caveat("QS", DATASET_COVERAGE["QS"])
+#:
+#: Over QS's *live-crawled* editions since the QS archive release: the sentence says
+#: the data is a snapshot of tables QS published, which is how 2025 and 2026 were
+#: obtained. The archive-sourced editions are disclosed per edition by
+#: :func:`archive_edition_caveat`, so this release-level sentence stays the same.
+CAVEAT_QS_STALE = snapshot_caveat("QS", live_years("QS"))
+
+#: The disclosure for an edition read from an Internet Archive capture rather than
+#: crawled from the source. Byte-identical in Java, TypeScript and the explainability
+#: doc; ``{source}``, ``{year}``, ``{captured}`` and ``{live_editions}`` are replaced
+#: literally, never through str.format.
+#:
+#: Four things a reader would otherwise assume the other way: where the rows came from,
+#: that the capture can postdate later revisions, that the rank is a lower bound of what
+#: the source printed (so it is not the same quantity as the live editions' ranks), and
+#: that a composite built on it inherits that. ``{live_editions}`` is read from the
+#: coverage tables, so it cannot name an edition that is itself archive-sourced.
+ARCHIVE_EDITION_CAVEAT_TEMPLATE = (
+    "{source} {year} ranks were recovered from an Internet Archive capture of {source}'s own data "
+    "file taken on {captured}, not crawled from {source} directly, and {source} may have revised "
+    "the table since. {source} prints many ranks as bands (for example 201-210); the rank shown "
+    "here is the lower bound of the printed rank, so it is not comparable position by position "
+    "with the {source} ranks of {live_editions}, which are stored as one position per university. "
+    "A composite or confidence that includes it inherits that imprecision."
+)
+
+
+def archive_edition_caveat(source: str, year: int) -> str | None:
+    """The archive disclosure for one source's edition, or ``None`` if it was crawled live.
+
+    Raises rather than render a comparison with no live editions to compare against:
+    a source whose every edition came from the archive needs a different sentence,
+    and writing this one would claim a comparison that does not exist.
+    """
+    captured = archive_capture_date(source, year)
+    if captured is None:
+        return None
+    live = live_years(source)
+    if not live:
+        raise ValueError(f"{source} has no live-crawled edition for the archive caveat to compare {year} with")
+    return (
+        ARCHIVE_EDITION_CAVEAT_TEMPLATE.replace("{source}", source)
+        .replace("{year}", str(int(year)))
+        .replace("{captured}", captured)
+        .replace("{live_editions}", format_edition_years(live))
+    )
 
 #: Partial coverage, phrased so absence is attributed to this platform rather
 #: than to the source. Mirrors the wording AnalyticsService generates per source.
@@ -412,6 +459,11 @@ def edition_caveats(year: int) -> tuple[str, ...]:
     coverage = edition_source_coverage_caveat(year)
     if coverage:
         caveats.append(coverage)
+    # A source read from the Internet Archive says so for exactly the editions it was.
+    for source in sources:
+        archived = archive_edition_caveat(source, year)
+        if archived:
+            caveats.append(archived)
     # A partial-coverage line describes a source that is present and sparse, so
     # each belongs only to an edition that actually holds that source.
     if "THE" in sources:

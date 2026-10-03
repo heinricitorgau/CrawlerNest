@@ -90,7 +90,38 @@ public class AnalyticsService {
      * is the point: it became true rather than being rewritten.
      */
     public static final String SNAPSHOT_CAVEAT =
-            snapshotCaveat(List.of("QS"), DatasetScope.DATASET_COVERAGE.get("QS"));
+            snapshotCaveat(List.of("QS"), DatasetScope.liveYears("QS"));
+
+    /**
+     * The disclosure for an edition read from an Internet Archive capture rather than
+     * crawled from the source. Byte-identical to {@code ARCHIVE_EDITION_CAVEAT_TEMPLATE} in
+     * caveats.py and caveatMessages.ts and to the copy in ANALYTICS_EXPLAINABILITY.md.
+     * {@code {source}}, {@code {year}}, {@code {captured}} and {@code {live_editions}} are
+     * replaced literally by {@link #archiveEditionCaveat}.
+     */
+    public static final String ARCHIVE_EDITION_CAVEAT_TEMPLATE =
+            "{source} {year} ranks were recovered from an Internet Archive capture of {source}'s own data file taken on {captured}, not crawled from {source} directly, and {source} may have revised the table since. {source} prints many ranks as bands (for example 201-210); the rank shown here is the lower bound of the printed rank, so it is not comparable position by position with the {source} ranks of {live_editions}, which are stored as one position per university. A composite or confidence that includes it inherits that imprecision.";
+
+    /**
+     * The archive disclosure for one source's edition, or null when it was crawled live.
+     * Refuses a source with no live edition to compare against, as the Python one does.
+     */
+    public static String archiveEditionCaveat(String source, int year) {
+        String captured = DatasetScope.archiveCaptureDate(source, year);
+        if (captured == null) {
+            return null;
+        }
+        List<Integer> live = DatasetScope.liveYears(source);
+        if (live.isEmpty()) {
+            throw new IllegalArgumentException(source + " has no live-crawled edition for the archive caveat "
+                    + "to compare " + year + " with");
+        }
+        return ARCHIVE_EDITION_CAVEAT_TEMPLATE
+                .replace("{source}", source)
+                .replace("{year}", String.valueOf(year))
+                .replace("{captured}", captured)
+                .replace("{live_editions}", formatEditionYears(live));
+    }
 
     /**
      * Per-source coverage disclosures, for callers that need them as constants.
@@ -769,7 +800,7 @@ public class AnalyticsService {
      * {@code EDITION_SOURCE_COVERAGE_TEMPLATE} in caveats.py and caveatMessages.ts.
      */
     public static final String EDITION_SOURCE_COVERAGE_TEMPLATE =
-            "The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, so a position here rests on one source rather than on agreement between several.";
+            "The {year} edition holds {present} ranks only. No {absent} rank exists for this edition, so a position here rests on fewer sources than an edition that holds all of them.";
 
     /**
      * The standard caveats for a response showing one edition.
@@ -790,6 +821,13 @@ public class AnalyticsService {
         String coverage = editionSourceCoverageCaveat(year);
         if (coverage != null) {
             caveats.add(coverage);
+        }
+        // A source read from the Internet Archive says so for exactly the editions it was.
+        for (String source : sources) {
+            String archived = archiveEditionCaveat(source, year);
+            if (archived != null) {
+                caveats.add(archived);
+            }
         }
         // A partial-coverage line describes a source that is present and sparse,
         // so each belongs only to an edition that actually holds that source.
