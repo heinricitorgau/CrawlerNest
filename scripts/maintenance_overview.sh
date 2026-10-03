@@ -102,7 +102,7 @@ else
   echo "[missing] reports/demo_caveats.md"
 fi
 echo ""
-smoke="${ROOT_DIR}/releases/v0.1-demo/smoke_release_output.txt"
+smoke="${ROOT_DIR}/docs/releases/v0.1-demo/smoke_release_output.txt"
 if [[ -f "${smoke}" ]]; then
   grep -E "Results:|Release smoke" "${smoke}" | tail -5 || true
 else

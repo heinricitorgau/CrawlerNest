@@ -14,7 +14,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).parent.parent
 REPORTS_DIR = REPO_ROOT / "reports"
 SNAPSHOTS_DIR = REPO_ROOT / "snapshots"
-RELEASE_DIR = REPO_ROOT / "releases" / "v0.1-demo"
+RELEASE_DIR = REPO_ROOT / "docs" / "releases" / "v0.1-demo"
 VALIDATION_DOC = REPO_ROOT / "docs" / "RC1_VALIDATION_RESULTS.md"
 
 

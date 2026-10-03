@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SNAPSHOT_FILE="${SNAPSHOT_FILE:-${ROOT_DIR}/releases/v0.2-2026-snapshot/clawer-2026-09-04-release-freeze.dump}"
+SNAPSHOT_FILE="${SNAPSHOT_FILE:-${ROOT_DIR}/docs/releases/v0.2-2026-snapshot/clawer-2026-09-04-release-freeze.dump}"
 PGHOST="${PGHOST:-localhost}"
 PGPORT="${PGPORT:-5432}"
 PGUSER="${PGUSER:-test}"

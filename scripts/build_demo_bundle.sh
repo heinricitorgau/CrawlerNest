@@ -8,7 +8,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUNDLE_DIR="${ROOT_DIR}/releases/v0.1-demo"
+BUNDLE_DIR="${ROOT_DIR}/docs/releases/v0.1-demo"
 TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 PYTHON_BIN="${ROOT_DIR}/.venv/bin/python"
 if [[ ! -x "${PYTHON_BIN}" ]]; then
