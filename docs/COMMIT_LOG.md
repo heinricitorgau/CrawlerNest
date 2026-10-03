@@ -2,8 +2,8 @@
 
 產生於 2026-10-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：467
-- **期間**：2026-03-16 ~ 2026-10-03
+- **Commit 總數**：470
+- **期間**：2026-03-16 ~ 2026-10-04
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,7 +34,10 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `26d5a98` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #24 from heinricitorgau/fix/ci-order-dependent-tests **[main]** |
+| `256635f` | 2026-10-04 | KAO,EN-TSAI | — | — | Merge pull request #25 from heinricitorgau/test/ranking-scope-runs-in-ci **[main]** |
+| `b644588` | 2026-10-04 | heinricitorgau | 1 | +29 / −7 | test(ranking-scope): run the two integration tests on a freshly bootstrapped database **[test/ranking-scope-runs-in-ci]** |
+| `1420daf` | 2026-10-03 | github-actions[bot] | 1 | +11 / −7 | docs: regenerate the commit log |
+| `26d5a98` | 2026-10-03 | KAO,EN-TSAI | — | — | Merge pull request #24 from heinricitorgau/fix/ci-order-dependent-tests |
 | `4fdff12` | 2026-10-03 | heinricitorgau | 2 | +15 / −6 | fix(ci): stop the PostgreSQL test job hanging, and bootstrap the lineage table it needs **[fix/ci-order-dependent-tests]** |
 | `f8f504d` | 2026-10-03 | heinricitorgau | 1 | +8 / −7 | test(api): the security-chain tests create the views they read instead of relying on test order |
 | `a0dbcca` | 2026-10-03 | github-actions[bot] | 1 | +35 / −9 | docs: regenerate the commit log |
@@ -543,8 +546,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 467 |
-| 檔案變更累計 | 7011 |
-| 新增行數累計 | +2875078 |
-| 刪除行數累計 | −814632 |
-| 淨增行數 | +2060446 |
+| Commit 數 | 470 |
+| 檔案變更累計 | 7013 |
+| 新增行數累計 | +2875118 |
+| 刪除行數累計 | −814646 |
+| 淨增行數 | +2060472 |
