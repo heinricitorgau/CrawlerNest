@@ -32,7 +32,7 @@ which are permanently historical.
 | Lifecycle | **operational** |
 | Freshness expectation | Regenerate before any demo or release. Current if generated within the same maintenance session. |
 | Archival expectation | Not archived. Overwritten on each regeneration. The release bundle copy is the point-in-time record. |
-| Release-facing | Yes — copied into `releases/v0.1-demo/demo_caveats.md` |
+| Release-facing | Yes — copied into `docs/releases/v0.1-demo/demo_caveats.md` |
 | Criticality | **critical** |
 
 ---
@@ -46,7 +46,7 @@ which are permanently historical.
 | Lifecycle | **operational** |
 | Freshness expectation | Regenerate before release decisions. Derived from `maintenance_readiness_summary.md`, `demo_caveats.md`, `drift_timeline.md`, `freshness_escalation.md`, and the latest snapshot. |
 | Archival expectation | Not archived individually. The release bundle copy is the point-in-time record. |
-| Release-facing | Yes — copied into `releases/v0.1-demo/operational_trust_summary.md` |
+| Release-facing | Yes — copied into `docs/releases/v0.1-demo/operational_trust_summary.md` |
 | Criticality | **critical** |
 
 ---
@@ -60,7 +60,7 @@ which are permanently historical.
 | Lifecycle | **operational** |
 | Freshness expectation | Regenerate when source data changes or before a release. Stale escalation reports may show escalation states that have since resolved. |
 | Archival expectation | Not archived. Overwritten on regeneration. |
-| Release-facing | Yes — copied into `releases/v0.1-demo/freshness_escalation.md` |
+| Release-facing | Yes — copied into `docs/releases/v0.1-demo/freshness_escalation.md` |
 | Criticality | **critical** |
 
 ---
@@ -74,7 +74,7 @@ which are permanently historical.
 | Lifecycle | **operational** |
 | Freshness expectation | Regenerate before release decisions. Derived from the latest snapshot file. |
 | Archival expectation | Not archived. Overwritten on regeneration. |
-| Release-facing | Yes — copied into `releases/v0.1-demo/maintenance_readiness_summary.md` |
+| Release-facing | Yes — copied into `docs/releases/v0.1-demo/maintenance_readiness_summary.md` |
 | Criticality | **important** |
 
 ---
@@ -205,7 +205,7 @@ which are permanently historical.
 
 ---
 
-### `releases/v0.1-demo/*.md` (bundle copies)
+### `docs/releases/v0.1-demo/*.md` (bundle copies)
 
 | Field | Value |
 | --- | --- |
@@ -226,7 +226,7 @@ which are permanently historical.
 | Regenerated on every `maintenance_overview.sh` run | `operational_trust_summary`, `operational_index_summary`, `maintenance_calm_summary`, `maintenance_navigation` |
 | Regenerated on explicit operator action | `freshness_escalation`, `drift_timeline`, `operational_summary`, `demo_caveats`, `maintenance_readiness_summary` |
 | Point-in-time, never overwritten | `snapshots/system_snapshot_*.json` |
-| Frozen at bundle-build time | `releases/v0.1-demo/*` copies |
+| Frozen at bundle-build time | `docs/releases/v0.1-demo/*` copies |
 | Grows as history accumulates | `snapshot_timeline.md/json` (content), `snapshots/` (files) |
 
 ---

@@ -35,13 +35,13 @@ from crawlernest_admission_crawler.models import (
 )
 
 _CRAWLER_DIR = (
-    Path(__file__).resolve().parent.parent
+    Path(__file__).resolve().parents[3]  # repo root: this file sits in crawlernest/packages/<package>/
     / "crawlernest"
     / "crawlernest-admission-crawler"
 )
 
 #: The crawler package imports its own modules by flat name (``from models
-#: import ...``) and the repository root also has a models.py, so its
+#: import ...``) and crawlernest-core also has a models.py, so its
 #: directories go in front. Same ordering run_admission_crawl.py uses.
 _CRAWLER_PATHS = (
     _CRAWLER_DIR.parent / "crawlernest-core",

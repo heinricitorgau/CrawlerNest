@@ -56,7 +56,7 @@ crawlernest/crawlernest-ml/artifacts/cross_source_matlab/predicted_disagreements
 *.db.bak
 *.sqlite3
 
-# Deprecated diverged copy — the live package is crawlernest_ranking_crawler/ at
+# Deprecated diverged copy — the live package is crawlernest/packages/crawlernest_ranking_crawler/ at
 # the repo root. This copy was untracked; ignored so searches and tooling skip it.
 crawlernest/crawlernest-ranking-crawler/
 
@@ -78,7 +78,13 @@ my_*.json
 my_*.jsonl
 
 # Build outputs
-.claude/
+# Local Claude Code state (settings.local.json, worktrees) stays out at every depth; the one tracked file is the
+# project's own instructions at the top level. Order matters: the directory is re-included before its contents are
+# excluded again, because git cannot re-include a file whose parent directory is excluded.
+**/.claude/
+!/.claude/
+/.claude/*
+!/.claude/CLAUDE.md
 dist/
 build/
 *.pyc
@@ -95,6 +101,6 @@ deployment-support/
 decisions.csv
 decisions.csv.*
 
-# Real secrets for the docker stack; .env.example is the committed template.
+# Real secrets for the docker stack; deploy/.env.example is the committed template.
 .env
 .env.local

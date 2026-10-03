@@ -12,10 +12,11 @@ from pathlib import Path
 TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parent.parent
 
-# crawlernest_admission_crawler lives at the repository root, which run_tests.py
-# does not put on sys.path -- it adds the crawlernest/crawlernest-* module dirs.
+# crawlernest_admission_crawler lives in crawlernest/packages/, which run_tests.py adds
+# but a standalone run does not, so both the repository root and that directory go on the path.
 sys.path.insert(0, str(REPO_ROOT))
 
+sys.path.append(str(Path(__file__).resolve().parents[1] / "packages"))  # crawlernest/packages: where the crawler packages live
 from crawlernest_admission_crawler.source_identity import (  # noqa: E402
     admission_source_entity_id,
 )

@@ -17,8 +17,8 @@ from crawlernest_ranking_crawler.subjects.contracts import (
 )
 from crawlernest_ranking_crawler.subjects.writer import write_subject_ranking_rows
 
-DEFAULT_SNAPSHOT_ROOT = Path(__file__).resolve().parents[2] / "crawlernest" / "crawlernest-kb" / "qs_subject_rankings"
-DEFAULT_UNIVERSE_ROOT = Path(__file__).resolve().parents[2] / "crawlernest" / "crawlernest-kb" / "qs_universes"
+DEFAULT_SNAPSHOT_ROOT = Path(__file__).resolve().parents[4] / "crawlernest" / "crawlernest-kb" / "qs_subject_rankings"
+DEFAULT_UNIVERSE_ROOT = Path(__file__).resolve().parents[4] / "crawlernest" / "crawlernest-kb" / "qs_universes"
 
 QS_SUBJECT_SOURCE_NAMES = {
     "computer-science": "Computer Science and Information Systems",

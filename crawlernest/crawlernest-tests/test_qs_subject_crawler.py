@@ -3,6 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import sys
+sys.path.append(str(Path(__file__).resolve().parents[1] / "packages"))  # crawlernest/packages: where the crawler packages live
 from crawlernest_ranking_crawler.subjects.contracts import (
     clean_qs_university_name,
     normalize_qs_subject_row,

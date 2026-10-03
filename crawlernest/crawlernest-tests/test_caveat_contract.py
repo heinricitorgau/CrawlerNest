@@ -146,7 +146,7 @@ def documented_year_renderings(doc: str) -> list[tuple[tuple[int, ...], str]]:
         rows.append((tuple(int(y) for y in cells[0].split(",")), cells[1]))
     return rows
 
-#: Live code paths only. `releases/` and `docs/demo/` describe the state of a
+#: Live code paths only. `docs/releases/` and `docs/demo/` describe the state of a
 #: packaged demo at a point in the past, and "RC-1 packaging" is the correct
 #: thing for a historical record to say.
 #:

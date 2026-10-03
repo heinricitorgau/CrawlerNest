@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from observability import ExtractionSummary
 
 #: Where a record's page content came from. The same three values as FETCH_MODES
-#: in crawlernest_admission_crawler/models.py and ck_admission_record_fetch in the
+#: in crawlernest/packages/crawlernest_admission_crawler/models.py and ck_admission_record_fetch in the
 #: warehouse schema; this package cannot import either, so they are repeated.
 FETCH_LIVE = "live"
 FETCH_SNAPSHOT = "snapshot"

@@ -53,6 +53,16 @@ CONCERN_DEFINITIONS: dict[str, dict[str, object]] = {
     "duolingo_comfortably_above": {"label": "Duolingo comfortably above requirement", "priority_level": 3},
 }
 
+# The deadline reading lives in crawlernest/packages/crawlernest_admission_crawler. The import below used to succeed only
+# when the repository root happened to be on sys.path, and a failure is silent -- the recommender simply stops reading
+# deadlines -- so the directory is put on the path here rather than left to whoever imported this module first.
+import sys as _sys
+from pathlib import Path as _Path
+
+_PACKAGES_DIR = _Path(__file__).resolve().parents[2] / "packages"
+if _PACKAGES_DIR.is_dir() and str(_PACKAGES_DIR) not in _sys.path:
+    _sys.path.append(str(_PACKAGES_DIR))
+
 try:
     from crawlernest_admission_crawler.deadline_interpretation import interpret_deadline_decision
 except ImportError:  # pragma: no cover - optional integration path

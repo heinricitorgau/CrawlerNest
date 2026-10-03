@@ -70,7 +70,7 @@ Covers the frontend (Next.js), backend (Spring Boot / Maven), and Python runtime
 
 ## Python Runtime
 
-**Source:** `requirements.txt` (repo root; the Lobster-01 runtime package copies this
+**Source:** `crawlernest/requirements.txt` (the Lobster-01 runtime package copies this
 file verbatim when `crawlernest/scripts/build_lobster_runtime.sh` builds it)
 
 ### Dependencies
@@ -92,8 +92,8 @@ file verbatim when `crawlernest/scripts/build_lobster_runtime.sh` builds it)
 |---|---|---|
 | `starlette==1.0.0` — very recent major version | Medium | Starlette 1.0.0 is a recent release and represents a significant versioning step. The combination with `fastapi==0.135.2` should be tested together. Currently working; monitor for breakage on reinstall. |
 | `psycopg2-binary` not recommended for production | Low | Upstream recommends building from source for production. For local/demo use, binary is acceptable. |
-| No `pip` lockfile (no `pip freeze` equivalent committed) | Low | `requirements.txt` pins exact versions, which is adequate. No secondary lockfile (`pip.lock`, `poetry.lock`) is in use. Reinstall is reproducible from pinned versions. |
-| Python 3.12 not pinned in requirements | Low | `requirements.txt` specifies packages but not Python version. Documented in environment freeze. |
+| No `pip` lockfile (no `pip freeze` equivalent committed) | Low | `crawlernest/requirements.txt` pins exact versions, which is adequate. No secondary lockfile (`pip.lock`, `poetry.lock`) is in use. Reinstall is reproducible from pinned versions. |
+| Python 3.12 not pinned in requirements | Low | `crawlernest/requirements.txt` specifies packages but not Python version. Documented in environment freeze. |
 
 ---
 
@@ -103,7 +103,7 @@ file verbatim when `crawlernest/scripts/build_lobster_runtime.sh` builds it)
 |---|---|---|
 | Frontend packages | `package-lock.json` v3 (exact resolved) | Strong — use `npm ci` |
 | Java dependencies | Spring Boot BOM 3.2.3 (ranges managed) | Strong |
-| Python packages | `requirements.txt` (exact pins) | Adequate |
+| Python packages | `crawlernest/requirements.txt` (exact pins) | Adequate |
 | Node.js version | `.nvmrc` (`20`) plus `verify_local_environment.sh` (`>=20.9`) | Adequate for RC-1 |
 | Java version | `<java.version>17</java.version>` in pom.xml | Strong |
 | Python interpreter | Not pinned | Weak — document gap |

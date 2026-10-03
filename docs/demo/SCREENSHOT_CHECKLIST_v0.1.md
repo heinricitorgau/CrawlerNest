@@ -303,13 +303,13 @@ Capture these to document system state at time of milestone.
 Store screenshots under:
 
 ```
-releases/v0.1-demo/screenshots/
+docs/releases/v0.1-demo/screenshots/
 ```
 
 Use the filenames specified above. If a screenshot cannot be captured (service not running, endpoint not reachable), create a placeholder file:
 
 ```bash
-echo "[missing — service not running at capture time]" > releases/v0.1-demo/screenshots/FILENAME.txt
+echo "[missing — service not running at capture time]" > docs/releases/v0.1-demo/screenshots/FILENAME.txt
 ```
 
 ---

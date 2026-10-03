@@ -4,7 +4,7 @@ Modelling layer over the QS indicator data. It sits **beside** the deterministic
 pipeline, never inside it: nothing here writes to `analytics.aggregated_rankings`
 or changes a published rank, and every model output is stored and labelled as an
 estimate. This is the same honesty contract the rest of the repo runs on — see
-the "No black-box scores" rule in the root [`CLAUDE.md`](../../CLAUDE.md).
+the "No black-box scores" rule in the project [`CLAUDE.md`](../../.claude/CLAUDE.md).
 
 Status: feature layer, EDA, two evaluated models, and a serving path that writes
 estimates into `analytics.ml_predictions` for the API to read. Full records in
@@ -53,7 +53,7 @@ evaluation only.
 ## Running it
 
 ```bash
-./.venv/bin/pip install -r requirements-ml.txt
+./.venv/bin/pip install -r crawlernest/requirements-ml.txt
 PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.features.build_features
 PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.eda.run_eda
 PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.training.train_overall_score

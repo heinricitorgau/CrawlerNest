@@ -9,6 +9,8 @@ from pathlib import Path
 MODULE_ROOT = Path(__file__).resolve().parents[1]
 if str(MODULE_ROOT.parent) not in sys.path:
     sys.path.insert(0, str(MODULE_ROOT.parent))
+if str(MODULE_ROOT / "packages") not in sys.path:
+    sys.path.append(str(MODULE_ROOT / "packages"))
 
 from crawlernest_ranking_crawler.postgres_driver import get_psycopg2  # noqa: E402
 from crawlernest_ranking_crawler.subjects.qs_subject import (  # noqa: E402

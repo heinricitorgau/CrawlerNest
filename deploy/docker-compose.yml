@@ -1,7 +1,10 @@
 # The whole stack: PostgreSQL, the Spring Boot read API, the Python agent API and
 # the Next.js frontend.
 #
-# Every credential comes from the environment (.env, from .env.example). Nothing
+# Run it from the repository root: docker compose -f deploy/docker-compose.yml up --build
+#
+# Every credential comes from the environment (deploy/.env, copied from deploy/.env.example;
+# compose reads .env from the directory the compose file is in). Nothing
 # here carries a default password: a compose file that boots with "test/test" is
 # the thing that ends up on a server.
 #
@@ -33,7 +36,7 @@ services:
 
   api:
     build:
-      context: ./crawlernest/servise_for_java
+      context: ../crawlernest/servise_for_java
     container_name: crawlernest-api
     restart: unless-stopped
     depends_on:
@@ -62,8 +65,8 @@ services:
 
   agent:
     build:
-      context: .
-      dockerfile: Dockerfile.agent
+      context: ..
+      dockerfile: deploy/Dockerfile.agent
     container_name: crawlernest-agent
     restart: unless-stopped
     depends_on:
@@ -96,7 +99,7 @@ services:
 
   web:
     build:
-      context: ./crawlernest/crawlernest-web
+      context: ../crawlernest/crawlernest-web
       args:
         # Baked into the browser bundle at build time, so they are build args as
         # well as runtime variables.

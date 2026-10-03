@@ -28,7 +28,7 @@ python cli/run_agent.py --task "summarize current task"
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+pip install -r crawlernest/requirements.txt
 ```
 
 Start the FastAPI server from the `mini_agent/` directory:

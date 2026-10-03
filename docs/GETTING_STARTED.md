@@ -24,7 +24,7 @@ Complete setup guide for running CrawlerNest locally from scratch.
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r crawlernest/requirements.txt
 ```
 
 ---
@@ -34,7 +34,7 @@ pip install -r requirements.txt
 **Option A — Docker (easiest):**
 
 ```bash
-docker compose -f docker-compose.postgres.yml up -d
+docker compose -f deploy/docker-compose.postgres.yml up -d
 ```
 
 This provides PostgreSQL 16 with the expected role, password, and database

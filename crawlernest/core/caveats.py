@@ -31,7 +31,7 @@ true when written:
     reaching a user from ``analytics.ml_predictions`` must carry it -- see
     ``agent/tools/ml_tools.py``, which cannot hand back an estimate without it.
 
-Deliberately not fixed here: ``releases/`` and ``docs/demo/`` describe the state
+Deliberately not fixed here: ``docs/releases/`` and ``docs/demo/`` describe the state
 of a packaged demo at a point in the past. "RC-1 packaging" is the correct thing
 for a historical record to say.
 

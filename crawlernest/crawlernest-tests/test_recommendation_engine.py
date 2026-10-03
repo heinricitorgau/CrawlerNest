@@ -22,6 +22,7 @@ from recommendation_engine import (  # noqa: E402
 )
 from recommendation_engine.engine import _build_decision_strategy  # noqa: E402
 from crawlernest.core.services.recommendation_service import RecommendationService  # noqa: E402
+sys.path.append(str(Path(__file__).resolve().parents[1] / "packages"))  # crawlernest/packages: where the crawler packages live
 from crawlernest_admission_crawler.resolver import ResolvedAdmissionField  # noqa: E402
 
 

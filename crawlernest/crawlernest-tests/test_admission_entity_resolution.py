@@ -22,6 +22,7 @@ from entity_resolution.resolver import EntityResolver  # noqa: E402
 from entity_resolution.types import CanonicalProfile, ResolutionResult  # noqa: E402
 from multi_source.reviews import MappingReview, apply_mapping_reviews  # noqa: E402
 
+sys.path.append(str(Path(__file__).resolve().parents[1] / "packages"))  # crawlernest/packages: where the crawler packages live
 from crawlernest_admission_crawler.entity_resolver import (  # noqa: E402
     SOURCE_CODE,
     _empty_counts,
