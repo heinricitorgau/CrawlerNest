@@ -104,6 +104,10 @@ June of year T; ARWU edition T appears in August of year T, after it. A QS forec
 ARWU's edition T. The first version of the experiment did, which is a leak however it is labelled; QS's
 numbers barely moved when it was removed, but it was the wrong comparison.
 
+Last re-run 2026-10-03 (MATLAB R2026a Update 4) on `cross_edition_ranks.csv` with SHA-256 `a829c544…9139`,
+the file committed after the Perugia load. It reproduced every number below and every committed CSV byte for
+byte; the figure was re-rendered with different bytes (same size) and the committed one was kept.
+
 Pooled over test editions, all strata. Error is mean distance to the printed band in log10 rank; "vs drift"
 is the error saved against `persist_drift`, with its 95% interval.
 
