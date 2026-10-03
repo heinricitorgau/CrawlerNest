@@ -86,16 +86,31 @@ class TestRankingSummaryReadersIgnoreOtherUniverses(unittest.TestCase):
         }
 
     def setUp(self):
+        self.created_source_id = None
         self.conn = self.psycopg2.connect(**self.dsn)
-        # tearDown does not run when setUp raises (a skip included), so the connection is
-        # closed by a cleanup instead. A connection left open with its insert uncommitted
-        # holds the fixture's slug, and the next test's setUp waits on it forever.
+        # tearDown does not run when setUp raises, so the connection is closed by a cleanup
+        # instead. A connection left open with its insert uncommitted holds the fixture's
+        # slug, and the next test's setUp waits on it forever.
         self.addCleanup(self.conn.close)
+        # Cleanups run last-in first-out, so the source goes before the connection closes.
+        self.addCleanup(self._remove_created_source)
         self._clear()
         self.canonical_university_id = self._seed()
 
     def tearDown(self):
         self._clear()
+
+    def _remove_created_source(self):
+        """Delete the QS source row only if this test created it (a crawled database has its own)."""
+        if self.created_source_id is None:
+            return
+        self._clear()  # its ranking rows reference the source
+        with self.conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM warehouse.ranking_source WHERE ranking_source_id = %s",
+                (self.created_source_id,),
+            )
+        self.conn.commit()
 
     def _clear(self):
         with self.conn.cursor() as cur:
@@ -121,13 +136,20 @@ class TestRankingSummaryReadersIgnoreOtherUniverses(unittest.TestCase):
         back 2 instead of 1.
         """
         with self.conn.cursor() as cur:
-            # Look the source up before writing anything: a skip after the insert would
-            # leave the insert uncommitted.
+            # The readers under test report the source's code, so the fixture needs a row for
+            # QS. A freshly bootstrapped database (CI) has none; a crawled one does. Create
+            # it only when missing and remember that we did, so cleanup removes what this
+            # test made and never a source a crawl registered.
             cur.execute("SELECT ranking_source_id FROM warehouse.ranking_source WHERE source_code = 'QS'")
             row = cur.fetchone()
             if row is None:
-                self.conn.rollback()
-                self.skipTest("warehouse.ranking_source has no QS row to attach the fixture to")
+                cur.execute(
+                    "INSERT INTO warehouse.ranking_source (source_code, source_name)"
+                    " VALUES ('QS', 'QS World University Rankings (ranking-scope fixture)')"
+                    " RETURNING ranking_source_id"
+                )
+                row = cur.fetchone()
+                self.created_source_id = row[0]
             ranking_source_id = row[0]
 
             cur.execute(
