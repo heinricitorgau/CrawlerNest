@@ -12,6 +12,7 @@ same committed snapshots and producing the same numbers. Tested on MATLAB
 | Phase 3 dataset | `build_cross_source_data.m` | `features/cross_source.py` | `artifacts/cross_source_matlab/` |
 | Phase 3 classifier | `train_disagreement_classifier.m` | `training/train_disagreement.py` | none — see below |
 | Phase 3 diagnostics | `plot_disagreement_diagnostics.m` | `training/train_disagreement.py` | `artifacts/cross_source_matlab/` |
+| Cross-edition forecast (not a port: MATLAB first) | `run_cross_edition_forecast.m` | `features/cross_edition.py` (deterministic part only) | `artifacts/cross_edition_matlab/` |
 
 They exist as *ports*, not rewrites: the point is that two independent
 implementations agree on the numbers the modelling decisions rest on. Each
@@ -74,6 +75,93 @@ are rare because few universities are near the top. The 799 rows QS withholds a
 score for are not in this histogram at all — that gap is what the PCA figure is
 about.
 
+## Cross-edition forecast
+
+This one is not a port. It asks a question the single-edition modelling above could not, now that the
+warehouse holds 2015-2026: **can the rank a source prints in the next edition be predicted better than
+"no change"?** Input is `crawlernest-kb/databases/cross_edition_ranks.csv`, exported from the warehouse by
+`crawlernest/scripts/export_cross_edition_ranks.py`; its SHA-256 is recorded beside it and checked on load.
+
+```matlab
+r = run_cross_edition_forecast();                         % writes artifacts/cross_edition_matlab/
+r = run_cross_edition_forecast(SaveOutput=false, Boot=200)  % quick, writes nothing
+```
+
+For every university a source ranks in two consecutive editions, the next band is predicted from the
+band it printed, the edition before, and what the other sources printed. Models are fitted only on earlier
+editions (an expanding window, test editions 2020-2026), so every test year is out of time. A prediction is
+scored against the **printed band**, not a point: the error is the distance in log10 rank to the band, zero
+inside it. Models: `persist_mid` (the baseline: last band's geometric midpoint), `persist_lo`, `persist_drift`
+(persistence shifted by the training drift), `linear_own` (least squares on the university's own band only),
+`linear` (adds the previous edition and the other sources) and `gbt` (LSBoost; hyperparameters fixed before
+looking at any test year). The two controls exist because beating persistence is a weak claim: a model must
+beat `persist_drift` to say anything beyond list growth, and `linear` must beat `linear_own` to say that
+other editions or sources carry information. Intervals are a paired bootstrap over **universities**, 2,000
+resamples, seed 20261003.
+
+**What may be a feature is decided by publication date, not by the edition label.** QS edition T+1 appears in
+June of year T; ARWU edition T appears in August of year T, after it. A QS forecast therefore does not see
+ARWU's edition T. The first version of the experiment did, which is a leak however it is labelled; QS's
+numbers barely moved when it was removed, but it was the wrong comparison.
+
+Pooled over test editions, all strata. Error is mean distance to the printed band in log10 rank; "vs drift"
+is the error saved against `persist_drift`, with its 95% interval.
+
+| Source | Pairs scored | `persist_mid` | `persist_drift` | `linear_own` | `linear` | vs drift (`linear`) | `gbt` | vs drift (`gbt`) |
+|---|---|---|---|---|---|---|---|---|
+| ARWU | 6,457 | 0.02406 | 0.02406 | 0.02398 | **0.02302** | +0.00104 [+0.00078, +0.00130] | 0.02368 | +0.00038 [-0.00057, +0.00110] |
+| THE | 9,541 | 0.02451 | 0.02429 | 0.02337 | **0.02205** | +0.00224 [+0.00200, +0.00247] | 0.02374 | +0.00055 [+0.00001, +0.00105] |
+| QS | 6,436 | 0.03202 | 0.03184 | 0.03708 | 0.03738 | -0.00554 [-0.00660, -0.00449] | 0.03735 | -0.00551 [-0.00673, -0.00453] |
+
+![Error by test edition](../artifacts/cross_edition_matlab/forecast_error_by_year.png)
+
+**What it says.**
+
+- **ARWU and THE: a small, consistent gain from `linear`.** About 4% and 9% less error than persistence, and
+  the interval excludes zero in every one of the seven test editions for ARWU and THE. More than half of THE's
+  gain, and all of ARWU's, comes from the added features rather than the own band: `linear_own` saves 0.0009
+  (THE) and nothing measurable (ARWU) against the drift baseline. So the previous edition and the other sources
+  carry some information. That is what was measured; why is not.
+- **Drift is not the story.** `persist_drift` is within 0.00025 of `persist_mid` in every source: the median
+  university stays in its band and the mean shift is tiny.
+- **Boosting does not help.** `gbt` is weaker than `linear` for both and is worse than persistence in some
+  editions (THE 2023). The signal is small and the trees fit noise.
+- **QS: nothing learned beats persistence, and the loss is one edition.** 2023 costs 0.018-0.028; by 2025-2026
+  `linear` is level with or slightly ahead of persistence (+0.0001, +0.0006). QS has no 2021 and its list was
+  extended, so in 2023 the models had been fitted on 2019-2020 transitions only and met a table whose bottom
+  bands had been renumbered. That is an explanation consistent with the data, not a tested one.
+- **It does not improve hit rate.** `linear` lands in the printed band slightly *less* often than `persist_mid`
+  (ARWU 0.530 vs 0.552, THE 0.537 vs 0.552, QS 0.243 vs 0.257); it moves closer when it misses. And in the
+  `exact_at_t` stratum (the top ranks, where bands have width zero) no learned model beats `persist_mid`:
+  all are measurably worse except QS `linear_own` and THE `linear`, which tie. The gain is entirely among
+  banded ranks.
+- **The effect is small in absolute terms.** An error of 0.022 log10 is about 5% of the rank. This is not a
+  forecasting model anyone should rely on, and it is not an explanation of why universities move.
+- **Errors spike in particular editions** (THE 2024 about 0.044 against 0.02, QS 2024 about 0.055 against 0.03),
+  for persistence as much as for the models. Those are, from memory of the sources' announcements and not
+  checked here, the editions in which each source changed its methodology. If so, the error there is the
+  methodology, which no rank history could predict.
+
+**What it does not show.** Only universities ranked in both editions are in it, so it says nothing about who
+enters or leaves a list, and the lists grow (ARWU 500 -> 1,000 places, THE 401 -> 2,191, QS 889 -> 1,503 here).
+QS's pairs are 2018-19, 2019-20 and 2022-26 only. A university the warehouse still holds on the wrong canonical
+is one series. QS's 2016-2024 editions come from Internet Archive captures, and their ranks are the printed
+band's lower bound parsed from the printed text, never the warehouse's `rank_position` (an ordinal for QS 2025
+and 2026). Nothing here is causal.
+
+**Parity.** `ranking_ml.evaluation.check_cross_edition_parity` re-derives the pair construction, the
+persistence baselines, `persist_drift` and both least-squares models in Python, sharing no code with the MATLAB,
+and compares them with the committed artifact: exact for the baselines (1e-9), 1e-7 for least squares, plus
+that every model was scored on the same rows. The comparison caught one real divergence while this was being
+built: for QS in 2020 the imputed "previous rank" column equals the own-rank column in every training pair, and
+MATLAB's `fitlm` and a NumPy solve resolve that collinearity differently. The column rule is now explicit in
+both (`ols_fit_predict` here, `ols_predict` there). `gbt` and the bootstrap are not compared: they agree
+only to within sampling noise.
+
+```bash
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.evaluation.check_cross_edition_parity
+```
+
 ## Files
 
 ```
@@ -86,6 +174,9 @@ qs_support_flagger.m             distance-to-training-data flag
 build_cross_source_data.m        QS/THE join, percentile gap, disagreement label
 train_disagreement_classifier.m  stratified CV, logistic and boosted models
 plot_disagreement_diagnostics.m  ROC, precision-recall and reliability panels
+load_cross_edition_ranks.m       cross-edition export CSV -> table, hash-checked
+build_forecast_pairs.m           consecutive-edition pairs, features, publication-timing rule
+run_cross_edition_forecast.m     expanding-window forecast, controls, bootstrap, figure
 ```
 
 The first three are shared by everything else, so a change to one of them can

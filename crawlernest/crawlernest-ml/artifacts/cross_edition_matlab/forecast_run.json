@@ -1,0 +1,20 @@
+{
+  "matlab": "26.1.0.3312084 (R2026a) Update 4",
+  "seed": 2.0261003E+7,
+  "bootstrap_resamples": 2000,
+  "test_from": 2020,
+  "min_train": 200,
+  "hyperparameters": {
+    "NumLearningCycles": 150,
+    "LearnRate": 0.05,
+    "MaxNumSplits": 6,
+    "MinLeafSize": 20
+  },
+  "data_sha256": "6d1954fb77fc66b15bb42570e570d35395ab249e94807decc5e6c780360371b5",
+  "pairs_per_source": {
+    "QS": 7353,
+    "THE": 12521,
+    "ARWU": 9122
+  },
+  "open_ended_midpoint_factor": 1.25
+}
