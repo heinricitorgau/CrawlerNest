@@ -1,14 +1,16 @@
 # Tassel: the desk's application counselor
 
-Status, 2026-10-18: **the prompt and the tool definitions exist and are tested; nothing sends them to a model
-yet.** The chat on `/desk` still goes to `/api/agent/chat`, the read-only CrawlerNest Agent. Connecting Tassel
-is the `chat/message` tool loop in
-[`DESK_SCHEMA_AND_API.md`](../architecture/DESK_SCHEMA_AND_API.md) (implementation order, step 3).
+Status, 2026-10-18: **live.** The chat on `/desk` is Tassel. The Spring Boot API runs the tool loop
+(`clawer.desk.chat`, documented in [`DESK_SCHEMA_AND_API.md`](../architecture/DESK_SCHEMA_AND_API.md) under
+"Tassel"). It sends this prompt and these tools to the model, validates and records every call, and returns
+each action's real status beside the reply.
 
 | What | Where |
 |---|---|
-| System prompt and per-request context | `crawlernest/crawlernest-web/src/lib/tassel/systemPrompt.ts` |
-| Tool definitions (JSON Schema, OpenAI-compatible format) and what the API does with each call | `crawlernest/crawlernest-web/src/lib/tassel/tools.json` |
+| System prompt | `servise_for_java/src/main/resources/prompts/tassel_system.txt` |
+| Per-request context (today, mode, tasks, schools, essay titles) | `TasselChatService.context` |
+| Tool definitions (JSON Schema, OpenAI-compatible format) and what the API does with each call | `servise_for_java/src/main/resources/prompts/tassel_tools.json` |
+| Executing the calls | `TasselToolExecutor`, plus `ChatActionService` for confirm, reject and undo |
 | The tool names the database accepts | `servise_for_java/src/main/resources/db/auth/V004__tassel_tool_allow_list.sql` |
 | The essay rubric that Tassel's review section copies | `servise_for_java/src/main/resources/prompts/essay_rubric.json` |
 | Tests that hold them together | `tasselPrompt.test.ts` (jest), `TasselToolsContractTest` (Java) |
@@ -79,6 +81,7 @@ Choices built into the schemas:
 
 ## What the tests hold
 
+- `TasselChatIntegrationTest` (16): the loop with a scripted model; applied, proposed and failed calls; undo, confirm and reject; another user's rows; the exact-name rule; the round limit; no scores in the context.
 - `tasselPrompt.test.ts`:
   - the prompt states every rubric dimension exactly as `essay_rubric.json` defines it;
   - it names each tool, and no tool that does not exist;

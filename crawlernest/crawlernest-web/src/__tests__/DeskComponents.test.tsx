@@ -10,7 +10,6 @@ import {
   resonanceTier,
 } from "@/components/desk";
 import { clampPercent, daysUntil } from "@/components/desk/meter";
-import { DESK_CHAT_UNREACHABLE, sendDeskPrompt } from "@/lib/deskChat";
 
 const TODAY = new Date("2026-10-18T12:00:00Z");
 
@@ -120,43 +119,7 @@ describe("DeskTabBar", () => {
   });
 });
 
-describe("sendDeskPrompt", () => {
-  function fakeFetch(status: number, body: unknown) {
-    return jest.fn().mockResolvedValue({ ok: status < 400, json: async () => body }) as unknown as typeof fetch;
-  }
-
-  it("posts to the agent chat route and keeps the warnings", async () => {
-    const fetchImpl = fakeFetch(200, {
-      success: true,
-      data: { data: { explanation: "Here is a plan." }, warnings: ["YEAR_FALLBACK: answer describes 2025"] },
-    });
-    const reply = await sendDeskPrompt("plan my week", "s1", fetchImpl);
-    expect(fetchImpl).toHaveBeenCalledWith("/api/agent/chat", expect.objectContaining({ method: "POST" }));
-    expect(JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body)).toEqual({ message: "plan my week", session_id: "s1" });
-    expect(reply).toEqual({ ok: true, text: "Here is a plan.", warnings: ["YEAR_FALLBACK: answer describes 2025"] });
-  });
-
-  it("reports a provider failure as an error, with its message", async () => {
-    const reply = await sendDeskPrompt("hi", "s1", fakeFetch(503, { success: false, error: "Provider down" }));
-    expect(reply.ok).toBe(false);
-    expect(reply.text).toBe("Provider down");
-  });
-
-  it("reports an unreachable route", async () => {
-    const fetchImpl = jest.fn().mockRejectedValue(new TypeError("network")) as unknown as typeof fetch;
-    expect(await sendDeskPrompt("hi", "s1", fetchImpl)).toEqual({ ok: false, text: DESK_CHAT_UNREACHABLE, warnings: [] });
-  });
-});
-
 describe("ChatPanel replies", () => {
-  it("shows the agent's coded disclosures above the reply", () => {
-    const warning = "UnsupportedYearWarning: Year 2019 is not available.";
-    render(<ChatPanel messages={[{ id: "a", role: "assistant", content: "Answer", warnings: [warning] }]} onSend={jest.fn()} />);
-    const banner = screen.getByRole("alert", { name: "Response disclosures" });
-    expect(banner).toHaveTextContent("Year 2019 is not available.");
-    expect(banner.compareDocumentPosition(screen.getByText("Answer"))).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-  });
-
   it("marks a failed reply as an alert", () => {
     render(<ChatPanel messages={[{ id: "a", role: "assistant", content: "Provider down", error: true }]} onSend={jest.fn()} />);
     expect(screen.getByRole("alert")).toHaveTextContent("Provider down");

@@ -136,7 +136,8 @@ public class NarrativeService {
 
     private record Draft(long id, String title, String text) {}
 
-    private record Theme(String title, String summary, List<String> traits, ArrayNode evidence) {}
+    /** A theme ready to store: evidence already checked against its sources. */
+    public record Theme(String title, String summary, List<String> traits, ArrayNode evidence) {}
 
     /** Draws one or two themes from the user's drafts and stores them as suggestions, replacing open ones. */
     public Map<String, Object> generateThemes(long userId) {
@@ -168,24 +169,40 @@ public class NarrativeService {
                     "No theme could be tied to quotes from your drafts, so nothing was stored. Try again after another draft.");
         }
 
-        tx.executeWithoutResult(status -> {
-            jdbc.update("DELETE FROM desk.user_theme WHERE user_id = ? AND status = 'suggested'", userId);
-            for (Theme t : reply.value()) {
-                jdbc.update("""
-                        INSERT INTO desk.user_theme (user_id, title, summary, traits, evidence, model_name, prompt_version)
-                        VALUES (?, ?, ?, ?, ?::jsonb, ?, ?)
-                        """, ps -> {
-                    ps.setLong(1, userId);
-                    ps.setString(2, t.title());
-                    ps.setString(3, t.summary());
-                    ps.setArray(4, ps.getConnection().createArrayOf("text", t.traits().toArray()));
-                    ps.setString(5, t.evidence().toString());
-                    ps.setString(6, reply.modelName());
-                    ps.setString(7, THEMES_PROMPT_VERSION);
-                });
-            }
-        });
+        tx.executeWithoutResult(status -> storeSuggestedThemes(userId, reply.value(), reply.modelName(), THEMES_PROMPT_VERSION));
         return narrative(userId, false);
+    }
+
+    /**
+     * Replaces the user's open suggestions with these themes; accepted themes are
+     * untouched. Run inside the caller's transaction. Also used by Tassel's
+     * generate_narrative_themes, whose evidence the tool executor has checked.
+     *
+     * @return the new themes' ids
+     */
+    public List<Long> storeSuggestedThemes(long userId, List<Theme> themes, String modelName, String promptVersion) {
+        jdbc.update("DELETE FROM desk.user_theme WHERE user_id = ? AND status = 'suggested'", userId);
+        List<Long> ids = new ArrayList<>();
+        for (Theme t : themes) {
+            ids.add(jdbc.query(con -> {
+                var ps = con.prepareStatement("""
+                        INSERT INTO desk.user_theme (user_id, title, summary, traits, evidence, model_name, prompt_version)
+                        VALUES (?, ?, ?, ?, ?::jsonb, ?, ?) RETURNING id
+                        """);
+                ps.setLong(1, userId);
+                ps.setString(2, t.title());
+                ps.setString(3, t.summary());
+                ps.setArray(4, con.createArrayOf("text", t.traits().toArray()));
+                ps.setString(5, t.evidence().toString());
+                ps.setString(6, modelName);
+                ps.setString(7, promptVersion);
+                return ps;
+            }, rs -> {
+                rs.next();
+                return rs.getLong(1);
+            }));
+        }
+        return ids;
     }
 
     private List<Theme> parseThemes(JsonNode root, Map<Long, String> drafts) {

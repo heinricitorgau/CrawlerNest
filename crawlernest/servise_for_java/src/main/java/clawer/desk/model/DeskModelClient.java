@@ -17,4 +17,18 @@ public interface DeskModelClient {
     }
 
     Reply complete(String systemPrompt, String userPrompt);
+
+    /**
+     * The assistant's next message in a conversation that may call tools.
+     *
+     * @param message the assistant message as the provider returned it:
+     *                {@code content} and, when it called tools, {@code tool_calls}
+     */
+    record ChatTurn(com.fasterxml.jackson.databind.JsonNode message, String modelName) {}
+
+    /**
+     * @param messages OpenAI-format messages, system first
+     * @param tools    OpenAI-format tool definitions, sent as is
+     */
+    ChatTurn chat(com.fasterxml.jackson.databind.node.ArrayNode messages, com.fasterxml.jackson.databind.JsonNode tools);
 }

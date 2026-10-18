@@ -1,9 +1,9 @@
 # "Your desk": schema and API design
 
-Status, 2026-10-18: **everything below is live except the chat tool loop** (`chat/message`, which is what
-would turn the chat into Tassel). On `/desk`, every card reads the API, and none holds sample data:
+Status, 2026-10-18: **everything below is live.** On `/desk`, every card reads the API, and none holds sample
+data:
 
-- the chat (still `/api/agent/chat`, the read-only CrawlerNest Agent);
+- the chat is Tassel (`/api/v1/user/desk/chat`, below), and its changes show as cards with undo or confirm;
 - the sprint with its tasks, application deadlines, and skills with practice logging;
 - essay review, and the narrative themes with resonance.
 
@@ -75,96 +75,72 @@ Envelope: the existing `ApiResponse` (`success`, `data`, `metadata`). Errors use
 `{"success": false, "error": {"code": "...", "message": "..."}}`. Responses that contain model output carry a
 `caveats` array, and each estimated value keeps `isEstimated`.
 
-### `POST /api/v1/chat/message`
+### Tassel: `/api/v1/user/desk/chat/*` (implemented)
 
-Flow:
+Code: `clawer.desk.chat` (`TasselChatService`, `TasselToolExecutor`, `ChatActionService`) and
+`ChatController`. The design draft put this at `/api/v1/chat/message` and had Spring Boot call the agent API
+on `:8090`. As built, it sits under `/api/v1/user/desk` like the rest of the desk, and Spring Boot calls the
+model itself through the shared `DeskModelClient`. The Python agent stays out of the write path.
 
-1. Spring Boot receives the message.
-2. It calls the agent API (`:8090`) with the message, the tool schemas below and a small context: the
-   titles and ids of open tasks and targets.
-3. The agent returns a reply plus zero or more tool calls.
-4. Spring Boot checks each tool call against the allow-list and runs the same validation a form submit
-   gets.
-5. Each call is then **applied** or **proposed**:
-   - **applied:** additive and reversible actions, `create_task` and `add_target_entity`;
-   - **proposed:** changes to an existing record, `update_task_status` and `update_target_stage`. The user
-     confirms these.
+| Method and path | What it does |
+|---|---|
+| `POST /chat/message` | One turn. Body: `{"sessionId", "message", "history"?: [{"role": "user" \| "assistant", "content"}], "mode"?: "general" \| "brainstorming" \| "review"}`. |
+| `GET /chat/actions?sessionId=` | A session's recorded actions, for this user only. |
+| `POST /chat/actions/{id}/confirm` and `.../reject` | Decide a `proposed` action. |
+| `POST /chat/actions/{id}/undo` | Reverse an `applied` action, within 24 hours. |
 
-Every call gets a `chat_action` row, including ones that fail validation.
+**One turn:**
 
-Request:
+1. The system prompt is `prompts/tassel_system.txt` followed by a context block built from the user's own
+   desk: today in their time zone, the mode, open tasks, schools and essay titles, each with its id. It
+   holds no scores, because Tassel gives none in chat.
+2. The model is called with the browser-sent history (at most 20 turns), the new message, and the tools in
+   `prompts/tassel_tools.json`.
+3. `TasselToolExecutor` handles each tool call, validating it with the desk forms' rules. It writes a
+   `desk.chat_action` row whether the call succeeds or fails, then applies the call, proposes it, or refuses
+   it. The result goes back to the model as a `tool` message with the status first.
+4. Steps 2 and 3 repeat until the model answers without a tool call: at most 3 tool rounds, and 5 calls per
+   turn. When the limit stops it, the reply says so.
+
+The conversation itself is not stored, only the actions. The browser holds the history.
+
+**What each tool does when it runs:**
+
+| Tool | Outcome |
+|---|---|
+| `create_action_task` | Applied: a task with `created_by = 'agent'` and `source_action_id`. A due date before today, in the user's time zone, fails. |
+| `update_target_list` `add` | Applied. The name links to a warehouse university only on a unique, case- and spacing-insensitive exact match of the display name, native name or alias; a trailing all-caps parenthetical such as "(MIT)" is ignored. Merged records never match. Otherwise the user's wording is kept as `custom_name`. |
+| `update_target_list` `update` / `remove` | Proposed. Applied only on `confirm`, through `DeskTargetService`. Another user's school fails. |
+| `generate_narrative_themes` | Applied as `suggested` themes. Each quote must occur in one of the user's messages this turn, or in an essay draft they own. Unmatched quotes are dropped, and a theme left with no quote is dropped. |
+
+**Response** (`data`):
 
 ```json
 {
-  "sessionId": "8a3f2c1e-5b7d-4e09-9c61-2f4d8b0a7e15",
-  "message": "Remind me to finish my MIT supplement by Oct 25, and move Stanford to applying."
+  "turnIndex": 6,
+  "reply": { "text": "...", "paragraphs": ["..."] },
+  "actions": [
+    { "id": "c2b1e7d4-...", "tool": "create_action_task", "status": "applied",
+      "message": "Added the task \"Send SAT scores to MIT\", due 2026-10-25.",
+      "arguments": { "...": "..." }, "result": { "table": "task", "id": 812 } }
+  ],
+  "disclosure": { "model": "...", "userDataWrites": [{ "table": "desk.task", "id": 812 }],
+                  "warehouseWrites": false, "pipelineRuns": false }
 }
 ```
 
-Response `200`:
+**Change from the draft:** the draft said the API would check the reply text against the action statuses and
+append a correction. As built, it does not parse prose. Instead, two things keep the outcome honest:
 
-```json
-{
-  "success": true,
-  "data": {
-    "turnIndex": 6,
-    "reply": {
-      "text": "Added a task for the MIT supplement, due Oct 25. Moving Stanford to \"applying\" changes your list, so confirm it below.",
-      "paragraphs": [
-        "Added a task for the MIT supplement, due Oct 25.",
-        "Moving Stanford to \"applying\" changes your list, so confirm it below."
-      ]
-    },
-    "actions": [
-      {
-        "id": "c2b1e7d4-0f3a-4a8e-b5c9-71d2e6f0a934",
-        "tool": "create_task",
-        "status": "applied",
-        "arguments": { "title": "Finish MIT supplement", "dueDate": "2026-10-25", "priority": "high", "targetEntityId": 41 },
-        "result": { "table": "task", "id": 812 },
-        "undoUrl": "/api/v1/chat/actions/c2b1e7d4-0f3a-4a8e-b5c9-71d2e6f0a934/undo"
-      },
-      {
-        "id": "5e9d0a6b-3c2f-4f71-8a1e-0b7c4d9e2f58",
-        "tool": "update_target_stage",
-        "status": "proposed",
-        "arguments": { "targetEntityId": 44, "from": "shortlisted", "to": "applying" },
-        "result": null,
-        "confirmUrl": "/api/v1/chat/actions/5e9d0a6b-3c2f-4f71-8a1e-0b7c4d9e2f58/confirm",
-        "rejectUrl": "/api/v1/chat/actions/5e9d0a6b-3c2f-4f71-8a1e-0b7c4d9e2f58/reject"
-      }
-    ],
-    "warnings": [],
-    "disclosure": {
-      "model": "gpt-4.1-mini",
-      "userDataWrites": [{ "table": "desk.task", "id": 812 }],
-      "warehouseWrites": false,
-      "pipelineRuns": false
-    }
-  },
-  "metadata": { "timestamp": "2026-10-18T08:41:07Z" }
-}
-```
+- the model is given each real status before it writes the reply;
+- the UI draws every action from its status as a card under the reply (Done, Waiting for you,
+  Didn't happen), with Undo, Confirm or Reject.
 
-- `warnings` passes the agent's coded disclosures through unchanged, for `AgentWarningBanner`.
-- `disclosure` replaces the old route's `dbWrites: false`, which becomes untrue once this route writes
-  anything. It lists exactly which user rows changed, and states that the warehouse was not touched.
-- A tool call that fails validation comes back with `"status": "failed"` and the validation message in
-  `result`. The reply text must not claim it succeeded: the API checks that the model's text and the
-  action statuses agree, and appends a correction if they do not.
+A reply that misstated an outcome would be contradicted on the same screen.
 
-Companion endpoints:
-
-- `POST /api/v1/chat/actions/{id}/confirm`, `.../reject` and `.../undo`. Undo works on `applied` actions
-  for 24 hours.
-- The CRUD endpoints, listed under "CRUD endpoints" below.
-
-Tool schemas: Tassel's three tools, `update_target_list`, `create_action_task` and
-`generate_narrative_themes`, defined in `crawlernest-web/src/lib/tassel/tools.json`. See
-[`docs/agent/TASSEL_ASSISTANT.md`](../agent/TASSEL_ASSISTANT.md). They replace the four draft tools above,
-and `V004__tassel_tool_allow_list.sql` makes `desk.chat_action` allow exactly those names. The request and
-response examples above still use the draft tool names (`create_task`, `update_target_stage`); read them as
-`create_action_task` and `update_target_list`.
+Tests: `TasselChatIntegrationTest` (16, with a scripted model) and `TasselChat.test.tsx`. The whole loop was
+also run against a fake OpenAI-compatible server: tool calls in the wire format, results returned by
+`tool_call_id`, then undo.
 
 ### Narrative: `/api/v1/user/desk/story/*` (implemented)
 
@@ -352,9 +328,8 @@ Tests: `DeskApiIntegrationTest` (17, filter chain through to PostgreSQL), `deskP
 1. ~~Move the DDL into `V003__create_desk_schema.sql` and apply it through `AuthSchemaInitializer`.~~ Done.
 2. ~~Add the CRUD endpoints (tasks, targets, skills), then point the desk cards at them.~~ Done. Targets
    feed the deadline card. There is no target-list editor yet.
-3. ~~Add `essays/evaluate`, then `story/*`.~~ Done. Tassel's prompt and tool definitions exist
-   (`docs/agent/TASSEL_ASSISTANT.md`). Next: the `chat/message` tool loop that sends the prompt and tools to
-   the model and applies the calls.
+3. ~~Add `essays/evaluate`, then `story/*`, then the `chat/message` tool loop.~~ Done
+   (`docs/agent/TASSEL_ASSISTANT.md`).
 4. New caveat strings go through the caveat contract: `crawlernest/core/caveats.py`, the
    `AnalyticsService` constants, `caveatMessages.ts` and `ANALYTICS_EXPLAINABILITY.md`.
    `test_caveat_contract.py` checks that all four agree. The essay and narrative caveats are in all four.

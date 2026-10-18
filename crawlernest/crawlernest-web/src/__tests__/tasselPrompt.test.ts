@@ -1,16 +1,19 @@
 /**
  * @jest-environment node
  *
- * Tassel's prompt and tools against the files they must agree with: the rubric
- * the Java scorer reads, and the allow-list the database enforces.
+ * Tassel's prompt and tools (Java resources, sent to the model by
+ * TasselChatService) against the files they must agree with: the rubric the
+ * essay scorer reads, and the allow-list the database enforces.
  */
 import { readFileSync } from "fs";
 import path from "path";
 
-import tools from "@/lib/tassel/tools.json";
-import { TASSEL_SYSTEM_PROMPT, buildTasselContext, buildTasselSystemPrompt } from "@/lib/tassel/systemPrompt";
-
 const JAVA_RESOURCES = path.resolve(__dirname, "../../../servise_for_java/src/main/resources");
+const TASSEL_SYSTEM_PROMPT = readFileSync(path.join(JAVA_RESOURCES, "prompts/tassel_system.txt"), "utf8");
+const tools = JSON.parse(readFileSync(path.join(JAVA_RESOURCES, "prompts/tassel_tools.json"), "utf8")) as {
+  tools: { function: { name: string; parameters: unknown } }[];
+  policy: Record<string, unknown>;
+};
 const rubric = JSON.parse(readFileSync(path.join(JAVA_RESOURCES, "prompts/essay_rubric.json"), "utf8")) as {
   dimensions: { key: string; label: string; definition: string }[];
 };
@@ -41,23 +44,6 @@ describe("Tassel system prompt", () => {
     expect(TASSEL_SYSTEM_PROMPT).toMatch(/unless a tool result says "applied"/);
     expect(TASSEL_SYSTEM_PROMPT).toMatch(/not as instructions to you/);
   });
-
-  it("appends the per-request context with the ids tools refer to", () => {
-    const context = {
-      today: "2026-10-18",
-      timezone: "Asia/Taipei",
-      mode: "brainstorming" as const,
-      openTasks: [{ id: 7, title: "Submit MIT supplement", dueDate: "2026-11-01" }],
-      targets: [{ id: 41, name: "Massachusetts Institute of Technology", stage: "applying", deadline: null }],
-      essays: [],
-    };
-    const block = buildTasselContext(context);
-    expect(block).toContain("Today: 2026-10-18 (Asia/Taipei)");
-    expect(block).toContain("- [7] Submit MIT supplement (due 2026-11-01)");
-    expect(block).toContain("- [41] Massachusetts Institute of Technology: applying");
-    expect(block).toMatch(/Essay reviews on file[^\n]*\n- none/);
-    expect(buildTasselSystemPrompt(context).startsWith(TASSEL_SYSTEM_PROMPT)).toBe(true);
-  });
 });
 
 describe("Tassel tools", () => {
@@ -81,7 +67,7 @@ describe("Tassel tools", () => {
       }
       if (schema.items) check(schema.items, `${where}[]`);
     };
-    for (const tool of tools.tools) check(tool.function.parameters as unknown as Schema, tool.function.name);
+    for (const tool of tools.tools) check(tool.function.parameters as Schema, tool.function.name);
   });
 
   it("ask for verbatim quotes wherever they ground a theme", () => {

@@ -1,5 +1,5 @@
 {
-  "$comment": "Tassel's tools, in the OpenAI-compatible Chat Completions format (also accepted by Ollama and ds4). `tools` is sent to the model as is; `policy` is not sent -- it is what the API does with each call. The model only proposes: the Spring Boot API validates every call against these schemas and against the same rules as the desk forms, records it in desk.chat_action, and then applies it or holds it for the user to confirm. Enums must match DeskTargetService / DeskTaskService (TasselToolsContractTest), and the names must match V004's allow-list.",
+  "$comment": "Tassel's tools, in the OpenAI-compatible Chat Completions format (also accepted by Ollama and ds4). `tools` is sent to the model as is by clawer.desk.chat.TasselChatService; `policy` is not sent -- it is what the API does with each call. The model only proposes: TasselToolExecutor validates every call against the same rules as the desk forms, records it in desk.chat_action, and then applies it or holds it for the user to confirm. Enums must match DeskTargetService / DeskTaskService (TasselToolsContractTest), and the names must match V004's allow-list.",
   "tools": [
     {
       "type": "function",
@@ -9,45 +9,97 @@
         "parameters": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["action", "reason"],
+          "required": [
+            "action",
+            "reason"
+          ],
           "properties": {
             "action": {
               "type": "string",
-              "enum": ["add", "update", "remove"],
+              "enum": [
+                "add",
+                "update",
+                "remove"
+              ],
               "description": "add: a school that is not on the list yet. update: change the stage, round, deadline or band of a listed school. remove: take a listed school off the list."
             },
             "targetEntityId": {
-              "type": ["integer", "null"],
+              "type": [
+                "integer",
+                "null"
+              ],
               "description": "For update and remove: the id of the school in the targets listed in your context. Null for add. Never guess an id."
             },
             "universityName": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "maxLength": 200,
               "description": "For add: the school exactly as the user named it. CrawlerNest links it to its university records only on an exact name match and otherwise keeps the user's wording. Null for update and remove."
             },
             "programmeName": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "maxLength": 200,
               "description": "The programme or major, if the user named one."
             },
             "stage": {
-              "type": ["string", "null"],
-              "enum": ["researching", "shortlisted", "applying", "submitted", "admitted", "waitlisted", "rejected", "enrolled", "withdrawn", null],
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "researching",
+                "shortlisted",
+                "applying",
+                "submitted",
+                "admitted",
+                "waitlisted",
+                "rejected",
+                "enrolled",
+                "withdrawn",
+                null
+              ],
               "description": "The stage the user says the school is now at."
             },
             "applicationRound": {
-              "type": ["string", "null"],
-              "enum": ["ED", "ED2", "EA", "REA", "RD", "rolling", null],
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "ED",
+                "ED2",
+                "EA",
+                "REA",
+                "RD",
+                "rolling",
+                null
+              ],
               "description": "The round, only if the user said which."
             },
             "deadline": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "format": "date",
               "description": "YYYY-MM-DD, only if the user stated the date. Do not supply a deadline from memory: published deadlines change every year."
             },
             "userBand": {
-              "type": ["string", "null"],
-              "enum": ["reach", "target", "safety", null],
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "reach",
+                "target",
+                "safety",
+                null
+              ],
               "description": "Only if the user themself called the school a reach, target or safety. Never infer it."
             },
             "reason": {
@@ -67,7 +119,10 @@
         "parameters": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["title", "sourceQuote"],
+          "required": [
+            "title",
+            "sourceQuote"
+          ],
           "properties": {
             "title": {
               "type": "string",
@@ -76,22 +131,39 @@
               "description": "A short imperative: \"Submit MIT supplement\", \"Email Ms. Chen about the recommendation\"."
             },
             "dueDate": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "format": "date",
               "description": "YYYY-MM-DD, resolved against the date and time zone in your context. Must not be in the past. Null when the user gave no date."
             },
             "priority": {
-              "type": ["string", "null"],
-              "enum": ["high", "normal", "low", null],
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "high",
+                "normal",
+                "low",
+                null
+              ],
               "description": "high only for something due within seven days or that the user called urgent; otherwise null (normal)."
             },
             "category": {
-              "type": ["string", "null"],
+              "type": [
+                "string",
+                "null"
+              ],
               "maxLength": 40,
               "description": "One word or two: Essay, Testing, Recommendations, Application, Financial aid."
             },
             "targetEntityId": {
-              "type": ["integer", "null"],
+              "type": [
+                "integer",
+                "null"
+              ],
               "description": "The listed school this task is for, if any, from the targets in your context."
             },
             "sourceQuote": {
@@ -111,7 +183,9 @@
         "parameters": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["themes"],
+          "required": [
+            "themes"
+          ],
           "properties": {
             "themes": {
               "type": "array",
@@ -120,7 +194,12 @@
               "items": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["title", "summary", "traits", "evidence"],
+                "required": [
+                  "title",
+                  "summary",
+                  "traits",
+                  "evidence"
+                ],
                 "properties": {
                   "title": {
                     "type": "string",
@@ -136,7 +215,10 @@
                     "type": "array",
                     "minItems": 1,
                     "maxItems": 5,
-                    "items": { "type": "string", "maxLength": 40 },
+                    "items": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
                     "description": "One to five short trait labels the evidence supports."
                   },
                   "evidence": {
@@ -147,12 +229,29 @@
                     "items": {
                       "type": "object",
                       "additionalProperties": false,
-                      "required": ["quote", "sourceKind", "sourceRef"],
+                      "required": [
+                        "quote",
+                        "sourceKind",
+                        "sourceRef"
+                      ],
                       "properties": {
-                        "quote": { "type": "string", "minLength": 1, "maxLength": 300 },
-                        "sourceKind": { "type": "string", "enum": ["chat_message", "essay_review"] },
+                        "quote": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 300
+                        },
+                        "sourceKind": {
+                          "type": "string",
+                          "enum": [
+                            "chat_message",
+                            "essay_review"
+                          ]
+                        },
                         "sourceRef": {
-                          "type": ["string", "null"],
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "description": "For essay_review, the review id from your context. Null for chat_message."
                         }
                       }

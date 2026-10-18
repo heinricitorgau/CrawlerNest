@@ -10,8 +10,6 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tassel's tool definitions (crawlernest-web/src/lib/tassel/tools.json) offer the
+ * Tassel's tool definitions (prompts/tassel_tools.json) offer the
  * model exactly the values the desk endpoints accept.
  *
  * <p>If the schema offered a stage the API refuses, the model would be told it
@@ -31,13 +29,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class TasselToolsContractTest {
 
-    /** Maven runs tests from the module directory; CI checks out the whole repository. */
-    private static final Path TOOLS = Path.of("..", "crawlernest-web", "src", "lib", "tassel", "tools.json");
+    private static final String TOOLS = "prompts/tassel_tools.json";
 
     private final ObjectMapper json = new ObjectMapper();
 
+    private JsonNode readTools() throws IOException {
+        try (InputStream in = new ClassPathResource(TOOLS).getInputStream()) {
+            return json.readTree(in);
+        }
+    }
+
     private JsonNode parameters(String toolName) throws IOException {
-        for (JsonNode tool : json.readTree(Files.readString(TOOLS)).path("tools")) {
+        for (JsonNode tool : readTools().path("tools")) {
             if (tool.path("function").path("name").asText().equals(toolName)) {
                 return tool.path("function").path("parameters");
             }
@@ -70,7 +73,7 @@ class TasselToolsContractTest {
     @Test
     void theToolNamesAreTheDatabaseAllowList() throws IOException {
         Set<String> names = new HashSet<>();
-        json.readTree(Files.readString(TOOLS)).path("tools").forEach(t -> names.add(t.path("function").path("name").asText()));
+        readTools().path("tools").forEach(t -> names.add(t.path("function").path("name").asText()));
 
         String sql;
         try (InputStream in = new ClassPathResource("db/auth/V004__tassel_tool_allow_list.sql").getInputStream()) {
