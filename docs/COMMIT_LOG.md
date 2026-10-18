@@ -2,7 +2,7 @@
 
 產生於 2026-10-18，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：502
+- **Commit 總數**：505
 - **期間**：2026-03-16 ~ 2026-10-18
 - **主分支**：`main`
 
@@ -34,7 +34,10 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `73e464a` | 2026-10-18 | heinricitorgau | 13 | +991 / −0 | feat(web): add the desk page and its component set, with the chat on the agent route **[main]** |
+| `852936e` | 2026-10-18 | heinricitorgau | 4 | +251 / −55 | feat(api): create the desk schema at startup (V003) **[main]** |
+| `7fc4d5f` | 2026-10-18 | heinricitorgau | 2 | +620 / −0 | docs(architecture): propose the desk schema and its API |
+| `11566b4` | 2026-10-18 | github-actions[bot] | 1 | +12 / −9 | docs: regenerate the commit log |
+| `73e464a` | 2026-10-18 | heinricitorgau | 13 | +991 / −0 | feat(web): add the desk page and its component set, with the chat on the agent route |
 | `38c8572` | 2026-10-11 | heinricitorgau | 1 | +3 / −0 | chore(gitignore): ignore a local mxc/ sandbox checkout |
 | `aa40e9b` | 2026-10-03 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `679fa94` | 2026-10-04 | heinricitorgau | 1 | +1 / −1 | docs(readme): zh-TW API Tests row said 97 tests; it is 257 |
@@ -578,8 +581,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 502 |
-| 檔案變更累計 | 7404 |
-| 新增行數累計 | +2879273 |
-| 刪除行數累計 | −816553 |
-| 淨增行數 | +2062720 |
+| Commit 數 | 505 |
+| 檔案變更累計 | 7411 |
+| 新增行數累計 | +2880156 |
+| 刪除行數累計 | −816617 |
+| 淨增行數 | +2063539 |
