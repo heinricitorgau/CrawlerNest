@@ -37,7 +37,13 @@ async function call<T>(
     // An empty or non-JSON body: the status still classifies it.
   }
   if (!response.ok) {
-    const message = normalizeAuthError(response.status, payload);
+    // The desk API's own message when it sent one -- "No essay model is configured"
+    // says more than the generic 503 text -- except for 401, which is always "sign in".
+    const apiError = (payload as { error?: unknown } | null)?.error;
+    const message =
+      response.status !== 401 && typeof apiError === "string" && apiError.trim()
+        ? apiError
+        : normalizeAuthError(response.status, payload);
     const reason =
       response.status === 401 ? "unauthenticated"
         : response.status === 404 ? "not_found"
@@ -125,3 +131,95 @@ export const setTaskStatus = (taskId: string, status: TaskStatus) =>
   call(`/tasks/${encodeURIComponent(taskId)}`, json("PATCH", { status }), toDeskTask);
 
 export const listSkills = () => call("/skills", {}, toSkills);
+
+// ─── Essay review ────────────────────────────────────────────────────────────
+
+export type EssayDimension = { key: string; label: string; score: number; rationale: string };
+
+export type EssaySuggestion = {
+  start: number;
+  end: number;
+  original: string;
+  suggested: string;
+  dimension: string;
+  reason: string;
+};
+
+export type EssayReview = {
+  id: number;
+  essayTitle: string;
+  draftText: string;
+  wordCount: number;
+  rubricVersion: string;
+  overallScore: number;
+  dimensions: EssayDimension[];
+  suggestions: EssaySuggestion[];
+  comparedToRevision: { id: number; overallDelta: number; dimensionDeltas: Record<string, number> } | null;
+  cached: boolean;
+  /** Quotes the model gave that were not in the draft exactly once, and so were not shown. */
+  droppedQuotes: number;
+  model: string;
+  evaluatedAt: string;
+  /** Always true: the scores are a model's judgement. Kept so no caller can lose the flag. */
+  isEstimated: true;
+  caveats: string[];
+};
+
+export type EssaySummary = { id: number; essayTitle: string; overallScore: number; wordCount: number; createdAt: string };
+
+const str = (v: unknown, fallback = "") => (typeof v === "string" ? v : fallback);
+const num = (v: unknown, fallback = 0) => (typeof v === "number" ? v : fallback);
+
+export function toEssayReview(raw: unknown): EssayReview | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (typeof r.id !== "number" || r.isEstimated !== true) return null;
+  const overall = (r.overall ?? {}) as Record<string, unknown>;
+  const provenance = (r.provenance ?? {}) as Record<string, unknown>;
+  const compared = r.comparedToRevision as Record<string, unknown> | null | undefined;
+  return {
+    id: r.id,
+    essayTitle: str(r.essayTitle),
+    draftText: str(r.draftText),
+    wordCount: num(r.wordCount),
+    rubricVersion: str(r.rubricVersion),
+    overallScore: num(overall.score),
+    dimensions: (Array.isArray(r.dimensions) ? r.dimensions : []).map((d) => {
+      const row = d as Record<string, unknown>;
+      return { key: str(row.key), label: str(row.label), score: num(row.score), rationale: str(row.rationale) };
+    }),
+    suggestions: (Array.isArray(r.suggestions) ? r.suggestions : []).map((s) => {
+      const row = s as Record<string, unknown>;
+      return {
+        start: num(row.start), end: num(row.end), original: str(row.original), suggested: str(row.suggested),
+        dimension: str(row.dimension), reason: str(row.reason),
+      };
+    }),
+    comparedToRevision: compared && typeof compared.id === "number"
+      ? { id: compared.id, overallDelta: num(compared.overallDelta), dimensionDeltas: (compared.dimensionDeltas ?? {}) as Record<string, number> }
+      : null,
+    cached: r.cached === true,
+    droppedQuotes: num(r.droppedQuotes),
+    model: str(provenance.model, "unknown model"),
+    evaluatedAt: str(provenance.evaluatedAt),
+    isEstimated: true,
+    caveats: Array.isArray(r.caveats) ? r.caveats.filter((c): c is string => typeof c === "string") : [],
+  };
+}
+
+function toEssaySummaries(raw: unknown): EssaySummary[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item) => {
+    const r = (item ?? {}) as Record<string, unknown>;
+    return typeof r.id === "number"
+      ? [{ id: r.id, essayTitle: str(r.essayTitle), overallScore: num(r.overallScore), wordCount: num(r.wordCount), createdAt: str(r.createdAt) }]
+      : [];
+  });
+}
+
+export const evaluateEssay = (input: { essayTitle: string; essayPrompt?: string; draftText: string; revisionOfId?: number }) =>
+  call("/essays/evaluate", json("POST", input), toEssayReview);
+
+export const listEssays = () => call("/essays", {}, toEssaySummaries);
+
+export const getEssay = (id: number) => call(`/essays/${encodeURIComponent(String(id))}`, {}, toEssayReview);

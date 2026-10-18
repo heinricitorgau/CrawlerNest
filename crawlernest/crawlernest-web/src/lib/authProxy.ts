@@ -9,10 +9,11 @@ async function proxy(
   method: ProxyMethod,
   path: string,
   body?: string,
-  cookieHeader?: string
+  cookieHeader?: string,
+  timeoutMs: number = TIMEOUT_MS
 ): Promise<NextResponse> {
   const controller = new AbortController();
-  const tid = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const tid = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const res = await fetch(`${getApiBaseUrl()}${path}`, {
@@ -66,6 +67,9 @@ export const proxyGet = (path: string, cookieHeader?: string) =>
 export const proxyDelete = (path: string, cookieHeader?: string) =>
   proxy("DELETE", path, undefined, cookieHeader);
 
-/** Any method; `body` undefined sends none. For routes that forward several verbs to one path. */
-export const proxyRequest = (method: ProxyMethod, path: string, body?: string, cookieHeader?: string) =>
-  proxy(method, path, body, cookieHeader);
+/**
+ * Any method; `body` undefined sends none. For routes that forward several verbs
+ * to one path. `timeoutMs` is for the rare call that waits on a model.
+ */
+export const proxyRequest = (method: ProxyMethod, path: string, body?: string, cookieHeader?: string, timeoutMs?: number) =>
+  proxy(method, path, body, cookieHeader, timeoutMs);

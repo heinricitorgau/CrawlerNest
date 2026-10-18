@@ -1,0 +1,36 @@
+{
+  "version": "essay-rubric-2026.1",
+  "dimensions": [
+    {
+      "key": "impact",
+      "label": "Impact",
+      "weight": 0.25,
+      "definition": "What changed because of what the writer did: concrete stakes, actions and results, for the writer or for others."
+    },
+    {
+      "key": "introspection",
+      "label": "Introspection",
+      "weight": 0.25,
+      "definition": "How the experience changed the writer's thinking or behaviour, shown through reflection that goes beyond narrating events."
+    },
+    {
+      "key": "passion",
+      "label": "Passion",
+      "weight": 0.25,
+      "definition": "Sustained, specific engagement shown through actions, time and detail, rather than claimed with adjectives."
+    },
+    {
+      "key": "originality",
+      "label": "Originality",
+      "weight": 0.25,
+      "definition": "Details, perspective and voice that only this writer could have written; the essay avoids stock topics told in stock ways."
+    }
+  ],
+  "bands": [
+    { "min": 90, "max": 100, "meaning": "Exceptional: the dimension is a defining strength, with no real weakness." },
+    { "min": 75, "max": 89, "meaning": "Strong: clearly present and well supported, with minor gaps." },
+    { "min": 60, "max": 74, "meaning": "Developing: present but thin, generic or unevenly supported." },
+    { "min": 40, "max": 59, "meaning": "Limited: mostly asserted or implied rather than shown." },
+    { "min": 0, "max": 39, "meaning": "Absent: the essay does not address this dimension." }
+  ]
+}

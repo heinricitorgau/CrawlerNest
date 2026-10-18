@@ -162,7 +162,7 @@ class DeskSchemaIntegrationTest {
     void deletingTheUserRemovesTheirDeskRows() {
         String action = jdbc.queryForObject("""
                 INSERT INTO desk.chat_action (id, user_id, session_id, turn_index, tool_name, arguments, status, model_name)
-                VALUES (gen_random_uuid(), ?, 's', 0, 'create_task', '{}', 'applied', 'm') RETURNING id::text
+                VALUES (gen_random_uuid(), ?, 's', 0, 'create_action_task', '{}', 'applied', 'm') RETURNING id::text
                 """, String.class, OWNER);
         jdbc.update("INSERT INTO desk.task (user_id, title, created_by, source_action_id) VALUES (?, 'agent task', 'agent', ?::uuid)",
                 OWNER, action);

@@ -168,6 +168,17 @@ public class AnalyticsService {
     public static final String RANK_CHANGE_CAVEAT =
             "Rank changes compare one source's published ranks between two editions. They are not changes in a composite or platform rank, a banded rank gives a range rather than a number, and no change is shown when the institution or its source entry changed between editions.";
 
+    /**
+     * Carried by every essay review (clawer.desk.essay.EssayService). The scores are
+     * a model's judgement, so the response says so in words as well as in isEstimated.
+     */
+    public static final String ESSAY_SCORE_ESTIMATE_CAVEAT =
+            "Essay scores are a language model's reading of this draft against the CrawlerNest rubric. They are estimates, not a prediction of how an admissions reader will score the essay, and the same draft can score differently under another model.";
+
+    /** Carried by every essay review: the headline number is CrawlerNest's arithmetic, not the model's. */
+    public static final String ESSAY_OVERALL_METHOD_CAVEAT =
+            "The overall essay score is the rubric-weighted mean of the dimension scores, computed by CrawlerNest rather than by the model.";
+
     /** Carried by ranking trends when more than one edition is held; see {@link RankComparisonPolicy}. */
     public static final String COMPOSITE_RANK_NOT_COMPARED_CAVEAT =
             "Composite ranks are not compared between editions. A university's composite position moves whenever source coverage changes, so rank movement is reported per source on each university's page instead.";

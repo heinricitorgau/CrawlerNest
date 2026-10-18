@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS desk.chat_action (
     user_id       BIGINT       NOT NULL REFERENCES warehouse.app_user(id) ON DELETE CASCADE,
     session_id    VARCHAR(64)  NOT NULL,
     turn_index    INTEGER      NOT NULL CHECK (turn_index >= 0),
+    -- The draft's tool names. V004 replaces this check with Tassel's; this stays so V003 is unchanged.
     tool_name     VARCHAR(40)  NOT NULL CHECK (tool_name IN ('create_task', 'update_task_status',
                                                              'add_target_entity', 'update_target_stage')),
     arguments     JSONB        NOT NULL CHECK (jsonb_typeof(arguments) = 'object'),
