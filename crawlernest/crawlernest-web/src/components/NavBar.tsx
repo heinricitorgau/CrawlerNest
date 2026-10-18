@@ -45,6 +45,7 @@ const NAV_LINKS = [
   { label: "Rankings", href: "/" },
   { label: "Analytics", href: "/analytics" },
   { label: "Agent", href: "/agent" },
+  { label: "Desk", href: "/desk" },
   { label: "About", href: "/about" },
   { label: "Status", href: "/system-status" },
   { label: "Data Quality", href: "/data-quality" },
