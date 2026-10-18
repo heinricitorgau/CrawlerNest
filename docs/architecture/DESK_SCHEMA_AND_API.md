@@ -149,8 +149,10 @@ same reason as the rest of the desk.
 
 | Method and path | What it does |
 |---|---|
-| `GET /story/narrative?includeDismissed=` | Read-only. Returns themes (accepted first, then suggested), resonance for accepted themes, and caveats. |
-| `POST /story/themes/generate` | Draws one or two themes from the user's drafts: the latest draft of each essay, up to 6 drafts and 40,000 characters. Replaces open suggestions; never touches an accepted theme. |
+| `GET /story/narrative?includeDismissed=` | Read-only. Returns themes (accepted first, then suggested), resonance for accepted themes, and caveats. What the desk page reads. |
+| `GET /story/themes?includeDismissed=` | Read-only. The themes alone, with the narrative caveat. |
+| `GET /story/resonance` | Read-only. Accepted themes' 1–5 levels against the user's schools, each with its rationale and `institutionBasis`, plus the `scale` and the caveats that apply. |
+| `POST /story/generate` (alias: `/story/themes/generate`) | Draws one or two themes from the user's drafts: the latest draft of each essay, up to 6 drafts and 40,000 characters. Replaces open suggestions; never touches an accepted theme. The two paths are one handler. |
 | `PATCH /story/themes/{id}` | `{"status": "accepted" \| "dismissed"}`. Dismissing drops that theme's resonance rows. |
 | `POST /story/resonance/generate` | Judges each accepted theme (up to 3) against each school on the list that is not rejected or withdrawn (up to 12). Replaces earlier judgements for those themes. |
 
@@ -200,7 +202,17 @@ Response (`data`):
 `missingPairs` is present only on `resonance/generate`. Level labels: 5 and 4 are `Strong`, 3 is
 `Moderate`, 2 and 1 are `Emerging`. The UI's `ResonanceBar` draws the 1–5 level as five segments.
 
-Tests: `NarrativeApiIntegrationTest` (11) and `LiveNarrativeCard.test.tsx`.
+**Where the material comes from.** `POST /story/generate` reads the user's essay drafts only. Chat
+conversations are not stored server-side (the browser holds the history), so they cannot be re-read later.
+Themes from conversation come from Tassel's `generate_narrative_themes` tool during the turn, with each quote
+checked against that turn's own messages. Reading conversations here would need transcripts stored first,
+and that is a separate decision.
+
+**Column names.** The schema uses `title` / `summary` (themes) and `level` / `rationale` (resonance). A spec
+written against `theme_title` / `description` / `resonance_level` / `reasoning_text` means the same columns.
+
+Tests: `NarrativeApiIntegrationTest` (16), `NarrativeControllerTest` (8, controller contract with the
+service mocked) and `LiveNarrativeCard.test.tsx`.
 
 ### `POST /api/v1/user/desk/essays/evaluate` (implemented)
 

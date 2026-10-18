@@ -71,8 +71,45 @@ public class NarrativeService {
 
     // ─── Read ─────────────────────────────────────────────────────────────────
 
+    /** Themes, resonance and caveats together: what every write returns, so the page shows one state. */
     public Map<String, Object> narrative(long userId, boolean includeDismissed) {
-        List<Map<String, Object>> themes = jdbc.query("""
+        List<Map<String, Object>> resonance = resonanceRows(userId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("themes", themeRows(userId, includeDismissed));
+        out.put("resonance", resonance);
+        out.put("caveats", caveats(resonance));
+        return out;
+    }
+
+    /** GET /story/themes: the themes alone, with the caveat that applies to them. */
+    public Map<String, Object> themes(long userId, boolean includeDismissed) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("themes", themeRows(userId, includeDismissed));
+        out.put("caveats", List.of(AnalyticsService.NARRATIVE_ESTIMATE_CAVEAT));
+        return out;
+    }
+
+    /** GET /story/resonance: accepted themes' 1-5 levels against the user's schools, with their caveats. */
+    public Map<String, Object> resonance(long userId) {
+        List<Map<String, Object>> resonance = resonanceRows(userId);
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("resonance", resonance);
+        out.put("scale", Map.of("min", 1, "max", 5, "labels", Map.of("5-4", "Strong", "3", "Moderate", "2-1", "Emerging")));
+        out.put("caveats", caveats(resonance));
+        return out;
+    }
+
+    /** The general-knowledge caveat only when a row's school side actually came from it. */
+    private static List<String> caveats(List<Map<String, Object>> resonance) {
+        List<String> caveats = new ArrayList<>(List.of(AnalyticsService.NARRATIVE_ESTIMATE_CAVEAT));
+        if (resonance.stream().anyMatch(r -> "model_general_knowledge".equals(r.get("institutionBasis")))) {
+            caveats.add(AnalyticsService.RESONANCE_GENERAL_KNOWLEDGE_CAVEAT);
+        }
+        return caveats;
+    }
+
+    private List<Map<String, Object>> themeRows(long userId, boolean includeDismissed) {
+        return jdbc.query("""
                 SELECT id, title, summary, traits, evidence::text AS evidence, status, model_name, prompt_version, generated_at, decided_at
                 FROM desk.user_theme
                 WHERE user_id = ? AND (status <> 'dismissed' OR ?)
@@ -90,8 +127,10 @@ public class NarrativeService {
                     "generatedAt", rs.getTimestamp("generated_at").toInstant()));
             return t;
         }, userId, includeDismissed);
+    }
 
-        List<Map<String, Object>> resonance = jdbc.query("""
+    private List<Map<String, Object>> resonanceRows(long userId) {
+        return jdbc.query("""
                 SELECT r.theme_id, r.target_entity_id, r.level, r.rationale, r.institution_basis, r.model_name,
                        r.prompt_version, r.generated_at, coalesce(cu.display_name, t.custom_name) AS institution
                 FROM desk.entity_resonance r
@@ -115,16 +154,6 @@ public class NarrativeService {
                     "generatedAt", rs.getTimestamp("generated_at").toInstant()));
             return r;
         }, userId);
-
-        List<String> caveats = new ArrayList<>(List.of(AnalyticsService.NARRATIVE_ESTIMATE_CAVEAT));
-        if (resonance.stream().anyMatch(r -> "model_general_knowledge".equals(r.get("institutionBasis")))) {
-            caveats.add(AnalyticsService.RESONANCE_GENERAL_KNOWLEDGE_CAVEAT);
-        }
-        Map<String, Object> out = new LinkedHashMap<>();
-        out.put("themes", themes);
-        out.put("resonance", resonance);
-        out.put("caveats", caveats);
-        return out;
     }
 
     /** The ordinal's words, the same cut as the UI's ResonanceBar. */
