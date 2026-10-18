@@ -2,6 +2,7 @@ package clawer.desk.essay;
 
 import clawer.auth.jwt.JwtCookieAuthenticationFilter;
 import clawer.auth.jwt.JwtService;
+import clawer.desk.model.DeskModelClient;
 import clawer.service.AnalyticsService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,7 +64,7 @@ class EssayApiIntegrationTest {
     private JdbcTemplate jdbc;
 
     @MockBean
-    private EssayModelClient model;
+    private DeskModelClient model;
 
     private final ObjectMapper json = new ObjectMapper();
 
@@ -106,7 +107,7 @@ class EssayApiIntegrationTest {
 
     @Test
     void scoresStoresAndDisclosesAReview() throws Exception {
-        when(model.complete(anyString(), anyString())).thenReturn(new EssayModelClient.Reply(modelReply(82), "test-model"));
+        when(model.complete(anyString(), anyString())).thenReturn(new DeskModelClient.Reply(modelReply(82), "test-model"));
 
         evaluate(OWNER, body(DRAFT))
                 .andExpect(status().isOk())
@@ -126,7 +127,7 @@ class EssayApiIntegrationTest {
 
     @Test
     void anUnchangedDraftIsNotSentToTheModelAgain() throws Exception {
-        when(model.complete(anyString(), anyString())).thenReturn(new EssayModelClient.Reply(modelReply(82), "test-model"));
+        when(model.complete(anyString(), anyString())).thenReturn(new DeskModelClient.Reply(modelReply(82), "test-model"));
         evaluate(OWNER, body(DRAFT)).andExpect(jsonPath("$.data.cached").value(false));
         evaluate(OWNER, body(DRAFT)).andExpect(status().isOk()).andExpect(jsonPath("$.data.cached").value(true));
         verify(model, times(1)).complete(anyString(), anyString());
@@ -136,8 +137,8 @@ class EssayApiIntegrationTest {
     @Test
     void aRevisionReportsItsScoreChanges() throws Exception {
         when(model.complete(anyString(), anyString()))
-                .thenReturn(new EssayModelClient.Reply(modelReply(70), "test-model"))
-                .thenReturn(new EssayModelClient.Reply(modelReply(86), "test-model"));
+                .thenReturn(new DeskModelClient.Reply(modelReply(70), "test-model"))
+                .thenReturn(new DeskModelClient.Reply(modelReply(86), "test-model"));
         JsonNode first = json.readTree(evaluate(OWNER, body(DRAFT)).andReturn().getResponse().getContentAsString());
         long firstId = first.path("data").path("id").asLong();
 
@@ -151,7 +152,7 @@ class EssayApiIntegrationTest {
 
     @Test
     void anotherUsersDraftCannotBeRevisedOrRead() throws Exception {
-        when(model.complete(anyString(), anyString())).thenReturn(new EssayModelClient.Reply(modelReply(82), "test-model"));
+        when(model.complete(anyString(), anyString())).thenReturn(new DeskModelClient.Reply(modelReply(82), "test-model"));
         long id = json.readTree(evaluate(OWNER, body(DRAFT)).andReturn().getResponse().getContentAsString())
                 .path("data").path("id").asLong();
 
@@ -174,7 +175,7 @@ class EssayApiIntegrationTest {
     @Test
     void withNoModelItRefusesAndStoresNothing() throws Exception {
         when(model.complete(anyString(), anyString()))
-                .thenThrow(new EssayModelClient.UnavailableException("No essay model is configured, so drafts cannot be scored. Nothing was stored."));
+                .thenThrow(new DeskModelClient.UnavailableException("No model is configured, so this cannot run. Nothing was stored."));
         evaluate(OWNER, body(DRAFT))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.code").value("MODEL_UNAVAILABLE"));
@@ -183,7 +184,7 @@ class EssayApiIntegrationTest {
 
     @Test
     void anUnreadableReplyStoresNothing() throws Exception {
-        when(model.complete(anyString(), anyString())).thenReturn(new EssayModelClient.Reply("Looks great, 9/10!", "test-model"));
+        when(model.complete(anyString(), anyString())).thenReturn(new DeskModelClient.Reply("Looks great, 9/10!", "test-model"));
         evaluate(OWNER, body(DRAFT))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.code").value("MODEL_REPLY_UNREADABLE"));
@@ -193,7 +194,7 @@ class EssayApiIntegrationTest {
 
     @Test
     void keepsTheWordLimitAndUpdatesItWithoutRescoring() throws Exception {
-        when(model.complete(anyString(), anyString())).thenReturn(new EssayModelClient.Reply(modelReply(82), "test-model"));
+        when(model.complete(anyString(), anyString())).thenReturn(new DeskModelClient.Reply(modelReply(82), "test-model"));
         evaluate(OWNER, "{\"essayTitle\": \"x\", \"wordLimit\": 650, \"draftText\": " + quote(DRAFT) + "}")
                 .andExpect(jsonPath("$.data.wordLimit").value(650));
         evaluate(OWNER, "{\"essayTitle\": \"x\", \"wordLimit\": 250, \"draftText\": " + quote(DRAFT) + "}")

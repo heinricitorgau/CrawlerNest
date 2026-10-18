@@ -179,6 +179,14 @@ public class AnalyticsService {
     public static final String ESSAY_OVERALL_METHOD_CAVEAT =
             "The overall essay score is the rubric-weighted mean of the dimension scores, computed by CrawlerNest rather than by the model.";
 
+    /** Carried by every narrative response (clawer.desk.story.NarrativeService). */
+    public static final String NARRATIVE_ESTIMATE_CAVEAT =
+            "Narrative themes and resonance levels are a language model's reading of what you have written here. They are estimates, not an admissions assessment, and they can change when your writing does.";
+
+    /** Carried by a narrative response when any resonance row's institution side is the model's general knowledge. */
+    public static final String RESONANCE_GENERAL_KNOWLEDGE_CAVEAT =
+            "Some resonance levels describe a school from the model's general knowledge rather than from your notes or CrawlerNest data, so they may be out of date or wrong about that school.";
+
     /** Carried by ranking trends when more than one edition is held; see {@link RankComparisonPolicy}. */
     public static final String COMPOSITE_RANK_NOT_COMPARED_CAVEAT =
             "Composite ranks are not compared between editions. A university's composite position moves whenever source coverage changes, so rank movement is reported per source on each university's page instead.";

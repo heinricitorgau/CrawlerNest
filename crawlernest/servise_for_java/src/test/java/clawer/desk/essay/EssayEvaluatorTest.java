@@ -1,5 +1,7 @@
 package clawer.desk.essay;
 
+import clawer.desk.model.ModelJson;
+import clawer.desk.model.DeskModelClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +35,7 @@ class EssayEvaluatorTest {
     private final EssayRubric rubric = new EssayRubric(objectMapper);
 
     /** Replays canned replies in order and records the prompts it was sent. */
-    static final class ScriptedModel implements EssayModelClient {
+    static final class ScriptedModel implements DeskModelClient {
         final Deque<String> replies = new ArrayDeque<>();
         final List<String> userPrompts = new ArrayList<>();
 
@@ -123,14 +125,14 @@ class EssayEvaluatorTest {
     @Test
     void refusesAfterTwoUnreadableReplies() {
         ScriptedModel model = new ScriptedModel("I think this essay is a solid 8/10!", "{\"dimensions\": []}");
-        assertThrows(EssayEvaluator.UnreadableReplyException.class, () -> evaluator(model).evaluate(DRAFT, null));
+        assertThrows(ModelJson.UnreadableReplyException.class, () -> evaluator(model).evaluate(DRAFT, null));
     }
 
     @Test
     void refusesAScoreOutsideTheScaleOrNotAWholeNumber() {
         String outOfRange = reply("I blamed the motor.", "I blamed the motor.").replace("\"score\": 82", "\"score\": 820");
         String fractional = reply("I blamed the motor.", "I blamed the motor.").replace("\"score\": 82", "\"score\": 82.5");
-        assertThrows(EssayEvaluator.UnreadableReplyException.class,
+        assertThrows(ModelJson.UnreadableReplyException.class,
                 () -> evaluator(new ScriptedModel(outOfRange, fractional)).evaluate(DRAFT, null));
     }
 

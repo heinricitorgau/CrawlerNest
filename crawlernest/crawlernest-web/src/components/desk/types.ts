@@ -58,7 +58,7 @@ export interface NarrativeTheme {
 export interface Resonance {
   institution: string;
   trait: string;
-  /** 0-100. */
+  /** 1-5, the stored ordinal (desk.entity_resonance.level). */
   level: number;
   note?: string;
 }

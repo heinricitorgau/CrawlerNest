@@ -1,10 +1,22 @@
-import { clampPercent } from "./meter";
+import type { ReactNode } from "react";
 import type { NarrativeTheme, Resonance } from "./types";
 
-export function ThemeCard({ title, summary, traits, evidence = [] }: NarrativeTheme) {
+interface ThemeCardProps extends NarrativeTheme {
+  /** "suggested" shows a badge: the theme is the model's proposal until the user accepts it. */
+  status?: "suggested" | "accepted";
+  /** Accept / dismiss buttons, or anything else the caller wants under the theme. */
+  actions?: ReactNode;
+}
+
+export function ThemeCard({ title, summary, traits, evidence = [], status, actions }: ThemeCardProps) {
   return (
     <article className="relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-white shadow-sm">
-      <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-300">Your narrative thread</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-300">Your narrative thread</p>
+        {status === "suggested" ? (
+          <span className="rounded-full bg-amber-300/20 px-2 py-0.5 text-[11px] font-semibold text-amber-200">Suggested</span>
+        ) : null}
+      </div>
       <h3 className="mt-2 text-xl font-bold leading-snug">&ldquo;{title}&rdquo;</h3>
       <p className="mt-2 text-sm leading-relaxed text-slate-300">{summary}</p>
       {traits.length > 0 ? (
@@ -19,23 +31,29 @@ export function ThemeCard({ title, summary, traits, evidence = [] }: NarrativeTh
       {evidence.length > 0 ? (
         <ul className="mt-4 space-y-1 border-t border-white/10 pt-3 text-xs text-slate-400" aria-label="Evidence">
           {evidence.map((item) => (
-            <li key={item}>• {item}</li>
+            <li key={item}>&ldquo;{item}&rdquo;</li>
           ))}
         </ul>
       ) : null}
+      {actions ? <div className="mt-4 flex flex-wrap gap-2">{actions}</div> : null}
     </article>
   );
 }
 
+/** The words for a 1-5 resonance level; the same cut the API's levelLabel makes. */
 export function resonanceTier(level: number): { label: string; fill: string; text: string } {
-  if (level >= 75) return { label: "Strong", fill: "bg-emerald-500", text: "text-emerald-700" };
-  if (level >= 50) return { label: "Moderate", fill: "bg-blue-500", text: "text-blue-700" };
+  if (level >= 4) return { label: "Strong", fill: "bg-emerald-500", text: "text-emerald-700" };
+  if (level === 3) return { label: "Moderate", fill: "bg-blue-500", text: "text-blue-700" };
   return { label: "Emerging", fill: "bg-slate-400", text: "text-slate-600" };
 }
 
+/**
+ * A 1-5 resonance level as five segments. Deliberately not a percentage: the
+ * model can say one fit is stronger than another, not by how many points.
+ */
 export function ResonanceBar({ institution, trait, level, note }: Resonance) {
-  const width = clampPercent(level);
-  const tier = resonanceTier(width);
+  const filled = Math.min(5, Math.max(0, Math.round(level)));
+  const tier = resonanceTier(filled);
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between gap-2 text-sm">
@@ -48,21 +66,15 @@ export function ResonanceBar({ institution, trait, level, note }: Resonance) {
       <div
         role="meter"
         aria-label={`${trait} resonance with ${institution}`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(width)}
-        aria-valuetext={`${tier.label}, ${Math.round(width)} of 100`}
+        aria-valuemin={1}
+        aria-valuemax={5}
+        aria-valuenow={filled}
+        aria-valuetext={`${tier.label}, level ${filled} of 5`}
         className="flex h-2 gap-0.5"
       >
-        {/* Five segments read as a level, not a precise measurement. */}
-        {[0, 1, 2, 3, 4].map((segment) => {
-          const segmentFill = Math.min(1, Math.max(0, width / 20 - segment));
-          return (
-            <div key={segment} className="relative flex-1 overflow-hidden rounded-sm bg-slate-200">
-              <div className={`h-full ${tier.fill}`} style={{ width: `${segmentFill * 100}%` }} />
-            </div>
-          );
-        })}
+        {[1, 2, 3, 4, 5].map((segment) => (
+          <div key={segment} className={`flex-1 rounded-sm ${segment <= filled ? tier.fill : "bg-slate-200"}`} />
+        ))}
       </div>
       {note ? <p className="text-xs text-slate-500">{note}</p> : null}
     </div>

@@ -303,6 +303,14 @@ export const CAVEAT_ESSAY_SCORE_ESTIMATE =
 export const CAVEAT_ESSAY_OVERALL_METHOD =
   "The overall essay score is the rubric-weighted mean of the dimension scores, computed by CrawlerNest rather than by the model.";
 
+/** Carried by every narrative (themes and resonance) response from the desk. */
+export const CAVEAT_NARRATIVE_ESTIMATE =
+  "Narrative themes and resonance levels are a language model's reading of what you have written here. They are estimates, not an admissions assessment, and they can change when your writing does.";
+
+/** Carried when a resonance level's institution side is the model's general knowledge. */
+export const CAVEAT_RESONANCE_GENERAL_KNOWLEDGE =
+  "Some resonance levels describe a school from the model's general knowledge rather than from your notes or CrawlerNest data, so they may be out of date or wrong about that school.";
+
 /** Standard caveats present on every recommendation and analytics response. */
 export const STANDARD_CAVEATS: string[] = [
   CAVEAT_QS_STALE,

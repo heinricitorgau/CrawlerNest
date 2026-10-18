@@ -1,10 +1,11 @@
-package clawer.desk.essay;
+package clawer.desk.model;
 
 /**
- * One chat-completion call to whichever model scores essays. An interface so the
+ * One chat-completion call to the model behind the desk (essay scoring, narrative
+ * themes, resonance). An interface so the
  * tests can stand in for the model without a network.
  */
-public interface EssayModelClient {
+public interface DeskModelClient {
 
     record Reply(String text, String modelName) {}
 
