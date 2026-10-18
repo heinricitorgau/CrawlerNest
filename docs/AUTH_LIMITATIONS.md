@@ -109,16 +109,21 @@ Unset, `JwtService` generates a key for the process and logs a warning. Everyone
 - **Concurrent use.** Two uses of one link cannot both succeed; the confirm takes a row lock.
 - **The new password** follows the same rule as sign-up (at least 8 characters).
 
-**Delivery (`CRAWLERNEST_PASSWORD_RESET_DELIVERY`).** No email is sent yet.
+**Delivery (`CRAWLERNEST_PASSWORD_RESET_DELIVERY`).**
 
 | Value | What happens | Use |
 |---|---|---|
-| `none` (default) | No token is created. The page says reset by email is not set up and to ask the administrator. | Any deployment without email |
+| `smtp` | The link is emailed through `CRAWLERNEST_SMTP_HOST` / `_PORT` / `_USERNAME` / `_PASSWORD`, from `CRAWLERNEST_MAIL_FROM`. STARTTLS is required unless `CRAWLERNEST_SMTP_STARTTLS=false`. Missing host or from: the server logs an error and behaves as `none`. | Any deployment |
+| `none` (default) | No token is created. The page says reset by email is not set up and to ask the administrator. | A deployment without email |
 | `log` | The link is written to the API log, marked "DEV ONLY". The page says so. | Local development only: anyone who can read the log can reset any account that asks |
+
+**Mail is sent on a background thread, not inside the request.** An SMTP round trip takes seconds, and only
+a registered email triggers one. Sent inline, the response time alone would show a stranger which emails
+have accounts. A failed send is logged without the address or the link.
 
 **Before public exposure:**
 
-- add an email delivery;
+- use `smtp` with a provider whose sending domain is verified (SPF/DKIM), or the mail lands in spam;
 - set `CRAWLERNEST_PUBLIC_BASE_URL` so links point at the real site;
 - never run with `log`.
 
