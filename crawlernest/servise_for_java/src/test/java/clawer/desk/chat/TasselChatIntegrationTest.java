@@ -247,6 +247,60 @@ class TasselChatIntegrationTest {
         assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM desk.target_entity WHERE id = ?", Long.class, theirs));
     }
 
+    // ─── Failures the model can repair ────────────────────────────────────────
+
+    /** The call qwen3:8b actually made in the real-model run, then the corrected one. */
+    @Test
+    void everyProblemIsReportedAtOnceAndAFixedRetryInTheSameTurnWorks() throws Exception {
+        long northwestern = jdbc.queryForObject(
+                "INSERT INTO desk.target_entity (user_id, custom_name) VALUES (?, 'Northwestern') RETURNING id", Long.class, OWNER);
+        List<ArrayNode> seen = script(
+                calls("update_target_list", "{\"action\": \"update\", \"universityName\": \"Northwestern\", "
+                        + "\"stage\": \"applying\", \"applicationRound\": \"regular decision\"}"),
+                calls("update_target_list", "{\"action\": \"update\", \"targetEntityId\": " + northwestern
+                        + ", \"stage\": \"applying\", \"applicationRound\": \"RD\", \"reason\": \"Move Northwestern to RD\"}"),
+                says("Proposed; confirm it on your desk."));
+
+        say(OWNER, "Please move Northwestern to the applying stage, regular decision round.")
+                .andExpect(jsonPath("$.data.actions", hasSize(2)))
+                .andExpect(jsonPath("$.data.actions[0].status").value("failed"))
+                .andExpect(jsonPath("$.data.actions[1].status").value("proposed"));
+
+        String first = lastToolMessage(seen.get(1)).path("content").asText();
+        // All three problems in one message, not just the first.
+        assertTrue(first.contains("reason is required."), first);
+        assertTrue(first.contains("applicationRound must be one of EA, ED, ED2, RD, REA, rolling."), first);
+        assertTrue(first.contains("take the school's targetEntityId, not its name"), first);
+        // And the id the model needed.
+        assertTrue(first.contains("[" + northwestern + "] Northwestern"), first);
+        assertTrue(first.contains("call the tool again now"), first);
+        assertTrue(!first.contains("targetEntityId is required"), "one message per problem: " + first);
+    }
+
+    /** The other qwen3 failure: an id invented for a list that is empty. */
+    @Test
+    void anInventedIdIsAnsweredWithWhatTheListActuallyHolds() throws Exception {
+        List<ArrayNode> seen = script(
+                calls("create_action_task", "{\"title\": \"Send SAT scores to MIT\", \"targetEntityId\": 1, "
+                        + "\"sourceQuote\": \"send my SAT scores to MIT\", \"colour\": \"red\"}"),
+                says("MIT is not on your list yet."));
+        say(OWNER, "remind me to send my SAT scores to MIT").andExpect(jsonPath("$.data.actions[0].status").value("failed"));
+        String message = lastToolMessage(seen.get(1)).path("content").asText();
+        assertTrue(message.contains("targetEntityId 1 is not one of the user's schools."), message);
+        assertTrue(message.contains("The user's list is empty: add the school first with action"), message);
+        assertTrue(message.contains("Unknown field \\\"colour\\\""), message);
+        assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM desk.task WHERE user_id = ?", Long.class, OWNER));
+    }
+
+    @Test
+    void aTaskWithNoDateSaysSoSoTheModelCannotClaimOne() throws Exception {
+        List<ArrayNode> seen = script(
+                calls("create_action_task", "{\"title\": \"Send SAT scores\", \"sourceQuote\": \"send my SAT scores\"}"),
+                says("Added."));
+        say(OWNER, "remind me to send my SAT scores");
+        assertTrue(lastToolMessage(seen.get(1)).path("content").asText().contains("with no due date"));
+    }
+
     // ─── generate_narrative_themes ────────────────────────────────────────────
 
     @Test

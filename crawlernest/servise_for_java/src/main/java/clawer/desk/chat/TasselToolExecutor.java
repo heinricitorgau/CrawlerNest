@@ -101,17 +101,21 @@ public class TasselToolExecutor {
     // ─── create_action_task ───────────────────────────────────────────────────
 
     private Outcome createTask(Turn turn, JsonNode args) {
-        DeskInput in = new DeskInput(args, Set.of("title", "dueDate", "priority", "category", "targetEntityId", "sourceQuote"));
+        ToolArgs in = new ToolArgs(args, Set.of("title", "dueDate", "priority", "category", "targetEntityId", "sourceQuote"));
         String title = in.text("title", 200, true);
-        LocalDate dueDate = in.date("dueDate", false);
+        LocalDate dueDate = in.date("dueDate");
         String priority = in.oneOf("priority", DeskTaskService.PRIORITIES, false);
         String category = in.text("category", 40, false);
         Long targetEntityId = in.id("targetEntityId", false);
         in.text("sourceQuote", 300, true);
         LocalDate today = LocalDate.now(profiles.zoneOf(turn.userId()));
         if (dueDate != null && dueDate.isBefore(today)) {
-            throw DeskException.badRequest("The due date " + dueDate + " is in the past (today is " + today + ").");
+            in.problem("The due date " + dueDate + " is in the past (today is " + today + ").");
         }
+        if (targetEntityId != null && targets.find(turn.userId(), targetEntityId).isEmpty()) {
+            in.problem(unknownTarget(turn.userId(), targetEntityId) + " Leave targetEntityId null if the task is not for a listed school.");
+        }
+        in.throwIfAny();
         UUID id = UUID.randomUUID();
         DeskTaskService.Task task = tx.execute(status -> {
             insertAction(id, turn, "create_action_task", args, "applied", null);
@@ -120,7 +124,7 @@ public class TasselToolExecutor {
             return created;
         });
         return new Outcome(id, "create_action_task", "applied", args, result("task", task.id()),
-                "Added the task \"" + task.title() + "\"" + (task.dueDate() == null ? "" : ", due " + task.dueDate()) + ".");
+                "Added the task \"" + task.title() + "\"" + (task.dueDate() == null ? ", with no due date" : ", due " + task.dueDate()) + ".");
     }
 
     // ─── update_target_list ───────────────────────────────────────────────────
@@ -129,46 +133,73 @@ public class TasselToolExecutor {
             "stage", "applicationRound", "deadline", "userBand", "reason");
 
     private Outcome updateTargets(Turn turn, JsonNode args) {
-        DeskInput in = new DeskInput(args, TARGET_FIELDS);
+        ToolArgs in = new ToolArgs(args, TARGET_FIELDS);
         String action = in.oneOf("action", Set.of("add", "update", "remove"), true);
         in.text("reason", 300, true);
         String stage = in.oneOf("stage", DeskTargetService.STAGES, false);
         String round = in.oneOf("applicationRound", DeskTargetService.ROUNDS, false);
         String band = in.oneOf("userBand", DeskTargetService.BANDS, false);
-        LocalDate deadline = in.date("deadline", false);
+        LocalDate deadline = in.date("deadline");
         String programme = in.text("programmeName", 200, false);
 
-        if (action.equals("add")) {
-            String name = in.text("universityName", 200, true).replaceAll("\\s+", " ");
+        if ("add".equals(action)) {
+            String name = in.text("universityName", 200, true);
             if (deadline != null && deadline.isBefore(LocalDate.now(profiles.zoneOf(turn.userId())))) {
-                throw DeskException.badRequest("The deadline " + deadline + " is in the past.");
+                in.problem("The deadline " + deadline + " is in the past.");
             }
-            Long canonicalId = exactUniversityMatch(name);
+            in.throwIfAny();
+            String school = name.replaceAll("\\s+", " ");
+            Long canonicalId = exactUniversityMatch(school);
             UUID id = UUID.randomUUID();
             DeskTargetService.Target target = tx.execute(status -> {
                 insertAction(id, turn, "update_target_list", args, "applied", null);
                 DeskTargetService.Target created = targets.createForAgent(turn.userId(), canonicalId,
-                        canonicalId == null ? name : null, programme, stage, round, band, deadline);
+                        canonicalId == null ? school : null, programme, stage, round, band, deadline);
                 setResult(id, targetResult(created));
                 return created;
             });
             return new Outcome(id, "update_target_list", "applied", args, targetResult(target),
-                    "Added " + target.name() + " to the list"
+                    "Added " + target.name() + " to the list (id " + target.id() + ")"
                             + (canonicalId == null ? ", under the name the user gave (no exact match in CrawlerNest's records)." : "."));
         }
 
-        Long targetId = in.id("targetEntityId", true);
-        DeskTargetService.Target target = targets.find(turn.userId(), targetId)
-                .orElseThrow(() -> DeskException.badRequest("There is no school with id " + targetId + " on the user's list."));
-        if (action.equals("update") && stage == null && round == null && deadline == null && band == null) {
-            throw DeskException.badRequest("An update needs at least one of stage, applicationRound, deadline or userBand.");
+        // Named instead of given an id: the message below says so; "is required" on top would only repeat it.
+        Long targetId = in.id("targetEntityId", action != null && !in.has("universityName"));
+        DeskTargetService.Target target = null;
+        if (targetId != null) {
+            target = targets.find(turn.userId(), targetId).orElse(null);
+            if (target == null) in.problem(unknownTarget(turn.userId(), targetId));
+        } else if (action != null && in.has("universityName")) {
+            // What qwen3 did: named the school instead of giving its id.
+            in.problem("update and remove take the school's targetEntityId, not its name. " + listedTargets(turn.userId()));
         }
+        if ("update".equals(action) && stage == null && round == null && deadline == null && band == null
+                && !in.has("stage") && !in.has("applicationRound") && !in.has("deadline") && !in.has("userBand")) {
+            in.problem("An update needs at least one of stage, applicationRound, deadline or userBand.");
+        }
+        in.throwIfAny();
         UUID id = UUID.randomUUID();
         ObjectNode result = targetResult(target);
         insertAction(id, turn, "update_target_list", args, "proposed", result);
         String what = action.equals("remove") ? "remove " + target.name() + " from the list" : "update " + target.name();
         return new Outcome(id, "update_target_list", "proposed", args, result,
                 "Proposed to " + what + ". It waits for the user to confirm it on the desk.");
+    }
+
+    /** "id N is not theirs", followed by what the user's list actually holds, so the model can pick a real id. */
+    private String unknownTarget(long userId, long targetId) {
+        return "targetEntityId " + targetId + " is not one of the user's schools. " + listedTargets(userId);
+    }
+
+    private String listedTargets(long userId) {
+        List<String> rows = jdbc.query("""
+                SELECT t.id, coalesce(cu.display_name, t.custom_name) AS name FROM desk.target_entity t
+                LEFT JOIN warehouse.canonical_university cu ON cu.canonical_university_id = t.canonical_university_id
+                WHERE t.user_id = ? ORDER BY t.id LIMIT 20
+                """, (rs, n) -> "[" + rs.getLong("id") + "] " + rs.getString("name"), userId);
+        return rows.isEmpty()
+                ? "The user's list is empty: add the school first with action \"add\"."
+                : "The user's schools are: " + String.join(", ", rows) + ".";
     }
 
     /**
@@ -335,11 +366,16 @@ public class TasselToolExecutor {
         return r;
     }
 
+    /** Sent with every failed call: the model should repair its own arguments before it bothers the user. */
+    static final String FAILED_HINT = "Nothing was changed. If the problems above are in your arguments and you have what is"
+            + " needed, correct them and call the tool again now. Ask the user only for information you do not have.";
+
     /** The message the model gets back for a call: status first, so it cannot misreport it. */
     public String toolResultForModel(Outcome o) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("status", o.status());
         m.put("message", o.message());
+        if (o.status().equals("failed")) m.put("next", FAILED_HINT);
         if (o.result() != null && o.result().has("id")) m.put("id", o.result().get("id"));
         try {
             return objectMapper.writeValueAsString(m);
