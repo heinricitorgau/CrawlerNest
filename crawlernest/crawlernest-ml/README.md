@@ -211,7 +211,7 @@ be re-read whenever the snapshot changes.
 ## Phase 3 results — cross-source disagreement
 
 Full detail in the [model card](model_cards/disagreement.md). QS and THE both
-rank 1,112 of the same universities, and they frequently disagree about them.
+rank 1,136 of the same universities, and they frequently disagree about them.
 The pairing comes from the warehouse — entity resolution seeded with reviewed
 aliases, ambiguous cases settled by hand — rather than being re-derived here
 from a name key, which reaches 842. On the 830 both methods place, they pick the
@@ -227,20 +227,20 @@ institutions at QS ingest time, before THE data arrives.
 
 | Feature set | Model | ROC-AUC | PR-AUC |
 |---|---|---:|---:|
-| **QS only** | **gradient boosting** | **0.8437** | **0.5324** |
-| QS only | logistic regression | 0.7554 | 0.3607 |
-| both sources *(ceiling)* | gradient boosting | 0.9252 | 0.7794 |
-| chance | — | 0.5000 | 0.2005 |
+| **QS only** | **gradient boosting** | **0.8488** | **0.5462** |
+| QS only | logistic regression | 0.7526 | 0.3550 |
+| both sources *(ceiling)* | gradient boosting | 0.9260 | 0.7768 |
+| chance | — | 0.5000 | 0.1998 |
 
 ![Disagreement diagnostics](artifacts/eda/disagreement_diagnostics.png)
 
-PR-AUC 0.532 against a 0.201 base rate is the honest headline — a 2.7× lift,
-where ROC-AUC would flatter an imbalanced problem. QS alone reaches 0.844 of a
-two-sided ceiling of 0.925, so most of what is predictable is already in QS's own
+PR-AUC 0.546 against a 0.200 base rate is the honest headline — a 2.7× lift,
+where ROC-AUC would flatter an imbalanced problem. QS alone reaches 0.849 of a
+two-sided ceiling of 0.926, so most of what is predictable is already in QS's own
 numbers. Gradient boosting beats the linear model here by a wide margin, the
 opposite of the overall-score result, because this relationship genuinely is not
 linear. Calibration is close in the lowest bins, under-confident around a predicted
-0.3 (0.46 observed) and over-confident in the top bin (0.73 predicted against 0.58
+0.3 (0.42 observed) and over-confident in the top bin (0.74 predicted against 0.62
 observed).
 
 These are lower than the numbers committed before (ROC-AUC 0.8662, PR-AUC
@@ -259,8 +259,13 @@ Miami University (Ohio, rank 1,265) joined to THE's University of Miami through
 the merged canonical that the entity split of 2026-10-03 separated. The largest
 gap now is 0.673.
 
-Among disagreeing pairs, **THE ranks the university higher 179 times to QS's
-44** — the sources do not merely differ, they differ in a consistent direction.
+A third time on 2026-10-12: the duplicate-canonical merge (`docs/data/DUPLICATE_MERGE_2026-10-12.md`) put
+a QS rank and a THE rank that had sat on two records of one university onto one, which moved `matched`
+1,112 → 1,136 and `positives` 223 → 227. The drift check caught it at the next push; the pairing was
+re-exported and these metrics recommitted on 2026-10-19. ROC-AUC moved 0.8437 → 0.8488.
+
+Among disagreeing pairs, **THE ranks the university higher 180 times to QS's
+47** — the sources do not merely differ, they differ in a consistent direction.
 
 ## Phase 3 results — LLM evaluation
 
@@ -740,7 +745,7 @@ Two kinds of guard, because they fail differently:
 
 | Kind | Checked how | Examples |
 |---|---|---|
-| **Invariant** | exactly, and first | `rows_labelled` = 705, `matched` = 1,112, `positives` = 223 |
+| **Invariant** | exactly, and first | `rows_labelled` = 705, `matched` = 1,136, `positives` = 227 |
 | **Metric** | against a direction and tolerance | `linear_renorm` RMSE (±0.05), weight-recovery error (±0.0005), disagreement ROC-AUC (±0.02) |
 
 Invariants come first because they describe the *data*: if the training set
@@ -749,7 +754,10 @@ mislabelled 2027 snapshot with the verified 2026 one tripped exactly these
 (`rows_labelled` 700 → 705, `matched` 1,104 → 1,109), and the metrics files were
 recommitted from the new edition rather than compared against the old one. They
 tripped again on 2026-09-21 (`matched` 1,109 → 1,112, `positives` 222 → 223), but
-nobody saw it until 2026-10-03, when the files were recommitted the same way.
+nobody saw it until 2026-10-03, when the files were recommitted the same way. The
+2026-10-12 merge tripped them a third time (1,112 → 1,136, 223 → 227); the
+warehouse drift check caught that one before the push, and the files were
+recommitted on 2026-10-19.
 
 Training is seeded and reproducible — a rerun on the same snapshot reproduces
 every guarded number exactly, so the tolerances exist for library drift rather
