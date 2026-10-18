@@ -338,8 +338,10 @@ Tests: `DeskApiIntegrationTest` (17, filter chain through to PostgreSQL), `deskP
 ## Implementation order
 
 1. ~~Move the DDL into `V003__create_desk_schema.sql` and apply it through `AuthSchemaInitializer`.~~ Done.
-2. ~~Add the CRUD endpoints (tasks, targets, skills), then point the desk cards at them.~~ Done. Targets
-   feed the deadline card. There is no target-list editor yet.
+2. ~~Add the CRUD endpoints (tasks, targets, skills), then point the desk cards at them.~~ Done. The
+   College list tab (`CollegeListPanel`) adds and removes schools and edits each school's stage, round,
+   deadline, label and notes. Notes are what `resonance/generate` judges from; a fit judged from them is
+   stored as `user_notes`. After a save, the desk's cards re-read the list.
 3. ~~Add `essays/evaluate`, then `story/*`, then the `chat/message` tool loop.~~ Done
    (`docs/agent/TASSEL_ASSISTANT.md`).
 4. New caveat strings go through the caveat contract: `crawlernest/core/caveats.py`, the

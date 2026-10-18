@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { decideChatAction, sendTasselMessage, type TasselTurn } from "@/lib/deskApi";
+import { CollegeListPanel } from "./CollegeListPanel";
 import { EssayReviewPanel, LatestEssayCard } from "./EssayReviewPanel";
 import { LiveDeadlinesCard, LiveSkillsCard, LiveSprintCard } from "./LiveDeskCards";
 import { LiveNarrativeCard } from "./LiveNarrativeCard";
@@ -79,6 +80,8 @@ export default function DeskPage() {
         <LatestEssayCard onOpenReviews={() => setActiveTab("essay-review")} />
         <LiveNarrativeCard />
       </div>
+    ) : activeTab === "colleges" ? (
+      <CollegeListPanel onChanged={() => setRevision((n) => n + 1)} />
     ) : activeTab === "essay-review" ? (
       <EssayReviewPanel />
     ) : (
