@@ -145,21 +145,57 @@ export const listSkills = () => call("/skills", {}, toSkills);
 export const recordSkillResult = (input: { subject: string; unit: string; attempted: number; correct: number }) =>
   call("/skills/results", json("POST", input), (raw) => toSkills([raw])[0] ?? null);
 
-export type LiveTarget = { id: number; name: string; stage: string; deadline: string | null; programmeName: string | null };
+export type LiveTarget = {
+  id: number;
+  name: string;
+  stage: string;
+  deadline: string | null;
+  programmeName: string | null;
+  applicationRound: string | null;
+  userBand: string | null;
+  /** The user's own notes; Tassel judges resonance from these when they exist. */
+  notes: string | null;
+  /** True when the target links a CrawlerNest university record. */
+  linked: boolean;
+  /** The linked record's status; "merged" means it was folded into another record. */
+  universityStatus: string | null;
+};
+
+const strOrNull = (v: unknown) => (typeof v === "string" ? v : null);
+
+export function toTarget(raw: unknown): LiveTarget | null {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  if (typeof r.id !== "number" || typeof r.name !== "string") return null;
+  return {
+    id: r.id, name: r.name, stage: typeof r.stage === "string" ? r.stage : "researching",
+    deadline: strOrNull(r.deadline), programmeName: strOrNull(r.programmeName),
+    applicationRound: strOrNull(r.applicationRound), userBand: strOrNull(r.userBand), notes: strOrNull(r.notes),
+    linked: typeof r.canonicalUniversityId === "number", universityStatus: strOrNull(r.universityStatus),
+  };
+}
 
 function toTargets(raw: unknown): LiveTarget[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.flatMap((item) => {
-    const r = (item ?? {}) as Record<string, unknown>;
-    return typeof r.id === "number" && typeof r.name === "string"
-      ? [{
-          id: r.id, name: r.name, stage: typeof r.stage === "string" ? r.stage : "researching",
-          deadline: typeof r.deadline === "string" ? r.deadline : null,
-          programmeName: typeof r.programmeName === "string" ? r.programmeName : null,
-        }]
-      : [];
-  });
+  return Array.isArray(raw) ? raw.map(toTarget).filter((t): t is LiveTarget => t !== null) : [];
 }
+
+/** Fields a PATCH may carry; null clears one, an absent key leaves it alone. */
+export type TargetPatch = Partial<{
+  stage: string;
+  applicationRound: string | null;
+  userBand: string | null;
+  deadline: string | null;
+  notes: string | null;
+  programmeName: string | null;
+}>;
+
+export const updateTarget = (id: number, patch: TargetPatch) =>
+  call(`/targets/${encodeURIComponent(String(id))}`, json("PATCH", patch), toTarget);
+
+export const createTarget = (input: { customName: string; programmeName?: string }) =>
+  call("/targets", json("POST", input), toTarget);
+
+export const deleteTarget = (id: number) =>
+  call(`/targets/${encodeURIComponent(String(id))}`, { method: "DELETE" }, () => true);
 
 export const listTargets = () => call("/targets", {}, toTargets);
 

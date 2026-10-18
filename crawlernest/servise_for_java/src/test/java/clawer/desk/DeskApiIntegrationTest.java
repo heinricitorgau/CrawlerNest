@@ -259,6 +259,30 @@ class DeskApiIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.stage").value("applying"));
     }
 
+    @Test
+    void notesAndRoundAreEditableByTheOwnerOnly() throws Exception {
+        long id = createdId(send(OWNER, post("/api/v1/user/desk/targets"), "{\"customName\": \"Northwestern\"}"));
+        send(OWNER, patch("/api/v1/user/desk/targets/" + id),
+                "{\"notes\": \"Loves interdisciplinary programs; Medill journalism.\", \"applicationRound\": \"RD\"}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.notes").value("Loves interdisciplinary programs; Medill journalism."))
+                .andExpect(jsonPath("$.data.applicationRound").value("RD"))
+                .andExpect(jsonPath("$.data.name").value("Northwestern"));
+
+        // Another account: the same 404 a missing row gets, and nothing changes.
+        send(OTHER_USER, patch("/api/v1/user/desk/targets/" + id), "{\"notes\": \"overwritten\"}").andExpect(status().isNotFound());
+        send(OWNER, get("/api/v1/user/desk/targets/" + id))
+                .andExpect(jsonPath("$.data.notes").value("Loves interdisciplinary programs; Medill journalism."));
+
+        send(OWNER, patch("/api/v1/user/desk/targets/" + id), "{\"applicationRound\": \"Early\"}").andExpect(status().isBadRequest());
+        send(OWNER, patch("/api/v1/user/desk/targets/" + id), "{\"notes\": \"" + "x".repeat(4001) + "\"}").andExpect(status().isBadRequest());
+
+        send(OWNER, patch("/api/v1/user/desk/targets/" + id), "{\"notes\": null, \"applicationRound\": null}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.notes").value(nullValue()))
+                .andExpect(jsonPath("$.data.applicationRound").value(nullValue()));
+    }
+
     // ─── Skills ───────────────────────────────────────────────────────────────
 
     @Test

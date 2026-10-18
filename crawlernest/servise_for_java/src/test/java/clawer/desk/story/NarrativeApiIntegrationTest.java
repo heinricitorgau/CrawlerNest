@@ -22,6 +22,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.util.List;
+
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -183,6 +185,30 @@ class NarrativeApiIntegrationTest {
                         AnalyticsService.NARRATIVE_ESTIMATE_CAVEAT, AnalyticsService.RESONANCE_GENERAL_KNOWLEDGE_CAVEAT)));
         assertEquals(0, jdbc.queryForObject(
                 "SELECT count(*) FROM desk.entity_resonance WHERE target_entity_id = ?", Long.class, othersSchool));
+    }
+
+    @Test
+    void notesEditedOnTheListAreWhatResonanceIsJudgedFrom() throws Exception {
+        long theme = acceptFirstTheme();
+        long school = addTarget(OWNER, "Northwestern", null);
+        var prompts = org.mockito.ArgumentCaptor.forClass(String.class);
+        String reply = """
+                {"resonance": [{"themeId": %d, "targetEntityId": %d, "level": 4, "rationale": "Fits.", "basis": "user_notes"}]}
+                """.formatted(theme, school);
+        modelSays(reply, reply);
+
+        send(OWNER, post("/api/v1/user/desk/story/resonance/generate"))
+                .andExpect(jsonPath("$.data.resonance[0].institutionBasis").value("model_general_knowledge"));
+
+        send(OWNER, patch("/api/v1/user/desk/targets/" + school).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"notes\": \"Medill journalism and hands-on studio courses.\"}")).andExpect(status().isOk());
+        send(OWNER, post("/api/v1/user/desk/story/resonance/generate"))
+                .andExpect(jsonPath("$.data.resonance[0].institutionBasis").value("user_notes"));
+
+        verify(model, org.mockito.Mockito.atLeast(2)).complete(anyString(), prompts.capture());
+        List<String> resonancePrompts = prompts.getAllValues().stream().filter(p -> p.contains("<schools>")).toList();
+        assertTrue(resonancePrompts.get(0).contains("No notes from the student."));
+        assertTrue(resonancePrompts.get(1).contains("Student's notes: Medill journalism and hands-on studio courses."));
     }
 
     @Test
