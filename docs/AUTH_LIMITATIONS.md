@@ -89,7 +89,40 @@ Unset, `JwtService` generates a key for the process and logs a warning. Everyone
 | Restarting with no configured secret signs everyone out | Only when `CRAWLERNEST_JWT_SECRET` is unset. With it set, restarts are transparent. |
 | No sign-out notification | Other browser tabs do not detect sign-out until the next API call. |
 | No concurrent session limit | A user can hold tokens in several browsers at once, and there is no way to enumerate or end them. |
-| Password change does not invalidate tokens | Tokens issued before the change keep working until they expire. |
+| Password change does not invalidate tokens | Tokens issued before the change keep working until they expire. That includes a password reset by link: someone already signed in elsewhere stays signed in until the token's TTL ends. |
+
+---
+
+## Password reset ("forgot password")
+
+`POST /api/v1/auth/password-reset/request` and `.../confirm` (`clawer.auth.reset`), with the pages
+`/forgot-password` and `/reset-password` linked from sign-in.
+
+- **No enumeration.** The request answers with the same words for every email, registered or not.
+- **The token.** 32 random bytes in the link. Only its SHA-256 is stored, in
+  `warehouse.password_reset_token` (V006). It is good once, for `CRAWLERNEST_PASSWORD_RESET_TTL` (30
+  minutes).
+- **Other open links end.** A new request, or a successful reset, ends every other open link for that
+  account.
+- **Rate limit.** At most 3 links per account per hour. Over the limit, the answer is unchanged and nothing
+  is sent.
+- **Concurrent use.** Two uses of one link cannot both succeed; the confirm takes a row lock.
+- **The new password** follows the same rule as sign-up (at least 8 characters).
+
+**Delivery (`CRAWLERNEST_PASSWORD_RESET_DELIVERY`).** No email is sent yet.
+
+| Value | What happens | Use |
+|---|---|---|
+| `none` (default) | No token is created. The page says reset by email is not set up and to ask the administrator. | Any deployment without email |
+| `log` | The link is written to the API log, marked "DEV ONLY". The page says so. | Local development only: anyone who can read the log can reset any account that asks |
+
+**Before public exposure:**
+
+- add an email delivery;
+- set `CRAWLERNEST_PUBLIC_BASE_URL` so links point at the real site;
+- never run with `log`.
+
+The reset does not end existing sessions (see the table above).
 
 ---
 
