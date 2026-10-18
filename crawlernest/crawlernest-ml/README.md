@@ -563,8 +563,8 @@ PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python \
     --pg-user test --pg-password test --pg-database clawer
 ```
 
-It trains on the 1,112 universities QS and THE both rank, then scores **all 1,504
-QS universities** — including the 392 outside that overlap. That is where the
+It trains on the 1,136 universities QS and THE both rank, then scores **all 1,504
+QS universities** — including the 368 outside that overlap. That is where the
 probability is useful: a contested institution can be flagged at QS ingest time
 rather than after a second source arrives.
 
