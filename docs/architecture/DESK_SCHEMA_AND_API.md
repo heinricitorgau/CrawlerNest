@@ -1,12 +1,13 @@
 # "Your desk": schema and API design
 
-Status: **proposal, 2026-10-18.** None of this is applied or implemented. The `/desk` page
-(`crawlernest-web/src/app/desk/`) already sends chat to `/api/agent/chat`; its cards hold sample data
-until the tables and endpoints below exist.
+Status, 2026-10-18: **the schema is live; the endpoints are not built yet.** The `/desk` page
+(`crawlernest-web/src/app/desk/`) already sends chat to `/api/agent/chat`. Its cards hold sample data
+until the endpoints below exist.
 
-DDL: [`desk_schema_postgresql.sql`](desk_schema_postgresql.sql). It was applied twice (it is idempotent) to a
-throwaway PostgreSQL 16 database, and each constraint described below was exercised with an insert that
-should pass and one that should fail.
+DDL: [`V003__create_desk_schema.sql`](../../crawlernest/servise_for_java/src/main/resources/db/auth/V003__create_desk_schema.sql).
+`AuthSchemaInitializer` runs that file at startup, after it creates `warehouse.app_user`. Unlike V001 and V002,
+the DDL is not repeated inline in Java, so there is one copy. `DeskSchemaIntegrationTest` covers the constraints
+described below against a real PostgreSQL.
 
 ## Decisions that shape everything else
 
@@ -14,7 +15,11 @@ should pass and one that should fail.
    and the user tables reference `warehouse.app_user` and `warehouse.canonical_university`. A MySQL copy
    would be a second database with no foreign keys to either. The table at the end lists what a port would
    have to change.
-2. **New schema `desk`, written only by the Spring Boot API.** The Python agent keeps having no database
+2. **New schema `desk`, written only by the Spring Boot API. Its only foreign key outside `desk` is to
+   `warehouse.app_user`.** `target_entity.canonical_university_id` has no foreign key to
+   `canonical_university`, just as `warehouse.saved_university` has none. The API starts against databases
+   the pipeline has not bootstrapped (CI's starts empty), and a reference to a pipeline table would stop it
+   starting. `merge_duplicate_canonicals.py` repoints the column, and its `verify` phase checks it. The Python agent keeps having no database
    connection (see `db/auth/V002__create_saved_conversation.sql`). Function calling does not change that.
    The model *returns* a tool call, and the API validates it and performs the write.
 3. **There is no admission-probability column.** The warehouse holds published requirement thresholds
@@ -47,7 +52,7 @@ should pass and one that should fail.
 |---|---|---|
 | `users` | `warehouse.app_user` (existing) + `desk.user_profile` | Identity stays where it is. The profile adds settings and **self-reported** scores. |
 | `tasks` | `desk.task`, `desk.sprint` | Priority `high/normal/low`. Status `todo/in_progress/done/cancelled`. `done` requires `completed_at`. A task created by the agent must point at its `chat_action`. |
-| `target_entities` | `desk.target_entity` | Optional link to `canonical_university` (otherwise `custom_name`). Has `stage`, `application_round`, a user-chosen `user_band`, and the user's own `deadline`. The published deadline is joined at read time, never copied. |
+| `target_entities` | `desk.target_entity` | Optional `canonical_university_id`, with no FK (otherwise `custom_name`). Has `stage`, `application_round`, a user-chosen `user_band`, and the user's own `deadline`. The published deadline is joined at read time, never copied. |
 | `user_themes` | `desk.user_theme` | `suggested → accepted/dismissed`, and only the user can change it. Evidence array must be non-empty. |
 | `entity_resonance` | `desk.entity_resonance` | One row per (theme, target). `level` 1–5, plus `rationale` and `institution_basis`. |
 | `skill_mastery` | `desk.skill_mastery` | Unique per (user, subject, unit). Mastery is computed from the counts. |
@@ -301,8 +306,7 @@ Response `200`:
 
 ## Implementation order
 
-1. Move the DDL into `servise_for_java/src/main/resources/db/auth/V003__create_desk_schema.sql` and apply
-   it through `AuthSchemaInitializer`, as V001 and V002 are.
+1. ~~Move the DDL into `V003__create_desk_schema.sql` and apply it through `AuthSchemaInitializer`.~~ Done.
 2. Add the CRUD endpoints (tasks, targets, skills), then point the desk cards at them and remove the
    sample banner card by card.
 3. Add `essays/evaluate`, then `story/*`, then the `chat/message` tool loop. The tool loop goes last
@@ -315,7 +319,7 @@ Response `200`:
 
 | PostgreSQL | MySQL 8 |
 |---|---|
-| schema `desk` | a separate database, with no cross-database FKs to the warehouse (lost) |
+| schema `desk` | a separate database, with no cross-database FK to `app_user` (lost) |
 | `JSONB` + `jsonb_typeof` CHECKs | `JSON` + `JSON_TYPE()` CHECKs |
 | `TEXT[]` (`traits`) | `JSON` array |
 | `GENERATED ALWAYS AS (...) STORED` | supported, same syntax |

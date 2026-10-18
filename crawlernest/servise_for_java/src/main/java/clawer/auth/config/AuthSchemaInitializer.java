@@ -2,11 +2,18 @@ package clawer.auth.config;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 @Component
 public class AuthSchemaInitializer {
+
+    /** The desk schema (docs/architecture/DESK_SCHEMA_AND_API.md). Read from the file, not mirrored here. */
+    static final String DESK_SCHEMA_SCRIPT = "db/auth/V003__create_desk_schema.sql";
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -65,5 +72,12 @@ public class AuthSchemaInitializer {
                 CREATE INDEX IF NOT EXISTS saved_conversation_user_updated_idx
                     ON warehouse.saved_conversation (user_id, updated_at DESC)
                 """);
+        createDeskTables();
+    }
+
+    /** Needs warehouse.app_user, so it runs after the statements above. Idempotent. */
+    void createDeskTables() {
+        new ResourceDatabasePopulator(new ClassPathResource(DESK_SCHEMA_SCRIPT))
+                .execute(Objects.requireNonNull(jdbcTemplate.getDataSource()));
     }
 }

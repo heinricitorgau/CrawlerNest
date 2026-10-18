@@ -1,14 +1,20 @@
 -- =========================================================
--- CrawlerNest "Your desk" schema (PostgreSQL) -- DESIGN, NOT YET APPLIED
+-- CrawlerNest "Your desk" schema (PostgreSQL)
 -- =========================================================
 --
--- Status: proposal. bootstrap_postgres.py and AuthSchemaInitializer do not run
--- this file, and nothing reads these tables yet. The design and its reasons are
--- in docs/architecture/DESK_SCHEMA_AND_API.md; when it is accepted it moves to
--- servise_for_java/src/main/resources/db/auth/ as a numbered migration.
+-- AuthSchemaInitializer runs this file at application startup, after the
+-- warehouse.app_user table it references. Unlike V001/V002 it is not mirrored
+-- inline in Java: the initializer reads this file, so there is one copy.
+-- Design and reasons: docs/architecture/DESK_SCHEMA_AND_API.md.
 --
--- Requires: warehouse.app_user        (db/auth/V001__create_app_user.sql)
---           warehouse.canonical_university (crawlernest-schema/entity_resolution_postgresql.sql)
+-- Every statement must be idempotent (IF NOT EXISTS) and must not use
+-- dollar-quoted blocks: Spring's script runner splits on ';'.
+--
+-- Requires: warehouse.app_user only. canonical_university_id carries no foreign
+-- key, as warehouse.saved_university does not: the API starts against databases
+-- the pipeline has not bootstrapped (CI's is empty), and a reference to a
+-- pipeline table would stop it starting. merge_duplicate_canonicals.py repoints
+-- the column when it merges two records.
 --
 -- Ownership: the Spring Boot API is the only writer, always for the
 -- session-authenticated user. The Python agent has no database connection and
@@ -67,7 +73,7 @@ CREATE TABLE IF NOT EXISTS desk.user_profile (
 CREATE TABLE IF NOT EXISTS desk.target_entity (
     id                       BIGSERIAL    PRIMARY KEY,
     user_id                  BIGINT       NOT NULL REFERENCES warehouse.app_user(id) ON DELETE CASCADE,
-    canonical_university_id  BIGINT       REFERENCES warehouse.canonical_university(canonical_university_id),
+    canonical_university_id  BIGINT,       -- warehouse.canonical_university; no FK, see the header
     custom_name              VARCHAR(200),
     programme_name           VARCHAR(200),
     -- '' rather than NULL so the unique key below treats "no programme" as one value.
@@ -94,6 +100,31 @@ CREATE UNIQUE INDEX IF NOT EXISTS target_entity_user_university_key
 
 CREATE INDEX IF NOT EXISTS target_entity_user_stage_idx
     ON desk.target_entity (user_id, stage);
+
+-- ---------------------------------------------------------
+-- chat_action: every write the model asked for, and what became of it
+-- ---------------------------------------------------------
+-- The audit trail for function calling. The model proposes; the API checks the
+-- tool against its allow-list and the arguments against the same validation a
+-- form submit gets, then applies it or holds it for the user to confirm.
+CREATE TABLE IF NOT EXISTS desk.chat_action (
+    id            UUID         PRIMARY KEY,
+    user_id       BIGINT       NOT NULL REFERENCES warehouse.app_user(id) ON DELETE CASCADE,
+    session_id    VARCHAR(64)  NOT NULL,
+    turn_index    INTEGER      NOT NULL CHECK (turn_index >= 0),
+    tool_name     VARCHAR(40)  NOT NULL CHECK (tool_name IN ('create_task', 'update_task_status',
+                                                             'add_target_entity', 'update_target_stage')),
+    arguments     JSONB        NOT NULL CHECK (jsonb_typeof(arguments) = 'object'),
+    status        VARCHAR(10)  NOT NULL CHECK (status IN ('applied', 'proposed', 'confirmed', 'rejected', 'undone', 'failed')),
+    -- {"table": "task", "id": 812} once applied; the validation error when failed.
+    result        JSONB,
+    model_name    VARCHAR(100) NOT NULL,
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    decided_at    TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS chat_action_user_session_idx
+    ON desk.chat_action (user_id, session_id, turn_index);
 
 -- ---------------------------------------------------------
 -- tasks: to-dos with deadline, priority and status (and the sprint they sit in)
@@ -123,7 +154,7 @@ CREATE TABLE IF NOT EXISTS desk.task (
     target_entity_id  BIGINT,
     created_by        VARCHAR(8)   NOT NULL DEFAULT 'user' CHECK (created_by IN ('user', 'agent')),
     -- The chat action that created it, when created_by = 'agent'; lets "undo" find it.
-    source_action_id  UUID,
+    source_action_id  UUID         REFERENCES desk.chat_action (id),
     completed_at      TIMESTAMPTZ,
     created_at        TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at        TIMESTAMPTZ  NOT NULL DEFAULT now(),
@@ -258,38 +289,3 @@ CREATE TABLE IF NOT EXISTS desk.essay_review (
 
 CREATE INDEX IF NOT EXISTS essay_review_user_created_idx
     ON desk.essay_review (user_id, created_at DESC);
-
--- ---------------------------------------------------------
--- chat_action: every write the model asked for, and what became of it
--- ---------------------------------------------------------
--- The audit trail for function calling. The model proposes; the API checks the
--- tool against its allow-list and the arguments against the same validation a
--- form submit gets, then applies it or holds it for the user to confirm.
-CREATE TABLE IF NOT EXISTS desk.chat_action (
-    id            UUID         PRIMARY KEY,
-    user_id       BIGINT       NOT NULL REFERENCES warehouse.app_user(id) ON DELETE CASCADE,
-    session_id    VARCHAR(64)  NOT NULL,
-    turn_index    INTEGER      NOT NULL CHECK (turn_index >= 0),
-    tool_name     VARCHAR(40)  NOT NULL CHECK (tool_name IN ('create_task', 'update_task_status',
-                                                             'add_target_entity', 'update_target_stage')),
-    arguments     JSONB        NOT NULL CHECK (jsonb_typeof(arguments) = 'object'),
-    status        VARCHAR(10)  NOT NULL CHECK (status IN ('applied', 'proposed', 'confirmed', 'rejected', 'undone', 'failed')),
-    -- {"table": "task", "id": 812} once applied; the validation error when failed.
-    result        JSONB,
-    model_name    VARCHAR(100) NOT NULL,
-    created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    decided_at    TIMESTAMPTZ
-);
-
-CREATE INDEX IF NOT EXISTS chat_action_user_session_idx
-    ON desk.chat_action (user_id, session_id, turn_index);
-
--- Declared last: chat_action does not exist when task is created.
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'task_source_action_fk') THEN
-        ALTER TABLE desk.task
-            ADD CONSTRAINT task_source_action_fk FOREIGN KEY (source_action_id)
-            REFERENCES desk.chat_action (id);
-    END IF;
-END $$;
