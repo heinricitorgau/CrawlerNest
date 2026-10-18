@@ -1,9 +1,9 @@
 # CrawlerNest — 完整 Commit 紀錄
 
-產生於 2026-10-03，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
+產生於 2026-10-18，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：499
-- **期間**：2026-03-16 ~ 2026-10-04
+- **Commit 總數**：502
+- **期間**：2026-03-16 ~ 2026-10-18
 - **主分支**：`main`
 
 ## 欄位說明
@@ -34,7 +34,10 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `679fa94` | 2026-10-04 | heinricitorgau | 1 | +1 / −1 | docs(readme): zh-TW API Tests row said 97 tests; it is 257 **[main]** |
+| `73e464a` | 2026-10-18 | heinricitorgau | 13 | +991 / −0 | feat(web): add the desk page and its component set, with the chat on the agent route **[main]** |
+| `38c8572` | 2026-10-11 | heinricitorgau | 1 | +3 / −0 | chore(gitignore): ignore a local mxc/ sandbox checkout |
+| `aa40e9b` | 2026-10-03 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `679fa94` | 2026-10-04 | heinricitorgau | 1 | +1 / −1 | docs(readme): zh-TW API Tests row said 97 tests; it is 257 |
 | `8f26d97` | 2026-10-03 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `f62990c` | 2026-10-04 | heinricitorgau | 108 | +589 / −577 | chore: move the local working folders (reports, snapshots, backups, logs, tmp, ...) into a hidden .local/ |
 | `f74b493` | 2026-10-03 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
@@ -575,8 +578,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 499 |
-| 檔案變更累計 | 7389 |
-| 新增行數累計 | +2878270 |
-| 刪除行數累計 | −816546 |
-| 淨增行數 | +2061724 |
+| Commit 數 | 502 |
+| 檔案變更累計 | 7404 |
+| 新增行數累計 | +2879273 |
+| 刪除行數累計 | −816553 |
+| 淨增行數 | +2062720 |
