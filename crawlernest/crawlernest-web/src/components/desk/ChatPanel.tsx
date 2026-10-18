@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import AgentWarningBanner from "@/components/AgentWarningBanner";
-import type { ChatMessage } from "./types";
+import { ActionCard } from "./ActionCard";
+import type { ChatAction, ChatActionDecision, ChatMessage } from "./types";
 
 interface ChatPanelProps {
   messages: ChatMessage[];
@@ -10,6 +10,7 @@ interface ChatPanelProps {
   pending?: boolean;
   title?: string;
   placeholder?: string;
+  onDecide?: (action: ChatAction, decision: ChatActionDecision) => Promise<ChatAction | string>;
 }
 
 /** Message list that scrolls, with the prompt box pinned to the bottom. Enter sends, Shift+Enter breaks a line. */
@@ -19,6 +20,7 @@ export function ChatPanel({
   pending = false,
   title = "Counselor",
   placeholder = "Ask about your application...",
+  onDecide,
 }: ChatPanelProps) {
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
@@ -62,9 +64,7 @@ export function ChatPanel({
               </p>
             </div>
           ) : (
-            <div key={message.id} className="max-w-[85%]">
-              {/* Disclosures sit above the reply they qualify, as on /agent. */}
-              <AgentWarningBanner warnings={message.warnings} />
+            <div key={message.id} className="max-w-[85%] space-y-2">
               <p
                 role={message.error ? "alert" : undefined}
                 className={`whitespace-pre-wrap rounded-2xl rounded-bl-sm px-4 py-2 text-sm leading-relaxed ${
@@ -73,6 +73,13 @@ export function ChatPanel({
               >
                 {message.content}
               </p>
+              {message.actions?.length ? (
+                <div className="space-y-1.5" aria-label="Changes from this reply">
+                  {message.actions.map((action, i) => (
+                    <ActionCard key={action.id ?? `${message.id}-${i}`} action={action} onDecide={onDecide} />
+                  ))}
+                </div>
+              ) : null}
             </div>
           ),
         )}

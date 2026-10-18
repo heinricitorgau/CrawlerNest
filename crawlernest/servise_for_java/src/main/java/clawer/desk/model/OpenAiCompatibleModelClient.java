@@ -79,13 +79,7 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
 
     @Override
     public Reply complete(String systemPrompt, String userPrompt) {
-        String problem = configurationProblem();
-        if (problem != null) {
-            throw new UnavailableException(problem);
-        }
-        ObjectNode body = objectMapper.createObjectNode();
-        body.put("model", model);
-        body.put("temperature", 0);
+        ObjectNode body = baseBody(0.0);
         ArrayNode messages = body.putArray("messages");
         messages.addObject().put("role", "system").put("content", systemPrompt);
         messages.addObject().put("role", "user").put("content", userPrompt);
@@ -93,7 +87,43 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
             // Both honour JSON mode; ds4 is not known to, and gets the prompt's instruction only.
             body.putObject("response_format").put("type", "json_object");
         }
+        JsonNode json = post(body);
+        String text = json.path("choices").path(0).path("message").path("content").asText("");
+        return new Reply(text, servedModel(json));
+    }
 
+    @Override
+    public ChatTurn chat(ArrayNode messages, JsonNode tools) {
+        // A little warmth for conversation; scoring stays at 0.
+        ObjectNode body = baseBody(0.3);
+        body.set("messages", messages);
+        body.set("tools", tools);
+        body.put("tool_choice", "auto");
+        JsonNode json = post(body);
+        JsonNode message = json.path("choices").path(0).path("message");
+        if (!message.isObject()) {
+            throw new UnavailableException("The model's reply could not be read. Nothing was stored.");
+        }
+        return new ChatTurn(message, servedModel(json));
+    }
+
+    private ObjectNode baseBody(double temperature) {
+        String problem = configurationProblem();
+        if (problem != null) {
+            throw new UnavailableException(problem);
+        }
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("model", model);
+        body.put("temperature", temperature);
+        return body;
+    }
+
+    private String servedModel(JsonNode json) {
+        String served = json.path("model").asText(model);
+        return served.isBlank() ? model : served;
+    }
+
+    private JsonNode post(ObjectNode body) {
         HttpRequest.Builder request = HttpRequest.newBuilder(URI.create(baseUrl + "/chat/completions"))
                 .timeout(timeout)
                 .header("Content-Type", "application/json")
@@ -101,7 +131,6 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
         if (!apiKey.isEmpty()) {
             request.header("Authorization", "Bearer " + apiKey);
         }
-
         HttpResponse<String> response;
         try {
             response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
@@ -115,10 +144,7 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
             throw new UnavailableException("The model returned an error. Nothing was stored.");
         }
         try {
-            JsonNode json = objectMapper.readTree(response.body());
-            String text = json.path("choices").path(0).path("message").path("content").asText("");
-            String served = json.path("model").asText(model);
-            return new Reply(text, served.isBlank() ? model : served);
+            return objectMapper.readTree(response.body());
         } catch (IOException e) {
             throw new UnavailableException("The model's reply could not be read. Nothing was stored.");
         }

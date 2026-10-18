@@ -48,6 +48,11 @@ class EssayEvaluatorTest {
             userPrompts.add(userPrompt);
             return new Reply(replies.removeFirst(), "test-model");
         }
+
+        @Override
+        public ChatTurn chat(com.fasterxml.jackson.databind.node.ArrayNode messages, com.fasterxml.jackson.databind.JsonNode tools) {
+            throw new UnsupportedOperationException("the essay scorer does not chat");
+        }
     }
 
     static String reply(String impactEvidence, String suggestionOriginal) {

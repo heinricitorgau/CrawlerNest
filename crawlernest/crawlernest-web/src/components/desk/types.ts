@@ -6,11 +6,23 @@ export interface ChatMessage {
   id: string;
   role: ChatRole;
   content: string;
-  /** The agent route's `warnings`, shown above the reply by AgentWarningBanner. */
-  warnings?: unknown;
   /** The request failed; `content` is the error. */
   error?: boolean;
+  /** What Tassel changed (or proposed) in this turn, with each action's real status. */
+  actions?: ChatAction[];
 }
+
+export type ChatActionStatus = "applied" | "proposed" | "confirmed" | "rejected" | "undone" | "failed";
+
+export interface ChatAction {
+  /** Null only for a call the database could not record (an unknown tool). */
+  id: string | null;
+  tool: string;
+  status: ChatActionStatus;
+  message: string;
+}
+
+export type ChatActionDecision = "confirm" | "reject" | "undo";
 
 export type TaskStatus = "todo" | "in_progress" | "done" | "cancelled";
 

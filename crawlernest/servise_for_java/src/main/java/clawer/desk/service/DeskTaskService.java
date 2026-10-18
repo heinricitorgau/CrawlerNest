@@ -103,16 +103,32 @@ public class DeskTaskService {
         ownership.require("desk.sprint", sprintId, userId, "sprint");
         ownership.require("desk.target_entity", targetEntityId, userId, "target");
 
+        return insert(userId, title, notes, dueDate, priority, status, category, sprintId, targetEntityId, null);
+    }
+
+    /**
+     * A task Tassel created (create_action_task). The caller has validated the
+     * arguments with the same limits as {@link #create}; the row records the chat
+     * action it came from, which is what lets "undo" find it.
+     */
+    public Task createForAgent(long userId, String title, LocalDate dueDate, String priority, String category,
+                               Long targetEntityId, java.util.UUID actionId) {
+        ownership.require("desk.target_entity", targetEntityId, userId, "target");
+        return insert(userId, title, null, dueDate, priority, null, category, null, targetEntityId, actionId);
+    }
+
+    private Task insert(long userId, String title, String notes, LocalDate dueDate, String priority, String status,
+                        String category, Long sprintId, Long targetEntityId, java.util.UUID actionId) {
         String resolvedStatus = status == null ? "todo" : status;
         Long id = jdbc.queryForObject("""
                 INSERT INTO desk.task
                     (user_id, title, notes, due_date, priority, status, category, sprint_id, target_entity_id,
-                     created_by, completed_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'user', CASE WHEN ? = 'done' THEN now() END)
+                     created_by, source_action_id, completed_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CASE WHEN ? = 'done' THEN now() END)
                 RETURNING id
                 """, Long.class,
                 userId, title, notes, sqlDate(dueDate), priority == null ? "normal" : priority, resolvedStatus,
-                category, sprintId, targetEntityId, resolvedStatus);
+                category, sprintId, targetEntityId, actionId == null ? "user" : "agent", actionId, resolvedStatus);
         return find(userId, id).orElseThrow();
     }
 

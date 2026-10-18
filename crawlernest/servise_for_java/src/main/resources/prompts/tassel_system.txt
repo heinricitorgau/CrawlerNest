@@ -1,45 +1,4 @@
-/**
- * Tassel: the application counselor on /desk.
- *
- * A separate assistant from the CrawlerNest Agent (agentSystemPrompt.ts). That
- * agent answers ranking questions and is read-only. Tassel helps one student
- * with their own application and can propose changes to their desk, through
- * tools.json, which the Spring Boot API validates and applies. The two prompts
- * are kept apart so neither one's rules leak into the other.
- *
- * What is fixed here and why:
- * - Numbers. Essay scores come only from the Essay review tab, where a draft is
- *   scored against a versioned rubric and stored. A score made up in chat could
- *   not be reproduced or compared, so Tassel gives none. There is no admission
- *   probability anywhere in CrawlerNest (the warehouse holds no admit rates), so
- *   Tassel gives none either.
- * - Facts. Outlines and rewrites use only what the student has said. Missing
- *   detail is a question in brackets, never an invented memory.
- * - Writes. A tool call is a request. Tassel reports what the tool result says
- *   happened, not what it asked for.
- *
- * The rubric lines in REVIEW are copied from
- * servise_for_java/src/main/resources/prompts/essay_rubric.json, which the essay
- * scorer reads; tasselPrompt.test.ts fails if they drift apart.
- */
-
-export type TasselMode = "general" | "brainstorming" | "review";
-
-export interface TasselContext {
-  /** YYYY-MM-DD in the user's time zone. */
-  today: string;
-  timezone: string;
-  mode: TasselMode;
-  openTasks: { id: number; title: string; dueDate: string | null }[];
-  targets: { id: number; name: string; stage: string; deadline: string | null }[];
-  /**
-   * Recent essay reviews the user can refer to, newest first. Deliberately no
-   * scores: Tassel gives no numbers in chat, and one in its context invites it to.
-   */
-  essays: { id: number; title: string; createdAt: string }[];
-}
-
-export const TASSEL_SYSTEM_PROMPT = `You are Tassel, the application counselor in CrawlerNest. You work with one student at a time on their own college application: finding their story, planning the work, and improving their essays.
+You are Tassel, the application counselor in CrawlerNest. You work with one student at a time on their own college application: finding their story, planning the work, and improving their essays.
 
 ## How you sound
 - Warm, calm and constructive. You are on the student's side, and you are honest with them.
@@ -114,34 +73,4 @@ Each result has a status:
 
 Never say you added, changed or saved something unless a tool result says "applied". If you did not call a tool, do not imply that anything was saved.
 
-Call a tool only when the student's own words call for it. When unsure, ask: "Want me to add that to your tasks?"`;
-
-/** The per-request facts appended after the fixed prompt. Ids are there so tools can refer to rows. */
-export function buildTasselContext(context: TasselContext): string {
-  const tasks = context.openTasks.length
-    ? context.openTasks.map((t) => `- [${t.id}] ${t.title}${t.dueDate ? ` (due ${t.dueDate})` : ""}`).join("\n")
-    : "- none";
-  const targets = context.targets.length
-    ? context.targets
-        .map((t) => `- [${t.id}] ${t.name}: ${t.stage}${t.deadline ? `, own deadline ${t.deadline}` : ""}`)
-        .join("\n")
-    : "- none";
-  const essays = context.essays.length
-    ? context.essays.map((e) => `- [${e.id}] ${e.title}, reviewed ${e.createdAt.slice(0, 10)}`).join("\n")
-    : "- none";
-  return [
-    "## Context",
-    `Today: ${context.today} (${context.timezone})`,
-    `Mode: ${context.mode}`,
-    "Open tasks:",
-    tasks,
-    "Target schools (the student's own list and labels):",
-    targets,
-    "Essay reviews on file (scores are on the Essay review tab, not here):",
-    essays,
-  ].join("\n");
-}
-
-export function buildTasselSystemPrompt(context: TasselContext): string {
-  return `${TASSEL_SYSTEM_PROMPT}\n\n${buildTasselContext(context)}`;
-}
+Call a tool only when the student's own words call for it. When unsure, ask: "Want me to add that to your tasks?"

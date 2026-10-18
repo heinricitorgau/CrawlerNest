@@ -3,7 +3,7 @@
 -- =========================================================
 --
 -- V003 allowed the four tool names in the first design draft. The assistant's
--- tools are now defined in crawlernest-web/src/lib/tassel/tools.json, and this
+-- tools are now defined in prompts/tassel_tools.json, and this
 -- list must name exactly those (TasselToolsContractTest checks it):
 --
 --   update_target_list         add a school, change its stage, or remove it

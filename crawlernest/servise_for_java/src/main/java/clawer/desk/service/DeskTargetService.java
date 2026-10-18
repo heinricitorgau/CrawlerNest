@@ -121,14 +121,48 @@ public class DeskTargetService {
                 throw DeskException.conflict("That university and programme is already on your list.");
             }
         }
+        return insert(userId, canonicalId, customName, programme, stage, round, band, deadline, notes, "user");
+    }
+
+    /**
+     * A school Tassel added (update_target_list, action "add"). The caller has
+     * already resolved the name: a warehouse id only for an exact, unique match,
+     * otherwise the user's own wording as customName.
+     */
+    public Target createForAgent(long userId, Long canonicalId, String customName, String programme, String stage,
+                                 String round, String band, LocalDate deadline) {
+        if (canonicalId != null) {
+            requireActiveUniversity(canonicalId);
+            Boolean exists = jdbc.queryForObject("""
+                    SELECT EXISTS (SELECT 1 FROM desk.target_entity
+                                   WHERE user_id = ? AND canonical_university_id = ? AND programme_key = ?)
+                    """, Boolean.class, userId, canonicalId, programmeKey(programme));
+            if (Boolean.TRUE.equals(exists)) {
+                throw DeskException.conflict("That school and programme is already on the list.");
+            }
+        } else {
+            Boolean exists = jdbc.queryForObject("""
+                    SELECT EXISTS (SELECT 1 FROM desk.target_entity
+                                   WHERE user_id = ? AND canonical_university_id IS NULL
+                                     AND lower(custom_name) = lower(?) AND programme_key = ?)
+                    """, Boolean.class, userId, customName, programmeKey(programme));
+            if (Boolean.TRUE.equals(exists)) {
+                throw DeskException.conflict("That school and programme is already on the list.");
+            }
+        }
+        return insert(userId, canonicalId, customName, programme, stage, round, band, deadline, null, "agent");
+    }
+
+    private Target insert(long userId, Long canonicalId, String customName, String programme, String stage, String round,
+                          String band, LocalDate deadline, String notes, String createdBy) {
         Long id = jdbc.queryForObject("""
                 INSERT INTO desk.target_entity
                     (user_id, canonical_university_id, custom_name, programme_name, programme_key, stage,
                      application_round, user_band, deadline, notes, created_by)
-                VALUES (?, ?, ?, ?, ?, coalesce(?, 'researching'), ?, ?, ?, ?, 'user')
+                VALUES (?, ?, ?, ?, ?, coalesce(?, 'researching'), ?, ?, ?, ?, ?)
                 RETURNING id
                 """, Long.class, userId, canonicalId, customName, programme, programmeKey(programme), stage,
-                round, band, sqlDate(deadline), notes);
+                round, band, sqlDate(deadline), notes, createdBy);
         return find(userId, id).orElseThrow();
     }
 

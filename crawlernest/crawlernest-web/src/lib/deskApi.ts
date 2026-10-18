@@ -1,5 +1,13 @@
 import { normalizeAuthError } from "@/lib/authMessages";
-import type { DeskTask, PrioritySprint, SkillMastery, TaskStatus } from "@/components/desk";
+import type {
+  ChatAction,
+  ChatActionDecision,
+  ChatActionStatus,
+  DeskTask,
+  PrioritySprint,
+  SkillMastery,
+  TaskStatus,
+} from "@/components/desk";
 
 /**
  * Client for the Java DeskController (`/api/v1/user/desk`, reached through the
@@ -316,3 +324,44 @@ export const generateThemes = () => call("/story/themes/generate", { method: "PO
 export const decideTheme = (id: number, status: "accepted" | "dismissed") =>
   call(`/story/themes/${encodeURIComponent(String(id))}`, json("PATCH", { status }), toNarrative);
 export const generateResonance = () => call("/story/resonance/generate", { method: "POST" }, toNarrative);
+
+// ─── Tassel ──────────────────────────────────────────────────────────────────
+
+export type TasselTurn = { role: "user" | "assistant"; content: string };
+
+export type TasselReply = { text: string; actions: ChatAction[]; model: string | null };
+
+const ACTION_STATUSES: readonly ChatActionStatus[] = ["applied", "proposed", "confirmed", "rejected", "undone", "failed"];
+
+export function toChatAction(raw: unknown): ChatAction | null {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  if (typeof r.tool !== "string" || !ACTION_STATUSES.includes(r.status as ChatActionStatus)) return null;
+  return { id: typeof r.id === "string" ? r.id : null, tool: r.tool, status: r.status as ChatActionStatus, message: str(r.message) };
+}
+
+function toTasselReply(raw: unknown): TasselReply {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  const reply = (r.reply ?? {}) as Record<string, unknown>;
+  const disclosure = (r.disclosure ?? {}) as Record<string, unknown>;
+  return {
+    text: str(reply.text),
+    actions: (Array.isArray(r.actions) ? r.actions : []).map(toChatAction).filter((a): a is ChatAction => a !== null),
+    model: typeof disclosure.model === "string" ? disclosure.model : null,
+  };
+}
+
+/** One turn with Tassel. The API runs the tool loop; the reply carries every action with its real status. */
+export const sendTasselMessage = (input: {
+  sessionId: string;
+  message: string;
+  history: TasselTurn[];
+  mode: "general" | "brainstorming" | "review";
+}) => call("/chat/message", json("POST", input), toTasselReply);
+
+/** Confirm or reject a proposal, or undo an applied change. Resolves to the action's new state. */
+export const decideChatAction = (id: string, decision: ChatActionDecision) =>
+  call(`/chat/actions/${encodeURIComponent(id)}/${decision}`, { method: "POST" }, (raw) => {
+    const r = (raw ?? {}) as Record<string, unknown>;
+    const status = ACTION_STATUSES.includes(r.status as ChatActionStatus) ? (r.status as ChatActionStatus) : null;
+    return status;
+  });

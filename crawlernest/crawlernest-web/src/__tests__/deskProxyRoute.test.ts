@@ -57,7 +57,7 @@ describe("desk proxy route", () => {
     [["..", "admin"]],
     [["tasks", "..%2Fadmin"]],
     [["Tasks"]],
-    [["tasks", "1", "2", "3"]],
+    [["chat", "actions", "1", "2", "3"]],
     [[]],
   ])("answers 404 for %j without calling the API", async (path) => {
     const fetchMock = upstreamOk();

@@ -1,5 +1,6 @@
 export { DeskLayout, DeskTabBar, DESK_TABS } from "./DeskLayout";
 export { ChatPanel } from "./ChatPanel";
+export { ActionCard } from "./ActionCard";
 export { DeskCard, SprintCard, TaskList, deadlineBadge } from "./TaskPanel";
 export { ScoreRing, ScoreBreakdown } from "./ScoreRing";
 export { SkillMasteryBar, SkillMasteryList } from "./SkillMasteryBar";
