@@ -19,7 +19,8 @@ public class AuthSchemaInitializer {
      */
     static final List<String> DESK_SCHEMA_SCRIPTS = List.of(
             "db/auth/V003__create_desk_schema.sql",
-            "db/auth/V004__tassel_tool_allow_list.sql");
+            "db/auth/V004__tassel_tool_allow_list.sql",
+            "db/auth/V005__essay_word_limit.sql");
 
     private final JdbcTemplate jdbcTemplate;
 

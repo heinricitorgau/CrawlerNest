@@ -192,6 +192,19 @@ class EssayApiIntegrationTest {
     }
 
     @Test
+    void keepsTheWordLimitAndUpdatesItWithoutRescoring() throws Exception {
+        when(model.complete(anyString(), anyString())).thenReturn(new EssayModelClient.Reply(modelReply(82), "test-model"));
+        evaluate(OWNER, "{\"essayTitle\": \"x\", \"wordLimit\": 650, \"draftText\": " + quote(DRAFT) + "}")
+                .andExpect(jsonPath("$.data.wordLimit").value(650));
+        evaluate(OWNER, "{\"essayTitle\": \"x\", \"wordLimit\": 250, \"draftText\": " + quote(DRAFT) + "}")
+                .andExpect(jsonPath("$.data.cached").value(true))
+                .andExpect(jsonPath("$.data.wordLimit").value(250));
+        verify(model, times(1)).complete(anyString(), anyString());
+        evaluate(OWNER, "{\"essayTitle\": \"x\", \"wordLimit\": 0, \"draftText\": \"Other.\"}")
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void refusesBadDrafts() throws Exception {
         evaluate(OWNER, "{\"essayTitle\": \"x\", \"draftText\": \"   \"}").andExpect(status().isBadRequest());
         evaluate(OWNER, "{\"draftText\": \"Mine.\"}").andExpect(status().isBadRequest());
