@@ -1,8 +1,8 @@
 # "Your desk": schema and API design
 
-Status, 2026-10-18: **the schema is live; the endpoints are not built yet.** The `/desk` page
-(`crawlernest-web/src/app/desk/`) already sends chat to `/api/agent/chat`. Its cards hold sample data
-until the endpoints below exist.
+Status, 2026-10-18: **the schema and the CRUD endpoints are live; chat actions, essays and the narrative
+are not built yet.** On `/desk`, the chat (`/api/agent/chat`), the sprint card and the skill cards are
+live. The essay, theme and resonance cards hold sample data under their own banner.
 
 DDL: [`V003__create_desk_schema.sql`](../../crawlernest/servise_for_java/src/main/resources/db/auth/V003__create_desk_schema.sql).
 `AuthSchemaInitializer` runs that file at startup, after it creates `warehouse.app_user`. Unlike V001 and V002,
@@ -154,8 +154,7 @@ Companion endpoints:
 
 - `POST /api/v1/chat/actions/{id}/confirm`, `.../reject` and `.../undo`. Undo works on `applied` actions
   for 24 hours.
-- `GET /api/v1/desk/tasks?status=open` and `GET /api/v1/desk/targets`. These are plain CRUD and are not
-  specified further here.
+- The CRUD endpoints, listed under "CRUD endpoints" below.
 
 Tool schemas sent to the model (also the server-side validation):
 
@@ -304,11 +303,42 @@ Response `200`:
   shown at a guessed position.
 - `503` with `"code": "MODEL_UNAVAILABLE"` if the provider is down. Nothing is stored in that case.
 
+## CRUD endpoints (implemented)
+
+`DeskController`, under `/api/v1/user/desk`. The path is not the `/api/v1/desk` the first draft used:
+`SecurityConfig` closes `/api/v1/user/**` to anonymous callers at the filter chain, so a new endpoint there
+is closed by default. A route outside that prefix would be public unless every handler remembered to
+check. The browser reaches these endpoints through the Next proxy at `/api/user/desk/**`
+(`app/api/user/desk/[...path]/route.ts`). The proxy forwards lower-case path segments and numeric ids
+only, at most three segments, plus an allow-list of query parameters.
+
+| Method and path | Notes |
+|---|---|
+| `GET /tasks?status=open\|done\|all&sprintId=` | Default `open`. Ordered open first, then soonest due, undated last. |
+| `GET /tasks/{id}`, `POST /tasks`, `PATCH /tasks/{id}`, `DELETE /tasks/{id}` | `completedAt` follows `status`. Tasks created here are `createdBy: "user"`. |
+| `GET /sprints`, `GET /sprints/current`, `GET /sprints/{id}` | `current` is the sprint covering today in the profile's time zone; `data: null` when none does. |
+| `POST /sprints`, `PATCH /sprints/{id}`, `DELETE /sprints/{id}` | Deleting a sprint keeps its tasks and clears their `sprintId`. |
+| `GET /targets?stage=`, `GET /targets/{id}`, `POST /targets`, `PATCH /targets/{id}`, `DELETE /targets/{id}` | `name` is the warehouse display name when linked. A missing university is refused, and so is a `merged` one. A repeated (university, programme) pair answers 409; the programme comparison ignores case and spacing. |
+| `GET /skills?subject=`, `POST /skills/results`, `DELETE /skills/{id}` | Results add to a unit's counts. No endpoint accepts a percentage. A result from a different `source` than the unit's answers 409. |
+| `GET /profile`, `PUT /profile` | `GET` returns defaults and never writes. `PUT` replaces the whole profile. Scores are nested under `selfReported`. |
+
+Conventions:
+
+- Bodies are read field by field, and an unknown field is a 400 that names it.
+- In a `PATCH`, an absent field is left alone and a `null` field is cleared.
+- Another user's id answers 404, the same as a missing row.
+- An id in a body that belongs to someone else (`sprintId`, `targetEntityId`) answers 400
+  (`"No such sprint."`).
+- Error bodies are `{"success": false, "error": "..."}`, as the other user controllers return them.
+
+Tests: `DeskApiIntegrationTest` (17, filter chain through to PostgreSQL), `deskProxyRoute.test.ts` and
+`LiveDeskCards.test.tsx`.
+
 ## Implementation order
 
 1. ~~Move the DDL into `V003__create_desk_schema.sql` and apply it through `AuthSchemaInitializer`.~~ Done.
-2. Add the CRUD endpoints (tasks, targets, skills), then point the desk cards at them and remove the
-   sample banner card by card.
+2. ~~Add the CRUD endpoints (tasks, targets, skills), then point the desk cards at them.~~ Done for the
+   sprint and skill cards. Targets have endpoints but no card yet.
 3. Add `essays/evaluate`, then `story/*`, then the `chat/message` tool loop. The tool loop goes last
    because it depends on the CRUD validation.
 4. New caveat strings go through the caveat contract: `crawlernest/core/caveats.py`, the

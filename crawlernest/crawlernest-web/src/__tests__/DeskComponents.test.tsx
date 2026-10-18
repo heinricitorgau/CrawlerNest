@@ -81,9 +81,9 @@ describe("TaskList", () => {
   });
 
   it("flags overdue and near deadlines but not finished tasks", () => {
-    expect(deadlineBadge({ ...tasks[0], dueDate: "2026-10-16" }, TODAY).text).toBe("2d overdue");
-    expect(deadlineBadge(tasks[2], TODAY).text).toBe("2d left");
-    expect(deadlineBadge(tasks[1], TODAY).text).toBe("Oct 1");
+    expect(deadlineBadge({ ...tasks[0], dueDate: "2026-10-16" }, TODAY)?.text).toBe("2d overdue");
+    expect(deadlineBadge(tasks[2], TODAY)?.text).toBe("2d left");
+    expect(deadlineBadge(tasks[1], TODAY)?.text).toBe("Oct 1");
   });
 });
 
