@@ -14,13 +14,15 @@ import java.util.Objects;
 public class AuthSchemaInitializer {
 
     /**
-     * The desk schema (docs/architecture/DESK_SCHEMA_AND_API.md), in order. Read
+     * The scripts after app_user, in order: the desk schema (docs/architecture/DESK_SCHEMA_AND_API.md)
+     * and the password reset tokens (V006). Read
      * from the files, not mirrored here. Each must be safe to run on every start.
      */
-    static final List<String> DESK_SCHEMA_SCRIPTS = List.of(
+    static final List<String> SCRIPTS = List.of(
             "db/auth/V003__create_desk_schema.sql",
             "db/auth/V004__tassel_tool_allow_list.sql",
-            "db/auth/V005__essay_word_limit.sql");
+            "db/auth/V005__essay_word_limit.sql",
+            "db/auth/V006__password_reset_token.sql");
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -85,7 +87,7 @@ public class AuthSchemaInitializer {
     /** Needs warehouse.app_user, so it runs after the statements above. Idempotent. */
     void createDeskTables() {
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
-        DESK_SCHEMA_SCRIPTS.forEach(script -> populator.addScript(new ClassPathResource(script)));
+        SCRIPTS.forEach(script -> populator.addScript(new ClassPathResource(script)));
         populator.execute(Objects.requireNonNull(jdbcTemplate.getDataSource()));
     }
 }
