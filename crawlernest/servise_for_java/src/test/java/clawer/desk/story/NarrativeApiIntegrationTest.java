@@ -243,5 +243,85 @@ class NarrativeApiIntegrationTest {
     @Test
     void needsAToken() throws Exception {
         mvc.perform(get("/api/v1/user/desk/story/narrative")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/user/desk/story/themes")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/user/desk/story/resonance")).andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/v1/user/desk/story/generate")).andExpect(status().isUnauthorized());
+        verify(model, never()).complete(anyString(), anyString());
+    }
+
+    // ─── The split reads and the documented generate path ─────────────────────
+
+    @Test
+    void postGenerateIsTheSameAsThemesGenerate() throws Exception {
+        modelSays(themesReply());
+        send(OWNER, post("/api/v1/user/desk/story/generate"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.themes", hasSize(1)))
+                .andExpect(jsonPath("$.data.themes[0].status").value("suggested"));
+    }
+
+    @Test
+    void getThemesListsThemesWithTheirCaveatAndNoResonance() throws Exception {
+        acceptFirstTheme();
+        send(OWNER, get("/api/v1/user/desk/story/themes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.themes", hasSize(1)))
+                .andExpect(jsonPath("$.data.themes[0].title").value("The Builder Who Teaches"))
+                .andExpect(jsonPath("$.data.themes[0].status").value("accepted"))
+                .andExpect(jsonPath("$.data.themes[0].isEstimated").value(true))
+                .andExpect(jsonPath("$.data.resonance").doesNotExist())
+                .andExpect(jsonPath("$.data.caveats").value(contains(AnalyticsService.NARRATIVE_ESTIMATE_CAVEAT)));
+        send(OTHER_USER, get("/api/v1/user/desk/story/themes")).andExpect(jsonPath("$.data.themes", hasSize(0)));
+    }
+
+    @Test
+    void getThemesHidesDismissedUnlessAsked() throws Exception {
+        long theme = acceptFirstTheme();
+        send(OWNER, patch("/api/v1/user/desk/story/themes/" + theme).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\": \"dismissed\"}"));
+        send(OWNER, get("/api/v1/user/desk/story/themes")).andExpect(jsonPath("$.data.themes", hasSize(0)));
+        send(OWNER, get("/api/v1/user/desk/story/themes").param("includeDismissed", "true"))
+                .andExpect(jsonPath("$.data.themes[0].status").value("dismissed"));
+    }
+
+    @Test
+    void getResonanceGivesOneToFiveLevelsWithReasonsAndTheScale() throws Exception {
+        long theme = acceptFirstTheme();
+        long school = addTarget(OWNER, "Notes College", "Hands-on engineering.");
+        modelSays("""
+                {"resonance": [{"themeId": %d, "targetEntityId": %d, "level": 4, "rationale": "Your notes name hands-on work.", "basis": "user_notes"}]}
+                """.formatted(theme, school));
+        send(OWNER, post("/api/v1/user/desk/story/resonance/generate")).andExpect(status().isOk());
+
+        send(OWNER, get("/api/v1/user/desk/story/resonance"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.resonance", hasSize(1)))
+                .andExpect(jsonPath("$.data.resonance[0].level").value(4))
+                .andExpect(jsonPath("$.data.resonance[0].levelLabel").value("Strong"))
+                .andExpect(jsonPath("$.data.resonance[0].rationale").value("Your notes name hands-on work."))
+                .andExpect(jsonPath("$.data.resonance[0].institutionBasis").value("user_notes"))
+                .andExpect(jsonPath("$.data.scale.min").value(1))
+                .andExpect(jsonPath("$.data.scale.max").value(5))
+                .andExpect(jsonPath("$.data.themes").doesNotExist())
+                // From the user's notes: the general-knowledge caveat is not needed.
+                .andExpect(jsonPath("$.data.caveats").value(contains(AnalyticsService.NARRATIVE_ESTIMATE_CAVEAT)));
+        send(OTHER_USER, get("/api/v1/user/desk/story/resonance")).andExpect(jsonPath("$.data.resonance", hasSize(0)));
+    }
+
+    @Test
+    void theDatabaseRefusesALevelOffTheScale() {
+        long theme = jdbc.queryForObject("""
+                INSERT INTO desk.user_theme (user_id, title, summary, evidence, model_name, prompt_version)
+                VALUES (?, 't', 's', '[{"kind": "user_note"}]', 'm', 'v1') RETURNING id
+                """, Long.class, OWNER);
+        long school = addTarget(OWNER, "Any", null);
+        for (int level : new int[]{0, 6, 73}) {
+            org.junit.jupiter.api.Assertions.assertThrows(org.springframework.dao.DataIntegrityViolationException.class,
+                    () -> jdbc.update("""
+                            INSERT INTO desk.entity_resonance (user_id, theme_id, target_entity_id, level, rationale,
+                                institution_basis, model_name, prompt_version)
+                            VALUES (?, ?, ?, ?, 'r', 'user_notes', 'm', 'v1')
+                            """, OWNER, theme, school, level));
+        }
     }
 }

@@ -34,8 +34,25 @@ public class NarrativeController {
         return ResponseEntity.ok(ApiResponse.success(narrative.narrative(DeskAuth.currentUserId(), includeDismissed)));
     }
 
-    /** Draws themes from the user's drafts; replaces open suggestions, keeps accepted themes. */
-    @PostMapping("/themes/generate")
+    /** The themes alone (suggested and accepted; dismissed too with includeDismissed). */
+    @GetMapping("/themes")
+    public ResponseEntity<?> themes(@RequestParam(defaultValue = "false") boolean includeDismissed) {
+        return ResponseEntity.ok(ApiResponse.success(narrative.themes(DeskAuth.currentUserId(), includeDismissed)));
+    }
+
+    /** Accepted themes' 1-5 resonance with each school, with the reasons and where the school side came from. */
+    @GetMapping("/resonance")
+    public ResponseEntity<?> resonance() {
+        return ResponseEntity.ok(ApiResponse.success(narrative.resonance(DeskAuth.currentUserId())));
+    }
+
+    /**
+     * Draws one or two themes from the user's drafts and stores them as suggestions;
+     * replaces open suggestions, keeps accepted themes. {@code /generate} and
+     * {@code /themes/generate} are one handler: the first is the documented path,
+     * the second what the desk page already calls.
+     */
+    @PostMapping({"/generate", "/themes/generate"})
     public ResponseEntity<?> generateThemes() {
         return ResponseEntity.ok(ApiResponse.success(narrative.generateThemes(DeskAuth.currentUserId())));
     }
