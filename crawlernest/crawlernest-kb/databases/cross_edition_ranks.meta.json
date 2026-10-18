@@ -1,8 +1,8 @@
 {
-  "exported_utc": "2026-10-03T17:26:40Z",
+  "exported_utc": "2026-10-18T17:21:50Z",
   "database": "clawer",
-  "csv_sha256": "421ad2feb3894e246aa51f22d23581f5212cfbd6bdbf47a94aee5655d8d09357",
-  "rows": 36101,
+  "csv_sha256": "73d5076d6c21201a47a14251d2a4a2d19552c56981af2bde35565b2cfbb3710c",
+  "rows": 36100,
   "rows_per_source_year": {
     "ARWU 2015": 498,
     "ARWU 2016": 498,
@@ -24,7 +24,7 @@
     "QS 2023": 1397,
     "QS 2024": 1471,
     "QS 2025": 1499,
-    "QS 2026": 1503,
+    "QS 2026": 1502,
     "THE 2015": 381,
     "THE 2016": 753,
     "THE 2017": 907,
@@ -39,7 +39,7 @@
     "THE 2026": 1712
   },
   "dropped": {
-    "QS 2025: no parseable printed rank": 13
+    "QS 2025: no parseable printed rank": 7
   },
   "columns": [
     "canonical_university_id",

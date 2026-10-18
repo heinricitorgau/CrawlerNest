@@ -35,7 +35,7 @@ still fitted and reported as a ceiling, so the distance between them is visible.
 |---|---|
 | QS population | 1,504 |
 | THE population | 2,191 |
-| Matched | **1,112** |
+| Matched | **1,136** |
 | Match rule | the warehouse's reviewed pairing, falling back to exact normalised name |
 | Features | 9 QS indicators |
 | Missing | International Faculty Ratio 44, International Student Ratio 19, Sustainability 2 |
@@ -47,7 +47,7 @@ University of British Columbia with University of Northern British Columbia.
 The pairing is read from `crawlernest-kb/databases/qs_the_pairing_2026.json`,
 exported from the warehouse after its entity resolver was seeded with reviewed
 aliases and its ambiguous cases were resolved by hand. On the 2026 edition it
-places all 1,112 matched universities; exact match on a normalised name alone
+places all 1,136 matched universities; exact match on a normalised name alone
 would reach 842. `test_pairing_matches_warehouse` confirms the file agrees with
 the warehouse's THE 2026 records, and `export_qs_the_pairing.py` reports no
 difference.
@@ -64,12 +64,12 @@ overlap".
 ## Label
 
 `disagreement = |QS percentile − THE percentile| > threshold`, where the
-threshold is the 80th percentile of the observed gap — 0.2559, giving 223
-positives (20.1%). Stating the positive rate as the design choice, rather than
+threshold is the 80th percentile of the observed gap — 0.2567, giving 227
+positives (20.0%). Stating the positive rate as the design choice, rather than
 picking a round cutoff and discovering the rate afterwards, is what makes the
 sensitivity analysis below meaningful.
 
-Gap distribution over the 1,112: median 0.112, 75th percentile 0.222, max 0.673.
+Gap distribution over the 1,136: median 0.112, 75th percentile 0.223, max 0.673.
 
 ## Results
 
@@ -77,48 +77,48 @@ Out-of-fold, 5-fold stratified, seed 0:
 
 | Feature set | Model | ROC-AUC | PR-AUC | Brier |
 |---|---|---:|---:|---:|
-| **QS only** | **gradient boosting** | **0.8437** | **0.5324** | **0.1252** |
-| QS only | logistic regression | 0.7554 | 0.3607 | 0.1413 |
-| both sources *(ceiling)* | gradient boosting | 0.9252 | 0.7794 | 0.0841 |
-| both sources *(ceiling)* | logistic regression | 0.8215 | 0.5853 | 0.1186 |
-| chance | — | 0.5000 | 0.2005 | — |
+| **QS only** | **gradient boosting** | **0.8488** | **0.5462** | **0.1216** |
+| QS only | logistic regression | 0.7526 | 0.3550 | 0.1413 |
+| both sources *(ceiling)* | gradient boosting | 0.9260 | 0.7768 | 0.0823 |
+| both sources *(ceiling)* | logistic regression | 0.8154 | 0.5609 | 0.1211 |
+| chance | — | 0.5000 | 0.1998 | — |
 
 ![Diagnostics](../artifacts/eda/disagreement_diagnostics.png)
 
 Reading these:
 
-- **PR-AUC 0.532 against a 0.201 base rate** is the honest headline. ROC-AUC
+- **PR-AUC 0.546 against a 0.200 base rate** is the honest headline. ROC-AUC
   flatters imbalanced problems; the 2.7× lift in average precision is the part
   that means something operationally.
-- **QS alone reaches 0.844 against a two-sided ceiling of 0.925.** Most of what
+- **QS alone reaches 0.849 against a two-sided ceiling of 0.926.** Most of what
   is predictable about cross-source disagreement is already visible in QS's own
-  numbers. That the ceiling is 0.925 rather than ~0.99 is itself informative:
+  numbers. That the ceiling is 0.926 rather than ~0.99 is itself informative:
   THE's published ranks are heavily tied at the tail, which caps how
   deterministic the label can be.
-- **Gradient boosting beats logistic regression by a wide margin** (0.844 vs
-  0.755). Worth contrasting with the overall-score model, where trees lost badly
+- **Gradient boosting beats logistic regression by a wide margin** (0.849 vs
+  0.753). Worth contrasting with the overall-score model, where trees lost badly
   to a linear fit. There the relationship was exactly linear; here it is not.
 - **Calibration is close in the lowest bins, under-confident around a predicted
-  0.3 and over-confident at the top**: the bin near 0.29 has an observed
-  frequency of 0.46, and the highest-probability bin predicts 0.73 where the
-  observed frequency is 0.58. Any threshold placed in those regions should
+  0.3 and over-confident at the top**: the bin near 0.30 has an observed
+  frequency of 0.42, and the highest-probability bin predicts 0.74 where the
+  observed frequency is 0.62. Any threshold placed in those regions should
   account for it.
 
 ### Threshold sensitivity
 
 | Gap threshold | Positive rate | ROC-AUC | PR-AUC |
 |---:|---:|---:|---:|
-| 0.1919 (q=0.70) | 30.0% | 0.8390 | 0.6609 |
-| 0.2559 (q=0.80) | 20.1% | 0.8437 | 0.5324 |
-| 0.3303 (q=0.90) | 10.1% | 0.8166 | 0.3220 |
+| 0.1925 (q=0.70) | 30.0% | 0.8500 | 0.6555 |
+| 0.2567 (q=0.80) | 20.0% | 0.8488 | 0.5462 |
+| 0.3312 (q=0.90) | 10.0% | 0.8185 | 0.3102 |
 
 The result survives the choice of cutoff between the 70th and 80th percentile
-(ROC-AUC 0.839 and 0.844) and weakens at the 90th (0.817), where only 112 pairs
+(ROC-AUC 0.850 and 0.849) and weakens at the 90th (0.819), where only 114 pairs
 are positive. PR-AUC falls with the base rate, as it must, while its lift over
-chance grows from 2.2× to 3.2×. Whether the drop at q=0.90 is the model ranking
-the most extreme disagreements worse or fold-to-fold noise on 112 positives was
+chance grows from 2.2× to 3.1×. Whether the drop at q=0.90 is the model ranking
+the most extreme disagreements worse or fold-to-fold noise on 114 positives was
 not tested. The previous committed numbers had it flat (0.836–0.841); the 2026-09-21
-refresh is what moved it, which is a reminder of how little 112 positives pin down.
+refresh is what moved it, which is a reminder of how little ~110 positives pin down.
 
 ### Against the previous committed numbers
 
@@ -137,17 +137,22 @@ QS-only boosted model moved 0.8384 → 0.8437. The largest gap in the old datase
 0.738, was a false pair (QS's Miami University in Ohio joined to THE's University of
 Miami through a merged canonical), which the entity split of 2026-10-03 removed.
 
+They were recommitted again on 2026-10-19, after the duplicate-canonical merge of
+2026-10-12 put a QS rank and a THE rank that had sat on two records of one university
+onto one: `matched` 1,112 → 1,136, `positives` 223 → 227, QS-only boosted ROC-AUC
+0.8437 → 0.8488. The pre-push warehouse drift check caught the stale pairing.
+
 ### Asymmetry
 
-Among the 223 disagreeing pairs, **THE ranks the university higher in 179 cases
-and QS in 44** — roughly 4 to 1. The two sources do not merely differ; they
+Among the 227 disagreeing pairs, **THE ranks the university higher in 180 cases
+and QS in 47** — roughly 4 to 1. The two sources do not merely differ; they
 differ in a consistent direction, which is a finding about the sources rather
 than about the model.
 
 ## Known limitations
 
 - **Single edition.** Nothing here is temporal.
-- **Still an incomplete overlap.** 1,112 of a possible 1,504. The 392 absent
+- **Still an incomplete overlap.** 1,136 of a possible 1,504. The 368 absent
   universities are the ones THE does not rank, or whose pairing has not been
   reviewed, and the second group is plausibly also more likely to be treated
   differently by the two sources — so the sample may be biased toward easier
