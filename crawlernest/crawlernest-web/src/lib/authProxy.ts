@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 
 const TIMEOUT_MS = 10_000;
 
+export type ProxyMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+
 async function proxy(
-  method: "GET" | "POST" | "DELETE",
+  method: ProxyMethod,
   path: string,
   body?: string,
   cookieHeader?: string
@@ -63,3 +65,7 @@ export const proxyGet = (path: string, cookieHeader?: string) =>
 
 export const proxyDelete = (path: string, cookieHeader?: string) =>
   proxy("DELETE", path, undefined, cookieHeader);
+
+/** Any method; `body` undefined sends none. For routes that forward several verbs to one path. */
+export const proxyRequest = (method: ProxyMethod, path: string, body?: string, cookieHeader?: string) =>
+  proxy(method, path, body, cookieHeader);

@@ -12,13 +12,13 @@ export interface ChatMessage {
   error?: boolean;
 }
 
-export type TaskStatus = "todo" | "in_progress" | "done";
+export type TaskStatus = "todo" | "in_progress" | "done" | "cancelled";
 
 export interface DeskTask {
   id: string;
   title: string;
-  /** ISO date, YYYY-MM-DD. */
-  dueDate: string;
+  /** ISO date, YYYY-MM-DD; null when the task has no deadline. */
+  dueDate: string | null;
   status: TaskStatus;
   category?: string;
 }

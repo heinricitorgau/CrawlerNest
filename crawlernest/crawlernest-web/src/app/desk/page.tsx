@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { sendDeskPrompt } from "@/lib/deskChat";
+import { LiveSkillsCard, LiveSprintCard } from "./LiveDeskCards";
 import {
   ChatPanel,
   DESK_TABS,
@@ -10,35 +11,20 @@ import {
   DeskTabBar,
   ResonanceBar,
   ScoreBreakdown,
-  SkillMasteryList,
-  SprintCard,
   ThemeCard,
   type ChatMessage,
-  type PrioritySprint,
 } from "@/components/desk";
 
 /*
- * The chat is live: it goes to /api/agent/chat. The cards on the right are sample
- * content for the component set -- there is no backend for essays, sprints or
- * test prep yet -- and the banner says so.
+ * Live: the chat (/api/agent/chat), the sprint and its tasks, and skill mastery
+ * (/api/user/desk). Still sample content: the essay score, the narrative theme
+ * and resonance, which have no endpoints yet. They sit under their own banner so
+ * nothing sample is shown beside live data without saying so.
  */
-const SAMPLE_SPRINT: PrioritySprint = {
-  title: "Early Action push",
-  goal: "Lock the personal statement and the activities list before EA deadlines.",
-  startDate: "2026-10-12",
-  endDate: "2026-11-01",
-  tasks: [
-    { id: "t1", title: "Final draft of personal statement", dueDate: "2026-10-22", status: "in_progress", category: "Essay" },
-    { id: "t2", title: "Request counselor recommendation", dueDate: "2026-10-15", status: "done", category: "Recommendations" },
-    { id: "t3", title: "Trim activities descriptions to 150 chars", dueDate: "2026-10-20", status: "todo", category: "Activities" },
-    { id: "t4", title: "Submit EA application", dueDate: "2026-11-01", status: "todo", category: "Application" },
-  ],
-};
-
 function SampleBanner() {
   return (
     <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-      Sample data. The cards below show the desk components and are not connected to your account. The chat on the left is the live agent.
+      Sample data. The cards below show what essay review and narrative analysis will look like. They are not connected to your account yet.
     </p>
   );
 }
@@ -48,7 +34,6 @@ export default function DeskPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [pending, setPending] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
-  const [sprint, setSprint] = useState(SAMPLE_SPRINT);
   const [today] = useState(() => new Date());
 
   async function handleSend(prompt: string) {
@@ -63,22 +48,14 @@ export default function DeskPage() {
     setPending(false);
   }
 
-  function toggleTask(taskId: string) {
-    setSprint((prev) => ({
-      ...prev,
-      tasks: prev.tasks.map((task) =>
-        task.id === taskId ? { ...task, status: task.status === "done" ? "todo" : "done" } : task,
-      ),
-    }));
-  }
-
   const activeLabel = DESK_TABS.find((tab) => tab.id === activeTab)?.label ?? "";
 
   const panel =
     activeTab === "desk" ? (
       <>
+        <LiveSprintCard today={today} />
+        <LiveSkillsCard />
         <SampleBanner />
-        <SprintCard sprint={sprint} today={today} onToggleTask={toggleTask} />
         <DeskCard eyebrow="Essay review" title="Personal statement">
           <ScoreBreakdown
             overall={78}
@@ -87,16 +64,6 @@ export default function DeskPage() {
               { label: "Introspection", value: 64 },
               { label: "Voice", value: 85 },
               { label: "Structure", value: 79 },
-            ]}
-          />
-        </DeskCard>
-        <DeskCard eyebrow="Test prep" title="SAT Math mastery">
-          <SkillMasteryList
-            skills={[
-              { label: "Algebra", percent: 94 },
-              { label: "Advanced math", percent: 86 },
-              { label: "Problem solving & data", percent: 71 },
-              { label: "Geometry & trig", percent: 58 },
             ]}
           />
         </DeskCard>
