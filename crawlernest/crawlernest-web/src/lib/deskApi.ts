@@ -37,7 +37,7 @@ async function call<T>(
     // An empty or non-JSON body: the status still classifies it.
   }
   if (!response.ok) {
-    // The desk API's own message when it sent one -- "No essay model is configured"
+    // The desk API's own message when it sent one -- "No model is configured"
     // says more than the generic 503 text -- except for 401, which is always "sign in".
     const apiError = (payload as { error?: unknown } | null)?.error;
     const message =
@@ -255,3 +255,64 @@ export const evaluateEssay = (input: {
 export const listEssays = () => call("/essays", {}, toEssaySummaries);
 
 export const getEssay = (id: number) => call(`/essays/${encodeURIComponent(String(id))}`, {}, toEssayReview);
+
+// ─── Narrative ───────────────────────────────────────────────────────────────
+
+export type LiveTheme = {
+  id: number;
+  title: string;
+  summary: string;
+  traits: string[];
+  status: "suggested" | "accepted" | "dismissed";
+  quotes: string[];
+  model: string;
+  isEstimated: true;
+};
+
+export type LiveResonance = {
+  themeId: number;
+  targetEntityId: number;
+  institution: string;
+  /** 1-5. */
+  level: number;
+  rationale: string;
+  institutionBasis: "user_notes" | "model_general_knowledge";
+  isEstimated: true;
+};
+
+export type Narrative = { themes: LiveTheme[]; resonance: LiveResonance[]; caveats: string[] };
+
+/** Rows without isEstimated are dropped: a model's output never renders without the flag. */
+export function toNarrative(raw: unknown): Narrative {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  const themes = (Array.isArray(r.themes) ? r.themes : []).flatMap((item): LiveTheme[] => {
+    const t = (item ?? {}) as Record<string, unknown>;
+    if (typeof t.id !== "number" || t.isEstimated !== true) return [];
+    const status: LiveTheme["status"] = t.status === "accepted" || t.status === "dismissed" ? t.status : "suggested";
+    return [{
+      id: t.id, title: str(t.title), summary: str(t.summary), status,
+      traits: Array.isArray(t.traits) ? t.traits.filter((x): x is string => typeof x === "string") : [],
+      quotes: (Array.isArray(t.evidence) ? t.evidence : []).map((e) => str((e as Record<string, unknown>)?.quote)).filter(Boolean),
+      model: str(((t.provenance ?? {}) as Record<string, unknown>).model, "unknown model"),
+      isEstimated: true as const,
+    }];
+  });
+  const resonance = (Array.isArray(r.resonance) ? r.resonance : []).flatMap((item) => {
+    const x = (item ?? {}) as Record<string, unknown>;
+    if (typeof x.themeId !== "number" || typeof x.targetEntityId !== "number" || x.isEstimated !== true) return [];
+    return [{
+      themeId: x.themeId, targetEntityId: x.targetEntityId, institution: str(x.institution), level: num(x.level, 1),
+      rationale: str(x.rationale),
+      institutionBasis: x.institutionBasis === "user_notes" ? "user_notes" as const : "model_general_knowledge" as const,
+      isEstimated: true as const,
+    }];
+  });
+  const caveats = Array.isArray(r.caveats) ? r.caveats.filter((c): c is string => typeof c === "string") : [];
+  return { themes, resonance, caveats };
+}
+
+export const getNarrative = () => call("/story/narrative", {}, toNarrative);
+export const generateThemes = () => call("/story/themes/generate", { method: "POST" }, toNarrative);
+export const decideTheme = (id: number, status: "accepted" | "dismissed") =>
+  call(`/story/themes/${encodeURIComponent(String(id))}`, json("PATCH", { status }), toNarrative);
+export const generateResonance = () => call("/story/resonance/generate", { method: "POST" }, toNarrative);

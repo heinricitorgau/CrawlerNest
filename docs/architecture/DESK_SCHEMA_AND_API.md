@@ -1,13 +1,11 @@
 # "Your desk": schema and API design
 
-Status, 2026-10-18: **the schema, the CRUD endpoints and essay evaluation are live; the narrative endpoints
-and the chat tool loop are not built yet.** On `/desk`, these are live:
+Status, 2026-10-18: **everything below is live except the chat tool loop** (`chat/message`, which is what
+would turn the chat into Tassel). On `/desk`, every card reads the API, and none holds sample data:
 
-- the chat (`/api/agent/chat`, the CrawlerNest Agent, not yet Tassel);
-- the sprint card and the skill cards;
-- the Essay review tab, and the latest-review card on "Your desk".
-
-The theme and resonance cards hold sample data under their own banner.
+- the chat (still `/api/agent/chat`, the read-only CrawlerNest Agent);
+- the sprint with its tasks, application deadlines, and skills with practice logging;
+- essay review, and the narrative themes with resonance.
 
 DDL: [`V003__create_desk_schema.sql`](../../crawlernest/servise_for_java/src/main/resources/db/auth/V003__create_desk_schema.sql).
 `AuthSchemaInitializer` runs that file at startup, after it creates `warehouse.app_user`. Unlike V001 and V002,
@@ -168,75 +166,72 @@ and `V004__tassel_tool_allow_list.sql` makes `desk.chat_action` allow exactly th
 response examples above still use the draft tool names (`create_task`, `update_target_stage`); read them as
 `create_action_task` and `update_target_list`.
 
-### `GET /api/v1/story/narrative`
+### Narrative: `/api/v1/user/desk/story/*` (implemented)
 
-This endpoint is read-only. It returns the user's themes (accepted and suggested; add `?includeDismissed=true`
-for dismissed ones too) and the resonance between each theme and each target.
+Code: `clawer.desk.story.NarrativeService` and `NarrativeController`. It is under `/api/v1/user/desk` for the
+same reason as the rest of the desk.
 
-Response `200`:
+| Method and path | What it does |
+|---|---|
+| `GET /story/narrative?includeDismissed=` | Read-only. Returns themes (accepted first, then suggested), resonance for accepted themes, and caveats. |
+| `POST /story/themes/generate` | Draws one or two themes from the user's drafts: the latest draft of each essay, up to 6 drafts and 40,000 characters. Replaces open suggestions; never touches an accepted theme. |
+| `PATCH /story/themes/{id}` | `{"status": "accepted" \| "dismissed"}`. Dismissing drops that theme's resonance rows. |
+| `POST /story/resonance/generate` | Judges each accepted theme (up to 3) against each school on the list that is not rejected or withdrawn (up to 12). Replaces earlier judgements for those themes. |
+
+Every response is the whole narrative, so the page never shows themes and resonance from two different
+moments.
+
+What is checked by CrawlerNest, not taken from the model:
+
+- **Theme evidence.** Each quote must occur verbatim in the draft it names (`draftId`), and the model sees
+  only this user's drafts. Unmatched quotes are dropped. A theme with none left is dropped. If no theme
+  survives, the endpoint answers 502 and nothing is stored.
+- **Where the school side came from (`institution_basis`).** A school with no notes from the user is always
+  `model_general_knowledge`, whatever the model says. `user_notes` is kept only when the notes exist.
+- **Ids and levels.** Ids must be among the themes and schools sent. Levels must be whole numbers from 1
+  to 5. Anything else is skipped, and `missingPairs` reports how many pairs got no usable judgement.
+- **Inputs.** The resonance prompt forbids admission chances, acceptance rates, rankings and deadlines.
+  Wikipedia text is never an input.
+
+Prompts: `prompts/narrative_themes_system.txt` (`narrative-themes-2026.1`) and `prompts/resonance_system.txt`
+(`resonance-2026.1`). Every row stores its model and prompt version and carries `isEstimated: true`.
+
+Caveats, under the caveat contract:
+
+- `NARRATIVE_ESTIMATE_CAVEAT` is always present.
+- `RESONANCE_GENERAL_KNOWLEDGE_CAVEAT` is added when any row's basis is the model's general knowledge.
+
+Response (`data`):
 
 ```json
 {
-  "success": true,
-  "data": {
-    "themes": [
-      {
-        "id": 17,
-        "title": "The Builder Who Teaches",
-        "summary": "You make things, then turn what you learned into something others can use.",
-        "traits": ["Maker", "Mentor", "Systems thinker"],
-        "status": "accepted",
-        "evidence": [
-          { "kind": "essay_review", "refId": "305", "quote": "I rebuilt the arm three times before I let the freshmen touch it." },
-          { "kind": "user_note", "refId": "note-12", "quote": "Run a weekend coding club for 14 middle schoolers." }
-        ],
-        "isEstimated": true,
-        "provenance": { "model": "gpt-4.1-mini", "promptVersion": "themes-v2", "generatedAt": "2026-10-16T13:02:44Z" }
-      }
-    ],
-    "resonance": [
-      {
-        "themeId": 17,
-        "targetEntityId": 41,
-        "institution": "Massachusetts Institute of Technology",
-        "level": 5,
-        "levelLabel": "Strong",
-        "rationale": "Hands-on building is the core of both your evidence and the programme you noted.",
-        "institutionBasis": "user_notes",
-        "isEstimated": true,
-        "provenance": { "model": "gpt-4.1-mini", "promptVersion": "resonance-v1", "generatedAt": "2026-10-16T13:03:10Z" }
-      },
-      {
-        "themeId": 17,
-        "targetEntityId": 47,
-        "institution": "California Institute of Technology",
-        "level": 2,
-        "levelLabel": "Emerging",
-        "rationale": "Few examples of community impact yet.",
-        "institutionBasis": "model_general_knowledge",
-        "isEstimated": true,
-        "provenance": { "model": "gpt-4.1-mini", "promptVersion": "resonance-v1", "generatedAt": "2026-10-16T13:03:10Z" }
-      }
-    ],
-    "caveats": [
-      "Themes and resonance levels are model estimates drawn from what you have written here. They are not an admissions assessment.",
-      "Resonance marked model_general_knowledge describes the institution from the model's general knowledge, not from CrawlerNest data."
-    ]
-  },
-  "metadata": { "timestamp": "2026-10-18T08:42:00Z" }
+  "themes": [
+    { "id": 17, "title": "The Builder Who Teaches", "summary": "...", "traits": ["Maker", "Mentor"],
+      "status": "accepted",
+      "evidence": [{ "kind": "essay_review", "refId": "318", "quote": "I rebuilt the arm three times." }],
+      "isEstimated": true,
+      "provenance": { "model": "...", "promptVersion": "narrative-themes-2026.1", "generatedAt": "..." } }
+  ],
+  "resonance": [
+    { "themeId": 17, "targetEntityId": 41, "institution": "Notes College", "level": 4, "levelLabel": "Strong",
+      "rationale": "...", "institutionBasis": "user_notes", "isEstimated": true, "provenance": { "...": "..." } }
+  ],
+  "caveats": ["Narrative themes and resonance levels are a language model's reading of ..."],
+  "missingPairs": 0
 }
 ```
 
-Level labels: 5–4 is `Strong`, 3 is `Moderate`, 2–1 is `Emerging`. The UI's `ResonanceBar` takes
-`level × 20`. Generating themes is a separate write, `POST /api/v1/story/themes/generate`, and
-`PATCH /api/v1/story/themes/{id}` accepts or dismisses a theme.
+`missingPairs` is present only on `resonance/generate`. Level labels: 5 and 4 are `Strong`, 3 is
+`Moderate`, 2 and 1 are `Emerging`. The UI's `ResonanceBar` draws the 1–5 level as five segments.
+
+Tests: `NarrativeApiIntegrationTest` (11) and `LiveNarrativeCard.test.tsx`.
 
 ### `POST /api/v1/user/desk/essays/evaluate` (implemented)
 
 Under `/api/v1/user/desk`, like the CRUD endpoints, so the filter chain closes it. Also on that path:
 `GET /essays`, `GET /essays/{id}` and `DELETE /essays/{id}`. Code: `clawer.desk.essay`.
 
-**Who calls the model:** the Spring Boot API calls the model itself (`OpenAiCompatibleEssayModelClient`).
+**Who calls the model:** the Spring Boot API calls the model itself (`OpenAiCompatibleModelClient`).
 It is not the browser or the Next route, because then the API would have to accept scores from a caller,
 and a caller could make them up. The API reads the same variables as the Next agent route
 (`AGENT_MODEL_PROVIDER`, `AGENT_MODEL_NAME`, `AGENT_MODEL_BASE_URL`, `OPENAI_API_KEY`, `OLLAMA_BASE_URL`,
@@ -355,16 +350,14 @@ Tests: `DeskApiIntegrationTest` (17, filter chain through to PostgreSQL), `deskP
 ## Implementation order
 
 1. ~~Move the DDL into `V003__create_desk_schema.sql` and apply it through `AuthSchemaInitializer`.~~ Done.
-2. ~~Add the CRUD endpoints (tasks, targets, skills), then point the desk cards at them.~~ Done for the
-   sprint and skill cards. Targets have endpoints but no card yet.
-3. ~~Add `essays/evaluate`.~~ Done. Tassel's prompt and tool definitions exist
-   (`docs/agent/TASSEL_ASSISTANT.md`). Next: `story/*`, then the `chat/message` tool loop that sends the
-   prompt and tools to the model and applies the calls. The tool loop goes last because it depends on the
-   CRUD validation.
+2. ~~Add the CRUD endpoints (tasks, targets, skills), then point the desk cards at them.~~ Done. Targets
+   feed the deadline card. There is no target-list editor yet.
+3. ~~Add `essays/evaluate`, then `story/*`.~~ Done. Tassel's prompt and tool definitions exist
+   (`docs/agent/TASSEL_ASSISTANT.md`). Next: the `chat/message` tool loop that sends the prompt and tools to
+   the model and applies the calls.
 4. New caveat strings go through the caveat contract: `crawlernest/core/caveats.py`, the
    `AnalyticsService` constants, `caveatMessages.ts` and `ANALYTICS_EXPLAINABILITY.md`.
-   `test_caveat_contract.py` checks that all four agree. The two essay caveats are in all four. The
-   narrative caveats above are still drafts.
+   `test_caveat_contract.py` checks that all four agree. The essay and narrative caveats are in all four.
 
 ## If it ever has to run on MySQL 8
 

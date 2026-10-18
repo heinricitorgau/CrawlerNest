@@ -16,10 +16,11 @@ const MAX_SEGMENTS = 3;
 const ALLOWED_PARAMS = new Set(["status", "sprintId", "stage", "subject"]);
 
 /**
- * Essay scoring waits on a model: up to the API's 60 s per call, and one retry
- * when the reply is unreadable. Everything else keeps the proxy's 10 s.
+ * The calls that wait on a model: up to the API's 60 s per model call, and one
+ * retry when the reply is unreadable. Everything else keeps the proxy's 10 s.
  */
-const ESSAY_EVALUATE_TIMEOUT_MS = 130_000;
+const MODEL_TIMEOUT_MS = 130_000;
+const MODEL_PATHS = new Set(["essays/evaluate", "story/themes/generate", "story/resonance/generate"]);
 
 type Context = { params: Promise<{ path: string[] }> };
 
@@ -37,7 +38,7 @@ async function forward(method: ProxyMethod, request: NextRequest, { params }: Co
 
   const body = method === "GET" || method === "DELETE" ? undefined : await request.text();
   const cookieHeader = request.headers.get("cookie") ?? undefined;
-  const timeoutMs = path.join("/") === "essays/evaluate" ? ESSAY_EVALUATE_TIMEOUT_MS : undefined;
+  const timeoutMs = MODEL_PATHS.has(path.join("/")) ? MODEL_TIMEOUT_MS : undefined;
   return proxyRequest(method, `/api/v1/user/desk/${path.join("/")}${suffix}`, body, cookieHeader, timeoutMs);
 }
 

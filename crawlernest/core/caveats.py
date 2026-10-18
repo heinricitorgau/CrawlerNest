@@ -369,6 +369,21 @@ ESSAY_OVERALL_METHOD_CAVEAT = (
     "computed by CrawlerNest rather than by the model."
 )
 
+#: Carried by every narrative response (desk themes and resonance in the Spring
+#: Boot API). Themes are drawn from the user's own drafts by a language model.
+NARRATIVE_ESTIMATE_CAVEAT = (
+    "Narrative themes and resonance levels are a language model's reading of what you have written here. "
+    "They are estimates, not an admissions assessment, and they can change when your writing does."
+)
+
+#: Carried when any resonance row's institution side came from the model's
+#: general knowledge (institution_basis = 'model_general_knowledge'): the warehouse
+#: holds ranks and requirements, not what a school values.
+RESONANCE_GENERAL_KNOWLEDGE_CAVEAT = (
+    "Some resonance levels describe a school from the model's general knowledge rather than from your notes "
+    "or CrawlerNest data, so they may be out of date or wrong about that school."
+)
+
 #: Shown when a university has no stored IELTS figure at any scope
 #: (warehouse.v_admission_requirement_summary.ielts_missing), or no admission row
 #: at all. Byte-identical to AnalyticsService.IELTS_MISSING_CAVEAT and to

@@ -78,7 +78,7 @@ describe("EssayReviewPanel", () => {
       .mockResolvedValueOnce(respond(200, { success: true, data: [] }))
       .mockResolvedValueOnce(respond(503, {
         success: false, code: "MODEL_UNAVAILABLE",
-        error: "No essay model is configured, so drafts cannot be scored. Nothing was stored.",
+        error: "No model is configured, so this cannot run. Nothing was stored.",
       }));
     global.fetch = fetchMock;
     render(<EssayReviewPanel />);
@@ -87,7 +87,7 @@ describe("EssayReviewPanel", () => {
     fireEvent.change(screen.getByLabelText("Draft"), { target: { value: "  My draft, with its leading spaces." } });
     fireEvent.click(screen.getByRole("button", { name: "Score draft" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("No essay model is configured");
+    expect(await screen.findByRole("alert")).toHaveTextContent("No model is configured");
     // The draft goes as typed: offsets are into exactly that text.
     expect(JSON.parse(fetchMock.mock.calls[1][1].body).draftText).toBe("  My draft, with its leading spaces.");
   });

@@ -1,16 +1,12 @@
 package clawer.desk.controller;
 
-import clawer.desk.essay.EssayEvaluator;
-import clawer.desk.essay.EssayModelClient;
 import clawer.desk.essay.EssayService;
 import clawer.desk.support.DeskAuth;
 import clawer.desk.support.DeskException;
 import clawer.dto.ApiResponse;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,17 +58,5 @@ public class EssayController {
             throw DeskException.notFound();
         }
         return ResponseEntity.ok(ApiResponse.success(Map.of("deleted", true)));
-    }
-
-    @ExceptionHandler(EssayModelClient.UnavailableException.class)
-    public ResponseEntity<?> modelUnavailable(EssayModelClient.UnavailableException e) {
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(Map.of("success", false, "code", "MODEL_UNAVAILABLE", "error", e.getMessage()));
-    }
-
-    @ExceptionHandler(EssayEvaluator.UnreadableReplyException.class)
-    public ResponseEntity<?> unreadable(EssayEvaluator.UnreadableReplyException e) {
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(Map.of("success", false, "code", "MODEL_REPLY_UNREADABLE", "error", e.getMessage()));
     }
 }

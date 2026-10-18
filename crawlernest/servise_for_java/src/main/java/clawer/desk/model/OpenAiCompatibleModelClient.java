@@ -1,4 +1,4 @@
-package clawer.desk.essay;
+package clawer.desk.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +28,7 @@ import java.util.Locale;
  * including the essay, or name the account.
  */
 @Component
-public class OpenAiCompatibleEssayModelClient implements EssayModelClient {
+public class OpenAiCompatibleModelClient implements DeskModelClient {
 
     private final String provider;
     private final String model;
@@ -38,15 +38,15 @@ public class OpenAiCompatibleEssayModelClient implements EssayModelClient {
     private final ObjectMapper objectMapper;
     private final HttpClient http;
 
-    public OpenAiCompatibleEssayModelClient(
-            @Value("${crawlernest.essay.provider:mock}") String provider,
-            @Value("${crawlernest.essay.model:}") String model,
-            @Value("${crawlernest.essay.ds4-model:deepseek-v4-flash}") String ds4Model,
-            @Value("${crawlernest.essay.base-url:}") String baseUrl,
-            @Value("${crawlernest.essay.ollama-base-url:http://localhost:11434}") String ollamaBaseUrl,
-            @Value("${crawlernest.essay.ds4-base-url:http://localhost:8000/v1}") String ds4BaseUrl,
-            @Value("${crawlernest.essay.api-key:}") String apiKey,
-            @Value("${crawlernest.essay.timeout:PT60S}") Duration timeout,
+    public OpenAiCompatibleModelClient(
+            @Value("${crawlernest.model.provider:mock}") String provider,
+            @Value("${crawlernest.model.model:}") String model,
+            @Value("${crawlernest.model.ds4-model:deepseek-v4-flash}") String ds4Model,
+            @Value("${crawlernest.model.base-url:}") String baseUrl,
+            @Value("${crawlernest.model.ollama-base-url:http://localhost:11434}") String ollamaBaseUrl,
+            @Value("${crawlernest.model.ds4-base-url:http://localhost:8000/v1}") String ds4BaseUrl,
+            @Value("${crawlernest.model.api-key:}") String apiKey,
+            @Value("${crawlernest.model.timeout:PT60S}") Duration timeout,
             ObjectMapper objectMapper) {
         this.provider = provider.trim().toLowerCase(Locale.ROOT);
         this.model = switch (this.provider) {
@@ -68,12 +68,12 @@ public class OpenAiCompatibleEssayModelClient implements EssayModelClient {
     /** Null when usable; otherwise why not, in words a user can be shown. */
     String configurationProblem() {
         return switch (provider) {
-            case "mock" -> "No essay model is configured, so drafts cannot be scored. Nothing was stored.";
+            case "mock" -> "No model is configured, so this cannot run. Nothing was stored.";
             case "openai" -> apiKey.isEmpty() || model.isEmpty()
-                    ? "The essay model is not fully configured. Nothing was stored." : null;
-            case "ollama" -> model.isEmpty() ? "The essay model is not fully configured. Nothing was stored." : null;
+                    ? "The model is not fully configured. Nothing was stored." : null;
+            case "ollama" -> model.isEmpty() ? "The model is not fully configured. Nothing was stored." : null;
             case "ds4" -> null;
-            default -> "The essay model provider setting is not recognised. Nothing was stored.";
+            default -> "The model provider setting is not recognised. Nothing was stored.";
         };
     }
 
@@ -106,13 +106,13 @@ public class OpenAiCompatibleEssayModelClient implements EssayModelClient {
         try {
             response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
-            throw new UnavailableException("The essay model could not be reached. Nothing was stored.");
+            throw new UnavailableException("The model could not be reached. Nothing was stored.");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new UnavailableException("The essay model request was interrupted. Nothing was stored.");
+            throw new UnavailableException("The model request was interrupted. Nothing was stored.");
         }
         if (response.statusCode() / 100 != 2) {
-            throw new UnavailableException("The essay model returned an error. Nothing was stored.");
+            throw new UnavailableException("The model returned an error. Nothing was stored.");
         }
         try {
             JsonNode json = objectMapper.readTree(response.body());
@@ -120,7 +120,7 @@ public class OpenAiCompatibleEssayModelClient implements EssayModelClient {
             String served = json.path("model").asText(model);
             return new Reply(text, served.isBlank() ? model : served);
         } catch (IOException e) {
-            throw new UnavailableException("The essay model's reply could not be read. Nothing was stored.");
+            throw new UnavailableException("The model's reply could not be read. Nothing was stored.");
         }
     }
 

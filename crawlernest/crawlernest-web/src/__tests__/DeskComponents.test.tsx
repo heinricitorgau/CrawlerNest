@@ -56,13 +56,14 @@ describe("SkillMasteryList", () => {
 
 describe("ResonanceBar", () => {
   it("names the tier for the level", () => {
-    expect(resonanceTier(88).label).toBe("Strong");
-    expect(resonanceTier(50).label).toBe("Moderate");
-    expect(resonanceTier(10).label).toBe("Emerging");
-    render(<ResonanceBar trait="Teaching" institution="MIT" level={62} />);
+    expect(resonanceTier(5).label).toBe("Strong");
+    expect(resonanceTier(4).label).toBe("Strong");
+    expect(resonanceTier(3).label).toBe("Moderate");
+    expect(resonanceTier(2).label).toBe("Emerging");
+    render(<ResonanceBar trait="Teaching" institution="MIT" level={3} />);
     expect(screen.getByRole("meter", { name: "Teaching resonance with MIT" })).toHaveAttribute(
       "aria-valuetext",
-      "Moderate, 62 of 100",
+      "Moderate, level 3 of 5",
     );
   });
 });

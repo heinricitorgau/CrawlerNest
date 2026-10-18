@@ -1,5 +1,8 @@
 package clawer.desk.essay;
 
+import clawer.desk.model.DeskModelClient;
+import clawer.desk.model.ModelJson.UnreadableReplyException;
+import clawer.desk.model.ModelJson;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
@@ -50,18 +53,11 @@ public class EssayEvaluator {
         }
     }
 
-    /** The model answered, twice, with something that cannot be read as an evaluation. */
-    public static class UnreadableReplyException extends RuntimeException {
-        public UnreadableReplyException(String message) {
-            super(message);
-        }
-    }
-
-    private final EssayModelClient model;
+    private final DeskModelClient model;
     private final EssayRubric rubric;
     private final ObjectMapper objectMapper;
 
-    public EssayEvaluator(EssayModelClient model, EssayRubric rubric, ObjectMapper objectMapper) {
+    public EssayEvaluator(DeskModelClient model, EssayRubric rubric, ObjectMapper objectMapper) {
         this.model = model;
         this.rubric = rubric;
         this.objectMapper = objectMapper;
@@ -69,13 +65,13 @@ public class EssayEvaluator {
 
     public Evaluation evaluate(String draft, String essayPrompt) {
         String userPrompt = userPrompt(draft, essayPrompt);
-        EssayModelClient.Reply reply = model.complete(rubric.systemPrompt(), userPrompt);
+        DeskModelClient.Reply reply = model.complete(rubric.systemPrompt(), userPrompt);
         try {
             return parse(reply.text(), draft, reply.modelName());
         } catch (UnreadableReplyException first) {
             String retry = userPrompt + "\n\nYour previous reply could not be used: " + first.getMessage()
                     + " Reply again with only the JSON object described in the instructions.";
-            EssayModelClient.Reply second = model.complete(rubric.systemPrompt(), retry);
+            DeskModelClient.Reply second = model.complete(rubric.systemPrompt(), retry);
             try {
                 return parse(second.text(), draft, second.modelName());
             } catch (UnreadableReplyException again) {
@@ -95,7 +91,7 @@ public class EssayEvaluator {
     }
 
     Evaluation parse(String text, String draft, String modelName) {
-        JsonNode root = readObject(text);
+        JsonNode root = ModelJson.readObject(objectMapper, text);
         JsonNode dims = root.path("dimensions");
         if (!dims.isObject()) {
             throw new UnreadableReplyException("\"dimensions\" was missing or not an object.");
@@ -147,29 +143,6 @@ public class EssayEvaluator {
             return Optional.empty();
         }
         return Optional.of(new Span(first, first + quote.length()));
-    }
-
-    /** The JSON object in the reply, tolerating a Markdown fence or a sentence around it. */
-    private JsonNode readObject(String text) {
-        if (text == null) {
-            throw new UnreadableReplyException("The reply was empty.");
-        }
-        int open = text.indexOf('{');
-        int close = text.lastIndexOf('}');
-        if (open < 0 || close < open) {
-            throw new UnreadableReplyException("The reply contained no JSON object.");
-        }
-        try {
-            JsonNode node = objectMapper.readTree(text.substring(open, close + 1));
-            if (!node.isObject()) {
-                throw new UnreadableReplyException("The reply was not a JSON object.");
-            }
-            return node;
-        } catch (UnreadableReplyException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new UnreadableReplyException("The reply was not valid JSON.");
-        }
     }
 
     private static String truncate(String value, int max) {

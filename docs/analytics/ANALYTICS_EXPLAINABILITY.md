@@ -325,6 +325,23 @@ and suggested edits are anchored to the draft by CrawlerNest. One that does not 
 once is dropped rather than shown at a guessed position. With no model configured, the endpoint refuses
 (503) rather than returning placeholder scores.
 
+### Narrative themes and resonance
+
+The desk's narrative endpoints (`/api/v1/user/desk/story/*`) store themes a language model draws from the
+user's own essay drafts, and a 1–5 resonance level between each accepted theme and each school on the user's
+list. Every row carries `isEstimated: true` and names its model and prompt version. Every evidence quote is
+checked to occur in the draft it names, and a theme with no evidence left is not stored. Every narrative
+response carries:
+
+> Narrative themes and resonance levels are a language model's reading of what you have written here. They are estimates, not an admissions assessment, and they can change when your writing does.
+
+When any resonance row's institution side came from the model's general knowledge rather than the user's
+notes, the response also carries:
+
+> Some resonance levels describe a school from the model's general knowledge rather than from your notes or CrawlerNest data, so they may be out of date or wrong about that school.
+
+Wikipedia introductions are never an input to either.
+
 ### Caveat Delivery
 
 Caveats are delivered in two places:

@@ -42,6 +42,8 @@ from crawlernest.core.caveats import (
     CAVEAT_IELTS_MISSING,
     ESSAY_OVERALL_METHOD_CAVEAT,
     ESSAY_SCORE_ESTIMATE_CAVEAT,
+    NARRATIVE_ESTIMATE_CAVEAT,
+    RESONANCE_GENERAL_KNOWLEDGE_CAVEAT,
     admission_caveats,
     admission_stale_caveat,
     archive_edition_caveat,
@@ -125,6 +127,8 @@ CONSTANT_CAVEATS = (
     CAVEAT_IELTS_MISSING,
     ESSAY_SCORE_ESTIMATE_CAVEAT,
     ESSAY_OVERALL_METHOD_CAVEAT,
+    NARRATIVE_ESTIMATE_CAVEAT,
+    RESONANCE_GENERAL_KNOWLEDGE_CAVEAT,
 )
 
 #: Templates that must be byte-identical in every language and in the doc.
@@ -402,7 +406,8 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
 
     def test_explainability_doc_carries_the_essay_caveats(self) -> None:
         doc = _read(EXPLAINABILITY_DOC)
-        for caveat in (ESSAY_SCORE_ESTIMATE_CAVEAT, ESSAY_OVERALL_METHOD_CAVEAT):
+        for caveat in (ESSAY_SCORE_ESTIMATE_CAVEAT, ESSAY_OVERALL_METHOD_CAVEAT,
+                       NARRATIVE_ESTIMATE_CAVEAT, RESONANCE_GENERAL_KNOWLEDGE_CAVEAT):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(caveat, doc)
 

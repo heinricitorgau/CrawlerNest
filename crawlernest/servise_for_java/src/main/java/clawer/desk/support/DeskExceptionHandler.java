@@ -1,5 +1,7 @@
 package clawer.desk.support;
 
+import clawer.desk.model.DeskModelClient;
+import clawer.desk.model.ModelJson;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -46,6 +48,20 @@ public class DeskExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, Object>> badParameter(MethodArgumentTypeMismatchException e) {
         return body(HttpStatus.BAD_REQUEST, "Invalid value for " + e.getName() + ".");
+    }
+
+    /** No model configured, or it could not be reached. Nothing was stored. */
+    @ExceptionHandler(DeskModelClient.UnavailableException.class)
+    public ResponseEntity<Map<String, Object>> modelUnavailable(DeskModelClient.UnavailableException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("success", false, "code", "MODEL_UNAVAILABLE", "error", e.getMessage()));
+    }
+
+    /** The model's reply could not be used, even after a retry. Nothing was stored. */
+    @ExceptionHandler(ModelJson.UnreadableReplyException.class)
+    public ResponseEntity<Map<String, Object>> modelReplyUnreadable(ModelJson.UnreadableReplyException e) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(Map.of("success", false, "code", "MODEL_REPLY_UNREADABLE", "error", e.getMessage()));
     }
 
     private static ResponseEntity<Map<String, Object>> body(HttpStatus status, String error) {
