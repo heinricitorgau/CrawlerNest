@@ -2,7 +2,7 @@
 
 產生於 2026-10-18，涵蓋所有分支（`git log --all`）。每筆附上該 commit 的檔案變更統計。
 
-- **Commit 總數**：522
+- **Commit 總數**：524
 - **期間**：2026-03-16 ~ 2026-10-18
 - **主分支**：`main`
 
@@ -34,7 +34,9 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | Commit | 日期 | 作者 | 檔案 | +/− | 說明 |
 |---|---|---|---|---|---|
-| `5f264ae` | 2026-10-18 | heinricitorgau | 4 | +195 / −18 | fix(desk): Tassel's failed tool calls say everything wrong at once, and what is valid **[main]** |
+| `6da4ce7` | 2026-10-18 | heinricitorgau | 16 | +884 / −11 | feat(auth): forgot password -- one-time reset links, delivered to the log in development **[main]** |
+| `054f224` | 2026-10-18 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
+| `5f264ae` | 2026-10-18 | heinricitorgau | 4 | +195 / −18 | fix(desk): Tassel's failed tool calls say everything wrong at once, and what is valid |
 | `9aa4584` | 2026-10-18 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
 | `c265996` | 2026-10-18 | heinricitorgau | 3 | +101 / −0 | feat(desk): optional reasoning_effort for the desk model (CRAWLERNEST_MODEL_REASONING_EFFORT) |
 | `bfffe02` | 2026-10-18 | github-actions[bot] | 1 | +9 / −7 | docs: regenerate the commit log |
@@ -598,8 +600,8 @@ repo 位於 WSL 檔案系統、git 由 Windows 端執行時，未加 `-c safe.di
 
 | 項目 | 數值 |
 |---|---|
-| Commit 數 | 522 |
-| 檔案變更累計 | 7574 |
-| 新增行數累計 | +2889696 |
-| 刪除行數累計 | −817559 |
-| 淨增行數 | +2072137 |
+| Commit 數 | 524 |
+| 檔案變更累計 | 7591 |
+| 新增行數累計 | +2890589 |
+| 刪除行數累計 | −817577 |
+| 淨增行數 | +2073012 |
