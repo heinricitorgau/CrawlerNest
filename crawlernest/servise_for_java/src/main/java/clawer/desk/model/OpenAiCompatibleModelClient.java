@@ -35,6 +35,8 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
     private final String baseUrl;
     private final String apiKey;
     private final Duration timeout;
+    /** Sent as reasoning_effort when set; blank sends nothing, which models without the parameter need. */
+    private final String reasoningEffort;
     private final ObjectMapper objectMapper;
     private final HttpClient http;
 
@@ -47,6 +49,7 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
             @Value("${crawlernest.model.ds4-base-url:http://localhost:8000/v1}") String ds4BaseUrl,
             @Value("${crawlernest.model.api-key:}") String apiKey,
             @Value("${crawlernest.model.timeout:PT60S}") Duration timeout,
+            @Value("${crawlernest.model.reasoning-effort:}") String reasoningEffort,
             ObjectMapper objectMapper) {
         this.provider = provider.trim().toLowerCase(Locale.ROOT);
         this.model = switch (this.provider) {
@@ -61,6 +64,7 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
         };
         this.apiKey = apiKey.trim();
         this.timeout = timeout;
+        this.reasoningEffort = reasoningEffort.trim();
         this.objectMapper = objectMapper;
         this.http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     }
@@ -115,6 +119,9 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
         ObjectNode body = objectMapper.createObjectNode();
         body.put("model", model);
         body.put("temperature", temperature);
+        if (!reasoningEffort.isEmpty()) {
+            body.put("reasoning_effort", reasoningEffort);
+        }
         return body;
     }
 
