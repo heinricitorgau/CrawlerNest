@@ -25,6 +25,21 @@ class PasswordResetMessageTest {
     }
 
     @Test
+    void smtpWithoutAHostOrSenderFallsBackToNoneAndSaysNothingWasSent() {
+        PasswordResetDelivery misconfigured = new PasswordResetDelivery("smtp");
+        assertTrue(misconfigured.mode().equals("none"), misconfigured.mode());
+        assertTrue(messageFor("smtp").contains("no link was sent"));
+    }
+
+    @Test
+    void theEmailCarriesTheLinkHowLongItLastsAndWhatToDoIfUnexpected() {
+        String body = PasswordResetDelivery.body("https://example/reset-password?token=abc", Duration.ofMinutes(30));
+        assertTrue(body.contains("https://example/reset-password?token=abc"), body);
+        assertTrue(body.contains("It works once, for 30 minutes."), body);
+        assertTrue(body.contains("you can ignore this email"), body);
+    }
+
+    @Test
     void inDevelopmentItSaysTheLinkIsInTheLog() {
         String message = messageFor("log");
         assertTrue(message.contains("written to the server log"), message);
