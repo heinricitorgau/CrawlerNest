@@ -15,6 +15,12 @@ const SEGMENT = /^[a-z0-9-]{1,40}$/;
 const MAX_SEGMENTS = 3;
 const ALLOWED_PARAMS = new Set(["status", "sprintId", "stage", "subject"]);
 
+/**
+ * Essay scoring waits on a model: up to the API's 60 s per call, and one retry
+ * when the reply is unreadable. Everything else keeps the proxy's 10 s.
+ */
+const ESSAY_EVALUATE_TIMEOUT_MS = 130_000;
+
 type Context = { params: Promise<{ path: string[] }> };
 
 async function forward(method: ProxyMethod, request: NextRequest, { params }: Context) {
@@ -31,7 +37,8 @@ async function forward(method: ProxyMethod, request: NextRequest, { params }: Co
 
   const body = method === "GET" || method === "DELETE" ? undefined : await request.text();
   const cookieHeader = request.headers.get("cookie") ?? undefined;
-  return proxyRequest(method, `/api/v1/user/desk/${path.join("/")}${suffix}`, body, cookieHeader);
+  const timeoutMs = path.join("/") === "essays/evaluate" ? ESSAY_EVALUATE_TIMEOUT_MS : undefined;
+  return proxyRequest(method, `/api/v1/user/desk/${path.join("/")}${suffix}`, body, cookieHeader, timeoutMs);
 }
 
 export const GET = (request: NextRequest, context: Context) => forward("GET", request, context);

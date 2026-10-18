@@ -1,11 +1,11 @@
 package clawer.desk.controller;
 
-import clawer.auth.jwt.AuthenticatedUser;
 import clawer.desk.service.DeskProfileService;
 import clawer.desk.service.DeskSkillService;
 import clawer.desk.service.DeskSprintService;
 import clawer.desk.service.DeskTargetService;
 import clawer.desk.service.DeskTaskService;
+import clawer.desk.support.DeskAuth;
 import clawer.desk.support.DeskException;
 import clawer.dto.ApiResponse;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -60,132 +60,120 @@ public class DeskController {
     @GetMapping("/tasks")
     public ResponseEntity<?> listTasks(@RequestParam(required = false) String status,
                                        @RequestParam(required = false) Long sprintId) {
-        return ok(tasks.list(userId(), status, sprintId));
+        return ok(tasks.list(DeskAuth.currentUserId(), status, sprintId));
     }
 
     @GetMapping("/tasks/{id}")
     public ResponseEntity<?> getTask(@PathVariable long id) {
-        return ok(tasks.find(userId(), id).orElseThrow(DeskException::notFound));
+        return ok(tasks.find(DeskAuth.currentUserId(), id).orElseThrow(DeskException::notFound));
     }
 
     @PostMapping("/tasks")
     public ResponseEntity<?> createTask(@RequestBody JsonNode body) {
-        return created(tasks.create(userId(), body));
+        return created(tasks.create(DeskAuth.currentUserId(), body));
     }
 
     @PatchMapping("/tasks/{id}")
     public ResponseEntity<?> updateTask(@PathVariable long id, @RequestBody JsonNode body) {
-        return ok(tasks.update(userId(), id, body));
+        return ok(tasks.update(DeskAuth.currentUserId(), id, body));
     }
 
     @DeleteMapping("/tasks/{id}")
     public ResponseEntity<?> deleteTask(@PathVariable long id) {
-        return deleted(tasks.delete(userId(), id));
+        return deleted(tasks.delete(DeskAuth.currentUserId(), id));
     }
 
     // ─── Sprints ──────────────────────────────────────────────────────────────
 
     @GetMapping("/sprints")
     public ResponseEntity<?> listSprints() {
-        return ok(sprints.list(userId()));
+        return ok(sprints.list(DeskAuth.currentUserId()));
     }
 
     /** {@code data} is null when no sprint covers today: an empty desk, not an error. */
     @GetMapping("/sprints/current")
     public ResponseEntity<?> currentSprint() {
-        return ok(sprints.current(userId()).orElse(null));
+        return ok(sprints.current(DeskAuth.currentUserId()).orElse(null));
     }
 
     @GetMapping("/sprints/{id}")
     public ResponseEntity<?> getSprint(@PathVariable long id) {
-        return ok(sprints.detail(userId(), id).orElseThrow(DeskException::notFound));
+        return ok(sprints.detail(DeskAuth.currentUserId(), id).orElseThrow(DeskException::notFound));
     }
 
     @PostMapping("/sprints")
     public ResponseEntity<?> createSprint(@RequestBody JsonNode body) {
-        return created(sprints.create(userId(), body));
+        return created(sprints.create(DeskAuth.currentUserId(), body));
     }
 
     @PatchMapping("/sprints/{id}")
     public ResponseEntity<?> updateSprint(@PathVariable long id, @RequestBody JsonNode body) {
-        return ok(sprints.update(userId(), id, body));
+        return ok(sprints.update(DeskAuth.currentUserId(), id, body));
     }
 
     @DeleteMapping("/sprints/{id}")
     public ResponseEntity<?> deleteSprint(@PathVariable long id) {
-        return deleted(sprints.delete(userId(), id));
+        return deleted(sprints.delete(DeskAuth.currentUserId(), id));
     }
 
     // ─── Targets ──────────────────────────────────────────────────────────────
 
     @GetMapping("/targets")
     public ResponseEntity<?> listTargets(@RequestParam(required = false) String stage) {
-        return ok(targets.list(userId(), stage));
+        return ok(targets.list(DeskAuth.currentUserId(), stage));
     }
 
     @GetMapping("/targets/{id}")
     public ResponseEntity<?> getTarget(@PathVariable long id) {
-        return ok(targets.find(userId(), id).orElseThrow(DeskException::notFound));
+        return ok(targets.find(DeskAuth.currentUserId(), id).orElseThrow(DeskException::notFound));
     }
 
     @PostMapping("/targets")
     public ResponseEntity<?> createTarget(@RequestBody JsonNode body) {
-        return created(targets.create(userId(), body));
+        return created(targets.create(DeskAuth.currentUserId(), body));
     }
 
     @PatchMapping("/targets/{id}")
     public ResponseEntity<?> updateTarget(@PathVariable long id, @RequestBody JsonNode body) {
-        return ok(targets.update(userId(), id, body));
+        return ok(targets.update(DeskAuth.currentUserId(), id, body));
     }
 
     @DeleteMapping("/targets/{id}")
     public ResponseEntity<?> deleteTarget(@PathVariable long id) {
-        return deleted(targets.delete(userId(), id));
+        return deleted(targets.delete(DeskAuth.currentUserId(), id));
     }
 
     // ─── Skills ───────────────────────────────────────────────────────────────
 
     @GetMapping("/skills")
     public ResponseEntity<?> listSkills(@RequestParam(required = false) String subject) {
-        return ok(skills.list(userId(), subject));
+        return ok(skills.list(DeskAuth.currentUserId(), subject));
     }
 
     /** Adds a practice result to a unit's counts, creating the unit on first use. */
     @PostMapping("/skills/results")
     public ResponseEntity<?> recordSkillResult(@RequestBody JsonNode body) {
-        return ok(skills.recordResult(userId(), body));
+        return ok(skills.recordResult(DeskAuth.currentUserId(), body));
     }
 
     @DeleteMapping("/skills/{id}")
     public ResponseEntity<?> deleteSkill(@PathVariable long id) {
-        return deleted(skills.delete(userId(), id));
+        return deleted(skills.delete(DeskAuth.currentUserId(), id));
     }
 
     // ─── Profile ──────────────────────────────────────────────────────────────
 
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile() {
-        return ok(profiles.get(userId()));
+        return ok(profiles.get(DeskAuth.currentUserId()));
     }
 
     @PutMapping("/profile")
     public ResponseEntity<?> putProfile(@RequestBody JsonNode body) {
-        return ok(profiles.put(userId(), body));
+        return ok(profiles.put(DeskAuth.currentUserId(), body));
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
-
-    /**
-     * The signed-in user. The filter chain already refuses an anonymous caller on
-     * this prefix; the check stays so a routing change cannot quietly open it.
-     */
-    private static long userId() {
-        Long id = AuthenticatedUser.currentId();
-        if (id == null) {
-            throw DeskException.unauthenticated();
-        }
-        return id;
-    }
 
     private static ResponseEntity<?> ok(Object data) {
         return ResponseEntity.ok(ApiResponse.success(data));

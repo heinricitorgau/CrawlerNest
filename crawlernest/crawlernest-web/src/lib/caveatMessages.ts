@@ -295,6 +295,14 @@ export const CAVEAT_COMPOSITE_RANK_NOT_COMPARED =
 export const CAVEAT_DISAGREEMENT_ESTIMATE =
   "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against.";
 
+/** Carried by every essay review from the desk's essay endpoint. */
+export const CAVEAT_ESSAY_SCORE_ESTIMATE =
+  "Essay scores are a language model's reading of this draft against the CrawlerNest rubric. They are estimates, not a prediction of how an admissions reader will score the essay, and the same draft can score differently under another model.";
+
+/** Carried by every essay review: the overall score is CrawlerNest's arithmetic, not the model's. */
+export const CAVEAT_ESSAY_OVERALL_METHOD =
+  "The overall essay score is the rubric-weighted mean of the dimension scores, computed by CrawlerNest rather than by the model.";
+
 /** Standard caveats present on every recommendation and analytics response. */
 export const STANDARD_CAVEATS: string[] = [
   CAVEAT_QS_STALE,

@@ -7,13 +7,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Objects;
 
 @Component
 public class AuthSchemaInitializer {
 
-    /** The desk schema (docs/architecture/DESK_SCHEMA_AND_API.md). Read from the file, not mirrored here. */
-    static final String DESK_SCHEMA_SCRIPT = "db/auth/V003__create_desk_schema.sql";
+    /**
+     * The desk schema (docs/architecture/DESK_SCHEMA_AND_API.md), in order. Read
+     * from the files, not mirrored here. Each must be safe to run on every start.
+     */
+    static final List<String> DESK_SCHEMA_SCRIPTS = List.of(
+            "db/auth/V003__create_desk_schema.sql",
+            "db/auth/V004__tassel_tool_allow_list.sql");
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -77,7 +83,8 @@ public class AuthSchemaInitializer {
 
     /** Needs warehouse.app_user, so it runs after the statements above. Idempotent. */
     void createDeskTables() {
-        new ResourceDatabasePopulator(new ClassPathResource(DESK_SCHEMA_SCRIPT))
-                .execute(Objects.requireNonNull(jdbcTemplate.getDataSource()));
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+        DESK_SCHEMA_SCRIPTS.forEach(script -> populator.addScript(new ClassPathResource(script)));
+        populator.execute(Objects.requireNonNull(jdbcTemplate.getDataSource()));
     }
 }

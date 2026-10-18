@@ -353,6 +353,22 @@ COMPOSITE_RANK_NOT_COMPARED_CAVEAT = (
     "university's page instead."
 )
 
+#: Carried by every essay review (desk essay evaluation in the Spring Boot API).
+#: The scores are a language model's judgement against a fixed rubric, and the
+#: response says so in words as well as in its isEstimated flag.
+ESSAY_SCORE_ESTIMATE_CAVEAT = (
+    "Essay scores are a language model's reading of this draft against the CrawlerNest rubric. "
+    "They are estimates, not a prediction of how an admissions reader will score the essay, "
+    "and the same draft can score differently under another model."
+)
+
+#: Carried by every essay review. The overall score is computed from the dimension
+#: scores with the rubric's fixed weights; the model never supplies it.
+ESSAY_OVERALL_METHOD_CAVEAT = (
+    "The overall essay score is the rubric-weighted mean of the dimension scores, "
+    "computed by CrawlerNest rather than by the model."
+)
+
 #: Shown when a university has no stored IELTS figure at any scope
 #: (warehouse.v_admission_requirement_summary.ielts_missing), or no admission row
 #: at all. Byte-identical to AnalyticsService.IELTS_MISSING_CAVEAT and to

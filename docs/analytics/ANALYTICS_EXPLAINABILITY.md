@@ -308,6 +308,23 @@ This disclosure is agent-side only. `getEstimatedScores` and
 `getDisagreementRisk` pin `ranking_year` to `DatasetScope.defaultRankingYear()`,
 so the Java endpoints cannot be asked about another edition and never need it.
 
+### Essay review
+
+Essay review on the desk (`POST /api/v1/user/desk/essays/evaluate`) is not analytics data. It is a
+language model scoring a student's draft against a fixed rubric
+(`servise_for_java/src/main/resources/prompts/essay_rubric.json`). It follows the same honesty contract.
+Every review carries `isEstimated: true`, names the model and rubric version, and carries both of these:
+
+> Essay scores are a language model's reading of this draft against the CrawlerNest rubric. They are estimates, not a prediction of how an admissions reader will score the essay, and the same draft can score differently under another model.
+
+> The overall essay score is the rubric-weighted mean of the dimension scores, computed by CrawlerNest rather than by the model.
+
+The model scores each dimension. CrawlerNest computes the overall score from those scores with the
+rubric's fixed weights, so the same dimension scores always give the same headline number. Evidence quotes
+and suggested edits are anchored to the draft by CrawlerNest. One that does not occur in the draft exactly
+once is dropped rather than shown at a guessed position. With no model configured, the endpoint refuses
+(503) rather than returning placeholder scores.
+
 ### Caveat Delivery
 
 Caveats are delivered in two places:

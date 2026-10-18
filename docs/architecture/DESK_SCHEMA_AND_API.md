@@ -1,8 +1,13 @@
 # "Your desk": schema and API design
 
-Status, 2026-10-18: **the schema and the CRUD endpoints are live; chat actions, essays and the narrative
-are not built yet.** On `/desk`, the chat (`/api/agent/chat`), the sprint card and the skill cards are
-live. The essay, theme and resonance cards hold sample data under their own banner.
+Status, 2026-10-18: **the schema, the CRUD endpoints and essay evaluation are live; the narrative endpoints
+and the chat tool loop are not built yet.** On `/desk`, these are live:
+
+- the chat (`/api/agent/chat`, the CrawlerNest Agent, not yet Tassel);
+- the sprint card and the skill cards;
+- the Essay review tab, and the latest-review card on "Your desk".
+
+The theme and resonance cards hold sample data under their own banner.
 
 DDL: [`V003__create_desk_schema.sql`](../../crawlernest/servise_for_java/src/main/resources/db/auth/V003__create_desk_schema.sql).
 `AuthSchemaInitializer` runs that file at startup, after it creates `warehouse.app_user`. Unlike V001 and V002,
@@ -156,14 +161,12 @@ Companion endpoints:
   for 24 hours.
 - The CRUD endpoints, listed under "CRUD endpoints" below.
 
-Tool schemas sent to the model (also the server-side validation):
-
-| Tool | Arguments | Default |
-|---|---|---|
-| `create_task` | `title` (1–200), `dueDate?` (ISO date, not in the past), `priority?`, `category?`, `targetEntityId?` (must be the user's) | applied |
-| `add_target_entity` | `canonicalUniversityId?` or `customName?`, `programmeName?`, `stage?` | applied |
-| `update_task_status` | `taskId`, `status` | proposed |
-| `update_target_stage` | `targetEntityId`, `stage` | proposed |
+Tool schemas: Tassel's three tools, `update_target_list`, `create_action_task` and
+`generate_narrative_themes`, defined in `crawlernest-web/src/lib/tassel/tools.json`. See
+[`docs/agent/TASSEL_ASSISTANT.md`](../agent/TASSEL_ASSISTANT.md). They replace the four draft tools above,
+and `V004__tassel_tool_allow_list.sql` makes `desk.chat_action` allow exactly those names. The request and
+response examples above still use the draft tool names (`create_task`, `update_target_stage`); read them as
+`create_action_task` and `update_target_list`.
 
 ### `GET /api/v1/story/narrative`
 
@@ -228,80 +231,95 @@ Level labels: 5–4 is `Strong`, 3 is `Moderate`, 2–1 is `Emerging`. The UI's 
 `level × 20`. Generating themes is a separate write, `POST /api/v1/story/themes/generate`, and
 `PATCH /api/v1/story/themes/{id}` accepts or dismisses a theme.
 
-### `POST /api/v1/essays/evaluate`
+### `POST /api/v1/user/desk/essays/evaluate` (implemented)
 
-Synchronous, with a 60 s timeout. A draft identical to an earlier one, under the same rubric, returns the
-stored review with `"cached": true` and does not call the model again.
+Under `/api/v1/user/desk`, like the CRUD endpoints, so the filter chain closes it. Also on that path:
+`GET /essays`, `GET /essays/{id}` and `DELETE /essays/{id}`. Code: `clawer.desk.essay`.
 
-Request:
+**Who calls the model:** the Spring Boot API calls the model itself (`OpenAiCompatibleEssayModelClient`).
+It is not the browser or the Next route, because then the API would have to accept scores from a caller,
+and a caller could make them up. The API reads the same variables as the Next agent route
+(`AGENT_MODEL_PROVIDER`, `AGENT_MODEL_NAME`, `AGENT_MODEL_BASE_URL`, `OPENAI_API_KEY`, `OLLAMA_BASE_URL`,
+`WEB_AGENT_DS4_*`), so one setting configures both. With the default `mock` there is no model, and the
+endpoint answers `503 MODEL_UNAVAILABLE` rather than inventing scores.
+
+**Rubric:** `servise_for_java/src/main/resources/prompts/essay_rubric.json` (`essay-rubric-2026.1`):
+
+| Dimension | Weight |
+|---|---|
+| impact | 0.25 |
+| introspection | 0.25 |
+| passion | 0.25 |
+| originality | 0.25 |
+
+The rubric also defines the score bands. The scorer's system prompt (`essay_scoring_system.txt`) is
+rendered from that file, and Tassel's review section copies its definitions (`tasselPrompt.test.ts` checks
+they agree).
+
+**What CrawlerNest does with the model's reply, not the model:**
+
+- **Overall score:** the weighted mean of the dimension scores. The model is told not to give one.
+- **Offsets:** the model returns quotes, not positions. `EssayEvaluator` finds each quote in the draft. A
+  quote that is not there verbatim, or occurs more than once, is dropped and counted in `droppedQuotes`; it
+  is never highlighted at a guessed position.
+- **Unreadable replies:** a reply that is not JSON, or is missing a dimension, or has a score that is not a
+  whole number from 0 to 100, gets one retry with the problem named. If the retry also fails, the endpoint
+  answers `502 MODEL_REPLY_UNREADABLE`. Nothing partial is stored.
+- **Untrusted essay text:** the essay is sent between `<essay>` tags, and the prompt says to treat anything
+  inside as text to judge, not as instructions.
+- **Unchanged drafts:** a draft whose SHA-256 the user already has stored under the same rubric version
+  returns the stored review with `"cached": true`, without a model call. Otherwise the model's own variance
+  would look like the essay changing.
+
+Request: `{"essayTitle", "essayPrompt"?, "targetEntityId"?, "revisionOfId"?, "draftText"}`.
+
+- `draftText` is 1 to 20,000 characters and is stored untrimmed, so offsets match what was sent.
+- An unknown field is a 400. That includes any attempt to send scores.
+- Another user's `targetEntityId` or `revisionOfId` answers 400.
+
+Response (`data`):
 
 ```json
 {
-  "essayTitle": "Personal statement",
-  "essayPrompt": "Describe a challenge you overcame.",
-  "targetEntityId": 41,
-  "revisionOfId": 305,
-  "draftText": "The first time the robot arm failed, ..."
+  "id": 318, "essayTitle": "Personal statement", "essayPrompt": null, "targetEntityId": null,
+  "revisionOfId": 305, "cached": false, "draftText": "...", "wordCount": 642,
+  "rubricVersion": "essay-rubric-2026.1",
+  "overall": { "score": 73.8, "method": "weighted_mean",
+               "weights": { "impact": 0.25, "introspection": 0.25, "passion": 0.25, "originality": 0.25 } },
+  "dimensions": [
+    { "key": "impact", "label": "Impact", "score": 82, "rationale": "...", "evidence": [{ "start": 120, "end": 188 }] },
+    { "key": "introspection", "label": "Introspection", "score": 64, "rationale": "...", "evidence": [] },
+    { "key": "passion", "label": "Passion", "score": 78, "rationale": "...", "evidence": [] },
+    { "key": "originality", "label": "Originality", "score": 71, "rationale": "...", "evidence": [] }
+  ],
+  "suggestions": [
+    { "start": 412, "end": 458, "original": "I learned that failure is part of engineering.",
+      "suggested": "I stopped hiding the broken prototypes [when did that start?].",
+      "dimension": "introspection", "reason": "Show the change in behaviour rather than stating the lesson." }
+  ],
+  "comparedToRevision": { "id": 305, "overallDelta": 4.1,
+                          "dimensionDeltas": { "impact": 3, "introspection": 9, "passion": 0, "originality": 2 } },
+  "droppedQuotes": 1,
+  "isEstimated": true,
+  "provenance": { "model": "gpt-4.1-mini", "evaluatedAt": "2026-10-18T08:43:21Z" },
+  "caveats": ["Essay scores are a language model's reading of this draft ...",
+              "The overall essay score is the rubric-weighted mean of the dimension scores, ..."]
 }
 ```
 
-Validation: `draftText` 1–20,000 characters; `targetEntityId` and `revisionOfId` must belong to the user;
-otherwise `400`.
+- `comparedToRevision` is null when the two drafts were scored under different rubric versions, because
+  their scores are on different scales.
+- `droppedQuotes` is present only on a fresh evaluation.
+- Both caveats are under the caveat contract (`test_caveat_contract.py`).
 
-Response `200`:
+Tests:
 
-```json
-{
-  "success": true,
-  "data": {
-    "id": 318,
-    "revisionOfId": 305,
-    "cached": false,
-    "wordCount": 642,
-    "rubricVersion": "essay-rubric-2026.1",
-    "overall": {
-      "score": 78.4,
-      "method": "weighted_mean",
-      "weights": { "impact": 0.3, "introspection": 0.3, "voice": 0.2, "structure": 0.2 }
-    },
-    "dimensions": [
-      { "key": "impact", "label": "Impact", "score": 82, "rationale": "The stakes are concrete and personal.", "evidence": [{ "start": 120, "end": 188 }] },
-      { "key": "introspection", "label": "Introspection", "score": 64, "rationale": "Says what happened more than what changed in you.", "evidence": [{ "start": 402, "end": 470 }] },
-      { "key": "voice", "label": "Voice", "score": 85, "rationale": "Distinct and consistent.", "evidence": [] },
-      { "key": "structure", "label": "Structure", "score": 79, "rationale": "Clear arc; the ending is abrupt.", "evidence": [{ "start": 590, "end": 642 }] }
-    ],
-    "suggestions": [
-      {
-        "start": 412,
-        "end": 470,
-        "original": "I learned that failure is part of engineering.",
-        "suggested": "I stopped hiding the broken prototypes and started showing them to the freshmen first.",
-        "dimension": "introspection",
-        "reason": "Show the change in behaviour rather than stating the lesson."
-      }
-    ],
-    "comparedToRevision": {
-      "id": 305,
-      "overallDelta": 4.1,
-      "dimensionDeltas": { "impact": 3, "introspection": 9, "voice": 0, "structure": 2 }
-    },
-    "isEstimated": true,
-    "provenance": { "model": "gpt-4.1-mini", "evaluatedAt": "2026-10-18T08:43:21Z" },
-    "caveats": [
-      "Scores are a model's reading of this draft against the CrawlerNest rubric, not a prediction of how an admissions reader will score it.",
-      "The overall score is the rubric-weighted mean of the dimension scores."
-    ]
-  },
-  "metadata": { "timestamp": "2026-10-18T08:43:21Z" }
-}
-```
+- `EssayEvaluatorTest` (10): anchoring, invented and ambiguous quotes, fenced JSON, retry, refusal, the
+  weighted mean.
+- `EssayApiIntegrationTest` (9): through the filter chain to PostgreSQL, with the model mocked.
+- `EssayReview.test.tsx`.
 
-- `start`/`end` are character offsets into the submitted `draftText`. The UI highlights them, and diffs
-  two drafts by loading both rows.
-- The API rejects a model response that points at offsets outside the text, or whose `original` does not
-  equal `draftText[start:end]`, and retries once. A suggestion that cannot be anchored is dropped, never
-  shown at a guessed position.
-- `503` with `"code": "MODEL_UNAVAILABLE"` if the provider is down. Nothing is stored in that case.
+On `/desk`, the Essay review tab submits drafts, and "Your desk" shows the latest review in brief.
 
 ## CRUD endpoints (implemented)
 
@@ -339,11 +357,14 @@ Tests: `DeskApiIntegrationTest` (17, filter chain through to PostgreSQL), `deskP
 1. ~~Move the DDL into `V003__create_desk_schema.sql` and apply it through `AuthSchemaInitializer`.~~ Done.
 2. ~~Add the CRUD endpoints (tasks, targets, skills), then point the desk cards at them.~~ Done for the
    sprint and skill cards. Targets have endpoints but no card yet.
-3. Add `essays/evaluate`, then `story/*`, then the `chat/message` tool loop. The tool loop goes last
-   because it depends on the CRUD validation.
+3. ~~Add `essays/evaluate`.~~ Done. Tassel's prompt and tool definitions exist
+   (`docs/agent/TASSEL_ASSISTANT.md`). Next: `story/*`, then the `chat/message` tool loop that sends the
+   prompt and tools to the model and applies the calls. The tool loop goes last because it depends on the
+   CRUD validation.
 4. New caveat strings go through the caveat contract: `crawlernest/core/caveats.py`, the
    `AnalyticsService` constants, `caveatMessages.ts` and `ANALYTICS_EXPLAINABILITY.md`.
-   `test_caveat_contract.py` checks that all four agree. The texts above are drafts.
+   `test_caveat_contract.py` checks that all four agree. The two essay caveats are in all four. The
+   narrative caveats above are still drafts.
 
 ## If it ever has to run on MySQL 8
 

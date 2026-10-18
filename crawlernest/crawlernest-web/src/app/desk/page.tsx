@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { sendDeskPrompt } from "@/lib/deskChat";
+import { EssayReviewPanel, LatestEssayCard } from "./EssayReviewPanel";
 import { LiveSkillsCard, LiveSprintCard } from "./LiveDeskCards";
 import {
   ChatPanel,
@@ -10,21 +11,20 @@ import {
   DeskLayout,
   DeskTabBar,
   ResonanceBar,
-  ScoreBreakdown,
   ThemeCard,
   type ChatMessage,
 } from "@/components/desk";
 
 /*
- * Live: the chat (/api/agent/chat), the sprint and its tasks, and skill mastery
- * (/api/user/desk). Still sample content: the essay score, the narrative theme
- * and resonance, which have no endpoints yet. They sit under their own banner so
+ * Live: the chat (/api/agent/chat), the sprint and its tasks, skill mastery and
+ * essay review (/api/user/desk). Still sample content: the narrative theme and
+ * resonance, which have no endpoints yet. They sit under their own banner so
  * nothing sample is shown beside live data without saying so.
  */
 function SampleBanner() {
   return (
     <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-      Sample data. The cards below show what essay review and narrative analysis will look like. They are not connected to your account yet.
+      Sample data. The cards below show what narrative analysis will look like. They are not connected to your account yet.
     </p>
   );
 }
@@ -55,18 +55,8 @@ export default function DeskPage() {
       <>
         <LiveSprintCard today={today} />
         <LiveSkillsCard />
+        <LatestEssayCard onOpenReviews={() => setActiveTab("essay-review")} />
         <SampleBanner />
-        <DeskCard eyebrow="Essay review" title="Personal statement">
-          <ScoreBreakdown
-            overall={78}
-            subScores={[
-              { label: "Impact", value: 82 },
-              { label: "Introspection", value: 64 },
-              { label: "Voice", value: 85 },
-              { label: "Structure", value: 79 },
-            ]}
-          />
-        </DeskCard>
         <ThemeCard
           title="The Builder Who Teaches"
           summary="You make things, then turn what you learned into something others can use."
@@ -81,6 +71,8 @@ export default function DeskPage() {
           </div>
         </DeskCard>
       </>
+    ) : activeTab === "essay-review" ? (
+      <EssayReviewPanel />
     ) : (
       <DeskCard title={activeLabel}>
         <p className="text-sm text-slate-500">This section is not built yet.</p>
