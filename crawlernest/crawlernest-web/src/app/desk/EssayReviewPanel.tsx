@@ -14,6 +14,12 @@ import {
 
 const MAX_DRAFT = 20000;
 
+/** Split on whitespace, as the API counts; a preview, the stored count is the API's. */
+function draftWords(text: string): number {
+  const trimmed = text.trim();
+  return trimmed ? trimmed.split(/\s+/).length : 0;
+}
+
 function SignInPrompt() {
   return (
     <p className="text-sm text-slate-600">
@@ -31,6 +37,7 @@ export function EssayReviewPanel() {
   const [prompt, setPrompt] = useState("");
   const [draft, setDraft] = useState("");
   const [revisionOf, setRevisionOf] = useState<number | "">("");
+  const [wordLimit, setWordLimit] = useState("");
   const [review, setReview] = useState<EssayReview | null>(null);
   const [scoring, setScoring] = useState(false);
 
@@ -56,6 +63,7 @@ export function EssayReviewPanel() {
       essayPrompt: prompt.trim() || undefined,
       draftText: draft,
       revisionOfId: revisionOf === "" ? undefined : revisionOf,
+      wordLimit: wordLimit ? Number(wordLimit) : undefined,
     });
     setScoring(false);
     if (!result.ok || result.data === null) {
@@ -99,6 +107,12 @@ export function EssayReviewPanel() {
             <input value={prompt} onChange={(e) => setPrompt(e.target.value)} maxLength={2000}
               className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
           </label>
+          <label className="block text-xs font-medium text-slate-600">
+            Word limit (optional)
+            <input type="number" min={1} max={5000} value={wordLimit} onChange={(e) => setWordLimit(e.target.value)}
+              placeholder="650"
+              className="mt-1 block w-32 rounded-lg border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-blue-500" />
+          </label>
           {history && history.length > 0 ? (
             <label className="block text-xs font-medium text-slate-600">
               This revises (optional)
@@ -117,7 +131,9 @@ export function EssayReviewPanel() {
               className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm leading-relaxed outline-none focus:border-blue-500" />
           </label>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-xs tabular-nums text-slate-500">{draft.length.toLocaleString()} / {MAX_DRAFT.toLocaleString()}</span>
+            <span className="text-xs tabular-nums text-slate-500">
+              {draftWords(draft)} words{wordLimit ? ` of ${wordLimit}` : ""} · {draft.length.toLocaleString()} / {MAX_DRAFT.toLocaleString()} characters
+            </span>
             <button type="submit" disabled={!title.trim() || !draft.trim() || scoring}
               className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white disabled:bg-slate-300">
               {scoring ? "Scoring… (up to a minute)" : "Score draft"}

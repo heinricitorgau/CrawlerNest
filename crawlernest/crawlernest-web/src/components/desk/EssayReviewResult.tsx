@@ -4,6 +4,7 @@ import { ScoreBreakdown } from "./ScoreRing";
 export interface EssayReviewView {
   essayTitle: string;
   wordCount: number;
+  wordLimit: number | null;
   rubricVersion: string;
   overallScore: number;
   dimensions: { key: string; label: string; score: number; rationale: string }[];
@@ -14,6 +15,26 @@ export interface EssayReviewView {
   model: string;
   isEstimated: true;
   caveats: string[];
+}
+
+/** Words written against the prompt's limit. Over the limit is flagged, not hidden. */
+export function WordProgress({ count, limit }: { count: number; limit: number }) {
+  const over = count > limit;
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs">
+        <span className="font-medium text-slate-700">Length</span>
+        <span className={`tabular-nums ${over ? "font-semibold text-red-700" : "text-slate-600"}`}>
+          {count} of {limit} words{over ? ` · ${count - limit} over` : ""}
+        </span>
+      </div>
+      <div role="meter" aria-label="Words against the limit" aria-valuemin={0} aria-valuemax={limit} aria-valuenow={count}
+        className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+        <div className={`h-full rounded-full ${over ? "bg-red-500" : "bg-blue-500"}`}
+          style={{ width: `${Math.min(100, (count / limit) * 100)}%` }} />
+      </div>
+    </div>
+  );
 }
 
 function Delta({ value }: { value: number | undefined }) {
@@ -41,6 +62,7 @@ export function EssayReviewResult({ review, compact = false }: { review: EssayRe
         overallLabel="Overall (estimate)"
         subScores={review.dimensions.map((d) => ({ label: d.label, value: d.score }))}
       />
+      {review.wordLimit !== null ? <WordProgress count={review.wordCount} limit={review.wordLimit} /> : null}
       {review.comparedToRevision ? (
         <p className="text-sm text-slate-600">
           Compared with the previous draft: overall<Delta value={review.comparedToRevision.overallDelta} />
@@ -79,7 +101,7 @@ export function EssayReviewResult({ review, compact = false }: { review: EssayRe
       <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
         {review.caveats.map((c) => <p key={c}>{c}</p>)}
         <p className="mt-1 text-slate-500">
-          {review.model} · {review.rubricVersion} · {review.wordCount} words
+          {review.model} · {review.rubricVersion}{review.wordLimit === null ? ` · ${review.wordCount} words` : ""}
           {review.cached ? " · this exact draft was scored before; showing that review" : ""}
           {review.droppedQuotes > 0 ? ` · ${review.droppedQuotes} quote(s) the model gave were not in your draft and are not shown` : ""}
         </p>

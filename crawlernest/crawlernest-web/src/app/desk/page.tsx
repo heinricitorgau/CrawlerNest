@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { sendDeskPrompt } from "@/lib/deskChat";
 import { EssayReviewPanel, LatestEssayCard } from "./EssayReviewPanel";
-import { LiveSkillsCard, LiveSprintCard } from "./LiveDeskCards";
+import { LiveDeadlinesCard, LiveSkillsCard, LiveSprintCard } from "./LiveDeskCards";
 import {
   ChatPanel,
   DESK_TABS,
@@ -54,6 +54,7 @@ export default function DeskPage() {
     activeTab === "desk" ? (
       <>
         <LiveSprintCard today={today} />
+        <LiveDeadlinesCard today={today} />
         <LiveSkillsCard />
         <LatestEssayCard onOpenReviews={() => setActiveTab("essay-review")} />
         <SampleBanner />

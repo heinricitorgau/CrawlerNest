@@ -96,7 +96,7 @@ export function toSprint(raw: unknown): LiveSprint | null {
   };
 }
 
-export type LiveSkill = SkillMastery & { subject: string; attempted: number };
+export type LiveSkill = SkillMastery & { subject: string; attempted: number; correct: number };
 
 /** Units with no attempts yet have no percentage, and are left out rather than drawn at 0%. */
 export function toSkills(raw: unknown): LiveSkill[] {
@@ -111,6 +111,7 @@ export function toSkills(raw: unknown): LiveSkill[] {
       label: row.unit,
       percent: row.masteryPct,
       attempted: typeof row.questionsAttempted === "number" ? row.questionsAttempted : 0,
+      correct: typeof row.questionsCorrect === "number" ? row.questionsCorrect : 0,
     });
   }
   return skills;
@@ -132,6 +133,28 @@ export const setTaskStatus = (taskId: string, status: TaskStatus) =>
 
 export const listSkills = () => call("/skills", {}, toSkills);
 
+/** Adds to a unit's counts; the API computes the percentage. Resolves to the unit's new row. */
+export const recordSkillResult = (input: { subject: string; unit: string; attempted: number; correct: number }) =>
+  call("/skills/results", json("POST", input), (raw) => toSkills([raw])[0] ?? null);
+
+export type LiveTarget = { id: number; name: string; stage: string; deadline: string | null; programmeName: string | null };
+
+function toTargets(raw: unknown): LiveTarget[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item) => {
+    const r = (item ?? {}) as Record<string, unknown>;
+    return typeof r.id === "number" && typeof r.name === "string"
+      ? [{
+          id: r.id, name: r.name, stage: typeof r.stage === "string" ? r.stage : "researching",
+          deadline: typeof r.deadline === "string" ? r.deadline : null,
+          programmeName: typeof r.programmeName === "string" ? r.programmeName : null,
+        }]
+      : [];
+  });
+}
+
+export const listTargets = () => call("/targets", {}, toTargets);
+
 // ─── Essay review ────────────────────────────────────────────────────────────
 
 export type EssayDimension = { key: string; label: string; score: number; rationale: string };
@@ -150,6 +173,8 @@ export type EssayReview = {
   essayTitle: string;
   draftText: string;
   wordCount: number;
+  /** The prompt's limit as the user gave it; null when they did not. */
+  wordLimit: number | null;
   rubricVersion: string;
   overallScore: number;
   dimensions: EssayDimension[];
@@ -182,6 +207,7 @@ export function toEssayReview(raw: unknown): EssayReview | null {
     essayTitle: str(r.essayTitle),
     draftText: str(r.draftText),
     wordCount: num(r.wordCount),
+    wordLimit: typeof r.wordLimit === "number" ? r.wordLimit : null,
     rubricVersion: str(r.rubricVersion),
     overallScore: num(overall.score),
     dimensions: (Array.isArray(r.dimensions) ? r.dimensions : []).map((d) => {
@@ -217,7 +243,13 @@ function toEssaySummaries(raw: unknown): EssaySummary[] {
   });
 }
 
-export const evaluateEssay = (input: { essayTitle: string; essayPrompt?: string; draftText: string; revisionOfId?: number }) =>
+export const evaluateEssay = (input: {
+  essayTitle: string;
+  essayPrompt?: string;
+  draftText: string;
+  revisionOfId?: number;
+  wordLimit?: number;
+}) =>
   call("/essays/evaluate", json("POST", input), toEssayReview);
 
 export const listEssays = () => call("/essays", {}, toEssaySummaries);

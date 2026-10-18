@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 import { useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
-import { DeskCard, SkillMasteryList, SprintCard } from "@/components/desk";
+import { DeadlineList, DeskCard, SkillMasteryList, SprintCard } from "@/components/desk";
 import {
   createSprint,
   createTask,
   getCurrentSprint,
   listSkills,
+  listTargets,
+  recordSkillResult,
   setTaskStatus,
   type DeskApiFailure,
   type DeskApiResult,
+  type LiveSkill,
   type LiveSprint,
 } from "@/lib/deskApi";
 
@@ -173,7 +176,8 @@ function StartSprint({ today, onStarted }: { today: Date; onStarted: (sprint: Li
 // ─── Skills ──────────────────────────────────────────────────────────────────
 
 export function LiveSkillsCard() {
-  const [state, , load] = useDeskLoad(listSkills);
+  const [state, setState, load] = useDeskLoad(listSkills);
+  const [logging, setLogging] = useState<{ subject: string; unit: string } | null>(null);
 
   if (state.phase === "loading") {
     return <DeskCard eyebrow="Test prep" title="Skill mastery"><p className="text-sm text-slate-400">Loading.</p></DeskCard>;
@@ -181,23 +185,138 @@ export function LiveSkillsCard() {
   if (state.phase === "failed") {
     return <DeskCard eyebrow="Test prep" title="Skill mastery"><FailureNotice failure={state.failure} onRetry={load} /></DeskCard>;
   }
-  if (state.data.length === 0) {
+
+  const skills = state.data;
+  function saved(skill: LiveSkill) {
+    setState({ phase: "ready", data: [...skills.filter((s) => !(s.subject === skill.subject && s.label === skill.label)), skill] });
+    setLogging(null);
+  }
+
+  const form = (
+    <RecordResultForm key={logging ? `${logging.subject}/${logging.unit}` : "new"} initial={logging} onSaved={saved}
+      onCancel={logging ? () => setLogging(null) : undefined} />
+  );
+
+  if (skills.length === 0) {
     return (
       <DeskCard eyebrow="Test prep" title="Skill mastery">
-        <p className="text-sm text-slate-500">No practice results yet. Mastery appears here once you record some.</p>
+        <p className="text-sm text-slate-500">No practice results yet. Record a practice set and mastery appears here.</p>
+        {form}
       </DeskCard>
     );
   }
 
-  const subjects = [...new Set(state.data.map((skill) => skill.subject))];
+  const subjects = [...new Set(skills.map((skill) => skill.subject))].sort();
   return (
     <>
-      {subjects.map((subject) => (
-        <DeskCard key={subject} eyebrow="Test prep" title={`${subject} mastery`}>
-          <SkillMasteryList skills={state.data.filter((skill) => skill.subject === subject)} />
-          <p className="mt-2 text-xs text-slate-500">Share of practice questions answered correctly, per unit.</p>
-        </DeskCard>
-      ))}
+      {subjects.map((subject) => {
+        const units = skills.filter((skill) => skill.subject === subject).sort((a, b) => a.label.localeCompare(b.label));
+        // Pooled over questions, not averaged over units: a unit with 5 questions
+        // should not count as much as one with 200.
+        const attempted = units.reduce((n, u) => n + u.attempted, 0);
+        const correct = units.reduce((n, u) => n + u.correct, 0);
+        const overall = attempted > 0 ? Math.round((1000 * correct) / attempted) / 10 : 0;
+        return (
+          <DeskCard key={subject} eyebrow="Test prep" title={`${subject} mastery`}
+            aside={<span className="text-xs tabular-nums text-slate-500">{overall}% of {attempted} questions</span>}>
+            <SkillMasteryList skills={units} onPractice={(unit) => setLogging({ subject, unit })} />
+            <p className="mt-2 text-xs text-slate-500">Share of practice questions answered correctly, per unit and overall.</p>
+            {logging?.subject === subject ? form : null}
+          </DeskCard>
+        );
+      })}
+      {logging === null ? <DeskCard eyebrow="Test prep" title="Record practice">{form}</DeskCard> : null}
     </>
+  );
+}
+
+function RecordResultForm({ initial, onSaved, onCancel }: {
+  initial: { subject: string; unit: string } | null;
+  onSaved: (skill: LiveSkill) => void;
+  onCancel?: () => void;
+}) {
+  const [subject, setSubject] = useState(initial?.subject ?? "");
+  const [unit, setUnit] = useState(initial?.unit ?? "");
+  const [attempted, setAttempted] = useState("");
+  const [correct, setCorrect] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const a = Number(attempted);
+  const c = Number(correct);
+  const valid = subject.trim() && unit.trim() && Number.isInteger(a) && a >= 1 && Number.isInteger(c) && c >= 0 && c <= a;
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!valid || saving) return;
+    setSaving(true);
+    const result = await recordSkillResult({ subject: subject.trim(), unit: unit.trim(), attempted: a, correct: c });
+    setSaving(false);
+    if (!result.ok || !result.data) {
+      setError(result.ok ? "The result was saved but could not be read back." : result.message);
+      return;
+    }
+    onSaved(result.data);
+  }
+
+  const input = "mt-1 block w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm outline-none focus:border-blue-500";
+  return (
+    <form onSubmit={submit} className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 sm:grid-cols-4" aria-label="Record practice result">
+      <label className="text-xs font-medium text-slate-600">Subject
+        <input value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={60} placeholder="SAT Math" className={input} />
+      </label>
+      <label className="text-xs font-medium text-slate-600">Unit
+        <input value={unit} onChange={(e) => setUnit(e.target.value)} maxLength={80} placeholder="Algebra" className={input} />
+      </label>
+      <label className="text-xs font-medium text-slate-600">Questions
+        <input type="number" min={1} max={1000} value={attempted} onChange={(e) => setAttempted(e.target.value)} className={input} />
+      </label>
+      <label className="text-xs font-medium text-slate-600">Correct
+        <input type="number" min={0} max={1000} value={correct} onChange={(e) => setCorrect(e.target.value)} className={input} />
+      </label>
+      <div className="col-span-2 flex items-center gap-2 sm:col-span-4">
+        <button type="submit" disabled={!valid || saving}
+          className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white disabled:bg-slate-300">
+          Record result
+        </button>
+        {onCancel ? <button type="button" onClick={onCancel} className="text-sm text-slate-500 hover:underline">Cancel</button> : null}
+        {attempted && correct && c > a ? <span className="text-xs text-red-700">Correct cannot exceed questions.</span> : null}
+        {error ? <span role="alert" className="text-xs text-red-700">{error}</span> : null}
+      </div>
+    </form>
+  );
+}
+
+// ─── Deadlines ───────────────────────────────────────────────────────────────
+
+/** Stages after which a school's application deadline no longer needs watching. */
+const DECIDED_STAGES = new Set(["submitted", "admitted", "waitlisted", "rejected", "enrolled", "withdrawn"]);
+
+export function LiveDeadlinesCard({ today }: { today: Date }) {
+  const [state, , load] = useDeskLoad(listTargets);
+
+  if (state.phase === "loading") return null;
+  if (state.phase === "failed") {
+    // Signed out is already said by the sprint card above; say nothing twice.
+    return state.failure.reason === "unauthenticated" ? null : (
+      <DeskCard eyebrow="Timeline" title="Application deadlines"><FailureNotice failure={state.failure} onRetry={load} /></DeskCard>
+    );
+  }
+  const todayIso = isoDate(today);
+  const upcoming = state.data.filter((t) => t.deadline !== null && t.deadline >= todayIso && !DECIDED_STAGES.has(t.stage));
+  if (upcoming.length === 0) return null;
+  return (
+    <DeskCard eyebrow="Timeline" title="Application deadlines">
+      <DeadlineList
+        today={today}
+        deadlines={upcoming.slice(0, 8).map((t) => ({
+          id: String(t.id),
+          name: t.name,
+          date: t.deadline as string,
+          detail: [t.programmeName, t.stage].filter(Boolean).join(" · "),
+        }))}
+      />
+      <p className="mt-2 text-xs text-slate-500">The deadlines you entered for schools on your list. Check each school&apos;s site: dates change every year.</p>
+    </DeskCard>
   );
 }

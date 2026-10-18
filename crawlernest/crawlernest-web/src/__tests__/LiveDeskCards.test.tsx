@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { LiveSkillsCard, LiveSprintCard } from "@/app/desk/LiveDeskCards";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { LiveDeadlinesCard, LiveSkillsCard, LiveSprintCard } from "@/app/desk/LiveDeskCards";
 import { toDeskTask, toSkills, toSprint } from "@/lib/deskApi";
 
 const TODAY = new Date("2026-10-18T12:00:00Z");
@@ -36,7 +36,7 @@ describe("deskApi parsers", () => {
     expect(toSkills([
       { subject: "SAT Math", unit: "Algebra", masteryPct: 94, questionsAttempted: 50 },
       { subject: "SAT Math", unit: "Geometry", masteryPct: null, questionsAttempted: 0 },
-    ])).toEqual([{ subject: "SAT Math", label: "Algebra", percent: 94, attempted: 50 }]);
+    ])).toEqual([{ subject: "SAT Math", label: "Algebra", percent: 94, attempted: 50, correct: 0 }]);
   });
 });
 
@@ -100,5 +100,77 @@ describe("LiveSkillsCard", () => {
     global.fetch = jest.fn(async () => respond(200, { success: true, data: [] }));
     render(<LiveSkillsCard />);
     expect(await screen.findByText(/No practice results yet/)).toBeInTheDocument();
+  });
+});
+
+describe("LiveSkillsCard practice and overall", () => {
+  it("pools the overall over questions, not units, and logs practice for the focus unit", async () => {
+    const fetchMock = jest.fn()
+      .mockResolvedValueOnce(respond(200, {
+        success: true,
+        data: [
+          { subject: "SAT Math", unit: "Algebra", masteryPct: 90, questionsAttempted: 200, questionsCorrect: 180 },
+          { subject: "SAT Math", unit: "Geometry", masteryPct: 40, questionsAttempted: 5, questionsCorrect: 2 },
+        ],
+      }))
+      .mockResolvedValueOnce(respond(200, {
+        success: true,
+        data: { subject: "SAT Math", unit: "Geometry", masteryPct: 60, questionsAttempted: 15, questionsCorrect: 9 },
+      }));
+    global.fetch = fetchMock;
+    render(<LiveSkillsCard />);
+
+    // 182 of 205, not the mean of 90% and 40%.
+    expect(await screen.findByText("88.8% of 205 questions")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Log practice →" }));
+    const form = screen.getByRole("form", { name: "Record practice result" });
+    expect(within(form).getByLabelText("Unit")).toHaveValue("Geometry");
+    fireEvent.change(within(form).getByLabelText("Questions"), { target: { value: "10" } });
+    fireEvent.change(within(form).getByLabelText("Correct"), { target: { value: "7" } });
+    fireEvent.click(within(form).getByRole("button", { name: "Record result" }));
+
+    // The server returns the unit's new totals (15 / 9): 189 of 215 overall.
+    expect(await screen.findByText("87.9% of 215 questions")).toBeInTheDocument();
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ subject: "SAT Math", unit: "Geometry", attempted: 10, correct: 7 });
+  });
+
+  it("will not send more correct answers than questions", async () => {
+    global.fetch = jest.fn(async () => respond(200, { success: true, data: [] }));
+    render(<LiveSkillsCard />);
+    const form = await screen.findByRole("form", { name: "Record practice result" });
+    fireEvent.change(within(form).getByLabelText("Subject"), { target: { value: "SAT Math" } });
+    fireEvent.change(within(form).getByLabelText("Unit"), { target: { value: "Algebra" } });
+    fireEvent.change(within(form).getByLabelText("Questions"), { target: { value: "5" } });
+    fireEvent.change(within(form).getByLabelText("Correct"), { target: { value: "6" } });
+    expect(within(form).getByRole("button", { name: "Record result" })).toBeDisabled();
+    expect(within(form).getByText("Correct cannot exceed questions.")).toBeInTheDocument();
+  });
+});
+
+describe("LiveDeadlinesCard", () => {
+  it("lists upcoming deadlines of schools still in play, soonest first", async () => {
+    global.fetch = jest.fn(async () => respond(200, {
+      success: true,
+      data: [
+        { id: 1, name: "Northwestern University", stage: "applying", deadline: "2026-11-01", programmeName: null },
+        { id: 2, name: "University of Michigan", stage: "shortlisted", deadline: "2026-10-25", programmeName: "Computer Science" },
+        { id: 3, name: "Already submitted", stage: "submitted", deadline: "2026-10-20", programmeName: null },
+        { id: 4, name: "Past deadline", stage: "applying", deadline: "2026-10-01", programmeName: null },
+        { id: 5, name: "No deadline", stage: "applying", deadline: null, programmeName: null },
+      ],
+    }));
+    render(<LiveDeadlinesCard today={TODAY} />);
+    const list = await screen.findByRole("list", { name: "Application deadlines" });
+    const names = within(list).getAllByRole("listitem").map((li) => li.querySelector("p")?.textContent);
+    expect(names).toEqual(["University of Michigan", "Northwestern University"]);
+    expect(within(list).getByText("Oct 25 · 7d")).toBeInTheDocument();
+  });
+
+  it("says nothing to a signed-out visitor; the sprint card already does", async () => {
+    global.fetch = jest.fn(async () => respond(401, {}));
+    const { container } = render(<LiveDeadlinesCard today={TODAY} />);
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    expect(container).toBeEmptyDOMElement();
   });
 });

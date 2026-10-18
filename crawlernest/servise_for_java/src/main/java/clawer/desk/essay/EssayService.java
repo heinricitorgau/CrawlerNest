@@ -42,13 +42,16 @@ public class EssayService {
     static final int MAX_TITLE = 200;
     static final int MAX_PROMPT = 2000;
 
-    private static final Set<String> FIELDS = Set.of("essayTitle", "essayPrompt", "targetEntityId", "revisionOfId", "draftText");
+    static final int MAX_WORD_LIMIT = 5000;
+
+    private static final Set<String> FIELDS =
+            Set.of("essayTitle", "essayPrompt", "targetEntityId", "revisionOfId", "draftText", "wordLimit");
 
     public static final List<String> CAVEATS = List.of(
             AnalyticsService.ESSAY_SCORE_ESTIMATE_CAVEAT,
             AnalyticsService.ESSAY_OVERALL_METHOD_CAVEAT);
 
-    public record Summary(long id, String essayTitle, BigDecimal overallScore, int wordCount, String rubricVersion,
+    public record Summary(long id, String essayTitle, BigDecimal overallScore, int wordCount, Integer wordLimit, String rubricVersion,
                           Long revisionOfId, Long targetEntityId, Instant createdAt) {}
 
     private final JdbcTemplate jdbc;
@@ -72,6 +75,7 @@ public class EssayService {
         String essayPrompt = in.text("essayPrompt", MAX_PROMPT, false);
         Long targetEntityId = in.id("targetEntityId", false);
         Long revisionOfId = in.id("revisionOfId", false);
+        Integer wordLimit = in.integer("wordLimit", 1, MAX_WORD_LIMIT, false);
         // The draft is not trimmed: offsets are into exactly the text the user sent.
         JsonNode draftNode = in.node("draftText");
         if (draftNode == null || !draftNode.isTextual() || draftNode.asText().isBlank()) {
@@ -94,6 +98,12 @@ public class EssayService {
         String sha = sha256(draft);
         Optional<Long> existing = findByDraft(userId, sha);
         if (existing.isPresent()) {
+            // The limit is the user's note about the prompt, not part of the scoring:
+            // a re-submission that states a different one updates it without a model call.
+            if (wordLimit != null) {
+                jdbc.update("UPDATE desk.essay_review SET word_limit = ? WHERE id = ? AND user_id = ?",
+                        wordLimit, existing.get(), userId);
+            }
             return detail(userId, existing.get(), true).orElseThrow();
         }
 
@@ -103,14 +113,14 @@ public class EssayService {
         List<Long> inserted = jdbc.queryForList("""
                 INSERT INTO desk.essay_review
                     (user_id, essay_title, essay_prompt, target_entity_id, revision_of_id, draft_text, word_count,
-                     draft_sha256, rubric_version, dimension_scores, overall_score, suggestions, model_name)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?::jsonb, ?)
+                     draft_sha256, rubric_version, dimension_scores, overall_score, suggestions, model_name, word_limit)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?::jsonb, ?, ?)
                 ON CONFLICT ON CONSTRAINT essay_review_draft_rubric_key DO NOTHING
                 RETURNING id
                 """, Long.class,
                 userId, title, essayPrompt, targetEntityId, revisionOfId, draft, wordCount(draft), sha,
                 rubric.version(), toJson(evaluation.dimensions()), overall, toJson(evaluation.suggestions()),
-                evaluation.modelName());
+                evaluation.modelName(), wordLimit);
         // Empty only if the same draft was stored by a concurrent request a moment ago.
         long id = inserted.isEmpty() ? findByDraft(userId, sha).orElseThrow() : inserted.get(0);
         Map<String, Object> result = detail(userId, id, inserted.isEmpty()).orElseThrow();
@@ -120,10 +130,10 @@ public class EssayService {
 
     public List<Summary> list(long userId) {
         return jdbc.query("""
-                SELECT id, essay_title, overall_score, word_count, rubric_version, revision_of_id, target_entity_id, created_at
+                SELECT id, essay_title, overall_score, word_count, word_limit, rubric_version, revision_of_id, target_entity_id, created_at
                 FROM desk.essay_review WHERE user_id = ? ORDER BY created_at DESC, id DESC
                 """, (rs, n) -> new Summary(rs.getLong("id"), rs.getString("essay_title"), rs.getBigDecimal("overall_score"),
-                        rs.getInt("word_count"), rs.getString("rubric_version"),
+                        rs.getInt("word_count"), rs.getObject("word_limit", Integer.class), rs.getString("rubric_version"),
                         rs.getObject("revision_of_id", Long.class), rs.getObject("target_entity_id", Long.class),
                         rs.getTimestamp("created_at").toInstant()),
                 userId);
@@ -132,7 +142,7 @@ public class EssayService {
     public Optional<Map<String, Object>> detail(long userId, long id, boolean cached) {
         List<Map<String, Object>> rows = jdbc.query("""
                 SELECT r.id, r.essay_title, r.essay_prompt, r.target_entity_id, r.revision_of_id, r.draft_text,
-                       r.word_count, r.rubric_version, r.dimension_scores::text AS dimension_scores, r.overall_score,
+                       r.word_count, r.word_limit, r.rubric_version, r.dimension_scores::text AS dimension_scores, r.overall_score,
                        r.suggestions::text AS suggestions, r.model_name, r.created_at,
                        p.rubric_version AS prev_rubric, p.dimension_scores::text AS prev_scores, p.overall_score AS prev_overall
                 FROM desk.essay_review r
@@ -150,6 +160,7 @@ public class EssayService {
             out.put("cached", cached);
             out.put("draftText", rs.getString("draft_text"));
             out.put("wordCount", rs.getInt("word_count"));
+            out.put("wordLimit", rs.getObject("word_limit", Integer.class));
             out.put("rubricVersion", rubricVersion);
             out.put("overall", Map.of("score", rs.getBigDecimal("overall_score"), "method", "weighted_mean",
                     "weights", rubric.weights()));

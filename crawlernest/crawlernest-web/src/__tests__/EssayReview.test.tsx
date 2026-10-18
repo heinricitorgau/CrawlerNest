@@ -115,3 +115,16 @@ describe("LatestEssayCard", () => {
     expect(screen.getByText("No drafts scored yet")).toBeInTheDocument();
   });
 });
+
+describe("word limit", () => {
+  it("shows words against the limit and flags going over", () => {
+    render(<EssayReviewResult review={{ ...toEssayReview(API_REVIEW)!, wordCount: 672, wordLimit: 650 }} compact />);
+    expect(screen.getByText("672 of 650 words · 22 over")).toBeInTheDocument();
+    expect(screen.getByRole("meter", { name: "Words against the limit" })).toHaveAttribute("aria-valuenow", "672");
+  });
+
+  it("reads the limit from the API, null when none was given", () => {
+    expect(toEssayReview({ ...API_REVIEW, wordLimit: 650 })!.wordLimit).toBe(650);
+    expect(toEssayReview(API_REVIEW)!.wordLimit).toBeNull();
+  });
+});
