@@ -29,7 +29,9 @@
     "region_name": null,
     "fetch_details": true,
     "enable_aggregation": true,
-    "ranking_scope": "world_slice"
+    "ranking_scope": "world_slice",
+    "data_frozen_at": null,
+    "frozen_reason": null
   },
   "edition": {
     "source": "QS",
