@@ -241,7 +241,7 @@
   },
   {
     "university_name": "The University of Hong Kong",
-    "country": "Hong Kong Sar",
+    "country": "Hong Kong Sar China",
     "rank": "11",
     "score": "94.2",
     "source": "QS",
@@ -313,7 +313,7 @@
   },
   {
     "university_name": "Peking University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "14",
     "score": "92.6",
     "source": "QS",
@@ -385,7 +385,7 @@
   },
   {
     "university_name": "Tsinghua University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "17",
     "score": "91.2",
     "source": "QS",
@@ -697,7 +697,7 @@
   },
   {
     "university_name": "Fudan University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "30",
     "score": "88.4",
     "source": "QS",
@@ -769,7 +769,7 @@
   },
   {
     "university_name": "The Chinese University of Hong Kong (CUHK)",
-    "country": "Hong Kong Sar",
+    "country": "Hong Kong Sar China",
     "rank": "33",
     "score": "87.4",
     "source": "QS",
@@ -1033,7 +1033,7 @@
   },
   {
     "university_name": "The Hong Kong University of Science and Technology",
-    "country": "Hong Kong Sar",
+    "country": "Hong Kong Sar China",
     "rank": "44",
     "score": "84.8",
     "source": "QS",
@@ -1129,7 +1129,7 @@
   },
   {
     "university_name": "Shanghai Jiao Tong University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "48",
     "score": "84.3",
     "source": "QS",
@@ -1153,7 +1153,7 @@
   },
   {
     "university_name": "Zhejiang University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "49",
     "score": "84",
     "source": "QS",
@@ -1273,7 +1273,7 @@
   },
   {
     "university_name": "The Hong Kong Polytechnic University",
-    "country": "Hong Kong Sar",
+    "country": "Hong Kong Sar China",
     "rank": "54",
     "score": "81.2",
     "source": "QS",
@@ -1489,7 +1489,7 @@
   },
   {
     "university_name": "City University of Hong Kong (CityUHK)",
-    "country": "Hong Kong Sar",
+    "country": "Hong Kong Sar China",
     "rank": "63",
     "score": "78.9",
     "source": "QS",
@@ -2449,7 +2449,7 @@
   },
   {
     "university_name": "Nanjing University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "103",
     "score": "67.7",
     "source": "QS",
@@ -3169,7 +3169,7 @@
   },
   {
     "university_name": "University of Science and Technology of China",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "133",
     "score": "64.2",
     "source": "QS",
@@ -4249,7 +4249,7 @@
   },
   {
     "university_name": "Tongji University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "178",
     "score": "58.8",
     "source": "QS",
@@ -4441,7 +4441,7 @@
   },
   {
     "university_name": "Wuhan University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "186",
     "score": "57.3",
     "source": "QS",
@@ -5857,7 +5857,7 @@
   },
   {
     "university_name": "Hong Kong Baptist University",
-    "country": "Hong Kong Sar",
+    "country": "Hong Kong Sar China",
     "rank": "245",
     "score": "50.9",
     "source": "QS",
@@ -5905,7 +5905,7 @@
   },
   {
     "university_name": "Beijing Normal University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "247",
     "score": "50.6",
     "source": "QS",
@@ -6121,7 +6121,7 @@
   },
   {
     "university_name": "Harbin Institute of Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "256",
     "score": "49.8",
     "source": "QS",
@@ -6145,7 +6145,7 @@
   },
   {
     "university_name": "Tianjin University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "257",
     "score": "49.7",
     "source": "QS",
@@ -6193,7 +6193,7 @@
   },
   {
     "university_name": "Beijing Institute of Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "259",
     "score": "49.5",
     "source": "QS",
@@ -6601,7 +6601,7 @@
   },
   {
     "university_name": "Sun Yat-sen University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "276",
     "score": "48",
     "source": "QS",
@@ -6841,7 +6841,7 @@
   },
   {
     "university_name": "University of Macau",
-    "country": "Macau Sar",
+    "country": "Macao Sar China",
     "rank": "286",
     "score": "47",
     "source": "QS",
@@ -7297,7 +7297,7 @@
   },
   {
     "university_name": "Xi’an Jiaotong University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "305",
     "score": "45",
     "source": "QS",
@@ -7633,7 +7633,7 @@
   },
   {
     "university_name": "Huazhong University of Science and Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "319",
     "score": "43.8",
     "source": "QS",
@@ -7753,7 +7753,7 @@
   },
   {
     "university_name": "Sichuan University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "324",
     "score": "43",
     "source": "QS",
@@ -8137,7 +8137,7 @@
   },
   {
     "university_name": "Shandong University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "340",
     "score": "42.2",
     "source": "QS",
@@ -8161,7 +8161,7 @@
   },
   {
     "university_name": "Xiamen University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "341",
     "score": "42.1",
     "source": "QS",
@@ -8209,7 +8209,7 @@
   },
   {
     "university_name": "Southern University of Science and Technology (SUSTech)",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "343",
     "score": "41.8",
     "source": "QS",
@@ -8497,7 +8497,7 @@
   },
   {
     "university_name": "Nankai University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "355",
     "score": "41.2",
     "source": "QS",
@@ -8665,7 +8665,7 @@
   },
   {
     "university_name": "University of Chinese Academy of Sciences (UCAS)",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "362",
     "score": "40.9",
     "source": "QS",
@@ -9025,7 +9025,7 @@
   },
   {
     "university_name": "South China University of Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "377",
     "score": "39.8",
     "source": "QS",
@@ -9289,7 +9289,7 @@
   },
   {
     "university_name": "Beihang University (former BUAA)",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "388",
     "score": "38.5",
     "source": "QS",
@@ -9409,7 +9409,7 @@
   },
   {
     "university_name": "Southeast University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "393",
     "score": "38.2",
     "source": "QS",
@@ -10369,7 +10369,7 @@
   },
   {
     "university_name": "East China Normal University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "433",
     "score": "35.6",
     "source": "QS",
@@ -10609,7 +10609,7 @@
   },
   {
     "university_name": "Macau University of Science and Technology",
-    "country": "Macau Sar",
+    "country": "Macao Sar China",
     "rank": "443",
     "score": "34.9",
     "source": "QS",
@@ -10849,7 +10849,7 @@
   },
   {
     "university_name": "Shenzhen University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "453",
     "score": "34.2",
     "source": "QS",
@@ -11185,7 +11185,7 @@
   },
   {
     "university_name": "Shanghai University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "467",
     "score": "33.8",
     "source": "QS",
@@ -11329,7 +11329,7 @@
   },
   {
     "university_name": "Jilin University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "473",
     "score": "33.5",
     "source": "QS",
@@ -11521,7 +11521,7 @@
   },
   {
     "university_name": "University of Science and Technology Beijing",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "481",
     "score": "33.2",
     "source": "QS",
@@ -11545,7 +11545,7 @@
   },
   {
     "university_name": "Dalian University of Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "482",
     "score": "33",
     "source": "QS",
@@ -11761,7 +11761,7 @@
   },
   {
     "university_name": "Central South University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "491",
     "score": "32.6",
     "source": "QS",
@@ -11977,7 +11977,7 @@
   },
   {
     "university_name": "Northwestern Polytechnical University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "500",
     "score": "32.2",
     "source": "QS",
@@ -12073,7 +12073,7 @@
   },
   {
     "university_name": "China Agricultural University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "504",
     "score": "32",
     "source": "QS",
@@ -12097,7 +12097,7 @@
   },
   {
     "university_name": "Chongqing University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "505",
     "score": "32",
     "source": "QS",
@@ -12145,7 +12145,7 @@
   },
   {
     "university_name": "Hunan University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "507",
     "score": "32",
     "source": "QS",
@@ -12529,7 +12529,7 @@
   },
   {
     "university_name": "University of Electronic Science and Technology of China",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "523",
     "score": "31.3",
     "source": "QS",
@@ -12721,7 +12721,7 @@
   },
   {
     "university_name": "The Education University of Hong Kong",
-    "country": "Hong Kong Sar",
+    "country": "Hong Kong Sar China",
     "rank": "531",
     "score": "30.8",
     "source": "QS",
@@ -12961,7 +12961,7 @@
   },
   {
     "university_name": "Jinan University (China)",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "541",
     "score": "30.5",
     "source": "QS",
@@ -13200,7 +13200,7 @@
     }
   },
   {
-    "university_name": "Northumbria University at Newcastle",
+    "university_name": "Northumbria University QAHE- London campus",
     "country": "United Kingdom",
     "rank": "551",
     "score": "30",
@@ -13208,7 +13208,7 @@
     "universe_type": "global",
     "universe_key": "global",
     "year": 2026,
-    "detail_url": "/universities/northumbria-university-newcastle",
+    "detail_url": "/universities/northumbria-university-qahe-london-campus",
     "table_metrics": {
       "Overall Score": "30",
       "Citations per Faculty": "30.6",
@@ -13633,7 +13633,7 @@
   },
   {
     "university_name": "Renmin (People's) University of China",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "569",
     "score": "29.3",
     "source": "QS",
@@ -13968,7 +13968,7 @@
     }
   },
   {
-    "university_name": "Florida International University",
+    "university_name": "Florida International University (FIU)",
     "country": "United States",
     "rank": "583",
     "score": "28.8",
@@ -13976,7 +13976,7 @@
     "universe_type": "global",
     "universe_key": "global",
     "year": 2026,
-    "detail_url": "/universities/florida-international-university",
+    "detail_url": "/universities/florida-international-university-fiu",
     "table_metrics": {
       "Overall Score": "28.8",
       "Citations per Faculty": "17.5",
@@ -14905,7 +14905,7 @@
   },
   {
     "university_name": "Zhengzhou University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "622",
     "score": "27.7",
     "source": "QS",
@@ -15697,7 +15697,7 @@
   },
   {
     "university_name": "China University of Mining and Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "655",
     "score": "26.6",
     "source": "QS",
@@ -16153,7 +16153,7 @@
   },
   {
     "university_name": "East China University of Science and Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "674",
     "score": "26.2",
     "source": "QS",
@@ -16345,7 +16345,7 @@
   },
   {
     "university_name": "Nanjing University of Aeronautics and Astronautics",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "682",
     "score": "25.9",
     "source": "QS",
@@ -16465,7 +16465,7 @@
   },
   {
     "university_name": "China University of Petroleum, Beijing",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "687",
     "score": "25.7",
     "source": "QS",
@@ -16585,7 +16585,7 @@
   },
   {
     "university_name": "Eastern Mediterranean University",
-    "country": "Northern Cyprus",
+    "country": "N A",
     "rank": "692",
     "score": "25.4",
     "source": "QS",
@@ -16777,7 +16777,7 @@
   },
   {
     "university_name": "Beijing University of Chemical Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "700",
     "score": "25.1",
     "source": "QS",
@@ -16969,7 +16969,7 @@
   },
   {
     "university_name": "Lingnan University, Hong Kong",
-    "country": "Hong Kong Sar",
+    "country": "Hong Kong Sar China",
     "rank": "708",
     "score": "n/a",
     "source": "QS",
@@ -16993,7 +16993,7 @@
   },
   {
     "university_name": "Nanjing University of Science and Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "709",
     "score": "n/a",
     "source": "QS",
@@ -18889,7 +18889,7 @@
   },
   {
     "university_name": "Hong Kong Metropolitan University",
-    "country": "Hong Kong Sar",
+    "country": "Hong Kong Sar China",
     "rank": "788",
     "score": "n/a",
     "source": "QS",
@@ -19177,7 +19177,7 @@
   },
   {
     "university_name": "Beijing University of Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "800",
     "score": "n/a",
     "source": "QS",
@@ -19225,7 +19225,7 @@
   },
   {
     "university_name": "Lanzhou University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "802",
     "score": "n/a",
     "source": "QS",
@@ -19489,7 +19489,7 @@
   },
   {
     "university_name": "Donghua University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "813",
     "score": "n/a",
     "source": "QS",
@@ -19681,7 +19681,7 @@
   },
   {
     "university_name": "Northwest Agriculture and Forestry University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "821",
     "score": "n/a",
     "source": "QS",
@@ -19705,7 +19705,7 @@
   },
   {
     "university_name": "Ocean University of China",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "822",
     "score": "n/a",
     "source": "QS",
@@ -19777,7 +19777,7 @@
   },
   {
     "university_name": "Soochow University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "825",
     "score": "n/a",
     "source": "QS",
@@ -20665,7 +20665,7 @@
   },
   {
     "university_name": "Beijing Jiaotong University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "862",
     "score": "n/a",
     "source": "QS",
@@ -20761,7 +20761,7 @@
   },
   {
     "university_name": "China University of Geosciences",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "866",
     "score": "n/a",
     "source": "QS",
@@ -20881,7 +20881,7 @@
   },
   {
     "university_name": "European University of Lefke",
-    "country": "Northern Cyprus",
+    "country": "N A",
     "rank": "871",
     "score": "n/a",
     "source": "QS",
@@ -20953,7 +20953,7 @@
   },
   {
     "university_name": "Jiangnan University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "874",
     "score": "n/a",
     "source": "QS",
@@ -21913,7 +21913,7 @@
   },
   {
     "university_name": "Huazhong Agricultural University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "914",
     "score": "n/a",
     "source": "QS",
@@ -22129,7 +22129,7 @@
   },
   {
     "university_name": "Macao Polytechnic University",
-    "country": "Macau Sar",
+    "country": "Macao Sar China",
     "rank": "923",
     "score": "n/a",
     "source": "QS",
@@ -22560,7 +22560,7 @@
     }
   },
   {
-    "university_name": "University at Albany SUNY",
+    "university_name": "University at Albany - State University of New York",
     "country": "United States",
     "rank": "941",
     "score": "n/a",
@@ -22568,7 +22568,7 @@
     "universe_type": "global",
     "universe_key": "global",
     "year": 2026,
-    "detail_url": "/universities/university-albany-suny",
+    "detail_url": "/universities/university-albany-state-university-new-york",
     "table_metrics": {
       "Overall Score": "n/a",
       "Citations per Faculty": "44.1",
@@ -23329,7 +23329,7 @@
   },
   {
     "university_name": "Nanjing Agricultural University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "973",
     "score": "n/a",
     "source": "QS",
@@ -23353,7 +23353,7 @@
   },
   {
     "university_name": "Nanjing Normal University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "974",
     "score": "n/a",
     "source": "QS",
@@ -24073,7 +24073,7 @@
   },
   {
     "university_name": "Wuhan University of Technology",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1004",
     "score": "n/a",
     "source": "QS",
@@ -24433,7 +24433,7 @@
   },
   {
     "university_name": "Beijing University of Posts and Telecommunications",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1019",
     "score": "n/a",
     "source": "QS",
@@ -24840,7 +24840,7 @@
     }
   },
   {
-    "university_name": "Florida Atlantic University - Boca Raton",
+    "university_name": "Florida Atlantic University",
     "country": "United States",
     "rank": "1036",
     "score": "n/a",
@@ -24848,7 +24848,7 @@
     "universe_type": "global",
     "universe_key": "global",
     "year": 2026,
-    "detail_url": "/universities/florida-atlantic-university-boca-raton",
+    "detail_url": "/universities/florida-atlantic-university",
     "table_metrics": {
       "Overall Score": "n/a",
       "Citations per Faculty": "18.2",
@@ -25033,7 +25033,7 @@
   },
   {
     "university_name": "Harbin Engineering University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1044",
     "score": "n/a",
     "source": "QS",
@@ -25057,7 +25057,7 @@
   },
   {
     "university_name": "Hohai University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1045",
     "score": "n/a",
     "source": "QS",
@@ -25849,7 +25849,7 @@
   },
   {
     "university_name": "Northwest University (China)",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1078",
     "score": "n/a",
     "source": "QS",
@@ -26401,7 +26401,7 @@
   },
   {
     "university_name": "Southwest University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1101",
     "score": "n/a",
     "source": "QS",
@@ -28729,7 +28729,7 @@
   },
   {
     "university_name": "Xi'an Jiaotong Liverpool University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1198",
     "score": "n/a",
     "source": "QS",
@@ -29089,7 +29089,7 @@
   },
   {
     "university_name": "Beijing Foreign Studies University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1213",
     "score": "n/a",
     "source": "QS",
@@ -29113,7 +29113,7 @@
   },
   {
     "university_name": "Beijing University of Chinese Medicine",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1214",
     "score": "n/a",
     "source": "QS",
@@ -29353,7 +29353,7 @@
   },
   {
     "university_name": "China University of Political Science and Law",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1224",
     "score": "n/a",
     "source": "QS",
@@ -31009,7 +31009,7 @@
   },
   {
     "university_name": "Shanghai International Studies University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1293",
     "score": "n/a",
     "source": "QS",
@@ -31033,7 +31033,7 @@
   },
   {
     "university_name": "Shanghai University of Finance and Economics",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1294",
     "score": "n/a",
     "source": "QS",
@@ -32761,7 +32761,7 @@
   },
   {
     "university_name": "University of International Business and Economics",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1366",
     "score": "n/a",
     "source": "QS",
@@ -34849,7 +34849,7 @@
   },
   {
     "university_name": "Shanghai Normal University",
-    "country": "China (mainland)",
+    "country": "China",
     "rank": "1453",
     "score": "n/a",
     "source": "QS",
