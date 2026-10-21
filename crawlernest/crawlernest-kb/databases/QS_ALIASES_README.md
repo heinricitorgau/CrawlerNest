@@ -11,5 +11,6 @@ QS renames the page of a ranked entry and the new name matches nothing:
 | --- | --- | --- |
 | Northumbria University QAHE- London campus | 534 Northumbria University at Newcastle | QS moved rank 550 to the London campus page in the crawl of 2026-10-21 |
 
-Seed with `seed_alias_file.py`, not `run_pipeline seed-university-alias`: the latter upserts the canonical record
-and rewrites its `display_name_normalized` in a different case, which `ranking_decision_preview` joins on.
+Seed with `seed_alias_file.py`, which keeps the file and the table in step. Until 2026-10-21 `run_pipeline
+seed-university-alias` also rewrote the canonical's `display_name_normalized` in title case, which
+`ranking_decision_preview` joins on; it now leaves an existing canonical untouched (`test_alias_seed.py`).
