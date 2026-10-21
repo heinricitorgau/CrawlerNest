@@ -65,7 +65,7 @@ for _path in (
     if _path.is_dir() and str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
 
-from entity_resolution.alias_safety import alias_is_safe, resolver_keys  # noqa: E402
+from entity_resolution.alias_safety import alias_collision, resolver_keys  # noqa: E402
 
 DECISIONS_DIR = _MODULE_ROOT / "crawlernest-kb" / "entity_merges"
 DEFAULT_DECISIONS = DECISIONS_DIR / "duplicate_canonicals_2026-10-12.json"
@@ -272,11 +272,11 @@ def merge_all(conn: Any, decisions: Decisions, *, commit: bool) -> dict[str, Any
                     totals["aliases_withheld"] += 1
                     alias_note = "; name not added as an alias (decision)"
                 else:
-                    unsafe = alias_is_safe(loser_name, survivor_id,
-                                           {k: v for k, v in _load_other_names(cur).items() if k != loser_id})
-                    if unsafe:
+                    collision = alias_collision(loser_name, survivor_id,
+                                                {k: v for k, v in _load_other_names(cur).items() if k != loser_id})
+                    if collision:
                         totals["aliases_withheld"] += 1
-                        alias_note = f"; name not added as an alias ({unsafe})"
+                        alias_note = f"; name not added as an alias ({collision})"
                     else:
                         cur.execute(
                             "INSERT INTO warehouse.university_alias (canonical_university_id, alias_text, alias_normalized, "

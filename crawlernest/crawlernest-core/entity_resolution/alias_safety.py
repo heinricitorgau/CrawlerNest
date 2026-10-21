@@ -13,7 +13,7 @@ from typing import Mapping, Optional
 
 from .normalizer import expanded_transliteration, normalize_university_name
 
-__all__ = ["alias_is_safe", "has_disambiguator", "resolver_keys"]
+__all__ = ["alias_collision", "has_disambiguator", "resolver_keys"]
 
 
 def _strip_parenthetical_suffix(name: str) -> str:
@@ -25,7 +25,7 @@ def has_disambiguator(name: str) -> bool:
     """True for "University of New England (Australia)": the parenthesis is there because the bare name is shared.
 
     The resolver indexes the bare name as well, and the university it is shared with may not
-    be in the warehouse yet for :func:`alias_is_safe` to see.
+    be in the warehouse yet for :func:`alias_collision` to see.
     """
     return _strip_parenthetical_suffix(name) != str(name or "").strip()
 
@@ -43,8 +43,11 @@ def resolver_keys(name: str) -> set[str]:
     return keys
 
 
-def alias_is_safe(alias: str, canonical_university_id: int, names_by_canonical: Mapping[int, set[str]]) -> Optional[str]:
-    """None if no other university is reachable by this alias; otherwise which one is.
+def alias_collision(alias: str, canonical_university_id: int, names_by_canonical: Mapping[int, set[str]]) -> Optional[str]:
+    """Which other university this alias would also reach, or None when it reaches no other.
+
+    Truthy means *unsafe*: ``if alias_collision(...)`` reads as "if it collides". Named
+    ``alias_is_safe`` until 2026-10-21, which invited the opposite reading.
 
     ``names_by_canonical`` maps every active university to the union of
     :func:`resolver_keys` over its display name and aliases.

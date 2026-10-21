@@ -27,7 +27,7 @@ for _p in (str(PACKAGE_ROOT / "scripts"), str(PACKAGE_ROOT / "crawlernest-core")
 
 import merge_duplicate_canonicals as M  # noqa: E402
 import wikipedia_profile_loader as W  # noqa: E402
-from entity_resolution.alias_safety import alias_is_safe, has_disambiguator, resolver_keys  # noqa: E402
+from entity_resolution.alias_safety import alias_collision, has_disambiguator, resolver_keys  # noqa: E402
 from entity_resolution.resolver import EntityResolver  # noqa: E402
 from entity_resolution.types import CanonicalProfile, EntityRecord  # noqa: E402
 
@@ -89,15 +89,15 @@ class TestAliasSafety(unittest.TestCase):
 
     def test_another_universitys_name_is_not_a_safe_alias(self) -> None:
         # Given to the Chinese university, this alias would be reached by Boston's name first.
-        self.assertIn("canonical 1", alias_is_safe("Northeastern University (Shenyang)", 2, self.NAMES))
+        self.assertIn("canonical 1", alias_collision("Northeastern University (Shenyang)", 2, self.NAMES))
 
     def test_a_name_only_this_university_has_is_safe(self) -> None:
-        self.assertIsNone(alias_is_safe("University of Paderborn", 3, self.NAMES))
+        self.assertIsNone(alias_collision("University of Paderborn", 3, self.NAMES))
 
     def test_accents_and_transliteration_count_as_the_same_name(self) -> None:
         names = {1: resolver_keys("Universität Tübingen")}
-        self.assertIsNotNone(alias_is_safe("Universitat Tubingen", 2, names))
-        self.assertIsNotNone(alias_is_safe("Universitaet Tuebingen", 2, names))
+        self.assertIsNotNone(alias_collision("Universitat Tubingen", 2, names))
+        self.assertIsNotNone(alias_collision("Universitaet Tuebingen", 2, names))
 
 
 class TestTitleAliases(unittest.TestCase):
