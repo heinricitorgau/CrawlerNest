@@ -1,0 +1,1023 @@
+{
+ "decided_on": "2026-10-12",
+ "decided_by": "claude-code, at the direction of ek2412045@gmail.com",
+ "merged_by": "duplicate-canonical-merge-2026-10-12",
+ "merges": [
+  {
+   "loser_slug": "akdeniz-university",
+   "loser_name": "Akdeniz University",
+   "survivor_slug": "akdeniz-üniversitesi",
+   "survivor_name": "Akdeniz Üniversitesi",
+   "evidence": "wikidata:Q169939",
+   "why": "Both records are matched to the English Wikipedia article \"Akdeniz University\" (Q169939), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "ankara-university",
+   "loser_name": "Ankara University",
+   "survivor_slug": "ankara-üniversitesi",
+   "survivor_name": "Ankara Üniversitesi",
+   "evidence": "wikidata:Q1060621",
+   "why": "Both records are matched to the English Wikipedia article \"Ankara University\" (Q1060621), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "autonomous-university-of-barcelona",
+   "loser_name": "Autonomous University of Barcelona",
+   "survivor_slug": "universitat-autònoma-de-barcelona",
+   "survivor_name": "Universitat Autònoma de Barcelona",
+   "evidence": "wikidata:Q43452",
+   "why": "Both records are matched to the English Wikipedia article \"Autonomous University of Barcelona\" (Q43452), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "autonomous-university-of-madrid",
+   "loser_name": "Autonomous University of Madrid",
+   "survivor_slug": "universidad-autónoma-de-madrid",
+   "survivor_name": "Universidad Autónoma de Madrid",
+   "evidence": "wikidata:Q788091",
+   "why": "Both records are matched to the English Wikipedia article \"Autonomous University of Madrid\" (Q788091), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "chandigarh-university-punjab",
+   "loser_name": "Chandigarh University (Punjab)",
+   "survivor_slug": "chandigarh-university",
+   "survivor_name": "Chandigarh University",
+   "evidence": "wikidata:Q16858934",
+   "why": "Both records are matched to the English Wikipedia article \"Chandigarh University\" (Q16858934), and no source lists them as two universities in any table.",
+   "overlap": "identical_rank"
+  },
+  {
+   "loser_slug": "chemnitz-university-of-technology",
+   "loser_name": "Chemnitz University of Technology",
+   "survivor_slug": "technische-universit-t-chemnitz",
+   "survivor_name": "Technische Universität Chemnitz",
+   "evidence": "wikidata:Q159630",
+   "why": "Both records are matched to the English Wikipedia article \"Chemnitz University of Technology\" (Q159630), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "dokuz-eylul-university",
+   "loser_name": "Dokuz Eylul University",
+   "survivor_slug": "dokuz-eylul-universitesi",
+   "survivor_name": "Dokuz Eylul Universitesi",
+   "evidence": "wikidata:Q1235258",
+   "why": "Both records are matched to the English Wikipedia article \"Dokuz Eylül University\" (Q1235258), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "federal-university-of-bahia",
+   "loser_name": "Federal University of Bahia",
+   "survivor_slug": "universidade-federal-da-bahia",
+   "survivor_name": "Universidade Federal da Bahia",
+   "evidence": "wikidata:Q159102",
+   "why": "Both records are matched to the English Wikipedia article \"Federal University of Bahia\" (Q159102), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "federal-university-of-ceara",
+   "loser_name": "Federal University of Ceara",
+   "survivor_slug": "universidade-federal-do-ceará-ufc",
+   "survivor_name": "Universidade Federal do Ceará (UFC)",
+   "evidence": "wikidata:Q2749558",
+   "why": "Both records are matched to the English Wikipedia article \"Federal University of Ceará\" (Q2749558), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "federal-university-of-rio-grande-do-norte",
+   "loser_name": "Federal University of Rio Grande do Norte",
+   "survivor_slug": "universidade-federal-do-rio-grande-do-norte-ufrn",
+   "survivor_name": "Universidade Federal do Rio Grande do Norte (UFRN)",
+   "evidence": "wikidata:Q3847505",
+   "why": "Both records are matched to the English Wikipedia article \"Federal University of Rio Grande do Norte\" (Q3847505), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "federal-university-of-rio-de-janeiro",
+   "loser_name": "Federal University of Rio de Janeiro",
+   "survivor_slug": "universidade-federal-do-rio-de-janeiro",
+   "survivor_name": "Universidade Federal do Rio de Janeiro",
+   "evidence": "wikidata:Q586904",
+   "why": "Both records are matched to the English Wikipedia article \"Federal University of Rio de Janeiro\" (Q586904), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "federico-santa-mar-a-technical-university",
+   "loser_name": "Federico Santa María Technical University",
+   "survivor_slug": "universidad-técnica-federico-santa-maría-usm",
+   "survivor_name": "Universidad Técnica Federico Santa María (USM)",
+   "evidence": "wikidata:Q457793",
+   "why": "Both records are matched to the English Wikipedia article \"Federico Santa María Technical University\" (Q457793), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "florida-atlantic-university",
+   "loser_name": "Florida Atlantic University",
+   "survivor_slug": "florida-atlantic-university---boca-raton",
+   "survivor_name": "Florida Atlantic University - Boca Raton",
+   "evidence": "wikidata:Q429863",
+   "why": "Both records are matched to the English Wikipedia article \"Florida Atlantic University\" (Q429863), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-chieti-pescara",
+   "loser_name": "University of Chieti-Pescara",
+   "survivor_slug": "universita'-degli-studi-\"g.-d'annunzio\"-chieti-pescara",
+   "survivor_name": "Universita' degli Studi \"G. d'Annunzio\" Chieti Pescara",
+   "evidence": "wikidata:Q2261128",
+   "why": "Both records are matched to the English Wikipedia article \"Gabriele d'Annunzio University\" (Q2261128), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "gazi-university",
+   "loser_name": "Gazi University",
+   "survivor_slug": "gazi-üniversitesi",
+   "survivor_name": "Gazi Üniversitesi",
+   "evidence": "wikidata:Q1496662",
+   "why": "Both records are matched to the English Wikipedia article \"Gazi University\" (Q1496662), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "universit-gustave-eiffel",
+   "loser_name": "Université Gustave Eiffel",
+   "survivor_slug": "gustave-eiffel-university",
+   "survivor_name": "Gustave Eiffel University",
+   "evidence": "wikidata:Q65153823",
+   "why": "Both records are matched to the English Wikipedia article \"Gustave Eiffel University\" (Q65153823), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "hannover-medical-school",
+   "loser_name": "Hannover Medical School",
+   "survivor_slug": "medizinische-hochschule-hannover",
+   "survivor_name": "Medizinische Hochschule Hannover",
+   "evidence": "wikidata:Q911561",
+   "why": "Both records are matched to the English Wikipedia article \"Hannover Medical School\" (Q911561), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "insa-lyon",
+   "loser_name": "INSA Lyon",
+   "survivor_slug": "institut-national-des-sciences-appliquées-de-lyon-insa",
+   "survivor_name": "Institut National des Sciences Appliquées de Lyon (INSA)",
+   "evidence": "wikidata:Q1633859",
+   "why": "Both records are matched to the English Wikipedia article \"Institut national des sciences appliquées de Lyon\" (Q1633859), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "national-polytechnic-institute",
+   "loser_name": "National Polytechnic Institute",
+   "survivor_slug": "instituto-politécnico-nacional-ipn",
+   "survivor_name": "Instituto Politécnico Nacional (IPN)",
+   "evidence": "wikidata:Q1539696",
+   "why": "Both records are matched to the English Wikipedia article \"Instituto Politécnico Nacional\" (Q1539696), and no source lists them as two universities in any table.",
+   "overlap": "none",
+   "add_alias": false,
+   "add_alias_why": "A generic name: other countries have a National Polytechnic Institute."
+  },
+  {
+   "loser_slug": "kaist",
+   "loser_name": "KAIST",
+   "survivor_slug": "kaist---korea-advanced-institute-of-science-&-technology",
+   "survivor_name": "KAIST - Korea Advanced Institute of Science & Technology",
+   "evidence": "wikidata:Q39949",
+   "why": "Both records are matched to the English Wikipedia article \"KAIST\" (Q39949), and no source lists them as two universities in any table.",
+   "overlap": "identical_rank"
+  },
+  {
+   "loser_slug": "karolinska-institute",
+   "loser_name": "Karolinska Institute",
+   "survivor_slug": "karolinska-institutet",
+   "survivor_name": "Karolinska Institutet",
+   "evidence": "wikidata:Q219564",
+   "why": "Both records are matched to the English Wikipedia article \"Karolinska Institute\" (Q219564), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "king-fahd-university-of-petroleum-minerals",
+   "loser_name": "King Fahd University of Petroleum & Minerals",
+   "survivor_slug": "kfupm",
+   "survivor_name": "KFUPM",
+   "evidence": "wikidata:Q4116241",
+   "why": "Both records are matched to the English Wikipedia article \"King Fahd University of Petroleum and Minerals\" (Q4116241), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "lut-university",
+   "loser_name": "LUT University",
+   "survivor_slug": "lappeenranta-lahti-university-of-technology-lut",
+   "survivor_name": "Lappeenranta-Lahti University of Technology LUT",
+   "evidence": "wikidata:Q1809949",
+   "why": "Both records are matched to the English Wikipedia article \"LUT University\" (Q1809949), and no source lists them as two universities in any table.",
+   "overlap": "identical_rank"
+  },
+  {
+   "loser_slug": "marche-polytechnic-university",
+   "loser_name": "Marche Polytechnic University",
+   "survivor_slug": "universita'-politecnica-delle-marche",
+   "survivor_name": "Universita' Politecnica delle Marche",
+   "evidence": "wikidata:Q1084409",
+   "why": "Both records are matched to the English Wikipedia article \"Marche Polytechnic University\" (Q1084409), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "mayo-medical-school",
+   "loser_name": "Mayo Medical School",
+   "survivor_slug": "mayo-clinic-college-of-medicine-and-science",
+   "survivor_name": "Mayo Clinic College of Medicine and Science",
+   "evidence": "wikidata:Q6797536",
+   "why": "Both records are matched to the English Wikipedia article \"Mayo Clinic College of Medicine and Science\" (Q6797536), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "miguel-hernandez-university-of-elche",
+   "loser_name": "Miguel Hernandez University of Elche",
+   "survivor_slug": "universidad-miguel-hern-ndez-de-elche",
+   "survivor_name": "Universidad Miguel Hernández de Elche",
+   "evidence": "wikidata:Q24676",
+   "why": "Both records are matched to the English Wikipedia article \"Miguel Hernández University of Elche\" (Q24676), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "monterrey-institute-of-technology-and-higher-education",
+   "loser_name": "Monterrey Institute of Technology and Higher Education",
+   "survivor_slug": "tecnológico-de-monterrey",
+   "survivor_name": "Tecnológico de Monterrey",
+   "evidence": "wikidata:Q1343885",
+   "why": "Both records are matched to the English Wikipedia article \"Monterrey Institute of Technology and Higher Education\" (Q1343885), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "national-autonomous-university-of-mexico",
+   "loser_name": "National Autonomous University of Mexico",
+   "survivor_slug": "universidad-nacional-autónoma-de-méxico-unam",
+   "survivor_name": "Universidad Nacional Autónoma de México (UNAM)",
+   "evidence": "wikidata:Q222738",
+   "why": "Both records are matched to the English Wikipedia article \"National Autonomous University of Mexico\" (Q222738), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "national-university-of-colombia",
+   "loser_name": "National University of Colombia",
+   "survivor_slug": "universidad-nacional-de-colombia",
+   "survivor_name": "Universidad Nacional de Colombia",
+   "evidence": "wikidata:Q1150419",
+   "why": "Both records are matched to the English Wikipedia article \"National University of Colombia\" (Q1150419), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "national-university-of-cordoba",
+   "loser_name": "National University of Cordoba",
+   "survivor_slug": "universidad-nacional-de-córdoba---unc",
+   "survivor_name": "Universidad Nacional de Córdoba - UNC",
+   "evidence": "wikidata:Q1570489",
+   "why": "Both records are matched to the English Wikipedia article \"National University of Córdoba\" (Q1570489), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "national-university-of-la-plata",
+   "loser_name": "National University of La Plata",
+   "survivor_slug": "universidad-nacional-de-la-plata-unlp",
+   "survivor_name": "Universidad Nacional de La Plata (UNLP)",
+   "evidence": "wikidata:Q784171",
+   "why": "Both records are matched to the English Wikipedia article \"National University of La Plata\" (Q784171), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "national-university-of-malaysia",
+   "loser_name": "National University of Malaysia",
+   "survivor_slug": "universiti-kebangsaan-malaysia-ukm",
+   "survivor_name": "Universiti Kebangsaan Malaysia (UKM)",
+   "evidence": "wikidata:Q1444125",
+   "why": "Both records are matched to the English Wikipedia article \"National University of Malaysia\" (Q1444125), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "northeastern-university-shenyang",
+   "loser_name": "Northeastern University (Shenyang)",
+   "survivor_slug": "northeastern-university-china",
+   "survivor_name": "Northeastern University (China)",
+   "evidence": "wikidata:Q1363559",
+   "why": "Both records are matched to the English Wikipedia article \"Northeastern University (China)\" (Q1363559), and no source lists them as two universities in any table.",
+   "overlap": "none",
+   "add_alias": false,
+   "add_alias_why": "Indexed without its parenthesis as well, which is Northeastern University in Boston."
+  },
+  {
+   "loser_slug": "northwest-a-f-university",
+   "loser_name": "Northwest A&F University",
+   "survivor_slug": "northwest-agriculture-and-forestry-university",
+   "survivor_name": "Northwest Agriculture and Forestry University",
+   "evidence": "wikidata:Q985808",
+   "why": "Both records are matched to the English Wikipedia article \"Northwest A&F University\" (Q985808), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-osnabrueck",
+   "loser_name": "University of Osnabrueck",
+   "survivor_slug": "universit-t-osnabr-ck",
+   "survivor_name": "Universität Osnabrück",
+   "evidence": "wikidata:Q702499",
+   "why": "Both records are matched to the English Wikipedia article \"Osnabrück University\" (Q702499), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-magdeburg",
+   "loser_name": "University of Magdeburg",
+   "survivor_slug": "otto-von-guericke-universit-t-magdeburg",
+   "survivor_name": "Otto-von-Guericke-Universität Magdeburg",
+   "evidence": "wikidata:Q655866",
+   "why": "Both records are matched to the English Wikipedia article \"Otto von Guericke University Magdeburg\" (Q655866), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "pablo-de-olavide-university",
+   "loser_name": "Pablo de Olavide University",
+   "survivor_slug": "universidad-pablo-de-olavide",
+   "survivor_name": "Universidad Pablo de Olavide",
+   "evidence": "wikidata:Q477988",
+   "why": "Both records are matched to the English Wikipedia article \"Pablo de Olavide University\" (Q477988), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "panjab-university-chandigarh",
+   "loser_name": "Panjab University, Chandigarh",
+   "survivor_slug": "panjab-university",
+   "survivor_name": "Panjab University",
+   "evidence": "wikidata:Q567899",
+   "why": "Both records are matched to the English Wikipedia article \"Panjab University\" (Q567899), and no source lists them as two universities in any table.",
+   "overlap": "identical_rank"
+  },
+  {
+   "loser_slug": "national-university-of-science-and-technology-politehnica-bucharest",
+   "loser_name": "National University of Science and Technology POLITEHNICA Bucharest",
+   "survivor_slug": "university-politehnica-of-bucharest",
+   "survivor_name": "University POLITEHNICA of Bucharest",
+   "evidence": "wikidata:Q1465448",
+   "why": "Both records are matched to the English Wikipedia article \"Politehnica University of Bucharest\" (Q1465448), and no source lists them as two universities in any table.",
+   "overlap": "identical_rank"
+  },
+  {
+   "loser_slug": "polytechnic-university-of-catalonia",
+   "loser_name": "Polytechnic University of Catalonia",
+   "survivor_slug": "universitat-politècnica-de-catalunya-·-barcelonatech-upc",
+   "survivor_name": "Universitat Politècnica de Catalunya · BarcelonaTech (UPC)",
+   "evidence": "wikidata:Q1640731",
+   "why": "Both records are matched to the English Wikipedia article \"Polytechnic University of Catalonia\" (Q1640731), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "polytechnic-university-of-milan",
+   "loser_name": "Polytechnic University of Milan",
+   "survivor_slug": "politecnico-di-milano",
+   "survivor_name": "Politecnico di Milano",
+   "evidence": "wikidata:Q392904",
+   "why": "Both records are matched to the English Wikipedia article \"Polytechnic University of Milan\" (Q392904), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "polytechnic-university-of-turin",
+   "loser_name": "Polytechnic University of Turin",
+   "survivor_slug": "politecnico-di-torino",
+   "survivor_name": "Politecnico di Torino",
+   "evidence": "wikidata:Q392897",
+   "why": "Both records are matched to the English Wikipedia article \"Polytechnic University of Turin\" (Q392897), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "pontifical-catholic-university-of-chile",
+   "loser_name": "Pontifical Catholic University of Chile",
+   "survivor_slug": "pontificia-universidad-católica-de-chile-uc",
+   "survivor_name": "Pontificia Universidad Católica de Chile (UC)",
+   "evidence": "wikidata:Q1129925",
+   "why": "Both records are matched to the English Wikipedia article \"Pontifical Catholic University of Chile\" (Q1129925), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "rio-de-janeiro-state-university",
+   "loser_name": "Rio de Janeiro State University",
+   "survivor_slug": "universidade-do-estado-do-rio-de-janeiro-uerj",
+   "survivor_name": "Universidade do Estado do Rio de Janeiro (UERJ)",
+   "evidence": "wikidata:Q2840233",
+   "why": "Both records are matched to the English Wikipedia article \"Rio de Janeiro State University\" (Q2840233), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "roma-tre-university",
+   "loser_name": "Roma Tre University",
+   "survivor_slug": "università-degli-studi-roma-tre",
+   "survivor_name": "Università degli studi Roma Tre",
+   "evidence": "wikidata:Q2297486",
+   "why": "Both records are matched to the English Wikipedia article \"Roma Tre University\" (Q2297486), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "the-royal-veterinary-college",
+   "loser_name": "The Royal Veterinary College",
+   "survivor_slug": "royal-veterinary-college-university-of-london",
+   "survivor_name": "Royal Veterinary College , University of London",
+   "evidence": "wikidata:Q268411",
+   "why": "Both records are matched to the English Wikipedia article \"Royal Veterinary College\" (Q268411), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "school-for-advanced-studies-in-the-social-sciences",
+   "loser_name": "School for Advanced Studies in the Social Sciences",
+   "survivor_slug": "ecole-des-hautes-etudes-en-sciences-sociales",
+   "survivor_name": "Ecole des Hautes Etudes en Sciences Sociales",
+   "evidence": "wikidata:Q273518",
+   "why": "Both records are matched to the English Wikipedia article \"School for Advanced Studies in the Social Sciences\" (Q273518), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "sao-paulo-state-university",
+   "loser_name": "Sao Paulo State University",
+   "survivor_slug": "unesp",
+   "survivor_name": "UNESP",
+   "evidence": "wikidata:Q1817137",
+   "why": "Both records are matched to the English Wikipedia article \"São Paulo State University\" (Q1817137), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "vienna-university-of-technology",
+   "loser_name": "Vienna University of Technology",
+   "survivor_slug": "technische-universität-wien",
+   "survivor_name": "Technische Universität Wien",
+   "evidence": "wikidata:Q689400",
+   "why": "Both records are matched to the English Wikipedia article \"TU Wien\" (Q689400), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "technical-university-of-dortmund",
+   "loser_name": "Technical University of Dortmund",
+   "survivor_slug": "tu-dortmund-university",
+   "survivor_name": "TU Dortmund University",
+   "evidence": "wikidata:Q685557",
+   "why": "Both records are matched to the English Wikipedia article \"Technical University of Dortmund\" (Q685557), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "polytechnic-university-of-madrid",
+   "loser_name": "Polytechnic University of Madrid",
+   "survivor_slug": "universidad-politécnica-de-madrid-upm",
+   "survivor_name": "Universidad Politécnica de Madrid (UPM)",
+   "evidence": "wikidata:Q25864",
+   "why": "Both records are matched to the English Wikipedia article \"Technical University of Madrid\" (Q25864), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "polytechnic-university-of-valencia",
+   "loser_name": "Polytechnic University of Valencia",
+   "survivor_slug": "universitat-politecnica-de-valencia",
+   "survivor_name": "Universitat Politecnica de Valencia",
+   "evidence": "wikidata:Q2003976",
+   "why": "Both records are matched to the English Wikipedia article \"Technical University of Valencia\" (Q2003976), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "tomsk-polytechnic-university",
+   "loser_name": "Tomsk Polytechnic University",
+   "survivor_slug": "national-research-tomsk-polytechnic-university",
+   "survivor_name": "National Research Tomsk Polytechnic University",
+   "evidence": "wikidata:Q1466666",
+   "why": "Both records are matched to the English Wikipedia article \"Tomsk Polytechnic University\" (Q1466666), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "ryerson-university",
+   "loser_name": "Ryerson University",
+   "survivor_slug": "toronto-metropolitan-university-formerly-ryerson-university",
+   "survivor_name": "Toronto Metropolitan University (formerly Ryerson University)",
+   "evidence": "wikidata:Q611723",
+   "why": "Both records are matched to the English Wikipedia article \"Toronto Metropolitan University\" (Q611723), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "tuscia-university",
+   "loser_name": "Tuscia University",
+   "survivor_slug": "università-degli-studi-della-tuscia-university-of-tuscia",
+   "survivor_name": "Università degli Studi della Tuscia (University of Tuscia)",
+   "evidence": "wikidata:Q1780458",
+   "why": "Both records are matched to the English Wikipedia article \"Tuscia University\" (Q1780458), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "metropolitan-autonomous-university",
+   "loser_name": "Metropolitan Autonomous University",
+   "survivor_slug": "universidad-autónoma-metropolitana-uam",
+   "survivor_name": "Universidad Autónoma Metropolitana (UAM)",
+   "evidence": "wikidata:Q972553",
+   "why": "Both records are matched to the English Wikipedia article \"Universidad Autónoma Metropolitana\" (Q972553), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-science-malaysia",
+   "loser_name": "University of Science, Malaysia",
+   "survivor_slug": "universiti-sains-malaysia-usm",
+   "survivor_name": "Universiti Sains Malaysia (USM)",
+   "evidence": "wikidata:Q1973130",
+   "why": "Both records are matched to the English Wikipedia article \"Universiti Sains Malaysia\" (Q1973130), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-almeria",
+   "loser_name": "University of Almeria",
+   "survivor_slug": "universidad-de-almeria",
+   "survivor_name": "Universidad de Almeria",
+   "evidence": "wikidata:Q1218488",
+   "why": "Both records are matched to the English Wikipedia article \"University of Almería\" (Q1218488), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-angers",
+   "loser_name": "University of Angers",
+   "survivor_slug": "universit-d-angers",
+   "survivor_name": "Université d’Angers",
+   "evidence": "wikidata:Q1538727",
+   "why": "Both records are matched to the English Wikipedia article \"University of Angers\" (Q1538727), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-bologna",
+   "loser_name": "University of Bologna",
+   "survivor_slug": "alma-mater-studiorum---università-di-bologna",
+   "survivor_name": "Alma Mater Studiorum - Università di Bologna",
+   "evidence": "wikidata:Q131262",
+   "why": "Both records are matched to the English Wikipedia article \"University of Bologna\" (Q131262), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-bonn",
+   "loser_name": "University of Bonn",
+   "survivor_slug": "rheinische-friedrich-wilhelms-universität-bonn",
+   "survivor_name": "Rheinische Friedrich-Wilhelms-Universität Bonn",
+   "evidence": "wikidata:Q152171",
+   "why": "Both records are matched to the English Wikipedia article \"University of Bonn\" (Q152171), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-burgundy",
+   "loser_name": "University of Burgundy",
+   "survivor_slug": "universit-bourgogne-europe",
+   "survivor_name": "Université Bourgogne Europe",
+   "evidence": "wikidata:Q287072",
+   "why": "Both records are matched to the English Wikipedia article \"University of Burgundy Europe\" (Q287072), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-campania-luigi-vanvitelli",
+   "loser_name": "University of Campania Luigi Vanvitelli",
+   "survivor_slug": "universit-degli-studi-della-campania-luigi-vanvitelli",
+   "survivor_name": "Universit degli Studi della Campania Luigi Vanvitelli",
+   "evidence": "wikidata:Q3551649",
+   "why": "Both records are matched to the English Wikipedia article \"University of Campania Luigi Vanvitelli\" (Q3551649), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-cantabria",
+   "loser_name": "University of Cantabria",
+   "survivor_slug": "universidad-de-cantabria",
+   "survivor_name": "Universidad de Cantabria",
+   "evidence": "wikidata:Q766962",
+   "why": "Both records are matched to the English Wikipedia article \"University of Cantabria\" (Q766962), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-colorado-denver-anschutz-medical-campus",
+   "loser_name": "University of Colorado Denver | Anschutz Medical Campus",
+   "survivor_slug": "university-of-colorado,-denver",
+   "survivor_name": "University of Colorado, Denver",
+   "evidence": "wikidata:Q1468161",
+   "why": "Both records are matched to the English Wikipedia article \"University of Colorado Denver\" (Q1468161), and no source lists them as two universities in any table.",
+   "overlap": "identical_rank"
+  },
+  {
+   "loser_slug": "university-of-erlangen-nuremberg",
+   "loser_name": "University of Erlangen-Nuremberg",
+   "survivor_slug": "friedrich-alexander-universität-erlangen-nürnberg",
+   "survivor_name": "Friedrich-Alexander-Universität Erlangen-Nürnberg",
+   "evidence": "wikidata:Q40025",
+   "why": "Both records are matched to the English Wikipedia article \"University of Erlangen–Nuremberg\" (Q40025), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-extremadura",
+   "loser_name": "University of Extremadura",
+   "survivor_slug": "universidad-de-extremadura",
+   "survivor_name": "Universidad de Extremadura",
+   "evidence": "wikidata:Q729391",
+   "why": "Both records are matched to the English Wikipedia article \"University of Extremadura\" (Q729391), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-girona",
+   "loser_name": "University of Girona",
+   "survivor_slug": "universitat-de-girona",
+   "survivor_name": "Universitat de Girona",
+   "evidence": "wikidata:Q1814503",
+   "why": "Both records are matched to the English Wikipedia article \"University of Girona\" (Q1814503), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-graz",
+   "loser_name": "University of Graz",
+   "survivor_slug": "karl-franzens-universitaet-graz",
+   "survivor_name": "Karl-Franzens-Universitaet Graz",
+   "evidence": "wikidata:Q622683",
+   "why": "Both records are matched to the English Wikipedia article \"University of Graz\" (Q622683), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-greifswald",
+   "loser_name": "University of Greifswald",
+   "survivor_slug": "ernst-moritz-arndt-universit-t-greifswald",
+   "survivor_name": "Ernst-Moritz-Arndt-Universität Greifswald",
+   "evidence": "wikidata:Q165528",
+   "why": "Both records are matched to the English Wikipedia article \"University of Greifswald\" (Q165528), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-insubria",
+   "loser_name": "University of Insubria",
+   "survivor_slug": "universit-degli-studi-dell-insubria",
+   "survivor_name": "Università degli Studi dell’Insubria",
+   "evidence": "wikidata:Q1309998",
+   "why": "Both records are matched to the English Wikipedia article \"University of Insubria\" (Q1309998), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-kassel",
+   "loser_name": "University of Kassel",
+   "survivor_slug": "universit-t-kassel",
+   "survivor_name": "Universität Kassel",
+   "evidence": "wikidata:Q833822",
+   "why": "Both records are matched to the English Wikipedia article \"University of Kassel\" (Q833822), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-l-aquila",
+   "loser_name": "University of L'Aquila",
+   "survivor_slug": "universita-degli-studi-dell-aquila",
+   "survivor_name": "Universita' degli Studi dell'Aquila",
+   "evidence": "wikidata:Q1494671",
+   "why": "Both records are matched to the English Wikipedia article \"University of L'Aquila\" (Q1494671), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-la-laguna",
+   "loser_name": "University of La Laguna",
+   "survivor_slug": "universidad-de-la-laguna",
+   "survivor_name": "Universidad de La Laguna",
+   "evidence": "wikidata:Q539881",
+   "why": "Both records are matched to the English Wikipedia article \"University of La Laguna\" (Q539881), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-central-lancashire",
+   "loser_name": "University of Central Lancashire",
+   "survivor_slug": "university-of-lancashire",
+   "survivor_name": "University of Lancashire",
+   "evidence": "wikidata:Q1857773",
+   "why": "Both records are matched to the English Wikipedia article \"University of Lancashire\" (Q1857773), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-luebeck",
+   "loser_name": "University of Luebeck",
+   "survivor_slug": "universit-t-zu-l-beck",
+   "survivor_name": "Universität zu Lübeck",
+   "evidence": "wikidata:Q317087",
+   "why": "Both records are matched to the English Wikipedia article \"University of Lübeck\" (Q317087), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-minnesota-twin-cities",
+   "loser_name": "University of Minnesota, Twin Cities",
+   "survivor_slug": "university-of-minnesota-system",
+   "survivor_name": "University of Minnesota (System)",
+   "evidence": "wikidata:Q238101",
+   "why": "Both records are matched to the English Wikipedia article \"University of Minnesota\" (Q238101), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-malaga",
+   "loser_name": "University of Malaga",
+   "survivor_slug": "universidad-de-m-laga",
+   "survivor_name": "Universidad de Málaga",
+   "evidence": "wikidata:Q958650",
+   "why": "Both records are matched to the English Wikipedia article \"University of Málaga\" (Q958650), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-oldenburg",
+   "loser_name": "University of Oldenburg",
+   "survivor_slug": "carl-von-ossietzky-universit-t-oldenburg",
+   "survivor_name": "Carl von Ossietzky Universität Oldenburg",
+   "evidence": "wikidata:Q597758",
+   "why": "Both records are matched to the English Wikipedia article \"University of Oldenburg\" (Q597758), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-padua",
+   "loser_name": "University of Padua",
+   "survivor_slug": "università-di-padova",
+   "survivor_name": "Università di Padova",
+   "evidence": "wikidata:Q193510",
+   "why": "Both records are matched to the English Wikipedia article \"University of Padua\" (Q193510), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-puerto-rico",
+   "loser_name": "University of Puerto Rico",
+   "survivor_slug": "universidad-de-puerto-rico",
+   "survivor_name": "Universidad de Puerto Rico",
+   "evidence": "wikidata:Q2075365",
+   "why": "Both records are matched to the English Wikipedia article \"University of Puerto Rico\" (Q2075365), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-sassari",
+   "loser_name": "University of Sassari",
+   "survivor_slug": "universita-degli-studi-di-sassari",
+   "survivor_name": "Universita' degli Studi di Sassari",
+   "evidence": "wikidata:Q532822",
+   "why": "Both records are matched to the English Wikipedia article \"University of Sassari\" (Q532822), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-seville",
+   "loser_name": "University of Seville",
+   "survivor_slug": "universidad-de-sevilla",
+   "survivor_name": "Universidad de Sevilla",
+   "evidence": "wikidata:Q1229996",
+   "why": "Both records are matched to the English Wikipedia article \"University of Seville\" (Q1229996), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-south-bohemia",
+   "loser_name": "University of South Bohemia",
+   "survivor_slug": "university-of-south-bohemia-in-české-budějovice",
+   "survivor_name": "University of South Bohemia in České Budějovice",
+   "evidence": "wikidata:Q1428711",
+   "why": "Both records are matched to the English Wikipedia article \"University of South Bohemia in České Budějovice\" (Q1428711), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-tours",
+   "loser_name": "University of Tours",
+   "survivor_slug": "universit-de-tours",
+   "survivor_name": "Université de Tours",
+   "evidence": "wikidata:Q494335",
+   "why": "Both records are matched to the English Wikipedia article \"University of Tours\" (Q494335), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-tuebingen",
+   "loser_name": "University of Tuebingen",
+   "survivor_slug": "eberhard-karls-universität-tübingen",
+   "survivor_name": "Eberhard Karls Universität Tübingen",
+   "evidence": "wikidata:Q153978",
+   "why": "Both records are matched to the English Wikipedia article \"University of Tübingen\" (Q153978), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-udine",
+   "loser_name": "University of Udine",
+   "survivor_slug": "università-degli-studi-di-udine",
+   "survivor_name": "Università degli Studi di Udine",
+   "evidence": "wikidata:Q2307935",
+   "why": "Both records are matched to the English Wikipedia article \"University of Udine\" (Q2307935), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-western-brittany",
+   "loser_name": "University of Western Brittany",
+   "survivor_slug": "universit-de-bretagne-occidentale",
+   "survivor_name": "Universit de Bretagne Occidentale",
+   "evidence": "wikidata:Q1857334",
+   "why": "Both records are matched to the English Wikipedia article \"University of Western Brittany\" (Q1857334), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-wuppertal",
+   "loser_name": "University of Wuppertal",
+   "survivor_slug": "bergische-universit-t-wuppertal",
+   "survivor_name": "Bergische Universität Wuppertal",
+   "evidence": "wikidata:Q447953",
+   "why": "Both records are matched to the English Wikipedia article \"University of Wuppertal\" (Q447953), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-wuerzburg",
+   "loser_name": "University of Wuerzburg",
+   "survivor_slug": "julius-maximilians-universität-würzburg",
+   "survivor_name": "Julius-Maximilians-Universität Würzburg",
+   "evidence": "wikidata:Q161976",
+   "why": "Both records are matched to the English Wikipedia article \"University of Würzburg\" (Q161976), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-yamanashi",
+   "loser_name": "University of Yamanashi",
+   "survivor_slug": "yamanashi-university",
+   "survivor_name": "Yamanashi University",
+   "evidence": "wikidata:Q1152050",
+   "why": "Both records are matched to the English Wikipedia article \"University of Yamanashi\" (Q1152050), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-los-andes-colombia",
+   "loser_name": "University of Los Andes (Colombia)",
+   "survivor_slug": "universidad-de-los-andes",
+   "survivor_name": "Universidad de los Andes",
+   "evidence": "wikidata:Q1569421",
+   "why": "Both records are matched to the English Wikipedia article \"University of the Andes (Colombia)\" (Q1569421), and no source lists them as two universities in any table.",
+   "overlap": "none",
+   "add_alias": false,
+   "add_alias_why": "Indexed without its parenthesis as well, and Venezuela and Chile each have a University of Los Andes."
+  },
+  {
+   "loser_slug": "university-of-the-balearic-islands",
+   "loser_name": "University of the Balearic Islands",
+   "survivor_slug": "universitat-de-les-illes-balears",
+   "survivor_name": "Universitat de les Illes Balears",
+   "evidence": "wikidata:Q1811146",
+   "why": "Both records are matched to the English Wikipedia article \"University of the Balearic Islands\" (Q1811146), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-the-republic-uruguay",
+   "loser_name": "University of the Republic - Uruguay",
+   "survivor_slug": "universidad-de-la-república-udelar",
+   "survivor_name": "Universidad de la República (Udelar)",
+   "evidence": "wikidata:Q1856423",
+   "why": "Both records are matched to the English Wikipedia article \"University of the Republic (Uruguay)\" (Q1856423), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "campus-bio-medico-university-of-rome",
+   "loser_name": "Campus Bio-Medico University of Rome",
+   "survivor_slug": "universit-campus-bio-medico-di-roma",
+   "survivor_name": "Università Campus Bio-Medico di Roma",
+   "evidence": "wikidata:Q1440288",
+   "why": "Both records are matched to the English Wikipedia article \"Università Campus Bio-Medico di Roma\" (Q1440288), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "catholic-university-of-the-sacred-heart",
+   "loser_name": "Catholic University of the Sacred Heart",
+   "survivor_slug": "università-cattolica-del-sacro-cuore",
+   "survivor_name": "Università Cattolica del Sacro Cuore",
+   "evidence": "wikidata:Q229022",
+   "why": "Both records are matched to the English Wikipedia article \"Università Cattolica del Sacro Cuore\" (Q229022), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-quebec",
+   "loser_name": "University of Quebec",
+   "survivor_slug": "université-du-québec",
+   "survivor_name": "Université du Québec",
+   "evidence": "wikidata:Q326282",
+   "why": "Both records are matched to the English Wikipedia article \"Université du Québec\" (Q326282), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "vilnius-gediminas-technical-university",
+   "loser_name": "Vilnius Gediminas Technical University",
+   "survivor_slug": "vilnius-tech-vilnius-gediminas-technical-university",
+   "survivor_name": "VILNIUS TECH (Vilnius Gediminas Technical University)",
+   "evidence": "wikidata:Q389852",
+   "why": "Both records are matched to the English Wikipedia article \"Vilnius Gediminas Technical University\" (Q389852), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "swiss-federal-institute-of-technology-lausanne",
+   "loser_name": "Swiss Federal Institute of Technology Lausanne",
+   "survivor_slug": "epfl-–-école-polytechnique-fédérale-de-lausanne",
+   "survivor_name": "EPFL – École polytechnique fédérale de Lausanne",
+   "evidence": "wikidata:Q262760",
+   "why": "Both records are matched to the English Wikipedia article \"École Polytechnique Fédérale de Lausanne\" (Q262760), and no source lists them as two universities in any table.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "federal-university-of-rio-grande-do-sul",
+   "loser_name": "Federal University of Rio Grande do Sul",
+   "survivor_slug": "universidade-federal-do-rio-grande-do-sul",
+   "survivor_name": "Universidade Federal do Rio Grande Do Sul",
+   "evidence": "mapping_review:330",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 330 (\"Same institution as canonical 696 (Universidade Federal do Rio Grande Do Sul); the recovery seeded the English name as a second row. similarity=0.773, token sets identical, countries agree, never both ranked in one edition.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "hassan-ii-university-of-casablanca",
+   "loser_name": "Hassan II University of Casablanca",
+   "survivor_slug": "universit-hassan-ii-de-casablanca",
+   "survivor_name": "Université Hassan II de Casablanca",
+   "evidence": "mapping_review:331",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 331 (\"Same institution as canonical 365515 (Université Hassan II de Casablanca); the recovery seeded the English name as a second row. similarity=0.769, token sets identical, countries agree, never both ranked in one edition.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "linnaeus-university",
+   "loser_name": "Linnaeus University",
+   "survivor_slug": "linnaeus-university-sweden",
+   "survivor_name": "Linnaeus University Sweden",
+   "evidence": "mapping_review:347",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 347 (\"The existing row appends the country; same institution.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "shanghaitech-university",
+   "loser_name": "ShanghaiTech University",
+   "survivor_slug": "shanghai-tech-university",
+   "survivor_name": "Shanghai Tech University",
+   "evidence": "mapping_review:340",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 340 (\"Same institution as canonical 364659 (Shanghai Tech University); the recovery seeded the English name as a second row. similarity=0.815, token sets identical, countries agree, never both ranked in one edition.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "the-university-of-alabama-tuscaloosa",
+   "loser_name": "The University of Alabama - Tuscaloosa",
+   "survivor_slug": "the-university-of-alabama",
+   "survivor_name": "The University of Alabama",
+   "evidence": "mapping_review:348",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 348 (\"The University of Alabama is the Tuscaloosa campus. UAH and UAB stay separate rows.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-massachusetts-chan-medical-school",
+   "loser_name": "University of Massachusetts Chan Medical School",
+   "survivor_slug": "university-of-massachusetts-medical-school-worcester",
+   "survivor_name": "University of Massachusetts Medical School - Worcester",
+   "evidence": "mapping_review:353",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 353 (\"ARWU's entity id is the former name of the existing row; renamed 2021, one institution.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-new-england",
+   "loser_name": "University of New England",
+   "survivor_slug": "university-of-new-england-australia",
+   "survivor_name": "University of New England Australia",
+   "evidence": "mapping_review:349",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 349 (\"Both rows are the Australian institution; the country hints agree.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none",
+   "add_alias": false,
+   "add_alias_why": "The University of New England in Maine is a different university and is not yet in the warehouse to be noticed."
+  },
+  {
+   "loser_slug": "university-of-paderborn",
+   "loser_name": "University of Paderborn",
+   "survivor_slug": "universit-t-paderborn",
+   "survivor_name": "Universität Paderborn",
+   "evidence": "mapping_review:334",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 334 (\"Same institution as canonical 365500 (Universität Paderborn); the recovery seeded the English name as a second row. similarity=0.704, token sets identical, countries agree, never both ranked in one edition.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "national-polytechnic-institute-of-toulouse",
+   "loser_name": "National Polytechnic Institute of Toulouse",
+   "survivor_slug": "institut-national-polytechnique-de-toulouse",
+   "survivor_name": "Institut National Polytechnique de Toulouse",
+   "evidence": "mapping_review:341",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 341 (\"Same institution as canonical 364023 (Institut National Polytechnique de Toulouse); the recovery seeded the English name as a second row. similarity=0.706, token sets identical, countries agree, never both ranked in one edition.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-of-orl-ans",
+   "loser_name": "University of Orléans",
+   "survivor_slug": "universit-d-orl-ans",
+   "survivor_name": "Université d'Orléans",
+   "evidence": "mapping_review:351",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 351 (\"English and French names of one institution.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "grenoble-institute-of-technology",
+   "loser_name": "Grenoble Institute of Technology",
+   "survivor_slug": "institut-polytechnique-de-grenoble-grenoble-institute-of-technology",
+   "survivor_name": "Institut polytechnique de Grenoble - Grenoble Institute of Technology",
+   "evidence": "mapping_review:352",
+   "why": "Empty record: its only source entity was remapped to the survivor by review 352 (\"Grenoble INP; the existing row carries both the French and English names.\"). It holds no rows and no mappings, but stayed active and could attract a new name.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "university-paris-est-creteil",
+   "loser_name": "University Paris Est Creteil",
+   "survivor_slug": "universit-paris-est-cr-teil-val-de-marne",
+   "survivor_name": "Université Paris-Est Créteil Val de Marne",
+   "evidence": "reviewed_by_name:2026-10-12",
+   "why": "Université Paris-Est Créteil Val de Marne and \"University Paris Est Creteil\" are the French and English names of UPEC; no source lists both.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "insa-toulouse",
+   "loser_name": "INSA Toulouse",
+   "survivor_slug": "institut-national-des-sciences-appliques-de-toulouse-insa",
+   "survivor_name": "Institut National des Sciences Appliques de Toulouse (INSA)",
+   "evidence": "reviewed_by_name:2026-10-12",
+   "why": "\"INSA Toulouse\" is the short name of the Institut National des Sciences Appliquées de Toulouse; no source lists both.",
+   "overlap": "none"
+  }
+ ]
+}

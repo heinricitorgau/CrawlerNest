@@ -467,10 +467,17 @@ class EntityResolver:
             "china": ["china", "china (mainland)", "china mainland"],
             "united states": ["united states", "united states of america", "usa"],
             "south korea": ["south korea", "korea, south", "republic of korea"],
-            "taiwan": ["taiwan", "taiwan (province of china)"],
+            "taiwan": ["taiwan", "taiwan (province of china)", "china-taiwan"],
             "hong kong": ["hong kong", "hong kong sar", "hong kong s.a.r."],
             "iran": ["iran", "iran (islamic republic of)"],
             "russia": ["russia", "russian federation"],
+            # THE writes "Türkiye" and "Czechia"; QS and ARWU "Turkey" and "Czech Republic".
+            # Read as two countries, a university's second source narrowed the candidates
+            # to records created under the other spelling and flagged the right match as
+            # a country mismatch.
+            "turkey": ["turkey", "türkiye", "turkiye"],
+            "czech republic": ["czech republic", "czechia"],
+            "macau": ["macau", "macau sar", "macao", "macao sar"],
         }
         for variants in variant_groups.values():
             if base in variants:

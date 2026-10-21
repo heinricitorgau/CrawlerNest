@@ -192,6 +192,11 @@ of committed files in `crawlernest-kb/wikipedia/en/`; `crawlernest-jobs/wikipedi
   a new source id to a different university. After any backfill that adds editions, run
   `crawlernest/scripts/split_false_entity_merges.py verify` (read-only) and read
   `docs/data/ENTITY_SPLIT_2026-10-03.md`. Creating a canonical can itself attract fuzzy matches: rehearse on a copy.
+- The opposite defect is one university carried as two records: a source prints its English name, the record holds
+  its native one, and the resolver opens a second record. Nothing collides, so nothing flags it; each row just has fewer
+  sources than the university has. 112 were merged on 2026-10-12 (`crawlernest/scripts/merge_duplicate_canonicals.py`,
+  `docs/data/DUPLICATE_MERGE_2026-10-12.md`). After a backfill, re-run `wikipedia_profile_loader.py match` and read the
+  `shared_with` entries of `matches.json`: two active records on one Wikipedia article is this defect.
 - An alias outranks a display name and an exact alias match ignores the country. Before writing aliases in bulk, ask
   `entity_resolution/alias_safety.py`; a name with a trailing parenthesis is indexed without it as well.
 - `ranking_decision_preview` is a derived table written with `ON CONFLICT DO NOTHING`; re-running its command does not

@@ -11,3 +11,5 @@ Knowledge Base build scripts and database snapshots.
   - `articles/articles-NN.jsonl.gz`: the article text as sections, one article per line, each with its revision id and URL.
     Text is Wikipedia's, CC BY-SA 4.0.
   - `overrides.json` (optional): reviewed corrections, `{canonical_slug: {"title": "<article>" | null, "why": "..."}}`.
+- `entity_merges/`: Reviewed decisions that two canonical universities are one, applied by
+  `crawlernest/scripts/merge_duplicate_canonicals.py`. Each entry names the record merged away, the survivor and the evidence.

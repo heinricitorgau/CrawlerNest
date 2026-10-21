@@ -156,6 +156,9 @@ def run_all_tests():
         "test_analytics_bridge_prune",
         "test_ingest_idempotency",
         "test_merged_canonical_pg",
+        # Merging duplicate canonicals: what it refuses (two records one table ranks, a name that is also
+        # another university's), the alias guard, and the country spellings. The merge itself needs PostgreSQL.
+        "test_merge_duplicate_canonicals",
         "test_pairing_matches_warehouse",
         # The 2026 single-year dataset declaration: that the explainers put it
         # in front of the model, and that the query defaults still agree with
