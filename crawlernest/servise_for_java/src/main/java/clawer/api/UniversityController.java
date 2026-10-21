@@ -1,6 +1,8 @@
 package clawer.api;
 
 import clawer.dto.UniversityDTO;
+import clawer.dto.WikipediaArticleDTO;
+import clawer.repository.UniversityWikipediaRepository;
 import clawer.service.SourceIntelligenceService;
 import clawer.service.UniversityService;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +21,16 @@ public class UniversityController {
 
     private final UniversityService universityService;
     private final SourceIntelligenceService sourceIntelligenceService;
+    private final UniversityWikipediaRepository universityWikipediaRepository;
 
     public UniversityController(
             UniversityService universityService,
-            SourceIntelligenceService sourceIntelligenceService
+            SourceIntelligenceService sourceIntelligenceService,
+            UniversityWikipediaRepository universityWikipediaRepository
     ) {
         this.universityService = universityService;
         this.sourceIntelligenceService = sourceIntelligenceService;
+        this.universityWikipediaRepository = universityWikipediaRepository;
     }
 
     /**
@@ -60,6 +65,24 @@ public class UniversityController {
     @GetMapping("/{id}/source-comparison")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getSourceComparison(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(sourceIntelligenceService.getSourceComparison(id)));
+    }
+
+    /**
+     * The Wikipedia article matched to a university, for its introduction.
+     *
+     * <p>Its own endpoint rather than a field of {@link UniversityDTO}: an article
+     * runs to tens of kilobytes, and the comparison and shortlist reads that reuse
+     * that DTO have no use for it.
+     *
+     * @param id The canonical university ID
+     * @return the article, or {@code data: null} when none is matched -- a 200
+     *         either way, since "no article held" is an answer and says nothing
+     *         about whether the university exists
+     */
+    @GetMapping("/{id}/wikipedia")
+    public ResponseEntity<ApiResponse<WikipediaArticleDTO>> getWikipediaArticle(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(
+                universityWikipediaRepository.findByCanonicalUniversityId(id).orElse(null)));
     }
 
     /**

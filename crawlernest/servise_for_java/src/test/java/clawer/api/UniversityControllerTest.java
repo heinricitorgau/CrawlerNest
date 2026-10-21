@@ -3,6 +3,8 @@ package clawer.api;
 import clawer.dto.AdmissionRequirementDTO;
 import clawer.dto.AdmissionRequirementsDTO;
 import clawer.dto.UniversityDTO;
+import clawer.dto.WikipediaArticleDTO;
+import clawer.repository.UniversityWikipediaRepository;
 import clawer.service.SourceIntelligenceService;
 import clawer.service.UniversityService;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -44,6 +47,41 @@ class UniversityControllerTest {
 
     @MockBean
     private SourceIntelligenceService sourceIntelligenceService;
+
+    @MockBean
+    private UniversityWikipediaRepository universityWikipediaRepository;
+
+    @Test
+    void wikipediaArticleCarriesItsAttribution() throws Exception {
+        when(universityWikipediaRepository.findByCanonicalUniversityId(7L)).thenReturn(Optional.of(
+                new WikipediaArticleDTO(
+                        7L, "en", "Q49108", "Massachusetts Institute of Technology",
+                        "https://en.wikipedia.org/wiki/Massachusetts_Institute_of_Technology",
+                        123L, "https://en.wikipedia.org/w/index.php?title=Massachusetts_Institute_of_Technology&oldid=123",
+                        "2026-10-01T00:00:00Z", "wikidata_source_id", "CC BY-SA 4.0",
+                        UniversityWikipediaRepository.LICENSE_URL, "2026-10-12T00:00:00Z",
+                        UniversityWikipediaRepository.NOTICE,
+                        List.of(new WikipediaArticleDTO.Section(1, null, "MIT is a university."),
+                                new WikipediaArticleDTO.Section(2, "History", "Founded in 1861.")))));
+
+        mockMvc.perform(get("/api/v1/universities/7/wikipedia").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.pageUrl").value("https://en.wikipedia.org/wiki/Massachusetts_Institute_of_Technology"))
+                .andExpect(jsonPath("$.data.license").value("CC BY-SA 4.0"))
+                .andExpect(jsonPath("$.data.notice").value(UniversityWikipediaRepository.NOTICE))
+                .andExpect(jsonPath("$.data.sections[0].heading").value(nullValue()))
+                .andExpect(jsonPath("$.data.sections[1].heading").value("History"));
+    }
+
+    @Test
+    void wikipediaArticleIsNullDataWhenNoneIsMatched() throws Exception {
+        when(universityWikipediaRepository.findByCanonicalUniversityId(anyLong())).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/v1/universities/999/wikipedia"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").value(nullValue()));
+    }
 
     @Test
     void testGetAllUniversities_ReturnsJsonList() throws Exception {

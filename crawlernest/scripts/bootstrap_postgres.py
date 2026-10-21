@@ -18,6 +18,7 @@ SCHEMA_ORDER = [
     SCHEMA_DIR / "entity_resolution_postgresql.sql",
     # After entity_resolution: references warehouse.canonical_university.
     SCHEMA_DIR / "institution_lineage_postgresql.sql",
+    SCHEMA_DIR / "wikipedia_article_postgresql.sql",
     SCHEMA_DIR / "multi_source_postgresql.sql",
     # After multi_source: references warehouse.ranking_source.
     SCHEMA_DIR / "mapping_review_postgresql.sql",

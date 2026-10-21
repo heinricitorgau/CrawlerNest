@@ -133,6 +133,9 @@ def run_all_tests():
         # QS past editions from reviewed Internet Archive snapshots. Every refusal
         # (edition, hash, redirect, guards) is tested; no test touches the network.
         "test_qs_archive_loader",
+        # Which Wikipedia article a university gets. Mostly matches that must not be made (same name in
+        # another country, a redirect into a section, publisher ids that disagree); no test touches the network.
+        "test_wikipedia_profile_loader",
         # The decision table and the refusals of the 2026-10-03 entity split: seven source entities
         # that were on another university's canonical. The row-rewriting phases are rehearsed, not unit-tested.
         "test_split_false_entity_merges",

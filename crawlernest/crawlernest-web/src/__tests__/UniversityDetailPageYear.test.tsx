@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import UniversityDetailPage from "@/app/universities/[slug]/page";
 import { fetchJson } from "@/lib/api";
 import { CAVEAT_RANK_CHANGE, editionCaveats } from "@/lib/caveatMessages";
-import type { UniversityDetail } from "@/types/university";
+import type { UniversityDetail, WikipediaArticle } from "@/types/university";
 
 jest.mock("next/link", () => {
   return function MockLink({ children, href, ...props }: { children: ReactNode; href: string }) {
@@ -56,10 +56,13 @@ function detail(overrides: Partial<UniversityDetail>): UniversityDetail {
   };
 }
 
-function answer(university: UniversityDetail, subjectItems: unknown[] = []) {
+function answer(university: UniversityDetail, subjectItems: unknown[] = [], wikipedia: WikipediaArticle | null = null) {
   mockedFetchJson.mockImplementation(async (path: string) => {
     if (path.includes("/subject-rankings")) {
       return { success: true, data: { items: subjectItems } } as never;
+    }
+    if (path.endsWith("/wikipedia")) {
+      return { success: true, data: wikipedia } as never;
     }
     return { success: true, data: university } as never;
   });
@@ -77,6 +80,46 @@ function requestedPaths(): string[] {
   return mockedFetchJson.mock.calls.map(([path]) => String(path));
 }
 
+describe("University detail page introduction", () => {
+  const article: WikipediaArticle = {
+    canonicalUniversityId: 1, language: "en", wikidataId: "Q49108",
+    pageTitle: "Massachusetts Institute of Technology",
+    pageUrl: "https://en.wikipedia.org/wiki/Massachusetts_Institute_of_Technology",
+    revisionId: 123, revisionUrl: "https://en.wikipedia.org/w/index.php?oldid=123",
+    revisionTimestamp: "2026-10-01T00:00:00Z", matchMethod: "wikidata_source_id",
+    license: "CC BY-SA 4.0", licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+    fetchedAt: null, notice: "This text is from Wikipedia and is not CrawlerNest data.",
+    sections: [{ level: 1, heading: null, text: "MIT is a private research university." }],
+  };
+
+  it("shows the matched Wikipedia article with its notice", async () => {
+    answer(detail({}), [], article);
+    await renderPage();
+
+    expect(requestedPaths()).toContain("/api/v1/universities/1/wikipedia");
+    expect(screen.getByText("MIT is a private research university.")).toBeInTheDocument();
+    expect(screen.getByText(article.notice)).toBeInTheDocument();
+  });
+
+  it("still renders the rankings when the article cannot be read", async () => {
+    mockedFetchJson.mockImplementation(async (path: string) => {
+      if (path.endsWith("/wikipedia")) {
+        throw new Error("Request failed with status 404");
+      }
+      if (path.includes("/subject-rankings")) {
+        return { success: true, data: { items: [] } } as never;
+      }
+      return { success: true, data: detail({}) } as never;
+    });
+    const consoleError = jest.spyOn(console, "error").mockImplementation(() => undefined);
+    await renderPage();
+    consoleError.mockRestore();
+
+    expect(screen.getByText("No Wikipedia article has been matched to this university.")).toBeInTheDocument();
+    expect(screen.getByText("Ranking Evidence (QS / THE / ARWU)")).toBeInTheDocument();
+  });
+});
+
 describe("University detail page edition", () => {
   beforeEach(() => mockedFetchJson.mockReset());
 
@@ -87,6 +130,8 @@ describe("University detail page edition", () => {
     expect(requestedPaths()).toEqual([
       "/api/v1/universities/by-slug/mit?year=2025",
       "/api/v1/universities/1/subject-rankings?year=2025",
+      // Not scoped to an edition: the introduction is the same text whichever year is shown.
+      "/api/v1/universities/1/wikipedia",
     ]);
     expect(screen.getByText("2025 edition")).toBeInTheDocument();
     expect(screen.getByTestId("year-selector")).toBeInTheDocument();

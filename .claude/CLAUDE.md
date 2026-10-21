@@ -165,6 +165,26 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   that field, not the caveat text, is what arms the `estimate_credited_to_source`
   provenance rule. Never surface a predicted value without it.
 
+## Wikipedia introductions
+
+The "About" section of a university page is the English Wikipedia article matched to that university
+(`warehouse.university_wikipedia_article`, served by `GET /api/v1/universities/{id}/wikipedia`). The table is a copy
+of committed files in `crawlernest-kb/wikipedia/en/`; `crawlernest-jobs/wikipedia_profile_loader.py` writes them:
+
+```bash
+./.venv/bin/python crawlernest/crawlernest-jobs/wikipedia_profile_loader.py match    # warehouse + Wikidata -> matches.json
+./.venv/bin/python crawlernest/crawlernest-jobs/wikipedia_profile_loader.py fetch    # Wikipedia -> articles/*.jsonl.gz
+./.venv/bin/python crawlernest/crawlernest-jobs/wikipedia_profile_loader.py ingest   # files -> PostgreSQL, no network
+```
+
+- **A university is matched by publisher id, exact title or exact label -- never by a similar name.** An unmatched
+  university shows no introduction, and `matches.json` says why. Do not add a fuzzy tier to raise coverage; correct a
+  single university in `overrides.json`.
+- **The text is Wikipedia's (CC BY-SA 4.0), not warehouse data.** Whatever renders it shows the article link, the
+  licence and the API's `notice`. Nothing may compute from it or feed it to the recommender or agent as fact: an
+  article quotes ranks from editions the warehouse does not hold.
+- A fresh database has an empty table until `ingest` is run; `bootstrap-postgres` creates the table only.
+
 ## Entity resolution traps
 
 - Two universities on one canonical keep one rank per edition and silently drop the other. Name normalisation
@@ -172,6 +192,8 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   a new source id to a different university. After any backfill that adds editions, run
   `crawlernest/scripts/split_false_entity_merges.py verify` (read-only) and read
   `docs/data/ENTITY_SPLIT_2026-10-03.md`. Creating a canonical can itself attract fuzzy matches: rehearse on a copy.
+- An alias outranks a display name and an exact alias match ignores the country. Before writing aliases in bulk, ask
+  `entity_resolution/alias_safety.py`; a name with a trailing parenthesis is indexed without it as well.
 - `ranking_decision_preview` is a derived table written with `ON CONFLICT DO NOTHING`; re-running its command does not
   repair a stale row. It joins on the canonical's `display_name_normalized`, so renaming a canonical needs its rows rewritten.
 
