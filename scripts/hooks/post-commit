@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
-# Refreshes the local diagnostics in .repo-diagnostics/ and docs/COMMIT_LOG.md (both gitignored) after each commit,
+# Refreshes the nine local-only files (.repo-diagnostics/ and docs/COMMIT_LOG.md, all gitignored) after each commit,
 # in the background so the commit returns at once. Runs no tests. Install once:  ./scripts/install_git_hooks.sh
 # Skip:  CRAWLERNEST_SKIP_DIAGNOSTICS=1 git commit ...
 ROOT="$(git rev-parse --show-toplevel)"
 [ "${CRAWLERNEST_SKIP_DIAGNOSTICS:-}" = "1" ] && exit 0
-PY="$ROOT/.venv/bin/python"; [ -x "$PY" ] || PY=python3
 mkdir -p "$ROOT/.repo-diagnostics"
-( { "$PY" "$ROOT/scripts/update_diagnostics.py" --quiet
-    "$PY" "$ROOT/scripts/generate_commit_log.py"
-  } >"$ROOT/.repo-diagnostics/.last-hook-run.log" 2>&1 & ) >/dev/null 2>&1
+( "$ROOT/scripts/update_local_docs.sh" --quiet >"$ROOT/.repo-diagnostics/.last-hook-run.log" 2>&1 & ) >/dev/null 2>&1
 exit 0
