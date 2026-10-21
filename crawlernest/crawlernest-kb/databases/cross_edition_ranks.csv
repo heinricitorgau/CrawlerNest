@@ -323,6 +323,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 457,"stony-brook-university,-state-university-of-new-york",2015,ARWU,201,300,201-300,live
 460,universidad-de-sevilla,2015,ARWU,401,500,401-500,live
 462,kobe-university,2015,ARWU,301,400,301-400,live
+464,university-at-buffalo-suny,2015,ARWU,201,300,201-300,live
 465,universität-konstanz,2015,ARWU,401,500,401-500,live
 466,washington-state-university,2015,ARWU,301,400,301-400,live
 467,iowa-state-university,2015,ARWU,151,200,151-200,live
@@ -481,7 +482,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560958,the-university-of-texas-health-science-center-at-san-antonio,2015,ARWU,301,400,301-400,live
 560959,the-university-of-texas-medical-branch-at-galveston,2015,ARWU,401,500,401-500,live
 560960,thomas-jefferson-university,2015,ARWU,301,400,301-400,live
-560963,university-at-buffalo-the-state-university-of-new-york,2015,ARWU,201,300,201-300,live
 561010,espci-paristech,2015,ARWU,301,400,301-400,live
 561011,ecole-normale-superieure-paris,2015,ARWU,72,72,72,live
 561012,ecole-polytechnique,2015,ARWU,301,400,301-400,live
@@ -831,6 +831,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 456,université-de-strasbourg,2016,ARWU,101,150,101-150,live
 457,"stony-brook-university,-state-university-of-new-york",2016,ARWU,201,300,201-300,live
 462,kobe-university,2016,ARWU,401,500,401-500,live
+464,university-at-buffalo-suny,2016,ARWU,301,400,301-400,live
 465,universität-konstanz,2016,ARWU,401,500,401-500,live
 466,washington-state-university,2016,ARWU,401,500,401-500,live
 467,iowa-state-university,2016,ARWU,201,300,201-300,live
@@ -978,7 +979,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560958,the-university-of-texas-health-science-center-at-san-antonio,2016,ARWU,301,400,301-400,live
 560959,the-university-of-texas-medical-branch-at-galveston,2016,ARWU,401,500,401-500,live
 560960,thomas-jefferson-university,2016,ARWU,301,400,301-400,live
-560963,university-at-buffalo-the-state-university-of-new-york,2016,ARWU,301,400,301-400,live
 560970,university-of-canterbury,2016,ARWU,301,400,301-400,live
 561010,espci-paristech,2016,ARWU,301,400,301-400,live
 561011,ecole-normale-superieure-paris,2016,ARWU,87,87,87,live
@@ -1380,6 +1380,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 460,universidad-de-sevilla,2017,ARWU,501,600,501-600,live
 461,macau-university-of-science-and-technology,2017,ARWU,501,600,501-600,live
 462,kobe-university,2017,ARWU,401,500,401-500,live
+464,university-at-buffalo-suny,2017,ARWU,201,300,201-300,live
 465,universität-konstanz,2017,ARWU,401,500,401-500,live
 466,washington-state-university,2017,ARWU,401,500,401-500,live
 467,iowa-state-university,2017,ARWU,201,300,201-300,live
@@ -1492,6 +1493,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 682,jeonbuk-national-university,2017,ARWU,601,700,601-700,live
 685,temple-university,2017,ARWU,301,400,301-400,live
 689,norwegian-university-of-life-sciences,2017,ARWU,601,700,601-700,live
+695,universidade-federal-de-são-paulo,2017,ARWU,601,700,601-700,live
 696,universidade-federal-do-rio-grande-do-sul,2017,ARWU,401,500,401-500,live
 697,university-of-brescia,2017,ARWU,701,800,701-800,live
 699,university-of-siena,2017,ARWU,601,700,601-700,live
@@ -1755,7 +1757,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560959,the-university-of-texas-medical-branch-at-galveston,2017,ARWU,401,500,401-500,live
 560960,thomas-jefferson-university,2017,ARWU,401,500,401-500,live
 560961,tianjin-medical-university,2017,ARWU,601,700,601-700,live
-560963,university-at-buffalo-the-state-university-of-new-york,2017,ARWU,201,300,201-300,live
 560970,university-of-canterbury,2017,ARWU,401,500,401-500,live
 560986,university-of-nebraska-medical-center,2017,ARWU,701,800,701-800,live
 560989,university-of-quebec-montreal,2017,ARWU,601,700,601-700,live
@@ -2200,6 +2201,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 460,universidad-de-sevilla,2018,ARWU,501,600,501-600,live
 461,macau-university-of-science-and-technology,2018,ARWU,501,600,501-600,live
 462,kobe-university,2018,ARWU,401,500,401-500,live
+464,university-at-buffalo-suny,2018,ARWU,301,400,301-400,live
 465,universität-konstanz,2018,ARWU,401,500,401-500,live
 466,washington-state-university,2018,ARWU,301,400,301-400,live
 467,iowa-state-university,2018,ARWU,201,300,201-300,live
@@ -2339,6 +2341,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 687,university-of-new-brunswick,2018,ARWU,901,1000,901-1000,live
 689,norwegian-university-of-life-sciences,2018,ARWU,601,700,601-700,live
 691,shiraz-university,2018,ARWU,801,900,801-900,live
+695,universidade-federal-de-são-paulo,2018,ARWU,601,700,601-700,live
 696,universidade-federal-do-rio-grande-do-sul,2018,ARWU,401,500,401-500,live
 697,university-of-brescia,2018,ARWU,701,800,701-800,live
 699,university-of-siena,2018,ARWU,701,800,701-800,live
@@ -2726,7 +2729,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560959,the-university-of-texas-medical-branch-at-galveston,2018,ARWU,401,500,401-500,live
 560960,thomas-jefferson-university,2018,ARWU,401,500,401-500,live
 560961,tianjin-medical-university,2018,ARWU,601,700,601-700,live
-560963,university-at-buffalo-the-state-university-of-new-york,2018,ARWU,301,400,301-400,live
 560964,university-of-alabama-in-huntsville,2018,ARWU,901,1000,901-1000,live
 560970,university-of-canterbury,2018,ARWU,401,500,401-500,live
 560986,university-of-nebraska-medical-center,2018,ARWU,601,700,601-700,live
@@ -3187,6 +3189,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 460,universidad-de-sevilla,2019,ARWU,401,500,401-500,live
 461,macau-university-of-science-and-technology,2019,ARWU,501,600,501-600,live
 462,kobe-university,2019,ARWU,401,500,401-500,live
+464,university-at-buffalo-suny,2019,ARWU,301,400,301-400,live
 465,universität-konstanz,2019,ARWU,401,500,401-500,live
 466,washington-state-university,2019,ARWU,301,400,301-400,live
 467,iowa-state-university,2019,ARWU,201,300,201-300,live
@@ -3328,6 +3331,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 686,"university-of-agriculture,-faisalabad",2019,ARWU,801,900,801-900,live
 689,norwegian-university-of-life-sciences,2019,ARWU,601,700,601-700,live
 691,shiraz-university,2019,ARWU,901,1000,901-1000,live
+695,universidade-federal-de-são-paulo,2019,ARWU,601,700,601-700,live
 696,universidade-federal-do-rio-grande-do-sul,2019,ARWU,401,500,401-500,live
 697,university-of-brescia,2019,ARWU,601,700,601-700,live
 699,university-of-siena,2019,ARWU,501,600,501-600,live
@@ -3723,7 +3727,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560959,the-university-of-texas-medical-branch-at-galveston,2019,ARWU,601,700,601-700,live
 560960,thomas-jefferson-university,2019,ARWU,401,500,401-500,live
 560961,tianjin-medical-university,2019,ARWU,601,700,601-700,live
-560963,university-at-buffalo-the-state-university-of-new-york,2019,ARWU,301,400,301-400,live
 560970,university-of-canterbury,2019,ARWU,401,500,401-500,live
 560986,university-of-nebraska-medical-center,2019,ARWU,601,700,601-700,live
 560989,university-of-quebec-montreal,2019,ARWU,601,700,601-700,live
@@ -4181,6 +4184,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 460,universidad-de-sevilla,2020,ARWU,401,500,401-500,live
 461,macau-university-of-science-and-technology,2020,ARWU,501,600,501-600,live
 462,kobe-university,2020,ARWU,401,500,401-500,live
+464,university-at-buffalo-suny,2020,ARWU,301,400,301-400,live
 465,universität-konstanz,2020,ARWU,601,700,601-700,live
 466,washington-state-university,2020,ARWU,301,400,301-400,live
 467,iowa-state-university,2020,ARWU,201,300,201-300,live
@@ -4322,6 +4326,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 685,temple-university,2020,ARWU,301,400,301-400,live
 689,norwegian-university-of-life-sciences,2020,ARWU,601,700,601-700,live
 691,shiraz-university,2020,ARWU,701,800,701-800,live
+695,universidade-federal-de-são-paulo,2020,ARWU,601,700,601-700,live
 696,universidade-federal-do-rio-grande-do-sul,2020,ARWU,401,500,401-500,live
 697,university-of-brescia,2020,ARWU,701,800,701-800,live
 698,university-of-greenwich,2020,ARWU,801,900,801-900,live
@@ -4712,6 +4717,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560919,medical-college-of-wisconsin,2020,ARWU,601,700,601-700,live
 560920,medical-university-of-graz,2020,ARWU,401,500,401-500,live
 560921,medical-university-of-innsbruck,2020,ARWU,501,600,501-600,live
+560923,nanjing-university-of-chinese-medicine,2020,ARWU,901,1000,901-1000,live
 560929,naval-medical-university,2020,ARWU,701,800,701-800,live
 560940,rockefeller-university,2020,ARWU,43,43,43,live
 560942,rush-university,2020,ARWU,501,600,501-600,live
@@ -4724,13 +4730,13 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560959,the-university-of-texas-medical-branch-at-galveston,2020,ARWU,401,500,401-500,live
 560960,thomas-jefferson-university,2020,ARWU,501,600,501-600,live
 560961,tianjin-medical-university,2020,ARWU,601,700,601-700,live
-560963,university-at-buffalo-the-state-university-of-new-york,2020,ARWU,301,400,301-400,live
 560970,university-of-canterbury,2020,ARWU,401,500,401-500,live
 560972,university-of-clermont-auvergne,2020,ARWU,501,600,501-600,live
 560986,university-of-nebraska-medical-center,2020,ARWU,601,700,601-700,live
 560989,university-of-quebec-montreal,2020,ARWU,601,700,601-700,live
 560992,university-of-tennessee-health-science-center,2020,ARWU,601,700,601-700,live
 561000,wenzhou-medical-university,2020,ARWU,501,600,501-600,live
+561005,xi-an-university-of-technology,2020,ARWU,601,700,601-700,live
 561008,zhejiang-normal-university,2020,ARWU,801,900,801-900,live
 561016,national-chiao-tung-university,2020,ARWU,401,500,401-500,live
 561022,university-of-arkansas-at-little-rock,2020,ARWU,901,1000,901-1000,live
@@ -5164,6 +5170,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 460,universidad-de-sevilla,2021,ARWU,401,500,401-500,live
 461,macau-university-of-science-and-technology,2021,ARWU,601,700,601-700,live
 462,kobe-university,2021,ARWU,401,500,401-500,live
+464,university-at-buffalo-suny,2021,ARWU,301,400,301-400,live
 465,universität-konstanz,2021,ARWU,501,600,501-600,live
 466,washington-state-university,2021,ARWU,301,400,301-400,live
 467,iowa-state-university,2021,ARWU,301,400,301-400,live
@@ -5305,6 +5312,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 686,"university-of-agriculture,-faisalabad",2021,ARWU,801,900,801-900,live
 689,norwegian-university-of-life-sciences,2021,ARWU,701,800,701-800,live
 691,shiraz-university,2021,ARWU,701,800,701-800,live
+695,universidade-federal-de-são-paulo,2021,ARWU,601,700,601-700,live
 696,universidade-federal-do-rio-grande-do-sul,2021,ARWU,301,400,301-400,live
 697,university-of-brescia,2021,ARWU,701,800,701-800,live
 698,university-of-greenwich,2021,ARWU,801,900,801-900,live
@@ -5685,12 +5693,14 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560903,guangzhou-medical-university,2021,ARWU,601,700,601-700,live
 560905,harbin-medical-university,2021,ARWU,801,900,801-900,live
 560907,hebei-medical-university,2021,ARWU,901,1000,901-1000,live
+560908,henan-normal-university,2021,ARWU,801,900,801-900,live
 560910,humanitas-university,2021,ARWU,501,600,501-600,live
 560913,juntendo-university,2021,ARWU,601,700,601-700,live
 560918,mayo-clinic-college-of-medicine-and-science,2021,ARWU,101,150,101-150,live
 560919,medical-college-of-wisconsin,2021,ARWU,501,600,501-600,live
 560920,medical-university-of-graz,2021,ARWU,601,700,601-700,live
 560921,medical-university-of-innsbruck,2021,ARWU,401,500,401-500,live
+560923,nanjing-university-of-chinese-medicine,2021,ARWU,901,1000,901-1000,live
 560929,naval-medical-university,2021,ARWU,701,800,701-800,live
 560932,okinawa-institute-of-science-and-technology-graduate-university,2021,ARWU,801,900,801-900,live
 560939,qilu-university-of-technology,2021,ARWU,901,1000,901-1000,live
@@ -5707,7 +5717,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560959,the-university-of-texas-medical-branch-at-galveston,2021,ARWU,501,600,501-600,live
 560960,thomas-jefferson-university,2021,ARWU,501,600,501-600,live
 560961,tianjin-medical-university,2021,ARWU,601,700,601-700,live
-560963,university-at-buffalo-the-state-university-of-new-york,2021,ARWU,301,400,301-400,live
 560970,university-of-canterbury,2021,ARWU,401,500,401-500,live
 560972,university-of-clermont-auvergne,2021,ARWU,501,600,501-600,live
 560986,university-of-nebraska-medical-center,2021,ARWU,701,800,701-800,live
@@ -5716,6 +5725,8 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 561000,wenzhou-medical-university,2021,ARWU,501,600,501-600,live
 561002,westlake-university,2021,ARWU,801,900,801-900,live
 561003,wroclaw-medical-university,2021,ARWU,801,900,801-900,live
+561004,wuhan-university-of-science-and-technology,2021,ARWU,901,1000,901-1000,live
+561005,xi-an-university-of-technology,2021,ARWU,601,700,601-700,live
 561008,zhejiang-normal-university,2021,ARWU,701,800,701-800,live
 561022,university-of-arkansas-at-little-rock,2021,ARWU,901,1000,901-1000,live
 561028,osaka-city-university,2021,ARWU,701,800,701-800,live
@@ -6145,6 +6156,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 460,universidad-de-sevilla,2022,ARWU,401,500,401-500,live
 461,macau-university-of-science-and-technology,2022,ARWU,501,600,501-600,live
 462,kobe-university,2022,ARWU,401,500,401-500,live
+464,university-at-buffalo-suny,2022,ARWU,301,400,301-400,live
 465,universität-konstanz,2022,ARWU,501,600,501-600,live
 466,washington-state-university,2022,ARWU,301,400,301-400,live
 467,iowa-state-university,2022,ARWU,501,600,501-600,live
@@ -6281,6 +6293,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 685,temple-university,2022,ARWU,401,500,401-500,live
 686,"university-of-agriculture,-faisalabad",2022,ARWU,701,800,701-800,live
 689,norwegian-university-of-life-sciences,2022,ARWU,801,900,801-900,live
+695,universidade-federal-de-são-paulo,2022,ARWU,601,700,601-700,live
 696,universidade-federal-do-rio-grande-do-sul,2022,ARWU,401,500,401-500,live
 697,university-of-brescia,2022,ARWU,501,600,501-600,live
 698,university-of-greenwich,2022,ARWU,601,700,601-700,live
@@ -6673,6 +6686,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560919,medical-college-of-wisconsin,2022,ARWU,701,800,701-800,live
 560920,medical-university-of-graz,2022,ARWU,501,600,501-600,live
 560921,medical-university-of-innsbruck,2022,ARWU,401,500,401-500,live
+560923,nanjing-university-of-chinese-medicine,2022,ARWU,801,900,801-900,live
 560929,naval-medical-university,2022,ARWU,601,700,601-700,live
 560932,okinawa-institute-of-science-and-technology-graduate-university,2022,ARWU,801,900,801-900,live
 560939,qilu-university-of-technology,2022,ARWU,901,1000,901-1000,live
@@ -6689,7 +6703,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560959,the-university-of-texas-medical-branch-at-galveston,2022,ARWU,401,500,401-500,live
 560960,thomas-jefferson-university,2022,ARWU,701,800,701-800,live
 560961,tianjin-medical-university,2022,ARWU,501,600,501-600,live
-560963,university-at-buffalo-the-state-university-of-new-york,2022,ARWU,301,400,301-400,live
 560970,university-of-canterbury,2022,ARWU,401,500,401-500,live
 560972,university-of-clermont-auvergne,2022,ARWU,501,600,501-600,live
 560978,university-of-health-sciences-turkey,2022,ARWU,601,700,601-700,live
@@ -6700,6 +6713,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 561001,western-norway-university-of-applied-sciences,2022,ARWU,901,1000,901-1000,live
 561002,westlake-university,2022,ARWU,601,700,601-700,live
 561003,wroclaw-medical-university,2022,ARWU,801,900,801-900,live
+561005,xi-an-university-of-technology,2022,ARWU,601,700,601-700,live
 561008,zhejiang-normal-university,2022,ARWU,501,600,501-600,live
 561022,university-of-arkansas-at-little-rock,2022,ARWU,901,1000,901-1000,live
 561028,osaka-city-university,2022,ARWU,801,900,801-900,live
@@ -7127,6 +7141,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 460,universidad-de-sevilla,2023,ARWU,601,700,601-700,live
 461,macau-university-of-science-and-technology,2023,ARWU,401,500,401-500,live
 462,kobe-university,2023,ARWU,501,600,501-600,live
+464,university-at-buffalo-suny,2023,ARWU,301,400,301-400,live
 465,universität-konstanz,2023,ARWU,501,600,501-600,live
 466,washington-state-university,2023,ARWU,401,500,401-500,live
 467,iowa-state-university,2023,ARWU,401,500,401-500,live
@@ -7258,6 +7273,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 684,princess-nourah-bint-abdulrahman-university,2023,ARWU,301,400,301-400,live
 685,temple-university,2023,ARWU,401,500,401-500,live
 689,norwegian-university-of-life-sciences,2023,ARWU,701,800,701-800,live
+695,universidade-federal-de-são-paulo,2023,ARWU,701,800,701-800,live
 696,universidade-federal-do-rio-grande-do-sul,2023,ARWU,401,500,401-500,live
 697,university-of-brescia,2023,ARWU,601,700,601-700,live
 698,university-of-greenwich,2023,ARWU,601,700,601-700,live
@@ -7642,13 +7658,16 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560903,guangzhou-medical-university,2023,ARWU,401,500,401-500,live
 560905,harbin-medical-university,2023,ARWU,601,700,601-700,live
 560907,hebei-medical-university,2023,ARWU,801,900,801-900,live
+560908,henan-normal-university,2023,ARWU,601,700,601-700,live
 560909,homi-bhabha-national-institute,2023,ARWU,801,900,801-900,live
 560910,humanitas-university,2023,ARWU,401,500,401-500,live
+560912,jiangsu-university-of-science-and-technology,2023,ARWU,901,1000,901-1000,live
 560913,juntendo-university,2023,ARWU,701,800,701-800,live
 560918,mayo-clinic-college-of-medicine-and-science,2023,ARWU,101,150,101-150,live
 560919,medical-college-of-wisconsin,2023,ARWU,701,800,701-800,live
 560920,medical-university-of-graz,2023,ARWU,601,700,601-700,live
 560921,medical-university-of-innsbruck,2023,ARWU,501,600,501-600,live
+560923,nanjing-university-of-chinese-medicine,2023,ARWU,601,700,601-700,live
 560929,naval-medical-university,2023,ARWU,601,700,601-700,live
 560932,okinawa-institute-of-science-and-technology-graduate-university,2023,ARWU,301,400,301-400,live
 560939,qilu-university-of-technology,2023,ARWU,801,900,801-900,live
@@ -7667,7 +7686,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560959,the-university-of-texas-medical-branch-at-galveston,2023,ARWU,401,500,401-500,live
 560960,thomas-jefferson-university,2023,ARWU,501,600,501-600,live
 560961,tianjin-medical-university,2023,ARWU,501,600,501-600,live
-560963,university-at-buffalo-the-state-university-of-new-york,2023,ARWU,301,400,301-400,live
 560970,university-of-canterbury,2023,ARWU,401,500,401-500,live
 560972,university-of-clermont-auvergne,2023,ARWU,601,700,601-700,live
 560978,university-of-health-sciences-turkey,2023,ARWU,601,700,601-700,live
@@ -7678,6 +7696,8 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 561001,western-norway-university-of-applied-sciences,2023,ARWU,801,900,801-900,live
 561002,westlake-university,2023,ARWU,501,600,501-600,live
 561003,wroclaw-medical-university,2023,ARWU,801,900,801-900,live
+561004,wuhan-university-of-science-and-technology,2023,ARWU,801,900,801-900,live
+561005,xi-an-university-of-technology,2023,ARWU,501,600,501-600,live
 561007,zhejiang-chinese-medical-university,2023,ARWU,701,800,701-800,live
 561008,zhejiang-normal-university,2023,ARWU,401,500,401-500,live
 561022,university-of-arkansas-at-little-rock,2023,ARWU,901,1000,901-1000,live
@@ -8101,6 +8121,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 460,universidad-de-sevilla,2024,ARWU,401,500,401-500,live
 461,macau-university-of-science-and-technology,2024,ARWU,401,500,401-500,live
 462,kobe-university,2024,ARWU,501,600,501-600,live
+464,university-at-buffalo-suny,2024,ARWU,401,500,401-500,live
 465,universität-konstanz,2024,ARWU,501,600,501-600,live
 466,washington-state-university,2024,ARWU,401,500,401-500,live
 467,iowa-state-university,2024,ARWU,501,600,501-600,live
@@ -8234,6 +8255,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 685,temple-university,2024,ARWU,401,500,401-500,live
 687,university-of-new-brunswick,2024,ARWU,901,1000,901-1000,live
 689,norwegian-university-of-life-sciences,2024,ARWU,701,800,701-800,live
+695,universidade-federal-de-são-paulo,2024,ARWU,701,800,701-800,live
 696,universidade-federal-do-rio-grande-do-sul,2024,ARWU,401,500,401-500,live
 697,university-of-brescia,2024,ARWU,601,700,601-700,live
 698,university-of-greenwich,2024,ARWU,701,800,701-800,live
@@ -8627,13 +8649,16 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560903,guangzhou-medical-university,2024,ARWU,401,500,401-500,live
 560905,harbin-medical-university,2024,ARWU,701,800,701-800,live
 560907,hebei-medical-university,2024,ARWU,801,900,801-900,live
+560908,henan-normal-university,2024,ARWU,601,700,601-700,live
 560909,homi-bhabha-national-institute,2024,ARWU,701,800,701-800,live
 560910,humanitas-university,2024,ARWU,601,700,601-700,live
+560912,jiangsu-university-of-science-and-technology,2024,ARWU,901,1000,901-1000,live
 560913,juntendo-university,2024,ARWU,901,1000,901-1000,live
 560918,mayo-clinic-college-of-medicine-and-science,2024,ARWU,101,150,101-150,live
 560919,medical-college-of-wisconsin,2024,ARWU,601,700,601-700,live
 560920,medical-university-of-graz,2024,ARWU,501,600,501-600,live
 560921,medical-university-of-innsbruck,2024,ARWU,501,600,501-600,live
+560923,nanjing-university-of-chinese-medicine,2024,ARWU,501,600,501-600,live
 560929,naval-medical-university,2024,ARWU,601,700,601-700,live
 560932,okinawa-institute-of-science-and-technology-graduate-university,2024,ARWU,401,500,401-500,live
 560939,qilu-university-of-technology,2024,ARWU,601,700,601-700,live
@@ -8652,7 +8677,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560959,the-university-of-texas-medical-branch-at-galveston,2024,ARWU,401,500,401-500,live
 560960,thomas-jefferson-university,2024,ARWU,601,700,601-700,live
 560961,tianjin-medical-university,2024,ARWU,501,600,501-600,live
-560963,university-at-buffalo-the-state-university-of-new-york,2024,ARWU,401,500,401-500,live
 560964,university-of-alabama-in-huntsville,2024,ARWU,901,1000,901-1000,live
 560970,university-of-canterbury,2024,ARWU,401,500,401-500,live
 560972,university-of-clermont-auvergne,2024,ARWU,601,700,601-700,live
@@ -8665,6 +8689,8 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 561001,western-norway-university-of-applied-sciences,2024,ARWU,901,1000,901-1000,live
 561002,westlake-university,2024,ARWU,501,600,501-600,live
 561003,wroclaw-medical-university,2024,ARWU,901,1000,901-1000,live
+561004,wuhan-university-of-science-and-technology,2024,ARWU,801,900,801-900,live
+561005,xi-an-university-of-technology,2024,ARWU,501,600,501-600,live
 561007,zhejiang-chinese-medical-university,2024,ARWU,601,700,601-700,live
 561008,zhejiang-normal-university,2024,ARWU,701,800,701-800,live
 1,massachusetts-institute-of-technology-mit,2025,ARWU,3,3,3,live
@@ -9069,6 +9095,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 460,universidad-de-sevilla,2025,ARWU,401,500,401-500,live
 461,macau-university-of-science-and-technology,2025,ARWU,401,500,401-500,live
 462,kobe-university,2025,ARWU,501,600,501-600,live
+464,university-at-buffalo-suny,2025,ARWU,501,600,501-600,live
 465,universität-konstanz,2025,ARWU,401,500,401-500,live
 466,washington-state-university,2025,ARWU,401,500,401-500,live
 467,iowa-state-university,2025,ARWU,401,500,401-500,live
@@ -9196,6 +9223,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 685,temple-university,2025,ARWU,401,500,401-500,live
 687,university-of-new-brunswick,2025,ARWU,901,1000,901-1000,live
 689,norwegian-university-of-life-sciences,2025,ARWU,701,800,701-800,live
+695,universidade-federal-de-são-paulo,2025,ARWU,701,800,701-800,live
 696,universidade-federal-do-rio-grande-do-sul,2025,ARWU,601,700,601-700,live
 697,university-of-brescia,2025,ARWU,601,700,601-700,live
 698,university-of-greenwich,2025,ARWU,701,800,701-800,live
@@ -9589,13 +9617,16 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560903,guangzhou-medical-university,2025,ARWU,301,400,301-400,live
 560905,harbin-medical-university,2025,ARWU,701,800,701-800,live
 560907,hebei-medical-university,2025,ARWU,701,800,701-800,live
+560908,henan-normal-university,2025,ARWU,701,800,701-800,live
 560909,homi-bhabha-national-institute,2025,ARWU,601,700,601-700,live
 560910,humanitas-university,2025,ARWU,701,800,701-800,live
+560912,jiangsu-university-of-science-and-technology,2025,ARWU,501,600,501-600,live
 560913,juntendo-university,2025,ARWU,901,1000,901-1000,live
 560918,mayo-clinic-college-of-medicine-and-science,2025,ARWU,101,150,101-150,live
 560919,medical-college-of-wisconsin,2025,ARWU,501,600,501-600,live
 560920,medical-university-of-graz,2025,ARWU,401,500,401-500,live
 560921,medical-university-of-innsbruck,2025,ARWU,401,500,401-500,live
+560923,nanjing-university-of-chinese-medicine,2025,ARWU,401,500,401-500,live
 560929,naval-medical-university,2025,ARWU,601,700,601-700,live
 560932,okinawa-institute-of-science-and-technology-graduate-university,2025,ARWU,401,500,401-500,live
 560939,qilu-university-of-technology,2025,ARWU,601,700,601-700,live
@@ -9614,7 +9645,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560959,the-university-of-texas-medical-branch-at-galveston,2025,ARWU,501,600,501-600,live
 560960,thomas-jefferson-university,2025,ARWU,601,700,601-700,live
 560961,tianjin-medical-university,2025,ARWU,501,600,501-600,live
-560963,university-at-buffalo-the-state-university-of-new-york,2025,ARWU,501,600,501-600,live
 560970,university-of-canterbury,2025,ARWU,401,500,401-500,live
 560972,university-of-clermont-auvergne,2025,ARWU,701,800,701-800,live
 560978,university-of-health-sciences-turkey,2025,ARWU,601,700,601-700,live
@@ -9623,6 +9653,8 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560992,university-of-tennessee-health-science-center,2025,ARWU,901,1000,901-1000,live
 561000,wenzhou-medical-university,2025,ARWU,401,500,401-500,live
 561002,westlake-university,2025,ARWU,301,400,301-400,live
+561004,wuhan-university-of-science-and-technology,2025,ARWU,701,800,701-800,live
+561005,xi-an-university-of-technology,2025,ARWU,501,600,501-600,live
 561007,zhejiang-chinese-medical-university,2025,ARWU,601,700,601-700,live
 561008,zhejiang-normal-university,2025,ARWU,601,700,601-700,live
 561030,university-of-versailles-saint-quentin-en-yvelines,2025,ARWU,801,900,801-900,live
@@ -10030,6 +10062,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 460,universidad-de-sevilla,2026,ARWU,401,500,401-500,live
 461,macau-university-of-science-and-technology,2026,ARWU,601,700,601-700,live
 462,kobe-university,2026,ARWU,501,600,501-600,live
+464,university-at-buffalo-suny,2026,ARWU,401,500,401-500,live
 465,universität-konstanz,2026,ARWU,401,500,401-500,live
 466,washington-state-university,2026,ARWU,401,500,401-500,live
 467,iowa-state-university,2026,ARWU,401,500,401-500,live
@@ -10159,6 +10192,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 684,princess-nourah-bint-abdulrahman-university,2026,ARWU,301,400,301-400,live
 685,temple-university,2026,ARWU,401,500,401-500,live
 687,university-of-new-brunswick,2026,ARWU,901,1000,901-1000,live
+695,universidade-federal-de-são-paulo,2026,ARWU,701,800,701-800,live
 696,universidade-federal-do-rio-grande-do-sul,2026,ARWU,501,600,501-600,live
 697,university-of-brescia,2026,ARWU,601,700,601-700,live
 698,university-of-greenwich,2026,ARWU,701,800,701-800,live
@@ -10545,13 +10579,16 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560903,guangzhou-medical-university,2026,ARWU,301,400,301-400,live
 560905,harbin-medical-university,2026,ARWU,601,700,601-700,live
 560907,hebei-medical-university,2026,ARWU,701,800,701-800,live
+560908,henan-normal-university,2026,ARWU,701,800,701-800,live
 560909,homi-bhabha-national-institute,2026,ARWU,701,800,701-800,live
 560910,humanitas-university,2026,ARWU,901,1000,901-1000,live
+560912,jiangsu-university-of-science-and-technology,2026,ARWU,501,600,501-600,live
 560913,juntendo-university,2026,ARWU,901,1000,901-1000,live
 560918,mayo-clinic-college-of-medicine-and-science,2026,ARWU,101,150,101-150,live
 560919,medical-college-of-wisconsin,2026,ARWU,501,600,501-600,live
 560920,medical-university-of-graz,2026,ARWU,501,600,501-600,live
 560921,medical-university-of-innsbruck,2026,ARWU,501,600,501-600,live
+560923,nanjing-university-of-chinese-medicine,2026,ARWU,401,500,401-500,live
 560929,naval-medical-university,2026,ARWU,701,800,701-800,live
 560932,okinawa-institute-of-science-and-technology-graduate-university,2026,ARWU,401,500,401-500,live
 560939,qilu-university-of-technology,2026,ARWU,601,700,601-700,live
@@ -10569,7 +10606,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560959,the-university-of-texas-medical-branch-at-galveston,2026,ARWU,501,600,501-600,live
 560960,thomas-jefferson-university,2026,ARWU,601,700,601-700,live
 560961,tianjin-medical-university,2026,ARWU,401,500,401-500,live
-560963,university-at-buffalo-the-state-university-of-new-york,2026,ARWU,401,500,401-500,live
 560970,university-of-canterbury,2026,ARWU,501,600,501-600,live
 560972,university-of-clermont-auvergne,2026,ARWU,601,700,601-700,live
 560978,university-of-health-sciences-turkey,2026,ARWU,601,700,601-700,live
@@ -10578,6 +10614,8 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 560992,university-of-tennessee-health-science-center,2026,ARWU,901,1000,901-1000,live
 561000,wenzhou-medical-university,2026,ARWU,301,400,301-400,live
 561002,westlake-university,2026,ARWU,201,300,201-300,live
+561004,wuhan-university-of-science-and-technology,2026,ARWU,701,800,701-800,live
+561005,xi-an-university-of-technology,2026,ARWU,501,600,501-600,live
 561007,zhejiang-chinese-medical-university,2026,ARWU,501,600,501-600,live
 561008,zhejiang-normal-university,2026,ARWU,501,600,501-600,live
 561030,university-of-versailles-saint-quentin-en-yvelines,2026,ARWU,801,900,801-900,live
@@ -20595,6 +20633,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 531,university-of-utah,2026,QS,540,540,=540,live
 532,universidad-nacional-de-la-plata-unlp,2026,QS,458,458,=458,live
 533,lahore-university-of-management-sciences-lums,2026,QS,555,555,555,live
+534,northumbria-university-at-newcastle,2026,QS,550,550,550,live
 535,university-of-bordeaux,2026,QS,494,494,=494,live
 536,university-of-eastern-finland,2026,QS,604,604,=604,live
 537,applied-science-university---bahrain,2026,QS,613,613,=613,live
@@ -20941,6 +20980,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 879,universidad-de-valladolid,2026,QS,901,950,901-950,live
 880,universita'-degli-studi-di-ferrara,2026,QS,951,1000,951-1000,live
 881,university-duesseldorf,2026,QS,851,900,851-900,live
+882,university-at-albany-suny,2026,QS,901,950,901-950,live
 883,university-of-dubai,2026,QS,851,900,851-900,live
 884,university-of-ghana,2026,QS,851,900,851-900,live
 885,university-of-hertfordshire,2026,QS,901,950,901-950,live
@@ -21567,7 +21607,6 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 365660,yessenov-university,2026,QS,1201,1400,1201-1400,live
 365670,zarqa-university-zu,2026,QS,1201,1400,1201-1400,live
 365697,i-stanbul-bilgi-university,2026,QS,1401,,1401+,live
-560963,university-at-buffalo-the-state-university-of-new-york,2026,QS,901,950,901-950,live
 694537,miami-university,2026,QS,1201,1400,1201-1400,live
 1,massachusetts-institute-of-technology-mit,2015,THE,6,6,6,live
 2,imperial-college-london,2015,THE,9,9,9,live
@@ -36080,6 +36119,7 @@ canonical_university_id,canonical_slug,year,source,rank_lo,rank_hi,printed,sourc
 365697,i-stanbul-bilgi-university,2026,THE,1501,,1501+,live
 560903,guangzhou-medical-university,2026,THE,801,1000,801–1000,live
 560910,humanitas-university,2026,THE,251,300,251–300,live
+560912,jiangsu-university-of-science-and-technology,2026,THE,1001,1200,1001–1200,live
 560913,juntendo-university,2026,THE,501,600,501–600,live
 560920,medical-university-of-graz,2026,THE,201,250,201–250,live
 560921,medical-university-of-innsbruck,2026,THE,201,250,201–250,live
