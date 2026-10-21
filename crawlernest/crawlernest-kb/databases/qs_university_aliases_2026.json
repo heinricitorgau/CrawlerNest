@@ -1,0 +1,11 @@
+[
+ {
+  "canonical_slug_hint": "Northumbria University at Newcastle",
+  "canonical_university_id": 534,
+  "alias_text": "Northumbria University QAHE- London campus",
+  "country": "United Kingdom",
+  "source": "QS 2026",
+  "method": "curated",
+  "reason": "QS renamed the ranked entry: the crawl of 2026-10-21 lists rank 550 as /universities/northumbria-university-qahe-london-campus and no longer lists /universities/northumbria-university-newcastle, which held rank 550 in the crawl of 2026-09-21. The London campus is Northumbria University's (run with QA Higher Education), not a separate institution."
+ }
+]
