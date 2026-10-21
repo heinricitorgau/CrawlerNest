@@ -195,7 +195,7 @@ deploy/                       Dockerfile、docker-compose、systemd 單元、.en
 
 ## 持續整合
 
-六個 workflow、十個 job。一個檢查的價值取決於它**能不能失敗**，所以下表記錄的是
+七個 workflow、十一個 job。一個檢查的價值取決於它**能不能失敗**，所以下表記錄的是
 每個 workflow 實際執行了什麼，而不是它們的名字。
 
 | Workflow | 實際執行的內容 |
@@ -206,6 +206,7 @@ deploy/                       Dockerfile、docker-compose、systemd 單元、.en
 | **API Tests** | Spring Boot 測試套件，對真實 PostgreSQL service 執行，259 個測試，surefire 報告會上傳成 artifact。每個整合測試類別都自己建立所讀取的資料表與 view，因為 service 資料庫一開始是空的；依賴「別的類別先跑過」的測試，在本機會過、在這裡會失敗。 |
 | **Release Smoke** | 兩個 job。建置產物——Java 編譯、Next.js build、Python 語法、唯讀 fixture；以及一個 analytics-bridge job，bootstrap PostgreSQL、種入六所大學、跑兩次 warehouse→analytics bridge、啟動 Spring Boot，確認 `/api/v1/rankings` 回得出寫進去的東西，最後跑端點存活檢查。 |
 | **Data Quality** | 驗證 golden 回歸資料集與 CI fixture 檔案，然後以 fixture 模式跑 ranking-regression 與 failure-summary runner——不需資料庫、不需網路。 |
+| **Camofox Client Tests** | 只在 `crawlernest/crawlernest-camofox-client/` 或其 workflow 變更時執行。先跑 strict `tsc`，再跑 camofox-browser 客戶端與快照解析器的 23 個單元測試：請求格式、哪些失敗會重試、哪些不會，以及快照解析。測試以替身取代 `fetch`，不啟動瀏覽器伺服器，因此不代表對真實 camofox-browser 的行為。 |
 
 有兩件事這裡刻意**不**宣稱：
 
