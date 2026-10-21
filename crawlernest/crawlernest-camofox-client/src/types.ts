@@ -21,7 +21,16 @@ export interface CamofoxClientOptions {
   baseUrl?: string;
   /** Session owner sent on every call. Camofox isolates browser contexts per userId. */
   userId: string;
-  /** Sent as `Authorization: Bearer <apiKey>` when CAMOFOX_ACCESS_KEY / CAMOFOX_API_KEY is set on the server. */
+  /**
+   * The server's CAMOFOX_ACCESS_KEY, sent as a Bearer token on every route. The
+   * server requires it everywhere once it is set.
+   */
+  accessKey?: string;
+  /**
+   * The server's CAMOFOX_API_KEY. Cookie import accepts only this key, and the
+   * trace routes accept it too, so it replaces accessKey on those routes. With
+   * no accessKey it is sent everywhere, which is harmless.
+   */
   apiKey?: string;
   /** Timeout for one attempt. Default 60 000 ms (the server's own handler timeout is 30 s plus queueing). */
   timeoutMs?: number;
@@ -195,6 +204,45 @@ export interface CloseTabResponse {
   ok: boolean;
   /** True when the server no longer knew the tab (already closed, or reaped). */
   alreadyClosed?: boolean;
+}
+
+/** A cookie in the shape POST /sessions/:userId/cookies accepts (Playwright's). */
+export interface CamofoxCookie {
+  name: string;
+  value: string;
+  domain: string;
+  path?: string;
+  /** Unix seconds; -1 for a session cookie. */
+  expires?: number;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: 'Strict' | 'Lax' | 'None';
+}
+
+export interface ImportCookiesResponse {
+  ok: boolean;
+  userId: string;
+  /** Cookies the server accepted, summed over every batch. */
+  count: number;
+  batches: number;
+}
+
+export interface TraceFile {
+  filename: string;
+  sizeBytes: number;
+  /** Milliseconds since the epoch. */
+  createdAt: number;
+  modifiedAt: number;
+}
+
+export interface HealthResponse {
+  ok: boolean;
+  engine: string;
+  browserConnected: boolean;
+  browserRunning: boolean;
+  activeTabs: number;
+  activeSessions: number;
+  [key: string]: unknown;
 }
 
 /** What the server tells the caller to do after an error (handleRouteError in server.js). */

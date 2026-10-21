@@ -47,7 +47,9 @@ Important subdirectories:
 TypeScript client for the camofox-browser REST API (`http://localhost:9377`): tabs, snapshot, click, type, navigate
 (including search macros) and close, with retries that never repeat a click or a keystroke that may already have
 happened. `parseSnapshot` turns a snapshot into the `CrawlPage` format. `src/agent/` is a Claude tool-use loop that
-browses with them and acts only on refs from the latest snapshot. `npm test`.
+browses with them and acts only on refs from the latest snapshot. `src/session.ts` and the `camofox-session` script
+import Netscape cookie files and save trace zips to `.local/logs/camofox-traces/`; the server's proxy settings are in
+`deploy/camofox.env.example`. `npm test`.
 
 ### `crawlernest/crawlernest-web/`
 
