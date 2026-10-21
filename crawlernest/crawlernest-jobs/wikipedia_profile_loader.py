@@ -1080,7 +1080,7 @@ def title_alias_rows(
     core = _JOBS_DIR.parent / "crawlernest-core"
     if str(core) not in sys.path:
         sys.path.insert(0, str(core))
-    from entity_resolution.alias_safety import alias_is_safe, has_disambiguator, resolver_keys
+    from entity_resolution.alias_safety import alias_collision, has_disambiguator, resolver_keys
 
     names = {uid: set().union(*(resolver_keys(n) for n in (display_name, *aliases)))
              for uid, _slug, display_name, _country, aliases in universities}
@@ -1102,7 +1102,7 @@ def title_alias_rows(
             skipped["disambiguated"] += 1
         elif resolver_keys(title) & names[uid]:
             skipped["already_a_name"] += 1
-        elif alias_is_safe(title, uid, names) or resolver_keys(title) & claimed:
+        elif alias_collision(title, uid, names) or resolver_keys(title) & claimed:
             skipped["collides"] += 1
         else:
             claimed |= resolver_keys(title)

@@ -838,7 +838,7 @@ def build_08() -> str:
     out += ["", "## Matching rules (from source)", "", f"### {link(er_dir / 'alias_safety.py')}", ""]
     if doc:
         out += [f"> {l}" if l else ">" for l in doc.group(1).strip().splitlines()]
-    for fn in ("has_disambiguator", "alias_is_safe"):
+    for fn in ("has_disambiguator", "alias_collision"):
         src = function_source(safety, fn)
         d = re.search(r'"""(.*?)"""', src, re.S)
         if d:
@@ -847,7 +847,7 @@ def build_08() -> str:
     if strip:
         out += ["", f"### Parenthesis handling in {link(er_dir / 'resolver.py')}", "", "```python", strip, "```"]
     out += ["", "Order the resolver tries (per CLAUDE.md): exact alias (country ignored) → display name → fuzzy "
-            "(0.85–0.90 band can attach to a different university). Ask `alias_is_safe` before writing aliases in bulk.", ""]
+            "(0.85–0.90 band can attach to a different university). Ask `alias_collision` (None means no other university is reached) before writing aliases in bulk.", ""]
 
     merges = sorted((KB_DIR / "entity_merges").glob("*.json"))
     if merges:
