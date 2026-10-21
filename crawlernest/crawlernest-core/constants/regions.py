@@ -141,6 +141,16 @@ COUNTRY_NAME_ALIASES: Dict[str, str] = {
     "state of palestine": "palestine",
     "republic of turkey": "turkey",
     "turkey (turkiye)": "turkey",
+    # QS's spellings from the crawl of 2026-10-21 on. The warehouse holds these countries under the
+    # earlier ones, so read as written they would split one country in two from that edition on.
+    "china": "china (mainland)",
+    "hong kong sar china": "hong kong sar",
+    "macao sar china": "macau sar",
+    "macao sar": "macau sar",
+    # "N/A" is the absence of a country, not a country called "N A". QS printed it for Northern Cyprus
+    # in the 2026-10-21 crawl.
+    "n/a": "",
+    "n a": "",
 }
 
 # Country slug aliases for URL matching
