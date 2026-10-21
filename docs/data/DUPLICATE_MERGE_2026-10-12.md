@@ -5,11 +5,11 @@
 `crawlernest/crawlernest-kb/entity_merges/duplicate_canonicals_2026-10-12.json` (one entry per merge, with the evidence),
 tested by `crawlernest-tests/test_merge_duplicate_canonicals.py`.
 
-**Status.** The 112 merges of `duplicate_canonicals_2026-10-12.json` are applied to `clawer`: each merged-away record
-is `status = 'merged'` and each survivor `active` (checked 2026-10-21). The Albany/Buffalo repair at the end of this
-document -- `restore_rejected_entities.py`, then the two merges of `duplicate_canonicals_2026-10-12b.json` -- is not
-applied yet: both of its merged-away records are still `active`. The figures below were measured on a rehearsal copy
-of the warehouse (`clawer_rehearsal`).
+**Status.** Applied to `clawer`. The 112 merges of `duplicate_canonicals_2026-10-12.json` on 2026-10-12. The
+Albany/Buffalo repair at the end of this document -- `restore_rejected_entities.py`, then the two merges of
+`duplicate_canonicals_2026-10-12b.json` -- on 2026-10-21, after a second rehearsal on a fresh copy: `verify` clean for
+both, 40 rows on their universities, and clawer's ranks, mappings and record statuses identical to the rehearsal's.
+The figures below were measured on the first rehearsal copy (`clawer_rehearsal`, 2026-10-12).
 
 **How it was found.** Matching universities to Wikipedia articles (`crawlernest-jobs/wikipedia_profile_loader.py`) put
 two records on one article 102 times. Looking at what each record held: in 94 of those pairs the two never appear in
