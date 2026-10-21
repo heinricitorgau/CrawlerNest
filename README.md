@@ -159,6 +159,7 @@ contract, EDA, metrics, and model cards.
 README.md, README.zh-TW.md, LICENSE
 crawlernest/                  the application
   crawlernest-web/            Next.js frontend
+  crawlernest-camofox-client/ TypeScript client for camofox-browser (port 9377) and its snapshot parser
   servise_for_java/           Spring Boot API
   crawlernest-core/           canonical resolution, aggregation
   crawlernest-ml/             feature layer, EDA, and models over the QS indicators
