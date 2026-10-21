@@ -159,7 +159,7 @@ contract, EDA, metrics, and model cards.
 README.md, README.zh-TW.md, LICENSE
 crawlernest/                  the application
   crawlernest-web/            Next.js frontend
-  crawlernest-camofox-client/ TypeScript client for camofox-browser (port 9377) and its snapshot parser
+  crawlernest-camofox-client/ TypeScript client for camofox-browser (port 9377), its snapshot parser, and a Claude browsing agent
   servise_for_java/           Spring Boot API
   crawlernest-core/           canonical resolution, aggregation
   crawlernest-ml/             feature layer, EDA, and models over the QS indicators
@@ -265,7 +265,7 @@ so that is what this table records rather than a list of names.
 | **API Tests** | The Spring Boot suite against a real PostgreSQL service, 259 tests, with the surefire reports uploaded as artifacts. Each integration class creates the tables and views it reads, because the service database starts empty and a test that relied on another class having run first passed locally and failed here. |
 | **Release Smoke** | Two jobs. Build artefacts — Java compile, Next.js build, Python syntax, readonly fixtures — and an analytics-bridge job that bootstraps PostgreSQL, seeds six universities, runs the warehouse→analytics bridge twice, starts Spring Boot, and checks that `/api/v1/rankings` serves what was written, followed by the endpoint liveness checks. |
 | **Data Quality** | Validates the golden regression dataset and the CI fixture files, then runs the ranking-regression and failure-summary runners in fixture mode — no database, no network. |
-| **Camofox Client Tests** | Runs only when `crawlernest/crawlernest-camofox-client/` or its workflow changes. Strict `tsc`, then the 23 unit tests of the camofox-browser client and snapshot parser: request shapes, which failures are retried and which are not, and snapshot parsing. The tests stub `fetch`; no browser server runs, so they say nothing about a live camofox-browser. |
+| **Camofox Client Tests** | Runs only when `crawlernest/crawlernest-camofox-client/` or its workflow changes. Strict `tsc`, then 39 unit tests of the camofox-browser client, the snapshot parser and the Claude browsing agent: request shapes, which failures are retried, snapshot parsing, and that the agent never acts on a ref missing from the latest snapshot. The tests stub `fetch`, the browser and the model; no browser server or API call runs, so they say nothing about a live camofox-browser or the Claude API. |
 
 Two things this deliberately does *not* claim:
 

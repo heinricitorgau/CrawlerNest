@@ -2,10 +2,20 @@
   "name": "@crawlernest/camofox-client",
   "version": "0.1.0",
   "private": true,
-  "description": "Typed client for the camofox-browser REST API and a parser from its snapshots to the CrawlerNest page format",
+  "description": "Typed client for the camofox-browser REST API, a parser from its snapshots to the CrawlerNest page format, and a Claude agent loop that browses with it",
   "type": "module",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    },
+    "./agent": {
+      "types": "./dist/src/agent/index.d.ts",
+      "default": "./dist/src/agent/index.js"
+    }
+  },
   "engines": {
     "node": ">=20"
   },
@@ -17,5 +27,8 @@
   "devDependencies": {
     "@types/node": "^20.11.0",
     "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.137.0"
   }
 }
