@@ -150,3 +150,39 @@ export type UniversityDetailResponse = {
     timestamp?: string;
   };
 };
+
+/** One section of a Wikipedia article. The lead comes first: level 1, no heading. */
+export type WikipediaSection = {
+  level: number;
+  heading: string | null;
+  text: string;
+};
+
+/**
+ * The Wikipedia article matched to a university (`/api/v1/universities/{id}/wikipedia`).
+ *
+ * Wikipedia's text under `license`, not CrawlerNest data: whatever renders
+ * `sections` must show `pageUrl`, the licence and `notice` with it.
+ */
+export type WikipediaArticle = {
+  canonicalUniversityId: number;
+  language: string;
+  wikidataId: string;
+  pageTitle: string;
+  pageUrl: string;
+  revisionId: number;
+  revisionUrl: string;
+  revisionTimestamp: string | null;
+  matchMethod: string;
+  license: string;
+  licenseUrl: string;
+  fetchedAt: string | null;
+  notice: string;
+  sections: WikipediaSection[];
+};
+
+export type WikipediaArticleResponse = {
+  success: boolean;
+  /** Null when no article is matched to the university. */
+  data: WikipediaArticle | null;
+};

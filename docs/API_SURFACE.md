@@ -25,6 +25,7 @@ This document lists the current Spring Boot API surface used by the product UI, 
 | `GET` | `/api/v1/universities` | Paginated university list. | University DTO list. |
 | `GET` | `/api/v1/universities/{id}` | University detail by id. | University detail with aggregate ranking, source rankings, admission requirements, and data quality fields. |
 | `GET` | `/api/v1/universities/by-slug/{slug}` | University detail by URL slug. | Same university detail shape as id lookup. |
+| `GET` | `/api/v1/universities/{id}/wikipedia` | The English Wikipedia article matched to one canonical university, for the introduction on its page. | `data` is the article (`pageTitle`, `pageUrl`, `revisionId`, `revisionUrl`, `license`, `notice`, `matchMethod`, and `sections` of `{level, heading, text}` with the lead first) or `null` when no article is matched. Always 200. The text is Wikipedia's under CC BY-SA 4.0, not warehouse data: render it with `pageUrl`, the licence and `notice`. |
 | `GET` | `/api/v1/preview/universities` | Canonical university preview lookup by id or name. | Canonical identity, aliases, ranking preview, and admission preview summary. |
 
 ## Recommendation and Comparison API

@@ -14,6 +14,8 @@ import type {
   AdmissionRequirements,
   UniversityDetail,
   UniversityDetailResponse,
+  WikipediaArticle as WikipediaArticleData,
+  WikipediaArticleResponse,
 } from "@/types/university";
 import type {
   SubjectRankingRow,
@@ -22,6 +24,7 @@ import type {
 import ShortlistButton from "@/components/ShortlistButton";
 import { CAVEAT_RANK_CHANGE, editionCaveats } from "@/lib/caveatMessages";
 import { SourceRankChange, anyEntityChanged, anyRankChangeShown } from "@/components/SourceRankChange";
+import { WikipediaArticle } from "@/components/WikipediaArticle";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -281,6 +284,19 @@ async function fetchUniversitySubjectRankings(canonicalUniversityId: number, yea
   }
 }
 
+async function fetchWikipediaArticle(canonicalUniversityId: number): Promise<WikipediaArticleData | null> {
+  try {
+    const response = await fetchJson<WikipediaArticleResponse>(
+      `/api/v1/universities/${canonicalUniversityId}/wikipedia`
+    );
+    return response.success ? response.data : null;
+  } catch (error) {
+    // The introduction is an extra: an API build without the endpoint must not take the page down.
+    console.error("Wikipedia article fetch failed", error);
+    return null;
+  }
+}
+
 function formatSubjectScore(score?: number | null) {
   if (typeof score !== "number" || !Number.isFinite(score)) {
     return "—";
@@ -426,7 +442,10 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
       : evidenceSummary.agreementLevel === "moderate"
         ? "bg-amber-50 text-amber-800 border-amber-200"
         : "bg-rose-50 text-rose-800 border-rose-200";
-  const subjectRankings = await fetchUniversitySubjectRankings(detail.canonicalUniversityId, year);
+  const [subjectRankings, wikipediaArticle] = await Promise.all([
+    fetchUniversitySubjectRankings(detail.canonicalUniversityId, year),
+    fetchWikipediaArticle(detail.canonicalUniversityId),
+  ]);
   // The edition the API read; the requested one if an older API does not say.
   const edition = detail.rankingYear ?? year;
   const rankedInEdition = detail.aggregatedRanking != null;
@@ -503,6 +522,10 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
           
           {/* Main Column */}
           <div className="lg:col-span-2">
+            <Section title="About · from Wikipedia">
+              <WikipediaArticle article={wikipediaArticle} />
+            </Section>
+
             <Section title="Ranking Evidence (QS / THE / ARWU)">
               <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
