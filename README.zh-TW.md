@@ -133,6 +133,7 @@ EDA、指標與 model cards。
 README.md、README.zh-TW.md、LICENSE
 crawlernest/                  應用程式本體
   crawlernest-web/            Next.js 前端
+  crawlernest-camofox-client/ camofox-browser（port 9377）的 TypeScript 客戶端與快照解析器
   servise_for_java/           Spring Boot API
   crawlernest-core/           canonical 解析、aggregation
   crawlernest-ml/             QS 指標的特徵層、EDA 與模型

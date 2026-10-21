@@ -42,6 +42,12 @@ Important subdirectories:
 - `crawlernest/requirements.txt`, `crawlernest/requirements-ml.txt`: Python dependencies.
 - `crawlernest/crawlernest-tests/`: the Python test suite (`run_tests.py`), and `admission_pytest/` for the pytest-style admission tests.
 
+### `crawlernest/crawlernest-camofox-client/`
+
+TypeScript client for the camofox-browser REST API (`http://localhost:9377`): tabs, snapshot, click, type, navigate
+(including search macros) and close, with retries that never repeat a click or a keystroke that may already have
+happened. `parseSnapshot` turns a snapshot into the `CrawlPage` format. No runtime dependencies; `npm test`.
+
 ### `crawlernest/crawlernest-web/`
 
 Next.js frontend. It contains user-facing pages, API proxy routes, React components, hooks, and frontend types.
