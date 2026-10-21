@@ -1,3 +1,5 @@
+import { ApiError } from "@/lib/apiError";
+
 const DEFAULT_API_BASE_URL = "http://localhost:8080";
 const DEFAULT_AGENT_API_BASE_URL = "http://localhost:8090";
 
@@ -33,7 +35,7 @@ export async function fetchJson<T>(
   });
 
   if (!res.ok) {
-    throw new Error(`Request failed with status ${res.status}`);
+    throw new ApiError(res.status);
   }
 
   return res.json() as Promise<T>;

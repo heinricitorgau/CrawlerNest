@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { fetchJson } from "@/lib/api";
+import { ApiError } from "@/lib/apiError";
 import { CaveatBanner } from "@/components/CaveatBanner";
 import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
 import { YEAR_QUERY_PARAM, hrefForEdition, resolveSelectedYear } from "@/lib/datasetScope";
@@ -375,6 +377,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
   const editionHref = (href: string) => hrefForEdition(href, year);
   let detail: UniversityDetail | null = null;
   let timestamp: string | undefined;
+  let missing = false;
 
   try {
     const response = await fetchUniversityDetail(slug, year);
@@ -383,15 +386,27 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
       timestamp = response.metadata?.timestamp;
     }
   } catch (err) {
-    console.error("Detail fetch failed", err);
+    // Only the API's own 404 means the university does not exist. Anything else -- a 5xx, the API not running --
+    // is our failure to answer, and must not be reported to the reader as "not in our database".
+    if (err instanceof ApiError && err.status === 404) {
+      missing = true;
+    } else {
+      console.error("Detail fetch failed", err);
+    }
+  }
+
+  if (missing) {
+    notFound();
   }
 
   if (!detail) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center max-w-md p-8 bg-white border border-slate-200 rounded-lg shadow-lg">
-          <h1 className="text-2xl font-bold text-slate-900 mb-4">University Not Found</h1>
-          <p className="text-slate-600 mb-6">The university with slug "{slug}" could not be located in our database.</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-4">University details unavailable</h1>
+          <p className="text-slate-600 mb-6">
+            Unable to load university details. Please confirm the API server is running.
+          </p>
           <Link href={editionHref("/")} className="inline-block px-6 py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700 transition-colors">
             Back to Rankings
           </Link>
