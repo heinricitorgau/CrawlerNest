@@ -159,6 +159,9 @@ def run_all_tests():
         # Merging duplicate canonicals: what it refuses (two records one table ranks, a name that is also
         # another university's), the alias guard, and the country spellings. The merge itself needs PostgreSQL.
         "test_merge_duplicate_canonicals",
+        # QS's country spellings from 2026-10-21 ("China", "Hong Kong SAR, China", "N/A"), read as the
+        # countries the warehouse holds by the crawler, the resolver and the Wikipedia loader.
+        "test_country_spellings",
         "test_pairing_matches_warehouse",
         # The 2026 single-year dataset declaration: that the explainers put it
         # in front of the model, and that the query defaults still agree with

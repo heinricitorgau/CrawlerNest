@@ -468,7 +468,7 @@ class EntityResolver:
             "united states": ["united states", "united states of america", "usa"],
             "south korea": ["south korea", "korea, south", "republic of korea"],
             "taiwan": ["taiwan", "taiwan (province of china)", "china-taiwan"],
-            "hong kong": ["hong kong", "hong kong sar", "hong kong s.a.r."],
+            "hong kong": ["hong kong", "hong kong sar", "hong kong s.a.r.", "hong kong sar china", "hong kong sar, china"],
             "iran": ["iran", "iran (islamic republic of)"],
             "russia": ["russia", "russian federation"],
             # THE writes "Türkiye" and "Czechia"; QS and ARWU "Turkey" and "Czech Republic".
@@ -477,7 +477,8 @@ class EntityResolver:
             # a country mismatch.
             "turkey": ["turkey", "türkiye", "turkiye"],
             "czech republic": ["czech republic", "czechia"],
-            "macau": ["macau", "macau sar", "macao", "macao sar"],
+            # QS from 2026-10-21: "Hong Kong SAR, China" and "Macao SAR, China".
+            "macau": ["macau", "macau sar", "macao", "macao sar", "macao sar china", "macao sar, china"],
         }
         for variants in variant_groups.values():
             if base in variants:

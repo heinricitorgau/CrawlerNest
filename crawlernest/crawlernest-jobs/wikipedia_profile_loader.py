@@ -106,6 +106,10 @@ COUNTRY_SYNONYMS: dict[str, tuple[str, ...]] = {
     "china taiwan": ("taiwan",),
     "hong kong sar": ("hong kong", "people's republic of china"),
     "macau sar": ("macau", "people's republic of china"),
+    # QS's spellings from 2026-10-21 on, should a record ever be created under them.
+    "hong kong sar china": ("hong kong", "people's republic of china"),
+    "macao sar china": ("macau", "people's republic of china"),
+    "macao sar": ("macau", "people's republic of china"),
     "bosnia herzegovina": ("bosnia and herzegovina",),
     "congo brazzaville": ("republic of the congo",),
     "myanmar burma": ("myanmar",),
