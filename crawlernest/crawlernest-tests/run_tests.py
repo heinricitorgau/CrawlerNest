@@ -162,6 +162,9 @@ def run_all_tests():
         # QS's country spellings from 2026-10-21 ("China", "Hong Kong SAR, China", "N/A"), read as the
         # countries the warehouse holds by the crawler, the resolver and the Wikipedia loader.
         "test_country_spellings",
+        # seed-university-alias adds an alias and leaves the university alone (it used to rewrite its
+        # display_name_normalized in title case). The seeding cases need PostgreSQL and roll back.
+        "test_alias_seed",
         "test_pairing_matches_warehouse",
         # The 2026 single-year dataset declaration: that the explainers put it
         # in front of the model, and that the query defaults still agree with
