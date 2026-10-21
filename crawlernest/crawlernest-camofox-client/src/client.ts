@@ -3,23 +3,30 @@ import { DEFAULT_RETRY_POLICY, backoffDelay, isRetryable } from './retry.js';
 import type {
   ActionResponse,
   CamofoxClientOptions,
+  CamofoxCookie,
   CamofoxErrorBody,
   ClickOptions,
   CloseTabResponse,
   CreateTabRequest,
   CreateTabResponse,
   ElementTarget,
+  HealthResponse,
+  ImportCookiesResponse,
   NavigateResponse,
   NavigateTarget,
   RetryInfo,
   RetryPolicy,
   SnapshotOptions,
   SnapshotResponse,
+  TraceFile,
   TypeOptions,
 } from './types.js';
 
 export const DEFAULT_BASE_URL = 'http://localhost:9377';
 const DEFAULT_TIMEOUT_MS = 60_000;
+/** The server rejects more than 500 cookies, or a body over 512 KB, in one request. */
+const COOKIE_BATCH_SIZE = 500;
+const COOKIE_BATCH_BYTES = 400_000;
 
 interface RequestSpec {
   method: 'GET' | 'POST' | 'DELETE';
@@ -28,12 +35,17 @@ interface RequestSpec {
   body?: Record<string, unknown>;
   /** Safe to send twice; see isRetryable. */
   idempotent: boolean;
+  /** "api" for the routes that check CAMOFOX_API_KEY (cookies, traces). Default "access". */
+  auth?: 'access' | 'api';
+  /** Return the body as bytes instead of parsing JSON. */
+  binary?: boolean;
 }
 
 /** Thin, typed wrapper over the camofox-browser tab API. */
 export class CamofoxClient {
   readonly baseUrl: string;
   readonly userId: string;
+  private readonly accessKey: string | undefined;
   private readonly apiKey: string | undefined;
   private readonly timeoutMs: number;
   private readonly retry: RetryPolicy;
@@ -45,6 +57,7 @@ export class CamofoxClient {
     if (!options.userId) throw new TypeError('CamofoxClient: userId is required');
     this.baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
     this.userId = options.userId;
+    this.accessKey = options.accessKey;
     this.apiKey = options.apiKey;
     this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.retry = { ...DEFAULT_RETRY_POLICY, ...options.retry };
@@ -154,6 +167,70 @@ export class CamofoxClient {
     }
   }
 
+  /** GET /health */
+  health(): Promise<HealthResponse> {
+    return this.request<HealthResponse>({ method: 'GET', path: '/health', idempotent: true });
+  }
+
+  /**
+   * POST /sessions/:userId/cookies, in batches the server accepts. Cookies
+   * apply to the user's browser context, so import them before opening the
+   * tabs that need them. Needs `apiKey` when the server sets CAMOFOX_API_KEY;
+   * without it the server allows only loopback callers outside production.
+   */
+  async importCookies(cookies: CamofoxCookie[], options: { userId?: string } = {}): Promise<ImportCookiesResponse> {
+    const userId = options.userId ?? this.userId;
+    let count = 0;
+    const batches = cookieBatches(cookies);
+    for (const batch of batches) {
+      const response = await this.request<{ ok: boolean; count?: number }>({
+        method: 'POST',
+        path: `/sessions/${encodeURIComponent(userId)}/cookies`,
+        body: { cookies: batch },
+        // Setting the same cookies twice leaves the same jar.
+        idempotent: true,
+        auth: 'api',
+      });
+      count += response.count ?? batch.length;
+    }
+    return { ok: true, userId, count, batches: batches.length };
+  }
+
+  /**
+   * DELETE /sessions/:userId: closes every tab and the browser context. A
+   * session started with `trace: true` writes its trace zip at this point and
+   * not before.
+   */
+  closeSession(options: { userId?: string } = {}): Promise<{ ok: boolean }> {
+    return this.request<{ ok: boolean }>({
+      method: 'DELETE',
+      path: `/sessions/${encodeURIComponent(options.userId ?? this.userId)}`,
+      idempotent: true,
+    });
+  }
+
+  /** GET /sessions/:userId/traces */
+  async listTraces(options: { userId?: string } = {}): Promise<TraceFile[]> {
+    const response = await this.request<{ traces: TraceFile[] }>({
+      method: 'GET',
+      path: `/sessions/${encodeURIComponent(options.userId ?? this.userId)}/traces`,
+      idempotent: true,
+      auth: 'api',
+    });
+    return response.traces ?? [];
+  }
+
+  /** GET /sessions/:userId/traces/:filename, as bytes. */
+  downloadTrace(filename: string, options: { userId?: string } = {}): Promise<Uint8Array> {
+    return this.request<Uint8Array>({
+      method: 'GET',
+      path: `/sessions/${encodeURIComponent(options.userId ?? this.userId)}/traces/${encodeURIComponent(filename)}`,
+      idempotent: true,
+      auth: 'api',
+      binary: true,
+    });
+  }
+
   private async request<T>(spec: RequestSpec): Promise<T> {
     for (let attempt = 1; ; attempt += 1) {
       try {
@@ -177,7 +254,8 @@ export class CamofoxClient {
     }
     const headers: Record<string, string> = { accept: 'application/json' };
     if (spec.body) headers['content-type'] = 'application/json';
-    if (this.apiKey) headers.authorization = `Bearer ${this.apiKey}`;
+    const token = spec.auth === 'api' ? this.apiKey ?? this.accessKey : this.accessKey ?? this.apiKey;
+    if (token) headers.authorization = `Bearer ${token}`;
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
@@ -186,6 +264,7 @@ export class CamofoxClient {
 
     let response: Response;
     let raw: string;
+    let bytes: Uint8Array | null = null;
     try {
       response = await this.fetchImpl(url, {
         method: spec.method,
@@ -193,13 +272,20 @@ export class CamofoxClient {
         body: spec.body ? JSON.stringify(dropUndefined(spec.body)) : undefined,
         signal: controller.signal,
       });
-      raw = await response.text();
+      if (spec.binary && response.ok) {
+        bytes = new Uint8Array(await response.arrayBuffer());
+        raw = '';
+      } else {
+        raw = await response.text();
+      }
     } catch (error) {
       if (controller.signal.aborted) throw fail('timeout', `no response within ${this.timeoutMs} ms`, { cause: error });
       throw fail('network', (error as Error).message ?? String(error), { cause: error });
     } finally {
       clearTimeout(timer);
     }
+
+    if (bytes) return bytes as T;
 
     let parsed: unknown = null;
     if (raw) {
@@ -219,6 +305,25 @@ export class CamofoxClient {
     }
     return parsed as T;
   }
+}
+
+/** Split cookies into requests under the server's count and body-size limits. */
+function cookieBatches(cookies: CamofoxCookie[]): CamofoxCookie[][] {
+  const batches: CamofoxCookie[][] = [];
+  let current: CamofoxCookie[] = [];
+  let bytes = 0;
+  for (const cookie of cookies) {
+    const size = JSON.stringify(cookie).length + 1;
+    if (current.length && (current.length >= COOKIE_BATCH_SIZE || bytes + size > COOKIE_BATCH_BYTES)) {
+      batches.push(current);
+      current = [];
+      bytes = 0;
+    }
+    current.push(cookie);
+    bytes += size;
+  }
+  if (current.length) batches.push(current);
+  return batches;
 }
 
 function elementTarget(target: ElementTarget | string): ElementTarget {

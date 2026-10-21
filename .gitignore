@@ -115,6 +115,8 @@ decisions.csv.*
 # Real secrets for the docker stack; deploy/.env.example is the committed template.
 .env
 .env.local
+# Real camofox-browser secrets; deploy/camofox.env.example is the committed template.
+deploy/camofox.env
 
 # Separate MXC sandbox checkout (lives at ~/dev/mxc now; ignore if re-cloned here)
 /mxc/

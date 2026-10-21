@@ -16,13 +16,17 @@
       "default": "./dist/src/agent/index.js"
     }
   },
+  "bin": {
+    "camofox-session": "dist/src/bin/camofox-session.js"
+  },
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "tsc -p tsconfig.json && node --test dist/test/",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "session": "node dist/src/bin/camofox-session.js"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

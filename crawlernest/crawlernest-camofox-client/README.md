@@ -8,7 +8,7 @@ entry point (`@crawlernest/camofox-client/agent`), loads `@anthropic-ai/sdk`.
 ```ts
 import { CamofoxClient, CamofoxError, parseSnapshot } from '@crawlernest/camofox-client';
 
-const camofox = new CamofoxClient({ userId: 'qs-crawler', apiKey: process.env.CAMOFOX_ACCESS_KEY });
+const camofox = new CamofoxClient({ userId: 'qs-crawler', accessKey: process.env.CAMOFOX_ACCESS_KEY });
 
 const page = await camofox.withTab({ sessionKey: 'qs-2026', url: 'https://www.topuniversities.com/' }, async (tabId) => {
   const first = parseSnapshot(await camofox.snapshot(tabId));
@@ -27,8 +27,15 @@ const page = await camofox.withTab({ sessionKey: 'qs-2026', url: 'https://www.to
 | `navigate(tabId, url \| { macro: '@google_search', query })` | `POST /tabs/:id/navigate` |
 | `closeTab(tabId)` | `DELETE /tabs/:id` (a tab the server no longer knows counts as closed) |
 | `withTab(request, work)` | creates a tab and closes it when `work` ends, even if it throws |
+| `health()` | `GET /health` |
+| `importCookies(cookies)` | `POST /sessions/:userId/cookies`, in batches of at most 500 |
+| `closeSession()` | `DELETE /sessions/:userId` (this is when a traced session writes its zip) |
+| `listTraces()`, `downloadTrace(filename)` | `GET /sessions/:userId/traces[/:filename]` |
 
 Every method accepts a `userId` override; otherwise the client's `userId` is sent.
+
+The server has two keys. `accessKey` (its `CAMOFOX_ACCESS_KEY`) is sent on every route. `apiKey` (its
+`CAMOFOX_API_KEY`) replaces it on the cookie and trace routes, because cookie import accepts no other key.
 
 ## Retries
 
@@ -69,6 +76,33 @@ The snapshot has no `<title>`. `primaryHeading` is the first level-1 heading, an
 A page longer than 80,000 characters arrives in windows. Each window is the next part of the snapshot plus the last
 5,000 characters, so the pagination links are always present. Pass `completeness.nextOffset` to
 `snapshot(tabId, { offset })` to read the next window. A window that starts mid-line puts that line in `warnings`.
+
+## Sessions: cookies, proxy, traces
+
+```bash
+cp deploy/camofox.env.example deploy/camofox.env       # gitignored; fill in keys and proxy
+cd camofox-browser && node --env-file=../deploy/camofox.env server.js
+
+cd crawlernest/crawlernest-camofox-client && npm run build
+node --env-file=../../deploy/camofox.env dist/src/bin/camofox-session.js \
+  init --cookies ~/.camofox/cookies/target.txt --url https://example.com/ --trace
+# ... run the crawl or the agent with the same CAMOFOX_USER_ID ...
+node --env-file=../../deploy/camofox.env dist/src/bin/camofox-session.js save-traces
+```
+
+- **Cookies:** `init --cookies` reads a Netscape cookie file (the `cookies.txt` that curl, yt-dlp and the browser
+  extensions write) and imports it into the user's browser context before any tab opens. It reports expired or
+  malformed lines and does not send them. A session cookie (expiry 0) goes as `-1`; sent as `0`, Playwright would set
+  it already expired. In code, use `readNetscapeCookieFile` and `client.importCookies`, or `initSession`.
+- **Proxy and GeoIP need no client code.** camofox-browser reads `PROXY_*` from its environment when it starts, and no
+  REST call changes them. With a proxy it turns on GeoIP itself, so each context takes the timezone, locale and
+  coordinates of the exit IP. All of it is in [`deploy/camofox.env.example`](../../deploy/camofox.env.example).
+  `PROXY_STRATEGY=backconnect` reads `PROXY_BACKCONNECT_HOST`/`PORT`, not `PROXY_HOST`/`PORT`. If it is missing a
+  value, the server starts without a proxy rather than failing, so check its log for `proxy pool created`.
+- **Traces:** the server accepts `trace` only on a session's first tab (`init --trace`, or
+  `createTab({ trace: true })`), and writes the zip only when the session closes. `save-traces` closes the session,
+  then downloads every zip to `.local/logs/camofox-traces/`; `saveTraces(client, dir)` does the same in code. Open a
+  zip at https://trace.playwright.dev or with `npx playwright show-trace`.
 
 ## The browsing agent
 
