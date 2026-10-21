@@ -1,0 +1,26 @@
+{
+ "decided_on": "2026-10-12",
+ "decided_by": "claude-code, at the direction of ek2412045@gmail.com",
+ "merged_by": "duplicate-canonical-merge-2026-10-12b",
+ "requires": "crawlernest/scripts/restore_rejected_entities.py, applied first: until Albany's QS row is off the Buffalo record the two Buffalo records are ranked in one table, and the merge refuses.",
+ "merges": [
+  {
+   "loser_slug": "university-at-buffalo-the-state-university-of-new-york",
+   "loser_name": "University at Buffalo, the State University of New York",
+   "survivor_slug": "university-at-buffalo-suny",
+   "survivor_name": "University at Buffalo SUNY",
+   "evidence": "wikidata:Q681025",
+   "why": "Both records are matched to the English Wikipedia article \"University at Buffalo\" (Q681025). The loser holds ARWU's Buffalo ranks; the QS row that made the two look like different universities was the University at Albany's, since moved to the Albany record.",
+   "overlap": "none"
+  },
+  {
+   "loser_slug": "federal-university-of-sao-paulo",
+   "loser_name": "Federal University of Sao Paulo",
+   "survivor_slug": "universidade-federal-de-são-paulo",
+   "survivor_name": "Universidade Federal de São Paulo",
+   "evidence": "mapping_review:18",
+   "why": "Empty record: created on 2026-09-20 for ARWU's \"Federal University of Sao Paulo\", whose entity review 18 now remaps to the survivor, the record QS and THE use for UNIFESP. It holds no rows and no mappings.",
+   "overlap": "none"
+  }
+ ]
+}
