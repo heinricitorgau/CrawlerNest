@@ -1,0 +1,40 @@
+name: Camofox Client Tests
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "crawlernest/crawlernest-camofox-client/**"
+      - ".github/workflows/camofox-client-tests.yml"
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "crawlernest/crawlernest-camofox-client/**"
+      - ".github/workflows/camofox-client-tests.yml"
+
+jobs:
+  camofox-client:
+    name: camofox client / type-check and unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crawlernest/crawlernest-camofox-client
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: crawlernest/crawlernest-camofox-client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # tsc runs in strict mode first, so a type error fails the job before the
+      # tests do. The tests stub fetch: no camofox-browser server is started.
+      - name: Type-check, build and test
+        run: npm test

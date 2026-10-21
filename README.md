@@ -254,7 +254,7 @@ own data directly from the ranking sources:
 
 ## Continuous Integration
 
-Six workflows, ten jobs. What each one is worth depends on whether it can fail,
+Seven workflows, eleven jobs. What each one is worth depends on whether it can fail,
 so that is what this table records rather than a list of names.
 
 | Workflow | What it actually executes |
@@ -265,6 +265,7 @@ so that is what this table records rather than a list of names.
 | **API Tests** | The Spring Boot suite against a real PostgreSQL service, 259 tests, with the surefire reports uploaded as artifacts. Each integration class creates the tables and views it reads, because the service database starts empty and a test that relied on another class having run first passed locally and failed here. |
 | **Release Smoke** | Two jobs. Build artefacts — Java compile, Next.js build, Python syntax, readonly fixtures — and an analytics-bridge job that bootstraps PostgreSQL, seeds six universities, runs the warehouse→analytics bridge twice, starts Spring Boot, and checks that `/api/v1/rankings` serves what was written, followed by the endpoint liveness checks. |
 | **Data Quality** | Validates the golden regression dataset and the CI fixture files, then runs the ranking-regression and failure-summary runners in fixture mode — no database, no network. |
+| **Camofox Client Tests** | Runs only when `crawlernest/crawlernest-camofox-client/` or its workflow changes. Strict `tsc`, then the 23 unit tests of the camofox-browser client and snapshot parser: request shapes, which failures are retried and which are not, and snapshot parsing. The tests stub `fetch`; no browser server runs, so they say nothing about a live camofox-browser. |
 
 Two things this deliberately does *not* claim:
 

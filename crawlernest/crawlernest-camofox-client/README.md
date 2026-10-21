@@ -75,3 +75,4 @@ npm install && npm test
 ```
 
 The tests replace `fetch`, so the server does not have to be running. They have not been run against a live server.
+CI runs them in `.github/workflows/camofox-client-tests.yml` whenever this folder changes.
