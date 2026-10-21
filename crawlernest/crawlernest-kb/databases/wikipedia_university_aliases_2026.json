@@ -1,0 +1,5586 @@
+[
+ {
+  "canonical_slug_hint": "Abdelhafid Boussouf University Center of Mila",
+  "canonical_university_id": 363396,
+  "alias_text": "University of Mila",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Adam Mickiewicz University, Poznań",
+  "canonical_university_id": 761,
+  "alias_text": "Adam Mickiewicz University in Poznań",
+  "country": "Poland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Ahmadu Bello University, Zaria",
+  "canonical_university_id": 363409,
+  "alias_text": "Ahmadu Bello University",
+  "country": "Nigeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Al Akhawayn University Ifrane",
+  "canonical_university_id": 363419,
+  "alias_text": "Al Akhawayn University",
+  "country": "Morocco",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Al-Balqa Applied University",
+  "canonical_university_id": 1200,
+  "alias_text": "Al-Balqaʼ Applied University",
+  "country": "Jordan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Al-Muthanna University",
+  "canonical_university_id": 363429,
+  "alias_text": "Al-Muthana University",
+  "country": "Iraq",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Al Nahrain University",
+  "canonical_university_id": 363423,
+  "alias_text": "Nahrain University",
+  "country": "Iraq",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "All India Institute of Medical Sciences",
+  "canonical_university_id": 561057,
+  "alias_text": "All India Institute of Medical Sciences, Delhi",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Amity University - Chhattisgarh",
+  "canonical_university_id": 363449,
+  "alias_text": "Amity University, Raipur",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Amity University - Maharashtra",
+  "canonical_university_id": 363452,
+  "alias_text": "Amity University, Mumbai",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Amity University - Rajasthan",
+  "canonical_university_id": 363453,
+  "alias_text": "Amity University, Jaipur",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Applied Science Private University - Jordan",
+  "canonical_university_id": 851,
+  "alias_text": "Applied Science Private University",
+  "country": "Jordan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Arid Agriculture University",
+  "canonical_university_id": 363483,
+  "alias_text": "Pir Mehr Ali Shah Arid Agriculture University",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Auezov South Kazakhstan University (SKU)",
+  "canonical_university_id": 621,
+  "alias_text": "Auezov South Kazakhstan State University",
+  "country": "Kazakhstan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Babasaheb Bhimrao Ambedkar University, Lucknow",
+  "canonical_university_id": 363508,
+  "alias_text": "Babasaheb Bhimrao Ambedkar University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Badr University in Cairo",
+  "canonical_university_id": 363510,
+  "alias_text": "Badr University",
+  "country": "Egypt",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Bauhaus-Universität Weimar",
+  "canonical_university_id": 363527,
+  "alias_text": "Bauhaus University, Weimar",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Benemerita Universidad Autonoma de Puebla",
+  "canonical_university_id": 1210,
+  "alias_text": "Meritorious Autonomous University of Puebla",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Berner Fachhochschule",
+  "canonical_university_id": 363546,
+  "alias_text": "Bern University of Applied Sciences",
+  "country": "Switzerland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Beuth Hochschule für Technik Berlin",
+  "canonical_university_id": 363547,
+  "alias_text": "Berliner Hochschule für Technik",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Bina Nusantara University (BINUS)",
+  "canonical_university_id": 954,
+  "alias_text": "BINUS University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Binghamton University SUNY",
+  "canonical_university_id": 1016,
+  "alias_text": "Binghamton University",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Birla Institute of Technology and Science, Pilani",
+  "canonical_university_id": 806,
+  "alias_text": "BITS Pilani",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "BNUT - Babol Noshirvani University of Technology",
+  "canonical_university_id": 363506,
+  "alias_text": "Babol Noshirvani University of Technology",
+  "country": "Iran",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Bohdan Khmelnytsky National University of Cherkasy",
+  "canonical_university_id": 363557,
+  "alias_text": "Cherkasy National University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Brandenburgische Technische Universität Cottbus - Senftenberg",
+  "canonical_university_id": 363562,
+  "alias_text": "Brandenburg University of Technology",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Bucharest University of Economic Studies",
+  "canonical_university_id": 363565,
+  "alias_text": "Bucharest Academy of Economic Studies",
+  "country": "Romania",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "California Polytechnic State University",
+  "canonical_university_id": 1399,
+  "alias_text": "California Polytechnic State University, San Luis Obispo",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Capital University of Science and Technology Islamabad",
+  "canonical_university_id": 363590,
+  "alias_text": "Capital University of Science & Technology",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Carinthia University of Applied Sciences CUAS",
+  "canonical_university_id": 363593,
+  "alias_text": "Carinthia University of Applied Sciences",
+  "country": "Austria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Catholic University of Ghana",
+  "canonical_university_id": 363597,
+  "alias_text": "Catholic University College of Ghana",
+  "country": "Ghana",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Central Queensland University (CQUniversity Australia)",
+  "canonical_university_id": 492,
+  "alias_text": "CQUniversity Australia",
+  "country": "Australia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Centro Universitario de Araraquara",
+  "canonical_university_id": 363612,
+  "alias_text": "University of Araraquara",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Centro Universitario de Belo Horizonte",
+  "canonical_university_id": 363613,
+  "alias_text": "University Center of Belo Horizonte",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Charité - Universitätsmedizin Berlin",
+  "canonical_university_id": 363627,
+  "alias_text": "Charité",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Chaudhary Charan Singh University, Meerut",
+  "canonical_university_id": 363628,
+  "alias_text": "Chaudhary Charan Singh University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "City St George’s, University of London",
+  "canonical_university_id": 363660,
+  "alias_text": "St George's, University of London",
+  "country": "United Kingdom",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Comenius University Bratislava",
+  "canonical_university_id": 661,
+  "alias_text": "Comenius University",
+  "country": "Slovakia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Constantin Brâncuși University",
+  "canonical_university_id": 363670,
+  "alias_text": "Constantin Brâncuși University of Târgu Jiu",
+  "country": "Romania",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Cracow University of Economics",
+  "canonical_university_id": 363678,
+  "alias_text": "Kraków University of Economics",
+  "country": "Poland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Cracow University of Technology (Politechnika Krakowska)",
+  "canonical_university_id": 1025,
+  "alias_text": "Tadeusz Kościuszko Kraków University of Technology",
+  "country": "Poland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "CUNY Graduate School and University Center",
+  "canonical_university_id": 560888,
+  "alias_text": "CUNY Graduate Center",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "CUNY Hunter College",
+  "canonical_university_id": 561031,
+  "alias_text": "Hunter College",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Dalarna University",
+  "canonical_university_id": 363686,
+  "alias_text": "Dalarna University College",
+  "country": "Sweden",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Danube University Krems",
+  "canonical_university_id": 363695,
+  "alias_text": "University for Continuing Education Krems",
+  "country": "Austria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Daugavpils University",
+  "canonical_university_id": 363698,
+  "alias_text": "University of Daugavpils",
+  "country": "Latvia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Dnipro University of Technology",
+  "canonical_university_id": 363713,
+  "alias_text": "Dnipro Polytechnic",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Dr. Harisingh Gour Vishwavidyalaya",
+  "canonical_university_id": 363726,
+  "alias_text": "Dr. Hari Singh Gour University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "\"Dunarea de Jos\" University of Galati",
+  "canonical_university_id": 363389,
+  "alias_text": "University of Galați",
+  "country": "Romania",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Ecole des Ponts ParisTech",
+  "canonical_university_id": 363743,
+  "alias_text": "École nationale des ponts et chaussées",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "El Colegio de México, A.C.",
+  "canonical_university_id": 772,
+  "alias_text": "El Colegio de México",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "EPFL – École polytechnique fédérale de Lausanne",
+  "canonical_university_id": 26,
+  "alias_text": "École Polytechnique Fédérale de Lausanne",
+  "country": "Switzerland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Escuela Colombiana de Ingeniería Julio Garavito",
+  "canonical_university_id": 363754,
+  "alias_text": "Escuela Colombiana de Ingeniería",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Escuela Superior Politécnica del Litoral (ESPOL)",
+  "canonical_university_id": 1028,
+  "alias_text": "ESPOL Polytechnic University",
+  "country": "Ecuador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "ESPCI ParisTech",
+  "canonical_university_id": 561010,
+  "alias_text": "ESPCI Paris",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Fachhochschule Aachen",
+  "canonical_university_id": 363765,
+  "alias_text": "FH Aachen",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Fachhochschule Bielefeld",
+  "canonical_university_id": 363766,
+  "alias_text": "Bielefeld University of Applied Sciences",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Fachhochschule Bonn-Rhein-Sieg",
+  "canonical_university_id": 363767,
+  "alias_text": "Hochschule Bonn-Rhein-Sieg University of Applied Sciences",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Fachhochschule Deggendorf",
+  "canonical_university_id": 363768,
+  "alias_text": "Deggendorf Institute of Technology",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Fachhochschule Münster",
+  "canonical_university_id": 363770,
+  "alias_text": "FH Münster",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Fahad Bin Sultan University",
+  "canonical_university_id": 363772,
+  "alias_text": "Fahd bin Sultan University",
+  "country": "Saudi Arabia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Federal Urdu University of Arts, Science and Technology",
+  "canonical_university_id": 363786,
+  "alias_text": "Federal Urdu University",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Freie Universitaet Berlin",
+  "canonical_university_id": 97,
+  "alias_text": "Free University of Berlin",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Fundação Universidade Federal do Vale do São Francisco",
+  "canonical_university_id": 363808,
+  "alias_text": "Federal University of the São Francisco Valley",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Gauhati University, Guwahati",
+  "canonical_university_id": 363824,
+  "alias_text": "Gauhati University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Georgia Institute of Technology",
+  "canonical_university_id": 115,
+  "alias_text": "Georgia Tech",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Ghulam Ishaq Khan (GIK), Institute of Engineering Sciences and Technology",
+  "canonical_university_id": 363828,
+  "alias_text": "Ghulam Ishaq Khan Institute of Engineering Sciences and Technology",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Goce Delchev University",
+  "canonical_university_id": 363831,
+  "alias_text": "Goce Delčev University of Štip",
+  "country": "North Macedonia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Govind Ballabh Pant University of Agriculture and Technology",
+  "canonical_university_id": 363840,
+  "alias_text": "G. B. Pant University of Agriculture and Technology",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Grenoble Ecole de Management",
+  "canonical_university_id": 363844,
+  "alias_text": "Grenoble School of Management",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Halmstad University",
+  "canonical_university_id": 363889,
+  "alias_text": "Halmstad University, Sweden",
+  "country": "Sweden",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hanze University of Applied Sciences, Groningen",
+  "canonical_university_id": 363900,
+  "alias_text": "Hanze University of Applied Sciences",
+  "country": "Netherlands",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Harokopio University of Athens",
+  "canonical_university_id": 363906,
+  "alias_text": "Harokopio University",
+  "country": "Greece",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hindustan Institute of Technology and Science, Chennai",
+  "canonical_university_id": 363931,
+  "alias_text": "Hindustan Institute of Technology and Science",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule Augsburg",
+  "canonical_university_id": 363938,
+  "alias_text": "Technical University of Applied Sciences Augsburg",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule Bremen",
+  "canonical_university_id": 363939,
+  "alias_text": "City University of Applied Sciences",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule Esslingen - University of Applied Sciences",
+  "canonical_university_id": 363940,
+  "alias_text": "Esslingen University of Applied Sciences",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule für Angewandte Wissenschaften Hamburg",
+  "canonical_university_id": 363949,
+  "alias_text": "Hamburg University of Applied Sciences",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule für Technik Stuttgart",
+  "canonical_university_id": 363950,
+  "alias_text": "Stuttgart Technical University of Applied Sciences",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule für Technik und Wirtschaft Berlin",
+  "canonical_university_id": 363951,
+  "alias_text": "HTW Berlin",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule für Technik, Wirtschaft und Kultur Leipzig",
+  "canonical_university_id": 363952,
+  "alias_text": "Leipzig University of Applied Sciences",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule Heilbronn",
+  "canonical_university_id": 363941,
+  "alias_text": "Heilbronn University of Applied Sciences",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule Luzern",
+  "canonical_university_id": 363942,
+  "alias_text": "Lucerne University of Applied Sciences and Arts",
+  "country": "Switzerland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule Magdeburg-Stendal (FH)",
+  "canonical_university_id": 363943,
+  "alias_text": "Magdeburg-Stendal University of Applied Sciences",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule Pforzheim",
+  "canonical_university_id": 363946,
+  "alias_text": "Pforzheim University of Applied Sciences",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Hochschule Reutlingen",
+  "canonical_university_id": 363947,
+  "alias_text": "Reutlingen University",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "HSE University",
+  "canonical_university_id": 407,
+  "alias_text": "Higher School of Economics",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "HUFS - Hankuk (Korea) University of Foreign Studies",
+  "canonical_university_id": 654,
+  "alias_text": "Hankuk University of Foreign Studies",
+  "country": "South Korea",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Humboldt State University",
+  "canonical_university_id": 1405,
+  "alias_text": "California State Polytechnic University, Humboldt",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "IISER Bhopal",
+  "canonical_university_id": 363982,
+  "alias_text": "Indian Institute of Science Education and Research, Bhopal",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Imam Mohammad Ibn Saud Islamic University – IMSIU",
+  "canonical_university_id": 907,
+  "alias_text": "Imam Mohammad Ibn Saud Islamic University",
+  "country": "Saudi Arabia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Engineering Science and Technology, Shibpur",
+  "canonical_university_id": 364000,
+  "alias_text": "IIEST, Shibpur",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Science Education and Research (IISER) Pune",
+  "canonical_university_id": 364005,
+  "alias_text": "Indian Institute of Science Education and Research, Pune",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology BHU Varanasi (IIT BHU Varanasi)",
+  "canonical_university_id": 529,
+  "alias_text": "IIT (BHU) Varanasi",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Bhubaneswar",
+  "canonical_university_id": 962,
+  "alias_text": "IIT Bhubaneswar",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Bombay (IITB)",
+  "canonical_university_id": 119,
+  "alias_text": "IIT Bombay",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Delhi (IITD)",
+  "canonical_university_id": 151,
+  "alias_text": "IIT Delhi",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Gandhinagar (IITGN)",
+  "canonical_university_id": 364009,
+  "alias_text": "IIT Gandhinagar",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Guwahati (IITG)",
+  "canonical_university_id": 342,
+  "alias_text": "IIT Guwahati",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Hyderabad (IITH)",
+  "canonical_university_id": 681,
+  "alias_text": "IIT Hyderabad",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology (Indian School of Mines), Dhanbad",
+  "canonical_university_id": 364008,
+  "alias_text": "IIT (ISM) Dhanbad",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Indore",
+  "canonical_university_id": 476,
+  "alias_text": "IIT Indore",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Jodhpur",
+  "canonical_university_id": 364010,
+  "alias_text": "IIT Jodhpur",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Kanpur (IITK)",
+  "canonical_university_id": 263,
+  "alias_text": "IIT Kanpur",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Kharagpur (IIT-KGP)",
+  "canonical_university_id": 223,
+  "alias_text": "IIT Kharagpur",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Madras (IITM)",
+  "canonical_university_id": 227,
+  "alias_text": "IIT Madras",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Mandi",
+  "canonical_university_id": 364011,
+  "alias_text": "IIT Mandi",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Patna",
+  "canonical_university_id": 364012,
+  "alias_text": "IIT Patna",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Roorkee (IITR)",
+  "canonical_university_id": 333,
+  "alias_text": "IIT Roorkee",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indian Institute of Technology Ropar",
+  "canonical_university_id": 364013,
+  "alias_text": "IIT Ropar",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Indiana University Indianapolis (IU Indianapolis)",
+  "canonical_university_id": 1041,
+  "alias_text": "Indiana University–Purdue University Indianapolis",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "INHOLLAND University",
+  "canonical_university_id": 363987,
+  "alias_text": "Inholland University of Applied Sciences",
+  "country": "Netherlands",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Institut Polytechnique de Paris",
+  "canonical_university_id": 46,
+  "alias_text": "Polytechnic Institute of Paris",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Institut Teknologi Bandung (ITB)",
+  "canonical_university_id": 256,
+  "alias_text": "Bandung Institute of Technology",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Institut Teknologi Sepuluh Nopember (ITS Surabaya)",
+  "canonical_university_id": 582,
+  "alias_text": "Sepuluh Nopember Institute of Technology",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Institute of Business Administration (IBA)",
+  "canonical_university_id": 364030,
+  "alias_text": "Institute of Business Administration, Karachi",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Institute of Chemical Technology, Mumbai",
+  "canonical_university_id": 364032,
+  "alias_text": "Institute of Chemical Technology",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Instituto Federal de Educação, Ciência e Tecnologia de Santa Catarina",
+  "canonical_university_id": 364035,
+  "alias_text": "Federal Institute of Santa Catarina",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Instituto Politécnico de Beja",
+  "canonical_university_id": 364037,
+  "alias_text": "Polytechnic University of Beja",
+  "country": "Portugal",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Instituto Politécnico de Leiria",
+  "canonical_university_id": 364039,
+  "alias_text": "University of Leiria and Oeste",
+  "country": "Portugal",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Instituto Politécnico de Viseu",
+  "canonical_university_id": 364043,
+  "alias_text": "Polytechnic University of Viseu",
+  "country": "Portugal",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Instituto Tecnológico de Sonora (ITSON)",
+  "canonical_university_id": 364044,
+  "alias_text": "Sonora Institute of Technology",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "International Islamic University, Islamabad (IIU)",
+  "canonical_university_id": 1043,
+  "alias_text": "International Islamic University",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Islamia College Peshawar",
+  "canonical_university_id": 364056,
+  "alias_text": "Islamia College University",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Islamic Azad University of Najafabad",
+  "canonical_university_id": 364058,
+  "alias_text": "Islamic Azad University, Najafabad Branch",
+  "country": "Iran",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Islamic Azad University, Science and Research Branch",
+  "canonical_university_id": 364059,
+  "alias_text": "Islamic Azad University, Science and Research Branch, Tehran",
+  "country": "Iran",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Islamic University, Kushtia",
+  "canonical_university_id": 364064,
+  "alias_text": "Islamic University, Bangladesh",
+  "country": "Bangladesh",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "IUBATInternational University of Business Agriculture and Technology",
+  "canonical_university_id": 1409,
+  "alias_text": "International University of Business Agriculture and Technology",
+  "country": "Bangladesh",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Ivan Franko National University of Lviv",
+  "canonical_university_id": 1241,
+  "alias_text": "University of Lviv",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Ivane Javakhishvili Tbilisi State University",
+  "canonical_university_id": 791,
+  "alias_text": "Tbilisi State University",
+  "country": "Georgia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Jan Kochanowski University of Kielce",
+  "canonical_university_id": 364080,
+  "alias_text": "Jan Kochanowski University",
+  "country": "Poland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Jawaharlal Nehru Technological University Anantapur, Ananthapuramu",
+  "canonical_university_id": 364084,
+  "alias_text": "Jawaharlal Nehru Technological University, Hyderabad",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Jerash Private University",
+  "canonical_university_id": 364090,
+  "alias_text": "Jerash University",
+  "country": "Jordan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Jingdezhen Ceramic Institute",
+  "canonical_university_id": 364100,
+  "alias_text": "Jingdezhen Ceramic University",
+  "country": "China (mainland)",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Jiwaji University, Gwalior",
+  "canonical_university_id": 364101,
+  "alias_text": "Jiwaji University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Johannes Gutenberg Universität Mainz",
+  "canonical_university_id": 501,
+  "alias_text": "University of Mainz",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Jouf University",
+  "canonical_university_id": 812,
+  "alias_text": "Al Jouf University",
+  "country": "Saudi Arabia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Juraj Dobrila University of Pula",
+  "canonical_university_id": 364109,
+  "alias_text": "University of Pula",
+  "country": "Croatia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Jyväskylä University of Applied Sciences",
+  "canonical_university_id": 364110,
+  "alias_text": "JAMK University of Applied Sciences",
+  "country": "Finland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Kafrelsheikh University",
+  "canonical_university_id": 364115,
+  "alias_text": "Kafr El Sheikh University",
+  "country": "Egypt",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Kakatiya University, Warangal",
+  "canonical_university_id": 364118,
+  "alias_text": "Kakatiya University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Kalaidos Fachhochschule",
+  "canonical_university_id": 364119,
+  "alias_text": "Kalaidos University of Applied Sciences",
+  "country": "Switzerland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Karnatak University, Dharwad",
+  "canonical_university_id": 364134,
+  "alias_text": "Karnatak University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Katholische Universität Eichstätt-Ingolstadt",
+  "canonical_university_id": 364140,
+  "alias_text": "Catholic University of Eichstätt-Ingolstadt",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Kavayitri Bahinabai Chaudhari North Maharashtra University, Jalgaon",
+  "canonical_university_id": 364141,
+  "alias_text": "North Maharashtra University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Kazakh National Agrarian Research University (KazNARU)",
+  "canonical_university_id": 675,
+  "alias_text": "Kazakh National Agrarian University",
+  "country": "Kazakhstan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Kazimierz Wielki University",
+  "canonical_university_id": 364145,
+  "alias_text": "Kazimierz Wielki University in Bydgoszcz",
+  "country": "Poland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Kharkiv National Agrarian University",
+  "canonical_university_id": 364151,
+  "alias_text": "V. Dokuchaev Kharkiv National Agrarian University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Khwaja Fareed University of Engineering and Information Technology",
+  "canonical_university_id": 364156,
+  "alias_text": "Khawaja Fareed University of Engineering and Information Technology",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Kingston University, London",
+  "canonical_university_id": 601,
+  "alias_text": "Kingston University",
+  "country": "United Kingdom",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "KIT, Karlsruhe Institute of Technology",
+  "canonical_university_id": 102,
+  "alias_text": "Karlsruhe Institute of Technology",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Koneru Lakshmaiah Education Foundation (Deemed to be University)",
+  "canonical_university_id": 364170,
+  "alias_text": "KL University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Kurukshetra University Kurukshetra",
+  "canonical_university_id": 364183,
+  "alias_text": "Kurukshetra University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "KwanDong University",
+  "canonical_university_id": 364185,
+  "alias_text": "Catholic Kwandong University",
+  "country": "South Korea",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Kyiv National Economic University named after Vadym Hetman",
+  "canonical_university_id": 364187,
+  "alias_text": "Kyiv National Economic University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "L'Institut Agro (L'Institut Agro Dijon, L'Institut Agro Montpellier, L'Institut Agro Rennes-Angers)",
+  "canonical_university_id": 364200,
+  "alias_text": "Institut Agro",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "L.N. Gumilyov Eurasian National University (ENU)",
+  "canonical_university_id": 320,
+  "alias_text": "L. N. Gumilev Eurasian National University",
+  "country": "Kazakhstan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Le Mans Université",
+  "canonical_university_id": 364214,
+  "alias_text": "Le Mans University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Leuphana Universität Lüneburg",
+  "canonical_university_id": 364221,
+  "alias_text": "Leuphana University of Lüneburg",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Libyan International University",
+  "canonical_university_id": 364227,
+  "alias_text": "Libyan International Medical University",
+  "country": "Libya",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "LILLE 1 University - Science and Technology",
+  "canonical_university_id": 561038,
+  "alias_text": "Lille University of Science and Technology",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Lincoln University College",
+  "canonical_university_id": 364232,
+  "alias_text": "Lincoln University College, Malaysia",
+  "country": "Malaysia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Lingnan University, Hong Kong",
+  "canonical_university_id": 713,
+  "alias_text": "Lingnan University",
+  "country": "Hong Kong Sar",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Lobachevsky University",
+  "canonical_university_id": 1052,
+  "alias_text": "N. I. Lobachevsky State University of Nizhny Novgorod",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Ludwig-Maximilians-Universität München",
+  "canonical_university_id": 59,
+  "alias_text": "LMU Munich",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "LUMSA University",
+  "canonical_university_id": 364202,
+  "alias_text": "Libera Università Maria SS. Assunta",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Lviv Polytechnic National University",
+  "canonical_university_id": 1056,
+  "alias_text": "Lviv Polytechnic",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "M'Hamed Bougara University of Boumerdes",
+  "canonical_university_id": 364250,
+  "alias_text": "University of Boumerdès",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Maharaja Sayajirao University of Baroda, Vadodara",
+  "canonical_university_id": 364261,
+  "alias_text": "Maharaja Sayajirao University of Baroda",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Maharishi Dayanand University",
+  "canonical_university_id": 364262,
+  "alias_text": "Maharshi Dayanand University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Mahatma Gandhi University, Kottayam",
+  "canonical_university_id": 364265,
+  "alias_text": "Mahatma Gandhi University, Kerala",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Martin-Luther-Universität Halle-Wittenberg",
+  "canonical_university_id": 676,
+  "alias_text": "Martin Luther University Halle-Wittenberg",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "MATE Hungarian University of Agriculture and Life Sciences",
+  "canonical_university_id": 1039,
+  "alias_text": "Hungarian University of Agriculture and Life Sciences",
+  "country": "Hungary",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Maulana Abul Kalam Azad University of Technology, West Bengal",
+  "canonical_university_id": 364286,
+  "alias_text": "Maulana Abul Kalam Azad University of Technology",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "MGIMO University",
+  "canonical_university_id": 566,
+  "alias_text": "Moscow State Institute of International Relations",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "MINES ParisTech",
+  "canonical_university_id": 561014,
+  "alias_text": "Mines Paris – PSL",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Minia University",
+  "canonical_university_id": 364310,
+  "alias_text": "Minya University",
+  "country": "Egypt",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Mohanlal Sukhadia University, Udaipur",
+  "canonical_university_id": 364322,
+  "alias_text": "Mohanlal Sukhadia University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Montanuniversität Leoben",
+  "canonical_university_id": 364328,
+  "alias_text": "University of Leoben",
+  "country": "Austria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "MOTILAL NEHRU NATIONAL INSTITUTE OF TECHNOLOGY ALLAHABAD",
+  "canonical_university_id": 364254,
+  "alias_text": "Motilal Nehru National Institute of Technology",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Mustansiriyah University",
+  "canonical_university_id": 1060,
+  "alias_text": "Al-Mustansiriya University",
+  "country": "Iraq",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Nanyang Technological University, Singapore (NTU Singapore)",
+  "canonical_university_id": 15,
+  "alias_text": "Nanyang Technological University",
+  "country": "Singapore",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "National Chinyi University of Technology",
+  "canonical_university_id": 364374,
+  "alias_text": "National Chin-Yi University of Technology",
+  "country": "Taiwan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "National Pedagogical Dragomanov University",
+  "canonical_university_id": 364395,
+  "alias_text": "National Pedagogical Drahomanov University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "National Research Nuclear University MEPhI (Moscow Engineering Physics Institute)",
+  "canonical_university_id": 495,
+  "alias_text": "Moscow Engineering Physics Institute",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "National Research Saratov State University",
+  "canonical_university_id": 915,
+  "alias_text": "Saratov State University",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "National Technical University \"Kharkiv Polytechnic Institute\"",
+  "canonical_university_id": 1068,
+  "alias_text": "Kharkiv Polytechnic Institute",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "National Technical University of Ukraine \"Igor Sikorsky Kyiv Polytechnic Institute\"",
+  "canonical_university_id": 818,
+  "alias_text": "Kyiv Polytechnic Institute",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "National Tsing Hua University - NTHU",
+  "canonical_university_id": 209,
+  "alias_text": "National Tsing Hua University",
+  "country": "Taiwan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "National University of Uzbekistan named after Mirzo Ulugbek",
+  "canonical_university_id": 781,
+  "alias_text": "National University of Uzbekistan",
+  "country": "Uzbekistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "National University \"Yuri Kondratyuk Poltava Polytechnic\"",
+  "canonical_university_id": 364403,
+  "alias_text": "Poltava National Technical University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Nicolaus Copernicus University",
+  "canonical_university_id": 916,
+  "alias_text": "Nicolaus Copernicus University in Toruń",
+  "country": "Poland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Nitte University",
+  "canonical_university_id": 364440,
+  "alias_text": "NITTE",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Normandy University",
+  "canonical_university_id": 364444,
+  "alias_text": "Normandy University Group",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Northwest University of Politics and Law",
+  "canonical_university_id": 364463,
+  "alias_text": "Northwest University of Political Science and Law",
+  "country": "China (mainland)",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Notre Dame University-Louaize NDU",
+  "canonical_university_id": 364464,
+  "alias_text": "Notre Dame University–Louaize",
+  "country": "Lebanon",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "October University for Modern Sciences and Arts (MSA)",
+  "canonical_university_id": 364473,
+  "alias_text": "MSA University",
+  "country": "Egypt",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Okinawa Institute of Science and Technology Graduate University",
+  "canonical_university_id": 560932,
+  "alias_text": "Okinawa Institute of Science and Technology",
+  "country": "Japan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Otto-Friedrich-Universität Bamberg",
+  "canonical_university_id": 364489,
+  "alias_text": "University of Bamberg",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Otto-von-Guericke-Universität Magdeburg",
+  "canonical_university_id": 364490,
+  "alias_text": "Otto von Guericke University Magdeburg",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Paris Dauphine University (Paris 9)",
+  "canonical_university_id": 561017,
+  "alias_text": "Paris Dauphine-PSL University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pavol Jozef Šafárik University in Košice",
+  "canonical_university_id": 870,
+  "alias_text": "Pavol Jozef Šafárik University",
+  "country": "Slovakia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "PEC University of Technology",
+  "canonical_university_id": 364493,
+  "alias_text": "Punjab Engineering College",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Perm State National Research University",
+  "canonical_university_id": 1271,
+  "alias_text": "Perm State University",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Petro Mohyla Black Sea National University",
+  "canonical_university_id": 364517,
+  "alias_text": "Petro Mohyla Black Sea State University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Philipps-Universität Marburg",
+  "canonical_university_id": 820,
+  "alias_text": "Marburg University",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pierre and Marie Curie University - Paris 6",
+  "canonical_university_id": 561018,
+  "alias_text": "Pierre and Marie Curie University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Politecnico di Bari",
+  "canonical_university_id": 580,
+  "alias_text": "Polytechnic University of Bari",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Politeknik Negeri Jakarta",
+  "canonical_university_id": 364524,
+  "alias_text": "Jakarta State Polytechnic",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Polytechnic Institute of Coimbra",
+  "canonical_university_id": 364526,
+  "alias_text": "Polytechnic University of Coimbra",
+  "country": "Portugal",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Polytechnic Institute of Lisbon",
+  "canonical_university_id": 364528,
+  "alias_text": "Polytechnic University of Lisbon",
+  "country": "Portugal",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontificia Universidad Católica de Puerto Rico",
+  "canonical_university_id": 364530,
+  "alias_text": "Pontifical Catholic University of Puerto Rico",
+  "country": "Puerto Rico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontificia Universidad Catolica del Peru (PUCP)",
+  "canonical_university_id": 357,
+  "alias_text": "Pontifical Catholic University of Peru",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontificia Universidad Católica Argentina",
+  "canonical_university_id": 479,
+  "alias_text": "Pontifical Catholic University of Argentina",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontificia Universidad Católica de Valparaíso",
+  "canonical_university_id": 821,
+  "alias_text": "Pontifical Catholic University of Valparaíso",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontificia Universidad Católica del Ecuador (PUCE)",
+  "canonical_university_id": 970,
+  "alias_text": "Pontifical Catholic University of Ecuador",
+  "country": "Ecuador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontifícia Universidade Católica de Campinas",
+  "canonical_university_id": 1421,
+  "alias_text": "Pontifical Catholic University of Campinas",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontifícia Universidade Católica de Minas Gerais",
+  "canonical_university_id": 1422,
+  "alias_text": "Pontifical Catholic University of Minas Gerais",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontifícia Universidade Católica de São Paulo",
+  "canonical_university_id": 1076,
+  "alias_text": "Pontifical Catholic University of São Paulo",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontifícia Universidade Católica do Paraná",
+  "canonical_university_id": 1423,
+  "alias_text": "Pontifical Catholic University of Paraná",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontifícia Universidade Católica do Rio de Janeiro",
+  "canonical_university_id": 615,
+  "alias_text": "Pontifical Catholic University of Rio de Janeiro",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Pontifícia Universidade Católica do Rio Grande do Sul, PUCRS",
+  "canonical_university_id": 1274,
+  "alias_text": "Pontifical Catholic University of Rio Grande do Sul",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Poznan University of Life Sciences",
+  "canonical_university_id": 871,
+  "alias_text": "University of Life Sciences in Poznań",
+  "country": "Poland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Presidency University, Bangalore",
+  "canonical_university_id": 364533,
+  "alias_text": "Presidency University, Bengaluru",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Princess Nourah bint Abdulrahman University",
+  "canonical_university_id": 684,
+  "alias_text": "Princess Nourah Bint Abdul Rahman University",
+  "country": "Saudi Arabia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Rajasthan Technical University Kota",
+  "canonical_university_id": 364565,
+  "alias_text": "Rajasthan Technical University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "RCSI University of Medicine and Health Sciences",
+  "canonical_university_id": 364554,
+  "alias_text": "Royal College of Surgeons in Ireland",
+  "country": "Ireland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "RMIT University",
+  "canonical_university_id": 124,
+  "alias_text": "Royal Melbourne Institute of Technology",
+  "country": "Australia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "RUDN University",
+  "canonical_university_id": 315,
+  "alias_text": "Patrice Lumumba Peoples' Friendship University of Russia",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Ruhr-Universität Bochum",
+  "canonical_university_id": 394,
+  "alias_text": "Ruhr University Bochum",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Rutgers University–New Brunswick",
+  "canonical_university_id": 327,
+  "alias_text": "Rutgers University",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Sam Higginbottom Institute of Agriculture, Technology & Sciences",
+  "canonical_university_id": 364604,
+  "alias_text": "Sam Higginbottom University of Agriculture, Technology and Sciences",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Sana'a University",
+  "canonical_university_id": 364607,
+  "alias_text": "Sanaa University",
+  "country": "Yemen",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Sardar Patel University, Vallabh Vidyanagar",
+  "canonical_university_id": 364618,
+  "alias_text": "Sardar Patel University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Scuola Normale Superiore - Pisa",
+  "canonical_university_id": 560945,
+  "alias_text": "Scuola Normale Superiore",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Sebha University",
+  "canonical_university_id": 364625,
+  "alias_text": "Sabha University",
+  "country": "Libya",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Sechenov University",
+  "canonical_university_id": 794,
+  "alias_text": "First Moscow State Medical University",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Shanghai University of Traditional Chinese Medicine",
+  "canonical_university_id": 560948,
+  "alias_text": "Shanghai University of Chinese Medicine",
+  "country": "China",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Shivaji University, Kolhapur",
+  "canonical_university_id": 364686,
+  "alias_text": "Shivaji University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Shoolini University of Biotechnology and Management Sciences",
+  "canonical_university_id": 585,
+  "alias_text": "Shoolini University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Siberian Federal University, SibFU",
+  "canonical_university_id": 1087,
+  "alias_text": "Siberian Federal University",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Simon Kuznets Kharkiv National University of Economics",
+  "canonical_university_id": 364702,
+  "alias_text": "Kharkiv National University of Economics",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Skolkovo Institute of Science and Technology Skoltech",
+  "canonical_university_id": 364708,
+  "alias_text": "Skolkovo Institute of Science and Technology",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Slovak University of Agriculture in Nitra",
+  "canonical_university_id": 1089,
+  "alias_text": "Slovak University of Agriculture",
+  "country": "Slovakia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Sofia University \"St. Kliment Ohridski\"",
+  "canonical_university_id": 667,
+  "alias_text": "Sofia University",
+  "country": "Bulgaria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "SRUC (Scotland's Rural College)",
+  "canonical_university_id": 364591,
+  "alias_text": "Scotland's Rural College",
+  "country": "United Kingdom",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "State institution “South Ukrainian National Pedagogical University named after K. D. Ushynsky” (Ushynsky University)",
+  "canonical_university_id": 364746,
+  "alias_text": "K. D. Ushinsky South Ukrainian National Pedagogical University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "State University Kyiv Aviation Institute",
+  "canonical_university_id": 364744,
+  "alias_text": "National Aviation University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "State University \"Uzhhorod National University\"",
+  "canonical_university_id": 364743,
+  "alias_text": "Uzhhorod National University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Stiftung Universität Hildesheim",
+  "canonical_university_id": 364747,
+  "alias_text": "University of Hildesheim",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "SUNY - College of Environmental Science and Forestry",
+  "canonical_university_id": 364592,
+  "alias_text": "State University of New York College of Environmental Science and Forestry",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "SUNY Upstate Medical University",
+  "canonical_university_id": 561046,
+  "alias_text": "State University of New York Upstate Medical University",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Sveučilište u Mostaru",
+  "canonical_university_id": 364763,
+  "alias_text": "University of Mostar",
+  "country": "Bosnia Herzegovina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "SVKM's Narsee Monjee Institute of Management Studies(Deemed to be University)",
+  "canonical_university_id": 364593,
+  "alias_text": "SVKM's NMIMS",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Symbiosis International (Deemed University)",
+  "canonical_university_id": 650,
+  "alias_text": "Symbiosis International University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Süleyman Demirel University, Turkey",
+  "canonical_university_id": 1290,
+  "alias_text": "Süleyman Demirel University",
+  "country": "Turkey",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Technical University of Darmstadt",
+  "canonical_university_id": 242,
+  "alias_text": "Technische Universität Darmstadt",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Technische Hochschule Mittelhessen",
+  "canonical_university_id": 364797,
+  "alias_text": "University of Applied Sciences Mittelhessen",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Technische Universität Clausthal",
+  "canonical_university_id": 364799,
+  "alias_text": "Clausthal University of Technology",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Technische Universität Bergakademie Freiberg",
+  "canonical_university_id": 377,
+  "alias_text": "Freiberg University of Mining and Technology",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Technische Universität Braunschweig",
+  "canonical_university_id": 753,
+  "alias_text": "TU Braunschweig",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Technische Universität Dresden",
+  "canonical_university_id": 234,
+  "alias_text": "TU Dresden",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Technische Universität Wien",
+  "canonical_university_id": 190,
+  "alias_text": "TU Wien",
+  "country": "Austria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Tecmilenio",
+  "canonical_university_id": 364804,
+  "alias_text": "TecMilenio University",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Tecnológico de Costa Rica -TEC",
+  "canonical_university_id": 1101,
+  "alias_text": "Costa Rica Institute of Technology",
+  "country": "Costa Rica",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "The Herzen State Pedagogical University of Russia",
+  "canonical_university_id": 1300,
+  "alias_text": "Herzen University",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "The Islamia University of Bahawalpur,Pakistan",
+  "canonical_university_id": 364823,
+  "alias_text": "Islamia University of Bahawalpur",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "The Josip Juraj Strossmayer University of Osijek",
+  "canonical_university_id": 1301,
+  "alias_text": "University of Osijek",
+  "country": "Croatia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "The London School of Economics and Political Science (LSE)",
+  "canonical_university_id": 52,
+  "alias_text": "London School of Economics",
+  "country": "United Kingdom",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "The University of Connecticut Health Center",
+  "canonical_university_id": 561076,
+  "alias_text": "UConn Health",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "The University of Tennessee, Knoxville",
+  "canonical_university_id": 480,
+  "alias_text": "University of Tennessee",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "The University of Texas M. D. Anderson Cancer Center",
+  "canonical_university_id": 364842,
+  "alias_text": "MD Anderson Cancer Center",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "The University of Texas Medical Branch at Galveston",
+  "canonical_university_id": 560959,
+  "alias_text": "University of Texas Medical Branch",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "The University of Texas Southwestern Medical Center at Dallas",
+  "canonical_university_id": 364843,
+  "alias_text": "University of Texas Southwestern Medical Center",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Tokushima University",
+  "canonical_university_id": 1106,
+  "alias_text": "University of Tokushima",
+  "country": "Japan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "TUHH Hamburg University of Technology",
+  "canonical_university_id": 364773,
+  "alias_text": "Hamburg University of Technology",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Ualikhanov University",
+  "canonical_university_id": 364894,
+  "alias_text": "Kokshetau State University",
+  "country": "Kazakhstan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "UCAM Universidad Católica San Antonio de Murcia",
+  "canonical_university_id": 364885,
+  "alias_text": "Universidad Católica San Antonio de Murcia",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Abierta Interamericana",
+  "canonical_university_id": 364901,
+  "alias_text": "Interamerican Open University",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Ana G. Méndez",
+  "canonical_university_id": 364903,
+  "alias_text": "Ana G. Méndez University",
+  "country": "Puerto Rico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Andrés Bello",
+  "canonical_university_id": 1108,
+  "alias_text": "Andrés Bello National University",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Arturo Prat",
+  "canonical_university_id": 364907,
+  "alias_text": "Arturo Prat University",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma Benito Juárez de Oaxaca (UABJO)",
+  "canonical_university_id": 364910,
+  "alias_text": "Benito Juárez Autonomous University of Oaxaca",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Bucaramanga - UNAB",
+  "canonical_university_id": 364913,
+  "alias_text": "Autonomous University of Bucaramanga",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Campeche (UACAM)",
+  "canonical_university_id": 364914,
+  "alias_text": "Autonomous University of Campeche",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Chihuahua (UACH)",
+  "canonical_university_id": 364915,
+  "alias_text": "Autonomous University of Chihuahua",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Chiriquí - UNACHI",
+  "canonical_university_id": 364916,
+  "alias_text": "Universidad Autónoma de Chiriquí",
+  "country": "Panama",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Coahuila (UAdeC)",
+  "canonical_university_id": 364918,
+  "alias_text": "Autonomous University of Coahuila",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Guerrero (UAGRO)",
+  "canonical_university_id": 364919,
+  "alias_text": "Autonomous University of Guerrero",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Nayarit",
+  "canonical_university_id": 364921,
+  "alias_text": "Autonomous University of Nayarit",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Sinaloa (UAS)",
+  "canonical_university_id": 364923,
+  "alias_text": "Autonomous University of Sinaloa",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Tamaulipas (UAT)",
+  "canonical_university_id": 364924,
+  "alias_text": "Autonomous University of Tamaulipas",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Zacatecas (UAZ)",
+  "canonical_university_id": 364925,
+  "alias_text": "Autonomous University of Zacatecas",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma del Carmen (UNACAR)",
+  "canonical_university_id": 364927,
+  "alias_text": "Autonomous University of Carmen",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autonoma Chapingo",
+  "canonical_university_id": 1110,
+  "alias_text": "Chapingo Autonomous University",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autonoma de Yucatan",
+  "canonical_university_id": 1440,
+  "alias_text": "Autonomous University of Yucatan",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Aguascalientes (UAA)",
+  "canonical_university_id": 1441,
+  "alias_text": "Autonomous University of Aguascalientes",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Baja California",
+  "canonical_university_id": 1442,
+  "alias_text": "Autonomous University of Baja California",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Chile",
+  "canonical_university_id": 1443,
+  "alias_text": "Autonomous University of Chile",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Nuevo León",
+  "canonical_university_id": 1111,
+  "alias_text": "Autonomous University of Nuevo León",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma de Querétaro (UAQ)",
+  "canonical_university_id": 1444,
+  "alias_text": "Autonomous University of Querétaro",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Autónoma del Estado de México (UAEMex)",
+  "canonical_university_id": 1112,
+  "alias_text": "Autonomous University of Mexico State",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad César Vallejo",
+  "canonical_university_id": 364952,
+  "alias_text": "César Vallejo University",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Carlos III de Madrid (UC3M)",
+  "canonical_university_id": 285,
+  "alias_text": "Charles III University of Madrid",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica de El Salvador",
+  "canonical_university_id": 364940,
+  "alias_text": "Catholic University of El Salvador",
+  "country": "El Salvador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica de Valencia San Vicente Mártir",
+  "canonical_university_id": 364941,
+  "alias_text": "Valencia Catholic University Saint Vincent Martyr",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica del Maule",
+  "canonical_university_id": 364942,
+  "alias_text": "Catholic University of the Maule",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica San Pablo",
+  "canonical_university_id": 364934,
+  "alias_text": "Universidad Católica de San Pablo",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica Andres Bello",
+  "canonical_university_id": 740,
+  "alias_text": "Andrés Bello Catholic University",
+  "country": "Venezuela",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica Boliviana \"San Pablo\" (UCB)",
+  "canonical_university_id": 1448,
+  "alias_text": "Bolivian Catholic University San Pablo",
+  "country": "Bolivia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica de Colombia",
+  "canonical_university_id": 1449,
+  "alias_text": "Catholic University of Colombia",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica de la Santísima Concepción (UCSC)",
+  "canonical_university_id": 1451,
+  "alias_text": "Catholic University of the Most Holy Conception",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica de Temuco",
+  "canonical_university_id": 1453,
+  "alias_text": "Temuco Catholic University",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica del Norte",
+  "canonical_university_id": 1310,
+  "alias_text": "Catholic University of the North",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Católica del Uruguay (UCU)",
+  "canonical_university_id": 923,
+  "alias_text": "Catholic University of Uruguay",
+  "country": "Uruguay",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Central \"Marta Abreu\" de Las Villas",
+  "canonical_university_id": 924,
+  "alias_text": "University \"Marta Abreu\" of Las Villas",
+  "country": "Cuba",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Central del Ecuador",
+  "canonical_university_id": 1311,
+  "alias_text": "Central University of Ecuador",
+  "country": "Ecuador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Centroamericana \"José Simeón Cañas\"",
+  "canonical_university_id": 364944,
+  "alias_text": "Central American University, San Salvador",
+  "country": "El Salvador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Centroamericana (UCA)",
+  "canonical_university_id": 364945,
+  "alias_text": "Central American University, Managua",
+  "country": "Nicaragua",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Científica del Sur",
+  "canonical_university_id": 364946,
+  "alias_text": "Scientific University of the South",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Cooperativa de Colombia",
+  "canonical_university_id": 364948,
+  "alias_text": "Cooperative University of Colombia",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Antofagasta",
+  "canonical_university_id": 365057,
+  "alias_text": "University of Antofagasta",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Atacama",
+  "canonical_university_id": 365058,
+  "alias_text": "University of Atacama",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Belgrano (UB)",
+  "canonical_university_id": 785,
+  "alias_text": "University of Belgrano",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Cádiz",
+  "canonical_university_id": 365064,
+  "alias_text": "University of Cádiz",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Caldas",
+  "canonical_university_id": 1466,
+  "alias_text": "University of Caldas",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Carabobo",
+  "canonical_university_id": 1467,
+  "alias_text": "University of Carabobo",
+  "country": "Venezuela",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Cartagena",
+  "canonical_university_id": 1468,
+  "alias_text": "University of Cartagena",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Ciencias y Artes de Chiapas",
+  "canonical_university_id": 365061,
+  "alias_text": "University of Sciences and Arts of Chiapas",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Colima",
+  "canonical_university_id": 365063,
+  "alias_text": "University of Colima",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de El Salvador - UES",
+  "canonical_university_id": 365065,
+  "alias_text": "University of El Salvador",
+  "country": "El Salvador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Guayaquil (UG)",
+  "canonical_university_id": 365067,
+  "alias_text": "University of Guayaquil",
+  "country": "Ecuador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "UNIVERSIDAD DE HUELVA",
+  "canonical_university_id": 364888,
+  "alias_text": "University of Huelva",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Ibagué",
+  "canonical_university_id": 365068,
+  "alias_text": "University of Ibagué",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de La Amazonía",
+  "canonical_university_id": 365069,
+  "alias_text": "University of the Amazon",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de la Costa",
+  "canonical_university_id": 365085,
+  "alias_text": "University of the Coast",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de La Habana",
+  "canonical_university_id": 694,
+  "alias_text": "University of Havana",
+  "country": "Cuba",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de La Salle",
+  "canonical_university_id": 1472,
+  "alias_text": "La Salle University, Colombia",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de las Fuerzas Armadas ESPE (Ex - Escuela Politécnica del Ejército)",
+  "canonical_university_id": 1477,
+  "alias_text": "Escuela Politécnica del Ejército",
+  "country": "Ecuador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Las Palmas de Gran Canaria",
+  "canonical_university_id": 365072,
+  "alias_text": "University of Las Palmas de Gran Canaria",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Lima",
+  "canonical_university_id": 1127,
+  "alias_text": "University of Lima",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Los Lagos",
+  "canonical_university_id": 365073,
+  "alias_text": "University of Los Lagos",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de los Llanos",
+  "canonical_university_id": 365086,
+  "alias_text": "University of the Llanos",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Magallanes",
+  "canonical_university_id": 365074,
+  "alias_text": "University of Magallanes",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Matanzas Camilo Cienfuegos",
+  "canonical_university_id": 365076,
+  "alias_text": "University of Matanzas",
+  "country": "Cuba",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Monterrey (UDEM)",
+  "canonical_university_id": 1328,
+  "alias_text": "University of Monterrey",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Montevideo (UM)",
+  "canonical_university_id": 741,
+  "alias_text": "University of Montevideo",
+  "country": "Uruguay",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Nariño",
+  "canonical_university_id": 365078,
+  "alias_text": "University of Nariño",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Pamplona",
+  "canonical_university_id": 365080,
+  "alias_text": "University of Pamplona",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Panamá - UP",
+  "canonical_university_id": 1330,
+  "alias_text": "University of Panama",
+  "country": "Panama",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Piura",
+  "canonical_university_id": 1331,
+  "alias_text": "University of Piura",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Playa Ancha",
+  "canonical_university_id": 365081,
+  "alias_text": "Playa Ancha University",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Quintana Roo",
+  "canonical_university_id": 365082,
+  "alias_text": "University of Quintana Roo",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de San Andrés - UdeSA",
+  "canonical_university_id": 989,
+  "alias_text": "University of San Andrés",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de San Martín de Porres",
+  "canonical_university_id": 365084,
+  "alias_text": "University of San Martín de Porres",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de San Nicolás de Hidalgo",
+  "canonical_university_id": 1455,
+  "alias_text": "Universidad Michoacana de San Nicolás de Hidalgo",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad de Santander - UDES",
+  "canonical_university_id": 1475,
+  "alias_text": "University of Santander",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad del Atlántico",
+  "canonical_university_id": 365087,
+  "alias_text": "University of Atlántico",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad del CEMA",
+  "canonical_university_id": 365089,
+  "alias_text": "University of CEMA",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad del Desarrollo (UDD)",
+  "canonical_university_id": 1336,
+  "alias_text": "University of Development",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad del Magdalena",
+  "canonical_university_id": 365093,
+  "alias_text": "University of Magdalena",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Del Quindío",
+  "canonical_university_id": 364953,
+  "alias_text": "University of Quindío",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad del Tolima",
+  "canonical_university_id": 365096,
+  "alias_text": "University of Tolima",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad del Valle",
+  "canonical_university_id": 1135,
+  "alias_text": "University of Valle",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad del Zulia",
+  "canonical_university_id": 1338,
+  "alias_text": "University of Zulia",
+  "country": "Venezuela",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Distrital Francisco José de Caldas",
+  "canonical_university_id": 364954,
+  "alias_text": "Francisco José de Caldas District University",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Dominicana O&M (EXAE)",
+  "canonical_university_id": 364955,
+  "alias_text": "O&M College",
+  "country": "Dominican Republic",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad El Bosque",
+  "canonical_university_id": 364962,
+  "alias_text": "El Bosque University",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad ESAN",
+  "canonical_university_id": 364959,
+  "alias_text": "ESAN University",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Europea del Atlántico",
+  "canonical_university_id": 364967,
+  "alias_text": "European University of the Atlantic",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Europea Miguel de Cervantes",
+  "canonical_university_id": 364966,
+  "alias_text": "Miguel de Cervantes European University",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Finis Terrae",
+  "canonical_university_id": 364970,
+  "alias_text": "Finis Terrae University",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Francisco De Vitoria",
+  "canonical_university_id": 364971,
+  "alias_text": "Francisco de Vitoria University",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Francisco Gavidia",
+  "canonical_university_id": 364972,
+  "alias_text": "Francisco Gavidia University",
+  "country": "El Salvador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Iberoamericana Ciudad de México - IBERO",
+  "canonical_university_id": 828,
+  "alias_text": "Universidad Iberoamericana",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Industrial de Santander - UIS",
+  "canonical_university_id": 1312,
+  "alias_text": "Industrial University of Santander",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Interamericana de Puerto Rico",
+  "canonical_university_id": 364978,
+  "alias_text": "Interamerican University of Puerto Rico",
+  "country": "Puerto Rico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Latina de Costa Rica",
+  "canonical_university_id": 364983,
+  "alias_text": "Latin University of Costa Rica",
+  "country": "Costa Rica",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Latina de Panamà",
+  "canonical_university_id": 364984,
+  "alias_text": "Latin University of Panama",
+  "country": "Panama",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Libre",
+  "canonical_university_id": 364985,
+  "alias_text": "Free University of Colombia",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Manuela Beltrán",
+  "canonical_university_id": 364986,
+  "alias_text": "Manuela Beltrán University",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Mayor de San Andrés (UMSA)",
+  "canonical_university_id": 1315,
+  "alias_text": "Higher University of San Andrés",
+  "country": "Bolivia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Mayor de San Simón",
+  "canonical_university_id": 364989,
+  "alias_text": "Higher University of San Simón",
+  "country": "Bolivia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Militar Nueva Granada",
+  "canonical_university_id": 364992,
+  "alias_text": "New Granada Military University",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional Agraria la Molina",
+  "canonical_university_id": 1317,
+  "alias_text": "National Agrarian University",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional Costa Rica",
+  "canonical_university_id": 1325,
+  "alias_text": "National University of Costa Rica",
+  "country": "Costa Rica",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Cuyo",
+  "canonical_university_id": 1115,
+  "alias_text": "National University of Cuyo",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Educación a Distancia",
+  "canonical_university_id": 364997,
+  "alias_text": "National University of Distance Education",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de General Sarmiento (UNGS)",
+  "canonical_university_id": 364999,
+  "alias_text": "National University of General Sarmiento",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Ingeniería",
+  "canonical_university_id": 1319,
+  "alias_text": "National University of Engineering",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de La Matanza",
+  "canonical_university_id": 365001,
+  "alias_text": "National University of La Matanza",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de la Pampa",
+  "canonical_university_id": 365012,
+  "alias_text": "National University of La Pampa",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Lanús (UNLa)",
+  "canonical_university_id": 365002,
+  "alias_text": "National University of Lanús",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Lomas de Zamora",
+  "canonical_university_id": 365003,
+  "alias_text": "National University of Lomas de Zamora",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Lujan",
+  "canonical_university_id": 365004,
+  "alias_text": "National University of Luján",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Mar del Plata",
+  "canonical_university_id": 1320,
+  "alias_text": "National University of Mar del Plata",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Misiones",
+  "canonical_university_id": 365005,
+  "alias_text": "National University of Misiones",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Quilmes",
+  "canonical_university_id": 1456,
+  "alias_text": "National University of Quilmes",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Rosario (UNR)",
+  "canonical_university_id": 983,
+  "alias_text": "National University of Rosario",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Río Cuarto - UNRC",
+  "canonical_university_id": 1321,
+  "alias_text": "National University of Río Cuarto",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Salta",
+  "canonical_university_id": 365007,
+  "alias_text": "National University of Salta",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de San Agustín de Arequipa",
+  "canonical_university_id": 365008,
+  "alias_text": "National University of San Agustín",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de San Antonio Abad del Cusco",
+  "canonical_university_id": 365009,
+  "alias_text": "National University of Saint Anthony the Abbot in Cusco",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de San Juan",
+  "canonical_university_id": 365010,
+  "alias_text": "National University of San Juan",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de San Luis",
+  "canonical_university_id": 1116,
+  "alias_text": "National University of San Luis",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de San Martín (UNSAM)",
+  "canonical_university_id": 1322,
+  "alias_text": "National University of General San Martín",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "UNIVERSIDAD NACIONAL DE TRES DE FEBRERO",
+  "canonical_university_id": 364889,
+  "alias_text": "National University of Tres de Febrero",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Trujillo",
+  "canonical_university_id": 365011,
+  "alias_text": "National University of Trujillo",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional de Tucumán",
+  "canonical_university_id": 1457,
+  "alias_text": "National University of Tucumán",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional del Centro de la Provincia de Buenos Aires (UNICEN)",
+  "canonical_university_id": 1118,
+  "alias_text": "National University of Central Buenos Aires",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional del Comahue",
+  "canonical_university_id": 1458,
+  "alias_text": "National University of Comahue",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional del Litoral",
+  "canonical_university_id": 1323,
+  "alias_text": "National University of the Littoral",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional del Nordeste (UNNE)",
+  "canonical_university_id": 365014,
+  "alias_text": "National University of the Northeast",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional Federico Villarreal (UNFV)",
+  "canonical_university_id": 364995,
+  "alias_text": "Federico Villarreal National University",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nacional Mayor de San Marcos",
+  "canonical_university_id": 927,
+  "alias_text": "National University of San Marcos",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Nebrija",
+  "canonical_university_id": 365015,
+  "alias_text": "Nebrija University",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Panamericana (UP)",
+  "canonical_university_id": 693,
+  "alias_text": "Panamerican University",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Pedagógica y Tecnológica de Colombia",
+  "canonical_university_id": 365019,
+  "alias_text": "Pedagogical and Technological University of Colombia",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Peruana Cayetano Heredia (UPCH)",
+  "canonical_university_id": 1119,
+  "alias_text": "Cayetano Heredia University",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Peruana de Ciencias Aplicadas (UPC)",
+  "canonical_university_id": 1326,
+  "alias_text": "Peruvian University of Applied Sciences",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Politécnica de Cartagena",
+  "canonical_university_id": 365021,
+  "alias_text": "Polytechnic University of Cartagena",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Politécnica de Madrid (UPM)",
+  "canonical_university_id": 322,
+  "alias_text": "Technical University of Madrid",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Politécnica Salesiana",
+  "canonical_university_id": 1436,
+  "alias_text": "Politecnica Salesiana University",
+  "country": "Ecuador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Pontificia Bolivariana",
+  "canonical_university_id": 929,
+  "alias_text": "Pontifical Bolivarian University",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Pontificia de Salamanca",
+  "canonical_university_id": 365022,
+  "alias_text": "Pontifical University of Salamanca",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Privada del Norte",
+  "canonical_university_id": 365026,
+  "alias_text": "Private University of the North",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Privada Dr. Rafael Belloso Chacín",
+  "canonical_university_id": 365024,
+  "alias_text": "Universidad Rafael Belloso Chacín",
+  "country": "Venezuela",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Rafael Landívar (URL)",
+  "canonical_university_id": 365028,
+  "alias_text": "Rafael Landívar University",
+  "country": "Guatemala",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Ricardo Palma",
+  "canonical_university_id": 365032,
+  "alias_text": "Ricardo Palma University",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad San Francisco de Quito USFQ",
+  "canonical_university_id": 829,
+  "alias_text": "Universidad San Francisco de Quito",
+  "country": "Ecuador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad San Francisco Xavier (USFX)",
+  "canonical_university_id": 365033,
+  "alias_text": "University of San Francisco Xavier",
+  "country": "Bolivia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Santiago De Cali",
+  "canonical_university_id": 365035,
+  "alias_text": "Santiago de Cali University",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Santo Tomás - Colombia",
+  "canonical_university_id": 365037,
+  "alias_text": "Saint Thomas Aquinas University",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Sergio Arboleda",
+  "canonical_university_id": 365038,
+  "alias_text": "Sergio Arboleda University",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Siglo 21",
+  "canonical_university_id": 365039,
+  "alias_text": "Siglo 21 University",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Técnica de Oruro",
+  "canonical_university_id": 365051,
+  "alias_text": "Technical University of Oruro",
+  "country": "Bolivia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Tecnológica Centroamericana (UNITEC)",
+  "canonical_university_id": 365041,
+  "alias_text": "Central American Technological University",
+  "country": "Honduras",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Tecnológica de El Salvador (UTEC)",
+  "canonical_university_id": 365044,
+  "alias_text": "Technological University of El Salvador",
+  "country": "El Salvador",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Tecnológica del Perú",
+  "canonical_university_id": 365048,
+  "alias_text": "Technological University of Peru",
+  "country": "Peru",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Tecnológica Metropolitana (UTEM)",
+  "canonical_university_id": 365042,
+  "alias_text": "Metropolitan University of Technology",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Tecnológica de Panamá (UTP)",
+  "canonical_university_id": 1123,
+  "alias_text": "Technological University of Panama",
+  "country": "Panama",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Tecnológica de Pereira",
+  "canonical_university_id": 1463,
+  "alias_text": "Technological University of Pereira",
+  "country": "Colombia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Tecnológica Nacional (UTN)",
+  "canonical_university_id": 1122,
+  "alias_text": "National Technological University",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Torcuato Di Tella",
+  "canonical_university_id": 984,
+  "alias_text": "Torcuato di Tella University",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad UNIACC",
+  "canonical_university_id": 365052,
+  "alias_text": "UNIACC University",
+  "country": "Chile",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidad Veracruzana",
+  "canonical_university_id": 1465,
+  "alias_text": "Veracruzana University",
+  "country": "Mexico",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Anhembi Morumbi",
+  "canonical_university_id": 365099,
+  "alias_text": "Anhembi Morumbi University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Católica Dom Bosco",
+  "canonical_university_id": 365103,
+  "alias_text": "Dom Bosco Catholic University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Catolica de Brasilia",
+  "canonical_university_id": 365102,
+  "alias_text": "Catholic University of Brasília",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Católica Portuguesa",
+  "canonical_university_id": 930,
+  "alias_text": "Catholic University of Portugal",
+  "country": "Portugal",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade da Coruña",
+  "canonical_university_id": 1140,
+  "alias_text": "University of A Coruña",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade de Caxias do Sul",
+  "canonical_university_id": 365162,
+  "alias_text": "University of Caxias do Sul",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade de Fortaleza (University of Fortaleza)",
+  "canonical_university_id": 365163,
+  "alias_text": "University of Fortaleza",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade de Passo Fundo",
+  "canonical_university_id": 365164,
+  "alias_text": "University of Passo Fundo",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade de Pernambuco",
+  "canonical_university_id": 365165,
+  "alias_text": "University of Pernambuco",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade do Estado da Bahia",
+  "canonical_university_id": 365169,
+  "alias_text": "Bahia State University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade do Estado de Mato Grosso",
+  "canonical_university_id": 365170,
+  "alias_text": "Mato Grosso State University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade do Estado de Minas Gerais",
+  "canonical_university_id": 365171,
+  "alias_text": "Minas Gerais State University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade do Estado de Santa Catarina",
+  "canonical_university_id": 1486,
+  "alias_text": "Santa Catarina State University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade do Estado do Pará",
+  "canonical_university_id": 365172,
+  "alias_text": "Pará State University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade do Vale do Rio Dos Sinos - UNISINOS",
+  "canonical_university_id": 365177,
+  "alias_text": "Unisinos",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Eduardo Mondlane",
+  "canonical_university_id": 365105,
+  "alias_text": "Eduardo Mondlane University",
+  "country": "Mozambique",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual da Paraíba",
+  "canonical_university_id": 365106,
+  "alias_text": "Paraíba State University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual de Campinas (Unicamp)",
+  "canonical_university_id": 232,
+  "alias_text": "State University of Campinas",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual de Feira de Santana",
+  "canonical_university_id": 365108,
+  "alias_text": "State University of Feira de Santana",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual de Goiàs",
+  "canonical_university_id": 365109,
+  "alias_text": "Goiás State University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual de Londrina",
+  "canonical_university_id": 1480,
+  "alias_text": "State University of Londrina",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual de Maringá",
+  "canonical_university_id": 365110,
+  "alias_text": "State University of Maringá",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual de Montes Claros",
+  "canonical_university_id": 365111,
+  "alias_text": "State University of Montes Claros",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual de Ponta Grossa",
+  "canonical_university_id": 365112,
+  "alias_text": "State University of Ponta Grossa",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual de Santa Cruz",
+  "canonical_university_id": 365114,
+  "alias_text": "State University of Santa Cruz",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual do Centro-Oeste",
+  "canonical_university_id": 365115,
+  "alias_text": "State University of the Centre-West",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual do Norte Fluminense Darcy Ribeiro",
+  "canonical_university_id": 365117,
+  "alias_text": "State University of Northern Rio de Janeiro",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual do Oeste do Paraná",
+  "canonical_university_id": 365118,
+  "alias_text": "Western Paraná State University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Estadual do Rio Grande do Sul",
+  "canonical_university_id": 365120,
+  "alias_text": "Rio Grande do Sul State University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal da Paraíba",
+  "canonical_university_id": 1481,
+  "alias_text": "Federal University of Paraíba",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Alagoas",
+  "canonical_university_id": 365124,
+  "alias_text": "Federal University of Alagoas",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Alfenas",
+  "canonical_university_id": 365125,
+  "alias_text": "Federal University of Alfenas",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Campina Grande",
+  "canonical_university_id": 365126,
+  "alias_text": "Federal University of Campina Grande",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Itajubá",
+  "canonical_university_id": 365127,
+  "alias_text": "Federal University of Itajubá",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Juiz de Fora- (UFJF)",
+  "canonical_university_id": 1340,
+  "alias_text": "Federal University of Juiz de Fora",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Lavras",
+  "canonical_university_id": 365128,
+  "alias_text": "Federal University of Lavras",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Ouro Preto",
+  "canonical_university_id": 365129,
+  "alias_text": "Federal University of Ouro Preto",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Roraima",
+  "canonical_university_id": 365130,
+  "alias_text": "Federal University of Roraima",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de São João del-Rei",
+  "canonical_university_id": 365132,
+  "alias_text": "Federal University of São João del-Rei",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Santa Catarina",
+  "canonical_university_id": 786,
+  "alias_text": "Federal University of Santa Catarina",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal de Sergipe (UFS)",
+  "canonical_university_id": 365131,
+  "alias_text": "Federal University of Sergipe",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do ABC",
+  "canonical_university_id": 365133,
+  "alias_text": "Federal University of ABC",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do Acre",
+  "canonical_university_id": 365134,
+  "alias_text": "Federal University of Acre",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do Espírito Santo",
+  "canonical_university_id": 365136,
+  "alias_text": "Federal University of Espírito Santo",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do Estado do Rio de Janeiro",
+  "canonical_university_id": 1484,
+  "alias_text": "Federal University of the State of Rio de Janeiro",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do Maranhão",
+  "canonical_university_id": 365137,
+  "alias_text": "Federal University of Maranhão",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do Mato Grosso",
+  "canonical_university_id": 365138,
+  "alias_text": "Federal University of Mato Grosso",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do Pampa (UNIPAMPA)",
+  "canonical_university_id": 365139,
+  "alias_text": "Federal University of Pampa",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do Pará",
+  "canonical_university_id": 1485,
+  "alias_text": "Federal University of Pará",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do Rio Grande",
+  "canonical_university_id": 365140,
+  "alias_text": "Federal University of Rio Grande",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal do Triângulo Mineiro",
+  "canonical_university_id": 365141,
+  "alias_text": "Federal University of Triângulo Mineiro",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal dos Vales do Jequitinhonha e Mucuri",
+  "canonical_university_id": 365142,
+  "alias_text": "Federal University of Vales do Jequitinhonha e Mucuri",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal Rural da Amazonia",
+  "canonical_university_id": 365121,
+  "alias_text": "Federal Rural University of Amazonia",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal Rural de Pernambuco (UFRPE)",
+  "canonical_university_id": 365122,
+  "alias_text": "Federal Rural University of Pernambuco",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Federal Rural do Rio de Janeiro",
+  "canonical_university_id": 365123,
+  "alias_text": "Federal Rural University of Rio de Janeiro",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Luterana do Brasil",
+  "canonical_university_id": 365147,
+  "alias_text": "Lutheran University of Brazil",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universidade Presbiteriana Mackenzie",
+  "canonical_university_id": 1346,
+  "alias_text": "Mackenzie Presbyterian University",
+  "country": "Brazil",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université 8 Mai 1945 Guelma",
+  "canonical_university_id": 365504,
+  "alias_text": "University of Guelma",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Abdelhamid Ibn Badis – Mostaganem",
+  "canonical_university_id": 365505,
+  "alias_text": "University of Mostaganem",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Akli Mouhand Oulhadj-Bouira",
+  "canonical_university_id": 365508,
+  "alias_text": "University of Bouira",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Bourgogne Europe",
+  "canonical_university_id": 365509,
+  "alias_text": "University of Burgundy Europe",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Catholique de Lyon",
+  "canonical_university_id": 365510,
+  "alias_text": "Catholic University of Lyon",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université d'Artois",
+  "canonical_university_id": 365533,
+  "alias_text": "University of Artois",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université d’Oran 2 Mohamed Ben Ahmed",
+  "canonical_university_id": 365555,
+  "alias_text": "University of Oran 2 Mohamed Ben Ahmed",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Bretagne-Sud (UBS)",
+  "canonical_university_id": 365537,
+  "alias_text": "Southern Brittany University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Gabès",
+  "canonical_university_id": 365538,
+  "alias_text": "University of Gabès",
+  "country": "Tunisia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Jendouba",
+  "canonical_university_id": 365539,
+  "alias_text": "University of Jendouba",
+  "country": "Tunisia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de la Réunion",
+  "canonical_university_id": 365551,
+  "alias_text": "University of Reunion Island",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Nîmes",
+  "canonical_university_id": 365541,
+  "alias_text": "University of Nîmes",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Nouakchott",
+  "canonical_university_id": 365540,
+  "alias_text": "University of Nouakchott Al Aasriya",
+  "country": "Mauritania",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Pau et des Pays de l'Adour",
+  "canonical_university_id": 365542,
+  "alias_text": "University of Pau and the Adour Region",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Perpignan Via Domitia",
+  "canonical_university_id": 365543,
+  "alias_text": "University of Perpignan Via Domitia",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Picardie Jules Verne",
+  "canonical_university_id": 365544,
+  "alias_text": "University of Picardy Jules Verne",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Reims Champagne-Ardenne",
+  "canonical_university_id": 365545,
+  "alias_text": "University of Reims Champagne-Ardenne",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Rouen",
+  "canonical_university_id": 365546,
+  "alias_text": "University of Rouen Normandy",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Technologie de Compiègne (UTC)",
+  "canonical_university_id": 365547,
+  "alias_text": "University of Technology of Compiègne",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Toulon",
+  "canonical_university_id": 365549,
+  "alias_text": "University of Toulon",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Università degli Studi di Camerino",
+  "canonical_university_id": 365493,
+  "alias_text": "University of Camerino",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Università degli Studi di Macerata",
+  "canonical_university_id": 365494,
+  "alias_text": "University of Macerata",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Università degli Studi Mediterranea di Reggio Calabria",
+  "canonical_university_id": 365491,
+  "alias_text": "Mediterranea University of Reggio Calabria",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université des Sciences et de la Technologie d'Oran Mohamed Boudiaf",
+  "canonical_university_id": 365552,
+  "alias_text": "University of Science and Technology of Oran - Mohamed Boudiaf",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université du Littoral Côte d'Opale",
+  "canonical_university_id": 365553,
+  "alias_text": "University of the Littoral Opal Coast",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Frères Mentouri – Constantine 1",
+  "canonical_university_id": 365513,
+  "alias_text": "University of Constantine 1",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Ibn Zohr",
+  "canonical_university_id": 365517,
+  "alias_text": "Ibn Zohr University",
+  "country": "Morocco",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Università IULM",
+  "canonical_university_id": 365490,
+  "alias_text": "IULM University of Milan",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Jean Monnet, Saint-Etienne",
+  "canonical_university_id": 365518,
+  "alias_text": "Jean Monnet University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Joseph Ki-Zerbo",
+  "canonical_university_id": 365519,
+  "alias_text": "Joseph Ki-Zerbo University",
+  "country": "Burkina Faso",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Kasdi Merbah – Ouargla",
+  "canonical_university_id": 365520,
+  "alias_text": "University of Ouargla",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Mouloud Mammeri - Tizi Ouzou",
+  "canonical_university_id": 365521,
+  "alias_text": "University of Tizi Ouzou",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Paris-Est Créteil Val de Marne",
+  "canonical_university_id": 365525,
+  "alias_text": "Paris-East Créteil University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Polytechnique Hauts‑de‑France",
+  "canonical_university_id": 365526,
+  "alias_text": "Polytechnic University of Hauts-de-France",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Saad Dahlab – Blida 1",
+  "canonical_university_id": 365528,
+  "alias_text": "Blida 1 University",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Sorbonne Nouvelle",
+  "canonical_university_id": 365530,
+  "alias_text": "Sorbonne Nouvelle University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Sorbonne Paris Nord",
+  "canonical_university_id": 365531,
+  "alias_text": "Sorbonne Paris North University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universität Erfurt",
+  "canonical_university_id": 365496,
+  "alias_text": "University of Erfurt",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universität Luzern",
+  "canonical_university_id": 365498,
+  "alias_text": "University of Lucerne",
+  "country": "Switzerland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universität Osnabrück",
+  "canonical_university_id": 365499,
+  "alias_text": "Osnabrück University",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universität Paderborn",
+  "canonical_university_id": 365500,
+  "alias_text": "Paderborn University",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universität Trier",
+  "canonical_university_id": 365501,
+  "alias_text": "University of Trier",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universita' degli Studi \"G. d'Annunzio\" Chieti Pescara",
+  "canonical_university_id": 1141,
+  "alias_text": "Gabriele d'Annunzio University",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universita' degli Studi del Molise",
+  "canonical_university_id": 365185,
+  "alias_text": "University of Molise",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universita' degli Studi del Sannio",
+  "canonical_university_id": 365186,
+  "alias_text": "University of Sannio",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universita' degli Studi della Basilicata",
+  "canonical_university_id": 365188,
+  "alias_text": "University of Basilicata",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universita' degli Studi di Napoli \"L'Orientale\"",
+  "canonical_university_id": 365189,
+  "alias_text": "University of Naples \"L'Orientale\"",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universita' degli Studi Suor Orsola Benincasa",
+  "canonical_university_id": 365184,
+  "alias_text": "Suor Orsola Benincasa University of Naples",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Airlangga",
+  "canonical_university_id": 307,
+  "alias_text": "Airlangga University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Andalas",
+  "canonical_university_id": 1487,
+  "alias_text": "Andalas University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Atma Jaya Yogyakarta",
+  "canonical_university_id": 365193,
+  "alias_text": "Atma Jaya University, Yogyakarta",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Brawijaya",
+  "canonical_university_id": 830,
+  "alias_text": "Brawijaya University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Esa Unggul",
+  "canonical_university_id": 365197,
+  "alias_text": "Esa Unggul University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Islam Indonesia (UII)",
+  "canonical_university_id": 1348,
+  "alias_text": "Islamic University of Indonesia",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Islam Negeri Maulana Malik Ibrahim Malang",
+  "canonical_university_id": 365199,
+  "alias_text": "Maulana Malik Ibrahim State Islamic University Malang",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Islam Negeri Sunan Gunung Djati Bandung",
+  "canonical_university_id": 365200,
+  "alias_text": "Sunan Gunung Djati State Islamic University Bandung",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Islam Negeri Sunan Kalijaga",
+  "canonical_university_id": 365201,
+  "alias_text": "Sunan Kalijaga State Islamic University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Jambi",
+  "canonical_university_id": 365203,
+  "alias_text": "University of Jambi",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Lambung Mangkurat (ULM)",
+  "canonical_university_id": 365206,
+  "alias_text": "Lambung Mangkurat University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Mercu Buana",
+  "canonical_university_id": 365207,
+  "alias_text": "Mercu Buana University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Muhammadiyah Makassar",
+  "canonical_university_id": 365209,
+  "alias_text": "Muhammadiyah University of Makassar",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Muhammadiyah Surakarta",
+  "canonical_university_id": 1489,
+  "alias_text": "Muhammadiyah University of Surakarta",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Muhammadiyah Yogyakarta",
+  "canonical_university_id": 1349,
+  "alias_text": "Muhammadiyah University of Yogyakarta",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Mulawarman",
+  "canonical_university_id": 365213,
+  "alias_text": "Mulawarman University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Multimedia Nusantara (UMN)",
+  "canonical_university_id": 365214,
+  "alias_text": "Multimedia Nusantara University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Negeri Jakarta",
+  "canonical_university_id": 365216,
+  "alias_text": "State University of Jakarta",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Negeri Makassar",
+  "canonical_university_id": 365217,
+  "alias_text": "State University of Makassar",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Negeri Padang",
+  "canonical_university_id": 365218,
+  "alias_text": "State University of Padang",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Negeri Semarang",
+  "canonical_university_id": 365219,
+  "alias_text": "State University of Semarang",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Negeri Surabaya (UNESA University)",
+  "canonical_university_id": 365220,
+  "alias_text": "State University of Surabaya",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Negeri Yogyakarta",
+  "canonical_university_id": 1393,
+  "alias_text": "Yogyakarta State University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Padjadjaran (UNPAD)",
+  "canonical_university_id": 594,
+  "alias_text": "Padjadjaran University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Pancasila",
+  "canonical_university_id": 365221,
+  "alias_text": "Pancasila University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Pelita Harapan",
+  "canonical_university_id": 365222,
+  "alias_text": "Pelita Harapan University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Pembangunan Nasional \"Veteran\" Jawa Timur",
+  "canonical_university_id": 365223,
+  "alias_text": "National Development University \"Veteran\" of East Java",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Pendidikan Ganesha",
+  "canonical_university_id": 365226,
+  "alias_text": "Ganesha University of Education",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Pendidikan Indonesia",
+  "canonical_university_id": 1350,
+  "alias_text": "Indonesia University of Education",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Pendidikan Nasional (UNDIKNAS)",
+  "canonical_university_id": 365227,
+  "alias_text": "University of National Education",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Riau",
+  "canonical_university_id": 365229,
+  "alias_text": "University of Riau",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Sebelas Maret",
+  "canonical_university_id": 1143,
+  "alias_text": "Sebelas Maret University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Sumatera Utara",
+  "canonical_university_id": 1351,
+  "alias_text": "University of North Sumatra",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Syiah Kuala",
+  "canonical_university_id": 365231,
+  "alias_text": "Syiah Kuala University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Tanjungpura",
+  "canonical_university_id": 365232,
+  "alias_text": "Tanjungpura University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Tarumanagara",
+  "canonical_university_id": 365233,
+  "alias_text": "Tarumanagara University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Trisakti (USAKTI)",
+  "canonical_university_id": 365234,
+  "alias_text": "Trisakti University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitas Warmadewa",
+  "canonical_university_id": 365235,
+  "alias_text": "Warmadewa University",
+  "country": "Indonesia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitat de Vic-Universitat Central de Catalunya (UVic-UCC)",
+  "canonical_university_id": 365239,
+  "alias_text": "University of Vic - Central University of Catalonia",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitat Internacional de Catalunya",
+  "canonical_university_id": 365236,
+  "alias_text": "International University of Catalonia",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitat Jaume I (CASTELLÓ)",
+  "canonical_university_id": 365237,
+  "alias_text": "Jaume I University",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitat Politecnica de Valencia",
+  "canonical_university_id": 435,
+  "alias_text": "Technical University of Valencia",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitat Ramon Llull",
+  "canonical_university_id": 463,
+  "alias_text": "University Ramon Llull",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitat Rovira i Virgili",
+  "canonical_university_id": 735,
+  "alias_text": "University of Rovira i Virgili",
+  "country": "Spain",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universitatea de Vest din Timisoara / West University of Timisoara",
+  "canonical_university_id": 1352,
+  "alias_text": "West University of Timișoara",
+  "country": "Romania",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "UNIVERSITATEA TEHNICA DE CONSTRUCTII BUCURESTI",
+  "canonical_university_id": 364892,
+  "alias_text": "Technical University of Civil Engineering of Bucharest",
+  "country": "Romania",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universite Marien Ngouabi",
+  "canonical_university_id": 365242,
+  "alias_text": "Marien Ngouabi University",
+  "country": "Congo Brazzaville",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universite Paris-Pantheon-Assas",
+  "canonical_university_id": 932,
+  "alias_text": "Paris-Panthéon-Assas University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universiti Islam Sultan Sharif Ali",
+  "canonical_university_id": 365245,
+  "alias_text": "Sultan Sharif Ali Islamic University",
+  "country": "Brunei",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universiti Kuala Lumpur (UniKL)",
+  "canonical_university_id": 1353,
+  "alias_text": "University of Kuala Lumpur",
+  "country": "Malaysia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universiti Pendidikan Sultan Idris (UPSI)",
+  "canonical_university_id": 991,
+  "alias_text": "Sultan Idris Education University",
+  "country": "Malaysia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universiti Putra Malaysia (UPM)",
+  "canonical_university_id": 149,
+  "alias_text": "University of Putra Malaysia",
+  "country": "Malaysia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universiti Selangor (UNISEL)",
+  "canonical_university_id": 365247,
+  "alias_text": "University of Selangor",
+  "country": "Malaysia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universiti Teknologi Brunei",
+  "canonical_university_id": 559,
+  "alias_text": "University of Technology Brunei",
+  "country": "Brunei",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universiti Teknologi Malaysia",
+  "canonical_university_id": 181,
+  "alias_text": "University of Technology Malaysia",
+  "country": "Malaysia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universiti Teknologi MARA - UiTM",
+  "canonical_university_id": 587,
+  "alias_text": "Universiti Teknologi MARA",
+  "country": "Malaysia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universiti Tun Hussein Onn Malaysia (UTHM)",
+  "canonical_university_id": 1148,
+  "alias_text": "Tun Hussein Onn University of Malaysia",
+  "country": "Malaysia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University at Albany SUNY",
+  "canonical_university_id": 882,
+  "alias_text": "University at Albany",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University College of Boras",
+  "canonical_university_id": 365252,
+  "alias_text": "University of Borås",
+  "country": "Sweden",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University College of Mälardalen",
+  "canonical_university_id": 365253,
+  "alias_text": "Mälardalen University",
+  "country": "Sweden",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University College Plymouth St Mark & St John",
+  "canonical_university_id": 365251,
+  "alias_text": "Plymouth Marjon University",
+  "country": "United Kingdom",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University Mohamed Boudiaf of M'Sila",
+  "canonical_university_id": 365254,
+  "alias_text": "Mohamed Boudiaf University of M'Sila",
+  "country": "Algeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Arkansas Fayetteville",
+  "canonical_university_id": 1149,
+  "alias_text": "University of Arkansas",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Bolton",
+  "canonical_university_id": 365292,
+  "alias_text": "University of Greater Manchester",
+  "country": "United Kingdom",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Carthage",
+  "canonical_university_id": 365302,
+  "alias_text": "Carthage University",
+  "country": "Tunisia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Clermont Auvergne",
+  "canonical_university_id": 560972,
+  "alias_text": "Clermont Auvergne University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Delhi",
+  "canonical_university_id": 328,
+  "alias_text": "Delhi University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Education, Lahore",
+  "canonical_university_id": 365326,
+  "alias_text": "University of Education",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Engineering & Technology (UET) Lahore",
+  "canonical_university_id": 758,
+  "alias_text": "University of Engineering and Technology, Lahore",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Gävle",
+  "canonical_university_id": 365337,
+  "alias_text": "Gävle University College",
+  "country": "Sweden",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Hafr Al Batin",
+  "canonical_university_id": 365338,
+  "alias_text": "University of Hafr Albatin",
+  "country": "Saudi Arabia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Hawaii at Hilo",
+  "canonical_university_id": 365339,
+  "alias_text": "University of Hawaiʻi at Hilo",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Kaiserslautern-Landau(RPTU)",
+  "canonical_university_id": 1298,
+  "alias_text": "RPTU University Kaiserslautern-Landau",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Kashmir, Srinagar",
+  "canonical_university_id": 365350,
+  "alias_text": "University of Kashmir",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Kerbala",
+  "canonical_university_id": 365353,
+  "alias_text": "University of Karbala",
+  "country": "Iraq",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Maine-Augusta",
+  "canonical_university_id": 365368,
+  "alias_text": "University of Maine at Augusta",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Manouba",
+  "canonical_university_id": 365371,
+  "alias_text": "Manouba University",
+  "country": "Tunisia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Massachusetts Medical School - Worcester",
+  "canonical_university_id": 365375,
+  "alias_text": "University of Massachusetts Medical School",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Michigan-Ann Arbor",
+  "canonical_university_id": 44,
+  "alias_text": "University of Michigan",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Missouri, Columbia",
+  "canonical_university_id": 652,
+  "alias_text": "University of Missouri",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Missouri Saint Louis",
+  "canonical_university_id": 1365,
+  "alias_text": "University of Missouri–St. Louis",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Namur",
+  "canonical_university_id": 365390,
+  "alias_text": "Université de Namur",
+  "country": "Belgium",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Natural Resources and Applied Life Sciences Vienna",
+  "canonical_university_id": 365391,
+  "alias_text": "University of Natural Resources and Life Sciences, Vienna",
+  "country": "Austria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of New Orleans",
+  "canonical_university_id": 561051,
+  "alias_text": "LSU New Orleans",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Nice Sophia Antipolis",
+  "canonical_university_id": 561024,
+  "alias_text": "Université Nice-Sophia-Antipolis",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Nigeria Nsukka",
+  "canonical_university_id": 365396,
+  "alias_text": "University of Nigeria",
+  "country": "Nigeria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Paris Descartes (Paris 5)",
+  "canonical_university_id": 561025,
+  "alias_text": "Paris Descartes University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Paris-Sud (Paris 11)",
+  "canonical_university_id": 561026,
+  "alias_text": "Paris-Sud University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Quebec Montreal",
+  "canonical_university_id": 560989,
+  "alias_text": "Université du Québec à Montréal",
+  "country": "Canada",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Sri Jayawardenapura",
+  "canonical_university_id": 1381,
+  "alias_text": "University of Sri Jayewardenepura",
+  "country": "Sri Lanka",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Ss. Cyril and Methodius in Trnava",
+  "canonical_university_id": 365436,
+  "alias_text": "University of Ss. Cyril and Methodius",
+  "country": "Slovakia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Texas El Paso",
+  "canonical_university_id": 1171,
+  "alias_text": "University of Texas at El Paso",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of the West Indies at Mona",
+  "canonical_university_id": 365487,
+  "alias_text": "University of the West Indies",
+  "country": "Jamaica",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Thi-Qar",
+  "canonical_university_id": 365451,
+  "alias_text": "University of Dhi Qar",
+  "country": "Iraq",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Tromsø The Arctic University of Norway",
+  "canonical_university_id": 629,
+  "alias_text": "The Arctic University of Norway",
+  "country": "Norway",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Veliko Tarnovo",
+  "canonical_university_id": 365461,
+  "alias_text": "Veliko Tarnovo University",
+  "country": "Bulgaria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Veterinary and Animal Sciences, Lahore, Pakistan",
+  "canonical_university_id": 365463,
+  "alias_text": "University of Veterinary and Animal Sciences",
+  "country": "Pakistan",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Zakho - UoZ",
+  "canonical_university_id": 365474,
+  "alias_text": "University of Zakho",
+  "country": "Iraq",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University of Zawia",
+  "canonical_university_id": 365477,
+  "alias_text": "Al Zawiya University",
+  "country": "Libya",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University POLITEHNICA of Bucharest",
+  "canonical_university_id": 1356,
+  "alias_text": "Politehnica University of Bucharest",
+  "country": "Romania",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University Sarajevo School of Science and Technology",
+  "canonical_university_id": 365261,
+  "alias_text": "Sarajevo School of Science and Technology",
+  "country": "Bosnia Herzegovina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "University St.Kliment Ohridski in Bitola",
+  "canonical_university_id": 365262,
+  "alias_text": "St. Clement of Ohrid University of Bitola",
+  "country": "North Macedonia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Università degli studi di Bergamo",
+  "canonical_university_id": 1386,
+  "alias_text": "University of Bergamo",
+  "country": "Italy",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universität Duisburg-Essen",
+  "canonical_university_id": 845,
+  "alias_text": "University of Duisburg-Essen",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Universität Leipzig",
+  "canonical_university_id": 527,
+  "alias_text": "Leipzig University",
+  "country": "Germany",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université catholique de Louvain (UCLouvain)",
+  "canonical_university_id": 204,
+  "alias_text": "UCLouvain",
+  "country": "Belgium",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Côte d'Azur",
+  "canonical_university_id": 737,
+  "alias_text": "Côte d'Azur University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Caen Normandie",
+  "canonical_university_id": 1188,
+  "alias_text": "University of Caen Normandy",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Franche-Comté",
+  "canonical_university_id": 720,
+  "alias_text": "Marie and Louis Pasteur University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Limoges",
+  "canonical_university_id": 1388,
+  "alias_text": "University of Limoges",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Rennes",
+  "canonical_university_id": 734,
+  "alias_text": "University of Rennes 1",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Tunis",
+  "canonical_university_id": 1193,
+  "alias_text": "Tunis University",
+  "country": "Tunisia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université de Tunis El Manar",
+  "canonical_university_id": 777,
+  "alias_text": "Tunis El Manar University",
+  "country": "Tunisia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Grenoble Alpes",
+  "canonical_university_id": 332,
+  "alias_text": "Grenoble Alpes University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Lumière Lyon 2",
+  "canonical_university_id": 1185,
+  "alias_text": "Lumière University Lyon 2",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Mohammed V de Rabat",
+  "canonical_university_id": 1186,
+  "alias_text": "Mohammed V University",
+  "country": "Morocco",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Paris 1 Panthéon-Sorbonne",
+  "canonical_university_id": 282,
+  "alias_text": "Paris 1 Panthéon-Sorbonne University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Paris Cité",
+  "canonical_university_id": 302,
+  "alias_text": "Paris Cité University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université PSL",
+  "canonical_university_id": 24,
+  "alias_text": "Paris Sciences et Lettres University",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Université Toulouse - Jean Jaurès",
+  "canonical_university_id": 1192,
+  "alias_text": "University of Toulouse-Jean Jaurès",
+  "country": "France",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "UNNOBA",
+  "canonical_university_id": 364893,
+  "alias_text": "National University of Northwestern Buenos Aires",
+  "country": "Argentina",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Ural Federal University - UrFU",
+  "canonical_university_id": 519,
+  "alias_text": "Ural Federal University",
+  "country": "Russia",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "USI - Università della Svizzera italiana",
+  "canonical_university_id": 404,
+  "alias_text": "Università della Svizzera italiana",
+  "country": "Switzerland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Utkal University, Bhubaneswar",
+  "canonical_university_id": 365560,
+  "alias_text": "Utkal University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "UWE Bristol (University of the West of England)",
+  "canonical_university_id": 745,
+  "alias_text": "University of the West of England",
+  "country": "United Kingdom",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "V. N. Karazin Kharkiv National University",
+  "canonical_university_id": 747,
+  "alias_text": "VN Karazin Kharkiv National University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Vasyl Stefanyk Carpathian National University",
+  "canonical_university_id": 365571,
+  "alias_text": "Vasyl Stefanyk Precarpathian National University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Vasyl Stus Donetsk National University",
+  "canonical_university_id": 365572,
+  "alias_text": "Donetsk National University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Vels University",
+  "canonical_university_id": 365576,
+  "alias_text": "Vels Institute of Science, Technology & Advanced Studies",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Viet Nam National University Ho Chi Minh City (VNU-HCM)",
+  "canonical_university_id": 945,
+  "alias_text": "Vietnam National University, Ho Chi Minh City",
+  "country": "Vietnam",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Vinayaka Missions University",
+  "canonical_university_id": 365584,
+  "alias_text": "Vinayaka Mission's Research Foundation",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Virginia Polytechnic Institute and State University",
+  "canonical_university_id": 388,
+  "alias_text": "Virginia Tech",
+  "country": "United States",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Visvesvaraya National Institute of Technology",
+  "canonical_university_id": 365591,
+  "alias_text": "Visvesvaraya National Institute of Technology Nagpur",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Visvesvaraya Technological University, Belagavi",
+  "canonical_university_id": 365592,
+  "alias_text": "Visvesvaraya Technological University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Volodymyr Dahl East Ukrainian National University",
+  "canonical_university_id": 365595,
+  "alias_text": "East Ukrainian National University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Warsaw University of Life Sciences SGGW (WULS-SGGW)",
+  "canonical_university_id": 1196,
+  "alias_text": "Warsaw University of Life Sciences",
+  "country": "Poland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "West Pomeranian University of Technology, Szczecin",
+  "canonical_university_id": 365608,
+  "alias_text": "West Pomeranian University of Technology",
+  "country": "Poland",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Western University",
+  "canonical_university_id": 122,
+  "alias_text": "University of Western Ontario",
+  "country": "Canada",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "WU (Vienna University of Economics and Business)",
+  "canonical_university_id": 365598,
+  "alias_text": "Vienna University of Economics and Business",
+  "country": "Austria",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Xavier University",
+  "canonical_university_id": 365627,
+  "alias_text": "Xavier University – Ateneo de Cagayan",
+  "country": "Philippines",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Yangon University",
+  "canonical_university_id": 365652,
+  "alias_text": "University of Yangon",
+  "country": "Myanmar Burma",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Yenepoya (Deemed to be University)",
+  "canonical_university_id": 365659,
+  "alias_text": "Yenepoya University",
+  "country": "India",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Yuriy Fedkovych Chernivtsi National University",
+  "canonical_university_id": 365669,
+  "alias_text": "Chernivtsi University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Zewail City of Science and Technology",
+  "canonical_university_id": 365671,
+  "alias_text": "Zewail City of Science, Technology and Innovation",
+  "country": "Egypt",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Zhejiang University City College",
+  "canonical_university_id": 365678,
+  "alias_text": "Hangzhou City University",
+  "country": "China (mainland)",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Zhytomyr Ivan Franko State University",
+  "canonical_university_id": 365686,
+  "alias_text": "Ivan Franko Zhytomyr State University",
+  "country": "Ukraine",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ },
+ {
+  "canonical_slug_hint": "Zuyd University",
+  "canonical_university_id": 365689,
+  "alias_text": "Zuyd University of Applied Sciences",
+  "country": "Netherlands",
+  "source": "English Wikipedia article title",
+  "method": "rule"
+ }
+]
