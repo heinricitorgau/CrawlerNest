@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import importlib.util
 import unittest
+from pathlib import Path
+from unittest import mock
 
 from crawlernest.agent.web_agent.generation.faithfulness import check_faithfulness
 
@@ -95,6 +98,55 @@ class TestFaithfulness(unittest.TestCase):
         payload = report.as_dict()
         self.assertFalse(payload["faithful"])
         self.assertEqual(payload["violations"][0]["kind"], "unsupported_number")
+
+
+def _load_eval_runner():
+    path = (
+        Path(__file__).resolve().parents[1]
+        / "crawlernest-autoeval" / "runners" / "run_faithfulness_eval.py"
+    )
+    spec = importlib.util.spec_from_file_location("run_faithfulness_eval", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class TestEvalRunnerEvidence(unittest.TestCase):
+    """Live mode checks against what the model was shown; fixture mode does not."""
+
+    _ENTRY = {
+        "id": "t-1",
+        "description": "names the editions the dataset header lists",
+        "task_kind": "recommendation",
+        "evidence": {"items": _ITEMS, "caveats": [_CAVEAT]},
+        "explanation": (
+            "The warehouse holds 2015 to 2026 data; National Taiwan University "
+            "sits at aggregated rank 68.\n\n" + _CAVEAT
+        ),
+        "expect": {"faithful": False, "violation_kinds": ["unsupported_number"]},
+    }
+
+    def test_live_mode_accepts_years_from_the_dataset_header(self) -> None:
+        runner = _load_eval_runner()
+        with mock.patch.object(
+            runner, "generate_live", return_value=(self._ENTRY["explanation"], "llm")
+        ):
+            summary = runner.evaluate([self._ENTRY], live=True, verbose=False)
+        self.assertEqual(summary["entries"][0]["violations"], [])
+        self.assertEqual(summary["result"], "PASS")
+
+    def test_live_mode_still_flags_a_year_the_header_does_not_list(self) -> None:
+        runner = _load_eval_runner()
+        text = self._ENTRY["explanation"].replace("2026", "2027")
+        with mock.patch.object(runner, "generate_live", return_value=(text, "llm")):
+            summary = runner.evaluate([self._ENTRY], live=True, verbose=False)
+        details = [v["detail"] for v in summary["entries"][0]["violations"]]
+        self.assertEqual(details, ["2027 does not appear in the evidence"])
+
+    def test_fixture_mode_does_not_add_the_header(self) -> None:
+        summary = _load_eval_runner().evaluate([self._ENTRY], live=False, verbose=False)
+        self.assertFalse(summary["entries"][0]["faithful"])
+        self.assertEqual(summary["result"], "PASS")
 
 
 if __name__ == "__main__":
