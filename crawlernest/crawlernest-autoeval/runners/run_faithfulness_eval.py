@@ -19,7 +19,8 @@ Two modes:
     Generate the explanation with the configured provider (ds4 when
     ``WEB_AGENT_DS4_BASE_URL`` is set), then check the real output. Reports the
     faithfulness of what the model actually produced; requires a reachable
-    server.
+    server. The output is checked against the evidence plus the dataset header
+    the model was shown, the same evidence the product verifies against.
 
 In fixture mode the run also scores **the checker itself as a detector**:
 per-violation-kind precision, recall and F1 against the golden expectations. A
@@ -46,6 +47,9 @@ if str(REPO_ROOT) not in sys.path:
 
 GOLDEN_FILE = Path(__file__).resolve().parents[1] / "datasets" / "faithfulness" / "golden.json"
 
+from crawlernest.agent.web_agent.generation.dataset_context import (  # noqa: E402
+    build_dataset_header,
+)
 from crawlernest.agent.web_agent.generation.faithfulness import (  # noqa: E402
     check_faithfulness,
 )
@@ -221,15 +225,24 @@ def evaluate(entries: list[dict[str, Any]], *, live: bool, verbose: bool) -> dic
         items = evidence.get("items", [])
         caveats = evidence.get("caveats", [])
 
+        extra = {k: v for k, v in evidence.items() if k not in {"items", "caveats"}}
         if live:
             explanation, source = generate_live(entry)
+            # Check live output against what the model was given, as the product
+            # does (GroundedExplainer._explain verifies against the header plus
+            # the rows). The header names the editions the warehouse holds, so
+            # without it every live answer that restates them reads as invented.
+            # Fixture mode leaves it out: its stored explanations were written
+            # against the golden evidence alone, and adding the warehouse's
+            # editions would hide the wrong-year cases (faith-123) it guards.
+            extra["dataset_header"] = build_dataset_header(items)
         else:
             explanation, source = entry.get("explanation", ""), "fixture"
 
         report = check_faithfulness(
             explanation=explanation,
             items=items,
-            evidence={k: v for k, v in evidence.items() if k not in {"items", "caveats"}} or None,
+            evidence=extra or None,
             caveats=caveats,
         )
 
@@ -239,7 +252,7 @@ def evaluate(entries: list[dict[str, Any]], *, live: bool, verbose: bool) -> dic
         provenance = check_provenance(
             explanation=explanation,
             items=items,
-            evidence={k: v for k, v in evidence.items() if k not in {"items", "caveats"}} or None,
+            evidence=extra or None,
             caveats=caveats,
         )
 
