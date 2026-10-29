@@ -217,7 +217,15 @@ writes the `/recommendations` explanations) reads its own variables:
 export WEB_AGENT_OLLAMA_BASE_URL=http://localhost:11434
 export WEB_AGENT_OLLAMA_MODEL=qwen3:8b
 export WEB_AGENT_REASONING_EFFORT=none   # sent as reasoning_effort; blank sends nothing
+export WEB_AGENT_STREAM=1                # stream from the model; the timeout then applies per read
+# export WEB_AGENT_TIMEOUT=60            # seconds; default 20 (ds4 uses WEB_AGENT_DS4_TIMEOUT)
 ```
+
+A five-university recommendation takes a local 8B model longer than 20 seconds
+to write: about 440 tokens at about 21 tokens a second on an 8 GB laptop GPU.
+Reading the prompt is not the cost (1,200 tokens in 0.4 seconds). Without
+`WEB_AGENT_STREAM=1` or a longer `WEB_AGENT_TIMEOUT`, every such request times
+out and falls back to the deterministic reply.
 
 `WEB_AGENT_REASONING_EFFORT` matters for thinking models. Its 20-second timeout
 is shorter than qwen3's thinking: in a live faithfulness run without it, 32 of

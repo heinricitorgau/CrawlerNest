@@ -382,5 +382,77 @@ class TestDs4Streaming(unittest.TestCase):
         self.assertEqual(result.reply_text, "PLAIN JSON REPLY")
 
 
+
+class TestNonDs4TimeoutAndStream(unittest.TestCase):
+    """WEB_AGENT_TIMEOUT / WEB_AGENT_STREAM for the providers that are not ds4."""
+
+    def setUp(self) -> None:
+        self.server = _MockServer(("127.0.0.1", 0))
+        self.port = self.server.server_address[1]
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        self._env = mock.patch.dict(
+            "os.environ",
+            {
+                "WEB_AGENT_DS4_BASE_URL": "",
+                "WEB_AGENT_GENERATION_DISABLED": "",
+                "WEB_AGENT_OPENAI_BASE_URL": "",
+                "OPENAI_BASE_URL": "",
+                "WEB_AGENT_OLLAMA_BASE_URL": f"http://127.0.0.1:{self.port}",
+                "WEB_AGENT_OLLAMA_MODEL": "qwen3:8b",
+                "WEB_AGENT_TIMEOUT": "",
+                "WEB_AGENT_STREAM": "",
+            },
+            clear=False,
+        )
+        self._env.start()
+
+    def tearDown(self) -> None:
+        self._env.stop()
+        self.server.shutdown()
+        self.server.server_close()
+
+    def test_timeout_defaults_to_20s_and_env_overrides_it(self) -> None:
+        self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 20.0)
+        with mock.patch.dict("os.environ", {"WEB_AGENT_TIMEOUT": "75"}):
+            self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 75.0)
+
+    def test_ds4_ignores_the_generic_timeout_and_stream(self) -> None:
+        with mock.patch.dict(
+            "os.environ",
+            {
+                "WEB_AGENT_DS4_BASE_URL": f"http://127.0.0.1:{self.port}",
+                "WEB_AGENT_DS4_TIMEOUT": "",
+                "WEB_AGENT_DS4_STREAM": "",
+                "WEB_AGENT_TIMEOUT": "75",
+                "WEB_AGENT_STREAM": "1",
+            },
+        ):
+            status = WebResponseGenerator().inspect_provider_status()
+        self.assertEqual(status["providerLabel"], "ds4")
+        self.assertEqual(status["timeout"], 60.0)
+        self.assertFalse(status["stream"])
+
+    def test_stream_flag_streams_from_ollama(self) -> None:
+        self.server.next_sse = [
+            json.dumps({"choices": [{"delta": {"content": "Hello "}}]}),
+            json.dumps({"choices": [{"delta": {"content": "world"}, "finish_reason": "stop"}]}),
+            "[DONE]",
+        ]
+        with mock.patch.dict("os.environ", {"WEB_AGENT_STREAM": "1"}):
+            result = WebResponseGenerator().generate_response(
+                prompt=PromptPayload(
+                    system_instruction="sys",
+                    user_message="hi",
+                    context_block="evidence",
+                    response_constraints=["be honest"],
+                ),
+                fallback_text="Rule-based reply.",
+            )
+        self.assertEqual(result.source, "llm")
+        self.assertEqual(result.reply_text, "Hello world")
+        self.assertTrue(self.server.requests[0]["body"]["stream"])
+
+
 if __name__ == "__main__":
     unittest.main()

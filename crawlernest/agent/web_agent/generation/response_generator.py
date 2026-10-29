@@ -15,7 +15,10 @@ logger = logging.getLogger(__name__)
 
 # Default per-request HTTP timeout (seconds). ds4 gets a longer default because
 # a remote, large local model can spend real time on prefill before the first
-# byte; other OpenAI-compatible providers keep the historical 20s.
+# byte; other OpenAI-compatible providers keep the historical 20s, which
+# WEB_AGENT_TIMEOUT overrides. A local 8B model writing a five-university
+# explanation spends ~20s generating (441 tokens at ~21 tokens/s on an 8 GB
+# laptop GPU), so it needs either a longer timeout or WEB_AGENT_STREAM=1.
 _DEFAULT_TIMEOUT = 20.0
 _DS4_DEFAULT_TIMEOUT = 60.0
 
@@ -188,8 +191,13 @@ class WebResponseGenerator:
 
     def _resolve_provider(self) -> ProviderConfig | None:
         provider = self._resolve_provider_endpoint()
-        if provider is not None:
-            provider.reasoning_effort = os.getenv("WEB_AGENT_REASONING_EFFORT", "").strip()
+        if provider is None:
+            return None
+        provider.reasoning_effort = os.getenv("WEB_AGENT_REASONING_EFFORT", "").strip()
+        # ds4 keeps its own WEB_AGENT_DS4_TIMEOUT / WEB_AGENT_DS4_STREAM.
+        if provider.provider_label != "ds4":
+            provider.timeout = _resolve_timeout("WEB_AGENT_TIMEOUT", provider.timeout)
+            provider.stream = _env_flag("WEB_AGENT_STREAM")
         return provider
 
     def _resolve_provider_endpoint(self) -> ProviderConfig | None:
