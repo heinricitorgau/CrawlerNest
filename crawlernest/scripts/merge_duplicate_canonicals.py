@@ -236,12 +236,16 @@ def merge_all(conn: Any, decisions: Decisions, *, commit: bool) -> dict[str, Any
                 for table in ("warehouse.admission_record", "warehouse.canonical_university_link"):
                     cur.execute(f"UPDATE {table} SET canonical_university_id = %s WHERE canonical_university_id = %s",
                                 (survivor_id, loser_id))
-                cur.execute(
-                    "DELETE FROM warehouse.saved_university s WHERE canonical_university_id = %s AND EXISTS ("
-                    "  SELECT 1 FROM warehouse.saved_university k WHERE k.user_id = s.user_id AND k.canonical_university_id = %s)",
-                    (loser_id, survivor_id))
-                cur.execute("UPDATE warehouse.saved_university SET canonical_university_id = %s "
-                            "WHERE canonical_university_id = %s", (survivor_id, loser_id))
+                # Created by the Java service on first start (AuthSchemaInitializer), not by bootstrap-postgres,
+                # so a warehouse the API has never run against has no saved universities to move.
+                cur.execute("SELECT to_regclass('warehouse.saved_university') IS NOT NULL")
+                if cur.fetchone()[0]:
+                    cur.execute(
+                        "DELETE FROM warehouse.saved_university s WHERE canonical_university_id = %s AND EXISTS ("
+                        "  SELECT 1 FROM warehouse.saved_university k WHERE k.user_id = s.user_id AND k.canonical_university_id = %s)",
+                        (loser_id, survivor_id))
+                    cur.execute("UPDATE warehouse.saved_university SET canonical_university_id = %s "
+                                "WHERE canonical_university_id = %s", (survivor_id, loser_id))
                 # The desk's target list (db/auth/V003__create_desk_schema.sql) has no foreign key to
                 # canonical_university, so nothing else would notice a target left on the loser. Same
                 # shape as saved_university: drop the loser's row where the user already has the survivor.

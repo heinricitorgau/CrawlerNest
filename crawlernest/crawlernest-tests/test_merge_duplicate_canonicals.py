@@ -194,6 +194,14 @@ class TestMergeAgainstPostgres(unittest.TestCase):
             if row is None:
                 self.skipTest("the warehouse has no QS ranking source to hang fixture rows on")
             self.source_id = row[0]
+            # The mapping's source_code references entity_source. upsert_ranking_sources mirrors a source
+            # there, but a fixture that inserts into ranking_source directly does not, and on a freshly
+            # bootstrapped database such a fixture is where QS came from. Registered here, and removed
+            # again only if this test is what added it.
+            cur.execute(
+                "INSERT INTO warehouse.entity_source (source_code, source_kind, display_name) "
+                "VALUES ('QS', 'ranking', 'QS') ON CONFLICT (source_code) DO NOTHING RETURNING source_code")
+            self.registered_entity_source = cur.fetchone() is not None
             self.ids = {}
             for slug, name in ((SURVIVOR, "Dupmerge Fixture Üniversitesi"), (LOSER, "Dupmerge Fixture University"),
                                (THIRD, "Dupmerge Third University")):
@@ -219,6 +227,10 @@ class TestMergeAgainstPostgres(unittest.TestCase):
     def tearDown(self) -> None:
         self.conn.rollback()
         self._clear()
+        if getattr(self, "registered_entity_source", False):
+            with self.conn.cursor() as cur:
+                cur.execute("DELETE FROM warehouse.entity_source WHERE source_code = 'QS'")
+            self.conn.commit()
         self.conn.close()
 
     def _clear(self) -> None:
