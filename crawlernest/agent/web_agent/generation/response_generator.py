@@ -80,6 +80,10 @@ class ProviderConfig:
     provider_label: str
     timeout: float = _DEFAULT_TIMEOUT
     stream: bool = False
+    # Sent as reasoning_effort when set. Blank sends nothing, which models
+    # without the parameter need. "none" turns qwen3's thinking off under
+    # Ollama; without it qwen3 thinks past the 20s timeout and falls back.
+    reasoning_effort: str = ""
 
 
 class WebResponseGenerator:
@@ -93,6 +97,7 @@ class WebResponseGenerator:
                 "baseUrl": None,
                 "timeout": None,
                 "stream": None,
+                "reasoningEffort": None,
                 "reason": "No web generation provider configured.",
             }
 
@@ -103,6 +108,7 @@ class WebResponseGenerator:
             "baseUrl": provider.base_url,
             "timeout": provider.timeout,
             "stream": provider.stream,
+            "reasoningEffort": provider.reasoning_effort or None,
             "reason": None,
         }
 
@@ -138,6 +144,7 @@ class WebResponseGenerator:
                 prompt=prompt,
                 timeout=provider.timeout,
                 stream=provider.stream,
+                reasoning_effort=provider.reasoning_effort,
                 on_delta=on_delta,
             )
             paragraphs = [part.strip() for part in reply.split("\n\n") if part.strip()]
@@ -180,6 +187,12 @@ class WebResponseGenerator:
         )
 
     def _resolve_provider(self) -> ProviderConfig | None:
+        provider = self._resolve_provider_endpoint()
+        if provider is not None:
+            provider.reasoning_effort = os.getenv("WEB_AGENT_REASONING_EFFORT", "").strip()
+        return provider
+
+    def _resolve_provider_endpoint(self) -> ProviderConfig | None:
         if os.getenv("WEB_AGENT_GENERATION_DISABLED", "").strip() in {"1", "true", "TRUE"}:
             return None
 
@@ -247,6 +260,7 @@ class WebResponseGenerator:
         prompt: PromptPayload,
         timeout: float = _DEFAULT_TIMEOUT,
         stream: bool = False,
+        reasoning_effort: str = "",
         on_delta: Callable[[str], None] | None = None,
     ) -> str:
         endpoint = base_url.rstrip("/")
@@ -267,6 +281,8 @@ class WebResponseGenerator:
             "temperature": 0.4,
             "messages": messages,
         }
+        if reasoning_effort:
+            body["reasoning_effort"] = reasoning_effort
         headers: dict[str, str] = {
             "Content-Type": "application/json",
         }
