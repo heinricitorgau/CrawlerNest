@@ -94,6 +94,7 @@ class TestDs4LivePath(unittest.TestCase):
                 "WEB_AGENT_GENERATION_DISABLED": "",
                 "WEB_AGENT_OPENAI_BASE_URL": "",
                 "OPENAI_BASE_URL": "",
+                "WEB_AGENT_REASONING_EFFORT": "",
             },
             clear=False,
         )
@@ -197,6 +198,28 @@ class TestDs4LivePath(unittest.TestCase):
         stats = generation_stats()
         self.assertEqual(stats["llm"], 1)
         self.assertEqual(stats["fallback"], 1)
+
+
+    def _explain_and_capture_body(self) -> dict:
+        self.server.next_status = 200
+        self.server.next_body = self._chat_response("ok")
+        RecommendationExplainer(verify=False).explain(
+            items=_ITEMS,
+            profile={"country": "Taiwan"},
+            query="recommend for me",
+            caveats=["Only QS is available."],
+            deterministic_reply="Rule-based reply.",
+        )
+        return self.server.requests[0]["body"]
+
+    def test_reasoning_effort_is_not_sent_when_unset(self) -> None:
+        # Models without the parameter reject it, so blank must mean absent.
+        self.assertNotIn("reasoning_effort", self._explain_and_capture_body())
+
+    def test_reasoning_effort_is_sent_when_set(self) -> None:
+        with mock.patch.dict("os.environ", {"WEB_AGENT_REASONING_EFFORT": "none"}):
+            self.assertEqual(WebResponseGenerator().inspect_provider_status()["reasoningEffort"], "none")
+            self.assertEqual(self._explain_and_capture_body()["reasoning_effort"], "none")
 
 
 class TestDs4Streaming(unittest.TestCase):

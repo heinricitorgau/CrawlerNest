@@ -210,6 +210,23 @@ The route calls Ollama with a timeout. If Ollama is not running or the model is
 missing, the page receives a safe provider-unavailable message rather than a raw
 stack trace.
 
+That configures the Next.js route only. The Python web-agent (port 8090, which
+writes the `/recommendations` explanations) reads its own variables:
+
+```bash
+export WEB_AGENT_OLLAMA_BASE_URL=http://localhost:11434
+export WEB_AGENT_OLLAMA_MODEL=qwen3:8b
+export WEB_AGENT_REASONING_EFFORT=none   # sent as reasoning_effort; blank sends nothing
+```
+
+`WEB_AGENT_REASONING_EFFORT` matters for thinking models. Its 20-second timeout
+is shorter than qwen3's thinking: in a live faithfulness run without it, 32 of
+57 qwen3 requests timed out and fell back to the deterministic reply. Ollama
+accepts the parameter for models that do not think (`qwen2.5`), but some hosted
+models reject it (gpt-4.1), so leave it unset there. The Java desk has the same
+switch under its own name, `CRAWLERNEST_MODEL_REASONING_EFFORT`, because the two
+can point at different models.
+
 ## OpenAI Setup
 
 Example:
