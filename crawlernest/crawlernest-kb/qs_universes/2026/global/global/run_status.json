@@ -2,7 +2,7 @@
   "status": "ok",
   "failure_classification": "",
   "message": "",
-  "run_id": "qs-global-global-2026-2026-10-21T13:02:20Z",
+  "run_id": "qs-global-global-2026-2026-10-26T17:21:28Z",
   "universe_type": "global",
   "universe_key": "global",
   "ranking_year": 2026,
@@ -58,10 +58,10 @@
   },
   "normalized_count": 1504,
   "standardized_count": 1504,
-  "rows_written": 1502,
+  "rows_written": 1503,
   "rows_updated": 0,
-  "matched_count": 1502,
-  "unresolved_count": 2,
+  "matched_count": 1503,
+  "unresolved_count": 1,
   "aggregated_years": [
     2026
   ]
