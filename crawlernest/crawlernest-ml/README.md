@@ -518,6 +518,11 @@ ranking_ml/
   training/
     train_overall_score.py  the overall-score run
     train_disagreement.py   the cross-source disagreement run
+  research/                 RD-Agent-style research loop (see "Research loop" below)
+    space.py                the whitelisted experiment space
+    trace.py                hypothesis / experiment / feedback, and the DAG trace
+    proposer.py             one-change proposer, and the CallableProposer hook for an LLM
+    loop.py                 propose -> run -> judge -> record, and the CLI
   serving/
     predict.py              batch scoring into analytics.ml_predictions
 model_cards/
@@ -528,6 +533,42 @@ artifacts/
   metrics/                  committed metrics.json, what CI compares against
   models/                   trained binaries (gitignored, rebuildable)
 ```
+
+## Research loop
+
+`ranking_ml/research/` ports the research cycle of Microsoft
+[RD-Agent](https://github.com/microsoft/RD-Agent) (`rdagent/core/proposal.py`,
+`rdagent/components/workflow/rd_loop.py`) onto the overall-score model:
+
+```
+propose a hypothesis -> build the experiment -> run it -> judge it against the best node -> record (exp, feedback) in the trace
+       ^                                                                                              |
+       +------------------------------- grow the next hypothesis from the best accepted node ---------+
+```
+
+```bash
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.research.loop --loops 20
+```
+
+What is kept from RD-Agent: the `Hypothesis` / `Experiment` / `Feedback` triple, a trace whose
+`dag_parent` records which node each experiment grew from, SOTA as the last accepted node on a path,
+and a failed experiment recorded as a rejected node rather than stopping the loop.
+
+What is not, on purpose:
+
+- **No generated code.** A hypothesis names components from `space.py` (model x missing-value
+  strategy x region block, 17 valid combinations), and a spec outside it is refused before it runs.
+  An LLM plugs in through `CallableProposer`, which receives the trace as plain data and must return a
+  spec from that space.
+- **A holdout the loop never reads.** The 799 withheld rows are alternated in rank order into a search
+  half (decisions) and a holdout half, scored once in the report for the best node and the baseline.
+  The report's caveats state how many trials the best node was chosen from.
+
+Output goes to `.local/reports/research/overall_score_research_<UTC stamp>.json`; nothing is written to
+`artifacts/metrics/` or the warehouse. On QS 2026 the loop tries all 17 combinations in about 16 s and
+keeps the baseline, `linear|renormalise|no-region` (search 0.9627, holdout 0.9601); the closest
+challenger, ridge with median imputation and regions, trails it by 0.020 -- the same missing-value
+finding as Phase 2, reached by search instead of by hand.
 
 ## Serving
 
