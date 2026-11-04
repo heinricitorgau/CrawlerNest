@@ -321,7 +321,7 @@ only, at most three segments, plus an allow-list of query parameters.
 | `POST /sprints`, `PATCH /sprints/{id}`, `DELETE /sprints/{id}` | Deleting a sprint keeps its tasks and clears their `sprintId`. |
 | `GET /targets?stage=`, `GET /targets/{id}`, `POST /targets`, `PATCH /targets/{id}`, `DELETE /targets/{id}` | `name` is the warehouse display name when linked. A missing university is refused, and so is a `merged` one. A repeated (university, programme) pair answers 409; the programme comparison ignores case and spacing. |
 | `GET /skills?subject=`, `POST /skills/results`, `DELETE /skills/{id}` | Results add to a unit's counts. No endpoint accepts a percentage. A result from a different `source` than the unit's answers 409. |
-| `GET /profile`, `PUT /profile` | `GET` returns defaults and never writes. `PUT` replaces the whole profile. Scores are nested under `selfReported`. |
+| `GET /profile`, `PUT /profile` | `GET` returns defaults and never writes. `PUT` replaces the whole profile. Scores are nested under `selfReported`. Every save increments `revision` (`0` until the first save). A `PUT` with `expectedRevision` is applied only if the stored profile is still at that revision and answers 409 otherwise, so a stale tab cannot overwrite a newer save; `expectedRevision: 0` creates the profile only if none exists. Without `expectedRevision` the write is unconditional (V007). |
 
 Conventions:
 

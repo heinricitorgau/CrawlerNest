@@ -340,7 +340,44 @@ class DeskApiIntegrationTest {
     }
 
     @Test
+    void aStaleExpectedRevisionIsRefusedInsteadOfOverwritingAnotherTab() throws Exception {
+        send(OWNER, get("/api/v1/user/desk/profile")).andExpect(jsonPath("$.data.revision").value(0));
+
+        // Both tabs saw "no profile". The first creates it; the second must not replace it.
+        send(OWNER, put("/api/v1/user/desk/profile"), "{\"displayName\": \"Tab A\", \"expectedRevision\": 0}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.revision").value(1));
+        send(OWNER, put("/api/v1/user/desk/profile"), "{\"displayName\": \"Tab B\", \"expectedRevision\": 0}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.success").value(false));
+
+        send(OWNER, put("/api/v1/user/desk/profile"), "{\"displayName\": \"Tab A again\", \"expectedRevision\": 1}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.revision").value(2));
+        send(OWNER, put("/api/v1/user/desk/profile"), "{\"displayName\": \"Tab B late\", \"expectedRevision\": 1}")
+                .andExpect(status().isConflict());
+
+        // The refused writes changed nothing.
+        send(OWNER, get("/api/v1/user/desk/profile"))
+                .andExpect(jsonPath("$.data.displayName").value("Tab A again"))
+                .andExpect(jsonPath("$.data.revision").value(2));
+
+        // Without expectedRevision the write is unconditional, and still counts as a revision.
+        send(OWNER, put("/api/v1/user/desk/profile"), "{\"displayName\": \"Mei\"}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.revision").value(3));
+
+        // Another user's revision numbers are their own.
+        send(OTHER_USER, put("/api/v1/user/desk/profile"), "{\"displayName\": \"Other\", \"expectedRevision\": 3}")
+                .andExpect(status().isConflict());
+        send(OTHER_USER, get("/api/v1/user/desk/profile")).andExpect(jsonPath("$.data.revision").value(0));
+    }
+
+    @Test
     void refusesBadProfiles() throws Exception {
+        send(OWNER, put("/api/v1/user/desk/profile"), "{\"expectedRevision\": -1}").andExpect(status().isBadRequest());
+        send(OWNER, put("/api/v1/user/desk/profile"), "{\"expectedRevision\": \"1\"}").andExpect(status().isBadRequest());
+        send(OWNER, put("/api/v1/user/desk/profile"), "{\"expectedRevision\": 1.5}").andExpect(status().isBadRequest());
         send(OWNER, put("/api/v1/user/desk/profile"), "{\"timezone\": \"Mars/Olympus\"}").andExpect(status().isBadRequest());
         send(OWNER, put("/api/v1/user/desk/profile"), "{\"selfReported\": {\"gpa\": 3.8}}").andExpect(status().isBadRequest());
         send(OWNER, put("/api/v1/user/desk/profile"), "{\"selfReported\": {\"gpa\": 4.5, \"gpaScale\": 4.0}}").andExpect(status().isBadRequest());
