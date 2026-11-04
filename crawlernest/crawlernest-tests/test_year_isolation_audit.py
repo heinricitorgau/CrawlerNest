@@ -76,6 +76,12 @@ class Allowed:
 
 ALLOWED: tuple[Allowed, ...] = (
     Allowed(
+        "crawlernest/servise_for_java/src/main/java/clawer/service/UniversityService.java",
+        "max(ar.updated_at) AS last_modified",
+        "sitemap: which university pages exist (a row in any edition) and when their rows last changed; "
+        "no rank is read",
+    ),
+    Allowed(
         "crawlernest/servise_for_java/src/main/java/clawer/service/DataQualityService.java",
         "WHERE rr.ranking_source_id = rs.ranking_source_id",
         "operational: does an active source have any row at all, in any edition",
