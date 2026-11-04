@@ -1,0 +1,3136 @@
+{
+ "loader_version": "1",
+ "generated_at": "2026-11-04T16:26:40Z",
+ "countries": [
+  "United States",
+  "Puerto Rico"
+ ],
+ "counts": {
+  "universities": 291,
+  "matched": 272,
+  "unmatched": 19,
+  "by_method": {
+   "wikidata_ipeds_id": 272
+  }
+ },
+ "matched": [
+  {
+   "canonical_slug": "albert-einstein-college-of-medicine",
+   "display_name": "Albert Einstein College of Medicine",
+   "country": "United States",
+   "wikidata_id": "Q2030894",
+   "unitid": "385415",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "american-university",
+   "display_name": "American University",
+   "country": "United States",
+   "wikidata_id": "Q168000",
+   "unitid": "131159",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "amherst-college",
+   "display_name": "Amherst College",
+   "country": "United States",
+   "wikidata_id": "Q49165",
+   "unitid": "164465",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "appalachian-state-university-asu",
+   "display_name": "Appalachian State University (ASU)",
+   "country": "United States",
+   "wikidata_id": "Q620640",
+   "unitid": "197869",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "arizona-state-university",
+   "display_name": "Arizona State University",
+   "country": "United States",
+   "wikidata_id": "Q670897",
+   "unitid": "104151",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "auburn-university",
+   "display_name": "Auburn University",
+   "country": "United States",
+   "wikidata_id": "Q540672",
+   "unitid": "100858",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "augusta-university",
+   "display_name": "Augusta University",
+   "country": "United States",
+   "wikidata_id": "Q5547686",
+   "unitid": "482149",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "baylor-college-of-medicine",
+   "display_name": "Baylor College of Medicine",
+   "country": "United States",
+   "wikidata_id": "Q2892284",
+   "unitid": "223223",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "baylor-university",
+   "display_name": "Baylor University",
+   "country": "United States",
+   "wikidata_id": "Q812573",
+   "unitid": "223232",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "binghamton-university-suny",
+   "display_name": "Binghamton University SUNY",
+   "country": "United States",
+   "wikidata_id": "Q863813",
+   "unitid": "196079",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "boise-state-university",
+   "display_name": "Boise State University",
+   "country": "United States",
+   "wikidata_id": "Q891082",
+   "unitid": "142115",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "boston-college",
+   "display_name": "Boston College",
+   "country": "United States",
+   "wikidata_id": "Q49118",
+   "unitid": "164924",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "boston-university",
+   "display_name": "Boston University",
+   "country": "United States",
+   "wikidata_id": "Q49110",
+   "unitid": "164988",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "bowling-green-state-university",
+   "display_name": "Bowling Green State University",
+   "country": "United States",
+   "wikidata_id": "Q895457",
+   "unitid": "201441",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "brandeis-university",
+   "display_name": "Brandeis University",
+   "country": "United States",
+   "wikidata_id": "Q49119",
+   "unitid": "165015",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "brigham-young-university",
+   "display_name": "Brigham Young University",
+   "country": "United States",
+   "wikidata_id": "Q332498",
+   "unitid": "230038",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "brown-university",
+   "display_name": "Brown University",
+   "country": "United States",
+   "wikidata_id": "Q49114",
+   "unitid": "217156",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "california-institute-of-technology-caltech",
+   "display_name": "California Institute of Technology (Caltech)",
+   "country": "United States",
+   "wikidata_id": "Q161562",
+   "unitid": "110404",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "california-polytechnic-state-university",
+   "display_name": "California Polytechnic State University",
+   "country": "United States",
+   "wikidata_id": "Q1026846",
+   "unitid": "110422",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "california-state-university---long-beach",
+   "display_name": "California State University - Long Beach",
+   "country": "United States",
+   "wikidata_id": "Q1026926",
+   "unitid": "110583",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "california-state-university---los-angeles",
+   "display_name": "California State University - Los Angeles",
+   "country": "United States",
+   "wikidata_id": "Q1026932",
+   "unitid": "110592",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "california-state-university-fullerton",
+   "display_name": "California State University - Fullerton",
+   "country": "United States",
+   "wikidata_id": "Q1026925",
+   "unitid": "110565",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "california-state-university-northridge",
+   "display_name": "California State University Northridge",
+   "country": "United States",
+   "wikidata_id": "Q1026939",
+   "unitid": "110608",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "carnegie-mellon-university",
+   "display_name": "Carnegie Mellon University",
+   "country": "United States",
+   "wikidata_id": "Q190080",
+   "unitid": "211440",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "case-western-reserve-university",
+   "display_name": "Case Western Reserve University",
+   "country": "United States",
+   "wikidata_id": "Q1047060",
+   "unitid": "201645",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "central-michigan-university",
+   "display_name": "Central Michigan University",
+   "country": "United States",
+   "wikidata_id": "Q250205",
+   "unitid": "169248",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "chapman-university",
+   "display_name": "Chapman University",
+   "country": "United States",
+   "wikidata_id": "Q1805085",
+   "unitid": "111948",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "clark-university",
+   "display_name": "Clark University",
+   "country": "United States",
+   "wikidata_id": "Q1095773",
+   "unitid": "165334",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "clarkson-university",
+   "display_name": "Clarkson University",
+   "country": "United States",
+   "wikidata_id": "Q931865",
+   "unitid": "190044",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "clemson-university",
+   "display_name": "Clemson University",
+   "country": "United States",
+   "wikidata_id": "Q631066",
+   "unitid": "217882",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "cleveland-state-university",
+   "display_name": "Cleveland State University",
+   "country": "United States",
+   "wikidata_id": "Q1100801",
+   "unitid": "202134",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "colorado-school-of-mines",
+   "display_name": "Colorado School of Mines",
+   "country": "United States",
+   "wikidata_id": "Q1111367",
+   "unitid": "126775",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "colorado-state-university",
+   "display_name": "Colorado State University",
+   "country": "United States",
+   "wikidata_id": "Q1111640",
+   "unitid": "126818",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "columbia-university",
+   "display_name": "Columbia University",
+   "country": "United States",
+   "wikidata_id": "Q49088",
+   "unitid": "190150",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "cornell-university",
+   "display_name": "Cornell University",
+   "country": "United States",
+   "wikidata_id": "Q49115",
+   "unitid": "190415",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "cuny-graduate-school-and-university-center",
+   "display_name": "CUNY Graduate School and University Center",
+   "country": "United States",
+   "wikidata_id": "Q1024543",
+   "unitid": "190576",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "cuny-hunter-college",
+   "display_name": "CUNY Hunter College",
+   "country": "United States",
+   "wikidata_id": "Q1446181",
+   "unitid": "190594",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "dartmouth-college",
+   "display_name": "Dartmouth College",
+   "country": "United States",
+   "wikidata_id": "Q49116",
+   "unitid": "182670",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "depaul-university",
+   "display_name": "DePaul University",
+   "country": "United States",
+   "wikidata_id": "Q1179603",
+   "unitid": "144740",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "drexel-university",
+   "display_name": "Drexel University",
+   "country": "United States",
+   "wikidata_id": "Q603034",
+   "unitid": "212054",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "duke-university",
+   "display_name": "Duke University",
+   "country": "United States",
+   "wikidata_id": "Q168751",
+   "unitid": "198419",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "east-carolina-university",
+   "display_name": "East Carolina University",
+   "country": "United States",
+   "wikidata_id": "Q1277776",
+   "unitid": "198464",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "emory-university",
+   "display_name": "Emory University",
+   "country": "United States",
+   "wikidata_id": "Q621043",
+   "unitid": "139658",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "florida-atlantic-university---boca-raton",
+   "display_name": "Florida Atlantic University - Boca Raton",
+   "country": "United States",
+   "wikidata_id": "Q429863",
+   "unitid": "133669",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "florida-institute-of-technology",
+   "display_name": "Florida Institute of Technology",
+   "country": "United States",
+   "wikidata_id": "Q3152650",
+   "unitid": "133881",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "florida-international-university",
+   "display_name": "Florida International University",
+   "country": "United States",
+   "wikidata_id": "Q1065809",
+   "unitid": "133951",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "florida-state-university",
+   "display_name": "Florida State University",
+   "country": "United States",
+   "wikidata_id": "Q861548",
+   "unitid": "134097",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "fordham-university",
+   "display_name": "Fordham University",
+   "country": "United States",
+   "wikidata_id": "Q130965",
+   "unitid": "191241",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "george-mason-university",
+   "display_name": "George Mason University",
+   "country": "United States",
+   "wikidata_id": "Q1411222",
+   "unitid": "232186",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "george-washington-university",
+   "display_name": "George Washington University",
+   "country": "United States",
+   "wikidata_id": "Q432637",
+   "unitid": "131469",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "georgetown-university",
+   "display_name": "Georgetown University",
+   "country": "United States",
+   "wikidata_id": "Q333886",
+   "unitid": "131496",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "georgia-institute-of-technology",
+   "display_name": "Georgia Institute of Technology",
+   "country": "United States",
+   "wikidata_id": "Q864855",
+   "unitid": "139755",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "georgia-state-university",
+   "display_name": "Georgia State University",
+   "country": "United States",
+   "wikidata_id": "Q1509333",
+   "unitid": "139940",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "harvard-university",
+   "display_name": "Harvard University",
+   "country": "United States",
+   "wikidata_id": "Q13371",
+   "unitid": "166027",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "haverford-college",
+   "display_name": "Haverford College",
+   "country": "United States",
+   "wikidata_id": "Q579611",
+   "unitid": "212911",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "howard-university",
+   "display_name": "Howard University",
+   "country": "United States",
+   "wikidata_id": "Q1068752",
+   "unitid": "131520",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "humboldt-state-university",
+   "display_name": "Humboldt State University",
+   "country": "United States",
+   "wikidata_id": "Q624560",
+   "unitid": "115755",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "icahn-school-of-medicine-at-mount-sinai",
+   "display_name": "Icahn School of Medicine at Mount Sinai",
+   "country": "United States",
+   "wikidata_id": "Q1950740",
+   "unitid": "193405",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "illinois-institute-of-technology",
+   "display_name": "Illinois Institute of Technology",
+   "country": "United States",
+   "wikidata_id": "Q659706",
+   "unitid": "145725",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "illinois-state-university",
+   "display_name": "Illinois State University",
+   "country": "United States",
+   "wikidata_id": "Q558922",
+   "unitid": "145813",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "indiana-state-university",
+   "display_name": "Indiana State University",
+   "country": "United States",
+   "wikidata_id": "Q666128",
+   "unitid": "151324",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "indiana-university-bloomington",
+   "display_name": "Indiana University Bloomington",
+   "country": "United States",
+   "wikidata_id": "Q1079140",
+   "unitid": "151351",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "indiana-university-indianapolis-iu-indianapolis",
+   "display_name": "Indiana University Indianapolis (IU Indianapolis)",
+   "country": "United States",
+   "wikidata_id": "Q1433199",
+   "unitid": "151111",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "iowa-state-university",
+   "display_name": "Iowa State University",
+   "country": "United States",
+   "wikidata_id": "Q1136919",
+   "unitid": "153603",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "johns-hopkins-university",
+   "display_name": "Johns Hopkins University",
+   "country": "United States",
+   "wikidata_id": "Q193727",
+   "unitid": "162928",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "kansas-state-university",
+   "display_name": "Kansas State University",
+   "country": "United States",
+   "wikidata_id": "Q31249",
+   "unitid": "155399",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "kent-state-university",
+   "display_name": "Kent State University",
+   "country": "United States",
+   "wikidata_id": "Q1473615",
+   "unitid": "203517",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "lehigh-university",
+   "display_name": "Lehigh University",
+   "country": "United States",
+   "wikidata_id": "Q622137",
+   "unitid": "213543",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "louisiana-state-university",
+   "display_name": "Louisiana State University",
+   "country": "United States",
+   "wikidata_id": "Q1521725",
+   "unitid": "159391",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "loyola-university-chicago",
+   "display_name": "Loyola University Chicago",
+   "country": "United States",
+   "wikidata_id": "Q1537759",
+   "unitid": "146719",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "marquette-university",
+   "display_name": "Marquette University",
+   "country": "United States",
+   "wikidata_id": "Q188370",
+   "unitid": "239105",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "massachusetts-institute-of-technology-mit",
+   "display_name": "Massachusetts Institute of Technology (MIT)",
+   "country": "United States",
+   "wikidata_id": "Q49108",
+   "unitid": "166683",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "mayo-clinic-college-of-medicine-and-science",
+   "display_name": "Mayo Clinic College of Medicine and Science",
+   "country": "United States",
+   "wikidata_id": "Q6797536",
+   "unitid": "173957",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "medical-college-of-wisconsin",
+   "display_name": "Medical College of Wisconsin",
+   "country": "United States",
+   "wikidata_id": "Q6806307",
+   "unitid": "239169",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "medical-university-of-south-carolina",
+   "display_name": "Medical University of South Carolina",
+   "country": "United States",
+   "wikidata_id": "Q6806451",
+   "unitid": "218335",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "miami-university",
+   "display_name": "Miami University",
+   "country": "United States",
+   "wikidata_id": "Q590643",
+   "unitid": "204024",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "michigan-state-university",
+   "display_name": "Michigan State University",
+   "country": "United States",
+   "wikidata_id": "Q270222",
+   "unitid": "171100",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "michigan-technological-university",
+   "display_name": "Michigan Technological University",
+   "country": "United States",
+   "wikidata_id": "Q12432",
+   "unitid": "171128",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "middlebury-college",
+   "display_name": "Middlebury College",
+   "country": "United States",
+   "wikidata_id": "Q1357891",
+   "unitid": "230959",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "mississippi-state-university",
+   "display_name": "Mississippi State University",
+   "country": "United States",
+   "wikidata_id": "Q1939211",
+   "unitid": "176080",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "missouri-university-of-science-and-technology",
+   "display_name": "Missouri University of Science and Technology",
+   "country": "United States",
+   "wikidata_id": "Q4380853",
+   "unitid": "178411",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "montana-state-university",
+   "display_name": "Montana State University",
+   "country": "United States",
+   "wikidata_id": "Q1861687",
+   "unitid": "180461",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "new-jersey-institute-of-technology-njit",
+   "display_name": "New Jersey Institute of Technology (NJIT)",
+   "country": "United States",
+   "wikidata_id": "Q3272013",
+   "unitid": "185828",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "new-mexico-state-university",
+   "display_name": "New Mexico State University",
+   "country": "United States",
+   "wikidata_id": "Q1353248",
+   "unitid": "188030",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "new-york-university-nyu",
+   "display_name": "New York University (NYU)",
+   "country": "United States",
+   "wikidata_id": "Q49210",
+   "unitid": "193900",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "north-carolina-a-t-state-university",
+   "display_name": "North Carolina A & T State University",
+   "country": "United States",
+   "wikidata_id": "Q1476484",
+   "unitid": "199102",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "north-carolina-state-university",
+   "display_name": "North Carolina State University",
+   "country": "United States",
+   "wikidata_id": "Q1132346",
+   "unitid": "199193",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "north-dakota-state-university",
+   "display_name": "North Dakota State University",
+   "country": "United States",
+   "wikidata_id": "Q2000624",
+   "unitid": "200332",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "northeastern-university",
+   "display_name": "Northeastern University",
+   "country": "United States",
+   "wikidata_id": "Q37548",
+   "unitid": "167358",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "northern-arizona-university",
+   "display_name": "Northern Arizona University",
+   "country": "United States",
+   "wikidata_id": "Q139901",
+   "unitid": "105330",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "northern-illinois-university",
+   "display_name": "Northern Illinois University",
+   "country": "United States",
+   "wikidata_id": "Q1191344",
+   "unitid": "147703",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "northwestern-university",
+   "display_name": "Northwestern University",
+   "country": "United States",
+   "wikidata_id": "Q309350",
+   "unitid": "147767",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "nova-southeastern-university",
+   "display_name": "Nova Southeastern University",
+   "country": "United States",
+   "wikidata_id": "Q1798499",
+   "unitid": "136215",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "oakland-university",
+   "display_name": "Oakland University",
+   "country": "United States",
+   "wikidata_id": "Q782116",
+   "unitid": "171571",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "oberlin-college",
+   "display_name": "Oberlin College",
+   "country": "United States",
+   "wikidata_id": "Q616591",
+   "unitid": "204501",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "ohio-university",
+   "display_name": "Ohio University",
+   "country": "United States",
+   "wikidata_id": "Q1075339",
+   "unitid": "204857",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "oklahoma-state-university",
+   "display_name": "Oklahoma State University",
+   "country": "United States",
+   "wikidata_id": "Q749718",
+   "unitid": "207388",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "old-dominion-university",
+   "display_name": "Old Dominion University",
+   "country": "United States",
+   "wikidata_id": "Q1474100",
+   "unitid": "232982",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "oregon-health-science-university-ohsu",
+   "display_name": "Oregon Health & Science University (OHSU)",
+   "country": "United States",
+   "wikidata_id": "Q282097",
+   "unitid": "209490",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "oregon-state-university",
+   "display_name": "Oregon State University",
+   "country": "United States",
+   "wikidata_id": "Q861888",
+   "unitid": "209542",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "pennsylvania-state-university",
+   "display_name": "Pennsylvania State University",
+   "country": "United States",
+   "wikidata_id": "Q739627",
+   "unitid": "214777",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "pontificia-universidad-cat-lica-de-puerto-rico",
+   "display_name": "Pontificia Universidad Católica de Puerto Rico",
+   "country": "Puerto Rico",
+   "wikidata_id": "Q1342151",
+   "unitid": "241410",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "portland-state-university",
+   "display_name": "Portland State University",
+   "country": "United States",
+   "wikidata_id": "Q1771717",
+   "unitid": "209807",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "princeton-university",
+   "display_name": "Princeton University",
+   "country": "United States",
+   "wikidata_id": "Q21578",
+   "unitid": "186131",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "purdue-university",
+   "display_name": "Purdue University",
+   "country": "United States",
+   "wikidata_id": "Q217741",
+   "unitid": "243780",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "rensselaer-polytechnic-institute",
+   "display_name": "Rensselaer Polytechnic Institute",
+   "country": "United States",
+   "wikidata_id": "Q49211",
+   "unitid": "194824",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "rice-university",
+   "display_name": "Rice University",
+   "country": "United States",
+   "wikidata_id": "Q842909",
+   "unitid": "227757",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "rochester-institute-of-technology-rit",
+   "display_name": "Rochester Institute of Technology (RIT)",
+   "country": "United States",
+   "wikidata_id": "Q2140778",
+   "unitid": "195003",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "rockefeller-university",
+   "display_name": "Rockefeller University",
+   "country": "United States",
+   "wikidata_id": "Q270272",
+   "unitid": "195049",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "rowan-university",
+   "display_name": "Rowan University",
+   "country": "United States",
+   "wikidata_id": "Q1799872",
+   "unitid": "184782",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "rush-university",
+   "display_name": "Rush University",
+   "country": "United States",
+   "wikidata_id": "Q750639",
+   "unitid": "148511",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "rutgers-university–newark",
+   "display_name": "Rutgers University–Newark",
+   "country": "United States",
+   "wikidata_id": "Q7382780",
+   "unitid": "186399",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "saint-louis-university",
+   "display_name": "Saint Louis University",
+   "country": "United States",
+   "wikidata_id": "Q734774",
+   "unitid": "179159",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "san-diego-state-university",
+   "display_name": "San Diego State University",
+   "country": "United States",
+   "wikidata_id": "Q913861",
+   "unitid": "122409",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "san-francisco-state-university",
+   "display_name": "San Francisco State University",
+   "country": "United States",
+   "wikidata_id": "Q1256981",
+   "unitid": "122597",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "santa-clara-university",
+   "display_name": "Santa Clara University",
+   "country": "United States",
+   "wikidata_id": "Q992830",
+   "unitid": "122931",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "seattle-university",
+   "display_name": "Seattle University",
+   "country": "United States",
+   "wikidata_id": "Q615873",
+   "unitid": "236595",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "smith-college",
+   "display_name": "Smith College",
+   "country": "United States",
+   "wikidata_id": "Q49204",
+   "unitid": "167835",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "south-dakota-state-university",
+   "display_name": "South Dakota State University",
+   "country": "United States",
+   "wikidata_id": "Q2302260",
+   "unitid": "219356",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "southern-methodist-university",
+   "display_name": "Southern Methodist University",
+   "country": "United States",
+   "wikidata_id": "Q1536258",
+   "unitid": "228246",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "stanford-university",
+   "display_name": "Stanford University",
+   "country": "United States",
+   "wikidata_id": "Q41506",
+   "unitid": "243744",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "stevens-institute-of-technology",
+   "display_name": "Stevens Institute of Technology",
+   "country": "United States",
+   "wikidata_id": "Q657222",
+   "unitid": "186867",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "stony-brook-university,-state-university-of-new-york",
+   "display_name": "Stony Brook University, State University of New York",
+   "country": "United States",
+   "wikidata_id": "Q969850",
+   "unitid": "196097",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "suny-college-of-environmental-science-and-forestry",
+   "display_name": "SUNY - College of Environmental Science and Forestry",
+   "country": "United States",
+   "wikidata_id": "Q7603610",
+   "unitid": "196103",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "suny-upstate-medical-university",
+   "display_name": "SUNY Upstate Medical University",
+   "country": "United States",
+   "wikidata_id": "Q3297997",
+   "unitid": "196307",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "swarthmore-college",
+   "display_name": "Swarthmore College",
+   "country": "United States",
+   "wikidata_id": "Q1378320",
+   "unitid": "216287",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "syracuse-university",
+   "display_name": "Syracuse University",
+   "country": "United States",
+   "wikidata_id": "Q617433",
+   "unitid": "196413",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "temple-university",
+   "display_name": "Temple University",
+   "country": "United States",
+   "wikidata_id": "Q1420239",
+   "unitid": "216339",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "texas-a&m-university",
+   "display_name": "Texas A&M University",
+   "country": "United States",
+   "wikidata_id": "Q49212",
+   "unitid": "228723",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "texas-a-m-university-corpus-christi",
+   "display_name": "Texas A&M University - Corpus Christi",
+   "country": "United States",
+   "wikidata_id": "Q634651",
+   "unitid": "224147",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "texas-christian-university",
+   "display_name": "Texas Christian University",
+   "country": "United States",
+   "wikidata_id": "Q2302280",
+   "unitid": "228875",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "texas-state-university",
+   "display_name": "Texas State University",
+   "country": "United States",
+   "wikidata_id": "Q1495387",
+   "unitid": "228459",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "texas-tech-university",
+   "display_name": "Texas Tech University",
+   "country": "United States",
+   "wikidata_id": "Q1423756",
+   "unitid": "229115",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-city-college-of-new-york",
+   "display_name": "The City College of New York",
+   "country": "United States",
+   "wikidata_id": "Q1093910",
+   "unitid": "190567",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-ohio-state-university",
+   "display_name": "The Ohio State University",
+   "country": "United States",
+   "wikidata_id": "Q309331",
+   "unitid": "204796",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-university-of-alabama",
+   "display_name": "The University of Alabama",
+   "country": "United States",
+   "wikidata_id": "Q492318",
+   "unitid": "100751",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-university-of-arizona",
+   "display_name": "The University of Arizona",
+   "country": "United States",
+   "wikidata_id": "Q503419",
+   "unitid": "104179",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-university-of-georgia",
+   "display_name": "The University of Georgia",
+   "country": "United States",
+   "wikidata_id": "Q761534",
+   "unitid": "139959",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-university-of-tennessee,-knoxville",
+   "display_name": "The University of Tennessee, Knoxville",
+   "country": "United States",
+   "wikidata_id": "Q1150105",
+   "unitid": "221759",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-university-of-texas-at-arlington",
+   "display_name": "The University of Texas at Arlington",
+   "country": "United States",
+   "wikidata_id": "Q1230739",
+   "unitid": "228769",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-university-of-texas-health-science-center-at-houston",
+   "display_name": "The University of Texas Health Science Center at Houston",
+   "country": "United States",
+   "wikidata_id": "Q7896431",
+   "unitid": "229300",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-university-of-texas-health-science-center-at-san-antonio",
+   "display_name": "The University of Texas Health Science Center at San Antonio",
+   "country": "United States",
+   "wikidata_id": "Q4005868",
+   "unitid": "228644",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-university-of-texas-m-d-anderson-cancer-center",
+   "display_name": "The University of Texas M. D. Anderson Cancer Center",
+   "country": "United States",
+   "wikidata_id": "Q1525831",
+   "unitid": "416801",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-university-of-texas-medical-branch-at-galveston",
+   "display_name": "The University of Texas Medical Branch at Galveston",
+   "country": "United States",
+   "wikidata_id": "Q921264",
+   "unitid": "228653",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "the-university-of-texas-southwestern-medical-center-at-dallas",
+   "display_name": "The University of Texas Southwestern Medical Center at Dallas",
+   "country": "United States",
+   "wikidata_id": "Q2725999",
+   "unitid": "228635",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "thomas-jefferson-university",
+   "display_name": "Thomas Jefferson University",
+   "country": "United States",
+   "wikidata_id": "Q2471216",
+   "unitid": "216366",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "tufts-university",
+   "display_name": "Tufts University",
+   "country": "United States",
+   "wikidata_id": "Q49120",
+   "unitid": "168148",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "tulane-university",
+   "display_name": "Tulane University",
+   "country": "United States",
+   "wikidata_id": "Q1193547",
+   "unitid": "160755",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "union-college",
+   "display_name": "Union College",
+   "country": "United States",
+   "wikidata_id": "Q1567748",
+   "unitid": "196866",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "universidad-ana-g-m-ndez",
+   "display_name": "Universidad Ana G. Méndez",
+   "country": "Puerto Rico",
+   "wikidata_id": "Q4750355",
+   "unitid": "242060",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-at-albany-suny",
+   "display_name": "University at Albany SUNY",
+   "country": "United States",
+   "wikidata_id": "Q1780816",
+   "unitid": "196060",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-at-buffalo-suny",
+   "display_name": "University at Buffalo SUNY",
+   "country": "United States",
+   "wikidata_id": "Q681025",
+   "unitid": "196088",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-akron",
+   "display_name": "University of Akron",
+   "country": "United States",
+   "wikidata_id": "Q1346135",
+   "unitid": "200800",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-alabama-at-birmingham",
+   "display_name": "University of Alabama at Birmingham",
+   "country": "United States",
+   "wikidata_id": "Q1472663",
+   "unitid": "100663",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-alabama-in-huntsville",
+   "display_name": "University of Alabama in Huntsville",
+   "country": "United States",
+   "wikidata_id": "Q1783148",
+   "unitid": "100706",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-alaska-fairbanks",
+   "display_name": "University of Alaska Fairbanks",
+   "country": "United States",
+   "wikidata_id": "Q1285262",
+   "unitid": "102614",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-arkansas-at-little-rock",
+   "display_name": "University of Arkansas at Little Rock",
+   "country": "United States",
+   "wikidata_id": "Q500154",
+   "unitid": "106245",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-arkansas-fayetteville",
+   "display_name": "University of Arkansas Fayetteville",
+   "country": "United States",
+   "wikidata_id": "Q1070333",
+   "unitid": "106397",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-arkansas-for-medical-sciences",
+   "display_name": "University of Arkansas for Medical Sciences",
+   "country": "United States",
+   "wikidata_id": "Q941298",
+   "unitid": "106263",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-california,-berkeley-ucb",
+   "display_name": "University of California, Berkeley (UCB)",
+   "country": "United States",
+   "wikidata_id": "Q168756",
+   "unitid": "110635",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-california,-davis",
+   "display_name": "University of California, Davis",
+   "country": "United States",
+   "wikidata_id": "Q129421",
+   "unitid": "110644",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-california,-irvine",
+   "display_name": "University of California, Irvine",
+   "country": "United States",
+   "wikidata_id": "Q868421",
+   "unitid": "110653",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-california,-los-angeles-ucla",
+   "display_name": "University of California, Los Angeles (UCLA)",
+   "country": "United States",
+   "wikidata_id": "Q174710",
+   "unitid": "110662",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-california,-riverside",
+   "display_name": "University of California, Riverside",
+   "country": "United States",
+   "wikidata_id": "Q1075148",
+   "unitid": "110671",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-california,-san-diego-ucsd",
+   "display_name": "University of California, San Diego (UCSD)",
+   "country": "United States",
+   "wikidata_id": "Q622664",
+   "unitid": "110680",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-california,-santa-barbara-ucsb",
+   "display_name": "University of California, Santa Barbara (UCSB)",
+   "country": "United States",
+   "wikidata_id": "Q263064",
+   "unitid": "110705",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-california,-santa-cruz",
+   "display_name": "University of California, Santa Cruz",
+   "country": "United States",
+   "wikidata_id": "Q1047293",
+   "unitid": "110714",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-california-merced",
+   "display_name": "University of California, Merced",
+   "country": "United States",
+   "wikidata_id": "Q1728622",
+   "unitid": "445188",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-california-san-francisco",
+   "display_name": "University of California, San Francisco",
+   "country": "United States",
+   "wikidata_id": "Q1061104",
+   "unitid": "110699",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-central-florida",
+   "display_name": "University of Central Florida",
+   "country": "United States",
+   "wikidata_id": "Q143451",
+   "unitid": "132903",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-central-oklahoma",
+   "display_name": "University of Central Oklahoma",
+   "country": "United States",
+   "wikidata_id": "Q3275637",
+   "unitid": "206941",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-chicago",
+   "display_name": "University of Chicago",
+   "country": "United States",
+   "wikidata_id": "Q131252",
+   "unitid": "144050",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-cincinnati",
+   "display_name": "University of Cincinnati",
+   "country": "United States",
+   "wikidata_id": "Q153265",
+   "unitid": "201885",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-colorado,-denver",
+   "display_name": "University of Colorado, Denver",
+   "country": "United States",
+   "wikidata_id": "Q1468161",
+   "unitid": "126562",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-colorado-boulder",
+   "display_name": "University of Colorado Boulder",
+   "country": "United States",
+   "wikidata_id": "Q736674",
+   "unitid": "126614",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-connecticut",
+   "display_name": "University of Connecticut",
+   "country": "United States",
+   "wikidata_id": "Q49206",
+   "unitid": "129020",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-dayton",
+   "display_name": "University of Dayton",
+   "country": "United States",
+   "wikidata_id": "Q2092392",
+   "unitid": "202480",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-delaware",
+   "display_name": "University of Delaware",
+   "country": "United States",
+   "wikidata_id": "Q1068072",
+   "unitid": "130943",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-denver",
+   "display_name": "University of Denver",
+   "country": "United States",
+   "wikidata_id": "Q519427",
+   "unitid": "127060",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-florida",
+   "display_name": "University of Florida",
+   "country": "United States",
+   "wikidata_id": "Q501758",
+   "unitid": "134130",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-hawaii-at-hilo",
+   "display_name": "University of Hawaii at Hilo",
+   "country": "United States",
+   "wikidata_id": "Q2150914",
+   "unitid": "141565",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-hawaiʻi-at-mānoa",
+   "display_name": "University of Hawaiʻi at Mānoa",
+   "country": "United States",
+   "wikidata_id": "Q2000129",
+   "unitid": "141574",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-houston",
+   "display_name": "University of Houston",
+   "country": "United States",
+   "wikidata_id": "Q1472358",
+   "unitid": "225511",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-idaho",
+   "display_name": "University of Idaho",
+   "country": "United States",
+   "wikidata_id": "Q1854488",
+   "unitid": "142285",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-illinois-chicago-uic",
+   "display_name": "University of Illinois Chicago (UIC)",
+   "country": "United States",
+   "wikidata_id": "Q955764",
+   "unitid": "145600",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-illinois-urbana-champaign",
+   "display_name": "University of Illinois Urbana-Champaign",
+   "country": "United States",
+   "wikidata_id": "Q457281",
+   "unitid": "145637",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-iowa",
+   "display_name": "University of Iowa",
+   "country": "United States",
+   "wikidata_id": "Q182973",
+   "unitid": "153658",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-kansas",
+   "display_name": "University of Kansas",
+   "country": "United States",
+   "wikidata_id": "Q52413",
+   "unitid": "155317",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-kentucky",
+   "display_name": "University of Kentucky",
+   "country": "United States",
+   "wikidata_id": "Q1360303",
+   "unitid": "157085",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-louisiana-at-lafayette",
+   "display_name": "University of Louisiana at Lafayette",
+   "country": "United States",
+   "wikidata_id": "Q116485",
+   "unitid": "160658",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-louisville",
+   "display_name": "University of Louisville",
+   "country": "United States",
+   "wikidata_id": "Q1317143",
+   "unitid": "157289",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-maine",
+   "display_name": "University of Maine",
+   "country": "United States",
+   "wikidata_id": "Q1307345",
+   "unitid": "161253",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-maine-augusta",
+   "display_name": "University of Maine-Augusta",
+   "country": "United States",
+   "wikidata_id": "Q7895654",
+   "unitid": "161217",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-maryland,-baltimore-county",
+   "display_name": "University of Maryland, Baltimore County",
+   "country": "United States",
+   "wikidata_id": "Q735049",
+   "unitid": "163268",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-maryland,-college-park",
+   "display_name": "University of Maryland, College Park",
+   "country": "United States",
+   "wikidata_id": "Q503415",
+   "unitid": "163286",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-maryland-baltimore",
+   "display_name": "University of Maryland, Baltimore",
+   "country": "United States",
+   "wikidata_id": "Q4119470",
+   "unitid": "163259",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-massachusetts-amherst",
+   "display_name": "University of Massachusetts Amherst",
+   "country": "United States",
+   "wikidata_id": "Q15142",
+   "unitid": "166629",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-massachusetts-boston",
+   "display_name": "University of Massachusetts Boston",
+   "country": "United States",
+   "wikidata_id": "Q15144",
+   "unitid": "166638",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-massachusetts-lowell",
+   "display_name": "University of Massachusetts Lowell",
+   "country": "United States",
+   "wikidata_id": "Q15143",
+   "unitid": "166513",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-massachusetts-medical-school-worcester",
+   "display_name": "University of Massachusetts Medical School - Worcester",
+   "country": "United States",
+   "wikidata_id": "Q7895715",
+   "unitid": "166708",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-memphis",
+   "display_name": "University of Memphis",
+   "country": "United States",
+   "wikidata_id": "Q2094177",
+   "unitid": "220862",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-miami",
+   "display_name": "University of Miami",
+   "country": "United States",
+   "wikidata_id": "Q738258",
+   "unitid": "135726",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-michigan-ann-arbor",
+   "display_name": "University of Michigan-Ann Arbor",
+   "country": "United States",
+   "wikidata_id": "Q230492",
+   "unitid": "170976",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-minnesota-system",
+   "display_name": "University of Minnesota (System)",
+   "country": "United States",
+   "wikidata_id": "Q238101",
+   "unitid": "174066",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-mississippi",
+   "display_name": "University of Mississippi",
+   "country": "United States",
+   "wikidata_id": "Q1138384",
+   "unitid": "176017",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-missouri,-columbia",
+   "display_name": "University of Missouri, Columbia",
+   "country": "United States",
+   "wikidata_id": "Q579968",
+   "unitid": "178396",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-missouri,-kansas-city",
+   "display_name": "University of Missouri, Kansas City",
+   "country": "United States",
+   "wikidata_id": "Q940690",
+   "unitid": "178402",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-missouri-saint-louis",
+   "display_name": "University of Missouri Saint Louis",
+   "country": "United States",
+   "wikidata_id": "Q625103",
+   "unitid": "178420",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-montana-missoula",
+   "display_name": "University of Montana Missoula",
+   "country": "United States",
+   "wikidata_id": "Q2302336",
+   "unitid": "180489",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-nebraska---lincoln",
+   "display_name": "University of Nebraska - Lincoln",
+   "country": "United States",
+   "wikidata_id": "Q1353679",
+   "unitid": "181464",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-nebraska-medical-center",
+   "display_name": "University of Nebraska Medical Center",
+   "country": "United States",
+   "wikidata_id": "Q7895888",
+   "unitid": "181428",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-nevada-las-vegas",
+   "display_name": "University of Nevada - Las Vegas",
+   "country": "United States",
+   "wikidata_id": "Q2302311",
+   "unitid": "182281",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-nevada-reno",
+   "display_name": "University of Nevada - Reno",
+   "country": "United States",
+   "wikidata_id": "Q1185955",
+   "unitid": "182290",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-new-hampshire",
+   "display_name": "University of New Hampshire",
+   "country": "United States",
+   "wikidata_id": "Q49207",
+   "unitid": "183044",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-new-mexico",
+   "display_name": "University of New Mexico",
+   "country": "United States",
+   "wikidata_id": "Q1190812",
+   "unitid": "187985",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-new-orleans",
+   "display_name": "University of New Orleans",
+   "country": "United States",
+   "wikidata_id": "Q1474157",
+   "unitid": "159939",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-north-carolina-at-chapel-hill",
+   "display_name": "University of North Carolina at Chapel Hill",
+   "country": "United States",
+   "wikidata_id": "Q192334",
+   "unitid": "199120",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-north-carolina-at-charlotte",
+   "display_name": "University of North Carolina at Charlotte",
+   "country": "United States",
+   "wikidata_id": "Q1783178",
+   "unitid": "199139",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-north-carolina-at-greensboro",
+   "display_name": "University of North Carolina at Greensboro",
+   "country": "United States",
+   "wikidata_id": "Q1321380",
+   "unitid": "199148",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-north-carolina-wilmington",
+   "display_name": "University of North Carolina Wilmington",
+   "country": "United States",
+   "wikidata_id": "Q2092214",
+   "unitid": "199218",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-north-dakota",
+   "display_name": "University of North Dakota",
+   "country": "United States",
+   "wikidata_id": "Q968559",
+   "unitid": "200280",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-north-texas",
+   "display_name": "University of North Texas",
+   "country": "United States",
+   "wikidata_id": "Q860527",
+   "unitid": "227216",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-northern-colorado",
+   "display_name": "University of Northern Colorado",
+   "country": "United States",
+   "wikidata_id": "Q1783608",
+   "unitid": "127741",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-notre-dame",
+   "display_name": "University of Notre Dame",
+   "country": "United States",
+   "wikidata_id": "Q178848",
+   "unitid": "152080",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-oklahoma",
+   "display_name": "University of Oklahoma",
+   "country": "United States",
+   "wikidata_id": "Q640652",
+   "unitid": "207500",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-oklahoma-health-sciences-center",
+   "display_name": "University of Oklahoma Health Sciences Center",
+   "country": "United States",
+   "wikidata_id": "Q7896014",
+   "unitid": "207342",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-oregon",
+   "display_name": "University of Oregon",
+   "country": "United States",
+   "wikidata_id": "Q766145",
+   "unitid": "209551",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-pennsylvania",
+   "display_name": "University of Pennsylvania",
+   "country": "United States",
+   "wikidata_id": "Q49117",
+   "unitid": "215062",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-pittsburgh",
+   "display_name": "University of Pittsburgh",
+   "country": "United States",
+   "wikidata_id": "Q235034",
+   "unitid": "215293",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-rhode-island",
+   "display_name": "University of Rhode Island",
+   "country": "United States",
+   "wikidata_id": "Q1641788",
+   "unitid": "217484",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-rochester",
+   "display_name": "University of Rochester",
+   "country": "United States",
+   "wikidata_id": "Q149990",
+   "unitid": "195030",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-san-diego",
+   "display_name": "University of San Diego",
+   "country": "United States",
+   "wikidata_id": "Q262663",
+   "unitid": "122436",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-san-francisco",
+   "display_name": "University of San Francisco",
+   "country": "United States",
+   "wikidata_id": "Q1887879",
+   "unitid": "122612",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-south-alabama-usa",
+   "display_name": "University of South Alabama (USA)",
+   "country": "United States",
+   "wikidata_id": "Q13572981",
+   "unitid": "102094",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-south-carolina",
+   "display_name": "University of South Carolina",
+   "country": "United States",
+   "wikidata_id": "Q1024426",
+   "unitid": "218663",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-south-florida",
+   "display_name": "University of South Florida",
+   "country": "United States",
+   "wikidata_id": "Q500606",
+   "unitid": "137351",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-southern-california",
+   "display_name": "University of Southern California",
+   "country": "United States",
+   "wikidata_id": "Q4614",
+   "unitid": "123961",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-tennessee-health-science-center",
+   "display_name": "University of Tennessee Health Science Center",
+   "country": "United States",
+   "wikidata_id": "Q7896420",
+   "unitid": "487010",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-texas-at-austin",
+   "display_name": "University of Texas at Austin",
+   "country": "United States",
+   "wikidata_id": "Q49213",
+   "unitid": "228778",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-texas-at-dallas",
+   "display_name": "University of Texas at Dallas",
+   "country": "United States",
+   "wikidata_id": "Q1781394",
+   "unitid": "228787",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-texas-at-san-antonio",
+   "display_name": "University of Texas at San Antonio",
+   "country": "United States",
+   "wikidata_id": "Q183170",
+   "unitid": "229027",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-texas-el-paso",
+   "display_name": "University of Texas El Paso",
+   "country": "United States",
+   "wikidata_id": "Q2093110",
+   "unitid": "228796",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-texas-rio-grande-valley",
+   "display_name": "University of Texas Rio Grande Valley",
+   "country": "United States",
+   "wikidata_id": "Q17028121",
+   "unitid": "227368",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-the-pacific",
+   "display_name": "University of the Pacific",
+   "country": "United States",
+   "wikidata_id": "Q630226",
+   "unitid": "120883",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-toledo",
+   "display_name": "University of Toledo",
+   "country": "United States",
+   "wikidata_id": "Q2302319",
+   "unitid": "206084",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-tulsa",
+   "display_name": "University of Tulsa",
+   "country": "United States",
+   "wikidata_id": "Q1848657",
+   "unitid": "207971",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-utah",
+   "display_name": "University of Utah",
+   "country": "United States",
+   "wikidata_id": "Q168515",
+   "unitid": "230764",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-vermont",
+   "display_name": "University of Vermont",
+   "country": "United States",
+   "wikidata_id": "Q1048898",
+   "unitid": "231174",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-virginia",
+   "display_name": "University of Virginia",
+   "country": "United States",
+   "wikidata_id": "Q213439",
+   "unitid": "234076",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-washington",
+   "display_name": "University of Washington",
+   "country": "United States",
+   "wikidata_id": "Q219563",
+   "unitid": "236948",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-wisconsin-madison",
+   "display_name": "University of Wisconsin-Madison",
+   "country": "United States",
+   "wikidata_id": "Q838330",
+   "unitid": "240444",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-wisconsin-milwaukee",
+   "display_name": "University of Wisconsin Milwaukee",
+   "country": "United States",
+   "wikidata_id": "Q1755318",
+   "unitid": "240453",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "university-of-wyoming",
+   "display_name": "University of Wyoming",
+   "country": "United States",
+   "wikidata_id": "Q1326975",
+   "unitid": "240727",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "utah-state-university",
+   "display_name": "Utah State University",
+   "country": "United States",
+   "wikidata_id": "Q1052614",
+   "unitid": "230728",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "vanderbilt-university",
+   "display_name": "Vanderbilt University",
+   "country": "United States",
+   "wikidata_id": "Q29052",
+   "unitid": "221999",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "villanova-university",
+   "display_name": "Villanova University",
+   "country": "United States",
+   "wikidata_id": "Q1466001",
+   "unitid": "216597",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "virginia-commonwealth-university",
+   "display_name": "Virginia Commonwealth University",
+   "country": "United States",
+   "wikidata_id": "Q2303536",
+   "unitid": "234030",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "virginia-polytechnic-institute-and-state-university",
+   "display_name": "Virginia Polytechnic Institute and State University",
+   "country": "United States",
+   "wikidata_id": "Q65379",
+   "unitid": "233921",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "wake-forest-university",
+   "display_name": "Wake Forest University",
+   "country": "United States",
+   "wikidata_id": "Q392667",
+   "unitid": "199847",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "washington-state-university",
+   "display_name": "Washington State University",
+   "country": "United States",
+   "wikidata_id": "Q597236",
+   "unitid": "236939",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "washington-university-in-st.-louis",
+   "display_name": "Washington University in St. Louis",
+   "country": "United States",
+   "wikidata_id": "Q777403",
+   "unitid": "179867",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "wayne-state-university",
+   "display_name": "Wayne State University",
+   "country": "United States",
+   "wikidata_id": "Q349055",
+   "unitid": "172644",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "wellesley-college",
+   "display_name": "Wellesley College",
+   "country": "United States",
+   "wikidata_id": "Q49205",
+   "unitid": "168218",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "west-virginia-university",
+   "display_name": "West Virginia University",
+   "country": "United States",
+   "wikidata_id": "Q115376",
+   "unitid": "238032",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "western-michigan-university",
+   "display_name": "Western Michigan University",
+   "country": "United States",
+   "wikidata_id": "Q1546191",
+   "unitid": "172699",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "western-washington-university",
+   "display_name": "Western Washington University",
+   "country": "United States",
+   "wikidata_id": "Q284777",
+   "unitid": "237011",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "william-&-mary",
+   "display_name": "William & Mary",
+   "country": "United States",
+   "wikidata_id": "Q875637",
+   "unitid": "231624",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "williams-college",
+   "display_name": "Williams College",
+   "country": "United States",
+   "wikidata_id": "Q49166",
+   "unitid": "168342",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "worcester-polytechnic-institute",
+   "display_name": "Worcester Polytechnic Institute",
+   "country": "United States",
+   "wikidata_id": "Q195046",
+   "unitid": "168421",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "wright-state-university",
+   "display_name": "Wright State University",
+   "country": "United States",
+   "wikidata_id": "Q2002085",
+   "unitid": "206604",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "yale-university",
+   "display_name": "Yale University",
+   "country": "United States",
+   "wikidata_id": "Q49112",
+   "unitid": "130794",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  },
+  {
+   "canonical_slug": "yeshiva-university",
+   "display_name": "Yeshiva University",
+   "country": "United States",
+   "wikidata_id": "Q1048851",
+   "unitid": "197708",
+   "method": "wikidata_ipeds_id",
+   "evidence": {
+    "property": "P1771"
+   }
+  }
+ ],
+ "unmatched": [
+  {
+   "canonical_slug": "city-university-new-york-baruch-college",
+   "display_name": "City University New York - Baruch College",
+   "country": "United States",
+   "reason": "no Wikidata item (not matched in wikipedia/en/matches.json)"
+  },
+  {
+   "canonical_slug": "city-university-of-new-york",
+   "display_name": "City University of New York",
+   "country": "United States",
+   "wikidata_id": "Q762266",
+   "reason": "Wikidata item Q762266 has no IPEDS ID (P1771)"
+  },
+  {
+   "canonical_slug": "mayo-clinic-alix-school-of-medicine",
+   "display_name": "Mayo Clinic Alix School of Medicine",
+   "country": "United States",
+   "reason": "no Wikidata item (not matched in wikipedia/en/matches.json)"
+  },
+  {
+   "canonical_slug": "pace-university-new-york",
+   "display_name": "Pace University - New York",
+   "country": "United States",
+   "reason": "no Wikidata item (not matched in wikipedia/en/matches.json)"
+  },
+  {
+   "canonical_slug": "rutgers-university–new-brunswick",
+   "display_name": "Rutgers University–New Brunswick",
+   "country": "United States",
+   "wikidata_id": "Q499451",
+   "reason": "Wikidata item Q499451 has no IPEDS ID (P1771)"
+  },
+  {
+   "canonical_slug": "san-jose-state-university-school-of-information",
+   "display_name": "San Jose State University - School of Information",
+   "country": "United States",
+   "reason": "no Wikidata item (not matched in wikipedia/en/matches.json)"
+  },
+  {
+   "canonical_slug": "suny-downstate-health-sciences-university",
+   "display_name": "SUNY Downstate Health Sciences University",
+   "country": "United States",
+   "wikidata_id": "Q19881987",
+   "reason": "Wikidata item Q19881987 has no IPEDS ID (P1771)"
+  },
+  {
+   "canonical_slug": "the-new-school,-new-york-city-and-paris",
+   "display_name": "The New School, New York City and Paris",
+   "country": "United States",
+   "reason": "no Wikidata item (not matched in wikipedia/en/matches.json)"
+  },
+  {
+   "canonical_slug": "the-university-of-connecticut-health-center",
+   "display_name": "The University of Connecticut Health Center",
+   "country": "United States",
+   "wikidata_id": "Q7895298",
+   "reason": "Wikidata item Q7895298 has no IPEDS ID (P1771)"
+  },
+  {
+   "canonical_slug": "uniformed-services-university-of-the-health-sciences",
+   "display_name": "Uniformed Services University of the Health Sciences",
+   "country": "United States",
+   "reason": "no Wikidata item (not matched in wikipedia/en/matches.json)"
+  },
+  {
+   "canonical_slug": "uniformed-services-university-of-the-health-sciences-usa",
+   "display_name": "Uniformed Services University of the Health Sciences - USA",
+   "country": "United States",
+   "wikidata_id": "Q4114428",
+   "reason": "Wikidata item Q4114428 has no IPEDS ID (P1771)"
+  },
+  {
+   "canonical_slug": "universidad-de-puerto-rico",
+   "display_name": "Universidad de Puerto Rico",
+   "country": "Puerto Rico",
+   "wikidata_id": "Q2075365",
+   "reason": "Wikidata item Q2075365 has no IPEDS ID (P1771)"
+  },
+  {
+   "canonical_slug": "universidad-interamericana-de-puerto-rico",
+   "display_name": "Universidad Interamericana de Puerto Rico",
+   "country": "Puerto Rico",
+   "wikidata_id": "Q4570802",
+   "reason": "Wikidata item Q4570802 has no IPEDS ID (P1771)"
+  },
+  {
+   "canonical_slug": "universidad-nacional-de-entre-rios",
+   "display_name": "Universidad Nacional de Entre Rios",
+   "country": "United States",
+   "reason": "no Wikidata item (not matched in wikipedia/en/matches.json)"
+  },
+  {
+   "canonical_slug": "universidad-politecnica-de-puerto-rico-pupr",
+   "display_name": "Universidad Politecnica de Puerto Rico - PUPR",
+   "country": "Puerto Rico",
+   "reason": "no Wikidata item (not matched in wikipedia/en/matches.json)"
+  },
+  {
+   "canonical_slug": "university-of-maryland-center-for-environmental-science",
+   "display_name": "University of Maryland Center for Environmental Science",
+   "country": "United States",
+   "wikidata_id": "Q7895680",
+   "reason": "Wikidata item Q7895680 has no IPEDS ID (P1771)"
+  },
+  {
+   "canonical_slug": "university-of-mississippi-medical-center",
+   "display_name": "University of Mississippi Medical Center",
+   "country": "United States",
+   "wikidata_id": "Q7895818",
+   "reason": "Wikidata item Q7895818 has no IPEDS ID (P1771)"
+  },
+  {
+   "canonical_slug": "university-of-oklahoma-oklahoma-city",
+   "display_name": "University of Oklahoma - Oklahoma City",
+   "country": "United States",
+   "reason": "no Wikidata item (not matched in wikipedia/en/matches.json)"
+  },
+  {
+   "canonical_slug": "university-of-st-thomas",
+   "display_name": "University of St. Thomas",
+   "country": "United States",
+   "wikidata_id": "Q447148",
+   "reason": "Wikidata item Q447148 has no IPEDS ID (P1771)"
+  }
+ ]
+}

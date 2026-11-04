@@ -1,0 +1,62 @@
+{
+ "loader_version": "1",
+ "retrieved_at": "2026-11-04T16:28:06Z",
+ "files": {
+  "scorecard_institution": {
+   "source": "COLLEGE_SCORECARD",
+   "url": "https://ed-public-download.scorecard.network/downloads/Most-Recent-Cohorts-Institution_11022026.zip",
+   "member": "Most-Recent-Cohorts-Institution.csv",
+   "bytes": 24209950,
+   "sha256": "4c31be45bb6defc17a972a8084a88d3d7ba4a4044884ea9529c03c7570a7305d"
+  },
+  "scorecard_dictionary": {
+   "source": "COLLEGE_SCORECARD",
+   "url": "https://collegescorecard.ed.gov/files/CollegeScorecardDataDictionary.xlsx",
+   "member": null,
+   "bytes": 769715,
+   "sha256": "8d258487f252aedc8c87bace61556446d49245bfe374734548bd861118e5cc4c"
+  },
+  "ipeds_hd": {
+   "source": "IPEDS",
+   "url": "https://nces.ed.gov/ipeds/datacenter/data/HD2024.zip",
+   "member": "HD2024.csv",
+   "bytes": 1088372,
+   "sha256": "d98425c123d7c0e872aec6e83960dfb501884818bf17385c340790f3d1f28345"
+  },
+  "ipeds_hd_dictionary": {
+   "source": "IPEDS",
+   "url": "https://nces.ed.gov/ipeds/datacenter/data/HD2024_Dict.zip",
+   "member": "HD2024_dict.xlsx",
+   "bytes": 140379,
+   "sha256": "a68c38003a9e56b1b5f444377540d5120d86cecc35855f84f1393480b862487d"
+  },
+  "ipeds_effy": {
+   "source": "IPEDS",
+   "url": "https://nces.ed.gov/ipeds/datacenter/data/EFFY2024.zip",
+   "member": "EFFY2024.csv",
+   "bytes": 3643893,
+   "sha256": "fff28cbfaecbddd871f64dc958abbbd967f750ead7c699506efb47dc2ce8366f"
+  },
+  "ipeds_effy_dictionary": {
+   "source": "IPEDS",
+   "url": "https://nces.ed.gov/ipeds/datacenter/data/EFFY2024_Dict.zip",
+   "member": "EFFY2024_dict.xlsx",
+   "bytes": 16974,
+   "sha256": "bf199f8d452ea53c02f0365489aeb7c99eaf51cf5774d6cb5306467ba8e1f981"
+  },
+  "ipeds_adm": {
+   "source": "IPEDS",
+   "url": "https://nces.ed.gov/ipeds/datacenter/data/ADM2023.zip",
+   "member": "adm2023.csv",
+   "bytes": 97321,
+   "sha256": "670ecc7c4313f044dcdf740a42ef10c6d2927eb9f890fb405e3569c8442aca27"
+  },
+  "ipeds_adm_dictionary": {
+   "source": "IPEDS",
+   "url": "https://nces.ed.gov/ipeds/datacenter/data/ADM2023_Dict.zip",
+   "member": "adm2023.xlsx",
+   "bytes": 28244,
+   "sha256": "d80bf7c781e39f7cbcb02f10f4d17b0c2c0e16786ea686217d12344c6167803d"
+  }
+ }
+}

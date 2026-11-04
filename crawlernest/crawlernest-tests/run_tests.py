@@ -136,6 +136,9 @@ def run_all_tests():
         # Which Wikipedia article a university gets. Mostly matches that must not be made (same name in
         # another country, a redirect into a section, publisher ids that disagree); no test touches the network.
         "test_wikipedia_profile_loader",
+        # Which IPEDS UNITID a US university gets (identifiers only; a shared Wikidata item or UNITID attaches to
+        # neither record), and the value statuses: privacy-suppressed, imputed and not available are not zero.
+        "test_us_institution_loader",
         # The decision table and the refusals of the 2026-10-03 entity split: seven source entities
         # that were on another university's canonical. The row-rewriting phases are rehearsed, not unit-tested.
         "test_split_false_entity_merges",

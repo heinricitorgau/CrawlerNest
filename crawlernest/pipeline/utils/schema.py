@@ -105,6 +105,7 @@ def ensure_postgres_schema(
         # After entity_resolution: references warehouse.canonical_university.
         MODULE_ROOT / "crawlernest-schema" / "institution_lineage_postgresql.sql",
         MODULE_ROOT / "crawlernest-schema" / "wikipedia_article_postgresql.sql",
+        MODULE_ROOT / "crawlernest-schema" / "us_institution_postgresql.sql",
         MODULE_ROOT / "crawlernest-schema" / "multi_source_postgresql.sql",
         # After multi_source: references warehouse.ranking_source.
         MODULE_ROOT / "crawlernest-schema" / "mapping_review_postgresql.sql",

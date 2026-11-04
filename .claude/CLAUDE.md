@@ -185,6 +185,29 @@ of committed files in `crawlernest-kb/wikipedia/en/`; `crawlernest-jobs/wikipedi
   article quotes ranks from editions the warehouse does not hold.
 - A fresh database has an empty table until `ingest` is run; `bootstrap-postgres` creates the table only.
 
+## US federal institutional data
+
+US and Puerto Rico universities carry College Scorecard and IPEDS figures (admission rate, cost, completion, earnings,
+enrollment) in `warehouse.us_institution` and `warehouse.us_institution_metric`, copied from committed files in
+`crawlernest-kb/us_institutions/`; `crawlernest-jobs/us_institution_loader.py` writes them:
+
+```bash
+./.venv/bin/python crawlernest/crawlernest-jobs/us_institution_loader.py match    # warehouse + Wikidata P1771 -> matches.json
+./.venv/bin/python crawlernest/crawlernest-jobs/us_institution_loader.py fetch    # ed.gov + NCES files -> manifest.json, records.json
+./.venv/bin/python crawlernest/crawlernest-jobs/us_institution_loader.py ingest   # files -> PostgreSQL, no network
+```
+
+- **It is not a ranking source.** It never enters `DATASET_SOURCES`, the composite score, the coverage ratio or the
+  confidence label, which count ranking sources.
+- **A university gets a UNITID through identifiers only**: its Wikidata item (from the Wikipedia `matches.json`) must
+  carry exactly one IPEDS ID (P1771). A Wikidata item or UNITID that two active records share attaches to neither
+  (that is the one-university-two-records defect below). Run the Wikipedia `match` first; correct a single university
+  in `overrides.json`, never by name.
+- **Every value keeps its own reference period, source field and status.** Admission rate is one fall; 10-year
+  earnings are a cohort that entered a decade earlier. `privacy_suppressed`, `imputed` (NCES's estimate or correction),
+  `not_available` and `not_applicable` are different, and none of them is zero; the table's CHECK refuses a figure
+  on a row whose status says there is none.
+
 ## Entity resolution traps
 
 - Two universities on one canonical keep one rank per edition and silently drop the other. Name normalisation
