@@ -322,15 +322,102 @@ class TasselChatIntegrationTest {
 
     // ─── The loop ─────────────────────────────────────────────────────────────
 
+    // ─── lookup_us_federal_data ───────────────────────────────────────────────
+
+    /** The federal tables, from the one DDL the loader and bootstrap use; CI's API job bootstraps nothing else. */
+    private void federalTables() throws Exception {
+        jdbc.execute(java.nio.file.Files.readString(
+                java.nio.file.Path.of("../crawlernest-schema/us_institution_postgresql.sql")));
+    }
+
+    private long target(long userId, Long canonicalId, String customName) {
+        return jdbc.queryForObject("""
+                INSERT INTO desk.target_entity (user_id, canonical_university_id, custom_name) VALUES (?, ?, ?) RETURNING id
+                """, Long.class, userId, canonicalId, customName);
+    }
+
     @Test
-    void theModelIsOfferedExactlyTasselsThreeTools() throws Exception {
+    void aLookupReadsTheSchoolsFiguresWithTheirPeriodsAndBringsTheirCaveats() throws Exception {
+        federalTables();
+        jdbc.update("""
+                INSERT INTO warehouse.us_institution (canonical_university_id, unitid, institution_name, match_method,
+                    in_scorecard, in_ipeds_directory) VALUES (990401, 999401, 'Desk Test University', 'wikidata_ipeds_id', true, true)
+                """);
+        jdbc.update("""
+                INSERT INTO warehouse.us_institution_metric (canonical_university_id, source, metric_key, source_field, unit,
+                    value_number, status, reference_period, release) VALUES
+                    (990401, 'COLLEGE_SCORECARD', 'admission_rate', 'ADM_RATE', 'ratio', 0.0455, 'reported',
+                     'Fall 2024, reported in IPEDS DCY2024-25', 'r'),
+                    (990401, 'COLLEGE_SCORECARD', 'median_earnings_10yr', 'MD_EARN_WNE_P10', 'usd', NULL, 'privacy_suppressed',
+                     'Treasury AY2011-12, AY2012-13 pooled cohort', 'r')
+                """);
+        long school = target(OWNER, 990401L, null);
+        List<ArrayNode> seen = script(calls("lookup_us_federal_data", "{\"targetEntityId\": " + school + "}"),
+                says("Its admission rate was 4.6% in Fall 2024."));
+
+        say(OWNER, "How selective is Desk Test University?")
+                .andExpect(status().isOk())
+                // A read is not a change: no action card, nothing to confirm or undo.
+                .andExpect(jsonPath("$.data.actions", hasSize(0)))
+                .andExpect(jsonPath("$.data.disclosure.userDataWrites", hasSize(0)))
+                .andExpect(jsonPath("$.data.disclosure.warehouseReads[0].tool").value("lookup_us_federal_data"))
+                .andExpect(jsonPath("$.data.disclosure.warehouseReads[0].unitid").value(999401))
+                .andExpect(jsonPath("$.data.caveats[0]").value(clawer.service.AnalyticsService.US_FEDERAL_SOURCE_CAVEAT))
+                .andExpect(jsonPath("$.data.caveats[1]").value(clawer.service.AnalyticsService.US_FEDERAL_PERIODS_CAVEAT))
+                .andExpect(jsonPath("$.data.caveats[2]").value(clawer.service.AnalyticsService.US_FEDERAL_SUPPRESSED_CAVEAT));
+
+        assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM desk.chat_action WHERE user_id = ?", Long.class, OWNER));
+        JsonNode result = json.readTree(lastToolMessage(seen.get(1)).path("content").asText());
+        assertEquals("found", result.path("status").asText());
+        JsonNode rate = result.path("figures").get(0);
+        // Formatted by the API, so the model never has to turn 0.0455 into a percentage itself.
+        assertEquals("4.6%", rate.path("value").asText());
+        assertEquals("Fall 2024, reported in IPEDS DCY2024-25", rate.path("period").asText());
+        JsonNode earnings = result.path("figures").get(1);
+        assertTrue(earnings.path("value").isNull(), "a withheld figure has no value, and is not zero");
+        assertEquals("privacy_suppressed", earnings.path("status").asText());
+        assertTrue(result.path("rules").asText().contains("not this student's chance of admission"));
+    }
+
+    @Test
+    void aSchoolWithNoFederalRecordIsAnsweredNoneAndBringsNoCaveats() throws Exception {
+        federalTables();
+        long byName = target(OWNER, null, "A college the warehouse does not hold");
+        long unmatched = target(OWNER, 990401L, null);
+        List<ArrayNode> seen = script(
+                calls("lookup_us_federal_data", "{\"targetEntityId\": " + byName + "}",
+                      "lookup_us_federal_data", "{\"targetEntityId\": " + unmatched + "}"),
+                says("I have no federal figures for either."));
+
+        say(OWNER, "Admission rates for my schools?")
+                .andExpect(jsonPath("$.data.caveats", hasSize(0)))
+                .andExpect(jsonPath("$.data.disclosure.warehouseReads[0].status").value("none"))
+                .andExpect(jsonPath("$.data.disclosure.warehouseReads[1].status").value("none"));
+        String transcript = seen.get(1).toString();
+        assertTrue(transcript.contains("by name only"));
+        assertTrue(transcript.contains("no US federal record matched"));
+    }
+
+    @Test
+    void aLookupCannotReadAnotherUsersSchool() throws Exception {
+        long theirs = target(OTHER_USER, 990401L, null);
+        List<ArrayNode> seen = script(calls("lookup_us_federal_data", "{\"targetEntityId\": " + theirs + "}"),
+                says("Which school do you mean?"));
+        say(OWNER, "What about that one?").andExpect(jsonPath("$.data.disclosure.warehouseReads[0].status").value("failed"));
+        JsonNode result = json.readTree(lastToolMessage(seen.get(1)).path("content").asText());
+        assertTrue(result.path("message").asText().startsWith("There is no school with id " + theirs));
+    }
+
+    @Test
+    void theModelIsOfferedExactlyTasselsTools() throws Exception {
         script(says("Hi!"));
         ArgumentCaptor<JsonNode> tools = ArgumentCaptor.forClass(JsonNode.class);
         say(OWNER, "hello").andExpect(status().isOk());
         verify(model).chat(any(), tools.capture());
         List<String> names = new ArrayList<>();
         tools.getValue().forEach(t -> names.add(t.path("function").path("name").asText()));
-        assertEquals(List.of("update_target_list", "create_action_task", "generate_narrative_themes"), names);
+        assertEquals(List.of("update_target_list", "create_action_task", "generate_narrative_themes",
+                "lookup_us_federal_data"), names);
     }
 
     @Test

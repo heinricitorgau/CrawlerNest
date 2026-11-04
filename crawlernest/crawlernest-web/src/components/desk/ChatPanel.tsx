@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { CaveatBanner } from "@/components/CaveatBanner";
 import { ActionCard } from "./ActionCard";
 import type { ChatAction, ChatActionDecision, ChatMessage } from "./types";
 
@@ -79,6 +80,9 @@ export function ChatPanel({
                     <ActionCard key={action.id ?? `${message.id}-${i}`} action={action} onDecide={onDecide} />
                   ))}
                 </div>
+              ) : null}
+              {message.caveats?.length ? (
+                <CaveatBanner caveats={message.caveats} title="About the figures in this reply" />
               ) : null}
             </div>
           ),

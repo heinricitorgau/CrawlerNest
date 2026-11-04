@@ -39,6 +39,9 @@ describe("Tassel system prompt", () => {
 
   it("keeps the rules that stop it inventing numbers, facts and saves", () => {
     expect(TASSEL_SYSTEM_PROMPT).toMatch(/Never estimate a student's chance of admission/);
+    // A school's admission rate, now that some schools have one, must not be turned into a chance.
+    expect(TASSEL_SYSTEM_PROMPT).toMatch(/not this student's chance; never turn it into one/);
+    expect(TASSEL_SYSTEM_PROMPT).toMatch(/A figure marked withheld or not available is not zero/);
     expect(TASSEL_SYSTEM_PROMPT).toMatch(/Never give a numeric essay score in chat/);
     expect(TASSEL_SYSTEM_PROMPT).toMatch(/Never invent a fact about the student/);
     expect(TASSEL_SYSTEM_PROMPT).toMatch(/unless a tool result says "applied"/);
@@ -47,9 +50,13 @@ describe("Tassel system prompt", () => {
 });
 
 describe("Tassel tools", () => {
-  it("are exactly the tools the database allows", () => {
+  it("that change something are exactly the tools the database allows", () => {
+    // A read changes nothing, so it is never a desk.chat_action row; its policy says so.
+    const policy = tools.policy as Record<string, { outcome?: string }>;
+    const reads = toolNames.filter((name) => policy[name]?.outcome?.startsWith("read only"));
+    expect(reads).toEqual(["lookup_us_federal_data"]);
     const allowed = allowListSql.match(/tool_name IN \(([^)]*)\)/)?.[1].match(/'([a-z_]+)'/g)?.map((s) => s.slice(1, -1));
-    expect([...(allowed ?? [])].sort()).toEqual([...toolNames].sort());
+    expect([...(allowed ?? [])].sort()).toEqual(toolNames.filter((name) => !reads.includes(name)).sort());
   });
 
   it("have a policy entry each", () => {

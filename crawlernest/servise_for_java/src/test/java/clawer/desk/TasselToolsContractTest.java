@@ -71,7 +71,7 @@ class TasselToolsContractTest {
     }
 
     @Test
-    void theToolNamesAreTheDatabaseAllowList() throws IOException {
+    void theToolsThatChangeSomethingAreTheDatabaseAllowList() throws IOException {
         Set<String> names = new HashSet<>();
         readTools().path("tools").forEach(t -> names.add(t.path("function").path("name").asText()));
 
@@ -85,6 +85,10 @@ class TasselToolsContractTest {
         Matcher name = Pattern.compile("'([a-z_]+)'").matcher(list.group(1));
         while (name.find()) allowed.add(name.group(1));
 
-        assertEquals(allowed, names);
+        // A read changes nothing, so it is never a desk.chat_action row and is not on the list.
+        Set<String> changes = new HashSet<>(names);
+        changes.remove(clawer.desk.chat.TasselFederalLookup.TOOL);
+        assertTrue(names.contains(clawer.desk.chat.TasselFederalLookup.TOOL), "tools.json offers no federal lookup");
+        assertEquals(allowed, changes);
     }
 }

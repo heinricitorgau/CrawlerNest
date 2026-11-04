@@ -53,7 +53,9 @@ export default function DeskPage() {
       setMessages((prev) => [...prev, { id: `${id}-a`, role: "assistant", content, error: true }]);
       return;
     }
-    setMessages((prev) => [...prev, { id: `${id}-a`, role: "assistant", content: result.data.text, actions: result.data.actions }]);
+    setMessages((prev) => [...prev, {
+      id: `${id}-a`, role: "assistant", content: result.data.text, actions: result.data.actions, caveats: result.data.caveats,
+    }]);
     if (result.data.actions.some((a) => a.status === "applied")) setRevision((n) => n + 1);
   }
 

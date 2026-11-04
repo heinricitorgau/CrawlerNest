@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import DeskPage from "@/app/desk/page";
 import { ActionCard } from "@/components/desk";
 import { toChatAction } from "@/lib/deskApi";
+import { CAVEAT_US_FEDERAL_PERIODS, CAVEAT_US_FEDERAL_SOURCE } from "@/lib/caveatMessages";
 
 const originalFetch = global.fetch;
 
@@ -74,6 +75,37 @@ describe("Tassel on /desk", () => {
     expect(sent).toMatchObject({ message: "Send my SAT scores by the 25th", history: [], mode: "general" });
     expect(typeof sent.sessionId).toBe("string");
     await waitFor(() => expect(sprintReads()).toBeGreaterThan(before));
+  });
+
+  it("shows the caveats of the figures Tassel read under its reply, and no change card for a read", async () => {
+    const fetchMock = routedFetch(() => respond(200, {
+      success: true,
+      data: {
+        reply: { text: "Its admission rate was 4.6% in Fall 2024." }, actions: [],
+        caveats: [CAVEAT_US_FEDERAL_SOURCE, CAVEAT_US_FEDERAL_PERIODS, ""],
+        disclosure: { model: "m", warehouseReads: [{ tool: "lookup_us_federal_data", status: "found", unitid: 166683 }] },
+      },
+    }));
+    global.fetch = fetchMock;
+    render(<DeskPage />);
+    fireEvent.change(screen.getByLabelText("Prompt"), { target: { value: "How selective is MIT?" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(await screen.findByText("Its admission rate was 4.6% in Fall 2024.")).toBeInTheDocument();
+    const note = screen.getByRole("note", { name: "About the figures in this reply" });
+    expect(within(note).getByText(CAVEAT_US_FEDERAL_SOURCE)).toBeInTheDocument();
+    expect(within(note).getByText(CAVEAT_US_FEDERAL_PERIODS)).toBeInTheDocument();
+    expect(within(note).getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.queryByLabelText("Changes from this reply")).not.toBeInTheDocument();
+  });
+
+  it("shows no caveat box when the reply read nothing", async () => {
+    global.fetch = routedFetch(() => respond(200, { success: true, data: { reply: { text: "Hello!" }, actions: [] } }));
+    render(<DeskPage />);
+    fireEvent.change(screen.getByLabelText("Prompt"), { target: { value: "hi" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    expect(await screen.findByText("Hello!")).toBeInTheDocument();
+    expect(screen.queryByRole("note", { name: "About the figures in this reply" })).not.toBeInTheDocument();
   });
 
   it("confirms a proposal through the action route", async () => {

@@ -111,6 +111,7 @@ The conversation itself is not stored, only the actions. The browser holds the h
 | `create_action_task` | Applied: a task with `created_by = 'agent'` and `source_action_id`. A due date before today, in the user's time zone, fails. |
 | `update_target_list` `add` | Applied. The name links to a warehouse university only on a unique, case- and spacing-insensitive exact match of the display name, native name or alias; a trailing all-caps parenthetical such as "(MIT)" is ignored. Merged records never match. Otherwise the user's wording is kept as `custom_name`. |
 | `update_target_list` `update` / `remove` | Proposed. Applied only on `confirm`, through `DeskTargetService`. Another user's school fails. |
+| `lookup_us_federal_data` | Read only, not recorded. Reads the US federal record of the warehouse university the user's own target links; `found`, `none` or `failed`. Its caveats are returned in `caveats`. |
 | `generate_narrative_themes` | Applied as `suggested` themes. Each quote must occur in one of the user's messages this turn, or in an essay draft they own. Unmatched quotes are dropped, and a theme left with no quote is dropped. |
 
 **Response** (`data`):
@@ -124,10 +125,16 @@ The conversation itself is not stored, only the actions. The browser holds the h
       "message": "Added the task \"Send SAT scores to MIT\", due 2026-10-25.",
       "arguments": { "...": "..." }, "result": { "table": "task", "id": 812 } }
   ],
+  "caveats": [],
   "disclosure": { "model": "...", "userDataWrites": [{ "table": "desk.task", "id": 812 }],
-                  "warehouseWrites": false, "pipelineRuns": false }
+                  "warehouseWrites": false, "pipelineRuns": false,
+                  "warehouseReads": [] }
 }
 ```
+
+`caveats` holds the caveats of the US federal figures read this turn (`lookup_us_federal_data`), once each;
+`disclosure.warehouseReads` lists those lookups (`tool`, `status`, `targetEntityId`, `canonicalUniversityId`,
+`unitid`). Both are empty when nothing was read.
 
 **Change from the draft:** the draft said the API would check the reply text against the action statuses and
 append a correction. As built, it does not parse prose. Instead, two things keep the outcome honest:

@@ -10,6 +10,8 @@ export interface ChatMessage {
   error?: boolean;
   /** What Tassel changed (or proposed) in this turn, with each action's real status. */
   actions?: ChatAction[];
+  /** The caveats of the data Tassel read this turn (US federal figures), shown under the reply verbatim. */
+  caveats?: string[];
 }
 
 export type ChatActionStatus = "applied" | "proposed" | "confirmed" | "rejected" | "undone" | "failed";

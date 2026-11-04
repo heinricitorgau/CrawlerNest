@@ -381,7 +381,8 @@ export const generateResonance = () => call("/story/resonance/generate", { metho
 
 export type TasselTurn = { role: "user" | "assistant"; content: string };
 
-export type TasselReply = { text: string; actions: ChatAction[]; model: string | null };
+/** `caveats` belong to the data Tassel read this turn; render them with the reply, verbatim. */
+export type TasselReply = { text: string; actions: ChatAction[]; caveats: string[]; model: string | null };
 
 const ACTION_STATUSES: readonly ChatActionStatus[] = ["applied", "proposed", "confirmed", "rejected", "undone", "failed"];
 
@@ -398,6 +399,7 @@ function toTasselReply(raw: unknown): TasselReply {
   return {
     text: str(reply.text),
     actions: (Array.isArray(r.actions) ? r.actions : []).map(toChatAction).filter((a): a is ChatAction => a !== null),
+    caveats: (Array.isArray(r.caveats) ? r.caveats : []).filter((c): c is string => typeof c === "string" && c.trim() !== ""),
     model: typeof disclosure.model === "string" ? disclosure.model : null,
   };
 }

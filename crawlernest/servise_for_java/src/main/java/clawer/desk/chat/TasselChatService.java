@@ -21,6 +21,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,21 +55,25 @@ public class TasselChatService {
     static final int MAX_HISTORY_ITEM = 8000;
     static final int MAX_ROUNDS = 3;
     static final int MAX_CALLS_PER_TURN = 5;
+    /** Lookups change nothing, so they have their own, separate cap. */
+    static final int MAX_LOOKUPS_PER_TURN = 3;
     static final Set<String> MODES = Set.of("general", "brainstorming", "review");
 
     private final JdbcTemplate jdbc;
     private final DeskModelClient model;
     private final TasselToolExecutor executor;
+    private final TasselFederalLookup federalLookup;
     private final DeskProfileService profiles;
     private final ObjectMapper objectMapper;
     private final String systemPrompt;
     private final JsonNode tools;
 
     public TasselChatService(JdbcTemplate jdbc, DeskModelClient model, TasselToolExecutor executor,
-                             DeskProfileService profiles, ObjectMapper objectMapper) {
+                             TasselFederalLookup federalLookup, DeskProfileService profiles, ObjectMapper objectMapper) {
         this.jdbc = jdbc;
         this.model = model;
         this.executor = executor;
+        this.federalLookup = federalLookup;
         this.profiles = profiles;
         this.objectMapper = objectMapper;
         this.systemPrompt = readResource("prompts/tassel_system.txt").strip();
@@ -98,6 +103,7 @@ public class TasselChatService {
 
         int turnIndex = history.size();
         List<TasselToolExecutor.Outcome> actions = new ArrayList<>();
+        List<TasselFederalLookup.Result> lookups = new ArrayList<>();
         String modelName = null;
         String reply = "";
         boolean stoppedEarly = false;
@@ -124,11 +130,21 @@ public class TasselChatService {
             TasselToolExecutor.Turn context = new TasselToolExecutor.Turn(userId, sessionId, turnIndex, modelName, userMessages);
             for (JsonNode call : calls) {
                 String result;
-                if (actions.size() >= MAX_CALLS_PER_TURN) {
+                String name = call.path("function").path("name").asText("");
+                if (TasselFederalLookup.TOOL.equals(name)) {
+                    if (lookups.size() >= MAX_LOOKUPS_PER_TURN) {
+                        result = "{\"status\": \"failed\", \"message\": \"Too many lookups in one turn; answer with what you have.\"}";
+                    } else {
+                        TasselFederalLookup.Result lookup =
+                                federalLookup.lookup(userId, call.path("function").path("arguments").asText(""));
+                        lookups.add(lookup);
+                        result = lookup.forModel().toString();
+                    }
+                } else if (actions.size() >= MAX_CALLS_PER_TURN) {
                     result = "{\"status\": \"failed\", \"message\": \"Too many changes in one turn; ask the user to continue.\"}";
                 } else {
                     TasselToolExecutor.Outcome outcome = executor.execute(context,
-                            call.path("function").path("name").asText(""), call.path("function").path("arguments").asText(""));
+                            name, call.path("function").path("arguments").asText(""));
                     actions.add(outcome);
                     result = executor.toolResultForModel(outcome);
                 }
@@ -157,6 +173,8 @@ public class TasselChatService {
         disclosure.put("model", modelName);
         disclosure.put("userDataWrites", writes);
         disclosure.put("warehouseWrites", false);
+        // What Tassel read beyond the desk, so a reply quoting a figure can be traced to its record.
+        disclosure.put("warehouseReads", lookups.stream().map(TasselChatService::lookupView).toList());
         disclosure.put("pipelineRuns", false);
 
         Map<String, Object> out = new LinkedHashMap<>();
@@ -164,8 +182,22 @@ public class TasselChatService {
         out.put("reply", Map.of("text", reply, "paragraphs",
                 Arrays.stream(reply.split("\\n{2,}")).map(String::strip).filter(p -> !p.isEmpty()).toList()));
         out.put("actions", actions.stream().map(TasselChatService::actionView).toList());
+        // The caveats of every figure Tassel read this turn, once each, in the order first read.
+        LinkedHashSet<String> caveats = new LinkedHashSet<>();
+        lookups.forEach(l -> caveats.addAll(l.caveats()));
+        out.put("caveats", List.copyOf(caveats));
         out.put("disclosure", disclosure);
         return out;
+    }
+
+    static Map<String, Object> lookupView(TasselFederalLookup.Result l) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("tool", l.tool());
+        m.put("status", l.status());
+        m.put("targetEntityId", l.targetEntityId());
+        m.put("canonicalUniversityId", l.canonicalUniversityId());
+        m.put("unitid", l.unitid());
+        return m;
     }
 
     static Map<String, Object> actionView(TasselToolExecutor.Outcome o) {

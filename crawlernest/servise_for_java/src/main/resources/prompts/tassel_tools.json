@@ -1,5 +1,5 @@
 {
-  "$comment": "Tassel's tools, in the OpenAI-compatible Chat Completions format (also accepted by Ollama and ds4). `tools` is sent to the model as is by clawer.desk.chat.TasselChatService; `policy` is not sent -- it is what the API does with each call. The model only proposes: TasselToolExecutor validates every call against the same rules as the desk forms, records it in desk.chat_action, and then applies it or holds it for the user to confirm. Enums must match DeskTargetService / DeskTaskService (TasselToolsContractTest), and the names must match V004's allow-list.",
+  "$comment": "Tassel's tools, in the OpenAI-compatible Chat Completions format (also accepted by Ollama and ds4). `tools` is sent to the model as is by clawer.desk.chat.TasselChatService; `policy` is not sent -- it is what the API does with each call. The model only proposes: TasselToolExecutor validates every change against the same rules as the desk forms, records it in desk.chat_action, and then applies it or holds it for the user to confirm. lookup_us_federal_data is the one read: TasselFederalLookup answers it, nothing is recorded or changed, and its caveats travel with the chat response. Enums must match DeskTargetService / DeskTaskService (TasselToolsContractTest), and the names of the tools that change something must match V004's allow-list.",
   "tools": [
     {
       "type": "function",
@@ -263,6 +263,27 @@
           }
         }
       }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "lookup_us_federal_data",
+        "description": "Read the US federal figures (College Scorecard and IPEDS: admission rate, test score ranges, cost, net price, completion, earnings, enrollment) for one school on the student's list, when they ask about one of those for a US school. Reads only; changes nothing. Returns each figure with its own period and status, and the caveats you must pass on. Many schools have no record: outside the US, or not matched.",
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "targetEntityId"
+          ],
+          "properties": {
+            "targetEntityId": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "The id of the school on the student's list, from the context. A school not on the list must be added with update_target_list first."
+            }
+          }
+        }
+      }
     }
   ],
   "policy": {
@@ -281,6 +302,11 @@
     "generate_narrative_themes": {
       "outcome": "stored as status 'suggested'; only the user can accept",
       "evidenceCheck": "each quote must occur verbatim in the named source; unmatched quotes are dropped, and a theme with none left is rejected"
+    },
+    "lookup_us_federal_data": {
+      "outcome": "read only: not recorded in desk.chat_action, no confirm or undo",
+      "lookup": "the target's linked warehouse university only; a target with no linked university, or a university with no matched UNITID, has no figures. Never by name.",
+      "caveats": "every successful lookup adds its caveats to the chat response, and the desk shows them under the reply"
     }
   }
 }
