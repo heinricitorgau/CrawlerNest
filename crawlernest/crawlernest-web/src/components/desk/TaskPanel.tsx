@@ -50,7 +50,7 @@ export function TaskList({ tasks, today, onToggle }: TaskListProps) {
               onClick={onToggle ? () => onToggle(task.id) : undefined}
               disabled={!onToggle}
               aria-label={`${task.title}: ${status.label}`}
-              className={`h-3.5 w-3.5 shrink-0 rounded-full ${status.dot}`}
+              className={`h-3.5 w-3.5 shrink-0 ${status.dot}`}
             />
             <div className="min-w-0 flex-1">
               <p className={`truncate text-sm ${isClosed(task) ? "text-slate-400 line-through" : "text-slate-800"}`}>
@@ -103,9 +103,9 @@ export function SprintCard({ sprint, today, onToggleTask, onAddTask }: SprintCar
           aria-valuemin={0}
           aria-valuemax={counted.length}
           aria-valuenow={done}
-          className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200"
+          className="h-1.5 flex-1 overflow-hidden bg-slate-200"
         >
-          <div className="h-full rounded-full bg-blue-600 transition-[width] duration-500" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-blue-600 transition-[width] duration-500" style={{ width: `${progress}%` }} />
         </div>
         <span className="text-xs tabular-nums text-slate-600">{done}/{counted.length}</span>
       </div>
@@ -178,7 +178,7 @@ export function DeskCard({ title, eyebrow, aside, children }: DeskCardProps) {
       <header className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div>
           {eyebrow ? (
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-600">{eyebrow}</p>
+            <p className="text-[11px] font-semibold text-blue-600">{eyebrow}</p>
           ) : null}
           <h2 className="text-base font-semibold text-slate-900">{title}</h2>
         </div>

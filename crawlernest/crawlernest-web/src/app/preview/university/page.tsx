@@ -67,7 +67,7 @@ export default function UniversityPreviewPage() {
   const renderBadge = (value: string) => (
     <span
       key={value}
-      className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700"
+      className="inline-flex items-center bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700"
     >
       {value}
     </span>
@@ -94,7 +94,7 @@ export default function UniversityPreviewPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10">
         <div className="rounded-3xl border border-slate-200 bg-white px-8 py-12 text-center shadow-sm">
-          <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Loading university preview</p>
+          <p className="text-sm text-slate-500">Loading university preview</p>
           <p className="mt-4 text-2xl font-semibold text-slate-900">Please wait...</p>
         </div>
       </div>
@@ -115,10 +115,10 @@ export default function UniversityPreviewPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-5xl space-y-6">
-        <div className="rounded-[32px] border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-10">
+        <div className="border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Preview Mode</p>
+              <p className="text-sm text-slate-500">Preview Mode</p>
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
                 {renderValue(data?.universityDisplayName)}
               </h1>
@@ -141,7 +141,7 @@ export default function UniversityPreviewPage() {
             {showAliasBadges.length > 0 ? (
               showAliasBadges.map((alias: string) => renderBadge(alias))
             ) : (
-              <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-500">
+              <span className="inline-flex items-center bg-slate-100 px-3 py-1 text-sm font-medium text-slate-500">
                 No aliases
               </span>
             )}
@@ -149,10 +149,10 @@ export default function UniversityPreviewPage() {
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
-          <section className="rounded-[32px] border border-slate-200 bg-white px-6 py-8 shadow-sm">
+          <section className="border border-slate-200 bg-white px-6 py-8 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Identity</p>
+                <p className="text-sm font-semibold text-slate-500">Identity</p>
                 <h2 className="mt-2 text-xl font-semibold text-slate-900">Canonical identity</h2>
               </div>
             </div>
@@ -177,8 +177,8 @@ export default function UniversityPreviewPage() {
             </div>
           </section>
 
-          <section className="rounded-[32px] border border-slate-200 bg-white px-6 py-8 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Availability</p>
+          <section className="border border-slate-200 bg-white px-6 py-8 shadow-sm">
+            <p className="text-sm font-semibold text-slate-500">Availability</p>
             <h2 className="mt-2 text-xl font-semibold text-slate-900">Data overview</h2>
             <div className="mt-6 space-y-4">
               <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4">
@@ -197,14 +197,14 @@ export default function UniversityPreviewPage() {
           </section>
         </div>
 
-        <section className="rounded-[32px] border border-slate-200 bg-white px-6 py-8 shadow-sm">
+        <section className="border border-slate-200 bg-white px-6 py-8 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Ranking</p>
+              <p className="text-sm font-semibold text-slate-500">Ranking</p>
               <h2 className="mt-2 text-xl font-semibold text-slate-900">Summary</h2>
             </div>
             {!data?.rankingSummary && (
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">No ranking data</span>
+              <span className="bg-slate-100 px-3 py-1 text-sm text-slate-600">No ranking data</span>
             )}
           </div>
 
@@ -251,14 +251,14 @@ export default function UniversityPreviewPage() {
           ) : null}
         </section>
 
-        <section className="rounded-[32px] border border-slate-200 bg-white px-6 py-8 shadow-sm">
+        <section className="border border-slate-200 bg-white px-6 py-8 shadow-sm">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Admission</p>
+              <p className="text-sm font-semibold text-slate-500">Admission</p>
               <h2 className="mt-2 text-xl font-semibold text-slate-900">Summary</h2>
             </div>
             {!data?.admissionSummary && (
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-600">No admission data</span>
+              <span className="bg-slate-100 px-3 py-1 text-sm text-slate-600">No admission data</span>
             )}
           </div>
 

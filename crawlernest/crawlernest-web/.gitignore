@@ -41,3 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 .claude/
+# Hallmark design-sweep output (screenshots, before/after records)
+.hallmark/

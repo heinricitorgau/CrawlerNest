@@ -22,8 +22,8 @@ type YearSelectorProps = {
 };
 
 const SELECT_CLASS: Record<NonNullable<YearSelectorProps["variant"]>, string> = {
-  nav: "rounded border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none focus:border-slate-400",
-  page: "rounded-xl border border-[#e0ddd8] bg-white px-4 py-3 outline-none transition focus:border-[#1a3d2e]",
+  nav: "select select--nav",
+  page: "select",
 };
 
 /**
@@ -52,7 +52,7 @@ export function YearSelector({
       <div className={variant === "nav" ? "flex items-center gap-2" : "flex flex-col gap-2"}>
         <label
           htmlFor={id}
-          className={variant === "nav" ? "text-xs font-medium text-slate-500" : "text-sm font-medium text-[#1a3d2e]"}
+          className={variant === "nav" ? "field__note shell-label" : "field__label"}
         >
           {variant === "nav" ? "Edition" : "Ranking edition"}
         </label>
@@ -71,7 +71,7 @@ export function YearSelector({
         </select>
       </div>
       {requestedHeld ? null : (
-        <p id={noteId} role="status" className="text-xs text-[#8a6116]">
+        <p id={noteId} role="status" className="text-xs text-(--color-warn)">
           No {requested} edition is held. Showing {year}.
         </p>
       )}
@@ -89,7 +89,7 @@ export function YearSelectorFallback({
   return (
     <div className={`flex flex-col gap-1 ${className}`.trim()} aria-hidden="true">
       <div className={variant === "nav" ? "flex items-center gap-2" : "flex flex-col gap-2"}>
-        <span className={variant === "nav" ? "text-xs font-medium text-slate-500" : "text-sm font-medium text-[#1a3d2e]"}>
+        <span className={variant === "nav" ? "field__note shell-label" : "field__label"}>
           {variant === "nav" ? "Edition" : "Ranking edition"}
         </span>
         <select className={SELECT_CLASS[variant]} disabled value={first} onChange={() => {}}>

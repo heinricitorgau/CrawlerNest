@@ -1796,17 +1796,17 @@ export function RecommendationPageContent({
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
+    <main className="min-h-screen bg-(--color-paper) text-(--color-ink)">
       <div className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#6b7068]">
+            <p className="text-sm font-medium text-(--color-muted)">
               Decision Support
             </p>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-[#1a3d2e]">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-(--color-ink)">
               Recommendation Engine
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6b7068]">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-(--color-muted)">
               Generate a shortlist using ranking targets, English requirements,
               and risk profile.
             </p>
@@ -1815,7 +1815,7 @@ export function RecommendationPageContent({
             {yearSelector}
             <Link
               href="/"
-              className="inline-flex items-center rounded-full border border-[#e0ddd8] bg-white px-4 py-2 text-sm font-medium text-[#1a3d2e] shadow-sm transition hover:border-[#3d7a5a] hover:bg-[#e8f2ec]"
+              className="inline-flex items-center border border-(--color-rule) bg-white px-4 py-2 text-sm font-medium text-(--color-ink) shadow-sm transition hover:border-(--color-ink-2) hover:bg-(--color-paper-2)"
             >
               Back to rankings
             </Link>
@@ -1823,18 +1823,18 @@ export function RecommendationPageContent({
         </div>
 
         {shortlistContext.length > 0 ? (
-          <section className="mb-6 rounded-3xl border border-[#e0ddd8] bg-[#e8f2ec] p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[#1a3d2e]">
+          <section className="mb-6 rounded-3xl border border-(--color-rule) bg-(--color-paper-2) p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-(--color-ink)">
               Using your shortlist ({shortlistContext.length})
             </h2>
-            <p className="mt-2 text-sm text-[#6b7068]">
+            <p className="mt-2 text-sm text-(--color-muted)">
               These shortlisted universities are carried into your recommendation workflow.
             </p>
             <ul className="mt-4 space-y-2">
               {shortlistContext.map((item, index) => (
                 <li
                   key={`${item.canonicalUniversityId}-${item.slug}-${index}`}
-                  className="rounded-2xl border border-[#3d7a5a] bg-white px-4 py-3 text-sm font-medium text-[#1a3d2e]"
+                  className="rounded-2xl border border-(--color-ink-2) bg-white px-4 py-3 text-sm font-medium text-(--color-ink)"
                 >
                   {item.universityName}
                 </li>
@@ -1842,16 +1842,16 @@ export function RecommendationPageContent({
             </ul>
           </section>
         ) : (
-          <section className="mb-6 rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-[#1a3d2e]">
+          <section className="mb-6 rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-(--color-ink)">
               No shortlist detected. Start from rankings.
             </h2>
-            <p className="mt-2 text-sm text-[#6b7068]">
+            <p className="mt-2 text-sm text-(--color-muted)">
               Add universities to your shortlist on the rankings page, then return here to continue.
             </p>
             <Link
               href="/"
-              className="mt-4 inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+              className="mt-4 inline-flex items-center justify-center bg-(--color-ink) px-4 py-3 text-sm font-semibold text-white transition hover:bg-(--color-ink-2)"
             >
               Back to rankings
             </Link>
@@ -1861,16 +1861,16 @@ export function RecommendationPageContent({
         {comparisonItems.length >= 2 ? (
           <section
             id="comparison"
-            className="mb-6 rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm"
+            className="mb-6 rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm"
           >
-            <h2 className="text-xl font-semibold text-[#1a3d2e]">Comparison</h2>
-            <p className="mt-2 text-sm text-[#6b7068]">
+            <h2 className="text-xl font-semibold text-(--color-ink)">Comparison</h2>
+            <p className="mt-2 text-sm text-(--color-muted)">
               Compare shortlisted universities side by side before generating a final recommendation.
             </p>
 
             <div className="mt-5 overflow-x-auto">
               <table className="w-full border-collapse">
-                <thead className="bg-[#f5f3ee] text-sm text-[#6b7068]">
+                <thead className="bg-(--color-paper) text-sm text-(--color-muted)">
                   <tr>
                     <th className="px-4 py-3 text-left">University</th>
                     <th className="px-4 py-3 text-left">Country</th>
@@ -1883,17 +1883,17 @@ export function RecommendationPageContent({
                   {comparisonItems.map((item, index) => (
                     <tr
                       key={`${item.canonicalUniversityId}-${item.slug}-${index}`}
-                      className="border-t border-[#e0ddd8]"
+                      className="border-t border-(--color-rule)"
                     >
-                      <td className="px-4 py-4 font-semibold text-[#1a1a1a]">
+                      <td className="px-4 py-4 font-semibold text-(--color-ink)">
                         {item.universityName}
                       </td>
-                      <td className="px-4 py-4 text-[#6b7068]">{item.country}</td>
+                      <td className="px-4 py-4 text-(--color-muted)">{item.country}</td>
                       <td
                         className={`px-4 py-4 ${
                           bestRank !== null && item.aggregatedRank === bestRank
-                            ? "font-semibold text-[#1a3d2e]"
-                            : "text-[#6b7068]"
+                            ? "font-semibold text-(--color-ink)"
+                            : "text-(--color-muted)"
                         }`}
                       >
                         #{formatRank(item.aggregatedRank)}
@@ -1901,8 +1901,8 @@ export function RecommendationPageContent({
                       <td
                         className={`px-4 py-4 ${
                           bestIelts !== null && item.ieltsMin === bestIelts
-                            ? "font-semibold text-[#1a3d2e]"
-                            : "text-[#6b7068]"
+                            ? "font-semibold text-(--color-ink)"
+                            : "text-(--color-muted)"
                         }`}
                       >
                         {formatIelts(item.ieltsMin)}
@@ -1911,8 +1911,8 @@ export function RecommendationPageContent({
                         className={`px-4 py-4 ${
                           bestMatchScore !== null &&
                           item.matchingScore === bestMatchScore
-                            ? "font-semibold text-[#1a3d2e]"
-                            : "text-[#6b7068]"
+                            ? "font-semibold text-(--color-ink)"
+                            : "text-(--color-muted)"
                         }`}
                       >
                         {item.matchingScore !== undefined
@@ -1926,11 +1926,11 @@ export function RecommendationPageContent({
             </div>
 
             {comparisonExplanations.length > 0 ? (
-              <div className="mt-6 rounded-2xl bg-[#f5f3ee] p-5">
-                <h3 className="text-base font-semibold text-[#1a3d2e]">
+              <div className="mt-6 rounded-2xl bg-(--color-paper) p-5">
+                <h3 className="text-base font-semibold text-(--color-ink)">
                   Explanation
                 </h3>
-                <ul className="mt-3 space-y-2 text-sm leading-6 text-[#6b7068]">
+                <ul className="mt-3 space-y-2 text-sm leading-6 text-(--color-muted)">
                   {comparisonExplanations.map((explanation) => (
                     <li key={explanation}>{explanation}</li>
                   ))}
@@ -1960,12 +1960,12 @@ export function RecommendationPageContent({
           </section>
         ) : null}
 
-        <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+        <section className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-[#1a3d2e]">Country</span>
+              <span className="text-sm font-medium text-(--color-ink)">Country</span>
               <input
-                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
                 placeholder="Country"
@@ -1973,9 +1973,9 @@ export function RecommendationPageContent({
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-[#1a3d2e]">IELTS Score</span>
+              <span className="text-sm font-medium text-(--color-ink)">IELTS Score</span>
               <input
-                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                 type="number"
                 step="0.5"
                 value={ielts}
@@ -1984,9 +1984,9 @@ export function RecommendationPageContent({
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-[#1a3d2e]">Target Rank</span>
+              <span className="text-sm font-medium text-(--color-ink)">Target Rank</span>
               <input
-                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                 type="number"
                 value={targetRank}
                 onChange={(e) => setTargetRank(Number(e.target.value))}
@@ -1994,9 +1994,9 @@ export function RecommendationPageContent({
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-[#1a3d2e]">Risk Profile</span>
+              <span className="text-sm font-medium text-(--color-ink)">Risk Profile</span>
               <select
-                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                 value={riskProfile}
                 onChange={(e) => setRiskProfile(e.target.value)}
               >
@@ -2007,9 +2007,9 @@ export function RecommendationPageContent({
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-[#1a3d2e]">Subject Focus (optional)</span>
+              <span className="text-sm font-medium text-(--color-ink)">Subject Focus (optional)</span>
               <select
-                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
               >
@@ -2022,9 +2022,9 @@ export function RecommendationPageContent({
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-[#1a3d2e]">TOEFL Score (optional)</span>
+              <span className="text-sm font-medium text-(--color-ink)">TOEFL Score (optional)</span>
               <input
-                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                 type="number"
                 value={toefl}
                 onChange={(e) => setToefl(e.target.value === "" ? "" : Number(e.target.value))}
@@ -2033,9 +2033,9 @@ export function RecommendationPageContent({
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-[#1a3d2e]">GPA (optional)</span>
+              <span className="text-sm font-medium text-(--color-ink)">GPA (optional)</span>
               <input
-                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                 type="number"
                 step="0.1"
                 value={gpa}
@@ -2045,9 +2045,9 @@ export function RecommendationPageContent({
             </label>
 
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-[#1a3d2e]">Duolingo Score (optional)</span>
+              <span className="text-sm font-medium text-(--color-ink)">Duolingo Score (optional)</span>
               <input
-                className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                 type="number"
                 value={duolingo}
                 onChange={(e) => setDuolingo(e.target.value === "" ? "" : Number(e.target.value))}
@@ -2059,46 +2059,46 @@ export function RecommendationPageContent({
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <button
               onClick={() => void handleGenerateRecommendations()}
-              className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42] disabled:cursor-not-allowed disabled:bg-[#c0bdb8]"
+              className="inline-flex items-center justify-center bg-(--color-ink) px-5 py-3 text-sm font-semibold text-white transition hover:bg-(--color-ink-2) disabled:cursor-not-allowed disabled:bg-(--color-paper-3)"
               disabled={loading}
             >
               {loading ? "Generating..." : "Generate Recommendations"}
             </button>
-            <span className="text-sm text-[#6b7068]">
+            <span className="text-sm text-(--color-muted)">
               Results are fetched through the frontend recommendation service.
             </span>
             <button
               type="button"
               onClick={() => void handleResetExploration()}
-              className="inline-flex items-center justify-center rounded-full border border-[#d2d9d4] bg-white px-4 py-3 text-sm font-semibold text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+              className="inline-flex items-center justify-center border border-(--color-rule) bg-white px-4 py-3 text-sm font-semibold text-(--color-ink-2) transition hover:border-(--color-ink) hover:text-(--color-ink)"
             >
               Reset exploration
             </button>
           </div>
-          <div className="mt-2 text-sm text-[#6b7068]">
+          <div className="mt-2 text-sm text-(--color-muted)">
             Clears restored/imported exploration state from this browser.
           </div>
           {showRestoredStateCue ? (
             <div
               data-testid="restored-state-cue"
-              className="mt-3 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] px-4 py-3 text-sm text-[#315343]"
+              className="mt-3 rounded-2xl border border-(--color-accent-soft) bg-(--color-paper) px-4 py-3 text-sm text-(--color-ink-2)"
             >
               Restored your last comparison state.
             </div>
           ) : null}
 
-          <div className="mt-6 rounded-2xl border border-[#e0ddd8] bg-[#fcfbf8] p-4">
-            <div className="text-sm font-semibold text-[#1a3d2e]">
+          <div className="mt-6 rounded-2xl border border-(--color-rule) bg-(--color-plate) p-4">
+            <div className="text-sm font-semibold text-(--color-ink)">
               Scenario Simulation
             </div>
-            <p className="mt-2 text-sm text-[#6b7068]">
+            <p className="mt-2 text-sm text-(--color-muted)">
               Re-run the same pipeline with a small profile change to see what shifts.
             </p>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-[#1a3d2e]">IELTS Delta</span>
+                <span className="text-sm font-medium text-(--color-ink)">IELTS Delta</span>
                 <input
-                  className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                  className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                   type="number"
                   step="0.5"
                   value={scenarioIeltsDelta}
@@ -2112,9 +2112,9 @@ export function RecommendationPageContent({
                 />
               </label>
               <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-[#1a3d2e]">TOEFL Delta</span>
+                <span className="text-sm font-medium text-(--color-ink)">TOEFL Delta</span>
                 <input
-                  className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                  className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                   type="number"
                   value={scenarioToeflDelta}
                   onChange={(e) => {
@@ -2127,9 +2127,9 @@ export function RecommendationPageContent({
                 />
               </label>
               <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-[#1a3d2e]">GPA Delta</span>
+                <span className="text-sm font-medium text-(--color-ink)">GPA Delta</span>
                 <input
-                  className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                  className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                   type="number"
                   step="0.1"
                   value={scenarioGpaDelta}
@@ -2143,9 +2143,9 @@ export function RecommendationPageContent({
                 />
               </label>
               <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-[#1a3d2e]">Target Rank Delta</span>
+                <span className="text-sm font-medium text-(--color-ink)">Target Rank Delta</span>
                 <input
-                  className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
+                  className="rounded-xl border border-(--color-rule) px-4 py-3 outline-none transition focus:border-(--color-ink)"
                   type="number"
                   value={scenarioTargetRankDelta}
                   onChange={(e) => {
@@ -2161,30 +2161,30 @@ export function RecommendationPageContent({
           </div>
         </section>
 
-        <section className="mt-6 rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+        <section className="mt-6 rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
           <button
             type="button"
             data-testid="import-summary-toggle"
             onClick={() => setImportExpanded((current) => !current)}
             className="flex w-full items-center justify-between gap-3 text-left"
           >
-            <h2 className="text-xl font-semibold text-[#1a3d2e]">
+            <h2 className="text-xl font-semibold text-(--color-ink)">
               Import a decision summary
             </h2>
-            <span className="text-sm font-medium text-[#6b7068]">
+            <span className="text-sm font-medium text-(--color-muted)">
               {importExpanded || importSummaryText ? "Hide" : "Show"}
             </span>
           </button>
-          <p className="mt-2 text-sm text-[#6b7068]">
+          <p className="mt-2 text-sm text-(--color-muted)">
             Paste a previously exported JSON summary to restore the same decision context.
           </p>
-          <div className="mt-2 text-sm text-[#6b7068]">
+          <div className="mt-2 text-sm text-(--color-muted)">
             JSON summaries only. Text summaries are not supported.
           </div>
           {showImportedSummaryCue ? (
             <div
               data-testid="imported-summary-active-cue"
-              className="mt-3 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] px-4 py-3 text-sm text-[#315343]"
+              className="mt-3 rounded-2xl border border-(--color-accent-soft) bg-(--color-paper) px-4 py-3 text-sm text-(--color-ink-2)"
             >
               Imported summary is now active.
             </div>
@@ -2192,7 +2192,7 @@ export function RecommendationPageContent({
           {importedSummaryPreview ? (
             <div
               data-testid="imported-summary-preview"
-              className="mt-2 text-sm text-[#6b7068]"
+              className="mt-2 text-sm text-(--color-muted)"
             >
               {importedSummaryPreview}
             </div>
@@ -2201,7 +2201,7 @@ export function RecommendationPageContent({
             <>
               <textarea
                 data-testid="import-summary-textarea"
-                className="mt-4 min-h-[180px] w-full rounded-2xl border border-[#e0ddd8] px-4 py-3 font-mono text-sm outline-none transition focus:border-[#1a3d2e]"
+                className="mt-4 min-h-[180px] w-full rounded-2xl border border-(--color-rule) px-4 py-3 font-mono text-sm outline-none transition focus:border-(--color-ink)"
                 value={importSummaryText}
                 onChange={(e) => {
                   setImportExpanded(true);
@@ -2214,7 +2214,7 @@ export function RecommendationPageContent({
                   type="button"
                   data-testid="restore-summary-button"
                   onClick={() => void handleRestoreFromSummary()}
-                  className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+                  className="inline-flex items-center justify-center bg-(--color-ink) px-4 py-3 text-sm font-semibold text-white transition hover:bg-(--color-ink-2)"
                 >
                   Restore from summary
                 </button>
@@ -2226,7 +2226,7 @@ export function RecommendationPageContent({
                     setImportStatus(null);
                     setImportExpanded(false);
                   }}
-                  className="inline-flex items-center justify-center rounded-full border border-[#d2d9d4] bg-white px-4 py-3 text-sm font-semibold text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+                  className="inline-flex items-center justify-center border border-(--color-rule) bg-white px-4 py-3 text-sm font-semibold text-(--color-ink-2) transition hover:border-(--color-ink) hover:text-(--color-ink)"
                 >
                   Clear imported text
                 </button>
@@ -2236,7 +2236,7 @@ export function RecommendationPageContent({
           {importStatus ? (
             <div
               data-testid="import-summary-status"
-              className="mt-3 text-sm text-[#6b7068]"
+              className="mt-3 text-sm text-(--color-muted)"
             >
               {importStatus}
             </div>
@@ -2255,11 +2255,11 @@ export function RecommendationPageContent({
               caveats={[...editionCaveats(resultYear ?? rankingYear), ...(metadata?.admission_caveats ?? [])]}
             />
             {decisionSummary ? (
-              <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-[#1a3d2e]">
+              <section className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-(--color-ink)">
                   Export your decision summary
                 </h2>
-                <p className="mt-2 text-sm text-[#6b7068]">
+                <p className="mt-2 text-sm text-(--color-muted)">
                   Copy your current decision state so you can save or share it.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
@@ -2267,7 +2267,7 @@ export function RecommendationPageContent({
                     type="button"
                     data-testid="copy-summary-json"
                     onClick={() => void handleCopyDecisionSummaryJson()}
-                    className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+                    className="inline-flex items-center justify-center bg-(--color-ink) px-4 py-3 text-sm font-semibold text-white transition hover:bg-(--color-ink-2)"
                   >
                     Copy summary (JSON)
                   </button>
@@ -2275,7 +2275,7 @@ export function RecommendationPageContent({
                     type="button"
                     data-testid="copy-summary-text"
                     onClick={() => void handleCopyDecisionSummaryText()}
-                    className="inline-flex items-center justify-center rounded-full border border-[#d2d9d4] bg-white px-4 py-3 text-sm font-semibold text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+                    className="inline-flex items-center justify-center border border-(--color-rule) bg-white px-4 py-3 text-sm font-semibold text-(--color-ink-2) transition hover:border-(--color-ink) hover:text-(--color-ink)"
                   >
                     Copy summary (text)
                   </button>
@@ -2283,16 +2283,16 @@ export function RecommendationPageContent({
                 {exportStatus ? (
                   <div
                     data-testid="copy-summary-status"
-                    className="mt-3 text-sm text-[#6b7068]"
+                    className="mt-3 text-sm text-(--color-muted)"
                   >
                     {exportStatus}
                   </div>
                 ) : null}
               </section>
             ) : null}
-            <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-[#1a3d2e]">Summary</h2>
-              <p className="mt-2 text-sm text-[#6b7068]">
+            <section className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-(--color-ink)">Summary</h2>
+              <p className="mt-2 text-sm text-(--color-muted)">
                 A compact view of the assumptions and the current recommendation spread.
               </p>
               <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -2323,17 +2323,17 @@ export function RecommendationPageContent({
               </div>
             </section>
 
-            <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-[#1a3d2e]">Save This Plan</h2>
-              <p className="mt-2 text-sm text-[#6b7068]">
+            <section className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-(--color-ink)">Save This Plan</h2>
+              <p className="mt-2 text-sm text-(--color-muted)">
                 Save a snapshot of this recommendation result to your account.
               </p>
               <div className="mt-5">
                 {!authenticated ? (
-                  <p className="text-sm text-[#6b7068]">
+                  <p className="text-sm text-(--color-muted)">
                     <Link
                       href="/signin"
-                      className="font-medium text-[#3d7a5a] underline-offset-4 hover:underline"
+                      className="font-medium text-(--color-ink-2) underline-offset-4 hover:underline"
                     >
                       Sign in
                     </Link>
@@ -2341,17 +2341,17 @@ export function RecommendationPageContent({
                   </p>
                 ) : savePhase === "saved" ? (
                   <div className="flex flex-wrap items-center gap-4">
-                    <span className="text-sm font-semibold text-[#1a3d2e]">Saved ✓</span>
+                    <span className="text-sm font-semibold text-(--color-ink)">Saved ✓</span>
                     <Link
                       href="/saved-recommendations"
-                      className="text-sm font-medium text-[#3d7a5a] underline-offset-4 hover:underline"
+                      className="text-sm font-medium text-(--color-ink-2) underline-offset-4 hover:underline"
                     >
                       View saved plans →
                     </Link>
                     <button
                       type="button"
                       onClick={() => setSavePhase("idle")}
-                      className="text-xs text-[#6b7068] underline-offset-4 hover:underline"
+                      className="text-xs text-(--color-muted) underline-offset-4 hover:underline"
                     >
                       Save again
                     </button>
@@ -2359,7 +2359,7 @@ export function RecommendationPageContent({
                 ) : (
                   <div className="flex flex-wrap items-end gap-3">
                     <div className="flex-1 min-w-[220px]">
-                      <label className="block text-sm font-medium text-[#1a3d2e] mb-1.5">
+                      <label className="block text-sm font-medium text-(--color-ink) mb-1.5">
                         Plan title
                       </label>
                       <input
@@ -2368,14 +2368,14 @@ export function RecommendationPageContent({
                         onChange={(e) => setSaveTitle(e.target.value)}
                         placeholder={autoTitle}
                         disabled={savePhase === "saving"}
-                        className="w-full rounded-xl border border-[#e0ddd8] px-4 py-2.5 text-sm text-[#1a1a1a] placeholder-[#aaa] outline-none transition focus:border-[#1a3d2e] disabled:opacity-50"
+                        className="w-full rounded-xl border border-(--color-rule) px-4 py-2.5 text-sm text-(--color-ink) placeholder-(--color-muted) outline-none transition focus:border-(--color-ink) disabled:opacity-50"
                       />
                     </div>
                     <button
                       type="button"
                       onClick={() => void handleSavePlan()}
                       disabled={savePhase === "saving"}
-                      className="rounded-full bg-[#1a3d2e] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="bg-(--color-ink) px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-ink-2) disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {savePhase === "saving" ? AUTH_MESSAGES.saving : "Save plan"}
                     </button>
@@ -2390,39 +2390,39 @@ export function RecommendationPageContent({
             </section>
 
             {applicationPlans && applicationPlans.length > 0 ? (
-              <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-[#1a3d2e]">Application Plans</h2>
-                <p className="mt-2 text-sm text-[#6b7068]">
+              <section className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-(--color-ink)">Application Plans</h2>
+                <p className="mt-2 text-sm text-(--color-muted)">
                   Three deterministic plan variants so we can compare balance, safety, and upside from the same recommendation set.
                 </p>
                 {decisionSummaryCompact ? (
-                  <div className="mt-5 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] p-4">
-                    <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#1a3d2e]">
+                  <div className="mt-5 rounded-2xl border border-(--color-accent-soft) bg-(--color-paper) p-4">
+                    <div className="flex flex-wrap items-center gap-2 text-sm font-semibold text-(--color-ink)">
                       <span>{decisionSummaryCompact.plan} Plan</span>
-                      <span className="text-[#9aa59d]">|</span>
+                      <span className="text-(--color-muted)">|</span>
                       <span>{decisionSummaryCompact.confidence} Confidence</span>
-                      <span className="text-[#9aa59d]">|</span>
+                      <span className="text-(--color-muted)">|</span>
                       <span>Next: {decisionSummaryCompact.nextStep}</span>
                     </div>
-                    <div className="mt-2 text-sm text-[#4b5b53]">
+                    <div className="mt-2 text-sm text-(--color-ink-2)">
                       {decisionSummaryCompact.topReason}
                     </div>
                   </div>
                 ) : null}
                 {planComparison ? (
-                  <div className="mt-5 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] p-4 text-sm leading-6 text-[#315343]">
-                    <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                  <div className="mt-5 rounded-2xl border border-(--color-accent-soft) bg-(--color-paper) p-4 text-sm leading-6 text-(--color-ink-2)">
+                    <div className="text-xs font-semibold text-(--color-ink)">
                       Recommended Plan
                     </div>
-                    <div className="mt-2 font-semibold capitalize text-[#1a1a1a]">
+                    <div className="mt-2 font-semibold capitalize text-(--color-ink)">
                       {planComparison.recommendedPlan}
                     </div>
-                    <div className="mt-1 text-sm text-[#4b5b53]">
+                    <div className="mt-1 text-sm text-(--color-ink-2)">
                       Best current plan based on your present profile.
                     </div>
                     <div className="mt-2">{planComparison.reason}</div>
                     {planComparison.tradeoffs.length > 0 ? (
-                      <div className="mt-3 space-y-1 text-[#4b5b53]">
+                      <div className="mt-3 space-y-1 text-(--color-ink-2)">
                         {planComparison.tradeoffs.slice(0, 2).map((tradeoff) => (
                           <div key={tradeoff}>{tradeoff}</div>
                         ))}
@@ -2451,43 +2451,43 @@ export function RecommendationPageContent({
                         nextActionGuide?.actionType === "focus_plan" &&
                         nextActionGuide?.suggestedTarget?.type === "plan" &&
                         nextActionGuide?.suggestedTarget?.key === plan.planName
-                          ? "border-[#1a3d2e] bg-[#eef7f1]"
+                          ? "border-(--color-ink) bg-(--color-paper)"
                           : selectedPlan === plan.planName
-                            ? "border-[#1a3d2e] bg-[#f2f7f4]"
+                            ? "border-(--color-ink) bg-(--color-paper)"
                             : planComparison?.recommendedPlan === plan.planName
-                              ? "border-[#9db8a7] bg-[#f6fbf7]"
-                              : "border-[#e0ddd8] bg-[#fcfbf8]"
+                              ? "border-[#9db8a7] bg-(--color-paper)"
+                              : "border-(--color-rule) bg-(--color-plate)"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6b7068]">
+                          <div className="text-xs font-semibold text-(--color-muted)">
                             Plan
                           </div>
-                          <div className="mt-1 text-lg font-semibold capitalize text-[#1a3d2e]">
+                          <div className="mt-1 text-lg font-semibold capitalize text-(--color-ink)">
                             {plan.planName}
                           </div>
                         </div>
                         {planComparison?.recommendedPlan === plan.planName ? (
-                          <div className="rounded-full bg-[#dceee2] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#315343]">
+                          <div className="bg-(--color-accent-soft) px-3 py-1 text-xs font-semibold text-(--color-ink-2)">
                             Recommended
                           </div>
                         ) : null}
                       </div>
                       <div className="mt-4 flex items-center justify-between gap-3">
                         {selectedPlan === plan.planName ? (
-                          <div className="rounded-full bg-[#1a3d2e] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white">
+                          <div className="bg-(--color-ink) px-3 py-1 text-xs font-semibold text-white">
                             Selected
                           </div>
                         ) : (
-                          <div className="text-xs font-medium uppercase tracking-[0.12em] text-[#6b7068]">
+                          <div className="text-xs font-medium text-(--color-muted)">
                             Select a plan to compare
                           </div>
                         )}
                         <button
                           type="button"
                           onClick={() => void handlePlanSelection(plan.planName)}
-                          className="rounded-full border border-[#d2d9d4] bg-white px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+                          className="border border-(--color-rule) bg-white px-3 py-1.5 text-xs font-semibold text-(--color-ink-2) transition hover:border-(--color-ink) hover:text-(--color-ink)"
                         >
                           {selectedPlan === plan.planName ? "Refresh focus" : "Focus this plan"}
                         </button>
@@ -2497,7 +2497,7 @@ export function RecommendationPageContent({
                         <ApplicationPlanGroup title="Target" icon="🎯" items={plan.target} compact />
                         <ApplicationPlanGroup title="Safety" icon="🛡" items={plan.safety} compact />
                       </div>
-                      <div className="mt-4 rounded-xl bg-white/70 p-4 text-sm leading-6 text-[#6b7068]">
+                      <div className="mt-4 rounded-xl bg-white/70 p-4 text-sm leading-6 text-(--color-muted)">
                         <div>{plan.planSummary}</div>
                         <div className="mt-2">{plan.riskDistribution}</div>
                         <div className="mt-2" title={plan.recommendedStrategy}>
@@ -2505,13 +2505,13 @@ export function RecommendationPageContent({
                         </div>
                         {plan.primaryChoice ? (
                           <div className="mt-3">
-                            <span className="font-semibold text-[#1a1a1a]">Primary choice:</span>{" "}
+                            <span className="font-semibold text-(--color-ink)">Primary choice:</span>{" "}
                             {plan.primaryChoice.universityName}
                           </div>
                         ) : null}
                         {plan.planConfidence ? (
                           <div className="mt-2">
-                            <span className="font-semibold text-[#1a1a1a]">Plan confidence:</span>{" "}
+                            <span className="font-semibold text-(--color-ink)">Plan confidence:</span>{" "}
                             <span>{plan.planConfidence.charAt(0).toUpperCase() + plan.planConfidence.slice(1)}</span>
                           </div>
                         ) : null}
@@ -2521,9 +2521,9 @@ export function RecommendationPageContent({
                 </div>
               </section>
             ) : applicationPlan ? (
-              <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-[#1a3d2e]">Application Plan</h2>
-                <p className="mt-2 text-sm text-[#6b7068]">
+              <section className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-semibold text-(--color-ink)">Application Plan</h2>
+                <p className="mt-2 text-sm text-(--color-muted)">
                   A structured view of reach, target, and safety options for execution planning.
                 </p>
                 <div className="mt-5 grid gap-4 lg:grid-cols-3">
@@ -2532,15 +2532,15 @@ export function RecommendationPageContent({
                   <ApplicationPlanGroup title="Safety" icon="🛡" items={applicationPlan.safety} />
                 </div>
                 <div className="mt-5 grid gap-4 lg:grid-cols-2">
-                  <div className="rounded-xl bg-[#f5f3ee] p-4 text-sm leading-6 text-[#6b7068]">
-                    <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                  <div className="rounded-xl bg-(--color-paper) p-4 text-sm leading-6 text-(--color-muted)">
+                    <div className="text-xs font-semibold text-(--color-ink)">
                       Summary
                     </div>
                     <div className="mt-2">{applicationPlan.planSummary}</div>
                     <div className="mt-2">{applicationPlan.riskDistribution}</div>
                   </div>
-                  <div className="rounded-xl bg-[#fcfbf8] p-4 text-sm leading-6 text-[#6b7068]">
-                    <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                  <div className="rounded-xl bg-(--color-plate) p-4 text-sm leading-6 text-(--color-muted)">
+                    <div className="text-xs font-semibold text-(--color-ink)">
                       Strategy
                     </div>
                     <div className="mt-2">{applicationPlan.recommendedStrategy}</div>
@@ -2549,11 +2549,11 @@ export function RecommendationPageContent({
                 {applicationPlan.primaryChoice || applicationPlan.planConfidence || (applicationPlan.planWarnings && applicationPlan.planWarnings.length > 0) ? (
                   <div className="mt-5 grid gap-4 lg:grid-cols-3">
                     {applicationPlan.primaryChoice ? (
-                      <div className="rounded-xl bg-[#fcfbf8] p-4 text-sm leading-6 text-[#6b7068]">
-                        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                      <div className="rounded-xl bg-(--color-plate) p-4 text-sm leading-6 text-(--color-muted)">
+                        <div className="text-xs font-semibold text-(--color-ink)">
                           Primary Choice
                         </div>
-                        <div className="mt-2 font-semibold text-[#1a1a1a]">
+                        <div className="mt-2 font-semibold text-(--color-ink)">
                           {applicationPlan.primaryChoice.universityName}
                         </div>
                         <div className="mt-1 capitalize">{applicationPlan.primaryChoice.bucket}</div>
@@ -2561,11 +2561,11 @@ export function RecommendationPageContent({
                       </div>
                     ) : null}
                     {applicationPlan.planConfidence ? (
-                      <div className="rounded-xl bg-[#f5f3ee] p-4 text-sm leading-6 text-[#6b7068]">
-                        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                      <div className="rounded-xl bg-(--color-paper) p-4 text-sm leading-6 text-(--color-muted)">
+                        <div className="text-xs font-semibold text-(--color-ink)">
                           Plan Confidence
                         </div>
-                        <div className="mt-2 font-semibold capitalize text-[#1a1a1a]">
+                        <div className="mt-2 font-semibold capitalize text-(--color-ink)">
                           {applicationPlan.planConfidence}
                         </div>
                         {applicationPlan.planConfidenceReason ? (
@@ -2574,8 +2574,8 @@ export function RecommendationPageContent({
                       </div>
                     ) : null}
                     {applicationPlan.planWarnings ? (
-                      <div className="rounded-xl bg-[#fff7ef] p-4 text-sm leading-6 text-[#6b7068]">
-                        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8a6116]">
+                      <div className="rounded-xl bg-(--color-paper) p-4 text-sm leading-6 text-(--color-muted)">
+                        <div className="text-xs font-semibold text-(--color-warn)">
                           Warnings
                         </div>
                         {applicationPlan.planWarnings.length > 0 ? (
@@ -2658,9 +2658,9 @@ export default function RecommendationPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
+        <main className="min-h-screen bg-(--color-paper) text-(--color-ink)">
           <div className="mx-auto max-w-5xl px-6 py-10">
-            <div className="rounded-2xl border border-[#e0ddd8] bg-white p-6 text-[#6b7068]">
+            <div className="rounded-2xl border border-(--color-rule) bg-white p-6 text-(--color-muted)">
               Loading recommendation context...
             </div>
           </div>
@@ -2680,9 +2680,9 @@ function RecommendationPageWithSelectedYear() {
 
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-[#f5f3ee] px-4 py-3">
-      <div className="text-sm text-[#6b7068]">{label}</div>
-      <div className="mt-1 font-medium text-[#1a1a1a]">{value}</div>
+    <div className="rounded-xl bg-(--color-paper) px-4 py-3">
+      <div className="text-sm text-(--color-muted)">{label}</div>
+      <div className="mt-1 font-medium text-(--color-ink)">{value}</div>
     </div>
   );
 }
@@ -2747,22 +2747,22 @@ function ExplainPanel({ item, rankingYear }: { item: RecommendationItem; ranking
       <button
         type="button"
         onClick={toggle}
-        className="flex w-full items-center justify-between rounded-xl border border-[#d8e6dd] bg-[#f6fbf7] px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e] transition hover:bg-[#edf6f0]"
+        className="flex w-full items-center justify-between rounded-xl border border-(--color-accent-soft) bg-(--color-paper) px-4 py-2.5 text-left text-xs font-semibold text-(--color-ink) transition hover:bg-(--color-paper)"
       >
         <span>Why this recommendation?</span>
-        <span className="text-[#6b7068]">{open ? "▲" : "▼"}</span>
+        <span className="text-(--color-muted)">{open ? "▲" : "▼"}</span>
       </button>
 
       {open && (
-        <div className="mt-1 rounded-xl border border-[#e0ddd8] bg-white p-4">
+        <div className="mt-1 rounded-xl border border-(--color-rule) bg-white p-4">
           {explain ? (
             <>
               {explain.reasons.length > 0 && (
                 <>
-                  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                  <div className="mb-2 text-xs font-semibold text-(--color-muted)">
                     Evidence Chain
                   </div>
-                  <div className="space-y-1.5 text-sm text-[#415046]">
+                  <div className="space-y-1.5 text-sm text-(--color-ink-2)">
                     {explain.reasons.map((r) => (
                       <div key={r}>✓ {r}</div>
                     ))}
@@ -2771,40 +2771,40 @@ function ExplainPanel({ item, rankingYear }: { item: RecommendationItem; ranking
               )}
 
               {explain.warnings.length > 0 && (
-                <div className="mt-3 space-y-1.5 text-sm text-[#6b554f]">
+                <div className="mt-3 space-y-1.5 text-sm text-(--color-error)">
                   {explain.warnings.map((w) => (
                     <div key={w}>⚠ {w}</div>
                   ))}
                 </div>
               )}
 
-              <div className="mt-4 border-t border-[#e8e4de] pt-4 grid gap-3 sm:grid-cols-4">
+              <div className="mt-4 border-t border-(--color-rule) pt-4 grid gap-3 sm:grid-cols-4">
                 <SummaryItem label="Ranking Fit" value={formatScore(explain.dimensions.rankingFit)} />
                 <SummaryItem label="Risk Fit" value={formatScore(explain.dimensions.riskFit)} />
                 <SummaryItem label="Language Fit" value={formatScore(explain.dimensions.languageFit)} />
                 <SummaryItem label="Data Confidence" value={formatScore(explain.dimensions.dataConfidence)} />
               </div>
 
-              <div className="mt-4 border-t border-[#e8e4de] pt-4">
+              <div className="mt-4 border-t border-(--color-rule) pt-4">
                 <div className="mb-1.5 flex items-center justify-between text-xs">
-                  <span className="font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                  <span className="font-semibold text-(--color-muted)">
                     Data Confidence
                   </span>
-                  <span className="font-semibold tabular-nums text-[#415046]">
+                  <span className="font-semibold tabular-nums text-(--color-ink-2)">
                     {Math.round(explain.dimensions.dataConfidence)}%
                   </span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-[#f5f3ee]">
+                <div className="h-2 overflow-hidden bg-(--color-paper)">
                   <div
-                    className="h-2 rounded-full bg-[#1a3d2e]"
+                    className="h-2 bg-(--color-ink)"
                     style={{
                       width: `${Math.min(100, Math.max(0, explain.dimensions.dataConfidence))}%`,
                     }}
                   />
                 </div>
-                <p className="mt-1.5 text-xs text-[#6b7068]">
+                <p className="mt-1.5 text-xs text-(--color-muted)">
                   Derived from source coverage and data completeness.{" "}
-                  <span className="font-medium text-[#415046]">Not AI-generated.</span>
+                  <span className="font-medium text-(--color-ink-2)">Not AI-generated.</span>
                 </p>
               </div>
             </>
@@ -2816,8 +2816,8 @@ function ExplainPanel({ item, rankingYear }: { item: RecommendationItem; ranking
           )}
           {explainState.status === "ok" && (
             <>
-              <div className="mt-4 border-t border-[#e8e4de] pt-4">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+              <div className="mt-4 border-t border-(--color-rule) pt-4">
+                <div className="mb-2 text-xs font-semibold text-(--color-muted)">
                   Source Coverage
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -2834,17 +2834,17 @@ function ExplainPanel({ item, rankingYear }: { item: RecommendationItem; ranking
                   })}
                 </div>
                 {explainState.confidenceReason && (
-                  <p className="mt-2 text-xs text-[#6b7068]">{explainState.confidenceReason}</p>
+                  <p className="mt-2 text-xs text-(--color-muted)">{explainState.confidenceReason}</p>
                 )}
               </div>
 
               <div className="mt-4">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b3a2b]">
+                <div className="mb-2 text-xs font-semibold text-(--color-error)">
                   Data Caveats
                 </div>
                 <ul className="space-y-1">
                   {explainState.caveats.map((c, i) => (
-                    <li key={i} className="text-xs text-[#6b554f]">
+                    <li key={i} className="text-xs text-(--color-error)">
                       · {c}
                     </li>
                   ))}
@@ -2854,12 +2854,12 @@ function ExplainPanel({ item, rankingYear }: { item: RecommendationItem; ranking
           )}
           {explainState.status === "error" && (
             <div className="mt-4">
-              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b3a2b]">
+              <div className="mb-2 text-xs font-semibold text-(--color-error)">
                 Data Caveats
               </div>
               <ul className="space-y-1">
                 {editionCaveats(rankingYear).map((c, i) => (
-                  <li key={i} className="text-xs text-[#6b554f]">
+                  <li key={i} className="text-xs text-(--color-error)">
                     · {c}
                   </li>
                 ))}
@@ -2890,30 +2890,30 @@ function ApplicationPlanGroup({
   compact?: boolean;
 }) {
   return (
-    <div className={`rounded-2xl border border-[#e0ddd8] ${compact ? "bg-white/80 p-3" : "bg-[#fcfbf8] p-4"}`}>
-      <div className="text-sm font-semibold text-[#1a3d2e]">
+    <div className={`rounded-2xl border border-(--color-rule) ${compact ? "bg-white/80 p-3" : "bg-(--color-plate) p-4"}`}>
+      <div className="text-sm font-semibold text-(--color-ink)">
         {icon} {title}
       </div>
       {items.length === 0 ? (
-        <div className="mt-3 text-sm text-[#6b7068]">No options in this group.</div>
+        <div className="mt-3 text-sm text-(--color-muted)">No options in this group.</div>
       ) : (
         <div className={`mt-3 ${compact ? "space-y-2" : "space-y-3"}`}>
           {items.map((item) => (
             <div key={`${title}-${item.universityName}`} className={`rounded-xl bg-white ${compact ? "p-2.5" : "p-3"}`}>
-              <div className="font-semibold text-[#1a1a1a]">{item.universityName}</div>
+              <div className="font-semibold text-(--color-ink)">{item.universityName}</div>
               {item.decision ? (
-                <div className="mt-1 text-sm capitalize text-[#6b7068]">
+                <div className="mt-1 text-sm capitalize text-(--color-muted)">
                   Decision: {item.decision.replace(/_/g, " ")}
                 </div>
               ) : null}
               {item.strategy ? (
-                <div className="mt-1 text-sm text-[#6b7068]">{item.strategy}</div>
+                <div className="mt-1 text-sm text-(--color-muted)">{item.strategy}</div>
               ) : null}
               {item.risk ? (
-                <div className="mt-1 text-sm capitalize text-[#6b7068]">Risk: {item.risk}</div>
+                <div className="mt-1 text-sm capitalize text-(--color-muted)">Risk: {item.risk}</div>
               ) : null}
               {item.reason ? (
-                <div className="mt-2 text-sm leading-6 text-[#6b7068]">{item.reason}</div>
+                <div className="mt-2 text-sm leading-6 text-(--color-muted)">{item.reason}</div>
               ) : null}
             </div>
           ))}
@@ -2934,46 +2934,46 @@ function AdmissionCompositeCard({
 
   const readinessTone =
     composite.admissionReadiness === "strong"
-      ? "text-[#1a3d2e]"
+      ? "text-(--color-ink)"
       : composite.admissionReadiness === "moderate"
-        ? "text-[#8a6116]"
+        ? "text-(--color-warn)"
         : composite.admissionReadiness === "weak"
-          ? "text-[#8b3a2b]"
-          : "text-[#6b7068]";
+          ? "text-(--color-error)"
+          : "text-(--color-muted)";
 
   const riskTone =
     composite.admissionRisk === "low"
-      ? "text-[#1a3d2e]"
+      ? "text-(--color-ink)"
       : composite.admissionRisk === "medium"
-        ? "text-[#8a6116]"
+        ? "text-(--color-warn)"
         : composite.admissionRisk === "high"
-          ? "text-[#8b3a2b]"
-          : "text-[#6b7068]";
+          ? "text-(--color-error)"
+          : "text-(--color-muted)";
 
   return (
     <div
-      className="rounded-xl border border-[#e0ddd8] bg-[#fcfbf8] p-4"
+      className="rounded-xl border border-(--color-rule) bg-(--color-plate) p-4"
       title={composite.reason || ""}
     >
-      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+      <div className="text-xs font-semibold text-(--color-ink)">
         Admission Readiness
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <div>
-          <div className="text-xs text-[#6b7068]">Readiness</div>
+          <div className="text-xs text-(--color-muted)">Readiness</div>
           <div className={`mt-1 font-semibold capitalize ${readinessTone}`}>
             {composite.admissionReadiness}
           </div>
         </div>
         <div>
-          <div className="text-xs text-[#6b7068]">Risk</div>
+          <div className="text-xs text-(--color-muted)">Risk</div>
           <div className={`mt-1 font-semibold capitalize ${riskTone}`}>
             {composite.admissionRisk}
           </div>
         </div>
       </div>
       {(composite.topConcernLabels?.length || composite.topConcerns.length) > 0 ? (
-        <div className="mt-3 text-sm text-[#6b7068]">
+        <div className="mt-3 text-sm text-(--color-muted)">
           Top concerns: {(composite.topConcernLabels && composite.topConcernLabels.length > 0
             ? composite.topConcernLabels
             : composite.topConcerns
@@ -2995,29 +2995,29 @@ function DecisionOutputCard({
 
   const strengthTone =
     decision.decisionStrength === "strong"
-      ? "text-[#1a3d2e]"
+      ? "text-(--color-ink)"
       : decision.decisionStrength === "moderate"
-        ? "text-[#8a6116]"
+        ? "text-(--color-warn)"
         : decision.decisionStrength === "weak"
-          ? "text-[#8b3a2b]"
-          : "text-[#6b7068]";
+          ? "text-(--color-error)"
+          : "text-(--color-muted)";
 
   const actionLabel = decision.decisionAction.replace(/_/g, " ");
 
   return (
-    <div className="rounded-xl border border-[#e0ddd8] bg-[#fffdf8] p-4">
-      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+    <div className="rounded-xl border border-(--color-rule) bg-(--color-plate) p-4">
+      <div className="text-xs font-semibold text-(--color-ink)">
         Suggested Action
       </div>
-      <div className="mt-3 text-sm text-[#6b7068]">Action</div>
-      <div className="mt-1 font-semibold capitalize text-[#1a1a1a]">{actionLabel}</div>
-      <div className="mt-3 text-sm text-[#6b7068]">Confidence</div>
+      <div className="mt-3 text-sm text-(--color-muted)">Action</div>
+      <div className="mt-1 font-semibold capitalize text-(--color-ink)">{actionLabel}</div>
+      <div className="mt-3 text-sm text-(--color-muted)">Confidence</div>
       <div className={`mt-1 font-semibold capitalize ${strengthTone}`}>
         {decision.decisionStrength}
       </div>
-      <div className="mt-3 text-sm leading-6 text-[#6b7068]">{decision.decisionReason}</div>
+      <div className="mt-3 text-sm leading-6 text-(--color-muted)">{decision.decisionReason}</div>
       {decision.recommendedNextSteps.length > 0 ? (
-        <div className="mt-3 text-sm text-[#6b7068]">
+        <div className="mt-3 text-sm text-(--color-muted)">
           {decision.recommendedNextSteps.slice(0, 3).map((step) => (
             <div key={step}>- {step}</div>
           ))}
@@ -3038,16 +3038,16 @@ function DecisionStrategyCard({
 
   return (
     <div
-      className="rounded-xl border border-[#e0ddd8] bg-[#fcfbf8] p-4"
+      className="rounded-xl border border-(--color-rule) bg-(--color-plate) p-4"
       title={strategy.reason}
     >
-      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+      <div className="text-xs font-semibold text-(--color-ink)">
         Application Strategy
       </div>
-      <div className="mt-3 text-sm text-[#6b7068]">Primary</div>
-      <div className="mt-1 font-semibold text-[#1a1a1a]">{strategy.primaryStrategy}</div>
+      <div className="mt-3 text-sm text-(--color-muted)">Primary</div>
+      <div className="mt-1 font-semibold text-(--color-ink)">{strategy.primaryStrategy}</div>
       {strategy.supportingActions.length > 0 ? (
-        <div className="mt-3 text-sm text-[#6b7068]">
+        <div className="mt-3 text-sm text-(--color-muted)">
           <div className="mb-1">Actions</div>
           {strategy.supportingActions.slice(0, 3).map((step) => (
             <div key={step}>• {step}</div>
@@ -3055,15 +3055,15 @@ function DecisionStrategyCard({
         </div>
       ) : null}
       {strategy.riskMitigation.length > 0 ? (
-        <div className="mt-3 text-sm text-[#6b7068]">
+        <div className="mt-3 text-sm text-(--color-muted)">
           <div className="mb-1">Risk Mitigation</div>
           {strategy.riskMitigation.slice(0, 3).map((step) => (
             <div key={step}>• {step}</div>
           ))}
         </div>
       ) : null}
-      <div className="mt-3 text-sm text-[#6b7068]">Timeline</div>
-      <div className="mt-1 text-sm leading-6 text-[#6b7068]">{strategy.timelineHint}</div>
+      <div className="mt-3 text-sm text-(--color-muted)">Timeline</div>
+      <div className="mt-1 text-sm leading-6 text-(--color-muted)">{strategy.timelineHint}</div>
     </div>
   );
 }
@@ -3083,21 +3083,21 @@ function DeadlineBadge({
     highlight.urgency === "high"
       ? {
           icon: "🔴",
-          tone: "border-[#f1c5bc] bg-[#fbefeb] text-[#8b3a2b]",
+          tone: "border-(--color-error-soft) bg-(--color-paper) text-(--color-error)",
         }
       : highlight.urgency === "medium"
         ? {
             icon: "🟡",
-            tone: "border-[#ead9a7] bg-[#fbf5e4] text-[#8a6116]",
+            tone: "border-(--color-warn) bg-(--color-paper) text-(--color-warn)",
           }
         : highlight.urgency === "low"
           ? {
               icon: "🟢",
-              tone: "border-[#cfe5d7] bg-[#edf7f1] text-[#1a3d2e]",
+              tone: "border-(--color-rule) bg-(--color-paper) text-(--color-ink)",
             }
           : {
               icon: "⚪",
-              tone: "border-[#d7d5d0] bg-[#f5f3ee] text-[#6b7068]",
+              tone: "border-(--color-rule) bg-(--color-paper) text-(--color-muted)",
             };
 
   const typeLabel =
@@ -3107,7 +3107,7 @@ function DeadlineBadge({
 
   return (
     <div
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${urgencyStyle.tone} ${className ?? ""}`}
+      className={`inline-flex items-center gap-2 border px-3 py-1.5 text-xs font-semibold ${urgencyStyle.tone} ${className ?? ""}`}
       title={highlight.reason || highlight.message}
     >
       <span aria-hidden="true">{urgencyStyle.icon}</span>
@@ -3147,26 +3147,26 @@ function RequirementFitBadge({
     highlight.fitUrgency === "high"
       ? {
           icon: "🔴",
-          tone: "border-[#f1c5bc] bg-[#fbefeb] text-[#8b3a2b]",
+          tone: "border-(--color-error-soft) bg-(--color-paper) text-(--color-error)",
         }
       : highlight.fitUrgency === "medium"
         ? {
             icon: "🟡",
-            tone: "border-[#ead9a7] bg-[#fbf5e4] text-[#8a6116]",
+            tone: "border-(--color-warn) bg-(--color-paper) text-(--color-warn)",
           }
         : highlight.fitUrgency === "low"
           ? {
               icon: "🟢",
-              tone: "border-[#cfe5d7] bg-[#edf7f1] text-[#1a3d2e]",
+              tone: "border-(--color-rule) bg-(--color-paper) text-(--color-ink)",
             }
           : {
               icon: "⚪",
-              tone: "border-[#d7d5d0] bg-[#f5f3ee] text-[#6b7068]",
+              tone: "border-(--color-rule) bg-(--color-paper) text-(--color-muted)",
             };
 
   return (
     <div
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${urgencyStyle.tone} ${className ?? ""}`}
+      className={`inline-flex items-center gap-2 border px-3 py-1.5 text-xs font-semibold ${urgencyStyle.tone} ${className ?? ""}`}
       title={highlight.reason || highlight.message}
     >
       <span aria-hidden="true">{urgencyStyle.icon}</span>
@@ -3187,12 +3187,12 @@ function Section({
   rankingYear: number;
 }) {
   return (
-    <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-semibold text-[#1a3d2e]">{title}</h2>
-      <p className="mt-2 text-sm text-[#6b7068]">{description}</p>
+    <section className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
+      <h2 className="text-2xl font-semibold text-(--color-ink)">{title}</h2>
+      <p className="mt-2 text-sm text-(--color-muted)">{description}</p>
 
       {items.length === 0 ? (
-        <div className="mt-5 rounded-xl bg-[#f5f3ee] p-4 text-[#6b7068]">
+        <div className="mt-5 rounded-xl bg-(--color-paper) p-4 text-(--color-muted)">
           No universities available in this bucket.
         </div>
       ) : (
@@ -3200,30 +3200,30 @@ function Section({
           {items.map((item, index) => (
             <div
               key={`${title.toLowerCase()}-${item.canonicalUniversityId}-${index}`}
-              className="rounded-2xl border border-[#e0ddd8] p-5"
+              className="rounded-2xl border border-(--color-rule) p-5"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <div className="text-xl font-semibold text-[#1a1a1a]">
+                  <div className="text-xl font-semibold text-(--color-ink)">
                     {item.universityName}
                   </div>
-                  <div className="mt-1 text-sm text-[#6b7068]">{item.country}</div>
+                  <div className="mt-1 text-sm text-(--color-muted)">{item.country}</div>
                 </div>
-                <div className="rounded-xl bg-[#f5f3ee] px-4 py-3 text-right">
-                  <div className="text-xs uppercase tracking-[0.18em] text-[#6b7068]">
+                <div className="rounded-xl bg-(--color-paper) px-4 py-3 text-right">
+                  <div className="text-xs text-(--color-muted)">
                     Fit Score
                   </div>
                   <div className="mt-1 flex items-center justify-end gap-2">
-                    <div className="text-xl font-semibold text-[#1a3d2e]">
+                    <div className="text-xl font-semibold text-(--color-ink)">
                       {formatScore(item.recommendationExplain?.fitScore ?? item.matchingScore)}
                     </div>
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${
                         fitLevel(item.recommendationExplain?.fitScore ?? item.matchingScore) === "high"
-                          ? "bg-[#e8f2ec] text-[#1a3d2e]"
+                          ? "bg-(--color-paper-2) text-(--color-ink)"
                           : fitLevel(item.recommendationExplain?.fitScore ?? item.matchingScore) === "medium"
-                            ? "bg-[#f3ecd6] text-[#8a6116]"
-                            : "bg-[#f3e7e4] text-[#8b3a2b]"
+                            ? "bg-(--color-paper-2) text-(--color-warn)"
+                            : "bg-(--color-paper-2) text-(--color-error)"
                       }`}
                     >
                       {fitLevel(item.recommendationExplain?.fitScore ?? item.matchingScore)}
@@ -3245,7 +3245,7 @@ function Section({
               </div>
 
               <div className="mt-4">
-                <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                <div className="text-xs font-semibold text-(--color-muted)">
                   Entry Requirements
                 </div>
                 <AdmissionRequirementBadges
@@ -3261,8 +3261,8 @@ function Section({
               </div>
 
               {item.subjectFit ? (
-                <div className="mt-4 rounded-xl border border-[#d8e6dd] bg-[#f6fbf7] p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+                <div className="mt-4 rounded-xl border border-(--color-accent-soft) bg-(--color-paper) p-4">
+                  <div className="text-xs font-semibold text-(--color-ink)">
                     Subject Signal
                   </div>
                   <div className="mt-3 grid gap-3 sm:grid-cols-4">
@@ -3289,7 +3289,7 @@ function Section({
                       value={`${item.subjectFit.adjustment >= 0 ? "+" : ""}${item.subjectFit.adjustment.toFixed(1)}`}
                     />
                   </div>
-                  <p className="mt-3 text-sm text-[#415046]">{item.subjectFit.reason}</p>
+                  <p className="mt-3 text-sm text-(--color-ink-2)">{item.subjectFit.reason}</p>
                 </div>
               ) : null}
 
@@ -3343,7 +3343,7 @@ function Section({
 
               {item.admissionResolved && Object.keys(item.admissionResolved).length > 0 ? (
                 <div className="mt-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                  <div className="text-xs font-semibold text-(--color-muted)">
                     Admission Signals
                   </div>
                   <div className="mt-2 grid gap-2">
@@ -3373,7 +3373,7 @@ function Section({
                 </div>
               ) : null}
 
-              <div className="mt-4 rounded-xl bg-[#f5f3ee] p-4 text-sm leading-6 text-[#6b7068]">
+              <div className="mt-4 rounded-xl bg-(--color-paper) p-4 text-sm leading-6 text-(--color-muted)">
                 {item.explanation}
               </div>
 

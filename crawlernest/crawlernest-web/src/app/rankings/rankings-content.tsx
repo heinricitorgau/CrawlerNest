@@ -153,7 +153,7 @@ function getDecisionContext(rank: number) {
     return {
       label: "Top-tier",
       caption: "Strong global position",
-      tone: "bg-[#e8f2ec] text-[#1a3d2e] ring-1 ring-[#3d7a5a]",
+      tone: "bg-(--color-paper-2) text-(--color-ink) ring-1 ring-(--color-ink-2)",
     };
   }
 
@@ -161,14 +161,14 @@ function getDecisionContext(rank: number) {
     return {
       label: "Target",
       caption: "Balanced shortlist fit",
-      tone: "bg-[#f0f7f3] text-[#2a5a42] ring-1 ring-[#6aaa88]",
+      tone: "bg-(--color-paper) text-(--color-ink-2) ring-1 ring-(--color-muted)",
     };
   }
 
   return {
     label: "Safety",
     caption: "More accessible option",
-    tone: "bg-[#f5f3ee] text-[#6b7068] ring-1 ring-[#c0bdb8]",
+    tone: "bg-(--color-paper) text-(--color-muted) ring-1 ring-(--color-rule)",
   };
 }
 
@@ -214,24 +214,20 @@ function toShortlistItem(item: RankingItem): ShortlistItem {
 
 function LoadingSkeleton() {
   return (
-    <div className="p-6">
-      <div className="animate-pulse space-y-4">
-        <div className="h-12 rounded-2xl bg-[#e0ddd8]" />
-        <div className="h-20 rounded-2xl bg-[#f5f3ee]" />
-        <div className="h-20 rounded-2xl bg-[#f5f3ee]" />
-        <div className="h-20 rounded-2xl bg-[#f5f3ee]" />
-      </div>
+    <div className="rk-state" aria-busy="true" aria-label="Loading rankings">
+      <div className="skeleton-row" />
+      <div className="skeleton-row" />
+      <div className="skeleton-row" />
+      <div className="skeleton-row" />
     </div>
   );
 }
 
 export function RankingsShell({ message }: Readonly<{ message: string }>) {
   return (
-    <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <div className="rounded-2xl border border-[#e0ddd8] bg-white p-6 text-[#6b7068]">
-          {message}
-        </div>
+    <main className="rk">
+      <div className="rk-state">
+        <p>{message}</p>
       </div>
     </main>
   );
@@ -245,24 +241,31 @@ function RankingsSummary({
   summaries: RankingCountSummary[];
 }>) {
   return (
-    <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {summaries.map((summary) => (
-        <div
-          key={`${summary.scope}-${summary.region ?? "global"}`}
-          className="rounded-[1.5rem] border border-[#e0ddd8] bg-gradient-to-br from-white to-[#f8f6f1] px-5 py-4 shadow-sm"
-        >
-          <div className="text-xs font-medium uppercase tracking-[0.18em] text-[#6b7068]">
-            {summary.label}
-          </div>
-          <div className="mt-3 text-3xl font-bold tracking-tight text-[#16382a]">
-            {formatRank(summary.totalCount)}
-          </div>
-          <div className="mt-1 text-sm text-[#6b7068]">
-            {pluralize(summary.totalCount, "university", "universities")} in {year}
-          </div>
-        </div>
-      ))}
-    </div>
+    <section className="rk-regions" aria-labelledby="rk-regions-title">
+      <div className="rk-regions__head">
+        <h2 id="rk-regions-title" className="rk-regions__title">
+          By region, {year}
+        </h2>
+        <p className="rk-regions__hint">Universities on this page</p>
+      </div>
+      <ul className="rk-regions__list">
+        {summaries.map((summary) => (
+          <li
+            key={`${summary.scope}-${summary.region ?? "global"}`}
+            className={`rk-regions__item${summary.totalCount === 0 ? " rk-regions__item--empty" : ""}`}
+          >
+            <span>{summary.label}</span>
+            <span className="code">
+              {formatRank(summary.totalCount)}
+              <span className="visually-hidden">
+                {" "}
+                {pluralize(summary.totalCount, "university", "universities")} in {year}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -300,134 +303,100 @@ function RankingsTable({
 }>) {
   if (pagedItems.length > 0) {
     return (
-      <div className="relative">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead className="sticky top-0 bg-[#f5f3ee] text-sm text-[#6b7068]">
-              <tr>
-                <th className="px-6 py-4 text-left">Rank</th>
-                <th className="px-6 py-4 text-left">University</th>
-                <th className="px-6 py-4 text-left">Score</th>
-                <th className="px-6 py-4 text-left">Source Coverage</th>
-                <th className="px-6 py-4 text-left">Selection</th>
+      <table className="ledger">
+        <thead>
+          <tr>
+            <th scope="col" className="ledger__rank">Rank</th>
+            <th scope="col">University</th>
+            <th scope="col" className="num">Score</th>
+            <th scope="col" className="num">Source coverage</th>
+            <th scope="col">Selection</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pagedItems.map((item, index) => {
+            const displayRank = item.scopeRank ?? item.aggregatedRank;
+            const globalRank = item.globalRank ?? item.aggregatedRank;
+            const context = getDecisionContext(displayRank);
+            const isShortlisted = shortlistIds.has(item.canonicalUniversityId);
+            const isSaved = savedIds.has(item.canonicalUniversityId);
+            const rowKey = [
+              item.canonicalUniversityId,
+              item.slug,
+              displayRank,
+              globalRank,
+              index,
+            ].join("-");
+
+            return (
+              <tr
+                key={rowKey}
+                tabIndex={0}
+                role="link"
+                data-selected={isShortlisted ? "true" : undefined}
+                onClick={(event) => onRowClick(event, item.slug)}
+                onKeyDown={(event) => onRowKeyDown(event, item.slug)}
+              >
+                <td className="ledger__rank">
+                  <span className="ledger__rank-num">#{formatRank(displayRank)}</span>
+                  {isRegionScope && globalRank !== displayRank ? (
+                    <span className="ledger__rank-sub">Global #{formatRank(globalRank)}</span>
+                  ) : null}
+                  <span className="ledger__rank-sub">{context.label}</span>
+                </td>
+
+                <td>
+                  <Link href={universityHref(item.slug)} className="ledger__name">
+                    {item.universityName}
+                  </Link>
+                  <div className="ledger__meta">{item.country}</div>
+                  <div className="ledger__tags">
+                    <span className="ledger__tag">{item.primarySource}</span>
+                    <span className="ledger__tag">{item.rankingYear}</span>
+                  </div>
+                </td>
+
+                <td className="num ledger__stat">
+                  <div className="ledger__fig">{formatScore(item.compositeScore)}</div>
+                  <div className="ledger__cap">
+                    {isRegionScope
+                      ? `${context.caption}, global #${formatRank(globalRank)}`
+                      : context.caption}
+                  </div>
+                </td>
+
+                <td className="num ledger__stat">
+                  <div className="ledger__fig">{item.sourceCount}</div>
+                  <div className="ledger__cap">
+                    ranking {pluralize(item.sourceCount, "source", "sources")}
+                  </div>
+                </td>
+
+                <td>
+                  <div className="ledger__acts">
+                    <button
+                      type="button"
+                      onClick={() => onToggleShortlist(item)}
+                      aria-pressed={isShortlisted}
+                      className={`btn ${isShortlisted ? "btn--on" : "btn--quiet"}`}
+                    >
+                      {isShortlisted ? "Added" : "Shortlist"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onToggleSave(item)}
+                      aria-pressed={isSaved}
+                      className={`btn ${isSaved ? "btn--on" : "btn--quiet"}`}
+                    >
+                      {isSaved ? AUTH_MESSAGES.saved : AUTH_MESSAGES.save}
+                    </button>
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {pagedItems.map((item, index) => {
-                const displayRank = item.scopeRank ?? item.aggregatedRank;
-                const globalRank = item.globalRank ?? item.aggregatedRank;
-                const context = getDecisionContext(displayRank);
-                const isShortlisted = shortlistIds.has(item.canonicalUniversityId);
-                const isSaved = savedIds.has(item.canonicalUniversityId);
-                const rowKey = [
-                  item.canonicalUniversityId,
-                  item.slug,
-                  displayRank,
-                  globalRank,
-                  index,
-                ].join("-");
-
-                return (
-                  <tr
-                    key={rowKey}
-                    tabIndex={0}
-                    role="link"
-                    onClick={(event) => onRowClick(event, item.slug)}
-                    onKeyDown={(event) => onRowKeyDown(event, item.slug)}
-                    className={`group cursor-pointer border-t border-[#e0ddd8] transition hover:bg-[#f0f5f1] focus-visible:bg-[#f0f5f1] focus-visible:outline-none ${
-                      isShortlisted ? "bg-[#e8f2ec]" : ""
-                    }`}
-                  >
-                    <td className="px-6 py-5 align-top">
-                      <div className="text-3xl font-bold tracking-tight text-[#16382a]">
-                        #{formatRank(displayRank)}
-                      </div>
-                      {isRegionScope && globalRank !== displayRank ? (
-                        <div className="mt-2 text-xs font-medium tracking-wide text-[#6b7068]">
-                          Global #{formatRank(globalRank)}
-                        </div>
-                      ) : null}
-                      <div className="mt-2">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${context.tone}`}
-                        >
-                          {context.label}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-5 align-top">
-                      <Link href={universityHref(item.slug)} className="block">
-                        <div className="text-lg font-semibold text-[#1a1a1a] underline-offset-4 transition group-hover:text-[#1a3d2e] group-hover:underline">
-                          {item.universityName}
-                        </div>
-                        <div className="mt-1 text-sm text-[#6b7068]">
-                          {item.country}
-                        </div>
-                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-[#3d7a5a]">
-                          <span className="rounded-full bg-[#e8f2ec] px-2.5 py-1">
-                            {item.primarySource}
-                          </span>
-                          <span className="rounded-full bg-[#f5f3ee] px-2.5 py-1 text-[#6b7068]">
-                            {item.rankingYear}
-                          </span>
-                        </div>
-                      </Link>
-                    </td>
-
-                    <td className="px-6 py-5 align-top">
-                      <div className="text-base font-semibold text-[#1a1a1a]">
-                        {formatScore(item.compositeScore)}
-                      </div>
-                      <div className="mt-2 text-sm text-[#6b7068]">
-                        {isRegionScope
-                          ? `${context.caption} · Global #${formatRank(globalRank)}`
-                          : context.caption}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-5 align-top">
-                      <div className="text-base font-medium text-[#1a1a1a]">
-                        {item.sourceCount}
-                      </div>
-                      <div className="mt-2 text-sm text-[#6b7068]">
-                        ranking {pluralize(item.sourceCount, "source", "sources")}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-5 align-top">
-                      <div className="flex flex-col gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onToggleShortlist(item)}
-                          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                            isShortlisted
-                              ? "border border-[#3d7a5a] bg-[#e8f2ec] text-[#1a3d2e]"
-                              : "border border-[#e0ddd8] bg-white text-[#1a3d2e] hover:border-[#3d7a5a] hover:bg-[#e8f2ec]"
-                          }`}
-                        >
-                          {isShortlisted ? "Added" : "+ Shortlist"}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onToggleSave(item)}
-                          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                            isSaved
-                              ? "border border-[#3d7a5a] bg-[#e8f2ec] text-[#1a3d2e]"
-                              : "border border-[#e0ddd8] bg-white text-[#6b7068] hover:border-[#3d7a5a] hover:bg-[#e8f2ec] hover:text-[#1a3d2e]"
-                          }`}
-                        >
-                          {isSaved ? AUTH_MESSAGES.saved : AUTH_MESSAGES.save}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            );
+          })}
+        </tbody>
+      </table>
     );
   }
 
@@ -437,37 +406,27 @@ function RankingsTable({
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700">
-          <div className="font-medium">Unable to load rankings.</div>
-          <div className="mt-1 text-sm text-red-600">
-            Please check backend or try again.
-          </div>
-          <button
-            type="button"
-            onClick={onRetry}
-            className="mt-4 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100"
-          >
-            Retry
-          </button>
-        </div>
+      <div className="rk-state rk-state--error" role="alert">
+        <p>Unable to load rankings.</p>
+        <p>Please check backend or try again.</p>
+        <button type="button" onClick={onRetry} className="btn btn--secondary">
+          Retry
+        </button>
       </div>
     );
   }
 
   if (pagedItems.length === 0) {
     return (
-      <div className="p-6">
-        <div className="rounded-2xl border border-[#e0ddd8] bg-white p-6 text-[#6b7068]">
+      <div className="rk-state">
+        <p>
           {search.trim()
             ? "No rankings match your search."
             : isRegionScope
               ? `No rankings available for ${region}.`
               : "No rankings found."}
-          <div className="mt-1 text-sm text-[#6b7068]">
-            Try adjusting filters or search.
-          </div>
-        </div>
+        </p>
+        <p>Try adjusting filters or search.</p>
       </div>
     );
   }
@@ -494,97 +453,75 @@ function ShortlistPanel({
   editionHref: (href: string) => string;
 }>) {
   return (
-    <div className="space-y-4">
-      <section className="rounded-[1.75rem] border border-[#e0ddd8] bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-[#1a3d2e]">Your Shortlist</h2>
-            <p className="mt-1 text-sm text-[#6b7068]">
-              {shortlist.length} selected {shortlist.length === 1 ? "university" : "universities"}
-            </p>
-          </div>
-          <div className="rounded-full bg-[#e8f2ec] px-3 py-1 text-sm font-semibold text-[#1a3d2e]">
+    <div>
+      <section className="card rail-card" aria-labelledby="rk-shortlist-title">
+        <div className="rail-card__head">
+          <h2 id="rk-shortlist-title">Your shortlist</h2>
+          <span className="rail-card__count" aria-hidden="true">
             {shortlist.length}
-          </div>
+          </span>
         </div>
+        <p className="rail-card__note">
+          {shortlist.length} selected {shortlist.length === 1 ? "university" : "universities"}
+        </p>
 
         {shortlist.length === 0 ? (
-          <div className="mt-4 rounded-2xl bg-[#f5f3ee] p-4 text-sm text-[#6b7068]">
+          <p className="rail-card__empty">
             Add universities from the rankings table to build a shortlist before generating recommendations.
-          </div>
+          </p>
         ) : (
-          <div className="mt-4 space-y-4">
-            <Link
-              href={editionHref("/recommendations")}
-              className="inline-flex w-full items-center justify-center rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
-            >
-              Generate Recommendation
-            </Link>
-
-            {shortlist.length >= 2 ? (
-              <Link
-                href={editionHref("/compare")}
-                className="inline-flex w-full items-center justify-center rounded-full border border-[#3d7a5a] bg-white px-4 py-3 text-sm font-semibold text-[#1a3d2e] transition hover:bg-[#e8f2ec]"
-              >
-                Compare Selected
+          <>
+            <div className="rail-card__actions">
+              <Link href={editionHref("/recommendations")} className="btn btn--primary btn--block">
+                Generate recommendation
               </Link>
-            ) : null}
 
-            <div className="space-y-3">
-              {shortlist.map((item) => (
-                <div
-                  key={item.canonicalUniversityId}
-                  className="rounded-2xl border border-[#e0ddd8] bg-[#f5f3ee] px-4 py-3"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <Link
-                        href={editionHref(`/universities/${item.slug}`)}
-                        className="block text-sm font-semibold text-[#1a1a1a] underline-offset-4 transition hover:text-[#1a3d2e] hover:underline"
-                      >
-                        {item.universityName}
-                      </Link>
-                      <div className="mt-1 text-sm text-[#6b7068]">
-                        {item.country}
-                      </div>
-                      <div className="mt-2 text-xs font-medium tracking-wide text-[#6b7068]">
-                        Rank #{formatRank(item.aggregatedRank)}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onRemove(item.canonicalUniversityId)}
-                      className="shrink-0 rounded-full border border-[#e0ddd8] bg-white px-3 py-1.5 text-xs font-medium text-[#1a3d2e] transition hover:border-[#3d7a5a] hover:bg-[#e8f2ec]"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
+              {shortlist.length >= 2 ? (
+                <Link href={editionHref("/compare")} className="btn btn--secondary btn--block">
+                  Compare selected
+                </Link>
+              ) : null}
             </div>
-          </div>
+
+            <ul className="rail-list">
+              {shortlist.map((item) => (
+                <li key={item.canonicalUniversityId}>
+                  <div>
+                    <Link href={editionHref(`/universities/${item.slug}`)}>
+                      {item.universityName}
+                    </Link>
+                    <div className="rail-list__meta">
+                      {item.country}, rank <span className="code">#{formatRank(item.aggregatedRank)}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onRemove(item.canonicalUniversityId)}
+                    className="btn btn--quiet"
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </section>
 
-      <section className="rounded-[1.75rem] border border-[#e0ddd8] bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-[#1a3d2e]">Page Control</h2>
-            <p className="mt-1 text-sm text-[#6b7068]">
-              Navigate the rankings browser from here while you review your shortlist.
-            </p>
-          </div>
-          <div className="rounded-full bg-[#e8f2ec] px-3 py-1 text-sm font-semibold text-[#1a3d2e]">
-            Page {page}
-          </div>
+      <section className="pager" aria-labelledby="rk-pager-title">
+        <div className="pager__head">
+          <h2 id="rk-pager-title">Page control</h2>
+          <span className="code">Page {page}</span>
         </div>
-
-        <div className="mt-4 flex items-center gap-2">
+        <p className="pager__note">
+          Navigate the rankings browser from here while you review your shortlist.
+        </p>
+        <div className="pager__row">
           <button
             type="button"
             onClick={onPreviousPage}
             disabled={!canGoPrevious}
-            className="flex-1 rounded-full border border-[#e0ddd8] bg-white px-4 py-2 text-sm font-medium text-[#1a3d2e] transition hover:border-[#3d7a5a] hover:bg-[#e8f2ec] disabled:cursor-not-allowed disabled:bg-[#f5f3ee] disabled:text-[#6b7068]"
+            className="btn btn--secondary"
           >
             Previous
           </button>
@@ -592,7 +529,7 @@ function ShortlistPanel({
             type="button"
             onClick={onNextPage}
             disabled={!canGoNext}
-            className="flex-1 rounded-full border border-[#e0ddd8] bg-white px-4 py-2 text-sm font-medium text-[#1a3d2e] transition hover:border-[#3d7a5a] hover:bg-[#e8f2ec] disabled:cursor-not-allowed disabled:bg-[#f5f3ee] disabled:text-[#6b7068]"
+            className="btn btn--secondary"
           >
             Next
           </button>
@@ -1005,283 +942,225 @@ function RankingsHomeContent() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <header className="mb-8 rounded-[2rem] border border-[#e0ddd8] bg-white p-8 shadow-sm">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-3xl">
-              <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#6b7068]">
-                Rankings Browser
-              </p>
-              <h1 className="mt-3 text-4xl font-bold tracking-tight text-[#16382a] sm:text-5xl">
-                {heroTitle}
-              </h1>
-              <p className="mt-3 text-[#6b7068]">
-                Structured university ranking data powered by CrawlerNest
-              </p>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6b7068]">
-                {isRegionScope
-                  ? `Use ${region.toLowerCase()} rankings, score signals, and source coverage to compare universities inside this region.`
-                  : "Use rankings, score signals, and source coverage to quickly evaluate university strength, shortlist promising options, and open deeper decision context for each university."}
-              </p>
-              {isRegionScope ? (
-                <p className="mt-2 text-sm text-[#6b7068]">
-                  Browsing universities ranked within {region}.
-                </p>
-              ) : null}
-              {timestamp ? (
-                <p className="mt-4 text-sm text-[#6b7068]">
-                  Updated: {formatUpdatedTimestamp(timestamp)}
-                </p>
-              ) : null}
-              <div className="mt-6 flex flex-wrap gap-3">
-                <div className="rounded-full border border-[#d8d3cb] bg-[#f5f3ee] px-4 py-2 text-sm text-[#1a3d2e]">
-                  <span className="font-semibold">{formatRank(totalCount)}</span>{" "}
-                  total {pluralize(totalCount, "match", "matches")}
-                </div>
-                <div className="rounded-full border border-[#d8d3cb] bg-[#f5f3ee] px-4 py-2 text-sm text-[#1a3d2e]">
-                  <span className="font-semibold">{year}</span> edition
-                </div>
-                <div className="rounded-full border border-[#d8d3cb] bg-[#f5f3ee] px-4 py-2 text-sm text-[#1a3d2e]">
-                  <span className="font-semibold">{source}</span> view
-                </div>
-                <div className="rounded-full border border-[#d8d3cb] bg-[#f5f3ee] px-4 py-2 text-sm text-[#1a3d2e]">
-                  <span className="font-semibold">{formatRank(pagedItems.length)}</span> on this page
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 lg:items-end">
-              {shortlist.length > 0 ? (
-                <Link
-                  href={editionHref("/recommendations")}
-                  className="inline-flex items-center justify-center rounded-full bg-[#1a3d2e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
-                >
-                  Generate Recommendation based on your shortlist
-                </Link>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="inline-flex items-center justify-center rounded-full bg-[#c0bdb8] px-5 py-3 text-sm font-semibold text-white"
-                >
-                  Generate Recommendation based on your shortlist
-                </button>
-              )}
-              <p className="text-sm text-[#6b7068]">
-                {shortlist.length > 0
-                  ? "Move from browsing into a shortlist-driven recommendation flow."
-                  : "Add universities to your shortlist to unlock recommendation flow."}
-              </p>
-            </div>
+    <main className="rk">
+      <header>
+        <div className="rk-head">
+          <div>
+            <h1 className="rk-head__title">{heroTitle}</h1>
+            <p className="rk-head__lead">
+              {isRegionScope
+                ? `Use ${region.toLowerCase()} rankings, score signals, and source coverage to compare universities inside this region.`
+                : "Use rankings, score signals, and source coverage to quickly evaluate university strength, shortlist promising options, and open deeper decision context for each university."}
+            </p>
+            <p className="rk-head__note">
+              Structured university ranking data powered by CrawlerNest
+              {isRegionScope ? `. Browsing universities ranked within ${region}.` : null}
+            </p>
           </div>
 
-          <RankingsSummary year={year} summaries={countSummaries} />
-          <CaveatBanner caveats={editionCaveats(year)} className="mt-6" />
-        </header>
-
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-6">
-            <section className="rounded-[2rem] border border-[#e0ddd8] bg-white p-6 shadow-sm">
-              <div className="flex flex-col gap-5">
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-lg font-semibold text-[#1a3d2e]">
-                    Explore the Table
-                  </h2>
-                  <p className="text-sm text-[#6b7068]">
-                    {browserDescription}
-                  </p>
-                  <p className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
-                    Summary cards and table use the current page. Pagination uses the backend total result set.
-                  </p>
-                </div>
-
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-[#1a3d2e]">
-                        Scope
-                      </span>
-                      <select
-                        className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
-                        value={scope}
-                        onChange={(e) => handleScopeChange(e.target.value)}
-                      >
-                        <option value="global">Global</option>
-                        <option value="region">Region</option>
-                      </select>
-                    </label>
-
-                    {isRegionScope ? (
-                      <label className="flex flex-col gap-2">
-                        <span className="text-sm font-medium text-[#1a3d2e]">
-                          Region
-                        </span>
-                        <select
-                          className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
-                          value={region}
-                          onChange={(e) => handleRegionChange(e.target.value)}
-                        >
-                          {REGION_OPTIONS.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    ) : null}
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-[#1a3d2e]">
-                        Source
-                      </span>
-                      <div className="relative">
-                        <select
-                          className="w-full rounded-xl border border-[#e0ddd8] bg-[#f5f3ee] px-4 py-3 text-[#6b7068] outline-none"
-                          value={source}
-                          disabled
-                        >
-                          <option value="AGGREGATED">AGGREGATED</option>
-                        </select>
-                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-[#e8f2ec] px-2.5 py-1 text-[11px] font-semibold text-[#3d7a5a]">
-                          Locked
-                        </span>
-                      </div>
-                    </label>
-
-                    <YearSelector variant="page" />
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-[#1a3d2e]">
-                        Page Size
-                      </span>
-                      <select
-                        className="rounded-xl border border-[#e0ddd8] px-4 py-3 outline-none transition focus:border-[#1a3d2e]"
-                        value={pageSize}
-                        onChange={(e) =>
-                          handlePageSizeChange(Number(e.target.value))
-                        }
-                      >
-                        {PAGE_SIZE_OPTIONS.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-[#1a3d2e]">
-                        Search
-                      </span>
-                      <div className="flex items-center gap-2 rounded-xl border border-[#e0ddd8] px-3 py-2 focus-within:border-[#1a3d2e]">
-                        <input
-                          className="w-full border-0 bg-transparent px-1 py-1.5 outline-none"
-                          value={searchInput}
-                          onChange={(e) => handleSearchChange(e.target.value)}
-                          placeholder="Search university or country"
-                        />
-                        {searchInput ? (
-                          <button
-                            type="button"
-                            onClick={() => handleSearchChange("")}
-                            className="rounded-full px-2 py-1 text-xs font-medium text-[#6b7068] transition hover:bg-[#e8f2ec] hover:text-[#1a3d2e]"
-                          >
-                            ×
-                          </button>
-                        ) : null}
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="rounded-2xl bg-[#f5f3ee] px-4 py-4">
-                      <div className="text-sm font-medium uppercase tracking-[0.16em] text-[#6b7068]">
-                        {scopeLabel}
-                      </div>
-                      <div className="mt-3 text-3xl font-bold tracking-tight text-[#16382a]">
-                        {loading ? "..." : formatRank(pagedItems.length)}
-                      </div>
-                      <div className="mt-1 text-sm leading-6 text-[#6b7068]">
-                        {!loading && pagedItems.length > 0 ? (
-                          <span>
-                            Showing rows {pageRowRangeLabel} of {formatRank(totalCount)} total matches
-                          </span>
-                        ) : null}
-                        {!loading && pagedItems.length === 0 ? (
-                          <span>No rankings loaded</span>
-                        ) : null}
-                      </div>
-                      {!loading && search.trim() ? (
-                        <div className="mt-2 text-sm leading-6 text-[#6b7068]">
-                          Search narrowed this page to {formatRank(pagedItems.length)}{" "}
-                          {pluralize(pagedItems.length, "result", "results")}
-                        </div>
-                      ) : null}
-                      <div className="mt-3 text-xs uppercase tracking-[0.18em] text-[#6b7068]">
-                        {isRegionScope ? `${region} ranking universe` : "Global ranking universe"}
-                      </div>
-                    </div>
-                  </div>
-
-                <div className="border-t border-[#e0ddd8] pt-4">
-                  <p className="text-sm text-[#6b7068]">
-                    {isRegionScope
-                      ? `Browse ${region.toLowerCase()} rankings, shortlist strong regional options, then move into recommendation.`
-                      : "Browse, shortlist, compare mentally, then move into recommendation."}
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            <section className="overflow-hidden rounded-[2rem] border border-[#e0ddd8] bg-white shadow-sm">
-              <div className="flex flex-col gap-2 border-b border-[#e0ddd8] bg-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-[#1a3d2e]">
-                    {scopeLabel}
-                  </h2>
-                  <p className="mt-1 text-sm text-[#6b7068]">
-                    {isRegionScope
-                      ? `Scan regional rank first, then use global position and score to compare universities inside ${region}.`
-                      : "Scan rank, score, shortlist signal, and add strong candidates as you browse."}
-                  </p>
-                </div>
-                <div className="text-sm text-[#6b7068]">
-                  Click any row to view details
-                </div>
-              </div>
-
-              <RankingsTable
-                error={error}
-                loading={loading}
-                pagedItems={pagedItems}
-                shortlistIds={shortlistIds}
-                savedIds={savedIds}
-                isRegionScope={isRegionScope}
-                search={search}
-                region={region}
-                onRetry={handleRetry}
-                onRowClick={handleRowClick}
-                onRowKeyDown={handleRowKeyDown}
-                onToggleShortlist={toggleShortlist}
-                onToggleSave={handleToggleSave}
-                universityHref={universityHref}
-              />
-            </section>
-          </div>
-
-          <div className="xl:sticky xl:top-6 xl:self-start">
-            <ShortlistPanel
-              shortlist={shortlist}
-              onRemove={removeFromShortlist}
-              page={page}
-              canGoPrevious={canGoPrevious}
-              canGoNext={canGoNext}
-              onPreviousPage={() => handlePageChange(page - 1)}
-              onNextPage={() => handlePageChange(page + 1)}
-              editionHref={editionHref}
-            />
+          <div className="rk-head__act">
+            {shortlist.length > 0 ? (
+              <Link href={editionHref("/recommendations")} className="btn btn--primary">
+                Generate Recommendation<span className="rk-tail"> based on your shortlist</span>
+              </Link>
+            ) : (
+              <button type="button" disabled className="btn btn--primary">
+                Generate Recommendation<span className="rk-tail"> based on your shortlist</span>
+              </button>
+            )}
+            <p>
+              {shortlist.length > 0
+                ? "Move from browsing into a shortlist-driven recommendation flow."
+                : "Add universities to your shortlist to unlock recommendation flow."}
+            </p>
           </div>
         </div>
+
+        <dl className="rk-record">
+          <div className="rk-record__cell">
+            <dt className="rk-record__label">total {pluralize(totalCount, "match", "matches")}</dt>
+            <dd className="rk-record__value">{formatRank(totalCount)}</dd>
+          </div>
+          <div className="rk-record__cell">
+            <dt className="rk-record__label">edition</dt>
+            <dd className="rk-record__value">{year}</dd>
+          </div>
+          <div className="rk-record__cell">
+            <dt className="rk-record__label">view</dt>
+            <dd className="rk-record__value">{source}</dd>
+          </div>
+          <div className="rk-record__cell">
+            <dt className="rk-record__label">
+              on this page
+              {timestamp ? `, updated ${formatUpdatedTimestamp(timestamp)}` : null}
+            </dt>
+            <dd className="rk-record__value">{formatRank(pagedItems.length)}</dd>
+          </div>
+        </dl>
+
+        <RankingsSummary year={year} summaries={countSummaries} />
+        <CaveatBanner caveats={editionCaveats(year)} className="rk-caveats" />
+      </header>
+
+      <section className="rk-tools" aria-labelledby="rk-tools-title">
+        <div className="rk-table-head">
+          <h2 id="rk-tools-title" className="visually-hidden">
+            Explore the table
+          </h2>
+          <p>{browserDescription}</p>
+        </div>
+
+        <div className="rk-tools__fields">
+          <label className="field">
+            <span className="field__label">Scope</span>
+            <select
+              className="select"
+              value={scope}
+              onChange={(e) => handleScopeChange(e.target.value)}
+            >
+              <option value="global">Global</option>
+              <option value="region">Region</option>
+            </select>
+          </label>
+
+          {isRegionScope ? (
+            <label className="field">
+              <span className="field__label">Region</span>
+              <select
+                className="select"
+                value={region}
+                onChange={(e) => handleRegionChange(e.target.value)}
+              >
+                {REGION_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          <label className="field">
+            <span className="field__label">Source</span>
+            <select className="select" value={source} disabled aria-describedby="rk-source-note">
+              <option value="AGGREGATED">AGGREGATED</option>
+            </select>
+            <span id="rk-source-note" className="field__note">
+              Locked
+            </span>
+          </label>
+
+          <YearSelector variant="page" />
+
+          <label className="field">
+            <span className="field__label">Page size</span>
+            <select
+              className="select"
+              value={pageSize}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+            >
+              {PAGE_SIZE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field field--wide">
+            <span className="field__label">Search</span>
+            <span className="search">
+              <input
+                className="input"
+                type="search"
+                value={searchInput}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search university or country"
+              />
+              {searchInput ? (
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange("")}
+                  className="search__clear"
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              ) : null}
+            </span>
+          </label>
+        </div>
+
+        <div className="rk-tools__meta" aria-live="polite">
+          <span>
+            <strong>{scopeLabel}</strong>
+          </span>
+          {loading ? <span>Loading</span> : null}
+          {!loading && pagedItems.length > 0 ? (
+            <span>
+              Showing rows <span className="code">{pageRowRangeLabel}</span> of{" "}
+              <span className="code">{formatRank(totalCount)}</span> total matches
+            </span>
+          ) : null}
+          {!loading && pagedItems.length === 0 ? <span>No rankings loaded</span> : null}
+          {!loading && search.trim() ? (
+            <span>
+              Search narrowed this page to {formatRank(pagedItems.length)}{" "}
+              {pluralize(pagedItems.length, "result", "results")}
+            </span>
+          ) : null}
+          <span>{isRegionScope ? `${region} ranking universe` : "Global ranking universe"}</span>
+          <span>Summary cards and table use the current page. Pagination uses the backend total result set.</span>
+          <span>
+            {isRegionScope
+              ? `Browse ${region.toLowerCase()} rankings, shortlist strong regional options, then move into recommendation.`
+              : "Browse, shortlist, compare mentally, then move into recommendation."}
+          </span>
+        </div>
+      </section>
+
+      <div className="rk-body">
+        <section aria-labelledby="rk-table-title">
+          <div className="rk-table-head">
+            <h2 id="rk-table-title">{scopeLabel}</h2>
+            <p>
+              {isRegionScope
+                ? `Scan regional rank first, then use global position and score to compare universities inside ${region}.`
+                : "Scan rank, score, shortlist signal, and add strong candidates as you browse."}{" "}
+              Click any row to view details.
+            </p>
+          </div>
+
+          <RankingsTable
+            error={error}
+            loading={loading}
+            pagedItems={pagedItems}
+            shortlistIds={shortlistIds}
+            savedIds={savedIds}
+            isRegionScope={isRegionScope}
+            search={search}
+            region={region}
+            onRetry={handleRetry}
+            onRowClick={handleRowClick}
+            onRowKeyDown={handleRowKeyDown}
+            onToggleShortlist={toggleShortlist}
+            onToggleSave={handleToggleSave}
+            universityHref={universityHref}
+          />
+        </section>
+
+        <aside className="rk-rail">
+          <ShortlistPanel
+            shortlist={shortlist}
+            onRemove={removeFromShortlist}
+            page={page}
+            canGoPrevious={canGoPrevious}
+            canGoNext={canGoNext}
+            onPreviousPage={() => handlePageChange(page - 1)}
+            onNextPage={() => handlePageChange(page + 1)}
+            editionHref={editionHref}
+          />
+        </aside>
       </div>
     </main>
   );

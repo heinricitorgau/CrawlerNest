@@ -14,26 +14,26 @@ import { AUTH_MESSAGES } from "@/lib/authMessages";
 
 const MIN_PASSWORD = 8;
 const input =
-  "w-full rounded-lg border border-[#e0ddd8] bg-white px-3 py-2.5 text-sm text-[#1a1a1a] placeholder-[#aaa] outline-none transition hover:border-[#b0ada8] focus:ring-2 focus:ring-[#3d7a5a]/40 disabled:opacity-50";
+  "w-full rounded-lg border border-(--color-rule) bg-white px-3 py-2.5 text-sm text-(--color-ink) placeholder-(--color-muted) outline-none transition hover:border-(--color-muted) focus:ring-2 focus:ring-(--color-ink-2)/40 disabled:opacity-50";
 const button =
-  "w-full rounded-lg bg-[#1a3d2e] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42] disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-lg bg-(--color-ink) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-ink-2) disabled:cursor-not-allowed disabled:opacity-60";
 
 function Card({ title, intro, children }: { title: string; intro: string; children: ReactNode }) {
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-[#f5f3ee] flex items-center justify-center px-4 py-16">
+    <div className="min-h-[calc(100vh-64px)] bg-(--color-paper) flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-[#e0ddd8] bg-white px-8 py-10 shadow-sm">
+        <div className="rounded-2xl border border-(--color-rule) bg-white px-8 py-10 shadow-sm">
           <div className="mb-8">
             <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900">
               <span className="text-xs font-bold text-white">CN</span>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#1a3d2e]">{title}</h1>
-            <p className="mt-1.5 text-sm text-[#6b7068]">{intro}</p>
+            <h1 className="text-2xl font-bold tracking-tight text-(--color-ink)">{title}</h1>
+            <p className="mt-1.5 text-sm text-(--color-muted)">{intro}</p>
           </div>
           {children}
         </div>
-        <p className="mt-6 text-center text-xs text-[#6b7068]">
-          <Link href="/signin" className="underline-offset-4 hover:underline hover:text-[#1a3d2e]">← Back to sign in</Link>
+        <p className="mt-6 text-center text-xs text-(--color-muted)">
+          <Link href="/signin" className="underline-offset-4 hover:underline hover:text-(--color-ink)">← Back to sign in</Link>
         </p>
       </div>
     </div>
@@ -72,13 +72,13 @@ export function ForgotPasswordForm() {
   return (
     <Card title="Reset your password" intro="Enter the email you signed up with, and we'll send a link to choose a new password.">
       {result?.ok ? (
-        <div role="status" className="rounded-lg border border-[#cfe3d6] bg-[#f0f7f2] px-4 py-3 text-sm text-[#1a3d2e]">
+        <div role="status" className="rounded-lg border border-(--color-rule) bg-(--color-paper) px-4 py-3 text-sm text-(--color-ink)">
           {result.message}
         </div>
       ) : (
         <form onSubmit={submit} noValidate className="space-y-5">
           <div>
-            <label htmlFor="reset-email" className="mb-1.5 block text-sm font-medium text-[#1a3d2e]">Email address</label>
+            <label htmlFor="reset-email" className="mb-1.5 block text-sm font-medium text-(--color-ink)">Email address</label>
             <input id="reset-email" type="email" autoComplete="email" value={email} disabled={sending}
               onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={input} />
           </div>
@@ -120,7 +120,7 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
   if (result?.ok) {
     return (
       <Card title="Password changed" intro="You can sign in with your new password now.">
-        <p role="status" className="text-sm text-[#1a3d2e]">{result.message}</p>
+        <p role="status" className="text-sm text-(--color-ink)">{result.message}</p>
         <Link href="/signin" className={`${button} mt-5 block text-center`}>Sign in →</Link>
       </Card>
     );
@@ -130,13 +130,13 @@ export function ResetPasswordForm({ token }: { token: string | null }) {
     <Card title="Choose a new password" intro="At least 8 characters. The link works once.">
       <form onSubmit={submit} noValidate className="space-y-5">
         <div>
-          <label htmlFor="new-password" className="mb-1.5 block text-sm font-medium text-[#1a3d2e]">New password</label>
+          <label htmlFor="new-password" className="mb-1.5 block text-sm font-medium text-(--color-ink)">New password</label>
           <input id="new-password" type="password" autoComplete="new-password" value={password} disabled={saving}
             onChange={(e) => setPassword(e.target.value)} className={input} />
           {tooShort ? <p className="mt-1.5 text-xs text-red-600">Password must be at least {MIN_PASSWORD} characters.</p> : null}
         </div>
         <div>
-          <label htmlFor="confirm-password" className="mb-1.5 block text-sm font-medium text-[#1a3d2e]">Confirm new password</label>
+          <label htmlFor="confirm-password" className="mb-1.5 block text-sm font-medium text-(--color-ink)">Confirm new password</label>
           <input id="confirm-password" type="password" autoComplete="new-password" value={confirm} disabled={saving}
             onChange={(e) => setConfirm(e.target.value)} className={input} />
           {mismatch ? <p className="mt-1.5 text-xs text-red-600">The two passwords do not match.</p> : null}

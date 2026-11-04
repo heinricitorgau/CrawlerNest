@@ -68,15 +68,15 @@ export default function RankingEvidencePanel({ item }: Props) {
   const trustSourceCount = trustSources.split(", ").filter(Boolean).length;
 
   return (
-    <div className="mt-2 rounded-xl border border-[#e0ddd8] bg-[#f5f3ee] p-3 text-[11px] text-[#4f544d] shadow-sm">
-      <div className="font-semibold text-[#1a1a1a]">Ranking Evidence</div>
+    <div className="mt-2 rounded-xl border border-(--color-rule) bg-(--color-paper) p-3 text-[11px] text-(--color-ink-2) shadow-sm">
+      <div className="font-semibold text-(--color-ink)">Ranking Evidence</div>
       <div className="mt-2 space-y-1.5">
         {evidenceRows.map((row) => (
           <div key={row.source} className="flex items-center justify-between">
-            <span className="font-medium text-[#4f544d]">{row.source}</span>
+            <span className="font-medium text-(--color-ink-2)">{row.source}</span>
             <span
               className={`font-semibold ${
-                row.hasLargeDifference ? "text-[#8b3a2b]" : "text-[#1a1a1a]"
+                row.hasLargeDifference ? "text-(--color-error)" : "text-(--color-ink)"
               }`}
             >
               {row.rank != null ? `#${formatRank(row.rank)}` : "—"}
@@ -86,15 +86,15 @@ export default function RankingEvidencePanel({ item }: Props) {
         ))}
       </div>
 
-      <div className="mt-2 border-t border-[#ddd7cf] pt-2">
+      <div className="mt-2 border-t border-(--color-rule) pt-2">
         <div className="flex items-center justify-between">
           <span>Aggregated Rank (weighted)</span>
-          <span className="font-semibold text-[#1a1a1a]">
+          <span className="font-semibold text-(--color-ink)">
             {item.aggregationExplain.aggregatedRankValue.toFixed(2)}
           </span>
         </div>
 
-        <div className="mt-2 font-semibold text-[#1a1a1a]">Weights</div>
+        <div className="mt-2 font-semibold text-(--color-ink)">Weights</div>
         <div className="mt-1 space-y-1">
           {(["QS", "THE", "ARWU"] as const).map((source) => (
             <div key={source} className="flex items-center justify-between">
@@ -107,15 +107,15 @@ export default function RankingEvidencePanel({ item }: Props) {
           ))}
         </div>
 
-        <div className="mt-2 rounded-lg bg-white/70 px-2.5 py-2 text-[#6b7068]">
+        <div className="mt-2 rounded-lg bg-white/70 px-2.5 py-2 text-(--color-muted)">
           {evidenceHint}
         </div>
 
         {item.trustLevel && item.trustExplain && item.trustScore != null && (
-          <div className="mt-2 border-t border-[#ddd7cf] pt-2">
+          <div className="mt-2 border-t border-(--color-rule) pt-2">
             <div className="flex items-center justify-between">
               <span>Trust</span>
-              <span className="font-semibold uppercase text-[#1a1a1a]">
+              <span className="font-semibold text-(--color-ink)">
                 {item.trustLevel} ({Math.round(item.trustScore)})
               </span>
             </div>
@@ -140,7 +140,7 @@ export default function RankingEvidencePanel({ item }: Props) {
                   : "limited"}
             </div>
             <div className="mt-2">
-              <div className="font-semibold text-[#1a1a1a]">Trust Analysis</div>
+              <div className="font-semibold text-(--color-ink)">Trust Analysis</div>
               <div className="mt-1 space-y-1">
                 {(item.trustExplain.notes ?? []).map((note) => (
                   <div key={note}>

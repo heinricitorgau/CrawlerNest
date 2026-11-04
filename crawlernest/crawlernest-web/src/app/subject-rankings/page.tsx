@@ -93,21 +93,21 @@ function SubjectInsight({ items, loading }: { items: SubjectRankingRow[]; loadin
     <section className="mt-6 border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-600">
+          <h2 className="text-sm font-bold text-slate-600">
             Subject Insight
           </h2>
           <p className="mt-1 text-sm text-slate-500">
             Lightweight summary for the current subject selection.
           </p>
         </div>
-        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
+        <div className="text-xs font-semibold text-slate-400">
           {loading ? "Loading" : `${insight.rankedCount} ranked rows`}
         </div>
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <div className="border border-slate-100 bg-slate-50 p-4">
-          <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+          <div className="text-xs font-bold text-slate-500">
             Top Countries
           </div>
           <div className="mt-4 space-y-3">
@@ -135,7 +135,7 @@ function SubjectInsight({ items, loading }: { items: SubjectRankingRow[]; loadin
         </div>
 
         <div className="border border-slate-100 bg-slate-50 p-4">
-          <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+          <div className="text-xs font-bold text-slate-500">
             Average Score
           </div>
           <div className="mt-4 text-4xl font-black tracking-tight text-slate-950">
@@ -149,7 +149,7 @@ function SubjectInsight({ items, loading }: { items: SubjectRankingRow[]; loadin
         </div>
 
         <div className="border border-slate-100 bg-slate-50 p-4">
-          <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+          <div className="text-xs font-bold text-slate-500">
             Difficulty Level
           </div>
           <div className="mt-4 text-2xl font-black tracking-tight text-slate-950">
@@ -162,7 +162,7 @@ function SubjectInsight({ items, loading }: { items: SubjectRankingRow[]; loadin
       </div>
 
       <div className="mt-4 border border-slate-100 bg-slate-50 p-4">
-        <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+        <div className="text-xs font-bold text-slate-500">
           Narrative
         </div>
         <p className="mt-2 text-sm leading-6 text-slate-700">{narrative}</p>
@@ -320,7 +320,7 @@ export function SubjectRankingsPageContent({
         <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700">
+              <p className="text-sm font-semibold text-blue-700">
                 QS Subject Rankings
               </p>
               <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
