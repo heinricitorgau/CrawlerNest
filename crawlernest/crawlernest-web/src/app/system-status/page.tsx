@@ -151,7 +151,7 @@ function StatCard({
 }) {
   return (
     <div className="border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{label}</div>
+      <div className="text-xs font-bold text-slate-500">{label}</div>
       <div className="mt-2 text-2xl font-black tracking-tight text-slate-950">{value}</div>
       {sub && <div className="mt-1 text-xs text-slate-400">{sub}</div>}
     </div>
@@ -161,7 +161,7 @@ function StatCard({
 function SectionHeader({ title, sub }: { title: string; sub?: string }) {
   return (
     <div className="mb-4 border-b border-slate-200 pb-2">
-      <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-700">{title}</h2>
+      <h2 className="text-sm font-bold text-slate-700">{title}</h2>
       {sub && <p className="mt-0.5 text-xs text-slate-400">{sub}</p>}
     </div>
   );
@@ -292,7 +292,7 @@ export default function SystemStatusPage() {
     <main className="min-h-screen bg-slate-50 text-slate-950">
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-blue-700">
+          <p className="text-sm font-semibold text-blue-700">
             Internal
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
@@ -428,12 +428,12 @@ export default function SystemStatusPage() {
 
               {/* Global ranking sources */}
               <div id="freshness-table" className="border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold text-slate-500">
                   Global Ranking Sources
                 </div>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr className="border-b border-slate-100 text-xs font-semibold text-slate-500">
                       <th className="px-4 py-2 text-left">Source</th>
                       <th className="px-4 py-2 text-left">Status</th>
                       <th className="px-4 py-2 text-left">Last Ingested</th>
@@ -484,12 +484,12 @@ export default function SystemStatusPage() {
 
               {/* Subject rankings freshness */}
               <div className="border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold text-slate-500">
                   Subject Rankings
                 </div>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr className="border-b border-slate-100 text-xs font-semibold text-slate-500">
                       <th className="px-4 py-2 text-left">Subject</th>
                       <th className="px-4 py-2 text-left">Status</th>
                       <th className="px-4 py-2 text-left">Last Ingested</th>
@@ -643,12 +643,12 @@ export default function SystemStatusPage() {
 
               {rankingsDiag.source_counts.length > 0 && (
                 <div className="border border-slate-200 bg-white shadow-sm">
-                  <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                  <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold text-slate-500">
                     Source Record Counts
                   </div>
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <tr className="border-b border-slate-100 text-xs font-semibold text-slate-500">
                         <th className="px-4 py-2 text-left">Source</th>
                         <th className="px-4 py-2 text-left">Year</th>
                         <th className="px-4 py-2 text-right">Count</th>
@@ -674,13 +674,13 @@ export default function SystemStatusPage() {
 
               {rankingsDiag.ingestion_log.length > 0 && (
                 <div className="border border-slate-200 bg-white shadow-sm">
-                  <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                  <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold text-slate-500">
                     Recent Ingestion Runs
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <tr className="border-b border-slate-100 text-xs font-semibold text-slate-500">
                           <th className="px-4 py-2 text-left">Source</th>
                           <th className="px-4 py-2 text-left">Batch</th>
                           <th className="px-4 py-2 text-left">Started</th>
@@ -739,7 +739,7 @@ export default function SystemStatusPage() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {subjectsDiag.by_subject.map((s) => (
                   <div key={s.subject_key} className="border border-slate-200 bg-white p-4 shadow-sm">
-                    <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                    <div className="text-xs font-bold text-slate-500">
                       {s.subject_name}
                     </div>
                     <div className="mt-2 flex items-end gap-3">
@@ -771,12 +771,12 @@ export default function SystemStatusPage() {
 
               {subjectsDiag.country_coverage.length > 0 && (
                 <div className="border border-slate-200 bg-white shadow-sm">
-                  <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                  <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold text-slate-500">
                     Country Coverage (Top 20)
                   </div>
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <tr className="border-b border-slate-100 text-xs font-semibold text-slate-500">
                         <th className="px-4 py-2 text-left">Subject</th>
                         <th className="px-4 py-2 text-left">Country</th>
                         <th className="px-4 py-2 text-right">Universities</th>
@@ -801,7 +801,7 @@ export default function SystemStatusPage() {
 
               {subjectsDiag.top_missing_countries.length > 0 && (
                 <div className="border border-slate-200 bg-white shadow-sm">
-                  <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                  <div className="border-b border-slate-100 px-4 py-3 text-xs font-bold text-slate-500">
                     Top Missing Countries
                   </div>
                   <p className="px-4 pt-2 text-xs text-slate-400">
@@ -809,7 +809,7 @@ export default function SystemStatusPage() {
                   </p>
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      <tr className="border-b border-slate-100 text-xs font-semibold text-slate-500">
                         <th className="px-4 py-2 text-left">Country</th>
                         <th className="px-4 py-2 text-right">Global Ranking Count</th>
                       </tr>

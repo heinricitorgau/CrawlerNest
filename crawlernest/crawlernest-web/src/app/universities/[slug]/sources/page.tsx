@@ -124,7 +124,7 @@ function fmtPct(value: number | null | undefined) {
 function Metric({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{label}</div>
+      <div className="text-xs font-bold text-slate-500">{label}</div>
       <div className="mt-2 text-2xl font-black tracking-tight text-slate-950">{value}</div>
     </div>
   );
@@ -163,7 +163,7 @@ export default async function UniversitySourcesPage({ params }: PageProps) {
     <main className="min-h-screen bg-slate-50 pb-16">
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-6 py-5">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
             <Link href="/rankings" className="hover:text-blue-700">Rankings</Link>
             <span>/</span>
             <Link href={`/universities/${slug}`} className="hover:text-blue-700">
@@ -199,13 +199,13 @@ export default async function UniversitySourcesPage({ params }: PageProps) {
 
         <section className="mb-8 border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 bg-slate-50 px-5 py-4">
-            <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-700">
+            <h2 className="text-sm font-bold text-slate-700">
               Source Comparison
             </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
-              <thead className="bg-white text-xs uppercase tracking-[0.12em] text-slate-500">
+              <thead className="bg-white text-xs text-slate-500">
                 <tr>
                   {["Source", "Rank", "Source score", "Normalized", "Weight", "Weighted input"].map((head) => (
                     <th key={head} className="border-b border-slate-200 px-4 py-3 text-left font-bold">
@@ -240,7 +240,7 @@ export default async function UniversitySourcesPage({ params }: PageProps) {
 
         <section className="mb-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-700">
+            <h2 className="text-sm font-bold text-slate-700">
               Disagreement
             </h2>
             <div className="mt-5 space-y-4">
@@ -261,13 +261,13 @@ export default async function UniversitySourcesPage({ params }: PageProps) {
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
               <div className="border border-slate-100 bg-slate-50 p-3">
-                <div className="text-xs font-bold uppercase text-slate-500">Avg pairwise diff</div>
+                <div className="text-xs font-bold text-slate-500">Avg pairwise diff</div>
                 <div className="mt-1 font-mono text-slate-950">
                   {fmtNumber(comparison.source_disagreement_metrics.average_pairwise_rank_difference, 2)}
                 </div>
               </div>
               <div className="border border-slate-100 bg-slate-50 p-3">
-                <div className="text-xs font-bold uppercase text-slate-500">QS/THE diff</div>
+                <div className="text-xs font-bold text-slate-500">QS/THE diff</div>
                 <div className="mt-1 font-mono text-slate-950">
                   {comparison.source_disagreement_metrics.qs_the_rank_difference ?? "-"}
                 </div>
@@ -276,7 +276,7 @@ export default async function UniversitySourcesPage({ params }: PageProps) {
           </div>
 
           <div className="border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-700">
+            <h2 className="text-sm font-bold text-slate-700">
               Confidence
             </h2>
             <div className="mt-4">
@@ -295,7 +295,7 @@ export default async function UniversitySourcesPage({ params }: PageProps) {
         </section>
 
         <section className="border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-700">
+          <h2 className="text-sm font-bold text-slate-700">
             Aggregation Explanation
           </h2>
           <p className="mt-3 text-sm leading-6 text-slate-600">{explain.why_this_rank_exists}</p>

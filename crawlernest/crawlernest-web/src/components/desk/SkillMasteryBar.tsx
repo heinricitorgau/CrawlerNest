@@ -15,7 +15,7 @@ export function SkillMasteryBar({ label, percent, focusNext = false, onPractice 
         <span className="flex items-center gap-2 font-medium text-slate-800">
           {label}
           {focusNext ? (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+            <span className="bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
               Focus next
             </span>
           ) : null}
@@ -36,7 +36,7 @@ export function SkillMasteryBar({ label, percent, focusNext = false, onPractice 
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(width)}
-        className="h-2 w-full overflow-hidden rounded-full bg-slate-200"
+        className="h-2 w-full overflow-hidden bg-slate-200"
       >
         <div
           className={`h-full rounded-full ${TONE_FILL[toneFor(width)]} transition-[width] duration-700 ease-out`}

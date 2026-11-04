@@ -48,7 +48,7 @@ export function ChatPanel({
   return (
     <section aria-label={title} className="flex h-full min-h-0 flex-col rounded-xl border border-slate-200 bg-white">
       <header className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
-        <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+        <span className="h-2 w-2 bg-emerald-500" aria-hidden="true" />
         <h2 className="text-sm font-semibold text-slate-900">{title}</h2>
       </header>
 

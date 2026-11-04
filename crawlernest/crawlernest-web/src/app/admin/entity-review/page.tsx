@@ -50,7 +50,7 @@ function CaveatList({ caveats }: { caveats: string[] }) {
   if (caveats.length === 0) return null;
   return (
     <div className="mb-6 rounded border border-slate-200 bg-slate-50 p-4">
-      <h2 className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-slate-600">
+      <h2 className="mb-2 text-xs font-bold text-slate-600">
         What this screen does and does not do
       </h2>
       <ul className="list-disc space-y-1 pl-5 text-xs text-slate-600">
@@ -107,7 +107,7 @@ function RemapPicker({
 
   return (
     <div className="mt-3 rounded border border-slate-200 bg-white p-3">
-      <label className="block text-[11px] font-medium uppercase tracking-wide text-slate-500">
+      <label className="block text-[11px] font-medium text-slate-500">
         Remap to a different university
       </label>
       <input
@@ -179,12 +179,12 @@ function CandidateCard({
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-slate-400">Source says</p>
+          <p className="text-[11px] text-slate-400">Source says</p>
           <p className="text-sm font-medium text-slate-900">{candidate.sourceName}</p>
           <p className="text-xs text-slate-500">{candidate.sourceCountry ?? "—"}</p>
         </div>
         <div>
-          <p className="text-[11px] uppercase tracking-wide text-slate-400">Matched to</p>
+          <p className="text-[11px] text-slate-400">Matched to</p>
           <p className="text-sm font-medium text-slate-900">
             {candidate.matchedCanonicalName ?? "—"}
           </p>

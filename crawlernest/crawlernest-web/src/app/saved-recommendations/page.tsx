@@ -62,12 +62,12 @@ type ListState =
 
 function LoadingShell() {
   return (
-    <main className="min-h-screen bg-[#f5f3ee]">
+    <main className="min-h-screen bg-(--color-paper)">
       <div className="mx-auto max-w-3xl px-6 py-16">
         <div className="animate-pulse space-y-4">
-          <div className="h-10 w-64 rounded-2xl bg-[#e0ddd8]" />
-          <div className="h-28 rounded-2xl bg-[#e0ddd8]" />
-          <div className="h-28 rounded-2xl bg-[#e0ddd8]" />
+          <div className="h-10 w-64 rounded-2xl bg-(--color-paper-2)" />
+          <div className="h-28 rounded-2xl bg-(--color-paper-2)" />
+          <div className="h-28 rounded-2xl bg-(--color-paper-2)" />
         </div>
       </div>
     </main>
@@ -76,9 +76,9 @@ function LoadingShell() {
 
 function SignInPrompt({ message }: { message?: string }) {
   return (
-    <main className="min-h-screen bg-[#f5f3ee] flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-[#e0ddd8] bg-white px-8 py-10 shadow-sm text-center">
-        <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#e8f2ec]">
+    <main className="min-h-screen bg-(--color-paper) flex items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-2xl border border-(--color-rule) bg-white px-8 py-10 shadow-sm text-center">
+        <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center bg-(--color-paper-2)">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
             stroke="#3d7a5a" strokeWidth="2.5" strokeLinecap="round"
             strokeLinejoin="round" aria-hidden="true">
@@ -86,19 +86,19 @@ function SignInPrompt({ message }: { message?: string }) {
             <circle cx="12" cy="7" r="4" />
           </svg>
         </div>
-        <h1 className="text-xl font-bold text-[#1a3d2e]">Sign in to view saved plans</h1>
-        <p className="mt-2 text-sm text-[#6b7068]">
+        <h1 className="text-xl font-bold text-(--color-ink)">Sign in to view saved plans</h1>
+        <p className="mt-2 text-sm text-(--color-muted)">
           {message ?? "Your saved recommendation plans are tied to your account."}
         </p>
         <Link
           href="/signin"
-          className="mt-6 inline-block w-full rounded-lg bg-[#1a3d2e] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+          className="mt-6 inline-block w-full rounded-lg bg-(--color-ink) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-ink-2)"
         >
           Sign in
         </Link>
-        <p className="mt-4 text-sm text-[#6b7068]">
+        <p className="mt-4 text-sm text-(--color-muted)">
           {"Don't have an account? "}
-          <Link href="/signup" className="font-medium text-[#3d7a5a] underline-offset-4 hover:underline">
+          <Link href="/signup" className="font-medium text-(--color-ink-2) underline-offset-4 hover:underline">
             Create one
           </Link>
         </p>
@@ -135,7 +135,7 @@ function SnapshotEvidenceSection({ items, edition }: { items: SnapshotUniversity
   const withEvidence = items.filter((u) => u.recommendationExplain);
   if (withEvidence.length === 0) {
     return (
-      <p className="mt-3 text-xs text-[#6b7068] italic">
+      <p className="mt-3 text-xs text-(--color-muted) italic">
         Evidence details were not stored in this snapshot.
       </p>
     );
@@ -143,23 +143,23 @@ function SnapshotEvidenceSection({ items, edition }: { items: SnapshotUniversity
   return (
     <div className="mt-3 space-y-3">
       {withEvidence.map((u, i) => (
-        <div key={i} className="rounded-lg border border-[#e0ddd8] bg-white p-3">
-          <div className="mb-1 text-xs font-semibold text-[#1a3d2e]">{u.universityName ?? "—"}</div>
+        <div key={i} className="rounded-lg border border-(--color-rule) bg-white p-3">
+          <div className="mb-1 text-xs font-semibold text-(--color-ink)">{u.universityName ?? "—"}</div>
           {u.recommendationExplain?.reasons?.map((r, j) => (
-            <div key={j} className="text-xs text-[#415046]">✓ {r}</div>
+            <div key={j} className="text-xs text-(--color-ink-2)">✓ {r}</div>
           ))}
           {u.recommendationExplain?.warnings?.map((w, j) => (
-            <div key={j} className="text-xs text-[#6b554f]">⚠ {w}</div>
+            <div key={j} className="text-xs text-(--color-error)">⚠ {w}</div>
           ))}
         </div>
       ))}
       <div className="mt-2">
-        <div className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#8b3a2b]">
+        <div className="mb-1 text-xs font-semibold text-(--color-error)">
           Data Caveats
         </div>
         <ul className="space-y-0.5">
           {savedCaveats(edition).map((c) => (
-            <li key={c} className="text-xs text-[#6b554f]">· {c}</li>
+            <li key={c} className="text-xs text-(--color-error)">· {c}</li>
           ))}
         </ul>
       </div>
@@ -183,22 +183,22 @@ function DetailPanel({ detail, onClose }: { detail: RecommendationDetail; onClos
   const edition = savedEdition(detail.requestJson, detail.resultJson);
 
   return (
-    <div className="mt-4 rounded-2xl border border-[#d8e6dd] bg-[#f6fbf7] p-5">
+    <div className="mt-4 rounded-2xl border border-(--color-accent-soft) bg-(--color-paper) p-5">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h3 className="text-base font-semibold text-[#1a3d2e]">Plan Detail</h3>
+        <h3 className="text-base font-semibold text-(--color-ink)">Plan Detail</h3>
         <button
           type="button"
           onClick={onClose}
-          className="text-xs text-[#6b7068] underline-offset-4 hover:underline"
+          className="text-xs text-(--color-muted) underline-offset-4 hover:underline"
         >
           Close
         </button>
       </div>
 
-      <div className="mb-4 rounded-xl border border-[#e0ddd8] bg-white px-3 py-2 text-xs text-[#6b7068]">
+      <div className="mb-4 rounded-xl border border-(--color-rule) bg-white px-3 py-2 text-xs text-(--color-muted)">
         {edition != null ? (
           <>
-            Ranked against the <span className="font-semibold text-[#1a3d2e]">{edition}</span> edition, as it stood when
+            Ranked against the <span className="font-semibold text-(--color-ink)">{edition}</span> edition, as it stood when
             this plan was saved. Newer editions may rank these universities differently.
           </>
         ) : (
@@ -210,8 +210,8 @@ function DetailPanel({ detail, onClose }: { detail: RecommendationDetail; onClos
       </div>
 
       <div className="mb-4">
-        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6b7068] mb-2">Profile</div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-[#1a1a1a]">
+        <div className="text-xs font-semibold text-(--color-muted) mb-2">Profile</div>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-(--color-ink)">
           {req.country ? <span>Country: <span className="font-medium">{String(req.country)}</span></span> : null}
           {req.ielts != null ? <span>IELTS: <span className="font-medium">{String(req.ielts)}</span></span> : null}
           {req.targetRank != null ? <span>Target Rank: <span className="font-medium">#{String(req.targetRank)}</span></span> : null}
@@ -224,43 +224,43 @@ function DetailPanel({ detail, onClose }: { detail: RecommendationDetail; onClos
         <div className="space-y-3">
           {reach.length > 0 && (
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6b7068] mb-1">Reach</div>
+              <div className="text-xs font-semibold text-(--color-muted) mb-1">Reach</div>
               <ul className="space-y-1">
                 {reach.map((u, i) => (
-                  <li key={i} className="text-sm text-[#1a1a1a]">{u.universityName ?? "—"}</li>
+                  <li key={i} className="text-sm text-(--color-ink)">{u.universityName ?? "—"}</li>
                 ))}
               </ul>
             </div>
           )}
           {target.length > 0 && (
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6b7068] mb-1">Target</div>
+              <div className="text-xs font-semibold text-(--color-muted) mb-1">Target</div>
               <ul className="space-y-1">
                 {target.map((u, i) => (
-                  <li key={i} className="text-sm text-[#1a1a1a]">{u.universityName ?? "—"}</li>
+                  <li key={i} className="text-sm text-(--color-ink)">{u.universityName ?? "—"}</li>
                 ))}
               </ul>
             </div>
           )}
           {safety.length > 0 && (
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6b7068] mb-1">Safety</div>
+              <div className="text-xs font-semibold text-(--color-muted) mb-1">Safety</div>
               <ul className="space-y-1">
                 {safety.map((u, i) => (
-                  <li key={i} className="text-sm text-[#1a1a1a]">{u.universityName ?? "—"}</li>
+                  <li key={i} className="text-sm text-(--color-ink)">{u.universityName ?? "—"}</li>
                 ))}
               </ul>
             </div>
           )}
         </div>
       ) : (
-        <p className="text-sm text-[#6b7068]">No university data in this snapshot.</p>
+        <p className="text-sm text-(--color-muted)">No university data in this snapshot.</p>
       )}
 
       {/* Evidence section */}
       {allItems.length > 0 && (
-        <div className="mt-4 border-t border-[#e0ddd8] pt-4">
-          <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6b7068] mb-1">
+        <div className="mt-4 border-t border-(--color-rule) pt-4">
+          <div className="text-xs font-semibold text-(--color-muted) mb-1">
             Evidence Details
           </div>
           <SnapshotEvidenceSection items={allItems} edition={edition} />
@@ -313,14 +313,14 @@ function SavedList({ items, onDelete, onSessionExpired }: {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-2xl border border-[#e0ddd8] bg-white p-8 text-center shadow-sm">
-        <p className="text-[#6b7068]">No saved plans yet.</p>
-        <p className="mt-1 text-sm text-[#6b7068]">
-          Use the <span className="font-medium text-[#1a3d2e]">Save plan</span> button on the recommendations page.
+      <div className="rounded-2xl border border-(--color-rule) bg-white p-8 text-center shadow-sm">
+        <p className="text-(--color-muted)">No saved plans yet.</p>
+        <p className="mt-1 text-sm text-(--color-muted)">
+          Use the <span className="font-medium text-(--color-ink)">Save plan</span> button on the recommendations page.
         </p>
         <Link
           href="/recommendations"
-          className="mt-6 inline-block rounded-full border border-[#3d7a5a] px-5 py-2.5 text-sm font-semibold text-[#1a3d2e] transition hover:bg-[#e8f2ec]"
+          className="mt-6 inline-block border border-(--color-ink-2) px-5 py-2.5 text-sm font-semibold text-(--color-ink) transition hover:bg-(--color-paper-2)"
         >
           Generate Recommendations
         </Link>
@@ -331,19 +331,19 @@ function SavedList({ items, onDelete, onSessionExpired }: {
   return (
     <div className="space-y-4">
       {items.map((item) => (
-        <div key={item.id} className="rounded-2xl border border-[#e0ddd8] bg-white px-5 py-4 shadow-sm">
+        <div key={item.id} className="rounded-2xl border border-(--color-rule) bg-white px-5 py-4 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <div className="text-base font-semibold text-[#1a1a1a]">{item.title}</div>
+              <div className="text-base font-semibold text-(--color-ink)">{item.title}</div>
               {item.requestSummary ? (
-                <div className="mt-1 text-sm text-[#6b7068]">{item.requestSummary}</div>
+                <div className="mt-1 text-sm text-(--color-muted)">{item.requestSummary}</div>
               ) : null}
               {item.topRecommendationName ? (
-                <div className="mt-1 text-xs text-[#3d7a5a] font-medium">
+                <div className="mt-1 text-xs text-(--color-ink-2) font-medium">
                   Top: {item.topRecommendationName}
                 </div>
               ) : null}
-              <div className="mt-2 text-xs text-[#6b7068]">
+              <div className="mt-2 text-xs text-(--color-muted)">
                 {new Date(item.createdAt).toLocaleDateString("en-CA", { dateStyle: "medium" })}
               </div>
             </div>
@@ -351,14 +351,14 @@ function SavedList({ items, onDelete, onSessionExpired }: {
               <button
                 type="button"
                 onClick={() => void handleToggleDetail(item.id)}
-                className="rounded-full border border-[#e0ddd8] bg-white px-3 py-1.5 text-xs font-medium text-[#1a3d2e] transition hover:border-[#3d7a5a] hover:bg-[#e8f2ec]"
+                className="border border-(--color-rule) bg-white px-3 py-1.5 text-xs font-medium text-(--color-ink) transition hover:border-(--color-ink-2) hover:bg-(--color-paper-2)"
               >
                 {expandedId === item.id ? "Hide" : "View"}
               </button>
               <button
                 type="button"
                 onClick={() => onDelete(item.id)}
-                className="rounded-full border border-[#e0ddd8] bg-white px-3 py-1.5 text-xs font-medium text-[#1a3d2e] transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+                className="border border-(--color-rule) bg-white px-3 py-1.5 text-xs font-medium text-(--color-ink) transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
               >
                 Delete
               </button>
@@ -367,7 +367,7 @@ function SavedList({ items, onDelete, onSessionExpired }: {
 
           {expandedId === item.id && (
             detailLoading ? (
-              <div className="mt-4 text-sm text-[#6b7068]">Loading…</div>
+              <div className="mt-4 text-sm text-(--color-muted)">Loading…</div>
             ) : detailError ? (
               <div className="mt-4 text-sm text-amber-700">{detailError}</div>
             ) : detail ? (
@@ -453,24 +453,24 @@ export default function SavedRecommendationsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee]">
+    <main className="min-h-screen bg-(--color-paper)">
       <div className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-8">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#6b7068]">
+          <p className="text-sm font-medium text-(--color-muted)">
             Your Account
           </p>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#16382a]">
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-(--color-ink)">
             Saved Recommendation Plans
           </h1>
-          <p className="mt-2 text-[#6b7068]">
+          <p className="mt-2 text-(--color-muted)">
             Snapshots of recommendation results you have saved for reference.
           </p>
         </div>
 
         {listState.phase === "loading" ? (
           <div className="animate-pulse space-y-3">
-            <div className="h-24 rounded-2xl bg-[#e0ddd8]" />
-            <div className="h-24 rounded-2xl bg-[#e0ddd8]" />
+            <div className="h-24 rounded-2xl bg-(--color-paper-2)" />
+            <div className="h-24 rounded-2xl bg-(--color-paper-2)" />
           </div>
         ) : listState.phase === "unavailable" ? (
           <UnavailableBanner />
@@ -482,8 +482,8 @@ export default function SavedRecommendationsPage() {
           />
         )}
 
-        <p className="mt-8 text-center text-sm text-[#6b7068]">
-          <Link href="/recommendations" className="underline-offset-4 hover:underline hover:text-[#1a3d2e]">
+        <p className="mt-8 text-center text-sm text-(--color-muted)">
+          <Link href="/recommendations" className="underline-offset-4 hover:underline hover:text-(--color-ink)">
             ← Back to Recommendations
           </Link>
         </p>

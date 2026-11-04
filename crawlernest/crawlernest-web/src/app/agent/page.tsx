@@ -436,20 +436,20 @@ function toTitleCase(raw: string): string {
  */
 function renderStructuredValue(value: unknown, depth = 0): React.ReactNode {
   if (value === null || value === undefined) {
-    return <span className="text-[#6b7068] italic">null</span>;
+    return <span className="text-(--color-muted) italic">null</span>;
   }
   if (typeof value === "boolean") {
     return (
-      <span className={value ? "font-mono text-[#1a6b3a]" : "font-mono text-[#a33a3a]"}>
+      <span className={value ? "font-mono text-(--color-ink-2)" : "font-mono text-(--color-error)"}>
         {String(value)}
       </span>
     );
   }
   if (typeof value === "number") {
-    return <span className="font-mono text-[#1a3d2e]">{String(value)}</span>;
+    return <span className="font-mono text-(--color-ink)">{String(value)}</span>;
   }
   if (typeof value === "string") {
-    return <span className="text-[#1a1a1a]">{value}</span>;
+    return <span className="text-(--color-ink)">{value}</span>;
   }
   if (Array.isArray(value)) {
     const isSimple = value.every((v) => typeof v === "string" || typeof v === "number");
@@ -459,7 +459,7 @@ function renderStructuredValue(value: unknown, depth = 0): React.ReactNode {
           {value.map((item, i) => (
             <span
               key={i}
-              className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-xs text-[#1a1a1a]"
+              className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-xs text-(--color-ink)"
             >
               {String(item)}
             </span>
@@ -468,7 +468,7 @@ function renderStructuredValue(value: unknown, depth = 0): React.ReactNode {
       );
     }
     return (
-      <pre className="overflow-x-auto rounded-xl bg-[#f0ede8] px-3 py-2 text-xs leading-5 text-[#1a1a1a]">
+      <pre className="overflow-x-auto rounded-xl bg-(--color-paper-2) px-3 py-2 text-xs leading-5 text-(--color-ink)">
         {JSON.stringify(value, null, 2)}
       </pre>
     );
@@ -476,7 +476,7 @@ function renderStructuredValue(value: unknown, depth = 0): React.ReactNode {
   if (typeof value === "object") {
     if (depth >= 2) {
       return (
-        <pre className="overflow-x-auto rounded-xl bg-[#f0ede8] px-3 py-2 text-xs leading-5 text-[#1a1a1a]">
+        <pre className="overflow-x-auto rounded-xl bg-(--color-paper-2) px-3 py-2 text-xs leading-5 text-(--color-ink)">
           {JSON.stringify(value, null, 2)}
         </pre>
       );
@@ -485,7 +485,7 @@ function renderStructuredValue(value: unknown, depth = 0): React.ReactNode {
       <div className="space-y-3">
         {Object.entries(value as Record<string, unknown>).map(([k, v]) => (
           <div key={k}>
-            <div className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[#6b7068]">
+            <div className="mb-1 text-[10px] text-(--color-muted)">
               {toTitleCase(k)}
             </div>
             {renderStructuredValue(v, depth + 1)}
@@ -494,7 +494,7 @@ function renderStructuredValue(value: unknown, depth = 0): React.ReactNode {
       </div>
     );
   }
-  return <span className="text-[#6b7068]">{String(value)}</span>;
+  return <span className="text-(--color-muted)">{String(value)}</span>;
 }
 
 /**
@@ -517,7 +517,7 @@ function renderDevField(key: string, value: unknown): React.ReactNode | null {
   // ── task: full-width text block, reads like a description ──────────────────
   if (key === "task") {
     return (
-      <div className="rounded-xl bg-[#faf8f4] px-4 py-3 text-sm leading-6 text-[#1a1a1a]">
+      <div className="rounded-xl bg-(--color-paper) px-4 py-3 text-sm leading-6 text-(--color-ink)">
         {typeof value === "string" ? value : JSON.stringify(value)}
       </div>
     );
@@ -530,14 +530,14 @@ function renderDevField(key: string, value: unknown): React.ReactNode | null {
       <ol className="space-y-2">
         {stages.map((step, i) => (
           <li key={i} className="flex items-center gap-2.5">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#d8d3cb] bg-[#faf8f4] font-mono text-[10px] text-[#6b7068]">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center border border-(--color-rule) bg-(--color-paper) font-mono text-[10px] text-(--color-muted)">
               {i + 1}
             </span>
             <span
               className={`rounded-lg border px-3 py-1 text-xs ${
                 i === stages.length - 1
-                  ? "border-[#cfe5d7] bg-[#edf7f1] text-[#1a3d2e]"
-                  : "border-[#e0ddd8] bg-white text-[#1a1a1a]"
+                  ? "border-(--color-rule) bg-(--color-paper) text-(--color-ink)"
+                  : "border-(--color-rule) bg-white text-(--color-ink)"
               }`}
             >
               {toTitleCase(String(step))}
@@ -554,10 +554,10 @@ function renderDevField(key: string, value: unknown): React.ReactNode | null {
     const pct = isNorm ? value * 100 : value;
     const tier =
       pct >= 70
-        ? { text: "text-[#1a6b3a]", bg: "bg-[#edf7f1]", border: "border-[#cfe5d7]" }
+        ? { text: "text-(--color-ink-2)", bg: "bg-(--color-paper)", border: "border-(--color-rule)" }
         : pct >= 40
-          ? { text: "text-[#7c5c1a]", bg: "bg-[#fffbf4]", border: "border-[#f0d8b8]" }
-          : { text: "text-[#a33a3a]", bg: "bg-[#fff4f4]", border: "border-[#f0caca]" };
+          ? { text: "text-(--color-warn)", bg: "bg-(--color-plate)", border: "border-(--color-warn-soft)" }
+          : { text: "text-(--color-error)", bg: "bg-(--color-plate)", border: "border-(--color-error-soft)" };
     return (
       <div
         className={`inline-flex items-baseline gap-1.5 rounded-xl border px-4 py-2 ${tier.bg} ${tier.border}`}
@@ -576,7 +576,7 @@ function renderDevField(key: string, value: unknown): React.ReactNode | null {
   if (key === "result") {
     if (typeof value === "string") {
       return (
-        <div className="rounded-xl border border-[#d8d3cb] bg-[#faf8f4] px-4 py-3 text-sm leading-6 text-[#1a1a1a]">
+        <div className="rounded-xl border border-(--color-rule) bg-(--color-paper) px-4 py-3 text-sm leading-6 text-(--color-ink)">
           {value}
         </div>
       );
@@ -586,7 +586,7 @@ function renderDevField(key: string, value: unknown): React.ReactNode | null {
   // ── file_patch: dark monospaced block — visually distinct from prose ──────
   if (key === "file_patch") {
     return (
-      <pre className="overflow-x-auto rounded-xl bg-[#1a1a1a] px-4 py-3 text-xs leading-5 text-[#e8e6e0]">
+      <pre className="overflow-x-auto rounded-xl bg-(--color-ink) px-4 py-3 text-xs leading-5 text-(--color-rule)">
         {typeof value === "string" ? value : JSON.stringify(value, null, 2)}
       </pre>
     );
@@ -615,25 +615,25 @@ function renderDevField(key: string, value: unknown): React.ReactNode | null {
       obj.status === "error";
     const style = passed
       ? {
-          border: "border-[#cfe5d7]",
-          bg: "bg-[#edf7f1]",
-          label: "text-[#1a6b3a]",
-          dot: "bg-[#1a6b3a]",
+          border: "border-(--color-rule)",
+          bg: "bg-(--color-paper)",
+          label: "text-(--color-ink-2)",
+          dot: "bg-(--color-ink-2)",
           text: "Passed",
         }
       : failed
         ? {
-            border: "border-[#f0caca]",
-            bg: "bg-[#fff4f4]",
-            label: "text-[#a33a3a]",
-            dot: "bg-[#a33a3a]",
+            border: "border-(--color-error-soft)",
+            bg: "bg-(--color-plate)",
+            label: "text-(--color-error)",
+            dot: "bg-(--color-error)",
             text: "Failed",
           }
         : {
-            border: "border-[#d8d3cb]",
-            bg: "bg-[#faf8f4]",
-            label: "text-[#6b7068]",
-            dot: "bg-[#6b7068]",
+            border: "border-(--color-rule)",
+            bg: "bg-(--color-paper)",
+            label: "text-(--color-muted)",
+            dot: "bg-(--color-muted)",
             text: "Unknown",
           };
     const extraEntries = Object.entries(obj).filter(
@@ -642,15 +642,15 @@ function renderDevField(key: string, value: unknown): React.ReactNode | null {
     return (
       <div className={`rounded-xl border ${style.border} ${style.bg} px-4 py-3`}>
         <div className={`mb-2 flex items-center gap-1.5 text-xs font-semibold ${style.label}`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+          <span className={`h-1.5 w-1.5 ${style.dot}`} />
           {style.text}
         </div>
         {extraEntries.length > 0 ? (
           <div className="space-y-1.5">
             {extraEntries.map(([k, v]) => (
               <div key={k} className="flex items-start gap-3 text-xs">
-                <span className="w-28 shrink-0 text-[#6b7068]">{toTitleCase(k)}</span>
-                <span className="text-[#1a1a1a]">
+                <span className="w-28 shrink-0 text-(--color-muted)">{toTitleCase(k)}</span>
+                <span className="text-(--color-ink)">
                   {typeof v === "object" && v !== null
                     ? JSON.stringify(v)
                     : String(v ?? "")}
@@ -777,61 +777,61 @@ function renderValidationSummary(summary: ValidationSummary): React.ReactNode {
   const cfg =
     summary.status === "healthy"
       ? {
-          border: "border-[#cfe5d7]",
-          bg: "bg-[#edf7f1]",
-          label: "text-[#1a6b3a]",
-          dot: "bg-[#1a6b3a]",
+          border: "border-(--color-rule)",
+          bg: "bg-(--color-paper)",
+          label: "text-(--color-ink-2)",
+          dot: "bg-(--color-ink-2)",
           text: "Healthy",
         }
       : summary.status === "failed"
         ? {
-            border: "border-[#f0caca]",
-            bg: "bg-[#fff4f4]",
-            label: "text-[#a33a3a]",
-            dot: "bg-[#a33a3a]",
+            border: "border-(--color-error-soft)",
+            bg: "bg-(--color-plate)",
+            label: "text-(--color-error)",
+            dot: "bg-(--color-error)",
             text: "Failed",
           }
         : {
-            border: "border-[#f0d8b8]",
-            bg: "bg-[#fffbf4]",
-            label: "text-[#7c5c1a]",
-            dot: "bg-[#c47c1a]",
+            border: "border-(--color-warn-soft)",
+            bg: "bg-(--color-plate)",
+            label: "text-(--color-warn)",
+            dot: "bg-(--color-warn)",
             text: "Warning",
           };
 
   return (
     <div
-      className={`rounded-[1.5rem] border ${cfg.border} ${cfg.bg} px-5 py-4`}
+      className={` border ${cfg.border} ${cfg.bg} px-5 py-4`}
     >
-      <div className="mb-3 text-xs uppercase tracking-[0.14em] text-[#6b7068]">
+      <div className="mb-3 text-xs text-(--color-muted)">
         Validation Summary
       </div>
 
       {/* Overall status + counts */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className={`h-2.5 w-2.5 rounded-full ${cfg.dot}`} />
+          <span className={`h-2.5 w-2.5 ${cfg.dot}`} />
           <span className={`text-sm font-semibold ${cfg.label}`}>
             {cfg.text}
           </span>
         </div>
-        <div className="flex items-center gap-4 text-xs text-[#6b7068]">
+        <div className="flex items-center gap-4 text-xs text-(--color-muted)">
           <span>
-            <span className="font-semibold text-[#1a6b3a]">
+            <span className="font-semibold text-(--color-ink-2)">
               {summary.passedCount}
             </span>{" "}
             passed
           </span>
           {summary.failedCount > 0 ? (
             <span>
-              <span className="font-semibold text-[#a33a3a]">
+              <span className="font-semibold text-(--color-error)">
                 {summary.failedCount}
               </span>{" "}
               failed
             </span>
           ) : null}
           <span>
-            <span className="font-semibold text-[#1a1a1a]">
+            <span className="font-semibold text-(--color-ink)">
               {summary.total}
             </span>{" "}
             total
@@ -845,12 +845,12 @@ function renderValidationSummary(summary: ValidationSummary): React.ReactNode {
           {summary.items.map((item) => (
             <span
               key={item.key}
-              className={`rounded-full border px-2.5 py-0.5 text-xs ${
+              className={` border px-2.5 py-0.5 text-xs ${
                 item.passed
-                  ? "border-[#cfe5d7] bg-white text-[#1a6b3a]"
+                  ? "border-(--color-rule) bg-white text-(--color-ink-2)"
                   : item.failed
-                    ? "border-[#f0caca] bg-white text-[#a33a3a]"
-                    : "border-[#d8d3cb] bg-white text-[#6b7068]"
+                    ? "border-(--color-error-soft) bg-white text-(--color-error)"
+                    : "border-(--color-rule) bg-white text-(--color-muted)"
               }`}
             >
               {item.passed ? "✓ " : item.failed ? "✗ " : "· "}
@@ -867,17 +867,17 @@ function renderValidationSummary(summary: ValidationSummary): React.ReactNode {
 
 /** Signal pill colour map. */
 const SIGNAL_STYLES: Record<string, { border: string; text: string; bg: string }> = {
-  always_recent:  { border: "border-[#cfe5d7]", bg: "bg-[#edf7f1]", text: "text-[#1a6b3a]" },
-  entity_overlap: { border: "border-[#c2d9f5]", bg: "bg-[#eef5fd]", text: "text-[#1a3d6b]" },
-  kind_match:     { border: "border-[#e0d3f5]", bg: "bg-[#f5f0fd]", text: "text-[#4a2d7a]" },
-  followup_boost: { border: "border-[#f0d8b8]", bg: "bg-[#fffbf4]", text: "text-[#7c5c1a]" },
-  carryover_entity_match: { border: "border-[#d7d1f7]", bg: "bg-[#f4f1ff]", text: "text-[#5a3fb4]" },
+  always_recent:  { border: "border-(--color-rule)", bg: "bg-(--color-paper)", text: "text-(--color-ink-2)" },
+  entity_overlap: { border: "border-(--color-paper-2)", bg: "bg-(--color-paper)", text: "text-(--color-ink-2)" },
+  kind_match:     { border: "border-(--color-paper-2)", bg: "bg-(--color-paper)", text: "text-(--color-ink-2)" },
+  followup_boost: { border: "border-(--color-warn-soft)", bg: "bg-(--color-plate)", text: "text-(--color-warn)" },
+  carryover_entity_match: { border: "border-(--color-paper-2)", bg: "bg-(--color-paper)", text: "text-(--color-ink-2)" },
 };
 
 const AMBIGUITY_STYLES: Record<"low" | "medium" | "high", { border: string; bg: string; text: string }> = {
-  low: { border: "border-[#cfe5d7]", bg: "bg-[#edf7f1]", text: "text-[#1a6b3a]" },
-  medium: { border: "border-[#f0d8b8]", bg: "bg-[#fffbf4]", text: "text-[#7c5c1a]" },
-  high: { border: "border-[#f0caca]", bg: "bg-[#fff4f4]", text: "text-[#a33a3a]" },
+  low: { border: "border-(--color-rule)", bg: "bg-(--color-paper)", text: "text-(--color-ink-2)" },
+  medium: { border: "border-(--color-warn-soft)", bg: "bg-(--color-plate)", text: "text-(--color-warn)" },
+  high: { border: "border-(--color-error-soft)", bg: "bg-(--color-plate)", text: "text-(--color-error)" },
 };
 
 function renderMemoryDebugTurnRow(
@@ -892,32 +892,32 @@ function renderMemoryDebugTurnRow(
       key={`${turn.role}-${turn.content_preview}`}
       className={`rounded-xl border px-3 py-2.5 text-xs ${
         isSelected
-          ? "border-[#cfe5d7] bg-[#f4fbf7]"
-          : "border-[#e8e4de] bg-white"
+          ? "border-(--color-rule) bg-(--color-paper)"
+          : "border-(--color-rule) bg-white"
       }`}
     >
       {/* Role + task_kind + score */}
       <div className="flex flex-wrap items-center gap-1.5">
         <span
-          className={`rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] ${
+          className={` border px-2 py-0.5 font-mono text-[10px] ${
             turn.role === "user"
-              ? "border-[#d8d3cb] bg-[#faf8f4] text-[#6b7068]"
-              : "border-[#d0dde8] bg-[#eef4fb] text-[#2a4a6b]"
+              ? "border-(--color-rule) bg-(--color-paper) text-(--color-muted)"
+              : "border-(--color-paper-2) bg-(--color-paper) text-(--color-ink-2)"
           }`}
         >
           {turn.role}
         </span>
         {turn.task_kind ? (
-          <span className="rounded-full border border-[#e0ddd8] bg-white px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2 py-0.5 text-[10px] text-(--color-muted)">
             {turn.task_kind.replace(/_/g, " ")}
           </span>
         ) : null}
         {/* Score badge */}
         <span
-          className={`ml-auto rounded-full border px-2 py-0.5 font-mono text-[10px] font-semibold ${
+          className={`ml-auto border px-2 py-0.5 font-mono text-[10px] font-semibold ${
             bd.total > 0
-              ? "border-[#cfe5d7] bg-[#edf7f1] text-[#1a6b3a]"
-              : "border-[#e0ddd8] bg-white text-[#6b7068]"
+              ? "border-(--color-rule) bg-(--color-paper) text-(--color-ink-2)"
+              : "border-(--color-rule) bg-white text-(--color-muted)"
           }`}
         >
           {bd.total > 0 ? `+${bd.total}` : "0"}
@@ -925,7 +925,7 @@ function renderMemoryDebugTurnRow(
       </div>
 
       {/* Content preview */}
-      <div className="mt-1.5 font-mono text-[11px] leading-5 text-[#1a1a1a]">
+      <div className="mt-1.5 font-mono text-[11px] leading-5 text-(--color-ink)">
         {turn.content_preview}
       </div>
 
@@ -934,9 +934,9 @@ function renderMemoryDebugTurnRow(
         <div className="mt-1.5 flex flex-wrap gap-1">
           {signals.map((sig) => {
             const style = SIGNAL_STYLES[sig] ?? {
-              border: "border-[#d8d3cb]",
+              border: "border-(--color-rule)",
               bg: "bg-white",
-              text: "text-[#6b7068]",
+              text: "text-(--color-muted)",
             };
             return (
               <span
@@ -948,7 +948,7 @@ function renderMemoryDebugTurnRow(
             );
           })}
           {bd.entity_overlap > 0 || bd.kind_match > 0 || bd.followup_boost > 0 || bd.carryover_entity_match > 0 ? (
-            <span className="ml-auto rounded-full border border-[#e0ddd8] bg-white px-2 py-0.5 font-mono text-[10px] text-[#6b7068]">
+            <span className="ml-auto border border-(--color-rule) bg-white px-2 py-0.5 font-mono text-[10px] text-(--color-muted)">
               {[
                 bd.entity_overlap > 0 ? `ent+${bd.entity_overlap}` : null,
                 bd.kind_match > 0 ? `kind+${bd.kind_match}` : null,
@@ -964,7 +964,7 @@ function renderMemoryDebugTurnRow(
 
       {/* Rejection reason (rejected turns) */}
       {turn.rejected_reason ? (
-        <div className="mt-1.5 text-[10px] text-[#a33a3a]">
+        <div className="mt-1.5 text-[10px] text-(--color-error)">
           ✗ {turn.rejected_reason.replace(/_/g, " ")}
         </div>
       ) : null}
@@ -980,43 +980,43 @@ function renderMemoryDebug(md: MemoryDebugData): React.ReactNode {
   const ambiguityStyle = AMBIGUITY_STYLES[summary.ambiguity_level] ?? AMBIGUITY_STYLES.medium;
 
   return (
-    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
+    <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs">
       {/* ── Header ── */}
-      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+      <div className="mb-3 text-xs font-medium text-(--color-ink)">
         Memory debug
       </div>
 
       {/* ── Request signals row ── */}
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[#1a1a1a]">
+        <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-(--color-ink)">
           kind: <span className="font-medium">{md.current_task_kind.replace(/_/g, " ")}</span>
         </span>
         {md.followup_detected ? (
-          <span className="rounded-full border border-[#f0d8b8] bg-[#fffbf4] px-2.5 py-0.5 text-[#7c5c1a]">
+          <span className="border border-(--color-warn-soft) bg-(--color-plate) px-2.5 py-0.5 text-(--color-warn)">
             ↩ follow-up detected
           </span>
         ) : null}
         {md.entity_tokens.length > 0 ? (
-          <span className="rounded-full border border-[#c2d9f5] bg-[#eef5fd] px-2.5 py-0.5 text-[#1a3d6b]">
+          <span className="border border-(--color-paper-2) bg-(--color-paper) px-2.5 py-0.5 text-(--color-ink-2)">
             entities: {md.entity_tokens.join(", ")}
           </span>
         ) : (
-          <span className="rounded-full border border-[#e0ddd8] bg-white px-2.5 py-0.5 text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-(--color-muted)">
             no entities detected
           </span>
         )}
         {md.recent_entity_hint ? (
-          <span className="rounded-full border border-[#d7d1f7] bg-[#f4f1ff] px-2.5 py-0.5 text-[#5a3fb4]">
+          <span className="border border-(--color-paper-2) bg-(--color-paper) px-2.5 py-0.5 text-(--color-ink-2)">
             recent entity: {md.recent_entity_hint}
           </span>
         ) : null}
       </div>
 
       {/* ── Budget row ── */}
-      <div className="mb-3 flex flex-wrap items-center gap-3 text-[#6b7068]">
+      <div className="mb-3 flex flex-wrap items-center gap-3 text-(--color-muted)">
         <span>
           chars:{" "}
-          <span className="font-medium text-[#1a1a1a]">{md.char_budget_used}</span>
+          <span className="font-medium text-(--color-ink)">{md.char_budget_used}</span>
           {" / "}
           {md.char_budget_max}
           {" "}
@@ -1024,7 +1024,7 @@ function renderMemoryDebug(md: MemoryDebugData): React.ReactNode {
         </span>
         <span>
           messages:{" "}
-          <span className="font-medium text-[#1a1a1a]">{md.selected_message_count}</span>
+          <span className="font-medium text-(--color-ink)">{md.selected_message_count}</span>
           {" (max pairs: "}
           {md.turn_budget_max_pairs}
           {")"}
@@ -1032,29 +1032,29 @@ function renderMemoryDebug(md: MemoryDebugData): React.ReactNode {
       </div>
 
       {/* ── Summary block ── */}
-      <div className="mb-3 rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+      <div className="mb-3 rounded-xl border border-(--color-rule) bg-white px-3 py-3">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             {summary.selection_mode.replace(/_/g, " ")}
           </span>
           <span className={`rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] ${ambiguityStyle.border} ${ambiguityStyle.bg} ${ambiguityStyle.text}`}>
             ambiguity: {summary.ambiguity_level}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             selected {summary.selected_count}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             rejected {summary.rejected_count}
           </span>
         </div>
-        <div className="text-[11px] leading-5 text-[#1a1a1a]">{summary.summary_text}</div>
+        <div className="text-[11px] leading-5 text-(--color-ink)">{summary.summary_text}</div>
         {summary.primary_signals.length > 0 ? (
           <div className="mt-2 flex flex-wrap gap-1">
             {summary.primary_signals.map((signal) => {
               const style = SIGNAL_STYLES[signal] ?? {
-                border: "border-[#d8d3cb]",
+                border: "border-(--color-rule)",
                 bg: "bg-white",
-                text: "text-[#6b7068]",
+                text: "text-(--color-muted)",
               };
               return (
                 <span
@@ -1072,7 +1072,7 @@ function renderMemoryDebug(md: MemoryDebugData): React.ReactNode {
       {/* ── Selected turns ── */}
       {md.selected_turns.length > 0 ? (
         <div className="mb-3">
-          <div className="mb-1.5 text-[10px] uppercase tracking-[0.14em] text-[#6b7068]">
+          <div className="mb-1.5 text-[10px] text-(--color-muted)">
             Selected — {md.selected_turns.length} message{md.selected_turns.length !== 1 ? "s" : ""}
           </div>
           <div className="space-y-1.5">
@@ -1080,7 +1080,7 @@ function renderMemoryDebug(md: MemoryDebugData): React.ReactNode {
           </div>
         </div>
       ) : (
-        <div className="mb-3 rounded-xl border border-dashed border-[#d8d3cb] px-3 py-2 text-[#6b7068]">
+        <div className="mb-3 rounded-xl border border-dashed border-(--color-rule) px-3 py-2 text-(--color-muted)">
           No prior turns selected — this is the first message or memory is disabled.
         </div>
       )}
@@ -1088,7 +1088,7 @@ function renderMemoryDebug(md: MemoryDebugData): React.ReactNode {
       {/* ── Rejected turns ── */}
       {md.rejected_turns.length > 0 ? (
         <div>
-          <div className="mb-1.5 text-[10px] uppercase tracking-[0.14em] text-[#6b7068]">
+          <div className="mb-1.5 text-[10px] text-(--color-muted)">
             Rejected — {md.rejected_turns.length} message{md.rejected_turns.length !== 1 ? "s" : ""}
           </div>
           <div className="space-y-1.5">
@@ -1106,41 +1106,41 @@ function renderReferenceDebug(referenceDebug: ReferenceDebugData): React.ReactNo
     AMBIGUITY_STYLES.medium;
 
   return (
-    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
-      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+    <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs">
+      <div className="mb-3 text-xs font-medium text-(--color-ink)">
         Reference debug
       </div>
 
-      <div className="mb-3 rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+      <div className="mb-3 rounded-xl border border-(--color-rule) bg-white px-3 py-3">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             {referenceDebug.resolved_reference.input_type.replace(/_/g, " ")}
           </span>
           <span className={`rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] ${confidenceStyle.border} ${confidenceStyle.bg} ${confidenceStyle.text}`}>
             confidence: {referenceDebug.resolved_reference.confidence}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             rewrite {referenceDebug.rewrite_applied ? "applied" : "not applied"}
           </span>
         </div>
 
         <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
-          <span className="text-[#6b7068]">original</span>
-          <span className="font-medium text-[#1a1a1a]">{referenceDebug.original_input}</span>
-          <span className="text-[#6b7068]">rewritten</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">original</span>
+          <span className="font-medium text-(--color-ink)">{referenceDebug.original_input}</span>
+          <span className="text-(--color-muted)">rewritten</span>
+          <span className="font-medium text-(--color-ink)">
             {referenceDebug.rewritten_query ?? "—"}
           </span>
-          <span className="text-[#6b7068]">entities</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">entities</span>
+          <span className="font-medium text-(--color-ink)">
             {referenceDebug.resolved_reference.resolved_entities.length > 0
               ? referenceDebug.resolved_reference.resolved_entities.join(", ")
               : "—"}
           </span>
-          <span className="text-[#6b7068]">reason</span>
-          <span className="text-[#1a1a1a]">{referenceDebug.resolved_reference.reason}</span>
-          <span className="text-[#6b7068]">rewrite note</span>
-          <span className="text-[#1a1a1a]">{referenceDebug.rewrite_reason}</span>
+          <span className="text-(--color-muted)">reason</span>
+          <span className="text-(--color-ink)">{referenceDebug.resolved_reference.reason}</span>
+          <span className="text-(--color-muted)">rewrite note</span>
+          <span className="text-(--color-ink)">{referenceDebug.rewrite_reason}</span>
         </div>
       </div>
     </div>
@@ -1162,31 +1162,31 @@ function renderGroundingDebug(groundingDebug: GroundingDebugData): React.ReactNo
       reason?: string | null;
     },
   ) => (
-    <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+    <div className="rounded-xl border border-(--color-rule) bg-white px-3 py-3">
       <div className="mb-2 flex items-center gap-2">
-        <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+        <span className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-[10px] text-(--color-muted)">
           {label}
         </span>
         <span
           className={`rounded-full border px-2.5 py-0.5 text-[10px] ${
             source.used
-              ? "border-[#cfe5d7] bg-[#edf7f1] text-[#1a6b3a]"
-              : "border-[#e0ddd8] bg-white text-[#6b7068]"
+              ? "border-(--color-rule) bg-(--color-paper) text-(--color-ink-2)"
+              : "border-(--color-rule) bg-white text-(--color-muted)"
           }`}
         >
           {source.used ? "used" : "not used"}
         </span>
-        <span className="ml-auto rounded-full border border-[#d8d3cb] bg-white px-2 py-0.5 font-mono text-[10px] text-[#6b7068]">
+        <span className="ml-auto border border-(--color-rule) bg-white px-2 py-0.5 font-mono text-[10px] text-(--color-muted)">
           {source.match_score.toFixed(2)}
         </span>
       </div>
       {source.reason ? (
-        <div className="text-[11px] leading-5 text-[#1a1a1a]">{source.reason}</div>
+        <div className="text-[11px] leading-5 text-(--color-ink)">{source.reason}</div>
       ) : null}
       {source.matched_items.length > 0 ? (
         <div className="mt-2 space-y-1">
           {source.matched_items.map((item) => (
-            <div key={`${label}-${item}`} className="font-mono text-[11px] leading-5 text-[#6b7068]">
+            <div key={`${label}-${item}`} className="font-mono text-[11px] leading-5 text-(--color-muted)">
               • {item}
             </div>
           ))}
@@ -1196,37 +1196,37 @@ function renderGroundingDebug(groundingDebug: GroundingDebugData): React.ReactNo
   );
 
   return (
-    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
-      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+    <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs">
+      <div className="mb-3 text-xs font-medium text-(--color-ink)">
         Grounding debug
       </div>
 
-      <div className="mb-3 rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+      <div className="mb-3 rounded-xl border border-(--color-rule) bg-white px-3 py-3">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             grounding {groundingDebug.grounding_score.overall.toFixed(2)}
           </span>
           <span className={`rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] ${riskStyle.border} ${riskStyle.bg} ${riskStyle.text}`}>
             risk: {groundingDebug.hallucination_risk.level}
           </span>
         </div>
-        <div className="text-[11px] leading-5 text-[#1a1a1a]">
+        <div className="text-[11px] leading-5 text-(--color-ink)">
           {groundingDebug.explanation.summary}
         </div>
-        <div className="mt-1 text-[11px] leading-5 text-[#6b7068]">
+        <div className="mt-1 text-[11px] leading-5 text-(--color-muted)">
           {groundingDebug.explanation.detail}
         </div>
         <div className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
-          <span className="text-[#6b7068]">retrieval</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">retrieval</span>
+          <span className="font-medium text-(--color-ink)">
             {groundingDebug.grounding_score.breakdown.retrieval_weight.toFixed(2)}
           </span>
-          <span className="text-[#6b7068]">memory</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">memory</span>
+          <span className="font-medium text-(--color-ink)">
             {groundingDebug.grounding_score.breakdown.memory_weight.toFixed(2)}
           </span>
-          <span className="text-[#6b7068]">answer</span>
-          <span className="text-[#1a1a1a]">{groundingDebug.answer_preview}</span>
+          <span className="text-(--color-muted)">answer</span>
+          <span className="text-(--color-ink)">{groundingDebug.answer_preview}</span>
         </div>
       </div>
 
@@ -1245,33 +1245,33 @@ function renderPolicyDebug(policyDebug: PolicyDebugData): React.ReactNode {
     AMBIGUITY_STYLES.medium;
 
   return (
-    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
-      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+    <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs">
+      <div className="mb-3 text-xs font-medium text-(--color-ink)">
         Policy debug
       </div>
 
-      <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+      <div className="rounded-xl border border-(--color-rule) bg-white px-3 py-3">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             {policyDebug.mode}
           </span>
           <span className={`rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] ${ambiguityStyle.border} ${ambiguityStyle.bg} ${ambiguityStyle.text}`}>
             ambiguity: {policyDebug.signals.ambiguity_level}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             {policyDebug.signals.query_type}
           </span>
         </div>
 
-        <div className="text-[11px] leading-5 text-[#1a1a1a]">{policyDebug.reason}</div>
+        <div className="text-[11px] leading-5 text-(--color-ink)">{policyDebug.reason}</div>
 
         <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
-          <span className="text-[#6b7068]">retrieval</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">retrieval</span>
+          <span className="font-medium text-(--color-ink)">
             {policyDebug.signals.has_retrieval ? "yes" : "no"} · {policyDebug.signals.retrieval_confidence.toFixed(2)}
           </span>
-          <span className="text-[#6b7068]">memory</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">memory</span>
+          <span className="font-medium text-(--color-ink)">
             {policyDebug.signals.has_memory ? "yes" : "no"}
           </span>
         </div>
@@ -1282,42 +1282,42 @@ function renderPolicyDebug(policyDebug: PolicyDebugData): React.ReactNode {
 
 function renderOrchestrationDebug(orchestrationDebug: OrchestrationDebugData): React.ReactNode {
   return (
-    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
-      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+    <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs">
+      <div className="mb-3 text-xs font-medium text-(--color-ink)">
         Orchestration debug
       </div>
 
-      <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+      <div className="rounded-xl border border-(--color-rule) bg-white px-3 py-3">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             {orchestrationDebug.route}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             dev call: {orchestrationDebug.dev_call.invoked ? "yes" : "no"}
           </span>
         </div>
 
-        <div className="text-[11px] leading-5 text-[#1a1a1a]">{orchestrationDebug.reason}</div>
+        <div className="text-[11px] leading-5 text-(--color-ink)">{orchestrationDebug.reason}</div>
 
         <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
-          <span className="text-[#6b7068]">dev intent</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">dev intent</span>
+          <span className="font-medium text-(--color-ink)">
             {orchestrationDebug.signals.is_dev_intent ? "yes" : "no"}
           </span>
-          <span className="text-[#6b7068]">code keywords</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">code keywords</span>
+          <span className="font-medium text-(--color-ink)">
             {orchestrationDebug.signals.has_code_keywords ? "yes" : "no"}
           </span>
-          <span className="text-[#6b7068]">explicit dev kind</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">explicit dev kind</span>
+          <span className="font-medium text-(--color-ink)">
             {orchestrationDebug.signals.explicit_dev_kind ? "yes" : "no"}
           </span>
-          <span className="text-[#6b7068]">latency</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">latency</span>
+          <span className="font-medium text-(--color-ink)">
             {orchestrationDebug.dev_call.latency_ms ?? "—"} ms
           </span>
-          <span className="text-[#6b7068]">returned patch</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">returned patch</span>
+          <span className="font-medium text-(--color-ink)">
             {orchestrationDebug.dev_call.returned.has_patch ? "yes" : "no"}
           </span>
         </div>
@@ -1328,34 +1328,34 @@ function renderOrchestrationDebug(orchestrationDebug: OrchestrationDebugData): R
 
 function renderLongTermMemoryDebug(longTermMemoryDebug: LongTermMemoryDebugData): React.ReactNode {
   return (
-    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
-      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+    <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs">
+      <div className="mb-3 text-xs font-medium text-(--color-ink)">
         Long-term memory debug
       </div>
       {longTermMemoryDebug.retrieved.length === 0 ? (
-        <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3 text-[11px] text-[#6b7068]">
+        <div className="rounded-xl border border-(--color-rule) bg-white px-3 py-3 text-[11px] text-(--color-muted)">
           No long-term memory entries were used.
         </div>
       ) : (
         <div className="space-y-3">
           {longTermMemoryDebug.retrieved.map((entry, index) => (
-            <div key={`${entry.type}-${index}`} className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+            <div key={`${entry.type}-${index}`} className="rounded-xl border border-(--color-rule) bg-white px-3 py-3">
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+                <span className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-[10px] text-(--color-muted)">
                   {entry.type}
                 </span>
-                <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+                <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
                   confidence: {entry.confidence.toFixed(2)}
                 </span>
               </div>
-              <div className="text-[11px] leading-5 text-[#1a1a1a]">{entry.content}</div>
+              <div className="text-[11px] leading-5 text-(--color-ink)">{entry.content}</div>
               <div className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
-                <span className="text-[#6b7068]">used</span>
-                <span className="font-medium text-[#1a1a1a]">{entry.used ? "yes" : "no"}</span>
-                <span className="text-[#6b7068]">importance</span>
-                <span className="font-medium text-[#1a1a1a]">{entry.importance.toFixed(2)}</span>
-                <span className="text-[#6b7068]">decay</span>
-                <span className="font-medium text-[#1a1a1a]">{entry.decayScore.toFixed(2)}</span>
+                <span className="text-(--color-muted)">used</span>
+                <span className="font-medium text-(--color-ink)">{entry.used ? "yes" : "no"}</span>
+                <span className="text-(--color-muted)">importance</span>
+                <span className="font-medium text-(--color-ink)">{entry.importance.toFixed(2)}</span>
+                <span className="text-(--color-muted)">decay</span>
+                <span className="font-medium text-(--color-ink)">{entry.decayScore.toFixed(2)}</span>
               </div>
             </div>
           ))}
@@ -1368,44 +1368,44 @@ function renderLongTermMemoryDebug(longTermMemoryDebug: LongTermMemoryDebugData)
 function renderSelfImprovementDebug(selfImprovementDebug: SelfImprovementDebugData): React.ReactNode {
   const performance = selfImprovementDebug.performance;
   return (
-    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
-      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+    <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs">
+      <div className="mb-3 text-xs font-medium text-(--color-ink)">
         Self-improvement debug
       </div>
 
-      <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+      <div className="rounded-xl border border-(--color-rule) bg-white px-3 py-3">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             sample: {performance.sample_size}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             source: {selfImprovementDebug.strategy_source ?? "none"}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             avg: {performance.avg_score.toFixed(2)}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             failure: {(performance.failure_rate * 100).toFixed(0)}%
           </span>
         </div>
 
-        <div className="text-[11px] leading-5 text-[#1a1a1a]">{selfImprovementDebug.reason}</div>
+        <div className="text-[11px] leading-5 text-(--color-ink)">{selfImprovementDebug.reason}</div>
 
         <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
-          <span className="text-[#6b7068]">strategy applied</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">strategy applied</span>
+          <span className="font-medium text-(--color-ink)">
             {selfImprovementDebug.strategy_applied ? "yes" : "no"}
           </span>
-          <span className="text-[#6b7068]">new strategy</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">new strategy</span>
+          <span className="font-medium text-(--color-ink)">
             {selfImprovementDebug.new_strategy_generated ? "yes" : "no"}
           </span>
-          <span className="text-[#6b7068]">common failure step</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">common failure step</span>
+          <span className="font-medium text-(--color-ink)">
             {performance.common_failure_step ?? "—"}
           </span>
-          <span className="text-[#6b7068]">last outcome</span>
-          <span className="font-medium text-[#1a1a1a]">
+          <span className="text-(--color-muted)">last outcome</span>
+          <span className="font-medium text-(--color-ink)">
             {selfImprovementDebug.last_experience?.status ?? "—"}
             {typeof selfImprovementDebug.last_experience?.final_score === "number"
               ? ` · ${selfImprovementDebug.last_experience.final_score.toFixed(2)}`
@@ -1414,11 +1414,11 @@ function renderSelfImprovementDebug(selfImprovementDebug: SelfImprovementDebugDa
         </div>
 
         {selfImprovementDebug.applied_strategies?.length ? (
-          <div className="mt-3 rounded-xl border border-[#ece7de] bg-[#faf8f4] px-3 py-3">
-            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[#6b7068]">
+          <div className="mt-3 rounded-xl border border-(--color-rule) bg-(--color-paper) px-3 py-3">
+            <div className="mb-2 text-[10px] font-medium text-(--color-muted)">
               Applied strategies
             </div>
-            <ul className="space-y-1.5 text-[11px] text-[#1a1a1a]">
+            <ul className="space-y-1.5 text-[11px] text-(--color-ink)">
               {selfImprovementDebug.applied_strategies.map((item, index) => (
                 <li key={`${item}-${index}`}>• {item}</li>
               ))}
@@ -1428,7 +1428,7 @@ function renderSelfImprovementDebug(selfImprovementDebug: SelfImprovementDebugDa
 
         {selfImprovementDebug.anti_patterns?.length ? (
           <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-3">
-            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-amber-700">
+            <div className="mb-2 text-[10px] font-medium text-amber-700">
               Anti-patterns
             </div>
             <ul className="space-y-1.5 text-[11px] text-amber-700">
@@ -1440,11 +1440,11 @@ function renderSelfImprovementDebug(selfImprovementDebug: SelfImprovementDebugDa
         ) : null}
 
         {selfImprovementDebug.strategy_lineage?.length ? (
-          <div className="mt-3 rounded-xl border border-[#ece7de] bg-[#faf8f4] px-3 py-3">
-            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[#6b7068]">
+          <div className="mt-3 rounded-xl border border-(--color-rule) bg-(--color-paper) px-3 py-3">
+            <div className="mb-2 text-[10px] font-medium text-(--color-muted)">
               Strategy lineage
             </div>
-            <ul className="space-y-1.5 text-[11px] text-[#1a1a1a]">
+            <ul className="space-y-1.5 text-[11px] text-(--color-ink)">
               {selfImprovementDebug.strategy_lineage.map((entry, index) => (
                 <li key={`${entry.patch_record_id ?? entry.strategy_id ?? "lineage"}-${index}`}>
                   • {entry.patch_status ?? "unknown"} → {entry.strategy_type ?? "strategy"}
@@ -1462,36 +1462,36 @@ function renderSelfImprovementDebug(selfImprovementDebug: SelfImprovementDebugDa
 
 function renderMetaDebug(metaDebug: MetaDebugData): React.ReactNode {
   return (
-    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
-      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+    <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs">
+      <div className="mb-3 text-xs font-medium text-(--color-ink)">
         Meta debug
       </div>
 
-      <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+      <div className="rounded-xl border border-(--color-rule) bg-white px-3 py-3">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             {metaDebug.strategy_applied ? "applied" : "not applied"}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             {metaDebug.strategy_type ?? "none"}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             {typeof metaDebug.confidence === "number"
               ? metaDebug.confidence.toFixed(2)
               : "—"}
           </span>
         </div>
 
-        <div className="text-[11px] leading-5 text-[#1a1a1a]">
+        <div className="text-[11px] leading-5 text-(--color-ink)">
           source: {metaDebug.source ?? "none"}
         </div>
 
         {metaDebug.applied?.length ? (
-          <div className="mt-3 rounded-xl border border-[#ece7de] bg-[#faf8f4] px-3 py-3">
-            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[#6b7068]">
+          <div className="mt-3 rounded-xl border border-(--color-rule) bg-(--color-paper) px-3 py-3">
+            <div className="mb-2 text-[10px] font-medium text-(--color-muted)">
               Applied strategies
             </div>
-            <ul className="space-y-1.5 text-[11px] text-[#1a1a1a]">
+            <ul className="space-y-1.5 text-[11px] text-(--color-ink)">
               {metaDebug.applied.map((entry, index) => (
                 <li key={`${entry.id ?? entry.strategy_type ?? "applied"}-${index}`}>
                   • {entry.strategy_type ?? "strategy"}
@@ -1504,11 +1504,11 @@ function renderMetaDebug(metaDebug: MetaDebugData): React.ReactNode {
         ) : null}
 
         {metaDebug.generated?.length ? (
-          <div className="mt-3 rounded-xl border border-[#ece7de] bg-[#faf8f4] px-3 py-3">
-            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-[#6b7068]">
+          <div className="mt-3 rounded-xl border border-(--color-rule) bg-(--color-paper) px-3 py-3">
+            <div className="mb-2 text-[10px] font-medium text-(--color-muted)">
               Generated strategies
             </div>
-            <ul className="space-y-1.5 text-[11px] text-[#1a1a1a]">
+            <ul className="space-y-1.5 text-[11px] text-(--color-ink)">
               {metaDebug.generated.map((entry, index) => (
                 <li key={`${entry.id ?? entry.strategy_type ?? "generated"}-${index}`}>
                   • {entry.strategy_type ?? "strategy"}
@@ -1522,7 +1522,7 @@ function renderMetaDebug(metaDebug: MetaDebugData): React.ReactNode {
 
         {metaDebug.rolled_back?.length ? (
           <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-3">
-            <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.14em] text-red-700">
+            <div className="mb-2 text-[10px] font-medium text-red-700">
               Rolled back
             </div>
             <ul className="space-y-1.5 text-[11px] text-red-700">
@@ -1541,30 +1541,30 @@ function renderMetaDebug(metaDebug: MetaDebugData): React.ReactNode {
 
 function renderRewriteDebug(rewriteDebug: RewriteDebugData): React.ReactNode {
   return (
-    <div className="rounded-2xl border border-[#d8d3cb] bg-[#faf8f4] p-4 text-xs">
-      <div className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[#1a3d2e]">
+    <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs">
+      <div className="mb-3 text-xs font-medium text-(--color-ink)">
         Rewrite debug
       </div>
 
-      <div className="rounded-xl border border-[#e0ddd8] bg-white px-3 py-3">
+      <div className="rounded-xl border border-(--color-rule) bg-white px-3 py-3">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-(--color-paper) px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             {rewriteDebug.status ?? "unknown"}
           </span>
-          <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] text-[#6b7068]">
+          <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
             delta: {rewriteDebug.score_delta >= 0 ? "+" : ""}{rewriteDebug.score_delta.toFixed(2)}
           </span>
         </div>
 
         <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-[11px]">
-          <span className="text-[#6b7068]">patch generated</span>
-          <span className="font-medium text-[#1a1a1a]">{rewriteDebug.patch_generated ? "yes" : "no"}</span>
-          <span className="text-[#6b7068]">patch valid</span>
-          <span className="font-medium text-[#1a1a1a]">{rewriteDebug.patch_valid ? "yes" : "no"}</span>
-          <span className="text-[#6b7068]">sandbox applied</span>
-          <span className="font-medium text-[#1a1a1a]">{rewriteDebug.applied_in_sandbox ? "yes" : "no"}</span>
-          <span className="text-[#6b7068]">improved</span>
-          <span className="font-medium text-[#1a1a1a]">{rewriteDebug.improved ? "yes" : "no"}</span>
+          <span className="text-(--color-muted)">patch generated</span>
+          <span className="font-medium text-(--color-ink)">{rewriteDebug.patch_generated ? "yes" : "no"}</span>
+          <span className="text-(--color-muted)">patch valid</span>
+          <span className="font-medium text-(--color-ink)">{rewriteDebug.patch_valid ? "yes" : "no"}</span>
+          <span className="text-(--color-muted)">sandbox applied</span>
+          <span className="font-medium text-(--color-ink)">{rewriteDebug.applied_in_sandbox ? "yes" : "no"}</span>
+          <span className="text-(--color-muted)">improved</span>
+          <span className="font-medium text-(--color-ink)">{rewriteDebug.improved ? "yes" : "no"}</span>
         </div>
       </div>
     </div>
@@ -1601,7 +1601,7 @@ export default function AgentPage() {
   const [savePhase, setSavePhase] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveError, setSaveError] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
-  // Session id is stable for the lifetime of the conversation.  A new UUID is
+  // Session id is stable for the lifetime of the conversation. A new UUID is
   // created when the component mounts (one per page load) or when the user
   // explicitly resets the conversation.
   const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID());
@@ -1892,30 +1892,30 @@ export default function AgentPage() {
   const promptPlaceholder = PROMPT_HINTS[kind];
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee] text-[#1a1a1a]">
+    <main className="min-h-screen bg-(--color-paper) text-(--color-ink)">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
         <header className="mb-6 flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <div
               className={`rounded-full border px-3 py-1 text-sm ${
                 agentStatus === "online"
-                  ? "border-[#cfe5d7] bg-[#edf7f1] text-[#1a3d2e]"
+                  ? "border-(--color-rule) bg-(--color-paper) text-(--color-ink)"
                   : agentStatus === "offline"
-                    ? "border-[#f0caca] bg-[#fff4f4] text-[#a33a3a]"
-                    : "border-[#d8d3cb] bg-white text-[#6b7068]"
+                    ? "border-(--color-error-soft) bg-(--color-plate) text-(--color-error)"
+                    : "border-(--color-rule) bg-white text-(--color-muted)"
               }`}
             >
               agent: {agentStatus}
             </div>
-            <div className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#6b7068]">
+            <div className="border border-(--color-rule) bg-white px-3 py-1 text-xs font-semibold text-(--color-muted)">
               provider: {agentHealth?.generation?.providerLabel ?? "mock"}
             </div>
               {showDebug ? (
                 <>
-                  <div className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#6b7068]">
+                  <div className="border border-(--color-rule) bg-white px-3 py-1 text-xs font-semibold text-(--color-muted)">
                     readonly
                   </div>
-                <div className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-sm text-[#1a3d2e]">
+                <div className="border border-(--color-rule) bg-white px-3 py-1 text-sm text-(--color-ink)">
                   Chat route does not execute tools
                 </div>
               </>
@@ -1925,8 +1925,8 @@ export default function AgentPage() {
               onClick={() => setShowDebug((current) => !current)}
               className={`rounded-full border px-3 py-1 text-sm transition ${
                 showDebug
-                  ? "border-[#16382a] bg-[#16382a] text-white"
-                  : "border-[#d8d3cb] bg-white text-[#6b7068]"
+                  ? "border-(--color-ink) bg-(--color-ink) text-white"
+                  : "border-(--color-rule) bg-white text-(--color-muted)"
               }`}
             >
               debug: {showDebug ? "on" : "off"}
@@ -1935,7 +1935,7 @@ export default function AgentPage() {
               <button
                 type="button"
                 onClick={() => setHistoryOpen(true)}
-                className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-sm text-[#6b7068] transition hover:border-[#3d7a5a] hover:text-[#1a3d2e]"
+                className="border border-(--color-rule) bg-white px-3 py-1 text-sm text-(--color-muted) transition hover:border-(--color-ink-2) hover:text-(--color-ink)"
               >
                 History
               </button>
@@ -1952,8 +1952,8 @@ export default function AgentPage() {
                 }
                 className={`rounded-full border px-3 py-1 text-sm transition disabled:cursor-not-allowed ${
                   savePhase === "saved"
-                    ? "border-[#3d7a5a] bg-[#e8f2ec] text-[#1a3d2e]"
-                    : "border-[#d8d3cb] bg-white text-[#6b7068] hover:border-[#3d7a5a] hover:text-[#1a3d2e] disabled:opacity-50"
+                    ? "border-(--color-ink-2) bg-(--color-paper-2) text-(--color-ink)"
+                    : "border-(--color-rule) bg-white text-(--color-muted) hover:border-(--color-ink-2) hover:text-(--color-ink) disabled:opacity-50"
                 }`}
               >
                 {!authenticated
@@ -1970,7 +1970,7 @@ export default function AgentPage() {
                 type="button"
                 onClick={resetSession}
                 disabled={loading}
-                className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-sm text-[#6b7068] transition hover:border-[#a33a3a] hover:text-[#a33a3a] disabled:cursor-not-allowed disabled:opacity-50"
+                className="border border-(--color-rule) bg-white px-3 py-1 text-sm text-(--color-muted) transition hover:border-(--color-error) hover:text-(--color-error) disabled:cursor-not-allowed disabled:opacity-50"
               >
                 New conversation
               </button>
@@ -1978,17 +1978,17 @@ export default function AgentPage() {
             {savePhase === "error" && saveError ? (
               <span
                 role="status"
-                className="rounded-full border border-[#e2c4bd] bg-[#fbefeb] px-3 py-1 text-sm text-[#8b3a2b]"
+                className="border border-(--color-error) bg-(--color-paper) px-3 py-1 text-sm text-(--color-error)"
               >
                 {saveError}
               </span>
             ) : null}
           </div>
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-[#16382a]">
+            <h1 className="text-4xl font-bold tracking-tight text-(--color-ink)">
               CrawlerNest Agent
             </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6b7068]">
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-(--color-muted)">
               Ask for a ranking explanation, a university lookup, or a maintenance
               question. Agent responses are advisory only. They do not modify
               CrawlerNest.
@@ -2003,7 +2003,7 @@ export default function AgentPage() {
               type="button"
               onClick={() => applyQuickTask(task)}
               disabled={loading}
-              className="rounded-full border border-[#d8d3cb] bg-white px-4 py-2 text-sm text-[#1a3d2e] transition hover:bg-[#e8f2ec]"
+              className="border border-(--color-rule) bg-white px-4 py-2 text-sm text-(--color-ink) transition hover:bg-(--color-paper-2)"
             >
               {task.label}
             </button>
@@ -2011,8 +2011,8 @@ export default function AgentPage() {
         </section>
 
         {agentStatus === "offline" ? (
-          <section className="mb-4 rounded-[1.5rem] border border-[#f0caca] bg-[#fff8f8] px-5 py-4 text-sm text-[#7c3131]">
-            <div className="font-semibold text-[#a33a3a]">Agent chat route unavailable</div>
+          <section className="mb-4 border border-(--color-error-soft) bg-(--color-plate) px-5 py-4 text-sm text-(--color-error)">
+            <div className="font-semibold text-(--color-error)">Agent chat route unavailable</div>
             <p className="mt-2 leading-6">
               The page is ready, but the local Next.js chat bridge did not respond.
               Check the dev server and provider configuration, then try again.
@@ -2020,64 +2020,64 @@ export default function AgentPage() {
           </section>
         ) : null}
 
-        <section className="mb-4 rounded-[1.5rem] border border-[#d8d3cb] bg-white px-5 py-4 text-sm shadow-sm">
+        <section className="mb-4 border border-(--color-rule) bg-white px-5 py-4 text-sm shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#6b7068]">
+              <div className="text-xs font-semibold text-(--color-muted)">
                 Demo Ready Information
               </div>
-              <div className="mt-2 text-base font-semibold text-[#1a3d2e]">
+              <div className="mt-2 text-base font-semibold text-(--color-ink)">
                 Advisory model surface for competition demos
               </div>
-              <p className="mt-1 max-w-3xl leading-6 text-[#6b7068]">
+              <p className="mt-1 max-w-3xl leading-6 text-(--color-muted)">
                 Intended use: explain rankings, recommendations, analytics caveats,
                 source freshness, and debugging direction without changing CrawlerNest.
               </p>
             </div>
             <div className="grid gap-2 text-xs sm:grid-cols-2">
-              <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1 text-[#1a3d2e]">
+              <span className="border border-(--color-rule) bg-(--color-paper) px-3 py-1 text-(--color-ink)">
                 provider: {agentHealth?.generation?.providerLabel ?? "mock"}
               </span>
-              <span className="rounded-full border border-[#cfe5d7] bg-[#edf7f1] px-3 py-1 text-[#1a6b3a]">
+              <span className="border border-(--color-rule) bg-(--color-paper) px-3 py-1 text-(--color-ink-2)">
                 readonly
               </span>
-              <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1 text-[#1a3d2e]">
+              <span className="border border-(--color-rule) bg-(--color-paper) px-3 py-1 text-(--color-ink)">
                 advisory-only
               </span>
               {/* Was "no tool calling", which stopped being true when this
                   page's route gained its engine pass: it calls ranking_tools
                   and reads the warehouse. The boundary that still holds is
                   that the read is the only thing it does. */}
-              <span className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1 text-[#1a3d2e]">
+              <span className="border border-(--color-rule) bg-(--color-paper) px-3 py-1 text-(--color-ink)">
                 readonly warehouse reads
               </span>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap gap-2 text-xs text-[#6b7068]">
+          <div className="mt-3 flex flex-wrap gap-2 text-xs text-(--color-muted)">
             {AGENT_DEMO_RUBRIC.requiredBoundary.map((boundary) => (
-              <span key={boundary} className="rounded-full bg-[#faf8f4] px-2.5 py-1">
+              <span key={boundary} className="bg-(--color-paper) px-2.5 py-1">
                 {boundary}
               </span>
             ))}
           </div>
         </section>
 
-        <section className="flex-1 rounded-[2rem] border border-[#e0ddd8] bg-white shadow-sm">
+        <section className="flex-1 border border-(--color-rule) bg-white shadow-sm">
           {showDebug || loading ? (
-            <div className="border-b border-[#e0ddd8] px-6 py-4">
-              <div className="flex flex-wrap items-center gap-3 text-sm text-[#6b7068]">
+            <div className="border-b border-(--color-rule) px-6 py-4">
+              <div className="flex flex-wrap items-center gap-3 text-sm text-(--color-muted)">
                 {showDebug ? (
                   <>
-                    <span className="rounded-full bg-[#f5f3ee] px-3 py-1 text-[#1a3d2e]">
+                    <span className="bg-(--color-paper) px-3 py-1 text-(--color-ink)">
                       mode: {mode}
                     </span>
-                    <span className="rounded-full bg-[#f5f3ee] px-3 py-1 text-[#1a3d2e]">
+                    <span className="bg-(--color-paper) px-3 py-1 text-(--color-ink)">
                       kind: {kind}
                     </span>
                   </>
                 ) : null}
                 {loading ? (
-                  <span className="rounded-full bg-[#e8f2ec] px-3 py-1 text-[#1a3d2e]">
+                  <span className="bg-(--color-paper-2) px-3 py-1 text-(--color-ink)">
                     running...
                   </span>
                 ) : null}
@@ -2093,7 +2093,7 @@ export default function AgentPage() {
                 className="flex-1 space-y-4 overflow-y-auto px-6 py-6"
               >
                 {history.length === 0 ? (
-                  <div className="rounded-[1.5rem] border border-dashed border-[#d8d3cb] bg-[#faf8f4] px-5 py-6 text-sm text-[#6b7068]">
+                  <div className="border border-dashed border-(--color-rule) bg-(--color-paper) px-5 py-6 text-sm text-(--color-muted)">
                     Start with a quick task above, or type your own request below.
                     The first response will appear here.
                   </div>
@@ -2101,10 +2101,10 @@ export default function AgentPage() {
 
                 {history.map((entry, historyIndex) => (
                   <div key={entry.id} className="space-y-3">
-                    <div className="ml-auto max-w-3xl rounded-[1.5rem] bg-[#16382a] px-5 py-4 text-white">
+                    <div className="ml-auto max-w-3xl bg-(--color-ink) px-5 py-4 text-white">
                       <div className="flex items-center justify-between gap-3">
                         {showDebug ? (
-                          <div className="text-xs uppercase tracking-[0.16em] text-white/70">
+                          <div className="text-xs text-white/70">
                             {entry.mode} · {entry.kind}
                           </div>
                         ) : null}
@@ -2121,14 +2121,14 @@ export default function AgentPage() {
                       if (entry.response === null && !entry.error) {
                         return (
                           <div
-                            className={`max-w-4xl rounded-[1.5rem] border bg-[#faf8f4] px-5 py-4 transition ${
+                            className={`max-w-4xl border bg-(--color-paper) px-5 py-4 transition ${
                               entry.id === latest?.id
-                                ? "border-[#cfe5d7] shadow-[0_0_0_2px_rgba(26,61,46,0.06)]"
-                                : "border-[#e0ddd8]"
+                                ? "border-(--color-rule) shadow-[0_0_0_2px_rgba(26,61,46,0.06)]"
+                                : "border-(--color-rule)"
                             }`}
                           >
-                            <div className="flex items-center gap-3 text-sm text-[#1a3d2e]">
-                              <span className="h-2 w-2 animate-pulse rounded-full bg-[#1a3d2e]" />
+                            <div className="flex items-center gap-3 text-sm text-(--color-ink)">
+                              <span className="h-2 w-2 animate-pulse bg-(--color-ink)" />
                               <span>Agent is generating...</span>
                             </div>
                           </div>
@@ -2167,57 +2167,57 @@ export default function AgentPage() {
 
                       return (
                         <div
-                          className={`max-w-4xl rounded-[1.5rem] border bg-[#faf8f4] px-5 py-4 transition ${
+                          className={`max-w-4xl border bg-(--color-paper) px-5 py-4 transition ${
                             entry.id === latest?.id
-                              ? "border-[#cfe5d7] shadow-[0_0_0_2px_rgba(26,61,46,0.06)]"
-                              : "border-[#e0ddd8]"
+                              ? "border-(--color-rule) shadow-[0_0_0_2px_rgba(26,61,46,0.06)]"
+                              : "border-(--color-rule)"
                           }`}
                         >
                       {isDevMode ? (
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="rounded-full border border-[#d8d3cb] bg-white px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-[#6b7068]">
+                              <span className="border border-(--color-rule) bg-white px-2 py-0.5 text-[10px] text-(--color-muted)">
                                 dev
                               </span>
-                              <span className="rounded-full border border-[#d8d3cb] bg-white px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-[#6b7068]">
+                              <span className="border border-(--color-rule) bg-white px-2 py-0.5 text-[10px] text-(--color-muted)">
                                 {entry.kind.replace(/_/g, " ")}
                               </span>
                             </div>
-                            <div className="mt-2 text-sm font-semibold text-[#1a3d2e]">
+                            <div className="mt-2 text-sm font-semibold text-(--color-ink)">
                               {entry.response?.data?.message ?? "Dev agent response"}
                             </div>
                           </div>
-                          <div className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-medium text-[#6b7068]">
+                          <div className="shrink-0 bg-white px-3 py-1 text-xs font-medium text-(--color-muted)">
                             {entry.response?.data?.status ?? "error"}
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="text-sm font-semibold text-[#1a3d2e]">
+                            <div className="text-sm font-semibold text-(--color-ink)">
                               {formatted?.title ?? entry.response?.data?.message ?? "Agent response"}
                             </div>
                             {showDebug && generationSource ? (
                               <div className="mt-2 flex flex-wrap items-center gap-2">
                                 <span
-                                  className={`rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] ${
+                                  className={` border px-2.5 py-0.5 text-[10px] ${
                                     generationSource === "llm"
-                                      ? "border-[#cfe5d7] bg-[#edf7f1] text-[#1a6b3a]"
-                                      : "border-[#f0d8b8] bg-[#fffbf4] text-[#7c5c1a]"
+                                      ? "border-(--color-rule) bg-(--color-paper) text-(--color-ink-2)"
+                                      : "border-(--color-warn-soft) bg-(--color-plate) text-(--color-warn)"
                                   }`}
                                 >
                                   {generationSource}
                                 </span>
                                 {modelName ? (
-                                  <span className="rounded-full border border-[#d8d3cb] bg-white px-2.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+                                  <span className="border border-(--color-rule) bg-white px-2.5 py-0.5 text-[10px] text-(--color-muted)">
                                     {modelName}
                                   </span>
                                 ) : null}
                               </div>
                             ) : null}
                           </div>
-                          <div className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#6b7068]">
+                          <div className="bg-white px-3 py-1 text-xs font-medium text-(--color-muted)">
                             {entry.response?.data?.status ?? "error"}
                           </div>
                         </div>
@@ -2236,11 +2236,11 @@ export default function AgentPage() {
 
                               {/* ── Execution plan ── */}
                               {traces.length > 0 ? (
-                                <div className="rounded-[1.5rem] border border-[#d8d3cb] bg-white px-5 py-4">
-                                  <div className="mb-3 text-xs uppercase tracking-[0.14em] text-[#6b7068]">
+                                <div className="border border-(--color-rule) bg-white px-5 py-4">
+                                  <div className="mb-3 text-xs text-(--color-muted)">
                                     Execution plan
                                   </div>
-                                  <ol className="overflow-hidden rounded-xl border border-[#ece7de]">
+                                  <ol className="overflow-hidden rounded-xl border border-(--color-rule)">
                                     {traces.map((trace, traceIndex) => {
                                       const stepLabel =
                                         typeof trace.step === "string"
@@ -2252,18 +2252,18 @@ export default function AgentPage() {
                                         <li
                                           key={traceIndex}
                                           className={`flex items-start gap-3 px-4 py-3 ${
-                                            traceIndex > 0 ? "border-t border-[#ece7de]" : ""
+                                            traceIndex > 0 ? "border-t border-(--color-rule)" : ""
                                           }`}
                                         >
-                                          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#cfe5d7] bg-[#edf7f1] text-[10px] font-semibold text-[#1a3d2e]">
+                                          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center border border-(--color-rule) bg-(--color-paper) text-[10px] font-semibold text-(--color-ink)">
                                             {traceIndex + 1}
                                           </div>
                                           <div className="min-w-0 flex-1">
-                                            <div className="text-sm font-medium text-[#1a1a1a]">
+                                            <div className="text-sm font-medium text-(--color-ink)">
                                               {stepLabel}
                                             </div>
                                             {owner ? (
-                                              <div className="mt-0.5 text-xs text-[#6b7068]">
+                                              <div className="mt-0.5 text-xs text-(--color-muted)">
                                                 {owner}
                                               </div>
                                             ) : null}
@@ -2281,8 +2281,8 @@ export default function AgentPage() {
                                 : null}
 
                               {/* ── Structured output ── */}
-                              <div className="rounded-[1.5rem] border border-[#d8d3cb] bg-white px-5 py-4">
-                                <div className="mb-4 text-xs uppercase tracking-[0.14em] text-[#6b7068]">
+                              <div className="border border-(--color-rule) bg-white px-5 py-4">
+                                <div className="mb-4 text-xs text-(--color-muted)">
                                   Structured output
                                 </div>
                                 {formatted && Object.keys(formatted as Record<string, unknown>).length > 0 ? (
@@ -2293,7 +2293,7 @@ export default function AgentPage() {
                                         if (rendered === null) return null;
                                         return (
                                           <div key={key}>
-                                            <div className="mb-1.5 text-[10px] uppercase tracking-[0.14em] text-[#6b7068]">
+                                            <div className="mb-1.5 text-[10px] text-(--color-muted)">
                                               {toTitleCase(key)}
                                             </div>
                                             {rendered}
@@ -2303,29 +2303,29 @@ export default function AgentPage() {
                                     )}
                                   </div>
                                 ) : (
-                                  <p className="text-xs text-[#6b7068]">No output data.</p>
+                                  <p className="text-xs text-(--color-muted)">No output data.</p>
                                 )}
                               </div>
 
                               {/* ── Warnings ── */}
                               {warnings.length > 0 ? (
-                                <div className="rounded-[1.5rem] border border-[#f0d8b8] bg-[#fffbf4] px-5 py-4">
-                                  <div className="mb-2 text-xs uppercase tracking-[0.14em] text-[#6b7068]">
+                                <div className="border border-(--color-warn-soft) bg-(--color-plate) px-5 py-4">
+                                  <div className="mb-2 text-xs text-(--color-muted)">
                                     Warnings
                                   </div>
                                   <ul className="space-y-1.5">
                                     {warnings.map((w) => (
-                                      <li key={w} className="flex items-start gap-2 text-xs text-[#7c5c1a]">
-                                        <span className="mt-0.5 shrink-0 text-[#c47c1a]">▲</span>
+                                      <li key={w} className="flex items-start gap-2 text-xs text-(--color-warn)">
+                                        <span className="mt-0.5 shrink-0 text-(--color-warn)">▲</span>
                                         {w}
                                       </li>
                                     ))}
                                   </ul>
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-2 rounded-[1.5rem] border border-[#e0ddd8] bg-white px-5 py-3">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-[#cfe5d7]" />
-                                  <span className="text-xs text-[#6b7068]">No warnings</span>
+                                <div className="flex items-center gap-2 border border-(--color-rule) bg-white px-5 py-3">
+                                  <span className="h-1.5 w-1.5 bg-(--color-paper-3)" />
+                                  <span className="text-xs text-(--color-muted)">No warnings</span>
                                 </div>
                               )}
                             </div>
@@ -2342,33 +2342,33 @@ export default function AgentPage() {
                             // attached — the year the answer actually
                             // describes, for one — has no other route to this
                             // branch, and it was reaching the dev panel only.
-                            <div className="mt-4 rounded-[1.5rem] bg-white px-5 py-4">
+                            <div className="mt-4 bg-white px-5 py-4">
                               <AgentWarningBanner warnings={warnings} />
 
-                              <div className="space-y-3 text-sm leading-7 text-[#1a1a1a]">
+                              <div className="space-y-3 text-sm leading-7 text-(--color-ink)">
                                 {paragraphs.map((paragraph) => (
                                   <p key={paragraph}>{paragraph}</p>
                                 ))}
                               </div>
 
                               {items.length > 0 ? (
-                                <div className="mt-4 overflow-hidden rounded-2xl border border-[#ece7de] bg-[#faf8f4]">
+                                <div className="mt-4 overflow-hidden rounded-2xl border border-(--color-rule) bg-(--color-paper)">
                                   {items.map((item, index) => (
                                     <div
                                       key={`${item.kind ?? "item"}-${item.label}`}
                                       className={`flex items-start gap-3 px-4 py-3 text-sm ${
-                                        index > 0 ? "border-t border-[#ece7de]" : ""
+                                        index > 0 ? "border-t border-(--color-rule)" : ""
                                       }`}
                                     >
                                       {item.kind ? (
-                                        <span className="mt-0.5 shrink-0 rounded-full border border-[#d8d3cb] bg-white px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#6b7068]">
+                                        <span className="mt-0.5 shrink-0 border border-(--color-rule) bg-white px-2 py-0.5 text-[10px] text-(--color-muted)">
                                           {item.kind}
                                         </span>
                                       ) : null}
                                       <div className="min-w-0 flex-1">
-                                        <div className="font-medium text-[#1a1a1a]">{item.label}</div>
+                                        <div className="font-medium text-(--color-ink)">{item.label}</div>
                                         {item.description ? (
-                                          <div className="mt-0.5 text-xs leading-5 text-[#6b7068]">
+                                          <div className="mt-0.5 text-xs leading-5 text-(--color-muted)">
                                             {item.description}
                                           </div>
                                         ) : null}
@@ -2379,12 +2379,12 @@ export default function AgentPage() {
                               ) : null}
 
                               {Object.keys(meta).length > 0 ? (
-                                <div className="mt-4 rounded-2xl border border-[#ece7de] bg-[#faf8f4] p-4">
+                                <div className="mt-4 rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4">
                                   <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs">
                                     {Object.entries(meta).map(([key, value]) => (
                                       <div key={key} className="contents">
-                                        <span className="text-[#6b7068]">{key}</span>
-                                        <span className="font-medium text-[#1a1a1a]">
+                                        <span className="text-(--color-muted)">{key}</span>
+                                        <span className="font-medium text-(--color-ink)">
                                           {typeof value === "object" && value !== null
                                             ? JSON.stringify(value)
                                             : String(value ?? "")}
@@ -2399,13 +2399,13 @@ export default function AgentPage() {
 
                           {showDebug ? (
                             <details className="mt-4 rounded-2xl bg-white" open>
-                              <summary className="cursor-pointer px-4 py-3 text-xs font-medium uppercase tracking-[0.16em] text-[#6b7068]">
+                              <summary className="cursor-pointer px-4 py-3 text-xs font-medium text-(--color-muted)">
                                 Debug details
                               </summary>
-                              <div className="space-y-4 border-t border-[#ece7de] p-4">
+                              <div className="space-y-4 border-t border-(--color-rule) p-4">
                                 {!isDevMode ? (
-                                  <div className="rounded-2xl border border-[#ece7de] bg-[#faf8f4] p-4 text-xs text-[#6b7068]">
-                                    <div className="font-medium text-[#1a3d2e]">Generation</div>
+                                  <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs text-(--color-muted)">
+                                    <div className="font-medium text-(--color-ink)">Generation</div>
                                     <pre className="mt-2 overflow-x-auto">
                                       {JSON.stringify(
                                         {
@@ -2456,23 +2456,23 @@ export default function AgentPage() {
                                   ? renderMemoryDebug(formatted.memoryDebug)
                                   : null}
 
-                                <div className="rounded-2xl border border-[#ece7de] bg-[#faf8f4] p-4 text-xs text-[#6b7068]">
-                                  <div className="font-medium text-[#1a3d2e]">Task info</div>
+                                <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs text-(--color-muted)">
+                                  <div className="font-medium text-(--color-ink)">Task info</div>
                                   <pre className="mt-2 overflow-x-auto">{JSON.stringify({ taskId, status }, null, 2)}</pre>
                                 </div>
 
-                                <div className="rounded-2xl border border-[#ece7de] bg-[#faf8f4] p-4 text-xs text-[#6b7068]">
-                                  <div className="font-medium text-[#1a3d2e]">Warnings</div>
+                                <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs text-(--color-muted)">
+                                  <div className="font-medium text-(--color-ink)">Warnings</div>
                                   <pre className="mt-2 overflow-x-auto">{JSON.stringify(warnings, null, 2)}</pre>
                                 </div>
 
-                                <div className="rounded-2xl border border-[#ece7de] bg-[#faf8f4] p-4 text-xs text-[#6b7068]">
-                                  <div className="font-medium text-[#1a3d2e]">Raw trace data</div>
+                                <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs text-(--color-muted)">
+                                  <div className="font-medium text-(--color-ink)">Raw trace data</div>
                                   <pre className="mt-2 overflow-x-auto">{JSON.stringify(traces, null, 2)}</pre>
                                 </div>
 
-                                <div className="rounded-2xl border border-[#ece7de] bg-[#faf8f4] p-4 text-xs text-[#6b7068]">
-                                  <div className="font-medium text-[#1a3d2e]">Raw response</div>
+                                <div className="rounded-2xl border border-(--color-rule) bg-(--color-paper) p-4 text-xs text-(--color-muted)">
+                                  <div className="font-medium text-(--color-ink)">Raw response</div>
                                   <pre className="mt-2 overflow-x-auto">{formatResponse(entry.response)}</pre>
                                 </div>
                               </div>
@@ -2486,7 +2486,7 @@ export default function AgentPage() {
                 <div ref={bottomRef} />
               </div>
 
-              <div className="border-t border-[#e0ddd8] bg-white px-6 py-5">
+              <div className="border-t border-(--color-rule) bg-white px-6 py-5">
                 {friendlyError ? (
                   <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                     <div className="font-medium">{friendlyError}</div>
@@ -2506,12 +2506,12 @@ export default function AgentPage() {
                     onKeyDown={handlePromptKeyDown}
                     rows={4}
                     placeholder={promptPlaceholder}
-                    className="w-full rounded-[1.5rem] border border-[#d8d3cb] bg-[#faf8f4] px-5 py-4 text-sm outline-none transition focus:border-[#1a3d2e]"
+                    className="w-full border border-(--color-rule) bg-(--color-paper) px-5 py-4 text-sm outline-none transition focus:border-(--color-ink)"
                   />
 
-                  <div className="text-xs text-[#6b7068]">
-                    Press <span className="font-medium text-[#1a3d2e]">Enter</span> to send.
-                    Use <span className="font-medium text-[#1a3d2e]">Shift + Enter</span> for a new line.
+                  <div className="text-xs text-(--color-muted)">
+                    Press <span className="font-medium text-(--color-ink)">Enter</span> to send.
+                    Use <span className="font-medium text-(--color-ink)">Shift + Enter</span> for a new line.
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -2521,7 +2521,7 @@ export default function AgentPage() {
                           <select
                             value={mode}
                             onChange={(event) => setMode(event.target.value as AgentMode)}
-                            className="rounded-full border border-[#d8d3cb] bg-white px-4 py-2 text-sm text-[#1a3d2e] outline-none"
+                            className="border border-(--color-rule) bg-white px-4 py-2 text-sm text-(--color-ink) outline-none"
                           >
                             <option value="web">web</option>
                             <option value="dev">dev</option>
@@ -2530,7 +2530,7 @@ export default function AgentPage() {
                           <select
                             value={kind}
                             onChange={(event) => setKind(event.target.value as TaskKind)}
-                            className="rounded-full border border-[#d8d3cb] bg-white px-4 py-2 text-sm text-[#1a3d2e] outline-none"
+                            className="border border-(--color-rule) bg-white px-4 py-2 text-sm text-(--color-ink) outline-none"
                           >
                             {TASK_OPTIONS.map((option) => (
                               <option key={option.value} value={option.value}>
@@ -2542,7 +2542,7 @@ export default function AgentPage() {
                           <button
                             type="button"
                             onClick={() => setShowAdvanced((current) => !current)}
-                            className="rounded-full border border-[#d8d3cb] bg-white px-4 py-2 text-sm text-[#1a3d2e] transition hover:bg-[#e8f2ec]"
+                            className="border border-(--color-rule) bg-white px-4 py-2 text-sm text-(--color-ink) transition hover:bg-(--color-paper-2)"
                           >
                             {showAdvanced ? "Hide context" : "Context"}
                           </button>
@@ -2553,22 +2553,22 @@ export default function AgentPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="rounded-full bg-[#16382a] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42] disabled:cursor-not-allowed disabled:bg-[#c0bdb8]"
+                      className="bg-(--color-ink) px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-ink-2) disabled:cursor-not-allowed disabled:bg-(--color-paper-3)"
                     >
                       {loading ? "Generating..." : "Send"}
                     </button>
                   </div>
 
                   {showDebug && showAdvanced ? (
-                    <div className="rounded-[1.25rem] border border-[#e0ddd8] bg-[#faf8f4] p-4">
-                      <div className="mb-2 text-xs uppercase tracking-[0.16em] text-[#6b7068]">
+                    <div className="border border-(--color-rule) bg-(--color-paper) p-4">
+                      <div className="mb-2 text-xs text-(--color-muted)">
                         Context JSON
                       </div>
                       <textarea
                         value={contextJson}
                         onChange={(event) => setContextJson(event.target.value)}
                         rows={8}
-                        className="w-full rounded-xl border border-[#d8d3cb] bg-white px-4 py-3 font-mono text-xs outline-none transition focus:border-[#1a3d2e]"
+                        className="w-full rounded-xl border border-(--color-rule) bg-white px-4 py-3 font-mono text-xs outline-none transition focus:border-(--color-ink)"
                       />
                     </div>
                   ) : null}
@@ -2576,19 +2576,19 @@ export default function AgentPage() {
               </div>
             </div>
 
-            <aside className="border-t border-[#e0ddd8] bg-[#faf8f4] px-6 py-6 lg:border-l lg:border-t-0">
-              <div className="rounded-[1.5rem] border border-[#e0ddd8] bg-white p-4">
-                <div className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
+            <aside className="border-t border-(--color-rule) bg-(--color-paper) px-6 py-6 lg:border-l lg:border-t-0">
+              <div className="border border-(--color-rule) bg-white p-4">
+                <div className="text-xs text-(--color-muted)">
                   Good first prompts
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-sm text-[#1a3d2e]">
+                <div className="mt-3 flex flex-wrap gap-2 text-sm text-(--color-ink)">
                   {visibleQuickTasks.map((task) => (
                     <button
                       key={`hint-${task.label}`}
                       type="button"
                       onClick={() => applyQuickTask(task)}
                       disabled={loading}
-                      className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1.5 text-left text-sm text-[#1a3d2e] transition hover:bg-[#e8f2ec] disabled:cursor-not-allowed disabled:opacity-70"
+                      className="border border-(--color-rule) bg-(--color-paper) px-3 py-1.5 text-left text-sm text-(--color-ink) transition hover:bg-(--color-paper-2) disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {task.prompt}
                     </button>
@@ -2596,18 +2596,18 @@ export default function AgentPage() {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-[1.5rem] border border-[#e0ddd8] bg-white p-4">
-                <div className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
+              <div className="mt-6 border border-(--color-rule) bg-white p-4">
+                <div className="text-xs text-(--color-muted)">
                   Suggested prompts
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2 text-sm text-[#1a3d2e]">
+                <div className="mt-3 flex flex-wrap gap-2 text-sm text-(--color-ink)">
                   {AGENT_SUGGESTED_PROMPTS.map((suggestion) => (
                     <button
                       key={suggestion}
                       type="button"
                       onClick={() => applySuggestedPrompt(suggestion)}
                       disabled={loading}
-                      className="rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1.5 text-left text-sm text-[#1a3d2e] transition hover:bg-[#e8f2ec] disabled:cursor-not-allowed disabled:opacity-70"
+                      className="border border-(--color-rule) bg-(--color-paper) px-3 py-1.5 text-left text-sm text-(--color-ink) transition hover:bg-(--color-paper-2) disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {suggestion}
                     </button>
@@ -2615,22 +2615,22 @@ export default function AgentPage() {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-[1.5rem] border border-[#e0ddd8] bg-white p-4">
-                <div className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
+              <div className="mt-6 border border-(--color-rule) bg-white p-4">
+                <div className="text-xs text-(--color-muted)">
                   Capability boundary
                 </div>
                 <div className="mt-3 grid gap-4 text-sm leading-6 sm:grid-cols-2 lg:grid-cols-1">
                   <div>
-                    <div className="font-medium text-[#1a3d2e]">Agent can</div>
-                    <ul className="mt-2 space-y-1 text-[#6b7068]">
+                    <div className="font-medium text-(--color-ink)">Agent can</div>
+                    <ul className="mt-2 space-y-1 text-(--color-muted)">
                       {AGENT_CAPABILITIES.map((capability) => (
                         <li key={capability}>- {capability}</li>
                       ))}
                     </ul>
                   </div>
                   <div>
-                    <div className="font-medium text-[#a33a3a]">Agent cannot</div>
-                    <ul className="mt-2 space-y-1 text-[#6b7068]">
+                    <div className="font-medium text-(--color-error)">Agent cannot</div>
+                    <ul className="mt-2 space-y-1 text-(--color-muted)">
                       {AGENT_LIMITATIONS.map((limitation) => (
                         <li key={limitation}>- {limitation}</li>
                       ))}
@@ -2642,8 +2642,8 @@ export default function AgentPage() {
               {showDebug ? (
                 <>
                   <div className="mt-6">
-                    <h2 className="text-lg font-semibold text-[#1a3d2e]">How it works</h2>
-                    <div className="mt-4 space-y-3 text-sm leading-6 text-[#6b7068]">
+                    <h2 className="text-lg font-semibold text-(--color-ink)">How it works</h2>
+                    <div className="mt-4 space-y-3 text-sm leading-6 text-(--color-muted)">
                       <p>1. This page sends a readonly chat message to <code>/api/agent/chat</code>.</p>
                       <p>2. The server-side provider bridge selects mock, Ollama, or OpenAI.</p>
                       <p>3. The bridge returns advisory text only; it does not run tools.</p>
@@ -2651,11 +2651,11 @@ export default function AgentPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 rounded-[1.5rem] border border-[#e0ddd8] bg-white p-4">
-                    <div className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
+                  <div className="mt-6 border border-(--color-rule) bg-white p-4">
+                    <div className="text-xs text-(--color-muted)">
                       Generation status
                     </div>
-                    <div className="mt-3 space-y-2 text-sm text-[#1a1a1a]">
+                    <div className="mt-3 space-y-2 text-sm text-(--color-ink)">
                       <p>
                         Provider:{" "}
                         <span className="font-medium">
@@ -2675,28 +2675,28 @@ export default function AgentPage() {
                         </span>
                       </p>
                       {agentHealth?.generation?.reason ? (
-                        <p className="text-[#6b7068]">{agentHealth.generation.reason}</p>
+                        <p className="text-(--color-muted)">{agentHealth.generation.reason}</p>
                       ) : null}
                     </div>
                   </div>
 
-                  <div className="mt-6 rounded-[1.5rem] border border-[#e0ddd8] bg-white p-4">
-                    <div className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
+                  <div className="mt-6 border border-(--color-rule) bg-white p-4">
+                    <div className="text-xs text-(--color-muted)">
                       Provider setup
                     </div>
-                    <pre className="mt-3 overflow-x-auto rounded-xl bg-[#faf8f4] px-4 py-3 text-xs text-[#1a1a1a]">
+                    <pre className="mt-3 overflow-x-auto rounded-xl bg-(--color-paper) px-4 py-3 text-xs text-(--color-ink)">
                       AGENT_MODEL_PROVIDER=mock npm run dev
                     </pre>
                   </div>
 
-                  <div className="mt-6 rounded-[1.5rem] border border-[#e0ddd8] bg-white p-4">
-                    <div className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
+                  <div className="mt-6 border border-(--color-rule) bg-white p-4">
+                    <div className="text-xs text-(--color-muted)">
                       Latest task
                     </div>
-                    <div className="mt-3 text-sm text-[#6b7068]">
+                    <div className="mt-3 text-sm text-(--color-muted)">
                       {latest ? (
                         <>
-                          <p className="font-medium text-[#1a3d2e]">{latest.prompt}</p>
+                          <p className="font-medium text-(--color-ink)">{latest.prompt}</p>
                           <p className="mt-2">
                             {latest.response?.data?.status ?? "error"} · {latest.kind}
                           </p>
@@ -2707,20 +2707,20 @@ export default function AgentPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 rounded-[1.5rem] border border-[#e0ddd8] bg-white p-4">
-                    <div className="text-xs uppercase tracking-[0.16em] text-[#6b7068]">
+                  <div className="mt-6 border border-(--color-rule) bg-white p-4">
+                    <div className="text-xs text-(--color-muted)">
                       Conversation session
                     </div>
-                    <div className="mt-3 space-y-2 text-xs text-[#6b7068]">
+                    <div className="mt-3 space-y-2 text-xs text-(--color-muted)">
                       <p>
                         Session:{" "}
-                        <span className="font-mono font-medium text-[#1a3d2e]">
+                        <span className="font-mono font-medium text-(--color-ink)">
                           {sessionId.slice(0, 8)}…
                         </span>
                       </p>
                       <p>
                         Turns:{" "}
-                        <span className="font-medium text-[#1a3d2e]">
+                        <span className="font-medium text-(--color-ink)">
                           {history.length}
                         </span>
                       </p>
@@ -2728,7 +2728,7 @@ export default function AgentPage() {
                         type="button"
                         onClick={resetSession}
                         disabled={loading}
-                        className="mt-1 rounded-full border border-[#d8d3cb] bg-[#faf8f4] px-3 py-1 text-xs text-[#6b7068] transition hover:border-[#a33a3a] hover:text-[#a33a3a] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="mt-1 border border-(--color-rule) bg-(--color-paper) px-3 py-1 text-xs text-(--color-muted) transition hover:border-(--color-error) hover:text-(--color-error) disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Reset session
                       </button>

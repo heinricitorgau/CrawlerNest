@@ -54,12 +54,12 @@ export function AdmissionSignalBadge({
   const valueText = formatSignalValue(value);
   const baseClass = compact
     ? "flex flex-wrap items-center gap-x-2 gap-y-1 text-xs"
-    : "flex flex-col gap-1 rounded-lg border border-[#e0ddd8] bg-white px-3 py-2 text-sm";
+    : "flex flex-col gap-1 rounded-lg border border-(--color-rule) bg-white px-3 py-2 text-sm";
 
   if (status === "needs_review") {
     return (
       <div className={baseClass}>
-        <span className="font-medium text-[#1a1a1a]">
+        <span className="font-medium text-(--color-ink)">
           {label} {valueText}
         </span>
         <span className="text-yellow-600">⚠ Needs review</span>
@@ -70,7 +70,7 @@ export function AdmissionSignalBadge({
   if (status === "conflict") {
     return (
       <div className={baseClass}>
-        <span className="font-medium text-[#1a1a1a]">
+        <span className="font-medium text-(--color-ink)">
           {label} {valueText}
         </span>
         <span className="text-red-600">⚠ Conflicting sources</span>
@@ -83,11 +83,11 @@ export function AdmissionSignalBadge({
 
   return (
     <div className={baseClass}>
-      <span className="font-medium text-[#1a1a1a]">
+      <span className="font-medium text-(--color-ink)">
         {label} {valueText}
       </span>
       <span className={confidenceClass(confidence)}>● {confidenceText} confidence</span>
-      <span className="text-[#6b7068]">
+      <span className="text-(--color-muted)">
         {sourceCount} {sourceLabel}
       </span>
     </div>

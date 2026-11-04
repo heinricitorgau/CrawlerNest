@@ -32,7 +32,7 @@ export default function AgentWarningBanner({ warnings }: AgentWarningBannerProps
     <div
       role="alert"
       aria-label="Response disclosures"
-      className="mb-4 rounded-2xl border border-[#f0d8b8] bg-[#fffbf4] px-4 py-3"
+      className="mb-4 rounded-2xl border border-(--color-warn-soft) bg-(--color-plate) px-4 py-3"
     >
       <ul className="space-y-2">
         {disclosures.map((warning) => (
@@ -41,14 +41,14 @@ export default function AgentWarningBanner({ warnings }: AgentWarningBannerProps
             data-warning-code={warning.code ?? undefined}
             className="flex items-start gap-2.5"
           >
-            <span aria-hidden="true" className="mt-0.5 shrink-0 text-[#c47c1a]">
+            <span aria-hidden="true" className="mt-0.5 shrink-0 text-(--color-warn)">
               ▲
             </span>
             <div className="min-w-0 flex-1">
-              <div className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#a4761f]">
+              <div className="text-[10px] font-medium text-(--color-warn)">
                 {humanizeWarningCode(warning.code as string)}
               </div>
-              <p className="mt-0.5 text-xs leading-5 text-[#7c5c1a]">{warning.message}</p>
+              <p className="mt-0.5 text-xs leading-5 text-(--color-warn)">{warning.message}</p>
             </div>
           </li>
         ))}
