@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
-import { DeadlineList, DeskCard, SkillMasteryList, SprintCard } from "@/components/desk";
+import { useEffect, useRef, useState, type Dispatch, type FormEvent, type SetStateAction } from "react";
+import { DeadlineList, DeskCard, SkillMasteryList, SprintCard, type DeskTask } from "@/components/desk";
 import {
   createSprint,
   createTask,
@@ -75,6 +75,9 @@ function isoDate(date: Date): string {
 export function LiveSprintCard({ today }: { today: Date }) {
   const [state, setState, load] = useDeskLoad(getCurrentSprint);
   const [actionError, setActionError] = useState<string | null>(null);
+  // Tasks with a save in flight. A second tick before the first returns would
+  // carry the old revision and be refused as if another tab had changed it.
+  const saving = useRef(new Set<string>());
 
   if (state.phase === "loading") {
     return <DeskCard eyebrow="Priority sprint" title="Loading…"><p className="text-sm text-slate-400">Loading your sprint.</p></DeskCard>;
@@ -90,19 +93,31 @@ export function LiveSprintCard({ today }: { today: Date }) {
 
   async function toggle(taskId: string) {
     const task = sprint.tasks.find((t) => t.id === taskId);
-    if (!task) return;
+    if (!task || saving.current.has(taskId)) return;
     const next = task.status === "done" ? "todo" : "done";
-    const apply = (status: typeof next | typeof task.status) =>
-      setState({ phase: "ready", data: { ...sprint, tasks: sprint.tasks.map((t) => (t.id === taskId ? { ...t, status } : t)) } });
+    // Functional updates, so a save that settles late does not undo another task's tick.
+    const replaceTask = (row: DeskTask) =>
+      setState((prev) => prev.phase !== "ready" || prev.data === null ? prev
+        : { phase: "ready", data: { ...prev.data, tasks: prev.data.tasks.map((t) => (t.id === taskId ? row : t)) } });
     // Optimistic: the box ticks now, and goes back if the server refuses.
-    apply(next);
-    const result = await setTaskStatus(taskId, next);
+    replaceTask({ ...task, status: next });
+    saving.current.add(taskId);
+    const result = await setTaskStatus(taskId, next, task.revision);
+    saving.current.delete(taskId);
     if (!result.ok) {
-      apply(task.status);
-      setActionError(result.message);
-    } else {
-      setActionError(null);
+      replaceTask(task);
+      if (result.reason === "conflict") {
+        // Changed in another tab or by Tassel: show the stored sprint rather than a stale one.
+        setActionError("That task was changed elsewhere, so the latest version is shown. Tick it again if you still want to.");
+        load();
+      } else {
+        setActionError(result.message);
+      }
+      return;
     }
+    setActionError(null);
+    // Keep the server's row, so the next tick sends the new revision.
+    if (result.data) replaceTask(result.data);
   }
 
   async function add(input: { title: string; dueDate?: string }) {

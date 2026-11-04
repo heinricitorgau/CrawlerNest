@@ -90,7 +90,7 @@ export function CollegeListPanel({ onChanged }: { onChanged?: () => void }) {
                   <p className="px-3 pb-2 text-xs text-amber-800">This school&apos;s record was merged into another one in CrawlerNest; remove it and add the school again.</p>
                 ) : null}
                 {openId === t.id ? (
-                  <TargetEditor target={t} onSaved={replace}
+                  <TargetEditor target={t} onSaved={replace} onStale={replace}
                     onRemoved={() => { setTargets((prev) => (prev ?? []).filter((x) => x.id !== t.id)); setOpenId(null); onChanged?.(); }} />
                 ) : null}
               </li>
@@ -103,9 +103,11 @@ export function CollegeListPanel({ onChanged }: { onChanged?: () => void }) {
   );
 }
 
-function TargetEditor({ target, onSaved, onRemoved }: {
+function TargetEditor({ target, onSaved, onStale, onRemoved }: {
   target: LiveTarget;
   onSaved: (t: LiveTarget) => void;
+  /** The stored row, when a save was refused because the school changed elsewhere. */
+  onStale: (t: LiveTarget) => void;
   onRemoved: () => void;
 }) {
   const [stage, setStage] = useState(target.stage);
@@ -130,7 +132,31 @@ function TargetEditor({ target, onSaved, onRemoved }: {
     event.preventDefault();
     if (!dirty || saving) return;
     setSaving(true);
-    const result = await updateTarget(target.id, patch);
+    const result = await updateTarget(target.id, patch, target.revision);
+    if (!result.ok && result.reason === "conflict") {
+      // Load the stored row. The form keeps what was typed, and the PATCH is
+      // recomputed against the fresh row, so saving again applies only the edits.
+      const fresh = await listTargets();
+      setSaving(false);
+      const stored = fresh.ok ? fresh.data.find((t) => t.id === target.id) : undefined;
+      if (stored) {
+        // A field the user did not touch takes the stored value; otherwise the
+        // next save would send the stale one back and undo the other change.
+        if (stage === target.stage) setStage(stored.stage);
+        if ((round || null) === target.applicationRound) setRound(stored.applicationRound ?? "");
+        if ((deadline || null) === target.deadline) setDeadline(stored.deadline ?? "");
+        if ((band || null) === target.userBand) setBand(stored.userBand ?? "");
+        if ((notes.trim() || null) === target.notes) setNotes(stored.notes ?? "");
+        onStale(stored);
+      }
+      setMessage({
+        error: true,
+        text: stored
+          ? "This school was changed elsewhere. The latest version is loaded; check your edits and save again."
+          : result.message,
+      });
+      return;
+    }
     setSaving(false);
     if (!result.ok || !result.data) {
       setMessage({ error: true, text: result.ok ? "Saved, but the school could not be read back." : result.message });

@@ -15,7 +15,7 @@ public class AuthSchemaInitializer {
 
     /**
      * The scripts after app_user, in order: the desk schema (docs/architecture/DESK_SCHEMA_AND_API.md)
-     * the password reset tokens (V006) and the profile revision (V007). Read
+     * the password reset tokens (V006) and the profile revision (V007) and the task/target/sprint revisions (V008). Read
      * from the files, not mirrored here. Each must be safe to run on every start.
      */
     static final List<String> SCRIPTS = List.of(
@@ -23,7 +23,8 @@ public class AuthSchemaInitializer {
             "db/auth/V004__tassel_tool_allow_list.sql",
             "db/auth/V005__essay_word_limit.sql",
             "db/auth/V006__password_reset_token.sql",
-            "db/auth/V007__user_profile_revision.sql");
+            "db/auth/V007__user_profile_revision.sql",
+            "db/auth/V008__task_target_revision.sql");
 
     private final JdbcTemplate jdbcTemplate;
 

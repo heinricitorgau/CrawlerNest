@@ -26,15 +26,16 @@ import static clawer.desk.service.DeskTaskService.sqlDate;
 public class DeskSprintService {
 
     private static final Set<String> FIELDS = Set.of("title", "goal", "startDate", "endDate");
+    private static final Set<String> UPDATE_FIELDS = Set.of("title", "goal", "startDate", "endDate", "expectedRevision");
 
     public record Sprint(long id, String title, String goal, LocalDate startDate, LocalDate endDate,
-                         int taskCount, int doneCount, Instant createdAt) {}
+                         int taskCount, int doneCount, long revision, Instant createdAt) {}
 
     /** A sprint with its tasks, for the desk's sprint card. */
     public record SprintDetail(Sprint sprint, List<DeskTaskService.Task> tasks) {}
 
     private static final String SELECT = """
-            SELECT s.id, s.title, s.goal, s.start_date, s.end_date, s.created_at,
+            SELECT s.id, s.title, s.goal, s.start_date, s.end_date, s.revision, s.created_at,
                    count(t.id) FILTER (WHERE t.status <> 'cancelled') AS task_count,
                    count(t.id) FILTER (WHERE t.status = 'done') AS done_count
             FROM desk.sprint s
@@ -44,7 +45,7 @@ public class DeskSprintService {
     private static final RowMapper<Sprint> ROW = (rs, n) -> new Sprint(
             rs.getLong("id"), rs.getString("title"), rs.getString("goal"),
             localDate(rs, "start_date"), localDate(rs, "end_date"),
-            rs.getInt("task_count"), rs.getInt("done_count"), instant(rs, "created_at"));
+            rs.getInt("task_count"), rs.getInt("done_count"), rs.getLong("revision"), instant(rs, "created_at"));
 
     private final JdbcTemplate jdbc;
     private final DeskTaskService tasks;
@@ -97,8 +98,13 @@ public class DeskSprintService {
         return detail(userId, id).orElseThrow();
     }
 
+    /**
+     * A PATCH; with {@code expectedRevision}, refused (409) unless the sprint is still at that revision.
+     * The revision covers the sprint's own fields, not its tasks.
+     */
     public SprintDetail update(long userId, long id, JsonNode body) {
-        DeskInput in = new DeskInput(body, FIELDS);
+        DeskInput in = new DeskInput(body, UPDATE_FIELDS);
+        Long expectedRevision = in.revision("expectedRevision", 1);
         RowUpdate update = new RowUpdate();
         if (in.has("title")) update.set("title", in.text("title", 120, true));
         if (in.has("goal")) update.set("goal", in.text("goal", 500, false));
@@ -106,9 +112,7 @@ public class DeskSprintService {
         if (in.has("endDate")) update.set("end_date", in.date("endDate", true));
         // A one-sided date change is checked against the stored other side by the
         // table's sprint_dates_ordered constraint, which the handler turns into a 400.
-        if (!update.apply(jdbc, "desk.sprint", id, userId, false)) {
-            throw DeskException.notFound();
-        }
+        update.applyAtRevision(jdbc, "desk.sprint", id, userId, false, expectedRevision);
         return detail(userId, id).orElseThrow();
     }
 

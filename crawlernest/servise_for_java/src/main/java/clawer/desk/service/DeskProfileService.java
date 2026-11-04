@@ -91,7 +91,7 @@ public class DeskProfileService {
      */
     public Profile put(long userId, JsonNode body) {
         DeskInput in = new DeskInput(body, FIELDS);
-        Long expectedRevision = revision(in.node("expectedRevision"));
+        Long expectedRevision = in.revision("expectedRevision", 0);
         String displayName = in.text("displayName", 100, false);
         Integer graduationYear = in.integer("graduationYear", 2000, 2100, false);
         String timezone = in.text("timezone", 64, false);
@@ -176,17 +176,6 @@ public class DeskProfileService {
                  self_reported_ielts, self_reported_toefl, self_reported_sat, preferences)
             VALUES (?, ?, ?, coalesce(?, 'UTC'), coalesce(?, 'en'), ?, ?, ?, ?, ?, ?::jsonb)
             """;
-
-    /** expectedRevision: absent, or a whole number from 0 (never saved) up. */
-    private static Long revision(JsonNode node) {
-        if (node == null || node.isNull()) {
-            return null;
-        }
-        if (!node.isIntegralNumber() || !node.canConvertToLong() || node.asLong() < 0) {
-            throw DeskException.badRequest("expectedRevision must be a whole number of 0 or more.");
-        }
-        return node.asLong();
-    }
 
     private DeskException staleRevision(long userId, long expected) {
         long current = get(userId).revision();

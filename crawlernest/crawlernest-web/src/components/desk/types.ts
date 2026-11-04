@@ -33,6 +33,8 @@ export interface DeskTask {
   dueDate: string | null;
   status: TaskStatus;
   category?: string;
+  /** The server's optimistic-lock revision; sent back on a PATCH so a stale copy is refused. */
+  revision?: number;
 }
 
 export interface PrioritySprint {

@@ -57,6 +57,31 @@ describe("CollegeListPanel", () => {
     expect(screen.getByText("Notes ✓")).toBeInTheDocument();
   });
 
+  it("sends the school's revision, and on a conflict loads the stored row and keeps what was typed", async () => {
+    const fetchMock = jest.fn()
+      .mockResolvedValueOnce(respond(200, { success: true, data: [{ ...NORTHWESTERN, revision: 2 }] }))
+      .mockResolvedValueOnce(respond(409, { success: false, error: "This is at revision 3, not 2." }))
+      .mockResolvedValueOnce(respond(200, { success: true, data: [{ ...NORTHWESTERN, stage: "applying", revision: 3 }] }))
+      .mockResolvedValueOnce(respond(200, {
+        success: true, data: { ...NORTHWESTERN, stage: "applying", notes: "Visit in spring", revision: 4 },
+      }));
+    global.fetch = fetchMock;
+    render(<CollegeListPanel />);
+    fireEvent.click(await screen.findByRole("button", { name: /Northwestern University/ }));
+    const form = screen.getByRole("form", { name: "Edit Northwestern University" });
+
+    fireEvent.change(within(form).getByLabelText(/^Notes/), { target: { value: "Visit in spring" } });
+    fireEvent.click(within(form).getByRole("button", { name: "Save" }));
+    expect(await within(form).findByRole("alert")).toHaveTextContent(/changed elsewhere/);
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ notes: "Visit in spring", expectedRevision: 2 });
+    expect(fetchMock.mock.calls[2][0]).toBe("/api/user/desk/targets");
+
+    // Saving again sends only the typed edit, against the revision just loaded.
+    fireEvent.click(within(form).getByRole("button", { name: "Save" }));
+    expect(await within(form).findByRole("status")).toHaveTextContent("Saved.");
+    expect(JSON.parse(fetchMock.mock.calls[3][1].body)).toEqual({ notes: "Visit in spring", expectedRevision: 3 });
+  });
+
   it("clears a field by sending null", async () => {
     const fetchMock = jest.fn()
       .mockResolvedValueOnce(respond(200, { success: true, data: [{ ...NORTHWESTERN, applicationRound: "EA" }] }))

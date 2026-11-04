@@ -36,6 +36,8 @@ public class DeskTaskService {
 
     private static final Set<String> FIELDS =
             Set.of("title", "notes", "dueDate", "priority", "status", "category", "sprintId", "targetEntityId");
+    private static final Set<String> UPDATE_FIELDS = java.util.stream.Stream.concat(FIELDS.stream(),
+            java.util.stream.Stream.of("expectedRevision")).collect(java.util.stream.Collectors.toUnmodifiableSet());
 
     /** completed_at follows status, so the table's "done has a time" check always holds. */
     private static final String COMPLETED_AT_FOR_STATUS =
@@ -43,18 +45,18 @@ public class DeskTaskService {
 
     public record Task(long id, String title, String notes, LocalDate dueDate, String priority, String status,
                        String category, Long sprintId, Long targetEntityId, String createdBy,
-                       Instant completedAt, Instant createdAt, Instant updatedAt) {}
+                       long revision, Instant completedAt, Instant createdAt, Instant updatedAt) {}
 
     private static final String COLUMNS = """
             id, title, notes, due_date, priority, status, category, sprint_id, target_entity_id,
-            created_by, completed_at, created_at, updated_at
+            created_by, revision, completed_at, created_at, updated_at
             """;
 
     static final RowMapper<Task> ROW = (rs, n) -> new Task(
             rs.getLong("id"), rs.getString("title"), rs.getString("notes"), localDate(rs, "due_date"),
             rs.getString("priority"), rs.getString("status"), rs.getString("category"),
             nullableLong(rs, "sprint_id"), nullableLong(rs, "target_entity_id"), rs.getString("created_by"),
-            instant(rs, "completed_at"), instant(rs, "created_at"), instant(rs, "updated_at"));
+            rs.getLong("revision"), instant(rs, "completed_at"), instant(rs, "created_at"), instant(rs, "updated_at"));
 
     private final JdbcTemplate jdbc;
     private final DeskOwnership ownership;
@@ -132,8 +134,10 @@ public class DeskTaskService {
         return find(userId, id).orElseThrow();
     }
 
+    /** A PATCH; with {@code expectedRevision}, refused (409) unless the task is still at that revision. */
     public Task update(long userId, long id, JsonNode body) {
-        DeskInput in = new DeskInput(body, FIELDS);
+        DeskInput in = new DeskInput(body, UPDATE_FIELDS);
+        Long expectedRevision = in.revision("expectedRevision", 1);
         RowUpdate update = new RowUpdate();
         if (in.has("title")) update.set("title", in.text("title", MAX_TITLE, true));
         if (in.has("notes")) update.set("notes", in.text("notes", MAX_NOTES, false));
@@ -155,9 +159,7 @@ public class DeskTaskService {
             ownership.require("desk.target_entity", targetEntityId, userId, "target");
             update.set("target_entity_id", targetEntityId);
         }
-        if (!update.apply(jdbc, "desk.task", id, userId, true)) {
-            throw DeskException.notFound();
-        }
+        update.applyAtRevision(jdbc, "desk.task", id, userId, true, expectedRevision);
         return find(userId, id).orElseThrow();
     }
 

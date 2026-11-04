@@ -122,6 +122,20 @@ public final class DeskInput {
         return number;
     }
 
+    /**
+     * An optimistic-lock revision the caller last read: absent (null), or a whole number of at least {@code min}.
+     */
+    public Long revision(String field, long min) {
+        JsonNode node = value(field);
+        if (node == null) {
+            return null;
+        }
+        if (!node.isIntegralNumber() || !node.canConvertToLong() || node.asLong() < min) {
+            throw DeskException.badRequest(field + " must be a whole number of " + min + " or more.");
+        }
+        return node.asLong();
+    }
+
     /** The raw node, for the one JSON-object field (profile preferences). */
     public JsonNode node(String field) {
         return value(field);

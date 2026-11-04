@@ -19,7 +19,8 @@ import type {
 
 export type DeskApiFailure = {
   ok: false;
-  reason: "unauthenticated" | "not_found" | "rejected" | "unavailable";
+  /** "conflict" is a 409: a duplicate, or a row changed since it was read (a stale expectedRevision). */
+  reason: "unauthenticated" | "not_found" | "rejected" | "conflict" | "unavailable";
   message: string;
 };
 
@@ -55,7 +56,8 @@ async function call<T>(
     const reason =
       response.status === 401 ? "unauthenticated"
         : response.status === 404 ? "not_found"
-          : response.status === 400 || response.status === 409 ? "rejected"
+          : response.status === 409 ? "conflict"
+            : response.status === 400 ? "rejected"
             : "unavailable";
     return { ok: false, reason, message };
   }
@@ -81,6 +83,7 @@ export function toDeskTask(raw: unknown): DeskTask | null {
     dueDate: typeof row.dueDate === "string" ? row.dueDate : null,
     status,
     category: typeof row.category === "string" ? row.category : undefined,
+    revision: typeof row.revision === "number" ? row.revision : undefined,
   };
 }
 
@@ -136,8 +139,13 @@ export const createSprint = (input: { title: string; goal?: string; startDate: s
 export const createTask = (input: { title: string; dueDate?: string; sprintId?: number }) =>
   call("/tasks", json("POST", input), toDeskTask);
 
-export const setTaskStatus = (taskId: string, status: TaskStatus) =>
-  call(`/tasks/${encodeURIComponent(taskId)}`, json("PATCH", { status }), toDeskTask);
+/** With `expectedRevision`, a task changed since it was read is refused with reason "conflict". */
+export const setTaskStatus = (taskId: string, status: TaskStatus, expectedRevision?: number) =>
+  call(
+    `/tasks/${encodeURIComponent(taskId)}`,
+    json("PATCH", expectedRevision === undefined ? { status } : { status, expectedRevision }),
+    toDeskTask,
+  );
 
 export const listSkills = () => call("/skills", {}, toSkills);
 
@@ -159,6 +167,8 @@ export type LiveTarget = {
   linked: boolean;
   /** The linked record's status; "merged" means it was folded into another record. */
   universityStatus: string | null;
+  /** The server's optimistic-lock revision; sent back on a PATCH so a stale copy is refused. */
+  revision?: number;
 };
 
 const strOrNull = (v: unknown) => (typeof v === "string" ? v : null);
@@ -171,6 +181,7 @@ export function toTarget(raw: unknown): LiveTarget | null {
     deadline: strOrNull(r.deadline), programmeName: strOrNull(r.programmeName),
     applicationRound: strOrNull(r.applicationRound), userBand: strOrNull(r.userBand), notes: strOrNull(r.notes),
     linked: typeof r.canonicalUniversityId === "number", universityStatus: strOrNull(r.universityStatus),
+    revision: typeof r.revision === "number" ? r.revision : undefined,
   };
 }
 
@@ -188,8 +199,13 @@ export type TargetPatch = Partial<{
   programmeName: string | null;
 }>;
 
-export const updateTarget = (id: number, patch: TargetPatch) =>
-  call(`/targets/${encodeURIComponent(String(id))}`, json("PATCH", patch), toTarget);
+/** With `expectedRevision`, a target changed since it was read is refused with reason "conflict". */
+export const updateTarget = (id: number, patch: TargetPatch, expectedRevision?: number) =>
+  call(
+    `/targets/${encodeURIComponent(String(id))}`,
+    json("PATCH", expectedRevision === undefined ? patch : { ...patch, expectedRevision }),
+    toTarget,
+  );
 
 export const createTarget = (input: { customName: string; programmeName?: string }) =>
   call("/targets", json("POST", input), toTarget);

@@ -327,6 +327,12 @@ Conventions:
 
 - Bodies are read field by field, and an unknown field is a 400 that names it.
 - In a `PATCH`, an absent field is left alone and a `null` field is cleared.
+- Tasks, targets, sprints and the profile carry a `revision` (V007, V008). A `PATCH /tasks/{id}`, `/targets/{id}` or
+  `/sprints/{id}` with `expectedRevision` is applied only if the row is still at that revision, and answers 409
+  otherwise; without it the write is unconditional. A sprint's revision covers its own fields, not its tasks. Task,
+  target and sprint revisions are counted by a trigger, so a change that does not pass
+  through the API (a deleted sprint or target clearing a task's link, a canonical merge repointing a target) also
+  makes a stale copy stale. Another user's row is still a 404, never a 409.
 - Another user's id answers 404, the same as a missing row.
 - An id in a body that belongs to someone else (`sprintId`, `targetEntityId`) answers 400
   (`"No such sprint."`).

@@ -211,7 +211,96 @@ class DeskApiIntegrationTest {
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.sprintId").value(nullValue()));
     }
 
+    @Test
+    void aTaskPatchAtAStaleRevisionIsRefusedAndChangesNothing() throws Exception {
+        long task = createTask(OWNER, "{\"title\": \"Draft essay\"}");
+        send(OWNER, get("/api/v1/user/desk/tasks/" + task)).andExpect(jsonPath("$.data.revision").value(1));
+
+        send(OWNER, patch("/api/v1/user/desk/tasks/" + task), "{\"status\": \"done\", \"expectedRevision\": 1}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.revision").value(2));
+        send(OWNER, patch("/api/v1/user/desk/tasks/" + task), "{\"title\": \"Stale tab\", \"expectedRevision\": 1}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.success").value(false));
+        send(OWNER, get("/api/v1/user/desk/tasks/" + task))
+                .andExpect(jsonPath("$.data.title").value("Draft essay"))
+                .andExpect(jsonPath("$.data.status").value("done"))
+                .andExpect(jsonPath("$.data.revision").value(2));
+
+        // Without expectedRevision the PATCH is unconditional, and still counts.
+        send(OWNER, patch("/api/v1/user/desk/tasks/" + task), "{\"title\": \"Final essay\"}")
+                .andExpect(jsonPath("$.data.revision").value(3));
+
+        // Another user's task stays a 404, not a 409 that would confirm it exists.
+        send(OTHER_USER, patch("/api/v1/user/desk/tasks/" + task), "{\"title\": \"x\", \"expectedRevision\": 1}")
+                .andExpect(status().isNotFound());
+        send(OWNER, patch("/api/v1/user/desk/tasks/" + task), "{\"expectedRevision\": 3}").andExpect(status().isBadRequest());
+        send(OWNER, patch("/api/v1/user/desk/tasks/" + task), "{\"title\": \"x\", \"expectedRevision\": 0}")
+                .andExpect(status().isBadRequest());
+        send(OWNER, post("/api/v1/user/desk/tasks"), "{\"title\": \"x\", \"expectedRevision\": 1}")
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void aSprintPatchAtAStaleRevisionIsRefusedAndItsTasksDoNotCount() throws Exception {
+        long sprint = createdId(send(OWNER, post("/api/v1/user/desk/sprints"),
+                "{\"title\": \"EA push\", \"startDate\": \"2026-10-01\", \"endDate\": \"2026-10-10\"}"));
+        send(OWNER, get("/api/v1/user/desk/sprints/" + sprint)).andExpect(jsonPath("$.data.sprint.revision").value(1));
+
+        // Adding and ticking a task changes the task, not the sprint.
+        long task = createTask(OWNER, "{\"title\": \"t\", \"sprintId\": " + sprint + "}");
+        send(OWNER, patch("/api/v1/user/desk/tasks/" + task), "{\"status\": \"done\"}").andExpect(status().isOk());
+        send(OWNER, get("/api/v1/user/desk/sprints/" + sprint)).andExpect(jsonPath("$.data.sprint.revision").value(1));
+
+        send(OWNER, patch("/api/v1/user/desk/sprints/" + sprint), "{\"goal\": \"Tab A\", \"expectedRevision\": 1}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.sprint.revision").value(2));
+        send(OWNER, patch("/api/v1/user/desk/sprints/" + sprint), "{\"goal\": \"Tab B\", \"expectedRevision\": 1}")
+                .andExpect(status().isConflict());
+        send(OWNER, get("/api/v1/user/desk/sprints/" + sprint))
+                .andExpect(jsonPath("$.data.sprint.goal").value("Tab A"))
+                .andExpect(jsonPath("$.data.sprint.revision").value(2));
+
+        send(OTHER_USER, patch("/api/v1/user/desk/sprints/" + sprint), "{\"goal\": \"x\", \"expectedRevision\": 2}")
+                .andExpect(status().isNotFound());
+        send(OWNER, post("/api/v1/user/desk/sprints"),
+                "{\"title\": \"x\", \"startDate\": \"2026-10-01\", \"endDate\": \"2026-10-10\", \"expectedRevision\": 1}")
+                .andExpect(status().isBadRequest());
+        // The date-order check still answers 400 at the right revision.
+        send(OWNER, patch("/api/v1/user/desk/sprints/" + sprint), "{\"startDate\": \"2026-10-20\", \"expectedRevision\": 2}")
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deletingASprintChangesItsTasksRevisionSoAStaleTabIsRefused() throws Exception {
+        long sprint = createdId(send(OWNER, post("/api/v1/user/desk/sprints"),
+                "{\"title\": \"x\", \"startDate\": \"2026-10-01\", \"endDate\": \"2026-10-10\"}"));
+        long task = createTask(OWNER, "{\"title\": \"kept\", \"sprintId\": " + sprint + "}");
+        // The foreign key clears sprint_id without going through the service; the trigger still counts it.
+        send(OWNER, delete("/api/v1/user/desk/sprints/" + sprint)).andExpect(status().isOk());
+        send(OWNER, get("/api/v1/user/desk/tasks/" + task)).andExpect(jsonPath("$.data.revision").value(2));
+        send(OWNER, patch("/api/v1/user/desk/tasks/" + task), "{\"title\": \"edit\", \"expectedRevision\": 1}")
+                .andExpect(status().isConflict());
+    }
+
     // ─── Targets ──────────────────────────────────────────────────────────────
+
+    @Test
+    void aTargetPatchAtAStaleRevisionIsRefusedAndChangesNothing() throws Exception {
+        long id = createdId(send(OWNER, post("/api/v1/user/desk/targets"), "{\"customName\": \"Northwestern\"}"));
+        send(OWNER, patch("/api/v1/user/desk/targets/" + id), "{\"notes\": \"Tab A\", \"expectedRevision\": 1}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.revision").value(2));
+        send(OWNER, patch("/api/v1/user/desk/targets/" + id), "{\"notes\": \"Tab B\", \"expectedRevision\": 1}")
+                .andExpect(status().isConflict());
+        send(OWNER, get("/api/v1/user/desk/targets/" + id))
+                .andExpect(jsonPath("$.data.notes").value("Tab A"))
+                .andExpect(jsonPath("$.data.revision").value(2));
+        send(OTHER_USER, patch("/api/v1/user/desk/targets/" + id), "{\"notes\": \"x\", \"expectedRevision\": 2}")
+                .andExpect(status().isNotFound());
+        send(OWNER, patch("/api/v1/user/desk/targets/987654321"), "{\"notes\": \"x\", \"expectedRevision\": 1}")
+                .andExpect(status().isNotFound());
+    }
 
     @Test
     void aTargetLinkedToAUniversityShowsItsWarehouseName() throws Exception {

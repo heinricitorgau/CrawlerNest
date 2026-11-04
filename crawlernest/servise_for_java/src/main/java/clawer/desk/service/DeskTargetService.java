@@ -41,7 +41,7 @@ public class DeskTargetService {
     private static final Set<String> CREATE_FIELDS = Set.of("canonicalUniversityId", "customName", "programmeName",
             "stage", "applicationRound", "userBand", "deadline", "notes");
     private static final Set<String> UPDATE_FIELDS = Set.of("customName", "programmeName",
-            "stage", "applicationRound", "userBand", "deadline", "notes");
+            "stage", "applicationRound", "userBand", "deadline", "notes", "expectedRevision");
 
     /**
      * {@code name} is the warehouse display name when the target links one, else
@@ -52,11 +52,11 @@ public class DeskTargetService {
     public record Target(long id, String name, Long canonicalUniversityId, String canonicalSlug,
                          String universityStatus, String customName, String programmeName, String stage,
                          String applicationRound, String userBand, LocalDate deadline, String notes,
-                         String createdBy, Instant createdAt, Instant updatedAt) {}
+                         String createdBy, long revision, Instant createdAt, Instant updatedAt) {}
 
     private static final String SELECT = """
             SELECT t.id, t.canonical_university_id, t.custom_name, t.programme_name, t.stage,
-                   t.application_round, t.user_band, t.deadline, t.notes, t.created_by, t.created_at, t.updated_at,
+                   t.application_round, t.user_band, t.deadline, t.notes, t.created_by, t.revision, t.created_at, t.updated_at,
                    cu.display_name, cu.canonical_slug, cu.status AS university_status
             FROM desk.target_entity t
             LEFT JOIN warehouse.canonical_university cu ON cu.canonical_university_id = t.canonical_university_id
@@ -71,7 +71,7 @@ public class DeskTargetService {
                 rs.getString("university_status"), customName, rs.getString("programme_name"),
                 rs.getString("stage"), rs.getString("application_round"), rs.getString("user_band"),
                 localDate(rs, "deadline"), rs.getString("notes"), rs.getString("created_by"),
-                instant(rs, "created_at"), instant(rs, "updated_at"));
+                rs.getLong("revision"), instant(rs, "created_at"), instant(rs, "updated_at"));
     };
 
     private final JdbcTemplate jdbc;
@@ -166,8 +166,10 @@ public class DeskTargetService {
         return find(userId, id).orElseThrow();
     }
 
+    /** A PATCH; with {@code expectedRevision}, refused (409) unless the target is still at that revision. */
     public Target update(long userId, long id, JsonNode body) {
         DeskInput in = new DeskInput(body, UPDATE_FIELDS);
+        Long expectedRevision = in.revision("expectedRevision", 1);
         RowUpdate update = new RowUpdate();
         if (in.has("customName")) update.set("custom_name", in.text("customName", 200, false));
         if (in.has("programmeName")) {
@@ -183,9 +185,7 @@ public class DeskTargetService {
         // Clearing customName on a target with no university trips target_entity_named,
         // and a programme rename onto an existing pair trips the unique index; the
         // handler turns both into a 400 / 409.
-        if (!update.apply(jdbc, "desk.target_entity", id, userId, true)) {
-            throw DeskException.notFound();
-        }
+        update.applyAtRevision(jdbc, "desk.target_entity", id, userId, true, expectedRevision);
         return find(userId, id).orElseThrow();
     }
 

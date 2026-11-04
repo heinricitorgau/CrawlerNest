@@ -37,6 +37,45 @@ public final class RowUpdate {
     }
 
     /**
+     * Applies the update to one row the user owns, only if it is still at {@code expectedRevision}
+     * (when given). The table must have a {@code revision} column that a trigger increments.
+     *
+     * @throws DeskException 404 when the user has no such row, 409 when it is at another revision
+     */
+    public void applyAtRevision(JdbcTemplate jdbc, String table, long id, long userId, boolean touchUpdatedAt,
+                                Long expectedRevision) {
+        if (expectedRevision == null) {
+            if (!apply(jdbc, table, id, userId, touchUpdatedAt)) {
+                throw DeskException.notFound();
+            }
+            return;
+        }
+        if (isEmpty()) {
+            throw DeskException.badRequest("Nothing to update.");
+        }
+        List<String> sets = new ArrayList<>(assignments);
+        if (touchUpdatedAt) {
+            sets.add("updated_at = now()");
+        }
+        List<Object> all = new ArrayList<>(params);
+        all.add(id);
+        all.add(userId);
+        all.add(expectedRevision);
+        String sql = "UPDATE " + table + " SET " + String.join(", ", sets)
+                + " WHERE id = ? AND user_id = ? AND revision = ?";
+        if (jdbc.update(sql, all.toArray()) > 0) {
+            return;
+        }
+        List<Long> current = jdbc.queryForList("SELECT revision FROM " + table + " WHERE id = ? AND user_id = ?",
+                Long.class, id, userId);
+        if (current.isEmpty()) {
+            throw DeskException.notFound();
+        }
+        throw DeskException.conflict("This is at revision " + current.get(0) + ", not " + expectedRevision
+                + ": it was changed elsewhere. Reload it and apply your change again.");
+    }
+
+    /**
      * Applies the update to one row the user owns.
      *
      * @return false when no such row exists for this user
