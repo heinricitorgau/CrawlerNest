@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { LiveDeadlinesCard, LiveSkillsCard, LiveSprintCard } from "@/app/desk/LiveDeskCards";
 import { toDeskTask, toSkills, toSprint } from "@/lib/deskApi";
 
@@ -68,7 +68,10 @@ describe("LiveSprintCard", () => {
     const withRevisions = { ...SPRINT, tasks: SPRINT.tasks.map((t, i) => ({ ...t, revision: 4 + i })) };
     const fetchMock = jest.fn()
       .mockResolvedValueOnce(respond(200, { success: true, data: withRevisions }))
-      .mockResolvedValueOnce(respond(200, { success: true, data: { ...withRevisions.tasks[0], status: "done", revision: 5 } }))
+      // The saved row's title differs, so the test can see when the save has settled.
+      .mockResolvedValueOnce(respond(200, {
+        success: true, data: { ...withRevisions.tasks[0], title: "Final draft (saved)", status: "done", revision: 5 },
+      }))
       .mockResolvedValueOnce(respond(409, { success: false, error: "This is at revision 6, not 5." }))
       .mockResolvedValueOnce(respond(200, {
         success: true,
@@ -80,13 +83,13 @@ describe("LiveSprintCard", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Final draft: To do" }));
     // A second tick while the first save is in flight is ignored, not sent with the old revision.
     fireEvent.click(screen.getByRole("button", { name: "Final draft: Done" }));
-    await waitFor(() => expect(screen.queryByRole("button", { name: "Final draft: Done" })).toBeInTheDocument());
+    // The server's row replaces the optimistic one once the save settles.
+    const saved = await screen.findByRole("button", { name: "Final draft (saved): Done" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ status: "done", expectedRevision: 4 });
-    await act(async () => {}); // let the save settle
 
     // The next tick carries the revision the first save returned.
-    fireEvent.click(screen.getByRole("button", { name: "Final draft: Done" }));
+    fireEvent.click(saved);
     expect(await screen.findByRole("alert")).toHaveTextContent(/changed elsewhere/);
     expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual({ status: "todo", expectedRevision: 5 });
 
