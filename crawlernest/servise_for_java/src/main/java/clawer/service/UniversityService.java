@@ -60,6 +60,30 @@ public class UniversityService {
                 .orElse(null);
     }
 
+    /** One university page a sitemap may list: its slug and when its ranking rows last changed. */
+    public record SitemapEntry(String slug, java.time.Instant lastModified) {}
+
+    /**
+     * Every active university that has at least one aggregated ranking row, by slug.
+     *
+     * <p>Merged records are left out: their page is a duplicate of the record they
+     * were folded into. So is a university with no ranking row in any edition, whose
+     * page would say only that we hold nothing for it.
+     */
+    public List<SitemapEntry> sitemapEntries() {
+        return jdbcTemplate.query("""
+                SELECT cu.canonical_slug, max(ar.updated_at) AS last_modified
+                FROM warehouse.canonical_university cu
+                JOIN analytics.aggregated_rankings ar ON ar.canonical_university_id = cu.canonical_university_id
+                WHERE cu.status = 'active' AND cu.canonical_slug IS NOT NULL AND cu.canonical_slug <> ''
+                GROUP BY cu.canonical_slug
+                ORDER BY cu.canonical_slug
+                """, (rs, n) -> {
+                    java.sql.Timestamp ts = rs.getTimestamp("last_modified");
+                    return new SitemapEntry(rs.getString("canonical_slug"), ts == null ? null : ts.toInstant());
+                });
+    }
+
     public UniversityDTO getUniversityBySlug(String slug) {
         return getUniversityBySlug(slug, null);
     }

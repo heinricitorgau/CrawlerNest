@@ -91,6 +91,15 @@ public class UniversityController {
      * @param year The edition; the default when omitted. A year the release does not hold is a 400.
      * @return UniversityDTO object if found, 404 otherwise
      */
+    /**
+     * The university pages worth indexing, for the web app's sitemap.xml. Read-only, public,
+     * and only slugs and dates: the same facts the pages themselves show.
+     */
+    @GetMapping("/sitemap-entries")
+    public ApiResponse<List<UniversityService.SitemapEntry>> getSitemapEntries() {
+        return ApiResponse.success(universityService.sitemapEntries());
+    }
+
     @GetMapping("/by-slug/{slug}")
     public ResponseEntity<ApiResponse<UniversityDTO>> getUniversityBySlug(
             @PathVariable String slug,

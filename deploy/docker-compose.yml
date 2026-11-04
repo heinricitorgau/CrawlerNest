@@ -105,6 +105,8 @@ services:
         # well as runtime variables.
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-}
         NEXT_PUBLIC_AGENT_API_BASE_URL: ${NEXT_PUBLIC_AGENT_API_BASE_URL:-}
+        # Prerendered pages read it at build time; robots.txt and sitemap.xml per request.
+        CRAWLERNEST_SITE_URL: ${CRAWLERNEST_SITE_URL:-}
     container_name: crawlernest-web
     restart: unless-stopped
     depends_on:
@@ -116,6 +118,7 @@ services:
       # Server-side proxy routes call the services by their compose names.
       API_BASE_URL: http://api:8080
       AGENT_API_BASE_URL: http://agent:8090
+      CRAWLERNEST_SITE_URL: ${CRAWLERNEST_SITE_URL:-}
     ports:
       - "${WEB_PORT:-3000}:3000"
     healthcheck:

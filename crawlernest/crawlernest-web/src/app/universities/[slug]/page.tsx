@@ -25,16 +25,29 @@ import ShortlistButton from "@/components/ShortlistButton";
 import { CAVEAT_RANK_CHANGE, editionCaveats } from "@/lib/caveatMessages";
 import { SourceRankChange, anyEntityChanged, anyRankChangeShown } from "@/components/SourceRankChange";
 import { WikipediaArticle } from "@/components/WikipediaArticle";
+import { universityDescription } from "@/lib/seo";
+import { absoluteUrl, universityPath } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function generateMetadata({ params }: UniversityDetailPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: UniversityDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
+  // The edition the page shows, so a shared ?year= link previews that edition's ranks.
+  const { year } = await selectedEdition(searchParams);
   try {
-    const response = await fetchUniversityDetail(slug);
+    const response = await fetchUniversityDetail(slug, year);
     if (response.success && response.data) {
-      return { title: `${response.data.universityName} | CrawlerNest` };
+      const title = `${response.data.universityName} | CrawlerNest`;
+      const description = universityDescription(response.data);
+      // Canonical without ?year=: one indexed page per university, whichever edition was linked.
+      // Absolute, so it does not depend on the layout's metadataBase having been built with the URL.
+      const url = absoluteUrl(universityPath(response.data.slug || slug));
+      // Its own Open Graph fields either way, or a shared link previews as the home page.
+      const openGraph = { type: "website" as const, siteName: "CrawlerNest", title, description };
+      return url
+        ? { title, description, alternates: { canonical: url }, openGraph: { ...openGraph, url } }
+        : { title, description, openGraph };
     }
   } catch {
     // fall through to default

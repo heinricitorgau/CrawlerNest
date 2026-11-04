@@ -52,6 +52,21 @@ class UniversityControllerTest {
     private UniversityWikipediaRepository universityWikipediaRepository;
 
     @Test
+    void sitemapEntriesArePublicAndAreNotReadAsAnId() throws Exception {
+        when(universityService.sitemapEntries()).thenReturn(List.of(
+                new UniversityService.SitemapEntry("university-of-göttingen", java.time.Instant.parse("2026-10-12T08:00:00Z")),
+                new UniversityService.SitemapEntry("mit", null)));
+
+        // No cookie: a crawler fetches the sitemap anonymously. And the literal path must
+        // win over /{id}, which would answer 400 for a non-numeric id.
+        mockMvc.perform(get("/api/v1/universities/sitemap-entries"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].slug").value("university-of-göttingen"))
+                .andExpect(jsonPath("$.data[0].lastModified").value("2026-10-12T08:00:00Z"))
+                .andExpect(jsonPath("$.data[1].lastModified").value(nullValue()));
+    }
+
+    @Test
     void wikipediaArticleCarriesItsAttribution() throws Exception {
         when(universityWikipediaRepository.findByCanonicalUniversityId(7L)).thenReturn(Optional.of(
                 new WikipediaArticleDTO(

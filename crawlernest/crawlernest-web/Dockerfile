@@ -15,6 +15,8 @@ COPY . .
 # whatever is NEXT_PUBLIC_*, so they are build arguments too.
 ARG NEXT_PUBLIC_API_BASE_URL
 ARG NEXT_PUBLIC_AGENT_API_BASE_URL
+# The public origin for canonical links and the sitemap; prerendered pages read it here.
+ARG CRAWLERNEST_SITE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
