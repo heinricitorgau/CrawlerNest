@@ -188,7 +188,7 @@ export function ConversationHistoryPanel({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-[#1a1a1a]/40 px-4 py-10"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-(--color-ink)/40 px-4 py-10"
       role="presentation"
       onClick={onClose}
     >
@@ -196,20 +196,20 @@ export function ConversationHistoryPanel({
         role="dialog"
         aria-modal="true"
         aria-label="Saved conversations"
-        className="w-full max-w-2xl overflow-hidden rounded-[1.5rem] border border-[#d8d3cb] bg-white shadow-xl"
+        className="w-full max-w-2xl overflow-hidden border border-(--color-rule) bg-white shadow-xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <header className="flex items-center justify-between gap-4 border-b border-[#e8e4dd] px-6 py-4">
+        <header className="flex items-center justify-between gap-4 border-b border-(--color-rule) px-6 py-4">
           <div>
-            <h2 className="text-lg font-semibold text-[#16382a]">Saved conversations</h2>
-            <p className="mt-1 text-sm text-[#6b7068]">
+            <h2 className="text-lg font-semibold text-(--color-ink)">Saved conversations</h2>
+            <p className="mt-1 text-sm text-(--color-muted)">
               Load one to pick the thread back up, or remove it from your account.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-sm text-[#6b7068] transition hover:border-[#a33a3a] hover:text-[#a33a3a]"
+            className="border border-(--color-rule) bg-white px-3 py-1 text-sm text-(--color-muted) transition hover:border-(--color-error) hover:text-(--color-error)"
           >
             Close
           </button>
@@ -219,29 +219,29 @@ export function ConversationHistoryPanel({
           {rowError ? (
             <p
               role="status"
-              className="mb-4 rounded-[1rem] border border-[#e2c4bd] bg-[#fbefeb] px-4 py-2 text-sm text-[#8b3a2b]"
+              className="mb-4 border border-(--color-error) bg-(--color-paper) px-4 py-2 text-sm text-(--color-error)"
             >
               {rowError}
             </p>
           ) : null}
 
           {state.phase === "loading" ? (
-            <p className="text-sm text-[#6b7068]">Loading your saved conversations…</p>
+            <p className="text-sm text-(--color-muted)">Loading your saved conversations…</p>
           ) : null}
 
           {state.phase === "unauthenticated" ? (
-            <p className="text-sm text-[#6b7068]">
+            <p className="text-sm text-(--color-muted)">
               Your session has expired. Sign in again to see your saved conversations.
             </p>
           ) : null}
 
           {state.phase === "error" ? (
             <div className="space-y-3">
-              <p className="text-sm text-[#8b3a2b]">{state.message}</p>
+              <p className="text-sm text-(--color-error)">{state.message}</p>
               <button
                 type="button"
                 onClick={() => void retry()}
-                className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-sm text-[#1a3d2e] transition hover:border-[#3d7a5a]"
+                className="border border-(--color-rule) bg-white px-3 py-1 text-sm text-(--color-ink) transition hover:border-(--color-ink-2)"
               >
                 Try again
               </button>
@@ -249,7 +249,7 @@ export function ConversationHistoryPanel({
           ) : null}
 
           {state.phase === "ok" && state.items.length === 0 ? (
-            <p className="text-sm text-[#6b7068]">
+            <p className="text-sm text-(--color-muted)">
               You have not saved a conversation yet. Use “Save conversation” after a
               chat and it will appear here.
             </p>
@@ -268,28 +268,28 @@ export function ConversationHistoryPanel({
                 return (
                   <li
                     key={item.id}
-                    className={`rounded-[1.25rem] border px-4 py-3 transition ${
+                    className={` border px-4 py-3 transition ${
                       isActive
-                        ? "border-[#3d7a5a] bg-[#f2f8f4]"
-                        : "border-[#e8e4dd] bg-[#faf8f4]"
+                        ? "border-(--color-ink-2) bg-(--color-paper)"
+                        : "border-(--color-rule) bg-(--color-paper)"
                     }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="truncate font-medium text-[#1a1a1a]">{item.title}</h3>
+                          <h3 className="truncate font-medium text-(--color-ink)">{item.title}</h3>
                           {isActive ? (
-                            <span className="rounded-full bg-[#e8f2ec] px-2 py-0.5 text-xs font-semibold text-[#1a3d2e]">
+                            <span className="bg-(--color-paper-2) px-2 py-0.5 text-xs font-semibold text-(--color-ink)">
                               On screen
                             </span>
                           ) : null}
                         </div>
-                        <p className="mt-1 text-xs text-[#6b7068]">
+                        <p className="mt-1 text-xs text-(--color-muted)">
                           {formatTimestamp(item.updatedAt)} · {item.turnCount}{" "}
                           {item.turnCount === 1 ? "turn" : "turns"}
                         </p>
                         {item.preview ? (
-                          <p className="mt-2 line-clamp-2 text-sm text-[#6b7068]">{item.preview}</p>
+                          <p className="mt-2 line-clamp-2 text-sm text-(--color-muted)">{item.preview}</p>
                         ) : null}
                       </div>
 
@@ -299,7 +299,7 @@ export function ConversationHistoryPanel({
                           onClick={() => void handleLoad(item.id)}
                           disabled={anyBusy}
                           aria-busy={loadingThis}
-                          className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-sm text-[#1a3d2e] transition hover:border-[#3d7a5a] disabled:cursor-not-allowed disabled:opacity-50"
+                          className="border border-(--color-rule) bg-white px-3 py-1 text-sm text-(--color-ink) transition hover:border-(--color-ink-2) disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {loadingThis ? "Loading…" : "Load"}
                         </button>
@@ -309,7 +309,7 @@ export function ConversationHistoryPanel({
                           disabled={anyBusy}
                           aria-busy={deletingThis}
                           aria-label={deletingThis ? "Deleting…" : `Delete ${item.title}`}
-                          className="rounded-full border border-[#d8d3cb] bg-white px-3 py-1 text-sm text-[#6b7068] transition hover:border-[#a33a3a] hover:text-[#a33a3a] disabled:cursor-not-allowed disabled:opacity-50"
+                          className="border border-(--color-rule) bg-white px-3 py-1 text-sm text-(--color-muted) transition hover:border-(--color-error) hover:text-(--color-error) disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {deletingThis ? "Deleting…" : "Delete"}
                         </button>

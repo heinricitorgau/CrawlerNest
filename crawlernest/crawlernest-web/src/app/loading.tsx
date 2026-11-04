@@ -9,7 +9,7 @@ export default function RankingsLoading() {
             <div className="h-10 w-72 animate-pulse rounded bg-gray-200" />
             <div className="h-4 w-64 animate-pulse rounded bg-gray-200" />
           </div>
-          <div className="h-9 w-36 animate-pulse rounded-full bg-gray-200" />
+          <div className="h-9 w-36 animate-pulse bg-gray-200" />
         </div>
 
         {/* Count summary skeleton */}

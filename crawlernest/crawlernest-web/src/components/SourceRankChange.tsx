@@ -16,7 +16,7 @@ const TONE_CLASS: Record<RankDeltaTone, string> = {
   // A pill, not grey text: this is a statement about the institution, not a gap in
   // our data, and it is the one case where a reader might otherwise expect a number.
   entity_changed:
-    "inline-flex items-center rounded-full border border-dashed border-amber-400 bg-amber-50 px-2 py-0.5 font-semibold text-amber-800",
+    "inline-flex items-center border border-dashed border-amber-400 bg-amber-50 px-2 py-0.5 font-semibold text-amber-800",
 };
 
 type SourceRankChangeProps = {

@@ -125,7 +125,7 @@ function useApiFetch<T>(path: string): ApiLoadState<T> {
 function SectionHeader({ title, sub }: { title: string; sub?: string }) {
   return (
     <div className="mb-4 border-b border-slate-200 pb-2">
-      <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-slate-700">{title}</h2>
+      <h2 className="text-sm font-bold text-slate-700">{title}</h2>
       {sub && <p className="mt-0.5 text-xs text-slate-400">{sub}</p>}
     </div>
   );
@@ -134,7 +134,7 @@ function SectionHeader({ title, sub }: { title: string; sub?: string }) {
 function StatCard({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string }) {
   return (
     <div className="border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">{label}</div>
+      <div className="text-xs font-bold text-slate-500">{label}</div>
       <div className="mt-2 text-2xl font-black tracking-tight text-slate-950">{value}</div>
       {sub && <div className="mt-1 text-xs text-slate-400">{sub}</div>}
     </div>
@@ -260,7 +260,7 @@ export default function AnalyticsPage() {
                         .map((h) => (
                           <th
                             key={h as string}
-                            className="border-b border-slate-200 px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500"
+                            className="border-b border-slate-200 px-3 py-2 text-left text-xs font-bold text-slate-500"
                           >
                             {h}
                           </th>
@@ -354,7 +354,7 @@ export default function AnalyticsPage() {
                         (h) => (
                           <th
                             key={h}
-                            className="border-b border-slate-200 px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-slate-500"
+                            className="border-b border-slate-200 px-3 py-2 text-left text-xs font-bold text-slate-500"
                           >
                             {h}
                           </th>
@@ -385,7 +385,7 @@ export default function AnalyticsPage() {
                         </td>
                         <td className="px-3 py-2">
                           <span
-                            className={`rounded border px-1.5 py-0.5 text-xs font-semibold uppercase ${confidenceConfig(row.confidence).badgeCls}`}
+                            className={`rounded border px-1.5 py-0.5 text-xs font-semibold ${confidenceConfig(row.confidence).badgeCls}`}
                           >
                             {confidenceConfig(row.confidence).label}
                           </span>
@@ -417,7 +417,7 @@ export default function AnalyticsPage() {
                 return (
                   <div key={source} className="border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                      <div className="text-xs font-bold text-slate-500">
                         {source} Coverage
                       </div>
                       <span
@@ -467,7 +467,7 @@ export default function AnalyticsPage() {
           {disagreement && (
             <div className="space-y-4">
               <div className="border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="mb-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                <div className="mb-3 text-xs font-bold text-slate-500">
                   Source Availability
                 </div>
                 <div className="flex flex-wrap gap-2">

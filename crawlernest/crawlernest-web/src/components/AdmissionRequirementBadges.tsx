@@ -30,7 +30,7 @@ export type AdmissionRequirementBadgesProps = {
   className?: string;
 };
 
-const NEUTRAL_TONE = "border-[#d7d5d0] bg-[#f5f3ee] text-[#3f4640]";
+const NEUTRAL_TONE = "border-(--color-rule) bg-(--color-paper) text-(--color-ink-2)";
 
 /**
  * Colours a deadline by how close it is, matching the traffic-light tones the
@@ -52,27 +52,27 @@ function deadlineTone(deadline: string): { tone: string; icon: string; note: str
 
   if (days < 0) {
     return {
-      tone: "border-[#d7d5d0] bg-[#f5f3ee] text-[#6b7068]",
+      tone: "border-(--color-rule) bg-(--color-paper) text-(--color-muted)",
       icon: "⚪",
       note: "closed",
     };
   }
   if (days <= 30) {
     return {
-      tone: "border-[#f1c5bc] bg-[#fbefeb] text-[#8b3a2b]",
+      tone: "border-(--color-error-soft) bg-(--color-paper) text-(--color-error)",
       icon: "🔴",
       note: days === 0 ? "today" : `${days}d left`,
     };
   }
   if (days <= 90) {
     return {
-      tone: "border-[#ead9a7] bg-[#fbf5e4] text-[#8a6116]",
+      tone: "border-(--color-warn) bg-(--color-paper) text-(--color-warn)",
       icon: "🟡",
       note: `${days}d left`,
     };
   }
   return {
-    tone: "border-[#cfe5d7] bg-[#edf7f1] text-[#1a3d2e]",
+    tone: "border-(--color-rule) bg-(--color-paper) text-(--color-ink)",
     icon: "🟢",
     note: `${days}d left`,
   };
@@ -95,11 +95,11 @@ function Badge({
 }) {
   return (
     <div
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${tone}`}
+      className={`inline-flex items-center gap-2 border px-3 py-1.5 text-xs font-semibold ${tone}`}
       title={title}
     >
       <span aria-hidden="true">{icon}</span>
-      <span className="uppercase tracking-[0.08em] opacity-70">{label}</span>
+      <span className="opacity-70">{label}</span>
       <span>{value}</span>
       {note ? (
         <>
@@ -166,7 +166,7 @@ export function AdmissionRequirementBadges({
       return null;
     }
     return (
-      <p className={`text-xs italic text-[#6b7068] ${className ?? ""}`}>{emptyMessage}</p>
+      <p className={`text-xs italic text-(--color-muted) ${className ?? ""}`}>{emptyMessage}</p>
     );
   }
 

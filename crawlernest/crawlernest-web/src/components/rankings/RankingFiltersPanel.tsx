@@ -75,19 +75,19 @@ export default function RankingFiltersPanel({
     : countryOptions;
 
   return (
-    <div className="rounded-2xl border border-[#e0ddd8] bg-white p-5 shadow-sm">
-      <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.15em] text-[#6b7068]">
+    <div className="rounded-2xl border border-(--color-rule) bg-white p-5 shadow-sm">
+      <h3 className="mb-4 text-xs font-bold text-(--color-muted)">
         Filters
       </h3>
 
       <div className="mb-5">
-        <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
+        <label className="mb-1.5 block text-xs font-semibold text-(--color-ink)">
           Year
         </label>
         <select
           value={year}
           onChange={(e) => onUpdate({ year: e.target.value, page: 1 })}
-          className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e]"
+          className="w-full rounded-lg border border-(--color-rule) bg-(--color-paper) px-3 py-2 text-sm outline-none transition focus:border-(--color-ink)"
         >
           <option value="2026">2026</option>
           <option value="2025">2025</option>
@@ -96,10 +96,10 @@ export default function RankingFiltersPanel({
       </div>
 
       <div className="mb-5">
-        <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
+        <label className="mb-1.5 block text-xs font-semibold text-(--color-ink)">
           Scope
         </label>
-        <div className="flex overflow-hidden rounded-lg border border-[#e0ddd8]">
+        <div className="flex overflow-hidden rounded-lg border border-(--color-rule)">
           {(["global", "region"] as const).map((nextScope) => (
             <button
               key={nextScope}
@@ -113,8 +113,8 @@ export default function RankingFiltersPanel({
               }
               className={`flex-1 py-2 text-xs font-semibold capitalize transition ${
                 scope === nextScope
-                  ? "bg-[#1a3d2e] text-white"
-                  : "bg-white text-[#6b7068] hover:bg-[#f5f3ee]"
+                  ? "bg-(--color-ink) text-white"
+                  : "bg-white text-(--color-muted) hover:bg-(--color-paper)"
               }`}
             >
               {nextScope}
@@ -125,7 +125,7 @@ export default function RankingFiltersPanel({
 
       {scope === "region" && (
         <div className="mb-5">
-          <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
+          <label className="mb-1.5 block text-xs font-semibold text-(--color-ink)">
             Region
           </label>
           <select
@@ -133,7 +133,7 @@ export default function RankingFiltersPanel({
             onChange={(e) =>
               onUpdate({ region: e.target.value, country: null, page: 1 })
             }
-            className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e]"
+            className="w-full rounded-lg border border-(--color-rule) bg-(--color-paper) px-3 py-2 text-sm outline-none transition focus:border-(--color-ink)"
           >
             {regionOptions.map((option) => (
               <option key={option} value={option}>
@@ -145,36 +145,36 @@ export default function RankingFiltersPanel({
       )}
 
       <div className="mb-5">
-        <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
+        <label className="mb-1.5 block text-xs font-semibold text-(--color-ink)">
           {countryFilterLabel}
         </label>
         <div ref={countryFilterRef} className="relative">
           <button
             type="button"
             onClick={() => setCountryFilterOpen((value) => !value)}
-            className="flex w-full items-center justify-between rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition hover:border-[#1a3d2e] focus:border-[#1a3d2e]"
+            className="flex w-full items-center justify-between rounded-lg border border-(--color-rule) bg-(--color-paper) px-3 py-2 text-sm outline-none transition hover:border-(--color-ink) focus:border-(--color-ink)"
             aria-expanded={countryFilterOpen}
             aria-haspopup="listbox"
           >
-            <span className="truncate text-left text-[#1a1a1a]">
+            <span className="truncate text-left text-(--color-ink)">
               {selectedCountryValue || countryPlaceholder}
             </span>
-            <span className="ml-2 text-xs text-[#6b7068]">
+            <span className="ml-2 text-xs text-(--color-muted)">
               {countryFilterOpen ? "▲" : "▼"}
             </span>
           </button>
 
           {countryFilterOpen && (
-            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-30 rounded-xl border border-[#e0ddd8] bg-white p-3 shadow-lg">
+            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-30 rounded-xl border border-(--color-rule) bg-white p-3 shadow-lg">
               <input
                 type="text"
                 value={countryFilterSearch}
                 onChange={(e) => setCountryFilterSearch(e.target.value)}
                 placeholder={countrySearchPlaceholder}
-                className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e] focus:bg-white"
+                className="w-full rounded-lg border border-(--color-rule) bg-(--color-paper) px-3 py-2 text-sm outline-none transition focus:border-(--color-ink) focus:bg-white"
               />
 
-              <div className="mt-3 max-h-56 overflow-y-auto rounded-lg border border-[#ece7df] bg-[#faf8f3]">
+              <div className="mt-3 max-h-56 overflow-y-auto rounded-lg border border-(--color-rule) bg-(--color-paper)">
                 <button
                   type="button"
                   onClick={() => {
@@ -183,13 +183,13 @@ export default function RankingFiltersPanel({
                   }}
                   className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition hover:bg-white ${
                     !selectedCountryValue
-                      ? "bg-white font-semibold text-[#1a3d2e]"
-                      : "text-[#1a1a1a]"
+                      ? "bg-white font-semibold text-(--color-ink)"
+                      : "text-(--color-ink)"
                   }`}
                 >
                   <span>{countryPlaceholder}</span>
                   {!selectedCountryValue && (
-                    <span className="text-xs text-[#1a3d2e]">Selected</span>
+                    <span className="text-xs text-(--color-ink)">Selected</span>
                   )}
                 </button>
 
@@ -206,19 +206,19 @@ export default function RankingFiltersPanel({
                         }}
                         className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition hover:bg-white ${
                           isSelected
-                            ? "bg-white font-semibold text-[#1a3d2e]"
-                            : "text-[#1a1a1a]"
+                            ? "bg-white font-semibold text-(--color-ink)"
+                            : "text-(--color-ink)"
                         }`}
                       >
                         <span className="truncate">{option.name}</span>
-                        <span className="ml-3 text-xs text-[#6b7068]">
+                        <span className="ml-3 text-xs text-(--color-muted)">
                           {option.count}
                         </span>
                       </button>
                     );
                   })
                 ) : (
-                  <div className="px-3 py-4 text-sm italic text-[#6b7068]">
+                  <div className="px-3 py-4 text-sm italic text-(--color-muted)">
                     No countries match your search.
                   </div>
                 )}
@@ -229,13 +229,13 @@ export default function RankingFiltersPanel({
       </div>
 
       <div className="mb-5">
-        <label className="mb-1.5 block text-xs font-semibold text-[#1a3d2e]">
+        <label className="mb-1.5 block text-xs font-semibold text-(--color-ink)">
           Per Page
         </label>
         <select
           value={pageSize}
           onChange={(e) => onUpdate({ pageSize: e.target.value, page: 1 })}
-          className="w-full rounded-lg border border-[#e0ddd8] bg-[#f5f3ee] px-3 py-2 text-sm outline-none transition focus:border-[#1a3d2e]"
+          className="w-full rounded-lg border border-(--color-rule) bg-(--color-paper) px-3 py-2 text-sm outline-none transition focus:border-(--color-ink)"
         >
           <option value="20">20</option>
           <option value="50">50</option>
@@ -254,7 +254,7 @@ export default function RankingFiltersPanel({
             page: 1,
           })
         }
-        className="w-full rounded-lg border border-[#e0ddd8] py-2 text-xs font-semibold text-[#6b7068] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+        className="w-full rounded-lg border border-(--color-rule) py-2 text-xs font-semibold text-(--color-muted) transition hover:border-(--color-ink) hover:text-(--color-ink)"
       >
         Reset Filters
       </button>

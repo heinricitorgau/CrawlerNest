@@ -15,22 +15,22 @@ export default function UniversityError({
   }, [error]);
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee] flex items-center justify-center px-6">
-      <div className="max-w-md w-full rounded-2xl border border-[#e0ddd8] bg-white p-8 shadow-sm text-center">
-        <h2 className="text-lg font-bold text-[#1a1a1a]">Failed to load university</h2>
-        <p className="mt-2 text-sm text-[#6b7068]">
+    <main className="min-h-screen bg-(--color-paper) flex items-center justify-center px-6">
+      <div className="max-w-md w-full rounded-2xl border border-(--color-rule) bg-white p-8 shadow-sm text-center">
+        <h2 className="text-lg font-bold text-(--color-ink)">Failed to load university</h2>
+        <p className="mt-2 text-sm text-(--color-muted)">
           We couldn&apos;t fetch the university details. The backend may be unavailable.
         </p>
         <div className="mt-6 flex items-center justify-center gap-3">
           <button
             onClick={reset}
-            className="rounded-full bg-[#1a3d2e] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+            className="bg-(--color-ink) px-5 py-2 text-sm font-semibold text-white transition hover:bg-(--color-ink-2)"
           >
             Retry
           </button>
           <Link
             href="/"
-            className="rounded-full border border-[#e0ddd8] px-5 py-2 text-sm font-semibold text-[#1a1a1a] transition hover:border-[#1a3d2e]"
+            className="border border-(--color-rule) px-5 py-2 text-sm font-semibold text-(--color-ink) transition hover:border-(--color-ink)"
           >
             Back to Rankings
           </Link>

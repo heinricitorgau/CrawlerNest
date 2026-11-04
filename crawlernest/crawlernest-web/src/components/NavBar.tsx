@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -51,10 +52,11 @@ const NAV_LINKS = [
   { label: "Data Quality", href: "/data-quality" },
 ];
 
-function navLinkClass(isActive: boolean): string {
-  return `px-4 py-2 text-sm font-medium transition-colors ${
-    isActive ? "text-blue-600" : "text-slate-600 hover:text-slate-900"
-  }`;
+function navLinkProps(isActive: boolean) {
+  return {
+    className: "shell-link",
+    "aria-current": isActive ? ("page" as const) : undefined,
+  };
 }
 
 /** Nav links without the query string: what renders before the URL is readable. */
@@ -62,7 +64,7 @@ function PlainNavLinks({ pathname }: { pathname: string }) {
   return (
     <>
       {NAV_LINKS.map((link) => (
-        <Link key={link.label} href={link.href} className={navLinkClass(pathname === link.href)}>
+        <Link key={link.label} href={link.href} {...navLinkProps(pathname === link.href)}>
           {link.label}
         </Link>
       ))}
@@ -80,7 +82,7 @@ function YearPreservingNavLinks({ pathname }: { pathname: string }) {
         <Link
           key={link.label}
           href={isYearAwarePath(link.href) ? hrefForEdition(link.href, year) : link.href}
-          className={navLinkClass(pathname === link.href)}
+          {...navLinkProps(pathname === link.href)}
         >
           {link.label}
         </Link>
@@ -106,21 +108,15 @@ export default function NavBar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
-
-        {/* Left: Branding + nav links */}
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="h-6 w-6 bg-slate-900 flex items-center justify-center rounded-sm">
-              <span className="text-[10px] font-bold text-white">CN</span>
-            </div>
-            <span className="text-lg font-bold tracking-tight text-slate-900 border-r border-gray-200 pr-4">
-              CrawlerNest
-            </span>
+    <nav className="shell-bar" aria-label="Main">
+      <div className="shell-bar__inner">
+        <div className="shell-bar__left">
+          <Link href="/" className="wordmark">
+            <Image src="/crawler-watermark.png" alt="" width={28} height={28} priority />
+            <span className="wordmark__text">CrawlerNest</span>
           </Link>
 
-          <div className="hidden items-center gap-1 md:flex">
+          <div className="shell-links">
             {/* useSearchParams in the root layout needs its own boundary, or the
                 production build fails for every static page. */}
             <Suspense fallback={<PlainNavLinks pathname={pathname} />}>
@@ -130,7 +126,7 @@ export default function NavBar() {
         </div>
 
         {/* Right: edition, then auth actions */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="shell-bar__right">
           {isYearAwarePath(pathname) ? (
             <Suspense fallback={<YearSelectorFallback variant="nav" />}>
               <YearSelector variant="nav" />
@@ -141,7 +137,7 @@ export default function NavBar() {
             href="https://github.com/heinricitorgau/University-Data-Infrastructure-Web-Platform"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-slate-500 hover:text-slate-900 transition-colors"
+            className="shell-icon"
             aria-label="GitHub"
           >
             <GitHubIcon />
@@ -149,33 +145,22 @@ export default function NavBar() {
 
           {/* Suppress auth area entirely during initial load to avoid flicker */}
           {loading ? (
-            <div className="hidden h-8 w-20 animate-pulse rounded-lg bg-slate-100 sm:block" aria-hidden="true" />
+            <div className="shell-pending" aria-hidden="true" />
           ) : authenticated && currentUser ? (
             /* Authenticated state */
             <>
-              <span className="hidden max-w-[140px] truncate text-xs text-slate-600 sm:block">
-                {currentUser.email}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white transition-colors sm:px-4 sm:py-2"
-              >
+              <span className="shell-email">{currentUser.email}</span>
+              <button onClick={handleSignOut} className="btn btn--secondary">
                 Sign out
               </button>
             </>
           ) : (
             /* Unauthenticated state */
             <>
-              <Link
-                href="/signup"
-                className="hidden text-xs font-medium px-3 py-2 rounded text-slate-600 hover:text-slate-900 transition-colors sm:block"
-              >
+              <Link href="/signup" className="btn shell-hide-sm">
                 Sign up
               </Link>
-              <Link
-                href="/signin"
-                className="text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white transition-colors sm:px-4 sm:py-2"
-              >
+              <Link href="/signin" className="btn btn--secondary">
                 Sign in
               </Link>
             </>

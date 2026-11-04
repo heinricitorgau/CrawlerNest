@@ -161,7 +161,7 @@ function AdmissionRequirementsBlock({ admissions }: { admissions?: AdmissionRequ
         ))}
       {programmes.length > 0 && (
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+          <h3 className="text-xs font-bold text-slate-500 mb-3">
             Programme-specific requirements
           </h3>
           <div className="space-y-4">
@@ -211,7 +211,7 @@ function AdmissionLevelRow({
   return (
     <div>
       {showHeading && (
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+        <h3 className="text-xs font-bold text-slate-500 mb-3">
           {heading ?? formatDegreeLevel(level.degreeLevel)}
         </h3>
       )}
@@ -253,7 +253,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm mb-8">
       <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600">{title}</h2>
+        <h2 className="text-sm font-bold text-slate-600">{title}</h2>
       </div>
       <div className="p-6">{children}</div>
     </section>
@@ -352,7 +352,7 @@ function SubjectRankingsBlock({ items, year }: { items: SubjectRankingRow[]; yea
               <div className="text-sm font-bold">{group.title}</div>
               <div className="mt-1 text-xs opacity-80">{group.description}</div>
             </div>
-            <div className="text-xs font-bold uppercase tracking-[0.12em]">
+            <div className="text-xs font-bold ">
               {group.items.length} subject{group.items.length === 1 ? "" : "s"}
             </div>
           </div>
@@ -455,7 +455,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
       {/* ── 1. Breadcrumb/Actions ── */}
       <div className="bg-white border-b border-slate-200">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 ">
             <Link href={editionHref("/")} className="hover:text-blue-600">Rankings</Link>
             <span>/</span>
             <span className="text-slate-900">{detail.universityName}</span>
@@ -474,7 +474,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
           />
           <Link
             href={`/universities/${slug}/sources`}
-            className="rounded border border-slate-200 px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-slate-700 hover:border-blue-300 hover:text-blue-700"
+            className="rounded border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:border-blue-300 hover:text-blue-700"
           >
             Sources
           </Link>
@@ -501,8 +501,8 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
           </div>
 
           <div className="flex-shrink-0 bg-slate-900 text-white rounded-lg p-6 shadow-xl relative overflow-hidden min-w-[200px]">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/10 -mr-8 -mt-8 rounded-full blur-2xl" />
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-2">Aggregated Rank · {edition}</p>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-600/10 -mr-8 -mt-8 blur-2xl" />
+            <p className="text-[10px] font-bold text-slate-400 mb-2">Aggregated Rank · {edition}</p>
             {rankedInEdition ? (
               <p className="text-5xl font-black tabular-nums">
                 #{primaryRank ? formatRank(primaryRank) : "N/A"}
@@ -530,12 +530,12 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
               <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+                    <div className="text-[11px] font-bold text-slate-500">
                       Ranking Evidence Summary
                     </div>
                     <div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-slate-700 sm:grid-cols-5">
                       <div>
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <div className="text-[10px] font-bold text-slate-400">
                           Sources available
                         </div>
                         <div className="mt-1 font-semibold text-slate-900">
@@ -543,7 +543,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <div className="text-[10px] font-bold text-slate-400">
                           Best rank
                         </div>
                         <div className="mt-1 font-semibold text-slate-900">
@@ -551,7 +551,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <div className="text-[10px] font-bold text-slate-400">
                           Worst rank
                         </div>
                         <div className="mt-1 font-semibold text-slate-900">
@@ -559,7 +559,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <div className="text-[10px] font-bold text-slate-400">
                           Rank spread
                         </div>
                         <div className="mt-1 font-semibold text-slate-900">
@@ -567,7 +567,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <div className="text-[10px] font-bold text-slate-400">
                           Agreement
                         </div>
                         <div className="mt-1 font-semibold capitalize text-slate-900">
@@ -651,7 +651,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
                     {detail.aggregatedRanking?.compositeScore ? Math.round(detail.aggregatedRanking.compositeScore) : "—"}
                   </span>
                 </div>
-                <p className="mt-4 text-xs font-bold text-slate-500 uppercase tracking-widest leading-loose">
+                <p className="mt-4 text-xs font-bold text-slate-500 leading-loose">
                   Composite Intelligence Score<br/>
                   <span className="text-[10px] font-normal text-slate-400 font-sans">v{detail.aggregatedRanking?.aggregationMethodVersion || "1.0"} Normalized</span>
                 </p>
@@ -661,16 +661,16 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
             <Section title="Data Completeness">
                <div className="space-y-4">
                  <div>
-                    <div className="flex justify-between text-[10px] font-bold text-slate-500 uppercase mb-1">
+                    <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
                       <span>Recommendation Confidence</span>
                       <span>{Math.round((detail.dataQuality?.recommendationConfidence || 0) * 100)}%</span>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                      <div className="bg-green-500 h-full rounded-full transition-all duration-1000" style={{ width: `${(detail.dataQuality?.recommendationConfidence || 0) * 100}%` }} />
+                    <div className="w-full bg-slate-100 h-1.5 overflow-hidden">
+                      <div className="bg-green-500 h-full transition-all duration-1000" style={{ width: `${(detail.dataQuality?.recommendationConfidence || 0) * 100}%` }} />
                     </div>
                  </div>
                  <div className="p-3 bg-slate-50 rounded border border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Status</p>
+                    <p className="text-[10px] font-bold text-slate-500 mb-1">Status</p>
                     <p className="text-xs font-semibold text-slate-700">{detail.dataQuality?.confidenceLabel || "Unknown"}</p>
                     <p className="mt-2 text-[10px] text-slate-400 leading-relaxed italic">{detail.dataQuality?.confidenceReason || "No specific quality notes."}</p>
                  </div>

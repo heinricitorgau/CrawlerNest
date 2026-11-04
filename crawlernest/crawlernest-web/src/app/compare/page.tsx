@@ -33,19 +33,19 @@ function printedSourceRank(evidence: UniversityRanking | undefined, position: nu
 
 function ComparePageShell() {
   return (
-    <main className="min-h-screen bg-[#f5f3ee] px-6 py-10 text-[#1a1a1a] lg:px-8">
+    <main className="min-h-screen bg-(--color-paper) px-6 py-10 text-(--color-ink) lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="h-5 w-40 animate-pulse rounded bg-[#e0ddd8]" />
-        <div className="mt-4 h-10 w-80 animate-pulse rounded bg-[#d7d2c9]" />
-        <div className="mt-4 h-4 w-[32rem] animate-pulse rounded bg-[#e0ddd8]" />
+        <div className="h-5 w-40 animate-pulse rounded bg-(--color-paper-2)" />
+        <div className="mt-4 h-10 w-80 animate-pulse rounded bg-(--color-paper-3)" />
+        <div className="mt-4 h-4 w-[32rem] animate-pulse rounded bg-(--color-paper-2)" />
         <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-              <div className="h-5 w-36 animate-pulse rounded bg-[#e0ddd8]" />
-              <div className="mt-4 h-4 w-24 animate-pulse rounded bg-[#e0ddd8]" />
+            <div key={index} className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
+              <div className="h-5 w-36 animate-pulse rounded bg-(--color-paper-2)" />
+              <div className="mt-4 h-4 w-24 animate-pulse rounded bg-(--color-paper-2)" />
               <div className="mt-6 space-y-3">
                 {Array.from({ length: 6 }).map((__, rowIndex) => (
-                  <div key={rowIndex} className="h-4 animate-pulse rounded bg-[#f0ede7]" />
+                  <div key={rowIndex} className="h-4 animate-pulse rounded bg-(--color-paper-2)" />
                 ))}
               </div>
             </div>
@@ -57,15 +57,15 @@ function ComparePageShell() {
 }
 
 function trustTone(level: CompareUniversityPayload["trustLevel"]) {
-  if (level === "high") return "bg-[#e8f2ec] text-[#1a3d2e]";
-  if (level === "medium") return "bg-[#f3ecd6] text-[#8a6116]";
-  return "bg-[#f3e7e4] text-[#8b3a2b]";
+  if (level === "high") return "bg-(--color-paper-2) text-(--color-ink)";
+  if (level === "medium") return "bg-(--color-paper-2) text-(--color-warn)";
+  return "bg-(--color-paper-2) text-(--color-error)";
 }
 
 function agreementTone(level: CompareUniversityPayload["evidenceSummary"]["agreementLevel"]) {
-  if (level === "strong") return "bg-[#e8f2ec] text-[#1a3d2e]";
-  if (level === "moderate") return "bg-[#f3ecd6] text-[#8a6116]";
-  return "bg-[#f3e7e4] text-[#8b3a2b]";
+  if (level === "strong") return "bg-(--color-paper-2) text-(--color-ink)";
+  if (level === "moderate") return "bg-(--color-paper-2) text-(--color-warn)";
+  return "bg-(--color-paper-2) text-(--color-error)";
 }
 
 /**
@@ -264,19 +264,18 @@ export function ComparePageContent({
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee] pb-20 text-[#1a1a1a]">
+    <main className="min-h-screen bg-(--color-paper) pb-20 text-(--color-ink)">
       <section
-        className="relative overflow-hidden py-14"
-        style={{ background: "linear-gradient(135deg, #1a3d2e 0%, #0f2318 100%)" }}
+        className="band-ink relative overflow-hidden py-14"
       >
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#7dbf9a]">
+          <p className="band-ink__note text-sm font-medium">
             CrawlerNest
           </p>
-          <h1 className="mt-3 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+          <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">
             Compare Universities
           </h1>
-          <p className="mt-4 max-w-3xl text-lg leading-7 text-[#a8c5b5]">
+          <p className="band-ink__note mt-4 max-w-3xl text-lg leading-7">
             Compare shortlisted universities side by side using aggregated position,
             source evidence, trust signals, and admissions context. This is an
             evidence-based comparison, not an official ranking.
@@ -286,35 +285,35 @@ export function ComparePageContent({
 
       <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
         {shortlist.length === 0 ? (
-          <section className="rounded-3xl border border-[#e0ddd8] bg-white p-8 shadow-sm">
-            <h2 className="text-2xl font-semibold text-[#1a3d2e]">No shortlist yet</h2>
-            <p className="mt-3 text-sm leading-6 text-[#6b7068]">
+          <section className="rounded-3xl border border-(--color-rule) bg-white p-8 shadow-sm">
+            <h2 className="text-2xl font-semibold text-(--color-ink)">No shortlist yet</h2>
+            <p className="mt-3 text-sm leading-6 text-(--color-muted)">
               Add universities to your shortlist first, then come back here to compare
               them side by side.
             </p>
             <Link
               href="/"
-              className="mt-6 inline-flex rounded-full bg-[#1a3d2e] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+              className="mt-6 inline-flex bg-(--color-ink) px-5 py-3 text-sm font-semibold text-white transition hover:bg-(--color-ink-2)"
             >
               Browse rankings
             </Link>
           </section>
         ) : (
           <>
-            <section className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
+            <section className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-[#1a3d2e]">
+                  <h2 className="text-xl font-semibold text-(--color-ink)">
                     Selected universities
                   </h2>
-                  <p className="mt-2 text-sm text-[#6b7068]">
+                  <p className="mt-2 text-sm text-(--color-muted)">
                     Choose 2 to 4 shortlisted universities to compare. Remove any item
                     here without affecting your shortlist.
                   </p>
                 </div>
                 <div className="flex flex-col gap-3 md:items-end">
                   {yearSelector}
-                  <div className="text-sm text-[#6b7068]">
+                  <div className="text-sm text-(--color-muted)">
                     {selectedCount} selected / {MAX_COMPARE_ITEMS} max
                   </div>
                 </div>
@@ -330,12 +329,12 @@ export function ComparePageContent({
                       type="button"
                       disabled={disabled}
                       onClick={() => toggleComparedUniversity(item)}
-                      className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                      className={` border px-4 py-2 text-sm font-medium transition ${
                         selected
-                          ? "border-[#1a3d2e] bg-[#e8f2ec] text-[#1a3d2e]"
+                          ? "border-(--color-ink) bg-(--color-paper-2) text-(--color-ink)"
                           : disabled
-                            ? "cursor-not-allowed border-[#e8e3da] bg-[#f7f4ef] text-[#b4aea4]"
-                            : "border-[#e0ddd8] bg-white text-[#1a1a1a] hover:border-[#1a3d2e]"
+                            ? "cursor-not-allowed border-(--color-rule) bg-(--color-paper) text-(--color-muted)"
+                            : "border-(--color-rule) bg-white text-(--color-ink) hover:border-(--color-ink)"
                       }`}
                     >
                       {selected ? "✓ " : ""}{item.universityName}
@@ -345,7 +344,7 @@ export function ComparePageContent({
               </div>
 
               {selectedCount < 2 ? (
-                <div className="mt-6 rounded-2xl border border-[#ecd9b8] bg-[#fbf4df] px-4 py-3 text-sm text-[#8a6116]">
+                <div className="mt-6 rounded-2xl border border-(--color-warn-soft) bg-(--color-paper-2) px-4 py-3 text-sm text-(--color-warn)">
                   Select at least 2 universities to compare.
                 </div>
               ) : null}
@@ -354,31 +353,31 @@ export function ComparePageContent({
             {selectedCount >= 2 ? (
               <>
                 {error ? (
-                  <div className="mt-6 rounded-2xl border border-[#f0d3cf] bg-[#fbefed] px-4 py-3 text-sm text-[#8b3a2b]">
+                  <div className="mt-6 rounded-2xl border border-(--color-error-soft) bg-(--color-paper) px-4 py-3 text-sm text-(--color-error)">
                     {error}
                   </div>
                 ) : null}
 
                 {comparison ? (
                   <>
-                    <section className="mt-6 rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm">
-                      <h2 className="text-xl font-semibold text-[#1a3d2e]">
+                    <section className="mt-6 rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
+                      <h2 className="text-xl font-semibold text-(--color-ink)">
                         Comparison Summary
                         {comparisonYear != null ? (
-                          <span className="ml-2 align-middle text-sm font-medium text-[#6b7068]">
+                          <span className="ml-2 align-middle text-sm font-medium text-(--color-muted)">
                             {comparisonYear} edition
                           </span>
                         ) : null}
                       </h2>
-                      <p className="mt-3 text-sm leading-6 text-[#6b7068]">
+                      <p className="mt-3 text-sm leading-6 text-(--color-muted)">
                         {comparison.summary}
                       </p>
                       {comparison.comparison?.decisionFactors?.length ? (
-                        <div className="mt-5 rounded-2xl bg-[#f5f3ee] p-5">
-                          <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-[#6b7068]">
+                        <div className="mt-5 rounded-2xl bg-(--color-paper) p-5">
+                          <h3 className="text-sm font-semibold text-(--color-muted)">
                             Decision Factors
                           </h3>
-                          <ul className="mt-3 space-y-2 text-sm text-[#4f544d]">
+                          <ul className="mt-3 space-y-2 text-sm text-(--color-ink-2)">
                             {comparison.comparison.decisionFactors.map((factor) => (
                               <li key={factor}>{factor}</li>
                             ))}
@@ -400,15 +399,15 @@ export function ComparePageContent({
                         return (
                           <article
                             key={university.canonicalUniversityId}
-                            className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm"
+                            className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm"
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <h3 className="text-lg font-semibold text-[#1a1a1a]">
+                                <h3 className="text-lg font-semibold text-(--color-ink)">
                                   {university.slug ? (
                                     <Link
                                       href={hrefForEdition(`/universities/${university.slug}`, comparisonYear ?? rankingYear)}
-                                      className="underline decoration-[#c0bdb8] underline-offset-2 hover:text-[#1a3d2e] hover:decoration-[#1a3d2e]"
+                                      className="underline decoration-(--color-rule) underline-offset-2 hover:text-(--color-ink) hover:decoration-(--color-ink)"
                                     >
                                       {university.universityName}
                                     </Link>
@@ -416,7 +415,7 @@ export function ComparePageContent({
                                     university.universityName
                                   )}
                                 </h3>
-                                <p className="mt-1 text-sm text-[#6b7068]">{university.country}</p>
+                                <p className="mt-1 text-sm text-(--color-muted)">{university.country}</p>
                               </div>
                               <span className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase ${trustTone(university.trustLevel)}`}>
                                 {university.trustLevel}
@@ -425,38 +424,38 @@ export function ComparePageContent({
 
                             <div className="mt-5 space-y-6">
                               <section>
-                                <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-[#6b7068]">
+                                <div className="mb-2 text-xs font-bold text-(--color-muted)">
                                   Overview
                                 </div>
                                 <div className="space-y-2 text-sm">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-[#6b7068]">Aggregated rank</span>
-                                    <span className={`font-semibold ${strongestRank ? "text-[#1a3d2e]" : "text-[#1a1a1a]"}`}>
+                                    <span className="text-(--color-muted)">Aggregated rank</span>
+                                    <span className={`font-semibold ${strongestRank ? "text-(--color-ink)" : "text-(--color-ink)"}`}>
                                       #{formatRank(university.aggregatedRank)}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between">
-                                    <span className="text-[#6b7068]">Score</span>
-                                    <span className="font-semibold text-[#1a1a1a]">
+                                    <span className="text-(--color-muted)">Score</span>
+                                    <span className="font-semibold text-(--color-ink)">
                                       {formatScore(university.aggregatedScore)}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between">
-                                    <span className="text-[#6b7068]">Evidence sources</span>
-                                    <span className="font-semibold text-[#1a1a1a]">
+                                    <span className="text-(--color-muted)">Evidence sources</span>
+                                    <span className="font-semibold text-(--color-ink)">
                                       {university.evidenceSummary.availableSourceCount}
                                     </span>
                                   </div>
                                 </div>
                                 {strongestRank ? (
-                                  <div className="mt-3 rounded-xl bg-[#e8f2ec] px-3 py-2 text-xs font-medium text-[#1a3d2e]">
+                                  <div className="mt-3 rounded-xl bg-(--color-paper-2) px-3 py-2 text-xs font-medium text-(--color-ink)">
                                     Stronger aggregated position in this comparison
                                   </div>
                                 ) : null}
                               </section>
 
                               <section>
-                                <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-[#6b7068]">
+                                <div className="mb-2 text-xs font-bold text-(--color-muted)">
                                   Ranking Evidence
                                 </div>
                                 <div className="space-y-2 text-sm">
@@ -464,9 +463,9 @@ export function ComparePageContent({
                                     const evidence = university.sourceRankings?.find((row) => row.source === source);
                                     return (
                                       <div key={source} className="flex items-start justify-between gap-3">
-                                        <span className="text-[#6b7068]">{source}</span>
+                                        <span className="text-(--color-muted)">{source}</span>
                                         <span className="flex flex-col items-end gap-0.5">
-                                          <span className="font-semibold text-[#1a1a1a]">
+                                          <span className="font-semibold text-(--color-ink)">
                                             {printedSourceRank(evidence, university.sourceRanks[source])}
                                           </span>
                                           {evidence ? <SourceRankChange ranking={evidence} /> : null}
@@ -478,35 +477,35 @@ export function ComparePageContent({
                               </section>
 
                               <section>
-                                <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-[#6b7068]">
+                                <div className="mb-2 text-xs font-bold text-(--color-muted)">
                                   Trust & Agreement
                                 </div>
                                 <div className="space-y-2 text-sm">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-[#6b7068]">Trust score</span>
-                                    <span className={`font-semibold ${highestTrust ? "text-[#1a3d2e]" : "text-[#1a1a1a]"}`}>
+                                    <span className="text-(--color-muted)">Trust score</span>
+                                    <span className={`font-semibold ${highestTrust ? "text-(--color-ink)" : "text-(--color-ink)"}`}>
                                       {Math.round(university.trustScore)}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between">
-                                    <span className="text-[#6b7068]">Best rank</span>
-                                    <span className="font-semibold text-[#1a1a1a]">
+                                    <span className="text-(--color-muted)">Best rank</span>
+                                    <span className="font-semibold text-(--color-ink)">
                                       {university.evidenceSummary.bestRank != null
                                         ? `#${formatRank(university.evidenceSummary.bestRank)}`
                                         : "—"}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between">
-                                    <span className="text-[#6b7068]">Worst rank</span>
-                                    <span className="font-semibold text-[#1a1a1a]">
+                                    <span className="text-(--color-muted)">Worst rank</span>
+                                    <span className="font-semibold text-(--color-ink)">
                                       {university.evidenceSummary.worstRank != null
                                         ? `#${formatRank(university.evidenceSummary.worstRank)}`
                                         : "—"}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between">
-                                    <span className="text-[#6b7068]">Spread</span>
-                                    <span className="font-semibold text-[#1a1a1a]">
+                                    <span className="text-(--color-muted)">Spread</span>
+                                    <span className="font-semibold text-(--color-ink)">
                                       {university.evidenceSummary.spread != null
                                         ? formatRank(university.evidenceSummary.spread)
                                         : "—"}
@@ -516,51 +515,51 @@ export function ComparePageContent({
                                 <div className={`mt-3 inline-flex rounded-full px-2.5 py-1 text-xs font-bold uppercase ${agreementTone(university.evidenceSummary.agreementLevel)}`}>
                                   {university.evidenceSummary.agreementLevel}
                                 </div>
-                                <p className="mt-3 text-sm leading-6 text-[#6b7068]">
+                                <p className="mt-3 text-sm leading-6 text-(--color-muted)">
                                   {university.evidenceSummary.note}
                                 </p>
                                 {highestTrust ? (
-                                  <div className="mt-3 rounded-xl bg-[#e8f2ec] px-3 py-2 text-xs font-medium text-[#1a3d2e]">
+                                  <div className="mt-3 rounded-xl bg-(--color-paper-2) px-3 py-2 text-xs font-medium text-(--color-ink)">
                                     Highest trust signal among selected universities
                                   </div>
                                 ) : null}
                               </section>
 
                               <section>
-                                <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-[#6b7068]">
+                                <div className="mb-2 text-xs font-bold text-(--color-muted)">
                                   Admissions / Fit
                                 </div>
                                 <div className="space-y-2 text-sm">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-[#6b7068]">IELTS minimum</span>
-                                    <span className="font-semibold text-[#1a1a1a]">
+                                    <span className="text-(--color-muted)">IELTS minimum</span>
+                                    <span className="font-semibold text-(--color-ink)">
                                       {formatIelts(university.ieltsMin)}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between">
-                                    <span className="text-[#6b7068]">Recommendation fit</span>
-                                    <span className="font-semibold text-[#1a1a1a]">—</span>
+                                    <span className="text-(--color-muted)">Recommendation fit</span>
+                                    <span className="font-semibold text-(--color-ink)">—</span>
                                   </div>
                                 </div>
                               </section>
 
                               <section>
-                                <div className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-[#6b7068]">
+                                <div className="mb-2 text-xs font-bold text-(--color-muted)">
                                   Notes / Warnings
                                 </div>
                                 {university.warnings.length > 0 || university.trustExplain.notes.length > 0 ? (
-                                  <ul className="space-y-2 text-sm text-[#6b7068]">
+                                  <ul className="space-y-2 text-sm text-(--color-muted)">
                                     {university.trustExplain.notes.map((note) => (
                                       <li key={note}>{note}</li>
                                     ))}
                                     {university.warnings.map((warning) => (
-                                      <li key={warning} className="text-[#8b3a2b]">
+                                      <li key={warning} className="text-(--color-error)">
                                         {warning}
                                       </li>
                                     ))}
                                   </ul>
                                 ) : (
-                                  <p className="text-sm text-[#6b7068]">No major warnings.</p>
+                                  <p className="text-sm text-(--color-muted)">No major warnings.</p>
                                 )}
                               </section>
                             </div>
@@ -586,13 +585,13 @@ export function ComparePageContent({
                     {Array.from({ length: Math.min(selectedCount, MAX_COMPARE_ITEMS) }).map((_, index) => (
                       <div
                         key={index}
-                        className="rounded-3xl border border-[#e0ddd8] bg-white p-6 shadow-sm"
+                        className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm"
                       >
-                        <div className="h-5 w-32 animate-pulse rounded bg-[#e0ddd8]" />
-                        <div className="mt-4 h-4 w-20 animate-pulse rounded bg-[#e0ddd8]" />
+                        <div className="h-5 w-32 animate-pulse rounded bg-(--color-paper-2)" />
+                        <div className="mt-4 h-4 w-20 animate-pulse rounded bg-(--color-paper-2)" />
                         <div className="mt-6 space-y-3">
                           {Array.from({ length: 8 }).map((__, rowIndex) => (
-                            <div key={rowIndex} className="h-4 animate-pulse rounded bg-[#f0ede7]" />
+                            <div key={rowIndex} className="h-4 animate-pulse rounded bg-(--color-paper-2)" />
                           ))}
                         </div>
                       </div>
@@ -605,13 +604,13 @@ export function ComparePageContent({
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/"
-                className="rounded-full border border-[#1a3d2e] px-4 py-3 text-sm font-semibold text-[#1a3d2e] transition hover:bg-[#e8f2ec]"
+                className="border border-(--color-ink) px-4 py-3 text-sm font-semibold text-(--color-ink) transition hover:bg-(--color-paper-2)"
               >
                 Back to rankings
               </Link>
               <Link
                 href="/recommendations"
-                className="rounded-full bg-[#1a3d2e] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+                className="bg-(--color-ink) px-4 py-3 text-sm font-semibold text-white transition hover:bg-(--color-ink-2)"
               >
                 Continue to recommendations
               </Link>

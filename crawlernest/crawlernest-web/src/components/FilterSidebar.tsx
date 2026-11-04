@@ -45,7 +45,7 @@ export default function FilterSidebar({
     <aside className="w-64 flex-shrink-0 space-y-6">
       {/* ── Filter Header ── */}
       <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-        <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">
+        <h3 className="text-sm font-bold text-slate-500">
           Refine Results
         </h3>
         <button
@@ -124,7 +124,7 @@ export default function FilterSidebar({
           placeholder="Search locations..."
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
         />
-        <p className="text-[10px] text-slate-400 uppercase font-semibold">
+        <p className="text-[10px] text-slate-400 font-semibold">
           Popular Locations
         </p>
         <div className="flex flex-wrap gap-1.5">

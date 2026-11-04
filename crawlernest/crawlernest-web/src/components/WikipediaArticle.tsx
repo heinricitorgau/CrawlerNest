@@ -65,7 +65,7 @@ export function WikipediaArticle({ article }: WikipediaArticleProps) {
 
       {rest.length > 0 && (
         <details className="group mt-6 rounded border border-slate-200">
-          <summary className="cursor-pointer select-none px-4 py-3 text-xs font-bold uppercase tracking-[0.12em] text-slate-600 hover:text-blue-700">
+          <summary className="cursor-pointer select-none px-4 py-3 text-xs font-bold text-slate-600 hover:text-blue-700">
             Full article · {rest.length} more section{rest.length === 1 ? "" : "s"}
           </summary>
           <div className="space-y-4 border-t border-slate-100 px-4 py-4">

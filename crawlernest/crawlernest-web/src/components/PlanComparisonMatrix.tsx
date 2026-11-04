@@ -193,34 +193,34 @@ export function PlanComparisonMatrix({
   }
 
   return (
-    <div className="mt-5 rounded-2xl border border-[#e0ddd8] bg-[#fcfbf8] p-4">
-      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#1a3d2e]">
+    <div className="mt-5 rounded-2xl border border-(--color-rule) bg-(--color-plate) p-4">
+      <div className="text-xs font-semibold text-(--color-ink)">
         Plan Comparison
       </div>
       {planComparison ? (
-        <div className="mt-2 text-sm leading-6 text-[#6b7068]">
-          <span className="font-semibold text-[#1a1a1a]">Recommended plan:</span>{" "}
+        <div className="mt-2 text-sm leading-6 text-(--color-muted)">
+          <span className="font-semibold text-(--color-ink)">Recommended plan:</span>{" "}
           <span className="capitalize">{planComparison.recommendedPlan}</span>
           {planComparison.reason ? (
             <>
               {" "}
-              <span className="font-semibold text-[#1a1a1a]">Reason:</span> {planComparison.reason}
+              <span className="font-semibold text-(--color-ink)">Reason:</span> {planComparison.reason}
             </>
           ) : null}
-          <div className="mt-1 text-sm text-[#6b7068]">
+          <div className="mt-1 text-sm text-(--color-muted)">
             This is the plan the system currently prefers.
           </div>
         </div>
       ) : null}
       {planDelta && planDelta.comparisonAgainstAlternatives.length > 0 ? (
-        <div className="mt-4 rounded-xl bg-[#f5f3ee] p-4">
-          <div className="text-sm font-semibold text-[#1a3d2e]">
+        <div className="mt-4 rounded-xl bg-(--color-paper) p-4">
+          <div className="text-sm font-semibold text-(--color-ink)">
             Why this plan stands out
           </div>
-          <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+          <div className="mt-1 text-sm leading-6 text-(--color-muted)">
             How the recommended plan differs from the alternatives.
           </div>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-[#6b7068]">
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-(--color-muted)">
             {planDelta.comparisonAgainstAlternatives.map((line) => (
               <li key={line}>{line}</li>
             ))}
@@ -228,18 +228,18 @@ export function PlanComparisonMatrix({
         </div>
       ) : null}
       {selectedPlanComparison ? (
-        <div className="mt-4 rounded-xl border border-[#e0ddd8] bg-white p-4">
-          <div className="text-sm font-semibold text-[#1a3d2e]">
+        <div className="mt-4 rounded-xl border border-(--color-rule) bg-white p-4">
+          <div className="text-sm font-semibold text-(--color-ink)">
             Compared with the recommended plan
           </div>
-          <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+          <div className="mt-1 text-sm leading-6 text-(--color-muted)">
             Tradeoffs of the plan you selected instead of the recommended one.
           </div>
-          <div className="mt-2 text-sm leading-6 text-[#6b7068]">
+          <div className="mt-2 text-sm leading-6 text-(--color-muted)">
             {selectedPlanComparison.summary}
           </div>
           {selectedPlanComparison.differences.length > 0 ? (
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-[#6b7068]">
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-(--color-muted)">
               {selectedPlanComparison.differences.map((line) => (
                 <li key={line}>{line}</li>
               ))}
@@ -252,18 +252,18 @@ export function PlanComparisonMatrix({
           data-testid="scenario-simulation-section"
           className={`mt-4 rounded-xl border p-4 ${
             highlightedActionType === "explore_scenario"
-              ? "border-[#9db8a7] bg-[#eef7f1]"
-              : "border-[#d8e6dd] bg-[#f6fbf7]"
+              ? "border-[#9db8a7] bg-(--color-paper)"
+              : "border-(--color-accent-soft) bg-(--color-paper)"
           }`}
         >
-          <div className="text-sm font-semibold text-[#1a3d2e]">
+          <div className="text-sm font-semibold text-(--color-ink)">
             What changes if your profile improves
           </div>
-          <div className="mt-2 text-sm leading-6 text-[#6b7068]">
+          <div className="mt-2 text-sm leading-6 text-(--color-muted)">
             {scenarioSimulation.changeSummary}
           </div>
           {scenarioSimulation.keyDifferences.length > 0 ? (
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-[#6b7068]">
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-(--color-muted)">
               {scenarioSimulation.keyDifferences.map((line) => (
                 <li key={line}>{line}</li>
               ))}
@@ -276,23 +276,23 @@ export function PlanComparisonMatrix({
           data-testid="scenario-comparison-section"
           className={`mt-4 rounded-xl border p-4 ${
             highlightedActionType === "explore_scenario"
-              ? "border-[#9db8a7] bg-[#f6fbf7]"
-              : "border-[#e0ddd8] bg-white"
+              ? "border-[#9db8a7] bg-(--color-paper)"
+              : "border-(--color-rule) bg-white"
           }`}
         >
-          <div className="text-sm font-semibold text-[#1a3d2e]">
+          <div className="text-sm font-semibold text-(--color-ink)">
             Which improvement helps most
           </div>
-          <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+          <div className="mt-1 text-sm leading-6 text-(--color-muted)">
             Among the tested scenarios, this one changes the outcome the most.
           </div>
-          <div className="mt-2 text-sm leading-6 text-[#6b7068]">
-            <span className="font-semibold text-[#1a1a1a]">{bestScenarioInsight.scenarioLabel}</span>{" "}
+          <div className="mt-2 text-sm leading-6 text-(--color-muted)">
+            <span className="font-semibold text-(--color-ink)">{bestScenarioInsight.scenarioLabel}</span>{" "}
             {bestScenarioInsight.reason}
           </div>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full border-collapse text-sm">
-              <thead className="bg-[#f5f3ee] text-left text-[#6b7068]">
+              <thead className="bg-(--color-paper) text-left text-(--color-muted)">
                 <tr>
                   <th className="px-3 py-2 font-semibold">Scenario</th>
                   <th className="px-3 py-2 font-semibold">Result</th>
@@ -301,10 +301,10 @@ export function PlanComparisonMatrix({
               </thead>
               <tbody>
                 {scenarioComparison.scenarios.map((scenario) => (
-                  <tr key={scenario.scenarioKey} className="border-t border-[#e0ddd8]">
-                    <td className="px-3 py-3 font-medium text-[#1a1a1a]">{scenario.scenarioLabel}</td>
-                    <td className="px-3 py-3 text-[#6b7068]">{scenario.changeSummary}</td>
-                    <td className="px-3 py-3 text-[#6b7068]">
+                  <tr key={scenario.scenarioKey} className="border-t border-(--color-rule)">
+                    <td className="px-3 py-3 font-medium text-(--color-ink)">{scenario.scenarioLabel}</td>
+                    <td className="px-3 py-3 text-(--color-muted)">{scenario.changeSummary}</td>
+                    <td className="px-3 py-3 text-(--color-muted)">
                       {scenario.keyDifferences.slice(0, 2).join(" ") || "No major change."}
                     </td>
                   </tr>
@@ -319,56 +319,56 @@ export function PlanComparisonMatrix({
           data-testid="improvement-priority-section"
           className={`mt-4 rounded-xl border p-4 ${
             highlightedActionType === "improve_profile"
-              ? "border-[#9db8a7] bg-[#eef7f1]"
-              : "border-[#d8e6dd] bg-[#f6fbf7]"
+              ? "border-[#9db8a7] bg-(--color-paper)"
+              : "border-(--color-accent-soft) bg-(--color-paper)"
           }`}
         >
-          <div className="text-sm font-semibold text-[#1a3d2e]">
+          <div className="text-sm font-semibold text-(--color-ink)">
             Most worthwhile improvement
           </div>
-          <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+          <div className="mt-1 text-sm leading-6 text-(--color-muted)">
             Best next improvement after balancing likely impact and effort.
           </div>
-          <div className="mt-2 text-sm leading-6 text-[#6b7068]">
-            <span className="font-semibold text-[#1a1a1a]">{improvementPriority.recommendedScenarioLabel}</span>
+          <div className="mt-2 text-sm leading-6 text-(--color-muted)">
+            <span className="font-semibold text-(--color-ink)">{improvementPriority.recommendedScenarioLabel}</span>
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-lg bg-white px-3 py-2 text-sm text-[#6b7068]">
-              <span className="font-semibold text-[#1a1a1a]">Impact:</span> {improvementPriority.impactLevel}
+            <div className="rounded-lg bg-white px-3 py-2 text-sm text-(--color-muted)">
+              <span className="font-semibold text-(--color-ink)">Impact:</span> {improvementPriority.impactLevel}
             </div>
-            <div className="rounded-lg bg-white px-3 py-2 text-sm text-[#6b7068]">
-              <span className="font-semibold text-[#1a1a1a]">Effort:</span> {improvementPriority.effortLevel}
+            <div className="rounded-lg bg-white px-3 py-2 text-sm text-(--color-muted)">
+              <span className="font-semibold text-(--color-ink)">Effort:</span> {improvementPriority.effortLevel}
             </div>
-            <div className="rounded-lg bg-white px-3 py-2 text-sm text-[#6b7068]">
-              <span className="font-semibold text-[#1a1a1a]">Priority:</span> {improvementPriority.priorityTier}
+            <div className="rounded-lg bg-white px-3 py-2 text-sm text-(--color-muted)">
+              <span className="font-semibold text-(--color-ink)">Priority:</span> {improvementPriority.priorityTier}
             </div>
           </div>
-          <div className="mt-3 text-sm leading-6 text-[#6b7068]">
+          <div className="mt-3 text-sm leading-6 text-(--color-muted)">
             {improvementPriority.priorityReason}
           </div>
         </div>
       ) : null}
       {nextActionGuide ? (
-        <div className="mt-4 rounded-xl border border-[#e0ddd8] bg-white p-4">
+        <div className="mt-4 rounded-xl border border-(--color-rule) bg-white p-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold text-[#1a3d2e]">
+            <div className="text-sm font-semibold text-(--color-ink)">
               Suggested next step
             </div>
             {actionBadge ? (
-              <div className="rounded-full bg-[#f5f3ee] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#315343]">
+              <div className="bg-(--color-paper) px-3 py-1 text-[10px] font-semibold text-(--color-ink-2)">
                 {actionBadge}
               </div>
             ) : null}
           </div>
           {focusLabel ? (
-            <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+            <div className="mt-1 text-sm leading-6 text-(--color-muted)">
               {focusLabel}
             </div>
           ) : null}
-          <div className="mt-2 text-sm font-semibold leading-6 text-[#1a1a1a]">
+          <div className="mt-2 text-sm font-semibold leading-6 text-(--color-ink)">
             {nextActionGuide.suggestedNextAction}
           </div>
-          <div className="mt-1 text-sm leading-6 text-[#6b7068]">
+          <div className="mt-1 text-sm leading-6 text-(--color-muted)">
             {nextActionGuide.reason}
           </div>
           {onActivateTarget ? (
@@ -376,32 +376,32 @@ export function PlanComparisonMatrix({
               type="button"
               onClick={() => onActivateTarget(nextActionGuide.suggestedTarget)}
               data-testid="next-action-button"
-              className="mt-3 rounded-full border border-[#d2d9d4] bg-[#f6fbf7] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#315343] transition hover:border-[#1a3d2e] hover:text-[#1a3d2e]"
+              className="mt-3 border border-(--color-rule) bg-(--color-paper) px-4 py-2 text-xs font-semibold text-(--color-ink-2) transition hover:border-(--color-ink) hover:text-(--color-ink)"
             >
               {buttonLabel}
             </button>
           ) : null}
-          <div className="mt-2 text-sm leading-6 text-[#6b7068]">
+          <div className="mt-2 text-sm leading-6 text-(--color-muted)">
             {helperText}
           </div>
         </div>
       ) : null}
       <div className="mt-4 overflow-x-auto">
         <div className="min-w-[760px]">
-          <div className="grid grid-cols-[180px_repeat(3,minmax(0,1fr))] gap-px rounded-xl bg-[#e0ddd8]">
-            <div className="bg-[#f5f3ee] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-[#6b7068]" />
+          <div className="grid grid-cols-[180px_repeat(3,minmax(0,1fr))] gap-px rounded-xl bg-(--color-paper-2)">
+            <div className="bg-(--color-paper) px-4 py-3 text-xs font-semibold text-(--color-muted)" />
             {orderedPlans.map((plan) => {
               const recommended = planComparison?.recommendedPlan === plan.planName;
               return (
                 <div
                   key={`header-${plan.planName}`}
                   data-testid={`plan-column-${plan.planName}`}
-                  className={`px-4 py-3 text-sm font-semibold capitalize ${recommended ? "bg-[#f6fbf7] text-[#1a3d2e]" : "bg-white text-[#1a1a1a]"}`}
+                  className={`px-4 py-3 text-sm font-semibold capitalize ${recommended ? "bg-(--color-paper) text-(--color-ink)" : "bg-white text-(--color-ink)"}`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span>{plan.planName}</span>
                     {recommended ? (
-                      <span className="rounded-full bg-[#dceee2] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#315343]">
+                      <span className="bg-(--color-accent-soft) px-2 py-0.5 text-[10px] font-semibold text-(--color-ink-2)">
                         Recommended
                       </span>
                     ) : null}
@@ -471,14 +471,14 @@ function MatrixRow({
 }) {
   return (
     <>
-      <div className="bg-[#f5f3ee] px-4 py-3 text-sm font-semibold text-[#1a3d2e]">{label}</div>
+      <div className="bg-(--color-paper) px-4 py-3 text-sm font-semibold text-(--color-ink)">{label}</div>
       {plans.map((plan) => {
         const value = renderValue(plan);
         const title = titleValue ? titleValue(plan) : value;
         return (
           <div
             key={`${label}-${plan.planName}`}
-            className="bg-white px-4 py-3 text-sm leading-6 text-[#6b7068]"
+            className="bg-white px-4 py-3 text-sm leading-6 text-(--color-muted)"
             title={title || undefined}
           >
             {value || ""}

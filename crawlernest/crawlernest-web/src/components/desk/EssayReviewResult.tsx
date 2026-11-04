@@ -29,7 +29,7 @@ export function WordProgress({ count, limit }: { count: number; limit: number })
         </span>
       </div>
       <div role="meter" aria-label="Words against the limit" aria-valuemin={0} aria-valuemax={limit} aria-valuenow={count}
-        className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+        className="h-1.5 w-full overflow-hidden bg-slate-200">
         <div className={`h-full rounded-full ${over ? "bg-red-500" : "bg-blue-500"}`}
           style={{ width: `${Math.min(100, (count / limit) * 100)}%` }} />
       </div>

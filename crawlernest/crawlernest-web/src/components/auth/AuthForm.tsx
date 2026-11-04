@@ -41,22 +41,22 @@ function CheckIcon() {
 function SignupSuccessPanel({ email }: { email: string }) {
   return (
     <div className="text-center py-4">
-      <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#e8f2ec]">
+      <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center bg-(--color-paper-2)">
         <CheckIcon />
       </div>
-      <h2 className="text-xl font-bold text-[#1a3d2e]">Account created</h2>
-      <p className="mt-2 text-sm text-[#6b7068]">
+      <h2 className="text-xl font-bold text-(--color-ink)">Account created</h2>
+      <p className="mt-2 text-sm text-(--color-muted)">
         Your CrawlerNest account for{" "}
-        <span className="font-medium text-[#1a3d2e]">{email}</span> is ready.
+        <span className="font-medium text-(--color-ink)">{email}</span> is ready.
       </p>
       <Link
         href="/signin"
-        className="mt-6 inline-block w-full rounded-lg bg-[#1a3d2e] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+        className="mt-6 inline-block w-full rounded-lg bg-(--color-ink) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-ink-2)"
       >
         Sign in to continue →
       </Link>
-      <p className="mt-4 text-center text-sm text-[#6b7068]">
-        <Link href="/" className="underline-offset-4 hover:underline hover:text-[#1a3d2e]">
+      <p className="mt-4 text-center text-sm text-(--color-muted)">
+        <Link href="/" className="underline-offset-4 hover:underline hover:text-(--color-ink)">
           ← Back to Rankings
         </Link>
       </p>
@@ -67,15 +67,15 @@ function SignupSuccessPanel({ email }: { email: string }) {
 function SigninSuccessPanel({ email }: { email: string }) {
   return (
     <div className="text-center py-4">
-      <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#e8f2ec]">
+      <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center bg-(--color-paper-2)">
         <CheckIcon />
       </div>
-      <h2 className="text-xl font-bold text-[#1a3d2e]">Signed in</h2>
-      <p className="mt-2 text-sm text-[#6b7068]">
+      <h2 className="text-xl font-bold text-(--color-ink)">Signed in</h2>
+      <p className="mt-2 text-sm text-(--color-muted)">
         Welcome back,{" "}
-        <span className="font-medium text-[#1a3d2e]">{email}</span>.
+        <span className="font-medium text-(--color-ink)">{email}</span>.
       </p>
-      <p className="mt-3 text-xs text-[#6b7068]">Redirecting to rankings…</p>
+      <p className="mt-3 text-xs text-(--color-muted)">Redirecting to rankings…</p>
     </div>
   );
 }
@@ -160,10 +160,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-[#f5f3ee] flex items-center justify-center px-4 py-16">
+    <div className="min-h-[calc(100vh-64px)] bg-(--color-paper) flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
 
-        <div className="rounded-2xl border border-[#e0ddd8] bg-white px-8 py-10 shadow-sm">
+        <div className="rounded-2xl border border-(--color-rule) bg-white px-8 py-10 shadow-sm">
 
           {phase === "success" ? (
             isSignIn ? (
@@ -178,10 +178,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900">
                   <span className="text-xs font-bold text-white">CN</span>
                 </div>
-                <h1 className="text-2xl font-bold tracking-tight text-[#1a3d2e]">
+                <h1 className="text-2xl font-bold tracking-tight text-(--color-ink)">
                   {isSignIn ? "Sign in to CrawlerNest" : "Create an account"}
                 </h1>
-                <p className="mt-1.5 text-sm text-[#6b7068]">
+                <p className="mt-1.5 text-sm text-(--color-muted)">
                   {isSignIn
                     ? "Access your university research dashboard."
                     : "Start exploring global university intelligence."}
@@ -195,7 +195,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 <div>
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-[#1a3d2e] mb-1.5"
+                    className="block text-sm font-medium text-(--color-ink) mb-1.5"
                   >
                     Email address
                   </label>
@@ -210,10 +210,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
                     placeholder="you@example.com"
                     aria-describedby={fieldErrors.email ? "email-error" : undefined}
                     aria-invalid={!!fieldErrors.email}
-                    className={`w-full rounded-lg border px-3 py-2.5 text-sm text-[#1a1a1a] placeholder-[#aaa] outline-none transition focus:ring-2 focus:ring-[#3d7a5a]/40 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border px-3 py-2.5 text-sm text-(--color-ink) placeholder-(--color-muted) outline-none transition focus:ring-2 focus:ring-(--color-ink-2)/40 disabled:opacity-50 ${
                       fieldErrors.email
                         ? "border-red-400 bg-red-50"
-                        : "border-[#e0ddd8] bg-white hover:border-[#b0ada8]"
+                        : "border-(--color-rule) bg-white hover:border-(--color-muted)"
                     }`}
                   />
                   {fieldErrors.email && (
@@ -226,11 +226,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 {/* Password */}
                 <div>
                   <div className="mb-1.5 flex items-baseline justify-between">
-                    <label htmlFor="password" className="block text-sm font-medium text-[#1a3d2e]">
+                    <label htmlFor="password" className="block text-sm font-medium text-(--color-ink)">
                       Password
                     </label>
                     {isSignIn ? (
-                      <Link href="/forgot-password" className="text-xs font-medium text-[#3d7a5a] underline-offset-4 hover:underline">
+                      <Link href="/forgot-password" className="text-xs font-medium text-(--color-ink-2) underline-offset-4 hover:underline">
                         Forgot password?
                       </Link>
                     ) : null}
@@ -248,10 +248,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
                       fieldErrors.password ? "password-error" : undefined
                     }
                     aria-invalid={!!fieldErrors.password}
-                    className={`w-full rounded-lg border px-3 py-2.5 text-sm text-[#1a1a1a] placeholder-[#aaa] outline-none transition focus:ring-2 focus:ring-[#3d7a5a]/40 disabled:opacity-50 ${
+                    className={`w-full rounded-lg border px-3 py-2.5 text-sm text-(--color-ink) placeholder-(--color-muted) outline-none transition focus:ring-2 focus:ring-(--color-ink-2)/40 disabled:opacity-50 ${
                       fieldErrors.password
                         ? "border-red-400 bg-red-50"
-                        : "border-[#e0ddd8] bg-white hover:border-[#b0ada8]"
+                        : "border-(--color-rule) bg-white hover:border-(--color-muted)"
                     }`}
                   />
                   {fieldErrors.password && (
@@ -275,7 +275,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-lg bg-[#1a3d2e] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full rounded-lg bg-(--color-ink) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-ink-2) disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading
                     ? isSignIn
@@ -288,11 +288,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
               </form>
 
               {/* Switch link */}
-              <p className="mt-6 text-center text-sm text-[#6b7068]">
+              <p className="mt-6 text-center text-sm text-(--color-muted)">
                 {isSignIn ? "Don't have an account? " : "Already have an account? "}
                 <Link
                   href={isSignIn ? "/signup" : "/signin"}
-                  className="font-medium text-[#3d7a5a] underline-offset-4 hover:underline"
+                  className="font-medium text-(--color-ink-2) underline-offset-4 hover:underline"
                 >
                   {isSignIn ? "Create one" : "Sign in"}
                 </Link>
@@ -302,10 +302,10 @@ export default function AuthForm({ mode }: AuthFormProps) {
         </div>
 
         {phase !== "success" && (
-          <p className="mt-6 text-center text-xs text-[#6b7068]">
+          <p className="mt-6 text-center text-xs text-(--color-muted)">
             <Link
               href="/"
-              className="underline-offset-4 hover:underline hover:text-[#1a3d2e]"
+              className="underline-offset-4 hover:underline hover:text-(--color-ink)"
             >
               ← Back to Rankings
             </Link>

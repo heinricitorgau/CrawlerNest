@@ -20,18 +20,11 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full font-sans">
+    <html lang="en" className="h-full">
+      <body className="min-h-full">
         <NavBar />
-        <div className="relative z-10">{children}</div>
+        <div className="relative">{children}</div>
         <CookieConsent />
-        <div aria-hidden="true" className="site-watermark">
-          <img
-            src="/crawler-watermark.png"
-            alt=""
-            className="site-watermark-image"
-          />
-        </div>
       </body>
     </html>
   );

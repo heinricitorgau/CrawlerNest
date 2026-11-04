@@ -8,12 +8,12 @@ import { AUTH_MESSAGES } from "@/lib/authMessages";
 
 function LoadingShell() {
   return (
-    <main className="min-h-screen bg-[#f5f3ee]">
+    <main className="min-h-screen bg-(--color-paper)">
       <div className="mx-auto max-w-3xl px-6 py-16">
         <div className="animate-pulse space-y-4">
-          <div className="h-10 w-64 rounded-2xl bg-[#e0ddd8]" />
-          <div className="h-24 rounded-2xl bg-[#e0ddd8]" />
-          <div className="h-24 rounded-2xl bg-[#e0ddd8]" />
+          <div className="h-10 w-64 rounded-2xl bg-(--color-paper-2)" />
+          <div className="h-24 rounded-2xl bg-(--color-paper-2)" />
+          <div className="h-24 rounded-2xl bg-(--color-paper-2)" />
         </div>
       </div>
     </main>
@@ -22,9 +22,9 @@ function LoadingShell() {
 
 function SignInPrompt({ message }: { message?: string }) {
   return (
-    <main className="min-h-screen bg-[#f5f3ee] flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-[#e0ddd8] bg-white px-8 py-10 shadow-sm text-center">
-        <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#e8f2ec]">
+    <main className="min-h-screen bg-(--color-paper) flex items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-2xl border border-(--color-rule) bg-white px-8 py-10 shadow-sm text-center">
+        <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center bg-(--color-paper-2)">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
             stroke="#3d7a5a" strokeWidth="2.5" strokeLinecap="round"
             strokeLinejoin="round" aria-hidden="true">
@@ -32,19 +32,19 @@ function SignInPrompt({ message }: { message?: string }) {
             <circle cx="12" cy="7" r="4" />
           </svg>
         </div>
-        <h1 className="text-xl font-bold text-[#1a3d2e]">Sign in to view saved universities</h1>
-        <p className="mt-2 text-sm text-[#6b7068]">
+        <h1 className="text-xl font-bold text-(--color-ink)">Sign in to view saved universities</h1>
+        <p className="mt-2 text-sm text-(--color-muted)">
           {message ?? "Your saved universities are tied to your account. Sign in to access them."}
         </p>
         <Link
           href="/signin"
-          className="mt-6 inline-block w-full rounded-lg bg-[#1a3d2e] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2a5a42]"
+          className="mt-6 inline-block w-full rounded-lg bg-(--color-ink) px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-(--color-ink-2)"
         >
           Sign in
         </Link>
-        <p className="mt-4 text-sm text-[#6b7068]">
+        <p className="mt-4 text-sm text-(--color-muted)">
           {"Don't have an account? "}
-          <Link href="/signup" className="font-medium text-[#3d7a5a] underline-offset-4 hover:underline">
+          <Link href="/signup" className="font-medium text-(--color-ink-2) underline-offset-4 hover:underline">
             Create one
           </Link>
         </p>
@@ -56,14 +56,14 @@ function SignInPrompt({ message }: { message?: string }) {
 function SavedList({ items, onRemove }: { items: SavedUniversityItem[]; onRemove: (item: SavedUniversityItem) => void }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-2xl border border-[#e0ddd8] bg-white p-8 text-center shadow-sm">
-        <p className="text-[#6b7068]">No saved universities yet.</p>
-        <p className="mt-1 text-sm text-[#6b7068]">
-          Use the <span className="font-medium text-[#1a3d2e]">{AUTH_MESSAGES.save}</span> button on any ranking row.
+      <div className="rounded-2xl border border-(--color-rule) bg-white p-8 text-center shadow-sm">
+        <p className="text-(--color-muted)">No saved universities yet.</p>
+        <p className="mt-1 text-sm text-(--color-muted)">
+          Use the <span className="font-medium text-(--color-ink)">{AUTH_MESSAGES.save}</span> button on any ranking row.
         </p>
         <Link
           href="/"
-          className="mt-6 inline-block rounded-full border border-[#3d7a5a] px-5 py-2.5 text-sm font-semibold text-[#1a3d2e] transition hover:bg-[#e8f2ec]"
+          className="mt-6 inline-block border border-(--color-ink-2) px-5 py-2.5 text-sm font-semibold text-(--color-ink) transition hover:bg-(--color-paper-2)"
         >
           Browse Rankings
         </Link>
@@ -76,21 +76,21 @@ function SavedList({ items, onRemove }: { items: SavedUniversityItem[]; onRemove
       {items.map((item) => (
         <div
           key={item.canonicalUniversityId}
-          className="rounded-2xl border border-[#e0ddd8] bg-white px-5 py-4 shadow-sm"
+          className="rounded-2xl border border-(--color-rule) bg-white px-5 py-4 shadow-sm"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <Link
                 href={`/universities/${item.slug}`}
-                className="text-base font-semibold text-[#1a1a1a] underline-offset-4 transition hover:text-[#1a3d2e] hover:underline"
+                className="text-base font-semibold text-(--color-ink) underline-offset-4 transition hover:text-(--color-ink) hover:underline"
               >
                 {item.universityName}
               </Link>
               {item.country ? (
-                <div className="mt-1 text-sm text-[#6b7068]">{item.country}</div>
+                <div className="mt-1 text-sm text-(--color-muted)">{item.country}</div>
               ) : null}
               {item.savedAt ? (
-                <div className="mt-2 text-xs text-[#6b7068]">
+                <div className="mt-2 text-xs text-(--color-muted)">
                   Saved {new Date(item.savedAt).toLocaleDateString("en-CA", { dateStyle: "medium" })}
                 </div>
               ) : null}
@@ -98,7 +98,7 @@ function SavedList({ items, onRemove }: { items: SavedUniversityItem[]; onRemove
             <button
               type="button"
               onClick={() => onRemove(item)}
-              className="shrink-0 rounded-full border border-[#e0ddd8] bg-white px-3 py-1.5 text-xs font-medium text-[#1a3d2e] transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
+              className="shrink-0 border border-(--color-rule) bg-white px-3 py-1.5 text-xs font-medium text-(--color-ink) transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
             >
               Remove
             </button>
@@ -131,31 +131,31 @@ export default function SavedUniversitiesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee]">
+    <main className="min-h-screen bg-(--color-paper)">
       <div className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-8">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#6b7068]">
+          <p className="text-sm font-medium text-(--color-muted)">
             Your Account
           </p>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#16382a]">
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-(--color-ink)">
             Saved Universities
           </h1>
-          <p className="mt-2 text-[#6b7068]">
+          <p className="mt-2 text-(--color-muted)">
             Universities you have saved are synced to your account across devices.
           </p>
         </div>
 
         {loading ? (
           <div className="animate-pulse space-y-3">
-            <div className="h-20 rounded-2xl bg-[#e0ddd8]" />
-            <div className="h-20 rounded-2xl bg-[#e0ddd8]" />
+            <div className="h-20 rounded-2xl bg-(--color-paper-2)" />
+            <div className="h-20 rounded-2xl bg-(--color-paper-2)" />
           </div>
         ) : (
           <SavedList items={savedItems} onRemove={toggleSave} />
         )}
 
-        <p className="mt-8 text-center text-sm text-[#6b7068]">
-          <Link href="/" className="underline-offset-4 hover:underline hover:text-[#1a3d2e]">
+        <p className="mt-8 text-center text-sm text-(--color-muted)">
+          <Link href="/" className="underline-offset-4 hover:underline hover:text-(--color-ink)">
             ← Back to Rankings
           </Link>
         </p>

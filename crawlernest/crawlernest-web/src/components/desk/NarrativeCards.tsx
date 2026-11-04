@@ -10,11 +10,11 @@ interface ThemeCardProps extends NarrativeTheme {
 
 export function ThemeCard({ title, summary, traits, evidence = [], status, actions }: ThemeCardProps) {
   return (
-    <article className="relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-white shadow-sm">
+    <article className="relative overflow-hidden rounded-xl border border-slate-200 band-ink p-5 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-blue-300">Your narrative thread</p>
+        <p className="text-xs font-medium band-ink__note">Your narrative thread</p>
         {status === "suggested" ? (
-          <span className="rounded-full bg-amber-300/20 px-2 py-0.5 text-[11px] font-semibold text-amber-200">Suggested</span>
+          <span className="bg-amber-300/20 px-2 py-0.5 text-[11px] font-semibold text-amber-200">Suggested</span>
         ) : null}
       </div>
       <h3 className="mt-2 text-xl font-bold leading-snug">&ldquo;{title}&rdquo;</h3>
@@ -22,7 +22,7 @@ export function ThemeCard({ title, summary, traits, evidence = [], status, actio
       {traits.length > 0 ? (
         <ul className="mt-4 flex flex-wrap gap-2" aria-label="Traits">
           {traits.map((trait) => (
-            <li key={trait} className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-slate-100">
+            <li key={trait} className="bg-white/10 px-3 py-1 text-xs font-medium text-slate-100">
               {trait}
             </li>
           ))}
