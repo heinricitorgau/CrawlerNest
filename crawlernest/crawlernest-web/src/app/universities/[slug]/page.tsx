@@ -16,6 +16,8 @@ import type {
   UniversityDetailResponse,
   WikipediaArticle as WikipediaArticleData,
   WikipediaArticleResponse,
+  UsInstitution,
+  UsInstitutionResponse,
 } from "@/types/university";
 import type {
   SubjectRankingRow,
@@ -25,6 +27,7 @@ import ShortlistButton from "@/components/ShortlistButton";
 import { CAVEAT_RANK_CHANGE, editionCaveats } from "@/lib/caveatMessages";
 import { SourceRankChange, anyEntityChanged, anyRankChangeShown } from "@/components/SourceRankChange";
 import { WikipediaArticle } from "@/components/WikipediaArticle";
+import { UsFederalData } from "@/components/UsFederalData";
 import { universityDescription } from "@/lib/seo";
 import { absoluteUrl, universityPath } from "@/lib/site";
 
@@ -310,6 +313,19 @@ async function fetchWikipediaArticle(canonicalUniversityId: number): Promise<Wik
   }
 }
 
+async function fetchUsInstitution(canonicalUniversityId: number): Promise<UsInstitution | null> {
+  try {
+    const response = await fetchJson<UsInstitutionResponse>(`/api/v1/universities/${canonicalUniversityId}/us-institution`);
+    const data = response.success ? response.data : null;
+    // A body of another shape (an older API, a proxy's error page) shows no section rather than breaking the page.
+    return data && Array.isArray(data.metrics) && Array.isArray(data.caveats) ? data : null;
+  } catch (error) {
+    // Federal data is an extra section: an API build without the endpoint must not take the page down.
+    console.error("US federal data fetch failed", error);
+    return null;
+  }
+}
+
 function formatSubjectScore(score?: number | null) {
   if (typeof score !== "number" || !Number.isFinite(score)) {
     return "—";
@@ -455,9 +471,10 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
       : evidenceSummary.agreementLevel === "moderate"
         ? "bg-amber-50 text-amber-800 border-amber-200"
         : "bg-rose-50 text-rose-800 border-rose-200";
-  const [subjectRankings, wikipediaArticle] = await Promise.all([
+  const [subjectRankings, wikipediaArticle, usInstitution] = await Promise.all([
     fetchUniversitySubjectRankings(detail.canonicalUniversityId, year),
     fetchWikipediaArticle(detail.canonicalUniversityId),
+    fetchUsInstitution(detail.canonicalUniversityId),
   ]);
   // The edition the API read; the requested one if an older API does not say.
   const edition = detail.rankingYear ?? year;
@@ -641,6 +658,12 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
                 ]}
               />
             </Section>
+
+            {usInstitution ? (
+              <Section title="US Federal Data (Scorecard / IPEDS)">
+                <UsFederalData data={usInstitution} />
+              </Section>
+            ) : null}
 
             <Section title="Subject Rankings">
               <SubjectRankingsBlock items={subjectRankings} year={edition} />

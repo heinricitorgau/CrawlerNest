@@ -53,6 +53,12 @@ from crawlernest.core.caveats import (
     DISAGREEMENT_ESTIMATE_CAVEAT,
     ESTIMATED_VALUE_CAVEAT,
     RANK_CHANGE_CAVEAT,
+    US_FEDERAL_AID_RECIPIENTS_CAVEAT,
+    US_FEDERAL_IMPUTED_CAVEAT,
+    US_FEDERAL_PERIODS_CAVEAT,
+    US_FEDERAL_SOURCE_CAVEAT,
+    US_FEDERAL_SUPPRESSED_CAVEAT,
+    us_federal_caveats,
     EDITION_SOURCE_COVERAGE_TEMPLATE,
     SNAPSHOT_CAVEAT_TEMPLATE,
     STANDARD_CAVEATS,
@@ -129,6 +135,11 @@ CONSTANT_CAVEATS = (
     ESSAY_OVERALL_METHOD_CAVEAT,
     NARRATIVE_ESTIMATE_CAVEAT,
     RESONANCE_GENERAL_KNOWLEDGE_CAVEAT,
+    US_FEDERAL_SOURCE_CAVEAT,
+    US_FEDERAL_PERIODS_CAVEAT,
+    US_FEDERAL_AID_RECIPIENTS_CAVEAT,
+    US_FEDERAL_SUPPRESSED_CAVEAT,
+    US_FEDERAL_IMPUTED_CAVEAT,
 )
 
 #: Templates that must be byte-identical in every language and in the doc.
@@ -178,6 +189,30 @@ STALE_CLAIMS = (
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+class TestUsFederalCaveatSelection(unittest.TestCase):
+    """The same scenarios as Java's UsInstitutionRepositoryTest, so the two choose alike."""
+
+    def test_the_source_and_period_caveats_are_always_carried(self) -> None:
+        self.assertEqual([US_FEDERAL_SOURCE_CAVEAT, US_FEDERAL_PERIODS_CAVEAT],
+                         us_federal_caveats([{"metric_key": "admission_rate", "status": "reported"}]))
+
+    def test_the_aid_caveat_comes_only_with_an_earnings_or_debt_figure_that_is_shown(self) -> None:
+        self.assertIn(US_FEDERAL_AID_RECIPIENTS_CAVEAT,
+                      us_federal_caveats([{"metric_key": "median_earnings_10yr", "status": "reported"}]))
+        self.assertEqual(
+            [US_FEDERAL_SOURCE_CAVEAT, US_FEDERAL_PERIODS_CAVEAT, US_FEDERAL_SUPPRESSED_CAVEAT],
+            us_federal_caveats([{"metric_key": "median_earnings_10yr", "status": "privacy_suppressed"}]),
+        )
+
+    def test_suppressed_and_imputed_each_bring_their_own_caveat_in_a_fixed_order(self) -> None:
+        self.assertEqual(
+            [US_FEDERAL_SOURCE_CAVEAT, US_FEDERAL_PERIODS_CAVEAT, US_FEDERAL_AID_RECIPIENTS_CAVEAT,
+             US_FEDERAL_SUPPRESSED_CAVEAT, US_FEDERAL_IMPUTED_CAVEAT],
+            us_federal_caveats([{"key": "applicants_total", "status": "imputed"}, {"key": "x", "status": "privacy_suppressed"},
+                                {"key": "median_debt_completers", "status": "imputed"}]),
+        )
 
 
 class TestCaveatsAgreeAcrossLanguages(unittest.TestCase):
@@ -356,6 +391,11 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
             UNSUPPORTED_ESTIMATE_CAVEAT,
             RANK_CHANGE_CAVEAT,
             COMPOSITE_RANK_NOT_COMPARED_CAVEAT,
+            US_FEDERAL_SOURCE_CAVEAT,
+            US_FEDERAL_PERIODS_CAVEAT,
+            US_FEDERAL_AID_RECIPIENTS_CAVEAT,
+            US_FEDERAL_SUPPRESSED_CAVEAT,
+            US_FEDERAL_IMPUTED_CAVEAT,
         ):
             with self.subTest(caveat=caveat[:40]):
                 self.assertIn(caveat, doc)

@@ -54,7 +54,7 @@ merely discouraged.
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from datetime import date, datetime
 
 from crawlernest.core.dataset import (
@@ -392,6 +392,66 @@ CAVEAT_IELTS_MISSING = (
     "No IELTS requirement was found in stored admission data for this university. "
     "Language fit cannot be assessed."
 )
+
+# ---------------------------------------------------------------------------
+# US federal institutional data (College Scorecard, IPEDS)
+# ---------------------------------------------------------------------------
+# Carried by GET /api/v1/universities/{id}/us-institution (clawer.repository.
+# UsInstitutionRepository) and by the agent's read of the same tables. The first
+# two always; the other three when the response holds what they describe.
+
+#: Always. The figures are federal statistics, not a ranking source's.
+US_FEDERAL_SOURCE_CAVEAT = (
+    "These figures are published by the U.S. Department of Education (College Scorecard) and NCES (IPEDS), "
+    "not by a ranking source. They are not part of any CrawlerNest rank, composite score or confidence label, "
+    "and they cover US and Puerto Rico institutions only."
+)
+
+#: Always. Each figure carries its own reference period, and they differ by a decade.
+US_FEDERAL_PERIODS_CAVEAT = (
+    "Each figure describes its own period, shown beside it. An admission rate is for one entering class, "
+    "while earnings follow students who entered about a decade earlier, so the figures are not one year's snapshot."
+)
+
+#: When the response holds an earnings or debt figure (MD_EARN_WNE_P10, GRAD_DEBT_MDN).
+US_FEDERAL_AID_RECIPIENTS_CAVEAT = (
+    "Earnings and debt figures cover only students who received federal student aid, and debt counts federal "
+    "loans only, so they can differ from outcomes for all students."
+)
+
+#: When any value's status is privacy_suppressed (Scorecard "PS").
+US_FEDERAL_SUPPRESSED_CAVEAT = (
+    "Some figures are withheld by the source to protect student privacy. A withheld figure is marked as "
+    "withheld; it is not zero."
+)
+
+#: When any value's status is imputed (an IPEDS flag other than "Reported").
+US_FEDERAL_IMPUTED_CAVEAT = (
+    "Some figures were estimated or corrected by NCES rather than reported by the institution as submitted. "
+    "Each is marked with NCES's reason."
+)
+
+#: The value keys whose presence brings in US_FEDERAL_AID_RECIPIENTS_CAVEAT.
+US_FEDERAL_AID_METRICS = ("median_earnings_10yr", "median_debt_completers")
+
+
+def us_federal_caveats(metrics: Sequence[Mapping[str, object]]) -> list[str]:
+    """The caveats a set of US federal values carries, in a fixed order.
+
+    ``metrics`` are rows with ``metric_key`` (or ``key``) and ``status``, as the
+    loader writes them. Mirrors ``UsInstitutionRepository.caveatsFor`` in Java.
+    """
+    statuses = {str(m.get("status")) for m in metrics}
+    shown = {str(m.get("metric_key") or m.get("key")) for m in metrics if m.get("status") in ("reported", "imputed")}
+    out = [US_FEDERAL_SOURCE_CAVEAT, US_FEDERAL_PERIODS_CAVEAT]
+    if shown & set(US_FEDERAL_AID_METRICS):
+        out.append(US_FEDERAL_AID_RECIPIENTS_CAVEAT)
+    if "privacy_suppressed" in statuses:
+        out.append(US_FEDERAL_SUPPRESSED_CAVEAT)
+    if "imputed" in statuses:
+        out.append(US_FEDERAL_IMPUTED_CAVEAT)
+    return out
+
 
 #: CAVEAT_ADMISSION_DATA_STALE is a template, not a constant, because it has to
 #: name a date. It used to say only that requirements "are scraped and may not

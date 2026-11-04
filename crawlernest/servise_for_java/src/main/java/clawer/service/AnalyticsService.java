@@ -175,6 +175,27 @@ public class AnalyticsService {
     public static final String ESSAY_SCORE_ESTIMATE_CAVEAT =
             "Essay scores are a language model's reading of this draft against the CrawlerNest rubric. They are estimates, not a prediction of how an admissions reader will score the essay, and the same draft can score differently under another model.";
 
+    /**
+     * US federal institutional data (College Scorecard, IPEDS), carried by
+     * {@code GET /api/v1/universities/{id}/us-institution}; see
+     * {@link clawer.repository.UsInstitutionRepository#caveatsFor}. The first two always,
+     * the others when the response holds what they describe. Mirrors crawlernest/core/caveats.py.
+     */
+    public static final String US_FEDERAL_SOURCE_CAVEAT =
+            "These figures are published by the U.S. Department of Education (College Scorecard) and NCES (IPEDS), not by a ranking source. They are not part of any CrawlerNest rank, composite score or confidence label, and they cover US and Puerto Rico institutions only.";
+
+    public static final String US_FEDERAL_PERIODS_CAVEAT =
+            "Each figure describes its own period, shown beside it. An admission rate is for one entering class, while earnings follow students who entered about a decade earlier, so the figures are not one year's snapshot.";
+
+    public static final String US_FEDERAL_AID_RECIPIENTS_CAVEAT =
+            "Earnings and debt figures cover only students who received federal student aid, and debt counts federal loans only, so they can differ from outcomes for all students.";
+
+    public static final String US_FEDERAL_SUPPRESSED_CAVEAT =
+            "Some figures are withheld by the source to protect student privacy. A withheld figure is marked as withheld; it is not zero.";
+
+    public static final String US_FEDERAL_IMPUTED_CAVEAT =
+            "Some figures were estimated or corrected by NCES rather than reported by the institution as submitted. Each is marked with NCES's reason.";
+
     /** Carried by every essay review: the headline number is CrawlerNest's arithmetic, not the model's. */
     public static final String ESSAY_OVERALL_METHOD_CAVEAT =
             "The overall essay score is the rubric-weighted mean of the dimension scores, computed by CrawlerNest rather than by the model.";

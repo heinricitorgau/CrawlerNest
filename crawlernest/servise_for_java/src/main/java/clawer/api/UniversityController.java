@@ -2,7 +2,9 @@ package clawer.api;
 
 import clawer.dto.UniversityDTO;
 import clawer.dto.WikipediaArticleDTO;
+import clawer.dto.UsInstitutionDTO;
 import clawer.repository.UniversityWikipediaRepository;
+import clawer.repository.UsInstitutionRepository;
 import clawer.service.SourceIntelligenceService;
 import clawer.service.UniversityService;
 import org.springframework.http.ResponseEntity;
@@ -22,15 +24,18 @@ public class UniversityController {
     private final UniversityService universityService;
     private final SourceIntelligenceService sourceIntelligenceService;
     private final UniversityWikipediaRepository universityWikipediaRepository;
+    private final UsInstitutionRepository usInstitutionRepository;
 
     public UniversityController(
             UniversityService universityService,
             SourceIntelligenceService sourceIntelligenceService,
-            UniversityWikipediaRepository universityWikipediaRepository
+            UniversityWikipediaRepository universityWikipediaRepository,
+            UsInstitutionRepository usInstitutionRepository
     ) {
         this.universityService = universityService;
         this.sourceIntelligenceService = sourceIntelligenceService;
         this.universityWikipediaRepository = universityWikipediaRepository;
+        this.usInstitutionRepository = usInstitutionRepository;
     }
 
     /**
@@ -86,11 +91,18 @@ public class UniversityController {
     }
 
     /**
-     * Retrieves a specific university by its URL slug, as one ranking edition shows it.
-     * @param slug The university slug
-     * @param year The edition; the default when omitted. A year the release does not hold is a 400.
-     * @return UniversityDTO object if found, 404 otherwise
+     * US federal institutional data (College Scorecard, IPEDS) matched to one canonical university.
+     *
+     * @param id The canonical university ID
+     * @return the record with its values and {@code caveats}, or {@code data: null} when none is
+     *         matched -- a 200 either way: a university outside the US has none, and a US one the
+     *         loader could not tie to a UNITID is our gap, not the institution's
      */
+    @GetMapping("/{id}/us-institution")
+    public ResponseEntity<ApiResponse<UsInstitutionDTO>> getUsInstitution(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(usInstitutionRepository.findByCanonicalUniversityId(id).orElse(null)));
+    }
+
     /**
      * The university pages worth indexing, for the web app's sitemap.xml. Read-only, public,
      * and only slugs and dates: the same facts the pages themselves show.
@@ -100,6 +112,12 @@ public class UniversityController {
         return ApiResponse.success(universityService.sitemapEntries());
     }
 
+    /**
+     * Retrieves a specific university by its URL slug, as one ranking edition shows it.
+     * @param slug The university slug
+     * @param year The edition; the default when omitted. A year the release does not hold is a 400.
+     * @return UniversityDTO object if found, 404 otherwise
+     */
     @GetMapping("/by-slug/{slug}")
     public ResponseEntity<ApiResponse<UniversityDTO>> getUniversityBySlug(
             @PathVariable String slug,

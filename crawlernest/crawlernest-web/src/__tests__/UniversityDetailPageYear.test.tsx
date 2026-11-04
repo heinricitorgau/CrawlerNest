@@ -56,13 +56,21 @@ function detail(overrides: Partial<UniversityDetail>): UniversityDetail {
   };
 }
 
-function answer(university: UniversityDetail, subjectItems: unknown[] = [], wikipedia: WikipediaArticle | null = null) {
+function answer(
+  university: UniversityDetail,
+  subjectItems: unknown[] = [],
+  wikipedia: WikipediaArticle | null = null,
+  usInstitution: unknown = null,
+) {
   mockedFetchJson.mockImplementation(async (path: string) => {
     if (path.includes("/subject-rankings")) {
       return { success: true, data: { items: subjectItems } } as never;
     }
     if (path.endsWith("/wikipedia")) {
       return { success: true, data: wikipedia } as never;
+    }
+    if (path.endsWith("/us-institution")) {
+      return { success: true, data: usInstitution } as never;
     }
     return { success: true, data: university } as never;
   });
@@ -109,6 +117,9 @@ describe("University detail page introduction", () => {
       if (path.includes("/subject-rankings")) {
         return { success: true, data: { items: [] } } as never;
       }
+      if (path.endsWith("/us-institution")) {
+        return { success: true, data: null } as never;
+      }
       return { success: true, data: detail({}) } as never;
     });
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => undefined);
@@ -117,6 +128,36 @@ describe("University detail page introduction", () => {
 
     expect(screen.getByText("No Wikipedia article has been matched to this university.")).toBeInTheDocument();
     expect(screen.getByText("Ranking Evidence (QS / THE / ARWU)")).toBeInTheDocument();
+  });
+});
+
+describe("University detail page US federal data", () => {
+  const record = {
+    canonicalUniversityId: 1, unitid: 166683, institutionName: "Massachusetts Institute of Technology", city: "Cambridge",
+    stateCode: "MA", website: null, matchMethod: "wikidata_ipeds_id", wikidataId: "Q49108",
+    sources: [{ code: "COLLEGE_SCORECARD", name: "College Scorecard", publisher: "U.S. Department of Education",
+      url: "https://collegescorecard.ed.gov/data/", license: "Public domain (U.S. federal government work)" }],
+    metrics: [{ source: "COLLEGE_SCORECARD", key: "admission_rate", sourceField: "ADM_RATE", unit: "ratio", value: 0.0455,
+      valueText: null, status: "reported", statusDetail: null, referencePeriod: "Fall 2024, reported in IPEDS DCY2024-25",
+      release: "r" }],
+    caveats: ["These figures are published by the U.S. Department of Education (College Scorecard) and NCES (IPEDS)."],
+  };
+
+  it("shows the section when a federal record is matched, and asks for it by the university's id", async () => {
+    answer(detail({}), [], null, record);
+    await renderPage();
+    expect(screen.getByRole("heading", { name: "US Federal Data (Scorecard / IPEDS)" })).toBeInTheDocument();
+    expect(screen.getByText("4.6%")).toBeInTheDocument();
+    expect(requestedPaths()).toContain("/api/v1/universities/1/us-institution");
+  });
+
+  it("shows no section when none is matched, or when the body is not a record", async () => {
+    for (const body of [null, { unexpected: true }]) {
+      answer(detail({}), [], null, body);
+      const { unmount } = await renderPage();
+      expect(screen.queryByRole("heading", { name: /US Federal Data/ })).not.toBeInTheDocument();
+      unmount();
+    }
   });
 });
 
@@ -132,6 +173,8 @@ describe("University detail page edition", () => {
       "/api/v1/universities/1/subject-rankings?year=2025",
       // Not scoped to an edition: the introduction is the same text whichever year is shown.
       "/api/v1/universities/1/wikipedia",
+      // Not scoped to an edition either: each federal figure carries its own reference period.
+      "/api/v1/universities/1/us-institution",
     ]);
     expect(screen.getByText("2025 edition")).toBeInTheDocument();
     expect(screen.getByTestId("year-selector")).toBeInTheDocument();

@@ -4,7 +4,10 @@ import clawer.dto.AdmissionRequirementDTO;
 import clawer.dto.AdmissionRequirementsDTO;
 import clawer.dto.UniversityDTO;
 import clawer.dto.WikipediaArticleDTO;
+import clawer.dto.UsInstitutionDTO;
 import clawer.repository.UniversityWikipediaRepository;
+import clawer.repository.UsInstitutionRepository;
+import clawer.service.AnalyticsService;
 import clawer.service.SourceIntelligenceService;
 import clawer.service.UniversityService;
 import org.junit.jupiter.api.Test;
@@ -50,6 +53,45 @@ class UniversityControllerTest {
 
     @MockBean
     private UniversityWikipediaRepository universityWikipediaRepository;
+
+    @MockBean
+    private UsInstitutionRepository usInstitutionRepository;
+
+    @Test
+    void usInstitutionCarriesEachValuesPeriodStatusAndTheCaveats() throws Exception {
+        List<UsInstitutionDTO.Metric> metrics = List.of(
+                new UsInstitutionDTO.Metric("COLLEGE_SCORECARD", "admission_rate", "ADM_RATE", "ratio",
+                        new java.math.BigDecimal("0.0455"), null, "reported", null,
+                        "Fall 2024, reported in IPEDS DCY2024-25", "College Scorecard"),
+                new UsInstitutionDTO.Metric("COLLEGE_SCORECARD", "median_earnings_10yr", "MD_EARN_WNE_P10", "usd",
+                        null, null, "privacy_suppressed", "PS: privacy suppressed by the source",
+                        "Treasury AY2011-12, AY2012-13 pooled cohort", "College Scorecard"));
+        when(usInstitutionRepository.findByCanonicalUniversityId(7L)).thenReturn(Optional.of(new UsInstitutionDTO(
+                7L, 166683, "Massachusetts Institute of Technology", "Cambridge", "MA", "web.mit.edu/",
+                "wikidata_ipeds_id", "Q49108", UsInstitutionRepository.SOURCES, metrics,
+                UsInstitutionRepository.caveatsFor(metrics))));
+
+        // Public, like the rest of the university page: no cookie.
+        mockMvc.perform(get("/api/v1/universities/7/us-institution"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.unitid").value(166683))
+                .andExpect(jsonPath("$.data.metrics[0].value").value(0.0455))
+                .andExpect(jsonPath("$.data.metrics[0].referencePeriod").value("Fall 2024, reported in IPEDS DCY2024-25"))
+                // Withheld is not zero: no value at all, and the status says why.
+                .andExpect(jsonPath("$.data.metrics[1].value").value(nullValue()))
+                .andExpect(jsonPath("$.data.metrics[1].status").value("privacy_suppressed"))
+                .andExpect(jsonPath("$.data.sources[0].license").value(UsInstitutionRepository.LICENSE))
+                .andExpect(jsonPath("$.data.caveats[0]").value(AnalyticsService.US_FEDERAL_SOURCE_CAVEAT))
+                .andExpect(jsonPath("$.data.caveats[2]").value(AnalyticsService.US_FEDERAL_SUPPRESSED_CAVEAT));
+    }
+
+    @Test
+    void usInstitutionIsNullDataWhenNoneIsMatched() throws Exception {
+        when(usInstitutionRepository.findByCanonicalUniversityId(anyLong())).thenReturn(Optional.empty());
+        mockMvc.perform(get("/api/v1/universities/999/us-institution"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").value(nullValue()));
+    }
 
     @Test
     void sitemapEntriesArePublicAndAreNotReadAsAnId() throws Exception {

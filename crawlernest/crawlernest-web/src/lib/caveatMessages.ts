@@ -295,6 +295,26 @@ export const CAVEAT_COMPOSITE_RANK_NOT_COMPARED =
 export const CAVEAT_DISAGREEMENT_ESTIMATE =
   "Cross-source disagreement probability is a model estimate of how likely QS and THE are to disagree about a university, not an observed difference between published ranks. A probability is not a rank gap, and most scored universities carry no THE rank to compare against.";
 
+/**
+ * US federal institutional data (College Scorecard, IPEDS). The API sends the ones that apply
+ * with each response (`caveats` on /api/v1/universities/{id}/us-institution); these are the
+ * same strings, for tests and for a page that must name one without a response in hand.
+ */
+export const CAVEAT_US_FEDERAL_SOURCE =
+  "These figures are published by the U.S. Department of Education (College Scorecard) and NCES (IPEDS), not by a ranking source. They are not part of any CrawlerNest rank, composite score or confidence label, and they cover US and Puerto Rico institutions only.";
+
+export const CAVEAT_US_FEDERAL_PERIODS =
+  "Each figure describes its own period, shown beside it. An admission rate is for one entering class, while earnings follow students who entered about a decade earlier, so the figures are not one year's snapshot.";
+
+export const CAVEAT_US_FEDERAL_AID_RECIPIENTS =
+  "Earnings and debt figures cover only students who received federal student aid, and debt counts federal loans only, so they can differ from outcomes for all students.";
+
+export const CAVEAT_US_FEDERAL_SUPPRESSED =
+  "Some figures are withheld by the source to protect student privacy. A withheld figure is marked as withheld; it is not zero.";
+
+export const CAVEAT_US_FEDERAL_IMPUTED =
+  "Some figures were estimated or corrected by NCES rather than reported by the institution as submitted. Each is marked with NCES's reason.";
+
 /** Carried by every essay review from the desk's essay endpoint. */
 export const CAVEAT_ESSAY_SCORE_ESTIMATE =
   "Essay scores are a language model's reading of this draft against the CrawlerNest rubric. They are estimates, not a prediction of how an admissions reader will score the essay, and the same draft can score differently under another model.";

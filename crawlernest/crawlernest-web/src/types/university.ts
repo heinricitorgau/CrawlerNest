@@ -186,3 +186,48 @@ export type WikipediaArticleResponse = {
   /** Null when no article is matched to the university. */
   data: WikipediaArticle | null;
 };
+
+/** A US federal value's status. Only "reported" and "imputed" carry a value; none of the others is zero. */
+export type UsFederalStatus = "reported" | "imputed" | "privacy_suppressed" | "not_available" | "not_applicable";
+
+export type UsFederalMetric = {
+  source: "COLLEGE_SCORECARD" | "IPEDS" | (string & {});
+  key: string;
+  /** The column in the federal file (ADM_RATE, NPT4_PRIV, APPLCN). */
+  sourceField: string;
+  unit: "ratio" | "percent" | "usd" | "count" | "score" | "code" | "text" | (string & {});
+  value: number | null;
+  /** A code's label, or a text field's value. */
+  valueText: string | null;
+  status: UsFederalStatus | (string & {});
+  statusDetail: string | null;
+  /** Verbatim from the source's documentation; differs from value to value. */
+  referencePeriod: string;
+  release: string;
+};
+
+export type UsFederalSource = { code: string; name: string; publisher: string; url: string; license: string };
+
+/**
+ * US federal institutional data (`/api/v1/universities/{id}/us-institution`). Not ranking
+ * data: render `caveats` with it, and each value's `referencePeriod` beside the value.
+ */
+export type UsInstitution = {
+  canonicalUniversityId: number;
+  unitid: number;
+  institutionName: string;
+  city: string | null;
+  stateCode: string | null;
+  website: string | null;
+  matchMethod: string;
+  wikidataId: string | null;
+  sources: UsFederalSource[];
+  metrics: UsFederalMetric[];
+  caveats: string[];
+};
+
+export type UsInstitutionResponse = {
+  success: boolean;
+  /** Null when no federal record is matched to the university. */
+  data: UsInstitution | null;
+};
