@@ -45,14 +45,15 @@ The system is data-first: crawlers and pipelines write canonical records into Po
 
 ## What it looks like
 
-The rankings browser, reading 1,499 aggregated universities out of the
-warehouse:
+The rankings browser, reading 2,192 aggregated universities for the 2026
+edition out of the warehouse:
 
 ![Rankings browser](docs/assets/screenshots/rankings.png)
 
 The analytics page, where the honesty contract is visible rather than just
-documented — the single-year limitation is stated at the top, and source
-coverage shows exactly which of the three ranking bodies actually contributed:
+documented — the notice at the top says composite ranks are not compared
+between editions (movement is reported per source on each university's page),
+and every row shows how many of the three ranking bodies actually contributed:
 
 ![Analytics](docs/assets/screenshots/analytics.png)
 

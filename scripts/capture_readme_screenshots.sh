@@ -5,7 +5,13 @@
 # database, so this refuses to run unless the Spring Boot API answers with
 # data; a stand-in or an empty warehouse would make that sentence false.
 #
-# Start the stack first (./scripts/start_localhost.sh), then:
+# Start the stack first (./scripts/start_localhost.sh), then capture from a
+# production build of the web app, so Next.js's dev-mode badge is not in the
+# picture (start_localhost.sh runs `next dev`):
+#   cd crawlernest/crawlernest-web && npm run build && npx next start -p 4001
+#   WEB_BASE_URL=http://localhost:4001 ./scripts/capture_readme_screenshots.sh
+#
+# Other forms:
 #   ./scripts/capture_readme_screenshots.sh
 #   WEB_BASE_URL=http://localhost:4000 ./scripts/capture_readme_screenshots.sh
 #   PLAYWRIGHT_CHANNEL=chrome ./scripts/capture_readme_screenshots.sh   # use an installed Google Chrome

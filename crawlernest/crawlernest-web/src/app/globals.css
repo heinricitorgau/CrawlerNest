@@ -263,3 +263,7 @@ tr[data-selected="true"] .ledger__rank-num, .ledger tbody tr:hover .ledger__rank
 .band-ink h1, .band-ink h2, .band-ink h3 { color: var(--color-paper); }
 .band-ink__note { color: var(--color-paper-3); }
 .rk-head__act .btn { gap: 0; } .rk-tail { white-space: pre; }
+
+/* Headings set at label size on other screens (text-xs to text-base) are
+   labels: the wide display face at 14px closes up its word spaces. */
+:is(h1, h2, h3, h4):is(.text-xs, .text-sm, .text-base) { font-family: var(--font-body); letter-spacing: 0; }
