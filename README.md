@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/images/crawlernest-banner.svg" alt="CrawlerNest" width="100%">
+</p>
+
 # CrawlerNest
 
 **English** · [繁體中文](README.zh-TW.md)
