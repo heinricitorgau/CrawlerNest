@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/images/crawlernest-banner.svg" alt="CrawlerNest" width="100%">
+  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/assets/images/crawlernest-banner-dark.svg"><img src="docs/assets/images/crawlernest-banner.svg" alt="CrawlerNest" width="100%"></picture>
 </p>
 
 # CrawlerNest
