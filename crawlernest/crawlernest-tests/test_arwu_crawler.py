@@ -366,5 +366,118 @@ class TestPageYearIsRecorded(unittest.TestCase):
         self.assertEqual(years, [2026])
 
 
+class TestPayloadToleratesAddedFields(unittest.TestCase):
+    """In November 2026 the site added `outdated` between univCode and score.
+
+    The patterns demanded the two be adjacent, so all 3,000 entries stopped
+    matching, the payload yielded nothing, and the crawl wrote the rendered top
+    30 over a 1,000-row arwu_rankings_2026.json.
+    """
+
+    PAGE = "https://www.shanghairanking.com/rankings/arwu/2026"
+
+    def test_literal_entry_with_an_extra_field(self):
+        js = (
+            '__NUXT_JSONP__("/rankings/arwu/2026", (function(a,b,c,d,e,f,g,h,o,i){'
+            "return {data:[{ranking:a,univNameEn:b,univUp:c,univLogo:d,region:e,"
+            "regionLogo:f,regionRanking:g,univCode:h,outdated:o,score:i,indData:{}}]}"
+            '}("1","Harvard University","harvard-university","logo.png","United States",'
+            '"flag.png","1","",0,100.0)));'
+        )
+        rows = _rows_from_payload(js, 2026, self.PAGE)
+        self.assertEqual(["Harvard University"], [r["name"] for r in rows])
+        self.assertAlmostEqual(100.0, rows[0]["score"])
+        self.assertEqual("arwu:harvard-university", rows[0]["id"])
+
+    def test_assigned_entry_with_an_extra_field(self):
+        js = (
+            '__NUXT_JSONP__("/rankings/arwu/2026", (function(a,b,c,d,e,f,g,h,o,i){'
+            "var x={};x.ranking=a;x.univNameEn=b;x.univUp=c;x.univLogo=d;x.region=e;"
+            "x.regionLogo=f;x.regionRanking=g;x.univCode=h;x.outdated=o;x.score=i;"
+            "return {data:[x]}"
+            '}("2","Stanford University","stanford-university","logo.png","United States",'
+            '"flag.png","2","",0,74.1)));'
+        )
+        rows = _rows_from_payload(js, 2026, self.PAGE)
+        self.assertEqual(["Stanford University"], [r["name"] for r in rows])
+        self.assertAlmostEqual(74.1, rows[0]["score"])
+
+    def test_extra_fields_do_not_join_two_entries(self):
+        # The skip is lazy and stops at the first score, so each entry keeps its own.
+        js = _payload_of([("1", "Alpha University", "alpha"), ("2", "Beta University", "beta")])
+        js = js.replace("univCode:cd,score:sc", "univCode:cd,outdated:cd,score:sc")
+        rows = _rows_from_payload(js, 2026, self.PAGE)
+        self.assertEqual(["Alpha University", "Beta University"], [r["name"] for r in rows])
+
+
+class TestRenderedTableIsNeverWritten(unittest.TestCase):
+    """A crawl that only read the rendered top 30 must fail, not overwrite the edition."""
+
+    PAGE = "https://www.shanghairanking.com/rankings/arwu/2026"
+    HTML = """
+    <table>
+      <tr><th>World Rank</th><th>Institution</th><th>Total Score</th></tr>
+      <tr>
+        <td>1</td>
+        <td><a href="/institutions/harvard-university">Harvard University</a><span>United States</span></td>
+        <td>100.0</td>
+      </tr>
+    </table>
+    """
+
+    def _crawl(self, *, payload_js: str | None):
+        import tempfile
+        from unittest import mock
+
+        import arwu_crawler
+
+        html = self.HTML
+        if payload_js is not None:
+            html += '<script src="/_nuxt/static/123/rankings/arwu/2026/payload.js"></script>'
+
+        class _Response:
+            def __init__(self, url, text):
+                self.url, self.text = url, text
+
+            def raise_for_status(self):
+                pass
+
+        class _Session:
+            def get(self, url, headers=None, timeout=None):
+                return _Response(url, payload_js if url.endswith("payload.js") else html)
+
+            def close(self):
+                pass
+
+        out = Path(tempfile.mkdtemp())
+        existing = out / "arwu_rankings_2026.json"
+        existing.write_text('{"rows": ["the committed edition"]}', encoding="utf-8")
+        with mock.patch.object(arwu_crawler, "_new_session", return_value=(_Session(), {})), \
+                mock.patch.object(arwu_crawler, "_sleep"):
+            try:
+                arwu_crawler.crawl_arwu_rankings(2026, output_dir=out)
+                error = None
+            except arwu_crawler.TruncatedTableError as exc:
+                error = exc
+        return error, existing.read_text(encoding="utf-8")
+
+    def test_no_payload_link_fails_and_keeps_the_file(self):
+        error, content = self._crawl(payload_js=None)
+        self.assertIsNotNone(error)
+        self.assertIn("the committed edition", content)
+
+    def test_unreadable_payload_fails_and_keeps_the_file(self):
+        error, content = self._crawl(payload_js="__NUXT_JSONP__ changed shape")
+        self.assertIsNotNone(error)
+        self.assertIn("the committed edition", content)
+
+    def test_readable_payload_is_written(self):
+        js = _payload_of([("1", "Harvard University", "harvard-university"),
+                          ("2", "Stanford University", "stanford-university")])
+        error, content = self._crawl(payload_js=js)
+        self.assertIsNone(error)
+        self.assertEqual(2, len(json.loads(content)["rows"]))
+
+
 if __name__ == "__main__":
     unittest.main()

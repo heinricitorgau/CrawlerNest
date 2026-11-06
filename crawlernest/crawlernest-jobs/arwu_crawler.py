@@ -398,16 +398,24 @@ def _split_top_level(blob: str) -> list[str]:
 # It cost 326 of 3,001 entries, spread evenly across every rank band -- which is
 # what made it look like a short table rather than a parsing miss.
 _NAME = r"[\w$]+"
+# Fields the site adds between univCode and score are skipped, not required
+# absent. In November 2026 it inserted `outdated` there on every entry; a pattern
+# that demanded univCode and score be adjacent then matched none of the 3,000
+# entries, and the crawl fell back to the rendered top 30.
+_LITERAL_EXTRA = rf"(?:,\w+:{_NAME})*?"
+_ASSIGNED_EXTRA = rf"(?:;{_NAME}\.\w+={_NAME})*?"
 # Groups: ranking, univNameEn, univUp, region, score. univCode is matched so the
 # pattern stays anchored to the whole entry, but not captured -- it is empty.
 _LITERAL_ENTRY = re.compile(
     rf"ranking:({_NAME}),univNameEn:({_NAME}),univUp:({_NAME}),univLogo:{_NAME},"
-    rf"region:({_NAME}),regionLogo:{_NAME},regionRanking:{_NAME},univCode:{_NAME},score:({_NAME})"
+    rf"region:({_NAME}),regionLogo:{_NAME},regionRanking:{_NAME},univCode:{_NAME}"
+    rf"{_LITERAL_EXTRA},score:({_NAME})"
 )
 _ASSIGNED_ENTRY = re.compile(
     rf"\.ranking=({_NAME});{_NAME}\.univNameEn=({_NAME});{_NAME}\.univUp=({_NAME});"
     rf"{_NAME}\.univLogo={_NAME};{_NAME}\.region=({_NAME});{_NAME}\.regionLogo={_NAME};"
-    rf"{_NAME}\.regionRanking={_NAME};{_NAME}\.univCode={_NAME};{_NAME}\.score=({_NAME})"
+    rf"{_NAME}\.regionRanking={_NAME};{_NAME}\.univCode={_NAME}"
+    rf"{_ASSIGNED_EXTRA};{_NAME}\.score=({_NAME})"
 )
 
 
@@ -505,6 +513,10 @@ def _year_of_page(page_url: str, requested: int) -> int:
     return int(match.group(1)) if match else requested
 
 
+class TruncatedTableError(RuntimeError):
+    """Only the rendered top 30 was read, which is never the whole edition."""
+
+
 def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Path:
     output_base = output_dir or DEFAULT_OUTPUT_DIR
     output_base.mkdir(parents=True, exist_ok=True)
@@ -537,9 +549,9 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
             normalized_rows = _extract_rows_from_html_tables(html, page_year, page_url)
 
             # The rendered table stops at 30. The payload behind it holds the
-            # whole ranking, so prefer it -- but only when it is a superset, so a
-            # payload format change degrades to the smaller table instead of
-            # silently shrinking the crawl.
+            # whole ranking, so prefer it -- but only when it is a superset.
+            # When it is not, the crawl fails below rather than writing the 30:
+            # that file replaced a 1,000-row edition once already.
             payload_url = _payload_url(html, page_url)
             if payload_url:
                 print(f"[arwu] payload={payload_url}")
@@ -582,6 +594,12 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
 
     if not normalized_rows:
         raise RuntimeError("Unable to locate or parse ARWU rankings table.")
+    if not any(r["metadata"].get("extraction_method") == "nuxt_payload" for r in normalized_rows):
+        raise TruncatedTableError(
+            f"ARWU {year}: only the rendered table ({len(normalized_rows)} rows) was read; "
+            "the payload holding the full ranking was missing or unreadable. "
+            f"Not writing {output_path.name}."
+        )
     if edition is None or resolved_year != year:
         raise EditionMismatchError(f"ARWU edition {year} was not the table read ({resolved_url})")
 
