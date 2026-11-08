@@ -1,0 +1,56 @@
+name: Bug report
+description: Something in the pipeline, API or web app does not work as documented.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If a page shows a wrong rank, name or number, use **Data issue** instead -- that is usually a warehouse
+        problem, not a code bug. Do not report security vulnerabilities here; see SECURITY.md.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Python pipeline / crawler (crawlernest/run_pipeline.py, crawlernest/packages/)
+        - Spring Boot API (crawlernest/servise_for_java/, port 8080)
+        - Next.js web (crawlernest/crawlernest-web/, port 3000)
+        - Agent API (port 8090)
+        - Scripts / Docker / CI
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, including the full error message or stack trace.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The exact commands, URLs or clicks. Include `--ranking-year`, `--limit` and similar flags.
+      placeholder: |
+        1. ./.venv/bin/python -m crawlernest.run_pipeline run --limit 20 --ranking-year 2026 ...
+        2. curl localhost:8080/api/v1/...
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      description: Output of `git rev-parse --short HEAD`.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS (Linux / WSL / macOS), and the Python, Java, Node.js and PostgreSQL versions you run.

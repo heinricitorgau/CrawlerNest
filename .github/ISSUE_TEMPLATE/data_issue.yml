@@ -1,0 +1,55 @@
+name: Data issue
+description: A university's rank, name, country or other figure is wrong or missing.
+title: "[Data] "
+labels: ["data"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Coverage is partial: a missing source rank can be our gap, not the source declining to rank. Tell us what
+        the source itself publishes, with a link, so the two can be compared.
+  - type: input
+    id: university
+    attributes:
+      label: University name
+      description: As the site shows it, plus the URL of its page here if you have one.
+      placeholder: "University of Miami -- /universities/university-of-miami"
+    validations:
+      required: true
+  - type: input
+    id: endpoint
+    attributes:
+      label: API endpoint
+      description: The request that returns the wrong data.
+      placeholder: "GET /api/v1/universities/by-slug/university-of-miami"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected data
+      description: The correct value and where it comes from (source name, edition year, link).
+      placeholder: "QS 2026 rank 300 -- https://www.topuniversities.com/..."
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual data
+      description: What the API or page returns. Paste the relevant part of the JSON response.
+      render: json
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of problem
+      options:
+        - Wrong rank or score
+        - Missing rank for a source or year
+        - Two universities merged into one
+        - One university shown as two
+        - Wrong name, country or Wikipedia introduction
+        - Other
+    validations:
+      required: true
