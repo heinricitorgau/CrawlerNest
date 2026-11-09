@@ -224,6 +224,12 @@ class QSSpecialCrawler(BaseQSUniverseCrawler):
 
 def save_universe_snapshot(path: Path, universities: list[University], spec: QSUniverseSpec, ranking_year: int) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    rows = universe_snapshot_rows(universities, spec, ranking_year)
+    path.write_text(__import__("json").dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def universe_snapshot_rows(universities: list[University], spec: QSUniverseSpec, ranking_year: int) -> list[dict]:
+    """The rows normalized_snapshot.json holds; the regression guard compares these."""
     rows = []
     for uni in universities:
         rows.append(
@@ -240,4 +246,4 @@ def save_universe_snapshot(path: Path, universities: list[University], spec: QSU
                 "table_metrics": dict(uni.table_metrics or {}),
             }
         )
-    path.write_text(__import__("json").dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
+    return rows

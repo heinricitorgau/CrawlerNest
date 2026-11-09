@@ -11,6 +11,7 @@ from typing import Any
 from urllib.parse import urljoin
 
 from ranking_edition import EditionMismatchError, verify_arwu_page_url
+from snapshot_guard import check_snapshot_regression
 from transport import REQUEST_ERRORS, build_sync_session, request_headers, resolve_backend
 
 
@@ -614,6 +615,9 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
             "valid_rank_count": len(normalized_rows),
         },
     }
+    # TruncatedTableError catches the payload reading as nothing; this catches
+    # a payload that reads, but as less than the edition already on disk.
+    check_snapshot_regression(output_path, normalized_rows, label=f"ARWU {year}")
     output_path.write_text(json.dumps(output_payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(f"[arwu] rows with valid rank: {len(normalized_rows)}")

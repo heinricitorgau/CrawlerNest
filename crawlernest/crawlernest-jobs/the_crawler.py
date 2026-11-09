@@ -14,6 +14,7 @@ from urllib.parse import urljoin
 import requests
 
 from ranking_edition import THE_EDITION_PAGE, EditionMismatchError, VerifiedEdition, verify_the_edition_page
+from snapshot_guard import check_snapshot_regression
 
 
 BASE_URL = "https://www.timeshighereducation.com"
@@ -529,6 +530,7 @@ def crawl_the_rankings(year: int = 2026, output_dir: Path | None = None) -> Path
             "valid_rank_count": valid_rank_count,
         },
     }
+    check_snapshot_regression(output_path, normalized_rows, label=f"THE {year}")
     output_path.write_text(json.dumps(output_payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(

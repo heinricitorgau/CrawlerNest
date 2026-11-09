@@ -95,7 +95,9 @@ from qs_universe_crawlers import (  # noqa: E402
     QSSubjectCrawler,
     QSSpecialCrawler,
     save_universe_snapshot,
+    universe_snapshot_rows,
 )
+from snapshot_guard import SnapshotRegressionError, check_snapshot_regression  # noqa: E402
 from qs_universe_registry import (  # noqa: E402
     get_qs_universe_spec,
     iter_all_qs_universes,
@@ -1535,6 +1537,32 @@ def run_qs_universe_ingestion(
         universe_type=spec.universe_type,
         universe_key=spec.universe_key,
     ).adapt(normalized)
+
+    # All three snapshots are written together, so one check against the
+    # normalized one protects them all. A --limit run into the committed
+    # directory is refused here too.
+    try:
+        check_snapshot_regression(
+            universe_dir / "normalized_snapshot.json",
+            universe_snapshot_rows(normalized, spec, ranking_year),
+            label=f"QS {spec.universe_type}/{spec.universe_key} {ranking_year}",
+            id_field="detail_url",
+            fields=("university_name", "rank", "country"),
+        )
+    except SnapshotRegressionError as exc:
+        save_json_artifact(
+            universe_dir / "run_status.json",
+            {
+                "status": "failed",
+                "failure_classification": "snapshot_regression",
+                "message": str(exc),
+                "universe_type": spec.universe_type,
+                "universe_key": spec.universe_key,
+                "ranking_year": ranking_year,
+                "crawl_meta": crawl_meta,
+            },
+        )
+        raise
 
     save_snapshot(universe_dir / "raw_snapshot.json", universities)
     save_universe_snapshot(universe_dir / "normalized_snapshot.json", normalized, spec, ranking_year)
