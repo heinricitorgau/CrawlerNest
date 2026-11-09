@@ -2602,6 +2602,14 @@ def _cmd_scheduled_refresh(args: argparse.Namespace) -> int:
             request_delay=args.request_delay, local_parse_workers=4,
             output_dir=kb / "qs_universes", resume=False, **pg,
         )
+        if crawl_meta.get("failure_classification") == "network_error":
+            # QS already retried each request; NetworkError lets the scheduler
+            # rerun the whole source a few minutes later.
+            from transport import NetworkError
+
+            raise NetworkError(
+                f"QS {year}: network error: {crawl_meta.get('failure_message') or 'no detail'}"
+            )
         if interrupted or crawl_meta.get("failure_classification") or not standardized:
             raise RuntimeError(
                 f"QS {year} did not complete as a live crawl: "

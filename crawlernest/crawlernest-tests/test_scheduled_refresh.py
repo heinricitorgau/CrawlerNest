@@ -63,6 +63,101 @@ class TestScheduledRefresh(unittest.TestCase):
         self.assertEqual([], self.calls)
 
 
+class _Dropped(RuntimeError):
+    """Stands in for transport.NetworkError; the scheduler only reads failure_class."""
+
+    failure_class = "network_error"
+
+
+class _Mismatch(RuntimeError):
+    pass
+
+
+class TestNetworkFailuresAreRetried(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name)
+        self.slept: list[float] = []
+        self.now = 0.0
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def sleep(self, seconds):
+        self.slept.append(seconds)
+        self.now += seconds
+
+    def scripted(self, *outcomes):
+        """A runner that raises or returns each outcome in turn."""
+        script = list(outcomes)
+        self.attempts = 0
+
+        def _run(year):
+            self.attempts += 1
+            item = script.pop(0)
+            if isinstance(item, BaseException):
+                raise item
+            return item
+        return _run
+
+    def refresh(self, runner):
+        rc = run_scheduled_refresh(
+            ranking_year=2026, sources=("THE",), runners={"THE": runner},
+            lock_path=self.root / "refresh.lock", status_dir=self.root / "status",
+            sleep=self.sleep, clock=lambda: self.now,
+        )
+        status = json.loads((self.root / "status" / "scheduled_refresh_latest.json").read_text())
+        return rc, status["sources"][0]
+
+    def test_network_failure_is_retried_then_succeeds(self):
+        rc, src = self.refresh(self.scripted(_Dropped("unreachable"), {"rows": 10}))
+        self.assertEqual(0, rc)
+        self.assertTrue(src["ok"])
+        self.assertEqual([300.0], self.slept)
+        self.assertEqual(2, len(src["attempts"]))
+        self.assertIn("unreachable", src["attempts"][0]["error"])
+        self.assertIsNone(src["attempts"][1]["error"])
+        self.assertIsNone(src["failure_class"])
+
+    def test_network_failure_gives_up_after_three_attempts(self):
+        rc, src = self.refresh(self.scripted(*[_Dropped("unreachable")] * 3))
+        self.assertEqual(1, rc)
+        self.assertFalse(src["ok"])
+        self.assertEqual([300.0, 900.0], self.slept)
+        self.assertEqual(3, len(src["attempts"]))
+        self.assertEqual("network_error", src["failure_class"])
+
+    def test_other_failures_are_not_retried(self):
+        rc, src = self.refresh(self.scripted(RuntimeError("THE blocked")))
+        self.assertEqual(1, rc)
+        self.assertEqual([], self.slept)
+        self.assertEqual(1, len(src["attempts"]))
+        self.assertEqual("RuntimeError", src["failure_class"])
+        self.assertIn("THE blocked", src["error"])
+
+    def test_switch_to_non_network_error_stops_retrying(self):
+        rc, src = self.refresh(self.scripted(_Dropped("unreachable"), _Mismatch("wrong edition")))
+        self.assertEqual(1, rc)
+        self.assertEqual([300.0], self.slept)
+        self.assertEqual(2, self.attempts)
+        self.assertEqual("_Mismatch", src["failure_class"])
+        self.assertIn("wrong edition", src["error"])
+
+    def test_no_retry_after_cutoff(self):
+        self.now = 5400.0  # the clock is read relative to the refresh start
+        start = self.now
+
+        def runner(year):
+            self.now = start + 5401.0  # this source alone ran past 90 min
+            raise _Dropped("unreachable")
+
+        rc, src = self.refresh(runner)
+        self.assertEqual(1, rc)
+        self.assertEqual([], self.slept)
+        self.assertEqual(1, len(src["attempts"]))
+        self.assertEqual("network_error", src["failure_class"])
+
+
 class TestTheCommandIsRegistered(unittest.TestCase):
     def test_run_pipeline_parses_scheduled_refresh(self):
         from crawlernest.run_pipeline import _REMAINING_COMMAND_HANDLERS, build_parser

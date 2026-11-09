@@ -59,8 +59,9 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 
 import requests
 
@@ -118,6 +119,44 @@ REQUEST_ERRORS = _union(
 )
 #: Transport-level failures worth retrying. HTTP status codes are never in here.
 TRANSIENT_ERRORS = _union(*TIMEOUT_ERRORS, *CONNECTION_ERRORS)
+
+
+class NetworkError(RuntimeError):
+    """The request never got an answer: timeouts or dropped connections, retried and still failing.
+
+    Distinct from every "the site answered, but wrongly" error (edition mismatch,
+    truncated table, blocked) so callers can tell an outage from a site change.
+    ``failure_class`` lets the scheduler recognise it without importing this module.
+    """
+
+    failure_class = "network_error"
+
+
+def get_with_transient_retry(
+    session: Any,
+    url: str,
+    *,
+    attempts: int = 3,
+    sleeps: Sequence[float] = (1.0, 3.0),
+    sleep: Callable[[float], None] | None = None,
+    **request_kwargs: Any,
+) -> Any:
+    """``session.get`` that rides out a few seconds of lost network.
+
+    Only TRANSIENT_ERRORS are retried, on the same 1 s / 3 s schedule the QS
+    fetchers use. The response is returned whatever its status: a 403 or 503 is
+    an answer, and retrying a server that has refused is not this helper's call.
+    """
+    pause = sleep if sleep is not None else time.sleep
+    total = max(1, int(attempts))
+    for attempt in range(total):
+        try:
+            return session.get(url, **request_kwargs)
+        except TRANSIENT_ERRORS as exc:
+            if attempt + 1 >= total:
+                raise NetworkError(f"{url}: no answer after {total} attempts: {exc}") from exc
+            pause(sleeps[min(attempt, len(sleeps) - 1)] if sleeps else 0.0)
+    raise AssertionError("unreachable")
 
 
 @dataclass(frozen=True)

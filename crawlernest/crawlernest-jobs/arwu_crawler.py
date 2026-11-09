@@ -12,7 +12,7 @@ from urllib.parse import urljoin
 
 from ranking_edition import EditionMismatchError, verify_arwu_page_url
 from snapshot_guard import check_snapshot_regression
-from transport import REQUEST_ERRORS, build_sync_session, request_headers, resolve_backend
+from transport import REQUEST_ERRORS, build_sync_session, get_with_transient_retry, request_headers, resolve_backend
 
 
 BASE_URL = "https://www.shanghairanking.com"
@@ -48,8 +48,15 @@ def _new_session() -> tuple[Any, dict[str, str]]:
 
 
 def _request_text(url: str, session: Any, headers: dict[str, str] | None = None) -> str | None:
+    """The body, or None when the server answered with an error.
+
+    A request that never got an answer raises NetworkError instead: read as
+    None, a dropped payload request became TruncatedTableError, which looks
+    like the site changed.
+    """
     try:
-        response = session.get(url, headers=DEFAULT_HEADERS if headers is None else headers, timeout=DEFAULT_TIMEOUT)
+        response = get_with_transient_retry(
+            session, url, headers=DEFAULT_HEADERS if headers is None else headers, timeout=DEFAULT_TIMEOUT)
         response.raise_for_status()
         _sleep()
         return response.text
@@ -533,7 +540,7 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
         for page_url in _candidate_pages(year):
             print(f"[arwu] page={page_url}")
             try:
-                response = session.get(page_url, headers=headers, timeout=DEFAULT_TIMEOUT)
+                response = get_with_transient_retry(session, page_url, headers=headers, timeout=DEFAULT_TIMEOUT)
                 response.raise_for_status()
                 _sleep()
             except REQUEST_ERRORS as exc:

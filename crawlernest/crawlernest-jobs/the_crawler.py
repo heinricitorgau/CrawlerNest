@@ -15,6 +15,7 @@ import requests
 
 from ranking_edition import THE_EDITION_PAGE, EditionMismatchError, VerifiedEdition, verify_the_edition_page
 from snapshot_guard import check_snapshot_regression
+from transport import get_with_transient_retry
 
 
 BASE_URL = "https://www.timeshighereducation.com"
@@ -484,7 +485,9 @@ def _load_verified_edition(year: int, session: requests.Session) -> tuple[list[d
     """
     page_url = THE_EDITION_PAGE.format(year=int(year))
     try:
-        response = session.get(page_url, headers=DEFAULT_HEADERS, timeout=DEFAULT_TIMEOUT)
+        # A dropped connection raises NetworkError (retried by the scheduler);
+        # it used to surface here as an edition mismatch.
+        response = get_with_transient_retry(session, page_url, headers=DEFAULT_HEADERS, timeout=DEFAULT_TIMEOUT)
     except requests.RequestException as exc:
         raise EditionMismatchError(f"THE edition page {page_url} failed: {exc}") from exc
     if response.status_code != 200:

@@ -31,6 +31,13 @@ Sources run independently: one failing (a Cloudflare block, a site redesign)
 does not stop the others, and the exit code is non-zero if any failed so the
 scheduler records it. A lock file stops overlapping runs, and each run writes a
 JSON status next to its log.
+
+A source that failed because the network was not there (the timer's
+Persistent=true often fires right after WSL boots, before networking is up) is
+rerun after 5 and then 15 minutes. Nothing else is rerun: a block, maintenance
+page, wrong edition or refused snapshot is an answer, and asking again would
+only press a site that has already said no. Retries stop once the refresh has
+run 90 minutes, so the unit's 2 h TimeoutStartSec cannot kill a write halfway.
 """
 
 from __future__ import annotations
@@ -39,12 +46,16 @@ import datetime as dt
 import fcntl
 import json
 import os
+import time
 import traceback
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, Sequence
 
 DEFAULT_SOURCES = ("QS", "THE", "ARWU")
+NETWORK_FAILURE_CLASS = "network_error"
+NETWORK_RETRY_DELAYS: tuple[float, ...] = (300.0, 900.0)
+RETRY_CUTOFF_SECONDS = 5400.0
 
 
 class RefreshAlreadyRunning(RuntimeError):
@@ -59,6 +70,14 @@ class SourceOutcome:
     finished_at: str
     summary: dict[str, Any] = field(default_factory=dict)
     error: str | None = None
+    # "network_error" for transport.NetworkError, otherwise the exception type.
+    failure_class: str | None = None
+    attempts: list[dict[str, Any]] = field(default_factory=list)
+
+
+def failure_class_of(exc: BaseException) -> str:
+    """Read off the exception, so this module never imports the transport layer."""
+    return str(getattr(exc, "failure_class", "") or type(exc).__name__)
 
 
 def _now() -> str:
@@ -77,6 +96,41 @@ def _to_jsonable(value: Any) -> Any:
     return str(value)
 
 
+def _run_source(
+    source: str,
+    ranking_year: int,
+    runner: Callable[[int], Any],
+    *,
+    delays: tuple[float, ...],
+    retry_allowed: Callable[[], bool],
+    sleep: Callable[[float], None],
+) -> SourceOutcome:
+    source_started = _now()
+    attempts: list[dict[str, Any]] = []
+    while True:
+        attempt_started = _now()
+        print(f"[scheduled-refresh] {source} {ranking_year}: start (attempt {len(attempts) + 1})", flush=True)
+        try:
+            summary = runner(ranking_year)
+        except Exception as exc:  # one source failing must not hide the others
+            error = f"{type(exc).__name__}: {exc}"
+            cls = failure_class_of(exc)
+            attempts.append({"started_at": attempt_started, "finished_at": _now(), "error": error})
+            print(f"[scheduled-refresh] {source} {ranking_year}: FAILED [{cls}] {error}", flush=True)
+            traceback.print_exc()
+            retries_used = len(attempts) - 1
+            if cls == NETWORK_FAILURE_CLASS and retries_used < len(delays) and retry_allowed():
+                wait = delays[retries_used]
+                print(f"[scheduled-refresh] {source}: network failure, retrying in {wait:.0f}s", flush=True)
+                sleep(wait)
+                continue
+            return SourceOutcome(source, False, source_started, _now(), error=error,
+                                 failure_class=cls, attempts=attempts)
+        attempts.append({"started_at": attempt_started, "finished_at": _now(), "error": None})
+        print(f"[scheduled-refresh] {source} {ranking_year}: ok", flush=True)
+        return SourceOutcome(source, True, source_started, _now(), _to_jsonable(summary), attempts=attempts)
+
+
 def run_scheduled_refresh(
     *,
     ranking_year: int,
@@ -84,8 +138,15 @@ def run_scheduled_refresh(
     runners: dict[str, Callable[[int], Any]],
     lock_path: Path,
     status_dir: Path,
+    network_retry_delays: Sequence[float] = NETWORK_RETRY_DELAYS,
+    retry_cutoff_seconds: float = RETRY_CUTOFF_SECONDS,
+    sleep: Callable[[float], None] = time.sleep,
+    clock: Callable[[], float] = time.monotonic,
 ) -> int:
-    """Run each source once for ``ranking_year``. Returns 0 only if every source succeeded."""
+    """Run each source for ``ranking_year``, rerunning network failures only.
+
+    Returns 0 only if every source succeeded.
+    """
     wanted = [s.strip().upper() for s in sources if s.strip()]
     unknown = sorted(set(wanted) - set(runners))
     if unknown:
@@ -102,19 +163,15 @@ def run_scheduled_refresh(
         lock.flush()
 
         started = _now()
+        started_clock = clock()
         outcomes: list[SourceOutcome] = []
         for source in wanted:
-            source_started = _now()
-            print(f"[scheduled-refresh] {source} {ranking_year}: start", flush=True)
-            try:
-                summary = runners[source](ranking_year)
-                outcomes.append(SourceOutcome(source, True, source_started, _now(), _to_jsonable(summary)))
-                print(f"[scheduled-refresh] {source} {ranking_year}: ok", flush=True)
-            except Exception as exc:  # one source failing must not hide the others
-                outcomes.append(SourceOutcome(
-                    source, False, source_started, _now(), error=f"{type(exc).__name__}: {exc}"))
-                print(f"[scheduled-refresh] {source} {ranking_year}: FAILED {type(exc).__name__}: {exc}", flush=True)
-                traceback.print_exc()
+            outcomes.append(_run_source(
+                source, ranking_year, runners[source],
+                delays=tuple(network_retry_delays),
+                retry_allowed=lambda: clock() - started_clock < retry_cutoff_seconds,
+                sleep=sleep,
+            ))
 
         status = {
             "ranking_year": ranking_year,

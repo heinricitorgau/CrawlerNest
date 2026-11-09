@@ -132,6 +132,8 @@ def run_all_tests():
         "test_arwu_crawler",
         # Crawls may not shrink or blank the snapshot they overwrite (THE, ARWU, QS).
         "test_snapshot_guard",
+        # Dropped connections retry briefly, then raise NetworkError, never a site-change error.
+        "test_transient_retry",
         # QS past editions from reviewed Internet Archive snapshots. Every refusal
         # (edition, hash, redirect, guards) is tested; no test touches the network.
         "test_qs_archive_loader",
