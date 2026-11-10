@@ -1,0 +1,59 @@
+{
+  "manifest_version": 1,
+  "release": "v0.2-2026-snapshot",
+  "built_at": "2026-09-05T00:00:00Z",
+  "built_from_commit": "4bd24cd244922b9c69e9697dceb391efd0de57c0",
+  "_comment": "Written 2026-11-11 from a restore of the dump, which predates release_snapshot.py. The counts equal the literals restore_release_snapshot.sh carried for this release.",
+  "database": "clawer",
+  "dump": {
+    "file": "clawer-2026-09-04-release-freeze.dump",
+    "sha256": "28c67b7e8bc5ac7fc848221afdeee2ddf5a65e3c875d911027388e8a641be35e",
+    "bytes": 3246780
+  },
+  "contains_user_data": true,
+  "user_data_note": "warehouse.app_user holds 2 rows (email and bcrypt password hash); found 2026-11-11",
+  "editions_held": {
+    "ARWU": [
+      2026
+    ],
+    "QS": [
+      2026
+    ],
+    "THE": [
+      2026
+    ]
+  },
+  "counts": {
+    "ranking_records_by_source_year": {
+      "ARWU": {
+        "2026": 838
+      },
+      "QS": {
+        "2026": 9530
+      },
+      "THE": {
+        "2026": 1637
+      }
+    },
+    "aggregated_rows_by_year_universe": {
+      "2026": {
+        "global": 2098,
+        "region": 1629,
+        "regional": 3198,
+        "special": 2074,
+        "subject": 1126
+      }
+    },
+    "relation_rows": {
+      "analytics.aggregated_rankings": 10125,
+      "analytics.ml_predictions": 15049,
+      "analytics.v_ml_predictions_latest": 2279,
+      "warehouse.ranking_record": 12005,
+      "warehouse.subject_ranking_record": 1068,
+      "warehouse.canonical_university": 3809,
+      "warehouse.university_wikipedia_article": null,
+      "warehouse.us_institution": null,
+      "warehouse.us_institution_metric": null
+    }
+  }
+}

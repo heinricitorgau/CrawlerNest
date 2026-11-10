@@ -4,6 +4,10 @@ Freeze date: 2026-09-05
 Source ingest: 2026-09-04
 Database: `clawer`
 
+> **Note (2026-11-11): this dump contains user accounts.** `warehouse.app_user` holds 2 rows (email and bcrypt
+> password hash). Releases from v0.3 on dump no user data (`scripts/release_snapshot.py`). Do not restore this
+> dump anywhere those accounts should not exist; `manifest.json` records the defect (`contains_user_data`).
+
 ## Snapshot
 
 - File: `clawer-2026-09-04-release-freeze.dump`
@@ -50,8 +54,9 @@ and web services; it does not crawl or mutate ranking data.
 To restore and verify the frozen counts in one step, use:
 
 ```bash
-PGDATABASE=clawer ./scripts/restore_release_snapshot.sh
+RELEASE_DIR=docs/releases/v0.2-2026-snapshot PGDATABASE=clawer ./scripts/restore_release_snapshot.sh
 ```
 
+Set `RELEASE_DIR=docs/releases/v0.2-2026-snapshot`, because the script now defaults to the latest release.
 Set `API_BASE_URL=http://localhost:8080` as well when the API is already running;
 the script will then smoke-test the rankings and ranking-trends endpoints.

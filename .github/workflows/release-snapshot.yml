@@ -4,20 +4,26 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "docs/releases/v0.2-2026-snapshot/**"
+      - "docs/releases/**"
       - "scripts/restore_release_snapshot.sh"
+      - "scripts/release_snapshot.py"
       - ".github/workflows/release-snapshot.yml"
   pull_request:
     paths:
-      - "docs/releases/v0.2-2026-snapshot/**"
+      - "docs/releases/**"
       - "scripts/restore_release_snapshot.sh"
+      - "scripts/release_snapshot.py"
       - ".github/workflows/release-snapshot.yml"
   workflow_dispatch:
 
 jobs:
   restore-and-verify:
-    name: Restore v0.2 2026 snapshot
+    name: Restore ${{ matrix.release }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        release: ["v0.2-2026-snapshot", "v0.3-multi-year-snapshot"]
     services:
       postgres:
         image: postgres:16
@@ -47,4 +53,5 @@ jobs:
           PGUSER: test
           PGPASSWORD: test
           PGDATABASE: clawer
+          RELEASE_DIR: docs/releases/${{ matrix.release }}
         run: ./scripts/restore_release_snapshot.sh
