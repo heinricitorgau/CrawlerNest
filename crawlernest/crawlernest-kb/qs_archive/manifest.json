@@ -1,5 +1,21 @@
 {
   "_comment": "Snapshots pinned by qs_archive_loader. expected_sha256 is the sha256 of the DECODED data bytes. Selection was automated and is pending human review; see docs/data/QS_ARCHIVE_LOADER_DESIGN.md.",
+  "2015": {
+    "ranking_year": 2015,
+    "edition_page": {
+      "snapshot_url": "https://web.archive.org/web/20161108163601id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2015",
+      "snapshot_ts": "20161108163601"
+    },
+    "data_file": {
+      "snapshot_url": "https://web.archive.org/web/20210217124722id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/299926.txt",
+      "snapshot_ts": "20210217124722",
+      "expected_ranking_id": "299926",
+      "expected_sha256": "12ab58b920e2dd9e3056c737fd8ff79733ddc385ac53fe0485ceda2767c09ceb"
+    },
+    "reviewed_by": "claude (automated selection, pending human review)",
+    "reviewed_on": "2026-11-10",
+    "notes": "Pinned, not ingested: whether to hold this edition is an open decision. 2 captures of this data file (2021-02-17, 2022-04-21) differ in membership (916 and 914 rows); earliest pinned. The edition page is a later capture: the 2015-09 and 2016-04 captures declare no ranking id, the 2016-11 to 2019-11 captures declare exactly this one. QS printed this edition as '2015/16' and has titled the same page '2016' since 2020; the year here is the one in the page address and in the title of the pinned capture."
+  },
   "2016": {
     "ranking_year": 2016,
     "edition_page": {
@@ -63,6 +79,22 @@
     "reviewed_by": "claude (automated selection, pending human review)",
     "reviewed_on": "2026-10-03",
     "notes": "Only capture of this data file."
+  },
+  "2021": {
+    "ranking_year": 2021,
+    "edition_page": {
+      "snapshot_url": "https://web.archive.org/web/20230801232014id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2021",
+      "snapshot_ts": "20230801232014"
+    },
+    "data_file": {
+      "snapshot_url": "https://web.archive.org/web/20210212151348id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/2057712.txt",
+      "snapshot_ts": "20210212151348",
+      "expected_ranking_id": "2057712",
+      "expected_sha256": "1c1e8422ce577a63b1f1caeeb573739d862fcd57ab2685bd8233906c1ea4a7c4"
+    },
+    "reviewed_by": "claude (automated selection, pending human review)",
+    "reviewed_on": "2026-11-10",
+    "notes": "Pinned, not ingested: the choice of capture needs review. 8 readable captures hold 6 distinct contents, and unlike 2018, 2019 and 2022 they do not differ in membership only: the 2021-03-02 capture changes rank_display for 4 rows (two ties gain '=', Rochester 166 to 165, Brno 701-750 to 651-700) and adds one row; later captures drop rows and blank 17 countries. Earliest pinned; on every exact rank it agrees with the table QS first published (id 946820, captured 2020-09-05, outside en/ so it cannot be pinned itself). 184 rows here are absent from that first table (157 printed '1001+', 27 unranked). The 2021-02-18 capture does not decode. The edition page is a later capture: the 2021-03 to 2022-09 captures declare many ranking ids and cannot pass the one-id rule; the 2020-06 capture declares 946820."
   },
   "2022": {
     "ranking_year": 2022,

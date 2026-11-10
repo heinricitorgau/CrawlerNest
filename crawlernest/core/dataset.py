@@ -66,9 +66,14 @@ from typing import Mapping
 #: crawled live through ``ranking_edition.py`` like 2025 and 2026. QS 2016, 2018-2020
 #: and 2022-2024 were not: QS now blocks automated requests, so they were read from
 #: Internet Archive captures of its own data files (see
-#: :data:`DATASET_ARCHIVE_EDITIONS`). QS holds no 2015 (the archived page declares no
-#: ranking id), no 2017 (QS published no edition under that label) and no 2021 (no
-#: archived data file exists), and says so through the edition caveats.
+#: :data:`DATASET_ARCHIVE_EDITIONS`). QS holds no 2015, 2017 or 2021, and says so
+#: through the edition caveats. 2015 and 2021 each have an archived data file that
+#: passes the loader's rules; both are pinned in ``qs_archive/manifest.json`` and
+#: neither is ingested, because holding them is a decision nobody has made yet.
+#: 2017 has no archived page at that address. QS has since retitled the pages it
+#: published as 2015/16 and 2016 to "2016" and "2017"; the years here are the ones
+#: in the page address and in the title of the pinned capture
+#: (``docs/data/QS_ARCHIVE_LOADER_DESIGN.md``, note of 2026-11-10).
 DATASET_COVERAGE: Mapping[str, tuple[int, ...]] = MappingProxyType(
     {
         "QS": (2026, 2025, 2024, 2023, 2022, 2020, 2019, 2018, 2016),

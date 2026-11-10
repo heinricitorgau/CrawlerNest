@@ -120,8 +120,9 @@ archive-sourced editions are disclosed per edition, below.
 warehouse held carried no QS row at all, so a sentence opening "QS ranking data"
 could not describe the edition a reader was looking at — and `editionCaveats(2018)`
 would have printed exactly that beside a table containing no QS rank. QS still
-holds no 2015, 2017 or 2021 (QS published no 2017 edition, the archived 2015 page
-declares no ranking id, and no data file for 2021 exists in the archive). Each
+holds no 2015, 2017 or 2021 (the archive has no page at the 2017 address; 2015 and
+2021 have archived data files that are pinned in the manifest but not ingested,
+pending a decision — see `docs/data/QS_ARCHIVE_LOADER_DESIGN.md`). Each
 renderer therefore refuses to render a source over an edition
 `DATASET_COVERAGE` does not give it: the false sentence is unwritable rather
 than merely discouraged.
