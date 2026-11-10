@@ -32,7 +32,8 @@ Ranking acquisition starts with source-specific crawlers and adapters.
 Main entry points:
 
 - `crawlernest/run_pipeline.py`
-- `crawlernest/packages/crawlernest_ranking_crawler/sources/qs.py`
+- `crawlernest/packages/crawlernest_ranking_crawler/sources/base.py` (THE/ARWU `RankingSource`, shared run status)
+- `crawlernest/packages/crawlernest_ranking_crawler/sources/the.py`, `sources/arwu.py`
 - `crawlernest/crawlernest-core/multi_source/adapters/qs_adapter.py`
 - `crawlernest/crawlernest-core/multi_source/adapters/the_adapter.py`
 - `crawlernest/crawlernest-core/multi_source/adapters/arwu_adapter.py`

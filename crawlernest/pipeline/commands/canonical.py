@@ -109,6 +109,105 @@ def ingest_rankings_payload(
         conn.close()
 
 
+def _ingest_world_rankings(
+    crawler: Any,
+    *,
+    label: str,
+    ranking_year: int,
+    output_dir: Path,
+    status_dir: Optional[Path],
+    pg_host: Optional[str],
+    pg_port: int,
+    pg_database: Optional[str],
+    pg_user: Optional[str],
+    pg_password: Optional[str],
+    skip_seed: bool,
+) -> dict[str, Any]:
+    """Crawl one THE or ARWU edition through its RankingSource, then ingest the snapshot.
+
+    The crawl leaves a run_status.json whether it worked or not (sources/base.py). A crawl failure is
+    re-raised unchanged: scheduled-refresh reruns only what raises NetworkError, and has to see it.
+    """
+    source = crawler.name
+    print(f"[{label}] crawling {source} world rankings for year={ranking_year}...")
+    run = crawler.run(year=ranking_year, output_dir=output_dir, status_dir=status_dir)
+    output_file = run.snapshot_path
+    payload = load_json_payload(output_file)
+    for problem in run.summary()["health_problems"]:
+        print(f"[{label}] snapshot health check: {problem}")
+
+    try:
+        print(f"[{label}] ingesting {len(payload)} rows into multi-source pipeline...")
+        ingest_summary = ingest_rankings_payload(
+            source=source,
+            payload=payload,
+            ranking_year=ranking_year,
+            ranking_type="world",
+            source_version=None,
+            pg_host=pg_host,
+            pg_port=pg_port,
+            pg_database=pg_database,
+            pg_user=pg_user,
+            pg_password=pg_password,
+            # No batch_id: ingest_rankings_payload stamps a timestamped one.
+            # A constant id per year silently disabled prune_superseded_records,
+            # which drops rows the current run did not write by comparing run_id --
+            # nothing is ever distinct from a value every row already carries. A
+            # university that stopped matching kept its old rank indefinitely.
+        )
+
+        aggregated_rows = int(getattr(ingest_summary, "aggregated_row_count", 0) or 0)
+        if not skip_seed:
+            print(f"[{label}] seeding canonical entities...")
+            seed_canonical_universities(
+                pg_host=pg_host,
+                pg_port=pg_port,
+                pg_database=pg_database,
+                pg_user=pg_user,
+                pg_password=pg_password,
+            )
+
+            print(f"[{label}] backfilling ranking records...")
+            backfill_summary = backfill_qs_ranking_records_from_legacy(
+                pg_host=pg_host,
+                pg_port=pg_port,
+                pg_database=pg_database,
+                pg_user=pg_user,
+                pg_password=pg_password,
+            )
+            aggregated_rows = int(backfill_summary.get("aggregated_rows") or aggregated_rows)
+    except Exception as exc:
+        run.record_ingest_failure(exc)
+        raise
+
+    summary = {
+        "rows_crawled": len(payload),
+        "matched_count": int(getattr(ingest_summary, "matched_count", 0) or 0),
+        "unresolved_count": int(getattr(ingest_summary, "unresolved_count", 0) or 0),
+        "aggregated_rows": aggregated_rows,
+        "output_file": str(output_file),
+    }
+    run.record_ingest(
+        matched_count=summary["matched_count"],
+        unresolved_count=summary["unresolved_count"],
+        aggregated_rows=summary["aggregated_rows"],
+    )
+    summary.update(run.summary())
+    print(
+        f"[{label}] done. matched={summary['matched_count']} "
+        f"unresolved={summary['unresolved_count']} aggregated_rows={summary['aggregated_rows']} "
+        f"run_status={summary['run_status']}"
+    )
+    return summary
+
+
+def _ranking_sources():
+    """The crawler package's sources, imported at call time like every crawler import in this module."""
+    from crawlernest_ranking_crawler import sources  # noqa: E402
+
+    return sources
+
+
 def run_the_rankings_ingestion(
     *,
     ranking_year: int,
@@ -119,65 +218,21 @@ def run_the_rankings_ingestion(
     pg_user: Optional[str],
     pg_password: Optional[str],
     skip_seed: bool = False,
+    status_dir: Optional[Path] = None,
 ) -> dict[str, Any]:
-    from the_crawler import crawl_the_rankings
-
-    print(f"[the-rankings] crawling THE world rankings for year={ranking_year}...")
-    output_file = crawl_the_rankings(year=ranking_year, output_dir=output_dir)
-    payload = load_json_payload(output_file)
-
-    print(f"[the-rankings] ingesting {len(payload)} rows into multi-source pipeline...")
-    ingest_summary = ingest_rankings_payload(
-        source="THE",
-        payload=payload,
+    return _ingest_world_rankings(
+        _ranking_sources().THECrawler(),
+        label="the-rankings",
         ranking_year=ranking_year,
-        ranking_type="world",
-        source_version=None,
+        output_dir=output_dir,
+        status_dir=status_dir,
         pg_host=pg_host,
         pg_port=pg_port,
         pg_database=pg_database,
         pg_user=pg_user,
         pg_password=pg_password,
-        # No batch_id: ingest_rankings_payload stamps a timestamped one.
-        # A constant id per year silently disabled prune_superseded_records,
-        # which drops rows the current run did not write by comparing run_id --
-        # nothing is ever distinct from a value every row already carries. A
-        # university that stopped matching kept its old rank indefinitely.
+        skip_seed=skip_seed,
     )
-
-    aggregated_rows = int(getattr(ingest_summary, "aggregated_row_count", 0) or 0)
-    if not skip_seed:
-        print("[the-rankings] seeding canonical entities...")
-        seed_canonical_universities(
-            pg_host=pg_host,
-            pg_port=pg_port,
-            pg_database=pg_database,
-            pg_user=pg_user,
-            pg_password=pg_password,
-        )
-
-        print("[the-rankings] backfilling ranking records...")
-        backfill_summary = backfill_qs_ranking_records_from_legacy(
-            pg_host=pg_host,
-            pg_port=pg_port,
-            pg_database=pg_database,
-            pg_user=pg_user,
-            pg_password=pg_password,
-        )
-        aggregated_rows = int(backfill_summary.get("aggregated_rows") or aggregated_rows)
-
-    summary = {
-        "rows_crawled": len(payload),
-        "matched_count": int(getattr(ingest_summary, "matched_count", 0) or 0),
-        "unresolved_count": int(getattr(ingest_summary, "unresolved_count", 0) or 0),
-        "aggregated_rows": aggregated_rows,
-        "output_file": str(output_file),
-    }
-    print(
-        f"[the-rankings] done. matched={summary['matched_count']} "
-        f"unresolved={summary['unresolved_count']} aggregated_rows={summary['aggregated_rows']}"
-    )
-    return summary
 
 
 def run_arwu_rankings_ingestion(
@@ -190,61 +245,21 @@ def run_arwu_rankings_ingestion(
     pg_user: Optional[str],
     pg_password: Optional[str],
     skip_seed: bool = False,
+    status_dir: Optional[Path] = None,
 ) -> dict[str, Any]:
-    from arwu_crawler import crawl_arwu_rankings
-
-    print(f"[arwu-rankings] crawling ARWU world rankings for year={ranking_year}...")
-    output_file = crawl_arwu_rankings(year=ranking_year, output_dir=output_dir)
-    payload = load_json_payload(output_file)
-
-    print(f"[arwu-rankings] ingesting {len(payload)} rows into multi-source pipeline...")
-    ingest_summary = ingest_rankings_payload(
-        source="ARWU",
-        payload=payload,
+    return _ingest_world_rankings(
+        _ranking_sources().ARWUCrawler(),
+        label="arwu-rankings",
         ranking_year=ranking_year,
-        ranking_type="world",
-        source_version=None,
+        output_dir=output_dir,
+        status_dir=status_dir,
         pg_host=pg_host,
         pg_port=pg_port,
         pg_database=pg_database,
         pg_user=pg_user,
         pg_password=pg_password,
-        # No batch_id, for the same reason as the THE ingestion above.
+        skip_seed=skip_seed,
     )
-
-    aggregated_rows = int(getattr(ingest_summary, "aggregated_row_count", 0) or 0)
-    if not skip_seed:
-        print("[arwu-rankings] seeding canonical entities...")
-        seed_canonical_universities(
-            pg_host=pg_host,
-            pg_port=pg_port,
-            pg_database=pg_database,
-            pg_user=pg_user,
-            pg_password=pg_password,
-        )
-
-        print("[arwu-rankings] backfilling ranking records...")
-        backfill_summary = backfill_qs_ranking_records_from_legacy(
-            pg_host=pg_host,
-            pg_port=pg_port,
-            pg_database=pg_database,
-            pg_user=pg_user,
-            pg_password=pg_password,
-        )
-        aggregated_rows = int(backfill_summary.get("aggregated_rows") or aggregated_rows)
-
-    summary = {
-        "rows_crawled": len(payload),
-        "matched_count": int(getattr(ingest_summary, "matched_count", 0) or 0),
-        "unresolved_count": int(getattr(ingest_summary, "unresolved_count", 0) or 0),
-        "aggregated_rows": aggregated_rows,
-        "output_file": str(output_file),
-    }
-    print(
-        f"[arwu-rankings] done. matched={summary['matched_count']} "
-        f"unresolved={summary['unresolved_count']} aggregated_rows={summary['aggregated_rows']}"
-    )
-    return summary
 
 
 def validate_global_multi_source(

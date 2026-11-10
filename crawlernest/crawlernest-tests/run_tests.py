@@ -220,6 +220,10 @@ def run_all_tests():
         # withheld for today's single-year dataset, intervals for banded ranks,
         # and no delta across a change of source identity.
         "test_rank_delta",
+        # THE and ARWU crawl through the crawler package: the shared status
+        # rule, the snapshot health check and the run_status.json a crawl
+        # leaves behind whether it worked or not.
+        "test_source_run_status",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.

@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 CrawlerNest — a university ranking data platform. Python crawlers ingest ranking
-sources (currently QS only) into a PostgreSQL warehouse, a Spring Boot API serves
+sources (QS, THE, ARWU) into a PostgreSQL warehouse, a Spring Boot API serves
 read-only aggregated data, and a Next.js frontend displays it.
 
 Development happens on Linux/WSL. All commands below assume a POSIX shell at the
@@ -144,14 +144,17 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   and `docs/analytics/ANALYTICS_EXPLAINABILITY.md` (prose). Change one and
   `crawlernest-tests/test_caveat_contract.py` tells you which of the others
   drifted — it matches exact substrings, so a reworded copy fails.
-- **The ranking crawler implements QS only**
-  (`crawlernest/packages/crawlernest_ranking_crawler/sources/qs.py`), but the warehouse is no longer
-  QS-only: as of 2026-10-02 `analytics.aggregated_rankings` carries 9,864 QS, 1,712 THE
+- **The ranking crawls.** QS runs through `run_pipeline.run_qs_universe_ingestion` (`sources/qs.py` is only a
+  two-row demo sample). THE and ARWU run through `sources/the.py` and `sources/arwu.py`, `RankingSource`
+  subclasses (`sources/base.py`) that wrap `crawlernest-jobs/{the,arwu}_crawler.py` and leave a
+  `source_runs/<SOURCE>/<year>/run_status.json` whether the crawl worked or not; the status rule is shared with
+  QS. The warehouse: as of 2026-10-02 `analytics.aggregated_rankings` carries 9,864 QS, 1,712 THE
   and 955 ARWU ranks for 2026 (2025: 1,512 / 1,663 / 961). THE and ARWU also hold
   every edition 2015–2024. QS holds 2016, 2018–2020 and 2022–2024, read from
   Internet Archive captures (`crawlernest-jobs/qs_archive_loader.py`, pinned in
   `crawlernest-kb/qs_archive/manifest.json`) with `rank` stored as the lower bound
-  of the printed rank; it has no 2015, 2017 or 2021. Those editions carry their own
+  of the printed rank; it has no 2015, 2017 or 2021 (2015 and 2021 are pinned in the
+  manifest but not ingested, pending a decision). The ingested editions carry their own
   caveat (`DATASET_ARCHIVE_EDITIONS`). The QS figure sums every universe type (global, region,
   regional, special, subject); THE and ARWU exist only in `global`, where QS
   is 1,502 of 2,240 universities (README quotes the `global` figures).

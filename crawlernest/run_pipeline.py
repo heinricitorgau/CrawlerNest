@@ -421,13 +421,14 @@ def _qs_run_status(*, failure_classification: str, standardized_count: int, run_
     run is also not a source for the next fallback: letting one feed the next
     chains stale data forward while every artifact still claims to be fine.
     """
-    classification = str(failure_classification or "").strip()
-    backing = str(run_backing or "").strip()
-    if standardized_count <= 0:
-        return "failed" if classification else "empty"
-    if classification or backing not in ("", "live"):
-        return "degraded"
-    return "ok"
+    # The rule itself is shared with THE and ARWU, which get it through RankingSource.run.
+    from crawlernest_ranking_crawler.sources.base import run_status_for  # noqa: E402
+
+    return run_status_for(
+        failure_classification=failure_classification,
+        standardized_count=standardized_count,
+        run_backing=run_backing,
+    )
 
 
 def _qs_universe_artifact_dir(base_dir: Path, ranking_year: int, universe_type: str, universe_key: str) -> Path:
