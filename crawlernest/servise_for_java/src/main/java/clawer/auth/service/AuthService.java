@@ -35,13 +35,16 @@ public class AuthService {
         validateEmail(email);
         validatePassword(password);
 
+        // Hashed before the lookup, so a taken email costs the same bcrypt work as a new one and the
+        // response time does not say which it was.
+        String hash = passwordEncoder.encode(password);
         if (userRepository.existsByEmail(email)) {
             throw new DuplicateEmailException();
         }
 
         AppUser user = new AppUser();
         user.setEmail(email);
-        user.setPasswordHash(passwordEncoder.encode(password));
+        user.setPasswordHash(hash);
         AppUser saved = userRepository.save(user);
 
         return toResponse(saved);
@@ -52,8 +55,13 @@ public class AuthService {
         String email = normalize(request.getEmail());
         String password = request.getPassword();
 
-        AppUser user = userRepository.findByEmail(email)
-                .orElseThrow(InvalidCredentialsException::new);
+        AppUser user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            // The same bcrypt comparison an existing account costs, so the response time does not
+            // say whether the email has one.
+            passwordEncoder.matches(password == null ? "" : password, dummyHash());
+            throw new InvalidCredentialsException();
+        }
 
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new InvalidCredentialsException();
@@ -63,6 +71,18 @@ public class AuthService {
         userRepository.save(user);
 
         return toResponse(user);
+    }
+
+    private volatile String dummyHash;
+
+    /** A hash of nothing anyone knows, made once with the configured encoder (so at its cost). */
+    private String dummyHash() {
+        String hash = dummyHash;
+        if (hash == null) {
+            hash = passwordEncoder.encode(java.util.UUID.randomUUID().toString());
+            dummyHash = hash;
+        }
+        return hash;
     }
 
     private static String normalize(String email) {

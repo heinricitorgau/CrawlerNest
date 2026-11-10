@@ -88,13 +88,13 @@ Auth endpoints live at `/api/v1/auth/` in Spring Boot. The Next.js proxy forward
 
 Email is lowercased and trimmed. Password must be ≥ 8 characters.
 
-**Response (201 Created):** `{ "success": true, "data": { "id": number, "email": "string" } }`
+**Response (202 Accepted):** `{ "success": true, "data": { "message": "If this email was not already registered, its account is ready. Sign in to continue." } }` — the same for a new and an already registered email, so sign-up cannot tell anyone who has an account. A taken email's account is left unchanged.
 
 **Error cases:**
 - 400 — email or password missing, or password under 8 characters.
-- 409 — email already registered.
+- 429 — over 20 auth requests a minute or 10 sign-ups an hour from one address (`Retry-After`).
 
-**Limitations:** No email verification. No password-strength enforcement beyond minimum length. No rate limiting.
+**Limitations:** No email verification. No password-strength enforcement beyond minimum length.
 
 **Token:** Issues none. The user must call `signin` to obtain a cookie.
 
@@ -106,14 +106,15 @@ Email is lowercased and trimmed. Password must be ≥ 8 characters.
 
 **Request:** `{ "email": "string", "password": "string" }`
 
-**Response (200 OK):** `{ "success": true, "data": { "id": number, "email": "string" } }`. Sets the `crawlernest_token` cookie in the `Set-Cookie` header: `HttpOnly`, `SameSite=Strict`, `Path=/`, and `Secure` when `CRAWLERNEST_JWT_COOKIE_SECURE=true`.
+**Response (200 OK):** `{ "success": true, "data": { "id": number, "email": "string" } }`. Sets the `crawlernest_token` cookie in the `Set-Cookie` header: `HttpOnly`, `SameSite=Strict`, `Path=/`, and `Secure` when `CRAWLERNEST_PUBLIC_BASE_URL` is https (or `CRAWLERNEST_JWT_COOKIE_SECURE=true`).
 
-**Token behavior:** The cookie holds an HS256 JWT whose claims are the user id (`sub`) and email. It is valid for `crawlernest.jwt.ttl` (default 12 hours) and cannot be revoked before then — signing out clears the browser's copy only. Nothing is stored server-side, so any API instance sharing the secret accepts it.
+**Token behavior:** The cookie holds an HS256 JWT whose claims are the user id (`sub`), email and token generation (`ver`). It is valid for `crawlernest.jwt.ttl` (default 12 hours), or until the account's generation moves on (`signout-everywhere`, password reset) or the account is deactivated. Any API instance sharing the secret and the database accepts it.
 
 **Error cases:**
-- 401 — credentials invalid. Response is uniform regardless of whether the email exists (prevents account enumeration).
+- 401 — credentials invalid. Response (and its bcrypt cost) is uniform regardless of whether the email exists.
+- 429 — over 20 auth requests a minute from one address, or 10 failed sign-ins to this account in 15 minutes from anywhere (`Retry-After`). Past the account limit even the right password is refused until the window ends.
 
-**Limitations:** No rate limiting, no failed-attempt lockout, no multi-factor authentication.
+**Limitations:** No multi-factor authentication.
 
 ---
 
@@ -125,7 +126,19 @@ Email is lowercased and trimmed. Password must be ≥ 8 characters.
 
 **Response (200 OK):** `{ "success": true }`. Sends a `Set-Cookie` header that expires `crawlernest_token` (`Max-Age=0`) with the same flags, so the browser replaces rather than keeps it.
 
-**Token behavior:** Server-side there is nothing to invalidate. A token already copied out of the browser stays valid until it expires.
+**Token behavior:** Clears this browser's copy only. A token copied out of it, or held by another browser, stays valid until it expires — use `signout-everywhere` to end those.
+
+---
+
+### `POST /api/v1/auth/signout-everywhere`
+
+**Auth required:** Yes (401 otherwise).
+
+**Request:** Empty body.
+
+**Response (200 OK):** `{ "success": true, "data": { "message": "Signed out on every device." } }`, with the cookie expired as for `signout`.
+
+**Token behavior:** Increments `warehouse.app_user.token_version`; every token issued to the account before it is refused from then on, on every instance. A password reset does the same.
 
 ---
 

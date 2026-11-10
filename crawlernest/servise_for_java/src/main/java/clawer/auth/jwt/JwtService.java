@@ -43,6 +43,12 @@ public class JwtService {
     /** HS256 needs a 256-bit key; a shorter secret is refused rather than padded. */
     static final int MINIMUM_SECRET_BYTES = 32;
     public static final String CLAIM_EMAIL = "email";
+    /** The account's token generation when the token was issued; see {@link TokenVersionStore}. */
+    public static final String CLAIM_VERSION = "ver";
+
+    /** A token that verified: who it names, and the generation it was issued under. */
+    public record VerifiedToken(AuthenticatedUser user, int version) {
+    }
 
     private final SecretKey key;
     private final Duration tokenTtl;
@@ -81,12 +87,18 @@ public class JwtService {
         return tokenTtl;
     }
 
-    /** A token naming this user, valid for {@link #tokenTtl()}. */
+    /** A token naming this user at generation 0, valid for {@link #tokenTtl()}. */
     public String issue(long userId, String email) {
+        return issue(userId, email, 0);
+    }
+
+    /** A token naming this user at the given token generation, valid for {@link #tokenTtl()}. */
+    public String issue(long userId, String email, int version) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(Long.toString(userId))
                 .claim(CLAIM_EMAIL, email)
+                .claim(CLAIM_VERSION, version)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(tokenTtl)))
                 .signWith(key)
@@ -99,6 +111,14 @@ public class JwtService {
      * usable identity or it does not.
      */
     public Optional<AuthenticatedUser> verify(String token) {
+        return verifyToken(token).map(VerifiedToken::user);
+    }
+
+    /**
+     * As {@link #verify}, with the token's generation. A token issued before generations existed carries
+     * no claim and reads as 0, the column's default, so the migration signs nobody out.
+     */
+    public Optional<VerifiedToken> verifyToken(String token) {
         if (token == null || token.isBlank()) {
             return Optional.empty();
         }
@@ -112,7 +132,10 @@ public class JwtService {
             if (email == null || email.isBlank()) {
                 return Optional.empty();
             }
-            return Optional.of(new AuthenticatedUser(Long.parseLong(claims.getSubject()), email));
+            Integer version = claims.get(CLAIM_VERSION, Integer.class);
+            return Optional.of(new VerifiedToken(
+                    new AuthenticatedUser(Long.parseLong(claims.getSubject()), email),
+                    version == null ? 0 : version));
         } catch (JwtException | IllegalArgumentException ex) {
             LOGGER.debug("rejected a token: {}", ex.getClass().getSimpleName());
             return Optional.empty();

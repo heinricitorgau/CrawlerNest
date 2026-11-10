@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from "@/lib/api";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 const TIMEOUT_MS = 10_000;
@@ -14,6 +15,7 @@ async function proxy(
 ): Promise<NextResponse> {
   const controller = new AbortController();
   const tid = setTimeout(() => controller.abort(), timeoutMs);
+  const forwarded = await forwardedFor();
 
   try {
     const res = await fetch(`${getApiBaseUrl()}${path}`, {
@@ -22,6 +24,7 @@ async function proxy(
         Accept: "application/json",
         ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
         ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+        ...(forwarded ? { "X-Forwarded-For": forwarded } : {}),
       },
       ...(body !== undefined ? { body } : {}),
       signal: controller.signal,
@@ -55,6 +58,23 @@ async function proxy(
       },
       { status: 503 }
     );
+  }
+}
+
+/**
+ * The visitor's address chain, passed on so the API's rate limits count visitors rather than this server.
+ * Next.js fills `x-forwarded-for` from the socket when the request has none, and keeps one the request
+ * brought: behind a reverse proxy that appends to it, the right-most hop is the visitor; exposed directly,
+ * a visitor can write their own. The API believes the header only from its trusted proxies
+ * (`CRAWLERNEST_TRUSTED_PROXIES`) and reads the right-most untrusted hop.
+ */
+async function forwardedFor(): Promise<string | undefined> {
+  try {
+    const value = (await headers()).get("x-forwarded-for")?.trim();
+    return value ? value : undefined;
+  } catch {
+    // Called outside a request (a test, a script): nothing to forward.
+    return undefined;
   }
 }
 

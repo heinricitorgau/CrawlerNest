@@ -1,5 +1,6 @@
 package clawer.config;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import clawer.auth.jwt.JwtCookieAuthenticationFilter;
 import clawer.auth.jwt.JwtService;
+import clawer.auth.jwt.TokenVersionStore;
+import clawer.security.RateLimitFilter;
+import clawer.security.RateLimits;
 
 /**
  * What needs a signed-in user, and what does not.
@@ -41,9 +45,20 @@ import clawer.auth.jwt.JwtService;
 public class SecurityConfig {
 
     private final JwtService jwtService;
+    private final TokenVersionStore tokenVersions;
+    private final RateLimits rateLimits;
 
-    public SecurityConfig(JwtService jwtService) {
+    /**
+     * The store and the limits are optional so a {@code @WebMvcTest} slice that imports only this class and
+     * JwtService still builds: without them, a token is checked by signature and expiry alone and nothing is
+     * rate limited. The application context always has both.
+     */
+    public SecurityConfig(JwtService jwtService,
+                          ObjectProvider<TokenVersionStore> tokenVersions,
+                          ObjectProvider<RateLimits> rateLimits) {
         this.jwtService = jwtService;
+        this.tokenVersions = tokenVersions.getIfAvailable();
+        this.rateLimits = rateLimits.getIfAvailable();
     }
 
     @Bean
@@ -71,8 +86,12 @@ public class SecurityConfig {
                 // Constructed here rather than injected: a Filter bean would be
                 // registered with the servlet container as well, running outside
                 // this chain for every request.
-                .addFilterBefore(new JwtCookieAuthenticationFilter(jwtService),
+                .addFilterBefore(new JwtCookieAuthenticationFilter(jwtService, tokenVersions),
                         UsernamePasswordAuthenticationFilter.class);
+        if (rateLimits != null) {
+            // Before the token is read: a refused request costs no database lookup.
+            http.addFilterBefore(new RateLimitFilter(rateLimits), JwtCookieAuthenticationFilter.class);
+        }
 
         return http.build();
     }

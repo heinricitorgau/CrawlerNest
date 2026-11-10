@@ -132,7 +132,10 @@ public class PasswordResetService {
                 return false;
             }
             long userId = users.get(0);
-            jdbc.update("UPDATE warehouse.app_user SET password_hash = ? WHERE id = ?", hash, userId);
+            // token_version + 1 ends every token issued before the reset (V009): whoever knew the old
+            // password and is signed in elsewhere is signed out.
+            jdbc.update("UPDATE warehouse.app_user SET password_hash = ?, token_version = token_version + 1 WHERE id = ?",
+                    hash, userId);
             endOpenTokens(userId);
             return true;
         });

@@ -3,6 +3,7 @@ package clawer.auth.jwt;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -38,9 +39,20 @@ public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtService jwtService;
+    private final TokenVersionStore versions;
 
     public JwtCookieAuthenticationFilter(JwtService jwtService) {
+        this(jwtService, null);
+    }
+
+    /**
+     * With a store, a token is accepted only while its generation is the account's current one and the
+     * account is active, which is what lets sign-out-everywhere and a password reset end a token early.
+     * Without one (test slices with no database) the signature and expiry are the whole check.
+     */
+    public JwtCookieAuthenticationFilter(JwtService jwtService, TokenVersionStore versions) {
         this.jwtService = jwtService;
+        this.versions = versions;
     }
 
     @Override
@@ -48,10 +60,20 @@ public class JwtCookieAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             tokenOf(request)
-                    .flatMap(jwtService::verify)
+                    .flatMap(jwtService::verifyToken)
+                    .filter(this::stillCurrent)
+                    .map(JwtService.VerifiedToken::user)
                     .ifPresent(JwtCookieAuthenticationFilter::authenticate);
         }
         chain.doFilter(request, response);
+    }
+
+    private boolean stillCurrent(JwtService.VerifiedToken token) {
+        if (versions == null) {
+            return true;
+        }
+        OptionalInt current = versions.currentVersion(token.user().id());
+        return current.isPresent() && current.getAsInt() == token.version();
     }
 
     private static void authenticate(AuthenticatedUser user) {

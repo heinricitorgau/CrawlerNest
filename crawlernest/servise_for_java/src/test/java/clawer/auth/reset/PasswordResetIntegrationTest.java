@@ -110,6 +110,23 @@ class PasswordResetIntegrationTest {
     }
 
     @Test
+    void aResetSignsOutEveryTokenIssuedBeforeIt() throws Exception {
+        jakarta.servlet.http.Cookie before = signin(OLD_PASSWORD).andExpect(status().isOk()).andReturn()
+                .getResponse().getCookie(clawer.auth.jwt.JwtCookieAuthenticationFilter.COOKIE_NAME);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/auth/me").cookie(before))
+                .andExpect(status().isOk());
+
+        confirm(tokenFromNewLink(), "new-password-2").andExpect(status().isOk());
+
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/auth/me").cookie(before))
+                .andExpect(status().isUnauthorized());
+        jakarta.servlet.http.Cookie after = signin("new-password-2").andExpect(status().isOk()).andReturn()
+                .getResponse().getCookie(clawer.auth.jwt.JwtCookieAuthenticationFilter.COOKIE_NAME);
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/auth/me").cookie(after))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void anUnknownEmailGetsTheSameAnswerAndNothingIsSent() throws Exception {
         String known = requestLink(EMAIL).andReturn().getResponse().getContentAsString();
         clearInvocations(delivery);

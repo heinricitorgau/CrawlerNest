@@ -49,8 +49,39 @@ class SecurityFilterChainIntegrationTest {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    private static final long[] USERS = {987654321L, 4242L};
+
+    /**
+     * A token is accepted only for an active account at its current token generation (V009), so the
+     * accounts these tokens name exist for the length of each test.
+     */
+    @org.junit.jupiter.api.BeforeEach
+    void createAccounts() {
+        removeAccounts();
+        jdbc.update("INSERT INTO warehouse.app_user (id, email, password_hash) VALUES (?, ?, 'x')", 987654321L, "nobody@example.com");
+        jdbc.update("INSERT INTO warehouse.app_user (id, email, password_hash) VALUES (?, ?, 'x')", 4242L, "someone@example.com");
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void removeAccounts() {
+        for (long id : USERS) {
+            jdbc.update("DELETE FROM warehouse.app_user WHERE id = ?", id);
+        }
+    }
+
     private Cookie tokenFor(long userId, String email) {
         return new Cookie(JwtCookieAuthenticationFilter.COOKIE_NAME, jwtService.issue(userId, email));
+    }
+
+    @Test
+    void aTokenForAnAccountThatNoLongerExistsIsRefused() throws Exception {
+        Cookie cookie = tokenFor(4242L, "someone@example.com");
+        jdbc.update("DELETE FROM warehouse.app_user WHERE id = ?", 4242L);
+        mockMvc.perform(get("/api/v1/auth/me").cookie(cookie))
+                .andExpect(status().isUnauthorized());
     }
 
     // ─── The public read API stays public ─────────────────────────────────────

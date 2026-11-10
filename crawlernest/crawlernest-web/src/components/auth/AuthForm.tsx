@@ -44,10 +44,16 @@ function SignupSuccessPanel({ email }: { email: string }) {
       <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center bg-(--color-paper-2)">
         <CheckIcon />
       </div>
-      <h2 className="text-xl font-bold text-(--color-ink)">Account created</h2>
+      {/* The API answers sign-up the same way whether the email was new or already registered,
+          so this panel cannot say which: it says what is true in both cases. */}
+      <h2 className="text-xl font-bold text-(--color-ink)">Sign up received</h2>
       <p className="mt-2 text-sm text-(--color-muted)">
-        Your CrawlerNest account for{" "}
-        <span className="font-medium text-(--color-ink)">{email}</span> is ready.
+        If <span className="font-medium text-(--color-ink)">{email}</span> was not already
+        registered, its account is ready. If it was, sign in with its existing password, or{" "}
+        <Link href="/forgot-password" className="underline underline-offset-4 hover:text-(--color-ink)">
+          reset it
+        </Link>
+        .
       </p>
       <Link
         href="/signin"

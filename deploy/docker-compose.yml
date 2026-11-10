@@ -53,7 +53,10 @@ services:
       # file is a stack anyone with the file can mint tokens for.
       CRAWLERNEST_JWT_SECRET: ${CRAWLERNEST_JWT_SECRET:?set CRAWLERNEST_JWT_SECRET in .env (openssl rand -base64 32)}
       CRAWLERNEST_JWT_TTL: ${CRAWLERNEST_JWT_TTL:-PT12H}
-      CRAWLERNEST_JWT_COOKIE_SECURE: ${CRAWLERNEST_JWT_COOKIE_SECURE:-false}
+      CRAWLERNEST_JWT_COOKIE_SECURE: ${CRAWLERNEST_JWT_COOKIE_SECURE:-auto}
+      CRAWLERNEST_PUBLIC_BASE_URL: ${CRAWLERNEST_PUBLIC_BASE_URL:-http://localhost:3000}
+      # The web container reaches the API from the compose network; its X-Forwarded-For names the visitor.
+      CRAWLERNEST_TRUSTED_PROXIES: ${CRAWLERNEST_TRUSTED_PROXIES:-127.0.0.1,::1,172.16.0.0/12}
     ports:
       - "127.0.0.1:${API_PORT:-8080}:8080"
     healthcheck:

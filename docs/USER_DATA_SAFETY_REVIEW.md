@@ -125,7 +125,7 @@ No schema changes, compression, or payload structure changes were made.
 | No session cluster sharing | Multiple backend instances would not share sessions; horizontal scaling requires session store (out of scope) |
 | No account deletion | Users cannot delete their account or all their data via the API |
 | No retention policy | `saved_recommendation` rows accumulate indefinitely; no automatic expiry |
-| No rate limiting | Auth endpoints and save endpoints accept unlimited requests |
+| Rate limiting (added 2026-11-11) | Per address and per account, in memory per process — see `docs/AUTH_LIMITATIONS.md` |
 
 ---
 
@@ -165,5 +165,5 @@ This system is designed for local development and demo use. Before any internet-
 - Enable `server.servlet.session.cookie.secure=true`
 - Replace `username=test` / `password=test` DB credentials
 - Add session clustering (Redis or similar) if multiple instances are needed
-- Implement rate limiting on auth endpoints
+- ~~Implement rate limiting on auth endpoints~~ (done 2026-11-11, `clawer.security.RateLimits`)
 - Review and scope CORS origins (`WebMvcConfigurer` currently allows all origins for development)
