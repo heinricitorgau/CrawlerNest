@@ -345,6 +345,12 @@ RANK_CHANGE_CAVEAT = (
     "between editions."
 )
 
+#: Carried by every per-university rank history (GET /universities/{id}/rank-history).
+#: It separates the two kinds of gap, neither of which is a source declining to rank.
+RANK_HISTORY_CAVEAT = (
+    "A rank history shows each source's own printed rank, edition by edition; no line joins two editions across a gap. A gap is one of two things, and each point says which: this warehouse holds no edition of that source for that year, or it holds the edition and this university has no rank in it here, because the data ingested does not include the university or this platform could not match it. Neither means the source declined to rank it."
+)
+
 #: Carried by the trends surface once more than one edition is held. It pairs a
 #: university's editions but deliberately reports no composite movement.
 COMPOSITE_RANK_NOT_COMPARED_CAVEAT = (

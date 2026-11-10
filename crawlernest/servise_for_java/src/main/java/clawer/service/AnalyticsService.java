@@ -164,6 +164,10 @@ public class AnalyticsService {
     public static final String UNSUPPORTED_ESTIMATE_CAVEAT =
             "Some estimates here fall outside the data the model was fitted on and are marked unsupported. The model has seen no comparable cases for them. That is a statement about the evidence behind the estimate, not a measurement of how wrong it is.";
 
+    /** Carried by every rank history (RankHistoryService). Byte-identical in caveats.py and caveatMessages.ts. */
+    public static final String RANK_HISTORY_CAVEAT =
+            "A rank history shows each source's own printed rank, edition by edition; no line joins two editions across a gap. A gap is one of two things, and each point says which: this warehouse holds no edition of that source for that year, or it holds the edition and this university has no rank in it here, because the data ingested does not include the university or this platform could not match it. Neither means the source declined to rank it.";
+
     /** Carried wherever a per-source rankDelta is shown. See {@link SourceRankDelta}. */
     public static final String RANK_CHANGE_CAVEAT =
             "Rank changes compare one source's published ranks between two editions. They are not changes in a composite or platform rank, a banded rank gives a range rather than a number, and no change is shown when the institution or its source entry changed between editions.";

@@ -288,6 +288,10 @@ export const CAVEAT_UNSUPPORTED_ESTIMATE =
 export const CAVEAT_RANK_CHANGE =
   "Rank changes compare one source's published ranks between two editions. They are not changes in a composite or platform rank, a banded rank gives a range rather than a number, and no change is shown when the institution or its source entry changed between editions.";
 
+/** Shown with every per-university rank history. */
+export const CAVEAT_RANK_HISTORY =
+  "A rank history shows each source's own printed rank, edition by edition; no line joins two editions across a gap. A gap is one of two things, and each point says which: this warehouse holds no edition of that source for that year, or it holds the edition and this university has no rank in it here, because the data ingested does not include the university or this platform could not match it. Neither means the source declined to rank it.";
+
 /** Shown on ranking trends when more than one edition is held. */
 export const CAVEAT_COMPOSITE_RANK_NOT_COMPARED =
   "Composite ranks are not compared between editions. A university's composite position moves whenever source coverage changes, so rank movement is reported per source on each university's page instead.";
