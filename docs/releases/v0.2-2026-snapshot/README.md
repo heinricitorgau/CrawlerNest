@@ -4,15 +4,16 @@ Freeze date: 2026-09-05
 Source ingest: 2026-09-04
 Database: `clawer`
 
-> **Note (2026-11-11): this dump contains user accounts.** `warehouse.app_user` holds 2 rows (email and bcrypt
-> password hash). Releases from v0.3 on dump no user data (`scripts/release_snapshot.py`). Do not restore this
-> dump anywhere those accounts should not exist; `manifest.json` records the defect (`contains_user_data`).
+> **Note (2026-11-11): cleaned, and history rewritten.** As first committed, this dump also held 2 rows of
+> `warehouse.app_user` (an email and its bcrypt password hash). It was replaced by a dump restored from it with
+> user-table data excluded, as every release now is, and git history was rewritten so that no commit carries the
+> original. No other table changed; `manifest.json` verifies the counts below.
 
 ## Snapshot
 
 - File: `clawer-2026-09-04-release-freeze.dump`
 - Format: PostgreSQL custom archive (`pg_restore`)
-- SHA-256: `28c67b7e8bc5ac7fc848221afdeee2ddf5a65e3c875d911027388e8a641be35e`
+- SHA-256: `59e5245109508a27e9b0e7c6d8ca7d5deade017afb47e0863a9b70fdf464e39e`
 
 ## Verified contents
 

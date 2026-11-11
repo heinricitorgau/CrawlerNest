@@ -3,15 +3,14 @@
   "release": "v0.2-2026-snapshot",
   "built_at": "2026-09-05T00:00:00Z",
   "built_from_commit": "4bd24cd244922b9c69e9697dceb391efd0de57c0",
-  "_comment": "Written 2026-11-11 from a restore of the dump, which predates release_snapshot.py. The counts equal the literals restore_release_snapshot.sh carried for this release.",
+  "_comment": "Written 2026-11-11 from a restore of the dump, which predates release_snapshot.py. The counts equal the literals restore_release_snapshot.sh carried for this release. The dump was cleaned the same day and git history rewritten: the original carried 2 warehouse.app_user rows (an email and its bcrypt hash). The cleaned dump was restored from it with user-table data excluded, as every release now is; no other table changed.",
   "database": "clawer",
   "dump": {
     "file": "clawer-2026-09-04-release-freeze.dump",
-    "sha256": "28c67b7e8bc5ac7fc848221afdeee2ddf5a65e3c875d911027388e8a641be35e",
-    "bytes": 3246780
+    "sha256": "59e5245109508a27e9b0e7c6d8ca7d5deade017afb47e0863a9b70fdf464e39e",
+    "bytes": 3249351
   },
-  "contains_user_data": true,
-  "user_data_note": "warehouse.app_user holds 2 rows (email and bcrypt password hash); found 2026-11-11",
+  "contains_user_data": false,
   "editions_held": {
     "ARWU": [
       2026
@@ -55,5 +54,13 @@
       "warehouse.us_institution": null,
       "warehouse.us_institution_metric": null
     }
-  }
+  },
+  "cleaned_on": "2026-11-11",
+  "user_data_excluded": [
+    "warehouse.app_user",
+    "warehouse.password_reset_token",
+    "warehouse.saved_*",
+    "desk.*",
+    "agent_state.*"
+  ]
 }

@@ -9,10 +9,11 @@ v0.2's restore script carried its counts as literals. That made it a check of on
 would have overwritten it. Every release directory now holds a ``manifest.json``, and one verifier reads any of
 them. ``build`` never writes a count it has not read back from a restored copy of the dump.
 
-**A release dump carries no user data.** v0.2's dump shipped ``warehouse.app_user`` rows (emails and password
-hashes) in a public repository. ``build`` dumps the schema of every user table and the data of none, then
-refuses to write a manifest when any of them has a row in the restored copy. ``verify`` checks the same thing.
-v0.2's manifest says plainly that its dump does not meet this rule.
+**A release dump carries no user data.** v0.2's dump first shipped ``warehouse.app_user`` rows (an email and a
+password hash) in a public repository; it was cleaned and history rewritten on 2026-11-11. ``build`` dumps the schema
+of every user table and the data of none, then refuses to write a manifest when any of them has a row in the restored
+copy. ``verify`` checks the same thing. A manifest may still set ``contains_user_data`` to record such a defect
+honestly; none does now.
 """
 
 from __future__ import annotations
@@ -135,7 +136,7 @@ def compare(manifest: dict[str, Any], actual: dict[str, Any]) -> list[str]:
         want, got = expected.get(key) or {}, actual.get(key) or {}
         if want != got:
             problems.extend(_diff(key, want, got))
-    # v0.2 only: its manifest records the defect (contains_user_data) rather than pretending the dump is clean.
+    # A manifest that records a user-data defect (contains_user_data) is reported, not hidden; none does now.
     if not manifest.get("contains_user_data"):
         for table, rows in sorted((actual.get("user_data_rows") or {}).items()):
             if rows:
