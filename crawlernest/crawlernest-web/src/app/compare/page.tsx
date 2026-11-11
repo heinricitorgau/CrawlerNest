@@ -5,6 +5,8 @@ import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { CaveatBanner } from "@/components/CaveatBanner";
 import { CompareRankHistory } from "@/components/CompareRankHistory";
+import { useHydrated } from "@/hooks/useHydrated";
+import { useShortlist } from "@/lib/shortlistStore";
 import { SourceRankChange, anyEntityChanged, anyRankChangeShown } from "@/components/SourceRankChange";
 import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
 import { useSelectedYear } from "@/hooks/useSelectedYear";
@@ -18,7 +20,6 @@ import type {
 } from "@/types/compare";
 import type { UniversityRanking } from "@/types/university";
 
-const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
 const MAX_COMPARE_ITEMS = 4;
 const COMPARE_SOURCES = ["QS", "THE", "ARWU"] as const;
 
@@ -96,8 +97,9 @@ export function ComparePageContent({
   rankingYear = DEFAULT_RANKING_YEAR,
   yearSelector = <YearSelectorFallback variant="page" />,
 }: ComparePageContentProps) {
-  const [isClientReady, setIsClientReady] = useState(false);
-  const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
+  // Shortlist and selection come from localStorage, so nothing reads them until hydration is over.
+  const isClientReady = useHydrated();
+  const [shortlist] = useShortlist();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [comparison, setComparison] = useState<CompareResponse["data"] | null>(null);
   // The edition the displayed comparison came from. While a refetch for another
@@ -105,31 +107,6 @@ export function ComparePageContent({
   const [comparisonYear, setComparisonYear] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setIsClientReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isClientReady) {
-      return;
-    }
-
-    try {
-      const stored = localStorage.getItem(SHORTLIST_STORAGE_KEY);
-      if (!stored) {
-        setShortlist([]);
-        return;
-      }
-
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) {
-        setShortlist(parsed);
-      }
-    } catch {
-      setShortlist([]);
-    }
-  }, [isClientReady]);
 
   useEffect(() => {
     if (!isClientReady) {

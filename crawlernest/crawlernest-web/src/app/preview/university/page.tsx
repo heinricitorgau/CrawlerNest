@@ -3,19 +3,31 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+/** The detail preview fields this page reads; the API may send more. */
+type PreviewData = {
+  aliases?: unknown;
+  rankingSummary?: { rankingYears?: unknown; sources?: unknown; [key: string]: unknown } | null;
+  admissionSummary?: { countries?: unknown; [key: string]: unknown } | null;
+  hasRankingData?: boolean;
+  hasAdmissionData?: boolean;
+  [key: string]: unknown;
+};
+
 export default function UniversityPreviewPage() {
   const searchParams = useSearchParams();
   const canonicalUniversityId = searchParams.get("canonicalUniversityId");
   const universityName = searchParams.get("universityName");
 
-  const [data, setData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<PreviewData | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const invalidQuery = !canonicalUniversityId && !universityName;
+  // An invalid query is known at render time; only a fetch's outcome is state.
+  const error = invalidQuery ? "Invalid query" : fetchError;
+  const loading = !invalidQuery && !loaded;
 
   useEffect(() => {
-    if (!canonicalUniversityId && !universityName) {
-      setError("Invalid query");
-      setLoading(false);
+    if (invalidQuery) {
       return;
     }
 
@@ -37,15 +49,15 @@ export default function UniversityPreviewPage() {
         return res.json();
       })
       .then((json) => {
-        setData(json.data);
+        setData(json.data as PreviewData);
       })
-      .catch((err) => {
-        setError(err.message);
+      .catch((err: Error) => {
+        setFetchError(err.message);
       })
       .finally(() => {
-        setLoading(false);
+        setLoaded(true);
       });
-  }, [canonicalUniversityId, universityName]);
+  }, [canonicalUniversityId, universityName, invalidQuery]);
 
   const showAliasBadges = Array.isArray(data?.aliases) ? data.aliases : [];
   const rankingYears = Array.isArray(data?.rankingSummary?.rankingYears)

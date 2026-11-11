@@ -6,7 +6,6 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 
-const DEFAULT_BACKEND_API_BASE_URL = "http://localhost:8080";
 const LOCAL_BACKEND_CANDIDATES = [
   "http://localhost:8080",
   "http://127.0.0.1:8080",

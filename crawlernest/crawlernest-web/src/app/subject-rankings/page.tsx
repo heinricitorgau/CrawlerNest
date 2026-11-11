@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useHydrated } from "@/hooks/useHydrated";
 
 import { CaveatBanner } from "@/components/CaveatBanner";
 import SubjectRankingTable from "@/components/SubjectRankingTable";
@@ -211,11 +212,7 @@ export function SubjectRankingsPageContent({
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [subjectListError, setSubjectListError] = useState<string | null>(null);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
+  const hasMounted = useHydrated();
 
   useEffect(() => {
     let isMounted = true;

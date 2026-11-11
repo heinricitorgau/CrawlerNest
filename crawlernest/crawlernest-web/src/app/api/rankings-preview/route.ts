@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -39,7 +39,17 @@ function calculateCompositeScore(bestRank: number | null | undefined): number {
   return 100 - bestRank * 2;
 }
 
-function transformPreviewToRankingItem(preview: Record<string, any>): Record<string, any> {
+/** The parts of a detail preview this route reads; everything else is ignored. */
+type PreviewPayload = {
+  canonicalUniversityId?: unknown;
+  universityDisplayName?: unknown;
+  normalizedUniversityName?: unknown;
+  rankingSummary?: { bestRank?: unknown; bestRankingYear?: unknown; bestSource?: unknown; sourceCount?: unknown } | null;
+  admissionSummary?: { countries?: unknown } | null;
+  identitySummary?: { countryName?: string; canonicalSlug?: unknown } | null;
+};
+
+function transformPreviewToRankingItem(preview: PreviewPayload): Record<string, unknown> {
   const rankingSummary = preview?.rankingSummary ?? {};
   const admissionSummary = preview?.admissionSummary ?? {};
   const identitySummary = preview?.identitySummary ?? {};
@@ -48,8 +58,8 @@ function transformPreviewToRankingItem(preview: Record<string, any>): Record<str
   const country = countries.length > 0 ? String(countries[0]) : (identitySummary?.countryName || "Unknown");
 
   // 從 rankingSummary 取 bestRank
-  const bestRank = rankingSummary?.bestRank;
-  const aggregatedRank = typeof bestRank === "number" && bestRank > 0 ? bestRank : 999;
+  const bestRank = typeof rankingSummary?.bestRank === "number" ? rankingSummary.bestRank : null;
+  const aggregatedRank = bestRank !== null && bestRank > 0 ? bestRank : 999;
   const compositeScore = calculateCompositeScore(bestRank);
 
   return {
@@ -67,7 +77,7 @@ function transformPreviewToRankingItem(preview: Record<string, any>): Record<str
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const items: Record<string, unknown>[] = [];
     const errors: string[] = [];
@@ -145,7 +155,7 @@ export async function GET(request: NextRequest) {
         },
       }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,

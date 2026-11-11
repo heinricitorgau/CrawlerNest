@@ -1,71 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
-
-type ShortlistItem = {
-  canonicalUniversityId: number;
-  universityName: string;
-  country: string;
-  aggregatedRank: number;
-  slug: string;
-};
+import { useShortlist, type ShortlistItem } from "@/lib/shortlistStore";
 
 type Props = {
   item: ShortlistItem;
 };
 
-function isShortlistItemArray(value: unknown): value is ShortlistItem[] {
-  return Array.isArray(value);
-}
-
-function readStoredShortlist(): ShortlistItem[] {
-  try {
-    const stored = window.localStorage.getItem(SHORTLIST_STORAGE_KEY);
-    if (!stored) {
-      return [];
-    }
-
-    const parsed = JSON.parse(stored) as unknown;
-    return isShortlistItemArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
+/** Adds or removes one university from the shared shortlist (lib/shortlistStore). */
 export default function ShortlistButton({ item }: Props) {
-  const [inList, setInList] = useState(false);
-
+  // Checked before any hook is called -- in a child component -- so the hooks run in the same order on every
+  // render. Returning early above a hook made React throw if `item` ever turned invalid between renders.
   if (!item || typeof item.canonicalUniversityId !== "number") {
     return null;
   }
+  return <ShortlistToggle item={item} />;
+}
 
-  useEffect(() => {
-    const parsed = readStoredShortlist();
-    setInList(
-      parsed.some((s) => s.canonicalUniversityId === item.canonicalUniversityId)
-    );
-  }, [item.canonicalUniversityId]);
+function ShortlistToggle({ item }: Props) {
+  const [shortlist, setShortlist] = useShortlist();
+  const inList = shortlist.some((s) => s.canonicalUniversityId === item.canonicalUniversityId);
 
   function toggle() {
-    try {
-      const current = readStoredShortlist();
-
-      let next: ShortlistItem[];
-      if (inList) {
-        next = current.filter(
-          (s) => s.canonicalUniversityId !== item.canonicalUniversityId
-        );
-      } else {
-        next = [...current, item];
-      }
-
-      window.localStorage.setItem(SHORTLIST_STORAGE_KEY, JSON.stringify(next));
-      setInList(!inList);
-    } catch {
-      // ignore
-    }
+    setShortlist((current) =>
+      current.some((s) => s.canonicalUniversityId === item.canonicalUniversityId)
+        ? current.filter((s) => s.canonicalUniversityId !== item.canonicalUniversityId)
+        : [...current, item],
+    );
   }
 
   return (

@@ -737,7 +737,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
 
             <div className="p-6 bg-blue-600 rounded-lg text-white shadow-lg">
                <h3 className="text-lg font-bold mb-2">Ready to apply?</h3>
-               <p className="text-sm text-blue-100 mb-6 leading-relaxed">Our recommendation engine can check your profile against this university's criteria.</p>
+               <p className="text-sm text-blue-100 mb-6 leading-relaxed">Our recommendation engine can check your profile against this university&apos;s criteria.</p>
                <Link
                  href={editionHref("/recommendations")}
                  className="block w-full py-3 bg-white text-blue-600 font-bold text-sm rounded shadow-sm hover:bg-blue-50 transition-colors text-center"

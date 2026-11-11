@@ -65,7 +65,7 @@ export default function AboutPage() {
 
           {/* Pull quote */}
           <blockquote className="mt-8 border-l-4 border-(--color-ink-2) pl-5 italic text-lg text-(--color-ink)">
-            "If Google organizes information, CrawlerNest structures education data."
+            &ldquo;If Google organizes information, CrawlerNest structures education data.&rdquo;
           </blockquote>
 
           {/* CTAs */}

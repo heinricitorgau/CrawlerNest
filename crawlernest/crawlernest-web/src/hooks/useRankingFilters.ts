@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useHydrated } from "@/hooks/useHydrated";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { countryBelongsToRegion, normalizeCountryName } from "@/lib/regionMap";
@@ -17,12 +18,8 @@ export function useRankingFilters(
 ) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isClientReady, setIsClientReady] = useState(false);
+  const isClientReady = useHydrated();
   const [searchInput, setSearchInput] = useState("");
-
-  useEffect(() => {
-    setIsClientReady(true);
-  }, []);
 
   const scope = isClientReady
     ? ((searchParams.get("scope") as RankingScope) ?? "global")

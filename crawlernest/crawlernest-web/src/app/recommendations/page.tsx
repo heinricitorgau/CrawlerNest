@@ -17,6 +17,7 @@ import { AdmissionRequirementBadges } from "@/components/AdmissionRequirementBad
 import { AdmissionSignalBadge } from "@/components/AdmissionSignalBadge";
 import { PlanComparisonMatrix } from "@/components/PlanComparisonMatrix";
 import RecommendationExplanation from "@/components/RecommendationExplanation";
+import { useShortlist, type ShortlistItem } from "@/lib/shortlistStore";
 import {
   UsFederalFilterFields,
   UsFederalFilterSummary,
@@ -52,13 +53,6 @@ type PersistedDecisionFlowState = {
   profileDraft: PersistedProfileDraft;
 };
 
-type ShortlistItem = {
-  canonicalUniversityId: number;
-  universityName: string;
-  country: string;
-  aggregatedRank: number;
-  slug: string;
-};
 
 type ComparisonItem = ShortlistItem & {
   // null when the university publishes no IELTS bar, undefined when it is not in
@@ -408,7 +402,6 @@ type NextActionTarget = {
   label: string;
 };
 
-const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
 const DECISION_FLOW_STORAGE_KEY = "crawlernest_recommendation_flow";
 const DEFAULT_COUNTRY = "United Kingdom";
 const DEFAULT_IELTS = 6.5;
@@ -1129,41 +1122,8 @@ export function RecommendationPageContent({
   const [saveTitle, setSaveTitle] = useState("");
   const [savePhase, setSavePhase] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
-  const [shortlistContext, setShortlistContext] = useState<ShortlistItem[]>([]);
+  const [shortlistContext] = useShortlist();
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    try {
-      const storedValue = window.localStorage.getItem(SHORTLIST_STORAGE_KEY);
-      if (!storedValue) {
-        setShortlistContext([]);
-        return;
-      }
-
-      const parsedValue = JSON.parse(storedValue);
-      if (!Array.isArray(parsedValue)) {
-        setShortlistContext([]);
-        return;
-      }
-
-      const shortlist = parsedValue.filter((item): item is ShortlistItem => {
-        return (
-          typeof item?.canonicalUniversityId === "number" &&
-          typeof item?.universityName === "string" &&
-          typeof item?.country === "string" &&
-          typeof item?.aggregatedRank === "number" &&
-          typeof item?.slug === "string"
-        );
-      });
-
-      setShortlistContext(shortlist);
-    } catch {
-      setShortlistContext([]);
-    }
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {

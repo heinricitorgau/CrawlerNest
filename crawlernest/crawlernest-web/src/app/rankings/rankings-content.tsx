@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useShortlist, type ShortlistItem } from "@/lib/shortlistStore";
 import {
   usePathname,
   useRouter,
@@ -35,14 +36,6 @@ type RankingItem = {
   rankingYear: number;
   primarySource: string;
   sourceCount: number;
-  slug: string;
-};
-
-type ShortlistItem = {
-  canonicalUniversityId: number;
-  universityName: string;
-  country: string;
-  aggregatedRank: number;
   slug: string;
 };
 
@@ -121,7 +114,6 @@ const REGION_OPTIONS = [
   "Oceania",
   "Africa",
 ];
-const SHORTLIST_STORAGE_KEY = "crawlernest_shortlist";
 const COUNT_SUMMARY_GROUPS: Array<{
   label: string;
   scope: "global" | "region";
@@ -566,7 +558,7 @@ function RankingsHomeContent() {
     error: null,
     timestamp: undefined,
   });
-  const [shortlist, setShortlist] = useState<ShortlistItem[]>([]);
+  const [shortlist, setShortlist] = useShortlist();
 
   const { authenticated, refresh: refreshAuth } = useAuth();
   const { savedIds, toggleSave } = useSavedUniversities(
@@ -616,42 +608,6 @@ function RankingsHomeContent() {
     setSearchInput(search);
   }, [search]);
 
-  useEffect(() => {
-    try {
-      const storedValue = window.localStorage.getItem(SHORTLIST_STORAGE_KEY);
-      if (!storedValue) {
-        setShortlist([]);
-        return;
-      }
-
-      const parsedValue = JSON.parse(storedValue);
-      if (!Array.isArray(parsedValue)) {
-        setShortlist([]);
-        return;
-      }
-
-      setShortlist(
-        parsedValue.filter((item): item is ShortlistItem => {
-          return (
-            typeof item?.canonicalUniversityId === "number" &&
-            typeof item?.universityName === "string" &&
-            typeof item?.country === "string" &&
-            typeof item?.aggregatedRank === "number" &&
-            typeof item?.slug === "string"
-          );
-        })
-      );
-    } catch {
-      setShortlist([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(
-      SHORTLIST_STORAGE_KEY,
-      JSON.stringify(shortlist)
-    );
-  }, [shortlist]);
 
   useEffect(() => {
     let cancelled = false;

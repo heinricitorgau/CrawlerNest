@@ -1,32 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useHydrated } from "@/hooks/useHydrated";
 
 const STORAGE_KEY = "crawlernest_cookie_consent";
 
 type ConsentValue = "accepted" | "declined";
 
+function storedConsent(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
 export default function CookieConsent() {
-  const [visible, setVisible] = useState(false);
+  // Read only after hydration, so the server and the first client render agree (no banner); a choice made here
+  // hides it at once, before the next read of storage would.
+  const hydrated = useHydrated();
+  const [choice, setChoice] = useState<ConsentValue | null>(null);
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      setVisible(true);
+  function decide(value: ConsentValue) {
+    try {
+      localStorage.setItem(STORAGE_KEY, value);
+    } catch {
+      // Blocked storage: the banner still closes for this page view.
     }
-  }, []);
-
-  function handleAccept() {
-    localStorage.setItem(STORAGE_KEY, "accepted");
-    setVisible(false);
+    setChoice(value);
   }
 
-  function handleDecline() {
-    localStorage.setItem(STORAGE_KEY, "declined");
-    setVisible(false);
-  }
+  const handleAccept = () => decide("accepted");
+  const handleDecline = () => decide("declined");
 
-  if (!visible) return null;
+  if (!hydrated || choice !== null || storedConsent() !== null) return null;
 
   return (
     <div

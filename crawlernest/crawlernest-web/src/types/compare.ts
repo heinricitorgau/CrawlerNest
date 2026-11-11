@@ -1,12 +1,7 @@
 import type { UniversityRanking } from "@/types/university";
 
-export type ShortlistItem = {
-  canonicalUniversityId: number;
-  universityName: string;
-  country: string;
-  aggregatedRank: number;
-  slug: string;
-};
+// One definition, with the store that reads and validates it.
+export type { ShortlistItem } from "@/lib/shortlistStore";
 
 export type CompareUniversityPayload = {
   canonicalUniversityId: number;
