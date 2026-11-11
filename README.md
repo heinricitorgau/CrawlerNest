@@ -261,7 +261,7 @@ own data directly from the ranking sources:
 
 ## Continuous Integration
 
-Seven workflows, eleven jobs. What each one is worth depends on whether it can fail,
+Nine workflows, thirteen jobs. What each one is worth depends on whether it can fail,
 so that is what this table records rather than a list of names.
 
 | Workflow | What it actually executes |
@@ -271,6 +271,8 @@ so that is what this table records rather than a list of names.
 | **Python Tests** | Two jobs. Fixture mode with no services, and a PostgreSQL job that runs the opt-in database tests — the aggregation maths, source-weight consistency, the superseded-row prune, ingest idempotency, and the world-ranking scope of the detail and convergence previews. The fixture job also runs the pytest-style admission crawler tests. Also runs weekly on a schedule, because one failure here was caused by time passing rather than by a commit. |
 | **API Tests** | The Spring Boot suite against a real PostgreSQL service, 259 tests, with the surefire reports uploaded as artifacts. Each integration class creates the tables and views it reads, because the service database starts empty and a test that relied on another class having run first passed locally and failed here. |
 | **Release Smoke** | Two jobs. Build artefacts — Java compile, Next.js build, Python syntax, readonly fixtures — and an analytics-bridge job that bootstraps PostgreSQL, seeds six universities, runs the warehouse→analytics bridge twice, starts Spring Boot, and checks that `/api/v1/rankings` serves what was written, followed by the endpoint liveness checks. |
+| **Release Snapshot** | Restores every release in `docs/releases/` into an empty PostgreSQL (a matrix over the releases) and checks it against its `manifest.json`: ranks per source and edition, aggregated rows per edition and scope, the row counts a release depends on, the dump's checksum, and that it holds no user rows (v0.2's manifest records that its dump does). |
+| **Warehouse Validation** | Nightly, on demand, and when a release or a warehouse-derived export changes. Restores the newest release, then runs the drift gate (the committed exports against it) and the whole Python suite with the database tests on and `CRAWLERNEST_REQUIRE_WAREHOUSE=1`, so a check that would skip on an empty database fails instead. When the exports differ, it lists those changed since the release was built: either cut a release from the warehouse they came from, or the export is wrong. |
 | **Data Quality** | Validates the golden regression dataset and the CI fixture files, then runs the ranking-regression and failure-summary runners in fixture mode — no database, no network. |
 | **Camofox Client Tests** | Runs only when `crawlernest/crawlernest-camofox-client/` or its workflow changes. Strict `tsc`, then 46 unit tests of the camofox-browser client, the snapshot parser, cookie and trace handling, and the Claude browsing agent: request shapes, which failures are retried, snapshot parsing, Netscape cookie files, and that the agent never acts on a ref missing from the latest snapshot. The tests stub `fetch`, the browser and the model; no browser server or API call runs, so they say nothing about a live camofox-browser or the Claude API. |
 
@@ -279,15 +281,14 @@ Two things this deliberately does *not* claim:
 - **A skip is not a pass.** Several of these checks used to skip silently — the
   PostgreSQL tests had no database, the API endpoint checks had no server, the
   MATLAB sources were never re-executed. Each now runs somewhere that cannot skip
-  it, and the jobs that legitimately skip say so in their names. One thing CI
-  still cannot do, and says so: hold the three files derived from the warehouse
-  (`cross_edition_ranks.csv`, `qs_the_pairing_2026.json`, the alias files) against
-  the warehouse, because its database is bootstrapped empty and the real one is on
-  the developer's machine. Those checks skip there, and a skip is not a pass, so the
-  gate is local — `./scripts/check_warehouse_drift.sh`, run by a pre-push hook
-  (`./scripts/install_git_hooks.sh`, once per clone) — and it fails where the suite
-  would skip. The hook is a local setting and binds only whoever installs it. What CI
-  does check without a database is that the export code and the committed CSV agree.
+  it, and the jobs that legitimately skip say so in their names. The three files derived
+  from the warehouse (`cross_edition_ranks.csv`, `qs_the_pairing_2026.json`, the alias
+  files) used to be the exception: the fast jobs bootstrap an empty database. They are
+  now held against the newest release by **Warehouse Validation**, and locally against
+  the live warehouse by `./scripts/check_warehouse_drift.sh`, run by a pre-push hook
+  (`./scripts/install_git_hooks.sh`, once per clone). A release is a frozen warehouse,
+  so CI can say the exports match *the release*; only the local gate can say they match
+  the warehouse as it is today.
 - **Green means the checks ran, not that the system is correct.** The gaps that
   remain are recorded as limits in
   [`crawlernest-ml/README.md`](crawlernest/crawlernest-ml/README.md), not hidden

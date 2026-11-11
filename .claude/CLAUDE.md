@@ -99,7 +99,7 @@ python3 crawlernest/crawlernest-tests/run_tests.py
 ./scripts/smoke_local_stack.sh
 ```
 
-CI: seven workflows, eleven jobs — see the table in [README.md](../README.md#continuous-integration).
+CI: nine workflows, thirteen jobs — see the table in [README.md](../README.md#continuous-integration).
 `crawlernest/crawlernest-tests/` now runs in `python-tests.yml`, in two jobs: fixture
 mode, and a PostgreSQL job that opts the database tests in with
 `CRAWLERNEST_RUN_PG_TESTS=1`. Locally those tests skip unless you set the same
@@ -111,10 +111,11 @@ CRAWLERNEST_RUN_PG_TESTS=1 CRAWLERNEST_PG_PASSWORD=test \
 ```
 
 Three committed files are derived from the warehouse: `crawlernest-kb/databases/cross_edition_ranks.csv`,
-`qs_the_pairing_2026.json` and the `*_university_aliases_*.json` files. CI cannot hold them against the
-warehouse (its database is bootstrapped empty, and the real one is on your machine), and those checks skip
-where the warehouse is too small, so a green CI run says nothing about them. This is the gate, and it fails
-where the suite would skip:
+`qs_the_pairing_2026.json` and the `*_university_aliases_*.json` files. The fast CI jobs bootstrap an empty
+database, so their checks skip there. `warehouse-validation.yml` (nightly) restores the newest release from
+`docs/releases/` and holds them against it, with `CRAWLERNEST_REQUIRE_WAREHOUSE=1`; changing an export from a newer
+warehouse therefore means cutting a release (`scripts/release_snapshot.py build`). Against the live warehouse,
+this is the gate, and it fails where the suite would skip:
 
 ```bash
 ./scripts/check_warehouse_drift.sh      # exit 1 on drift, 2 if the database is unreachable

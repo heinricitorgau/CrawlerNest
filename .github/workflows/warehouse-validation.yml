@@ -1,0 +1,109 @@
+name: Warehouse Validation
+
+# The fast jobs (python-tests.yml) run against an empty, bootstrapped database, so every check that needs real rows
+# skips there -- and the drift gate (committed exports vs. the warehouse) could only run on the maintainer's machine.
+# A release is now a self-checking artifact (docs/releases/<release>/manifest.json), so this job restores the newest
+# one and runs those checks against real data. CRAWLERNEST_REQUIRE_WAREHOUSE=1 turns "too small to compare" into a
+# failure: a check that compared nothing has not passed.
+#
+# Nightly and on demand, not on every push: the restore takes a few minutes, and what it validates changes when a
+# release or an export changes, not with each commit.
+
+on:
+  schedule:
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "docs/releases/**"
+      - "crawlernest/crawlernest-kb/databases/cross_edition_ranks.csv"
+      - "crawlernest/crawlernest-kb/databases/qs_the_pairing_2026.json"
+      - "crawlernest/crawlernest-kb/databases/*_university_aliases_*.json"
+      - ".github/workflows/warehouse-validation.yml"
+
+jobs:
+  validate:
+    name: Restore the newest release, then check exports and tests against it
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: clawer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d clawer"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: test
+      PGPASSWORD: test
+      PGDATABASE: clawer
+      CRAWLERNEST_PG_HOST: localhost
+      CRAWLERNEST_PG_PORT: "5432"
+      CRAWLERNEST_PG_DATABASE: clawer
+      CRAWLERNEST_PG_USER: test
+      CRAWLERNEST_PG_PASSWORD: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # the stale-release message compares commits
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install --yes postgresql-client-16
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r crawlernest/requirements.txt
+
+      - name: Pick the newest release
+        id: release
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib
+          manifests = [(json.loads(p.read_text())["built_at"], p.parent) for p in pathlib.Path("docs/releases").glob("*/manifest.json")]
+          built_at, folder = max(manifests)
+          print(f"dir={folder}")
+          print(f"commit={json.loads((folder / 'manifest.json').read_text())['built_from_commit']}")
+          PY
+
+      - name: Restore it and verify its manifest
+        env:
+          RELEASE_DIR: ${{ steps.release.outputs.dir }}
+        run: ./scripts/restore_release_snapshot.sh
+
+      - name: Committed exports against the release
+        run: |
+          if ./scripts/check_warehouse_drift.sh; then exit 0; fi
+          echo "::error::The committed exports differ from ${{ steps.release.outputs.dir }}."
+          changed="$(git diff --name-only ${{ steps.release.outputs.commit }} HEAD -- crawlernest/crawlernest-kb/databases | head -20)"
+          if [ -n "$changed" ]; then
+            echo "These exports changed after the release was built:"
+            echo "$changed"
+            echo "If the warehouse they were exported from is the new truth, cut a release from it"
+            echo "(scripts/release_snapshot.py build). Otherwise the export is wrong."
+          fi
+          exit 1
+
+      - name: Test suite against real data
+        env:
+          CRAWLERNEST_RUN_PG_TESTS: "1"
+          CRAWLERNEST_REQUIRE_WAREHOUSE: "1"
+        run: python crawlernest/crawlernest-tests/run_tests.py
