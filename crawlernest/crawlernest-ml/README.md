@@ -250,7 +250,7 @@ different edition; the metrics gate refused the comparison on its `matched` and
 
 The committed files were stale a second time, which nothing flagged because the
 checks that would have flagged it were failing. The weekly refresh of 2026-09-21
-(`794274e`: a new THE crawl and a re-exported pairing) moved `matched` 1,109 →
+(`5ad5786`: a new THE crawl and a re-exported pairing) moved `matched` 1,109 →
 1,112 and `positives` 222 → 223, and neither the MATLAB artifacts nor these
 metrics were regenerated; both `check_matlab_parity` and the metrics gate's
 invariants had been red since. They were regenerated on 2026-10-03. ROC-AUC moved

@@ -60,7 +60,7 @@ Backup: `.local/backups/entity_split_before_20261003T035124Z.dump`, restore with
   by 0.023 on average because the model was retrained after the 2026-09-21 refresh, not because of the split. Backup
   taken first (`.local/backups/ml_predictions_regen_pre_clawer_20261003T170618Z.dump`, a UTC stamp; gitignored).
 - Nothing in the QS archive load is withheld for the entity split any more. QS's two Miami ids were reloaded into all
-  seven archive editions on 2026-10-03 (`b89a6d5`), and so was Perugia (receipts under
+  seven archive editions on 2026-10-03 (`a83f90c`), and so was Perugia (receipts under
   `crawlernest-kb/qs_archive/receipts/`). Perugia was not a missing review: a review for the new spelling was refused
   too, because `find_reappeared_reviews` flagged review 134 (the old spelling) as "reappeared" whenever a batch held
   the other spelling -- the two spellings slug to the same name -- without asking whether the new id had a review of its

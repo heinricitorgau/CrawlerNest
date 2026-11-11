@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "release": "v0.2-2026-snapshot",
   "built_at": "2026-09-05T00:00:00Z",
-  "built_from_commit": "4bd24cd244922b9c69e9697dceb391efd0de57c0",
+  "built_from_commit": "36d2de4ceb2d2ea8aa1673be453e53b13ff8c3ce",
   "_comment": "Written 2026-11-11 from a restore of the dump, which predates release_snapshot.py. The counts equal the literals restore_release_snapshot.sh carried for this release. The dump was cleaned the same day and git history rewritten: the original carried 2 warehouse.app_user rows (an email and its bcrypt hash). The cleaned dump was restored from it with user-table data excluded, as every release now is; no other table changed.",
   "database": "clawer",
   "dump": {

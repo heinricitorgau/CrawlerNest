@@ -25,4 +25,4 @@ The project licence is Apache 2.0, kept as the unmodified standard text. The onl
 ## Watch out
 Do not reflow, shorten or reword the licence text. Any change other than the appendix copyright line makes GitHub stop recognising it.
 
-In the code: LICENSE (commit fb4dff6). The standard text comes from `gh api licenses/apache-2.0 --jq .body`. Check detection with `gh api repos/heinricitorgau/CrawlerNest/license --jq .license.spdx_id`.
+In the code: LICENSE (commit 4f03bdd). The standard text comes from `gh api licenses/apache-2.0 --jq .body`. Check detection with `gh api repos/heinricitorgau/CrawlerNest/license --jq .license.spdx_id`.
