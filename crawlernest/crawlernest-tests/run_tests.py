@@ -224,6 +224,8 @@ def run_all_tests():
         # rule, the snapshot health check and the run_status.json a crawl
         # leaves behind whether it worked or not.
         "test_source_run_status",
+        # Release manifests and the backup drill: what counts as a match, and that user rows fail a release.
+        "test_release_snapshot",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.

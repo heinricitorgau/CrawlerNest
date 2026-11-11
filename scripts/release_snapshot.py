@@ -3,6 +3,7 @@
 
     release_snapshot.py build  --release v0.3-multi-year-snapshot   # pg_dump, restore into a scratch db, write manifest.json
     release_snapshot.py verify --release-dir docs/releases/<release> # check a restored database against manifest.json
+    release_snapshot.py drill [--backup FILE]                        # restore a backup into a scratch db, compare every table
 
 v0.2's restore script carried its counts as literals. That made it a check of one release, and the next release
 would have overwritten it. Every release directory now holds a ``manifest.json``, and one verifier reads any of
@@ -235,6 +236,88 @@ def cmd_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def table_row_counts(env: dict[str, str], database: str) -> dict[str, int]:
+    """Exact row count of every base table outside the system schemas."""
+    tables = [row[0] for row in _psql_rows(
+        env, database,
+        "SELECT table_schema || '.' || table_name FROM information_schema.tables "
+        "WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema') ORDER BY 1",
+    )]
+    if not tables:
+        return {}
+    union = " UNION ALL ".join(f"SELECT '{t}', count(*) FROM {t}" for t in tables)
+    return {name: int(count) for name, count in _psql_rows(env, database, union)}
+
+
+def cmd_drill(args: argparse.Namespace) -> int:
+    """A backup is only a backup once it has been restored. Restore one into a scratch database and compare it with
+    the live database table by table. The live database is read, never written; the scratch one is dropped.
+
+    Without --backup, a fresh full dump (user tables included -- it is a backup, not a release) is written to
+    .local/backups/, which is gitignored. A table that changed between the dump and the comparison shows up as a
+    difference, so run it when nothing is writing.
+    """
+    env = _pg_env(args)
+    stamp = datetime.now(timezone.utc)
+    backups = REPO_ROOT / ".local" / "backups"
+    reports = REPO_ROOT / ".local" / "reports" / "backup_drill"
+    if args.backup:
+        backup = Path(args.backup).resolve()
+        if not backup.is_file():
+            print(f"no such backup: {backup}", file=sys.stderr)
+            return 1
+    else:
+        backups.mkdir(parents=True, exist_ok=True)
+        backup = backups / f"crawlernest_{args.pg_database}_{stamp:%Y%m%dT%H%M%SZ}.dump"
+        print(f"dumping {args.pg_database} -> {backup.relative_to(REPO_ROOT)}")
+        subprocess.run(["pg_dump", "-d", args.pg_database, "-Fc", "--no-owner", "--no-acl", "-f", str(backup)],
+                       env=env, check=True)
+
+    scratch = args.scratch_database
+    if scratch == args.pg_database:
+        print("refusing: the scratch database is the live one", file=sys.stderr)
+        return 1
+    print(f"restoring {backup.name} into scratch database {scratch}")
+    subprocess.run(["dropdb", "--if-exists", scratch], env=env, check=True)
+    subprocess.run(["createdb", scratch], env=env, check=True)
+    try:
+        restore = subprocess.run(["pg_restore", "-d", scratch, "--no-owner", "--no-acl", "--exit-on-error", str(backup)],
+                                 env=env, capture_output=True, text=True)
+        restored = table_row_counts(env, scratch) if restore.returncode == 0 else {}
+    finally:
+        if not args.keep_scratch:
+            subprocess.run(["dropdb", "--if-exists", scratch], env=env, check=False)
+    live = table_row_counts(env, args.pg_database)
+
+    problems: list[str] = []
+    if restore.returncode != 0:
+        problems.append(f"pg_restore failed: {restore.stderr.strip().splitlines()[-1] if restore.stderr.strip() else restore.returncode}")
+    else:
+        problems.extend(_diff("rows", live, restored))
+    report = {
+        "drilled_at": stamp.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "database": args.pg_database,
+        "backup": str(backup),
+        "backup_bytes": backup.stat().st_size,
+        "backup_sha256": _sha256(backup),
+        "tables_compared": len(live),
+        "rows_live": sum(live.values()),
+        "rows_restored": sum(restored.values()),
+        "ok": not problems,
+        "problems": problems,
+    }
+    reports.mkdir(parents=True, exist_ok=True)
+    (reports / f"drill_{stamp:%Y%m%dT%H%M%SZ}.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    (reports / "latest.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    if problems:
+        print(f"FAIL backup drill: {len(problems)} difference(s)")
+        for line in problems[:50]:
+            print(f"  {line}")
+        return 1
+    print(f"OK   backup drill: {report['tables_compared']} tables, {report['rows_restored']} rows restored and equal to live")
+    return 0
+
+
 def cmd_verify(args: argparse.Namespace) -> int:
     release_dir = Path(args.release_dir)
     manifest = json.loads((release_dir / MANIFEST_NAME).read_text(encoding="utf-8"))
@@ -275,6 +358,11 @@ def main(argv: list[str] | None = None) -> int:
     verify.add_argument("--release-dir", required=True)
     verify.add_argument("--no-check-dump", dest="check_dump", action="store_false")
     verify.set_defaults(func=cmd_verify)
+    drill = sub.add_parser("drill", help="restore a backup into a scratch database and compare every table with live")
+    drill.add_argument("--backup", help="an existing pg_dump custom archive; default: take a fresh one into .local/backups/")
+    drill.add_argument("--scratch-database", default="clawer_backup_drill")
+    drill.add_argument("--keep-scratch", action="store_true")
+    drill.set_defaults(func=cmd_drill)
     args = parser.parse_args(argv)
     return int(args.func(args))
 

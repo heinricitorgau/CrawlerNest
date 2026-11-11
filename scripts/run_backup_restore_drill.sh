@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-# Readonly-safe backup/restore drill. Prints commands; does not dump or restore.
+# Backup/restore drill.
+#   (no flag)   readonly-safe: prints the commands and checks the folders; dumps and restores nothing.
+#   --execute   the real drill: scripts/release_snapshot.py drill -- dumps the live database into
+#               .local/backups/, restores it into a scratch database, compares every table with live and
+#               drops the scratch database. The live database is only read.
+#   --execute --backup FILE   drills an existing backup instead of taking one.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -10,10 +15,12 @@ PGPORT="${CRAWLERNEST_PG_PORT:-5432}"
 PGDATABASE="${CRAWLERNEST_PG_DATABASE:-clawer}"
 PGUSER="${CRAWLERNEST_PG_USER:-test}"
 DRY_RUN=false
+EXECUTE=false
+BACKUP_FILE=""
 
 usage() {
   cat <<USAGE
-Usage: ./scripts/run_backup_restore_drill.sh [--dry-run]
+Usage: ./scripts/run_backup_restore_drill.sh [--dry-run] [--execute [--backup FILE]]
 
 Prints pg_dump and pg_restore command previews and checks local backup/snapshot
 readiness. It never deletes data and never runs restore.
@@ -23,11 +30,22 @@ USAGE
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run) DRY_RUN=true ;;
+    --execute) EXECUTE=true ;;
+    --backup) shift; BACKUP_FILE="${1:-}" ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown argument: $1"; usage; exit 1 ;;
   esac
   shift
 done
+
+if [[ "${EXECUTE}" == "true" ]]; then
+  PYTHON_BIN="${ROOT_DIR}/.venv/bin/python"
+  [[ -x "${PYTHON_BIN}" ]] || PYTHON_BIN="python3"
+  export PGHOST PGPORT PGUSER PGDATABASE PGPASSWORD="${CRAWLERNEST_PG_PASSWORD:-${PGPASSWORD:-test}}"
+  args=(drill)
+  [[ -n "${BACKUP_FILE}" ]] && args+=(--backup "${BACKUP_FILE}")
+  exec "${PYTHON_BIN}" "${ROOT_DIR}/scripts/release_snapshot.py" --pg-database "${PGDATABASE}" "${args[@]}"
+fi
 
 failures=0
 warns=0
@@ -78,6 +96,7 @@ echo "Safety notes:"
 echo "- This drill did not run pg_dump."
 echo "- This drill did not run pg_restore."
 echo "- Restore remains a manual, destructive operation and must be reviewed."
+echo "- To prove a backup restores, run with --execute (restores into a scratch database, never the live one)."
 
 echo ""
 echo "Summary: WARN=${warns} FAIL=${failures}"
