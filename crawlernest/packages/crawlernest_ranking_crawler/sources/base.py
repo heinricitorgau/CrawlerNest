@@ -41,6 +41,53 @@ LAYOUT_CHANGED = "layout_changed"
 EMPTY_TABLE = "empty_table"
 HTTP_ERROR = "http_error"
 
+#: Every source's own failure codes, grouped into the families a report compares across sources. QS kept its
+#: vocabulary (the fallback logic reads "upstream_blocked"); THE and ARWU use the family names directly. A code not
+#: here reports as "other", never as a guess at a family.
+FAILURE_FAMILIES = {
+    NETWORK_ERROR: NETWORK_ERROR,
+    BLOCKED: BLOCKED,
+    "upstream_blocked": BLOCKED,
+    "resolve_blocked": BLOCKED,
+    "upstream_maintenance": "source_unavailable",
+    "source_unavailable": "source_unavailable",
+    HTTP_ERROR: HTTP_ERROR,
+    "fetch_failed": HTTP_ERROR,
+    LAYOUT_CHANGED: LAYOUT_CHANGED,
+    "resolve_not_found": LAYOUT_CHANGED,
+    "normalize_failed": LAYOUT_CHANGED,
+    EDITION_MISMATCH: EDITION_MISMATCH,
+    EMPTY_TABLE: EMPTY_TABLE,
+    TRUNCATED_TABLE: TRUNCATED_TABLE,
+    SNAPSHOT_REGRESSION: SNAPSHOT_REGRESSION,
+    HEALTH_CHECK_FAILED: HEALTH_CHECK_FAILED,
+    INGEST_FAILED: INGEST_FAILED,
+    CRAWL_FAILED: CRAWL_FAILED,
+}
+
+
+def failure_family(classification: Any) -> str:
+    """The cross-source family of a failure code: "" for none, "other" for a code no family claims."""
+    code = str(classification or "").strip()
+    if not code:
+        return ""
+    return FAILURE_FAMILIES.get(code, "other")
+
+
+class SourceFailure(RuntimeError):
+    """A run that ended with a classified failure, raised with the source's own code as ``failure_class``.
+
+    QS's universe pipeline reports its failure in crawl_meta instead of raising. Its scheduled-refresh runner
+    raises this, so the refresh records "upstream_blocked" rather than "RuntimeError".
+    """
+
+    def __init__(self, source: str, classification: str, message: str = ""):
+        super().__init__(f"{source}: {classification}{': ' + message if message else ''}")
+        self.source = source
+        self.failure_class = classification
+        self.family = failure_family(classification)
+
+
 _CLASSIFICATION_BY_EXCEPTION_NAME = {
     "NetworkError": NETWORK_ERROR,
     "EditionMismatchError": EDITION_MISMATCH,
@@ -191,6 +238,7 @@ class SourceRun:
         self.record.update(
             status=STATUS_FAILED,
             failure_classification=INGEST_FAILED,
+            failure_family=failure_family(INGEST_FAILED),
             message=str(exc),
             ingested=False,
         )
@@ -251,6 +299,7 @@ class RankingSource:
                 **base,
                 "status": run_status_for(failure_classification=classification, standardized_count=0),
                 "failure_classification": classification,
+                "failure_family": failure_family(classification),
                 "message": str(exc),
                 "error_type": type(exc).__name__,
                 "finished_at": _stamp(now()),
@@ -279,6 +328,7 @@ class RankingSource:
             **base,
             "status": run_status_for(failure_classification=classification, standardized_count=len(rows)),
             "failure_classification": classification,
+            "failure_family": failure_family(classification),
             "message": "; ".join(problems),
             "finished_at": _stamp(now()),
             # `edition` sits where ranking_edition.snapshot_edition_ok reads it for QS.

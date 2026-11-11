@@ -8,7 +8,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from crawlernest.pipeline.commands.scheduled_refresh import RefreshAlreadyRunning, run_scheduled_refresh
+from crawlernest.pipeline.commands.scheduled_refresh import (
+    RefreshAlreadyRunning,
+    run_scheduled_refresh,
+    summarize_history,
+)
+from crawlernest_ranking_crawler.sources.base import FAILURE_FAMILIES, SourceFailure, failure_family
 
 
 class TestScheduledRefresh(unittest.TestCase):
@@ -156,6 +161,78 @@ class TestNetworkFailuresAreRetried(unittest.TestCase):
         self.assertEqual([], self.slept)
         self.assertEqual(1, len(src["attempts"]))
         self.assertEqual("network_error", src["failure_class"])
+
+
+class TestFailureFamilies(unittest.TestCase):
+    """Every source's codes land in one cross-source vocabulary; QS keeps its own codes beside it."""
+
+    def test_qs_codes_map_to_the_shared_families(self):
+        self.assertEqual("blocked", failure_family("upstream_blocked"))
+        self.assertEqual("blocked", failure_family("blocked"))
+        self.assertEqual("layout_changed", failure_family("resolve_not_found"))
+        self.assertEqual("http_error", failure_family("fetch_failed"))
+        self.assertEqual("source_unavailable", failure_family("upstream_maintenance"))
+        self.assertEqual("", failure_family(None))
+        self.assertEqual("other", failure_family("RuntimeError"))
+
+    def test_every_family_is_itself_a_family(self):
+        for family in set(FAILURE_FAMILIES.values()):
+            with self.subTest(family=family):
+                self.assertEqual(family, failure_family(family))
+
+    def test_a_qs_failure_reaches_the_refresh_with_its_code_and_family(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+
+            def qs(year):
+                raise SourceFailure("QS", "upstream_blocked", f"{year}: HTTP 403")
+
+            rc = run_scheduled_refresh(ranking_year=2026, sources=("QS",), runners={"QS": qs},
+                                       lock_path=root / "lock", status_dir=root / "status")
+            self.assertEqual(1, rc)
+            outcome = json.loads((root / "status" / "scheduled_refresh_latest.json").read_text())["sources"][0]
+            self.assertEqual("upstream_blocked", outcome["failure_class"])
+            self.assertEqual("blocked", outcome["failure_family"])
+            self.assertTrue((root / "status" / "scheduled_refresh_history.json").exists())
+
+
+class TestHistory(unittest.TestCase):
+    """What one status file cannot show: the same failure every week, or a table losing rows while every run passes."""
+
+    def _write(self, folder, stamp, outcomes):
+        (folder / f"scheduled_refresh_{stamp}.json").write_text(json.dumps({"sources": outcomes}), encoding="utf-8")
+
+    def test_repeated_failures_and_a_slow_slide_are_warned_about(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            for i, (qs_ok, the_rows) in enumerate([(True, 1700), (False, 1690), (False, 1650)]):
+                qs = ({"source": "QS", "ok": True, "finished_at": f"t{i}", "summary": {"rows": 1500}} if qs_ok else
+                      {"source": "QS", "ok": False, "failure_class": "upstream_blocked", "failure_family": "blocked"})
+                the = {"source": "THE", "ok": True, "finished_at": f"t{i}", "summary": {"rows_crawled": the_rows}}
+                self._write(folder, f"2026110{i + 1}T030000Z", [qs, the])
+
+            history = summarize_history(folder)
+
+            qs = history["sources"]["QS"]
+            self.assertEqual((3, 1, 2), (qs["runs"], qs["ok_runs"], qs["consecutive_failures"]))
+            self.assertEqual({"blocked": 2}, qs["failures_by_family"])
+            self.assertEqual([1700, 1690, 1650], [p["rows"] for p in history["sources"]["THE"]["rows_by_run"]])
+            joined = " | ".join(history["warnings"])
+            self.assertIn("QS has failed 2 refreshes in a row", joined)
+            self.assertIn("THE rows fell from 1690 to 1650", joined)
+            self.assertIn("THE rows have fallen three successful refreshes running", joined)
+
+    def test_a_steady_source_raises_no_warning_and_old_runs_age_out(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            self._write(folder, "20261001T030000Z", [{"source": "ARWU", "ok": False, "failure_class": "network_error"}])
+            for day in range(2, 14):
+                self._write(folder, f"202610{day:02d}T030000Z",
+                            [{"source": "ARWU", "ok": True, "finished_at": str(day), "summary": {"rows_crawled": 961}}])
+            history = summarize_history(folder)
+            self.assertEqual([], history["warnings"])
+            self.assertEqual(12, history["runs_read"])
+            self.assertEqual({}, history["sources"]["ARWU"]["failures_by_family"])
 
 
 class TestTheCommandIsRegistered(unittest.TestCase):

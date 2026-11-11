@@ -70,14 +70,23 @@ class SourceOutcome:
     finished_at: str
     summary: dict[str, Any] = field(default_factory=dict)
     error: str | None = None
-    # "network_error" for transport.NetworkError, otherwise the exception type.
+    # The source's own code when the exception names one (failure_class), otherwise the exception type.
     failure_class: str | None = None
+    # The cross-source family of failure_class (sources/base.py:FAILURE_FAMILIES), "other" when none claims it.
+    failure_family: str | None = None
     attempts: list[dict[str, Any]] = field(default_factory=list)
 
 
 def failure_class_of(exc: BaseException) -> str:
     """Read off the exception, so this module never imports the transport layer."""
     return str(getattr(exc, "failure_class", "") or type(exc).__name__)
+
+
+def failure_family_of(failure_class: str) -> str:
+    # sources/base.py imports nothing from the crawlers; imported here so the vocabulary has one home.
+    from crawlernest_ranking_crawler.sources.base import failure_family
+
+    return failure_family(failure_class)
 
 
 def _now() -> str:
@@ -125,7 +134,7 @@ def _run_source(
                 sleep(wait)
                 continue
             return SourceOutcome(source, False, source_started, _now(), error=error,
-                                 failure_class=cls, attempts=attempts)
+                                 failure_class=cls, failure_family=failure_family_of(cls), attempts=attempts)
         attempts.append({"started_at": attempt_started, "finished_at": _now(), "error": None})
         print(f"[scheduled-refresh] {source} {ranking_year}: ok", flush=True)
         return SourceOutcome(source, True, source_started, _now(), _to_jsonable(summary), attempts=attempts)
@@ -183,4 +192,75 @@ def run_scheduled_refresh(
         stamp = started.replace(":", "").replace("-", "")
         (status_dir / f"scheduled_refresh_{stamp}.json").write_text(json.dumps(status, indent=2), encoding="utf-8")
         (status_dir / "scheduled_refresh_latest.json").write_text(json.dumps(status, indent=2), encoding="utf-8")
+        history = summarize_history(status_dir)
+        (status_dir / "scheduled_refresh_history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
+        for warning in history["warnings"]:
+            print(f"[scheduled-refresh] WARNING {warning}", flush=True)
         return 0 if status["ok"] else 1
+
+
+#: Runs a history looks back over, and the drop in rows (from the previous successful run) worth a warning:
+#: the shrink guard refuses a write that loses more than 5%, so a run that passes it can still be part of a slide.
+HISTORY_RUNS = 12
+ROW_DROP_WARNING = 0.02
+
+
+def _rows_of(summary: Any) -> int | None:
+    if not isinstance(summary, dict):
+        return None
+    for key in ("rows", "rows_crawled", "standardized_count"):
+        value = summary.get(key)
+        if isinstance(value, int):
+            return value
+    return None
+
+
+def summarize_history(status_dir: Path, *, runs: int = HISTORY_RUNS) -> dict[str, Any]:
+    """Each source over the last ``runs`` refreshes: what failed and how, and how its row count moved.
+
+    One failed run is visible in its own status file. What is not is a source that fails the same way every week,
+    or whose table loses a few rows each time while every run passes: that is what this is for.
+    """
+    files = sorted(status_dir.glob("scheduled_refresh_2*.json"))[-runs:]
+    per_source: dict[str, dict[str, Any]] = {}
+    for path in files:
+        try:
+            status = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        for outcome in status.get("sources") or []:
+            if not isinstance(outcome, dict) or not outcome.get("source"):
+                continue
+            entry = per_source.setdefault(outcome["source"], {
+                "runs": 0, "ok_runs": 0, "failures_by_family": {}, "last_ok_at": None,
+                "consecutive_failures": 0, "rows_by_run": [],
+            })
+            entry["runs"] += 1
+            if outcome.get("ok"):
+                entry["ok_runs"] += 1
+                entry["last_ok_at"] = outcome.get("finished_at")
+                entry["consecutive_failures"] = 0
+                rows = _rows_of(outcome.get("summary"))
+                if rows is not None:
+                    entry["rows_by_run"].append({"at": outcome.get("finished_at"), "rows": rows})
+            else:
+                family = outcome.get("failure_family") or failure_family_of(str(outcome.get("failure_class") or ""))
+                entry["failures_by_family"][family] = entry["failures_by_family"].get(family, 0) + 1
+                entry["consecutive_failures"] += 1
+
+    warnings: list[str] = []
+    for source, entry in sorted(per_source.items()):
+        if entry["consecutive_failures"] >= 2:
+            warnings.append(f"{source} has failed {entry['consecutive_failures']} refreshes in a row "
+                            f"(by family: {entry['failures_by_family']})")
+        rows = [point["rows"] for point in entry["rows_by_run"]]
+        if len(rows) >= 2 and rows[-2] > 0 and (rows[-2] - rows[-1]) / rows[-2] > ROW_DROP_WARNING:
+            warnings.append(f"{source} rows fell from {rows[-2]} to {rows[-1]} since its previous successful refresh")
+        if len(rows) >= 3 and rows[-1] < rows[-2] < rows[-3]:
+            warnings.append(f"{source} rows have fallen three successful refreshes running: {rows[-3:]}")
+    return {
+        "generated_at": _now(),
+        "runs_read": len(files),
+        "sources": per_source,
+        "warnings": warnings,
+    }

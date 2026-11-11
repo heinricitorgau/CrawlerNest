@@ -431,6 +431,15 @@ def _qs_run_status(*, failure_classification: str, standardized_count: int, run_
     )
 
 
+def _save_qs_run_status(path: Path, record: dict[str, Any]) -> None:
+    """Write a QS run_status.json with the cross-source failure family next to QS's own code."""
+    from crawlernest_ranking_crawler.sources.base import failure_family  # noqa: E402
+
+    record = dict(record)
+    record.setdefault("failure_family", failure_family(record.get("failure_classification")))
+    save_json_artifact(path, record)
+
+
 def _qs_universe_artifact_dir(base_dir: Path, ranking_year: int, universe_type: str, universe_key: str) -> Path:
     return base_dir / str(ranking_year) / str(universe_type) / str(universe_key)
 
@@ -1518,7 +1527,7 @@ def run_qs_universe_ingestion(
     try:
         normalized = normalize_universities(universities)
     except Exception as exc:
-        save_json_artifact(
+        _save_qs_run_status(
             universe_dir / "run_status.json",
             {
                 "status": "failed",
@@ -1551,7 +1560,7 @@ def run_qs_universe_ingestion(
             fields=("university_name", "rank", "country"),
         )
     except SnapshotRegressionError as exc:
-        save_json_artifact(
+        _save_qs_run_status(
             universe_dir / "run_status.json",
             {
                 "status": "failed",
@@ -1590,7 +1599,7 @@ def run_qs_universe_ingestion(
             enable_aggregation=spec.enable_aggregation,
         )
     except Exception as exc:
-        save_json_artifact(
+        _save_qs_run_status(
             universe_dir / "run_status.json",
             {
                 "status": "failed",
@@ -1606,7 +1615,7 @@ def run_qs_universe_ingestion(
             },
         )
         raise
-    save_json_artifact(
+    _save_qs_run_status(
         universe_dir / "run_status.json",
         {
             "status": _qs_run_status(
@@ -2612,9 +2621,15 @@ def _cmd_scheduled_refresh(args: argparse.Namespace) -> int:
                 f"QS {year}: network error: {crawl_meta.get('failure_message') or 'no detail'}"
             )
         if interrupted or crawl_meta.get("failure_classification") or not standardized:
-            raise RuntimeError(
-                f"QS {year} did not complete as a live crawl: "
-                f"failure={crawl_meta.get('failure_classification')!r} rows={len(standardized)}"
+            from crawlernest_ranking_crawler.sources.base import SourceFailure
+
+            # QS's own code (upstream_blocked, resolve_not_found, ...), so the refresh records what happened
+            # rather than "RuntimeError".
+            raise SourceFailure(
+                "QS",
+                str(crawl_meta.get("failure_classification") or ("crawl_failed" if interrupted else "empty_table")),
+                f"{year}: {crawl_meta.get('failure_message') or 'did not complete as a live crawl'}; "
+                f"rows={len(standardized)}",
             )
         return {"rows": len(standardized), "matched": summary.matched_count,
                 "unresolved": summary.unresolved_count, "edition": crawl_meta.get("edition")}
