@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        release: ["v0.2-2026-snapshot", "v0.3-multi-year-snapshot"]
+        release: ["v0.2-2026-snapshot", "v0.3-multi-year-snapshot", "v0.3.1-qs-2017-relabel"]
     services:
       postgres:
         image: postgres:16

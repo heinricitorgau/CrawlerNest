@@ -1,0 +1,199 @@
+{
+  "manifest_version": 1,
+  "release": "v0.3.1-qs-2017-relabel",
+  "built_at": "2026-11-11T14:37:21Z",
+  "built_from_commit": "ee9a692a8aaaf89bc40140d6247747c4ba471a42",
+  "pg_dump_version": "pg_dump (PostgreSQL) 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+  "database": "clawer",
+  "dump": {
+    "file": "clawer-2026-11-11-release.dump",
+    "sha256": "a368095d26b37b39efdc03b13a5a3684e3fae31b2bbc11f30d4bbc6f397b0690",
+    "bytes": 21083752
+  },
+  "contains_user_data": false,
+  "user_data_excluded": [
+    "warehouse.app_user",
+    "warehouse.password_reset_token",
+    "warehouse.saved_*",
+    "desk.*",
+    "agent_state.*"
+  ],
+  "dataset_coverage_declared": {
+    "QS": [
+      2026,
+      2025,
+      2024,
+      2023,
+      2022,
+      2020,
+      2019,
+      2018,
+      2017
+    ],
+    "THE": [
+      2026,
+      2025,
+      2024,
+      2023,
+      2022,
+      2021,
+      2020,
+      2019,
+      2018,
+      2017,
+      2016,
+      2015
+    ],
+    "ARWU": [
+      2026,
+      2025,
+      2024,
+      2023,
+      2022,
+      2021,
+      2020,
+      2019,
+      2018,
+      2017,
+      2016,
+      2015
+    ]
+  },
+  "editions_held": {
+    "ARWU": [
+      2026,
+      2025,
+      2024,
+      2023,
+      2022,
+      2021,
+      2020,
+      2019,
+      2018,
+      2017,
+      2016,
+      2015
+    ],
+    "QS": [
+      2026,
+      2025,
+      2024,
+      2023,
+      2022,
+      2020,
+      2019,
+      2018,
+      2017
+    ],
+    "THE": [
+      2026,
+      2025,
+      2024,
+      2023,
+      2022,
+      2021,
+      2020,
+      2019,
+      2018,
+      2017,
+      2016,
+      2015
+    ]
+  },
+  "counts": {
+    "ranking_records_by_source_year": {
+      "ARWU": {
+        "2015": 498,
+        "2016": 498,
+        "2017": 795,
+        "2018": 990,
+        "2019": 990,
+        "2020": 988,
+        "2021": 986,
+        "2022": 984,
+        "2023": 983,
+        "2024": 982,
+        "2025": 967,
+        "2026": 961
+      },
+      "QS": {
+        "2017": 890,
+        "2018": 946,
+        "2019": 973,
+        "2020": 1038,
+        "2022": 1270,
+        "2023": 1397,
+        "2024": 1471,
+        "2025": 1506,
+        "2026": 9866
+      },
+      "THE": {
+        "2015": 381,
+        "2016": 753,
+        "2017": 907,
+        "2018": 1008,
+        "2019": 1125,
+        "2020": 1223,
+        "2021": 1317,
+        "2022": 1409,
+        "2023": 1488,
+        "2024": 1544,
+        "2025": 1663,
+        "2026": 1713
+      }
+    },
+    "aggregated_rows_by_year_universe": {
+      "2015": {
+        "global": 558
+      },
+      "2016": {
+        "global": 842
+      },
+      "2017": {
+        "global": 1246
+      },
+      "2018": {
+        "global": 1412
+      },
+      "2019": {
+        "global": 1510
+      },
+      "2020": {
+        "global": 1599
+      },
+      "2021": {
+        "global": 1539
+      },
+      "2022": {
+        "global": 1845
+      },
+      "2023": {
+        "global": 1978
+      },
+      "2024": {
+        "global": 2076
+      },
+      "2025": {
+        "global": 2175
+      },
+      "2026": {
+        "global": 2192,
+        "region": 1633,
+        "regional": 3198,
+        "special": 2074,
+        "subject": 1458
+      }
+    },
+    "relation_rows": {
+      "analytics.aggregated_rankings": 27335,
+      "analytics.ml_predictions": 21071,
+      "analytics.v_ml_predictions_latest": 2270,
+      "warehouse.ranking_record": 44510,
+      "warehouse.subject_ranking_record": 1068,
+      "warehouse.canonical_university": 4059,
+      "warehouse.university_wikipedia_article": 3441,
+      "warehouse.us_institution": 272,
+      "warehouse.us_institution_metric": 7870
+    }
+  }
+}

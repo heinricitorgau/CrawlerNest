@@ -10,7 +10,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RELEASE_DIR="${RELEASE_DIR:-${ROOT_DIR}/docs/releases/v0.3-multi-year-snapshot}"
+RELEASE_DIR="${RELEASE_DIR:-${ROOT_DIR}/docs/releases/v0.3.1-qs-2017-relabel}"
 PYTHON_BIN="${ROOT_DIR}/.venv/bin/python"
 [[ -x "${PYTHON_BIN}" ]] || PYTHON_BIN="python3"
 export PGHOST="${PGHOST:-localhost}" PGPORT="${PGPORT:-5432}" PGUSER="${PGUSER:-test}"
