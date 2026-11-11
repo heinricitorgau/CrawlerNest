@@ -15,7 +15,7 @@ CrawlerNest authenticates with a **signed JWT in an http-only cookie**, verified
 3. The token is set in `Set-Cookie` as `crawlernest_token` — `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age` = the token TTL — and forwarded through the Next.js proxy (`src/lib/authProxy.ts`) to the browser.
 4. Subsequent requests carry the cookie, which the proxy forwards to Spring Boot. `JwtCookieAuthenticationFilter` verifies it, checks that the account is active and still at the token's generation (`warehouse.app_user.token_version`, one primary-key read), and puts an `AuthenticatedUser` in the security context. An `Authorization: Bearer <token>` header works too, for callers that are not browsers.
 5. `SecurityConfig` closes `/api/v1/user/**` and `/api/v1/admin/**` to unauthenticated callers; everything else — the whole read-only analytics API — stays public. User-owned endpoints read the id from `AuthenticatedUser.currentId()`, never from the request body.
-6. `POST /api/v1/auth/signout` returns the same cookie expired (`Max-Age=0`). `POST /api/v1/auth/signout-everywhere` also increments the account's token generation, which ends every token issued to it; a password reset does the same.
+6. `POST /api/v1/auth/signout` returns the same cookie expired (`Max-Age=0`). `POST /api/v1/auth/signout-everywhere` ("Sign out everywhere" in the nav bar) also increments the account's token generation, which ends every token issued to it; a password reset does the same.
 
 ### What it provides
 
@@ -107,7 +107,6 @@ Unset, `JwtService` generates a key for the process and logs a warning. Everyone
 | Restarting with no configured secret signs everyone out | Only when `CRAWLERNEST_JWT_SECRET` is unset. With it set, restarts are transparent. |
 | No sign-out notification | Other browser tabs do not detect sign-out until the next API call. |
 | No concurrent session limit | A user can hold tokens in several browsers at once; they cannot be listed, only ended together. |
-| No sign-out-everywhere button yet | The endpoint and the Next.js route (`/api/auth/signout-everywhere`) exist; no page calls them. |
 
 ---
 

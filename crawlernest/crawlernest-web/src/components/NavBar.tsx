@@ -107,6 +107,22 @@ export default function NavBar() {
     await refresh();
   }
 
+  /** Ends every token for this account, on every device, then refreshes like a sign-out. */
+  async function handleSignOutEverywhere() {
+    if (!window.confirm("Sign out on every device where this account is signed in?")) {
+      return;
+    }
+    try {
+      await fetch("/api/auth/signout-everywhere", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      /* ignore network errors — state will update anyway */
+    }
+    await refresh();
+  }
+
   return (
     <nav className="shell-bar" aria-label="Main">
       <div className="shell-bar__inner">
@@ -152,6 +168,12 @@ export default function NavBar() {
               <span className="shell-email">{currentUser.email}</span>
               <button onClick={handleSignOut} className="btn btn--secondary">
                 Sign out
+              </button>
+              <button
+                onClick={handleSignOutEverywhere}
+                className="shell-hide-sm text-xs underline underline-offset-4 text-(--color-muted) hover:text-(--color-ink)"
+              >
+                Sign out everywhere
               </button>
             </>
           ) : (
