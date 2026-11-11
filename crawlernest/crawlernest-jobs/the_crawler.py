@@ -13,9 +13,15 @@ from urllib.parse import urljoin
 
 import requests
 
-from ranking_edition import THE_EDITION_PAGE, EditionMismatchError, VerifiedEdition, verify_the_edition_page
+from ranking_edition import (
+    THE_EDITION_PAGE,
+    EditionMismatchError,
+    UnexpectedResponseError,
+    VerifiedEdition,
+    verify_the_edition_page,
+)
 from snapshot_guard import check_snapshot_regression
-from transport import get_with_transient_retry
+from transport import get_with_transient_retry, raise_if_blocked
 
 
 BASE_URL = "https://www.timeshighereducation.com"
@@ -490,8 +496,9 @@ def _load_verified_edition(year: int, session: requests.Session) -> tuple[list[d
         response = get_with_transient_retry(session, page_url, headers=DEFAULT_HEADERS, timeout=DEFAULT_TIMEOUT)
     except requests.RequestException as exc:
         raise EditionMismatchError(f"THE edition page {page_url} failed: {exc}") from exc
+    raise_if_blocked(response, page_url)
     if response.status_code != 200:
-        raise EditionMismatchError(f"THE edition page {page_url}: HTTP {response.status_code}")
+        raise UnexpectedResponseError(f"THE edition page {page_url}: HTTP {response.status_code}")
     # The current edition's /<year>/ page redirects to /latest/; the table config
     # still names its year, which is what is checked.
     edition, rows = verify_the_edition_page(response.text, page_url=str(response.url or page_url), ranking_year=year)

@@ -53,6 +53,28 @@ class EditionMismatchError(RuntimeError):
     """The source did not prove it served the edition the crawl was asked for."""
 
 
+class LayoutChangedError(EditionMismatchError):
+    """The page answered but no longer has the table where the parser looks: the site changed, not the edition.
+
+    A subclass so every caller that refuses an unverified edition still refuses this; ``failure_class`` keeps
+    it apart in run_status.json, because the fix is the parser, not the year.
+    """
+
+    failure_class = "layout_changed"
+
+
+class EmptyTableError(EditionMismatchError):
+    """The edition's table is there and verified, and holds no rows."""
+
+    failure_class = "empty_table"
+
+
+class UnexpectedResponseError(EditionMismatchError):
+    """An HTTP error status that is neither a refusal (SourceBlockedError) nor a missing answer (NetworkError)."""
+
+    failure_class = "http_error"
+
+
 @dataclass(frozen=True)
 class VerifiedEdition:
     source: str
@@ -195,12 +217,12 @@ def verify_the_edition_page(html: str, *, page_url: str, ranking_year: int) -> t
         rows = config["rankingsData"]["data"]
         table_year = int(config["year"])
     except (KeyError, TypeError, ValueError):
-        raise EditionMismatchError(f"THE page {page_url} carries no rankings table with a year") from None
+        raise LayoutChangedError(f"THE page {page_url} carries no rankings table with a year") from None
     if table_year != int(ranking_year):
         raise EditionMismatchError(f"THE page {page_url} holds the {table_year} table, not {ranking_year}")
     rows = [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
     if not rows:
-        raise EditionMismatchError(f"THE page {page_url} has an empty {ranking_year} table")
+        raise EmptyTableError(f"THE page {page_url} has an empty {ranking_year} table")
     return VerifiedEdition("THE", table_year, page_url, f"rankingsTableConfig.year={table_year}"), rows
 
 

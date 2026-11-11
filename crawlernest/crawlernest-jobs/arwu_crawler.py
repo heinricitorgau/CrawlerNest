@@ -10,9 +10,16 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urljoin
 
-from ranking_edition import EditionMismatchError, verify_arwu_page_url
+from ranking_edition import EditionMismatchError, LayoutChangedError, verify_arwu_page_url
 from snapshot_guard import check_snapshot_regression
-from transport import REQUEST_ERRORS, build_sync_session, get_with_transient_retry, request_headers, resolve_backend
+from transport import (
+    REQUEST_ERRORS,
+    build_sync_session,
+    get_with_transient_retry,
+    raise_if_blocked,
+    request_headers,
+    resolve_backend,
+)
 
 
 BASE_URL = "https://www.shanghairanking.com"
@@ -57,6 +64,9 @@ def _request_text(url: str, session: Any, headers: dict[str, str] | None = None)
     try:
         response = get_with_transient_retry(
             session, url, headers=DEFAULT_HEADERS if headers is None else headers, timeout=DEFAULT_TIMEOUT)
+        # A refused payload request used to read as None and surface as TruncatedTableError -- a "site
+        # changed" signal for what was a block.
+        raise_if_blocked(response, url)
         response.raise_for_status()
         _sleep()
         return response.text
@@ -541,6 +551,7 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
             print(f"[arwu] page={page_url}")
             try:
                 response = get_with_transient_retry(session, page_url, headers=headers, timeout=DEFAULT_TIMEOUT)
+                raise_if_blocked(response, page_url)
                 response.raise_for_status()
                 _sleep()
             except REQUEST_ERRORS as exc:
@@ -601,7 +612,8 @@ def crawl_arwu_rankings(year: int = 2026, output_dir: Path | None = None) -> Pat
             row["metadata"]["fell_back_from"] = f"{BASE_URL}/rankings/arwu/{year}"
 
     if not normalized_rows:
-        raise RuntimeError("Unable to locate or parse ARWU rankings table.")
+        # Every page answered (a refusal or a lost connection raises before here), and none held a table.
+        raise LayoutChangedError(f"ARWU {year}: no rankings table found on the edition page.")
     if not any(r["metadata"].get("extraction_method") == "nuxt_payload" for r in normalized_rows):
         raise TruncatedTableError(
             f"ARWU {year}: only the rendered table ({len(normalized_rows)} rows) was read; "

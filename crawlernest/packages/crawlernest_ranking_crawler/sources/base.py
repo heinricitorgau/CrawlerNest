@@ -34,6 +34,12 @@ SNAPSHOT_REGRESSION = "snapshot_regression"
 HEALTH_CHECK_FAILED = "health_check_failed"
 INGEST_FAILED = "ingest_failed"
 CRAWL_FAILED = "crawl_failed"
+# Raised by the crawlers with an explicit failure_class (transport.SourceBlockedError and the
+# ranking_edition subclasses of EditionMismatchError); listed here so the vocabulary is in one place.
+BLOCKED = "blocked"
+LAYOUT_CHANGED = "layout_changed"
+EMPTY_TABLE = "empty_table"
+HTTP_ERROR = "http_error"
 
 _CLASSIFICATION_BY_EXCEPTION_NAME = {
     "NetworkError": NETWORK_ERROR,

@@ -226,6 +226,9 @@ def run_all_tests():
         "test_source_run_status",
         # Release manifests and the backup drill: what counts as a match, and that user rows fail a release.
         "test_release_snapshot",
+        # Every known way a source fails, through the real crawler and RankingSource.run, with no network:
+        # blocked, layout_changed, empty_table, http_error, edition_mismatch, network_error, ...
+        "test_source_failure_fixtures",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.

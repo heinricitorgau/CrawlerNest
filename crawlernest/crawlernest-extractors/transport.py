@@ -132,6 +132,33 @@ class NetworkError(RuntimeError):
     failure_class = "network_error"
 
 
+#: Statuses that mean the site refused this client rather than failing: blocked, rate limited, or
+#: unavailable for legal reasons. Retrying soon does not help, and none of them says the site changed.
+BLOCKED_STATUSES = (401, 403, 429, 451)
+
+
+class SourceBlockedError(RuntimeError):
+    """The site answered, and the answer was a refusal (``BLOCKED_STATUSES``).
+
+    Its own class because the remedy differs from every other failure: not a rerun (that is NetworkError), and
+    not a parser fix (that is a layout change), but waiting, another transport, or asking the publisher.
+    """
+
+    failure_class = "blocked"
+
+    def __init__(self, url: str, status: int):
+        super().__init__(f"{url}: HTTP {status} (refused)")
+        self.url = url
+        self.status = status
+
+
+def raise_if_blocked(response: Any, url: str) -> None:
+    """SourceBlockedError when ``response`` is a refusal; nothing otherwise."""
+    status = int(getattr(response, "status_code", 0) or 0)
+    if status in BLOCKED_STATUSES:
+        raise SourceBlockedError(url, status)
+
+
 def get_with_transient_retry(
     session: Any,
     url: str,

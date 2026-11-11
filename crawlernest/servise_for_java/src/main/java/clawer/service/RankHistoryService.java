@@ -47,6 +47,7 @@ public class RankHistoryService {
             JOIN warehouse.ranking_source rs ON rs.ranking_source_id = rr.ranking_source_id
             LEFT JOIN warehouse.source_university_mapping sm ON sm.source_mapping_id = rr.source_mapping_id
             WHERE rr.canonical_university_id = ?
+              AND rr.ranking_year = ANY (?::int[])
               AND rr.ranking_type = 'world'
               AND rr.universe_type = 'global'
               AND rr.universe_key = 'global'
@@ -71,7 +72,8 @@ public class RankHistoryService {
             return null;
         }
         Map<String, Map<Integer, Map<String, Object>>> rows = new HashMap<>();
-        for (Map<String, Object> row : jdbc.queryForList(SQL, canonicalUniversityId)) {
+        // Only the released editions: a shadow ingest must not reach a chart.
+        for (Map<String, Object> row : jdbc.queryForList(SQL, canonicalUniversityId, datasetScope.heldYearsSqlArray())) {
             rows.computeIfAbsent((String) row.get("source_code"), k -> new HashMap<>())
                     .put(((Number) row.get("ranking_year")).intValue(), row);
         }
