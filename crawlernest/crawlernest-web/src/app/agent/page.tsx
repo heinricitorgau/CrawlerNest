@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useHydrated } from "@/hooks/useHydrated";
 import { useSearchParams } from "next/navigation";
 
 import {
@@ -1605,6 +1606,7 @@ export default function AgentPage() {
   // created when the component mounts (one per page load) or when the user
   // explicitly resets the conversation.
   const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID());
+  const hydrated = useHydrated();
 
   // ?debug=1 appearing turns the debug panel on (it never turns it off). Adjusted during render when the query
   // changes, not in an effect after it.
@@ -2717,7 +2719,9 @@ export default function AgentPage() {
                       <p>
                         Session:{" "}
                         <span className="font-mono font-medium text-(--color-ink)">
-                          {sessionId.slice(0, 8)}…
+                          {/* The id is generated separately on the server and in the browser, so it is shown
+                              only once hydrated; the server's is never sent anywhere. */}
+                          {hydrated ? `${sessionId.slice(0, 8)}…` : "…"}
                         </span>
                       </p>
                       <p>
