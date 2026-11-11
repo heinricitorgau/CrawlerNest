@@ -211,7 +211,9 @@ jobs:
 
   matlab-reexecution:
     name: MATLAB sources re-executed (public-repo runner)
-    runs-on: ubuntu-latest
+    # Pinned: on ubuntu-latest's Ubuntu 26.04 image, setup-matlab's apt step could not resolve any Ubuntu mirror
+    # (2026-11-11, twice), and MATLAB's supported runners are 22.04 and 24.04.
+    runs-on: ubuntu-24.04
 
     # Only runs while the repository is public. MathWorks' free GitHub-hosted
     # MATLAB covers public repositories only; on a private one the licence
