@@ -1606,24 +1606,26 @@ export default function AgentPage() {
   // explicitly resets the conversation.
   const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID());
 
-  useEffect(() => {
-    if (debugFromQuery) {
-      setShowDebug(true);
-    }
-  }, [debugFromQuery]);
+  // ?debug=1 appearing turns the debug panel on (it never turns it off). Adjusted during render when the query
+  // changes, not in an effect after it.
+  const [seenDebugFromQuery, setSeenDebugFromQuery] = useState(debugFromQuery);
+  if (seenDebugFromQuery !== debugFromQuery) {
+    setSeenDebugFromQuery(debugFromQuery);
+    if (debugFromQuery) setShowDebug(true);
+  }
 
   useEffect(() => {
     promptRef.current?.focus();
   }, []);
 
-  useEffect(() => {
-    if (!showDebug && mode === "dev") {
-      setMode("web");
-      if (kind === "dev_refinement") {
-        setKind("ranking_explain");
-      }
+  // Dev mode exists only with the debug panel open: closing the panel moves back to web mode in the same render.
+  // Guarded by the condition it clears, so it settles after one pass.
+  if (!showDebug && mode === "dev") {
+    setMode("web");
+    if (kind === "dev_refinement") {
+      setKind("ranking_explain");
     }
-  }, [showDebug, mode, kind]);
+  }
 
   useEffect(() => {
     let cancelled = false;

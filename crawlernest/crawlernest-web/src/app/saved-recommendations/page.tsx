@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuthPlaceholder";
 import { AUTH_MESSAGES } from "@/lib/authMessages";
 import { STANDARD_CAVEATS, editionCaveats } from "@/lib/caveatMessages";
@@ -380,35 +380,37 @@ function SavedList({ items, onDelete, onSessionExpired }: {
   );
 }
 
+/** One read of the saved list, as the state to show. Sets no state, so an effect can call it. */
+async function requestList(): Promise<ListState> {
+  try {
+    const res = await fetch("/api/user/saved-recommendations", { credentials: "include", cache: "no-store" });
+    if (res.ok) {
+      const json = (await res.json()) as { data?: RecommendationSummary[] };
+      return { phase: "ok", items: Array.isArray(json?.data) ? json.data : [] };
+    }
+    return res.status === 401 ? { phase: "session_expired" } : { phase: "unavailable" };
+  } catch {
+    return { phase: "unavailable" };
+  }
+}
+
 export default function SavedRecommendationsPage() {
   const { authenticated, loading: authLoading, refresh: refreshAuth } = useAuth();
   const [listState, setListState] = useState<ListState>({ phase: "loading" });
 
-  const fetchList = useCallback(async () => {
-    if (!authenticated) return;
-    setListState({ phase: "loading" });
-    try {
-      const res = await fetch("/api/user/saved-recommendations", {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (res.ok) {
-        const json = (await res.json()) as { data?: RecommendationSummary[] };
-        setListState({ phase: "ok", items: Array.isArray(json?.data) ? json.data : [] });
-      } else if (res.status === 401) {
-        setListState({ phase: "session_expired" });
-        void refreshAuth();
-      } else {
-        setListState({ phase: "unavailable" });
-      }
-    } catch {
-      setListState({ phase: "unavailable" });
-    }
-  }, [authenticated, refreshAuth]);
-
+  // The list is fetched once signed in; state is set only in the response's callback.
   useEffect(() => {
-    fetchList();
-  }, [fetchList]);
+    if (!authenticated) return;
+    let cancelled = false;
+    void requestList().then((next) => {
+      if (cancelled) return;
+      setListState(next);
+      if (next.phase === "session_expired") void refreshAuth();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, refreshAuth]);
 
   async function handleDelete(id: number) {
     try {

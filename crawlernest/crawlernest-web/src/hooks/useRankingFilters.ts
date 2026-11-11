@@ -80,9 +80,12 @@ export function useRankingFilters(
       .sort((left, right) => left.name.localeCompare(right.name));
   }, [items, metadata.countryOptions, region, scope]);
 
-  useEffect(() => {
+  // The input follows the URL's search when that changes, adjusted during render (not in an effect).
+  const [seenSearchQuery, setSeenSearchQuery] = useState(searchQuery);
+  if (seenSearchQuery !== searchQuery) {
+    setSeenSearchQuery(searchQuery);
     setSearchInput(searchQuery);
-  }, [searchQuery]);
+  }
 
   const navigate = useCallback(
     (updates: Record<string, string | number | null>) => {

@@ -604,9 +604,13 @@ function RankingsHomeContent() {
     };
   }, []);
 
-  useEffect(() => {
+  // The box follows the URL's search when that changes (back, forward, a link). Adjusted during render rather
+  // than in an effect, so the box never shows the old term for a render.
+  const [seenSearch, setSeenSearch] = useState(search);
+  if (seenSearch !== search) {
+    setSeenSearch(search);
     setSearchInput(search);
-  }, [search]);
+  }
 
 
   useEffect(() => {

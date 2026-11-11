@@ -8,37 +8,42 @@ export interface AuthState {
   refresh: () => Promise<void>;
 }
 
+type Me = { authenticated: boolean; user: AuthUser | null };
+
+/** Who is signed in, per the API; any failure reads as signed out. Sets no state, so an effect can call it. */
+async function requestMe(): Promise<Me> {
+  try {
+    const res = await fetch("/api/auth/me", { credentials: "include", cache: "no-store" });
+    if (!res.ok) return { authenticated: false, user: null };
+    const json = (await res.json()) as { data?: AuthUser };
+    return { authenticated: true, user: json?.data ?? null };
+  } catch {
+    return { authenticated: false, user: null };
+  }
+}
+
 export function useAuth(): AuthState {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [me, setMe] = useState<Me>({ authenticated: false, user: null });
   const [loading, setLoading] = useState(true);
 
-  const fetchMe = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/me", {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (res.ok) {
-        const json = (await res.json()) as { data?: AuthUser };
-        setAuthenticated(true);
-        setCurrentUser(json?.data ?? null);
-      } else {
-        setAuthenticated(false);
-        setCurrentUser(null);
-      }
-    } catch {
-      setAuthenticated(false);
-      setCurrentUser(null);
-    } finally {
+  useEffect(() => {
+    let cancelled = false;
+    void requestMe().then((result) => {
+      if (cancelled) return;
+      setMe(result);
       setLoading(false);
-    }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  useEffect(() => {
-    fetchMe();
-  }, [fetchMe]);
+  // From an event (sign-in, sign-out): show loading, then ask again.
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setMe(await requestMe());
+    setLoading(false);
+  }, []);
 
-  return { authenticated, currentUser, loading, refresh: fetchMe };
+  return { authenticated: me.authenticated, currentUser: me.user, loading, refresh };
 }

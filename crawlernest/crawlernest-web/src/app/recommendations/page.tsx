@@ -1124,7 +1124,11 @@ export function RecommendationPageContent({
   const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
   const [shortlistContext] = useShortlist();
 
-
+  // Restores the saved decision session from localStorage once, on mount, and re-runs its query. A deliberate
+  // exception to react-hooks/set-state-in-effect: the session lives in an external store that only exists on the
+  // client, the restore sets about fifteen fields at once, and it must happen after hydration so server and client
+  // render the same empty form. Restructuring the page around it would buy nothing a reader can see.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -1191,7 +1195,10 @@ export function RecommendationPageContent({
         : null,
       restoredState.profileDraft
     );
+    // Mount only: fetchRecommendations is redefined every render, and re-running the restore on each would loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!persistenceReady || typeof window === "undefined") {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useApiResource } from "@/hooks/useApiResource";
 import {
   confidenceConfig,
   confidencePostureLabel,
@@ -73,53 +73,6 @@ interface SourceDisagreementData {
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
-type ApiLoadState<T> =
-  | { status: "loading" }
-  | { status: "ok"; data: T; caveats: string[] }
-  | { status: "error"; message: string };
-
-function useApiFetch<T>(path: string): ApiLoadState<T> {
-  const [state, setState] = useState<ApiLoadState<T>>({ status: "loading" });
-
-  useEffect(() => {
-    let cancelled = false;
-    setState({ status: "loading" });
-
-    fetch(path, { cache: "no-store" })
-      .then(async (res) => {
-        const json = (await res.json()) as {
-          success?: boolean;
-          data?: T;
-          metadata?: { caveats?: string[] };
-          error?: string;
-        };
-        if (cancelled) return;
-        if (!res.ok || json.success === false) {
-          setState({ status: "error", message: json.error ?? `HTTP ${res.status}` });
-        } else {
-          setState({
-            status: "ok",
-            data: json.data as T,
-            caveats: json.metadata?.caveats ?? [],
-          });
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setState({
-            status: "error",
-            message: err instanceof Error ? err.message : "Fetch failed",
-          });
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [path]);
-
-  return state;
-}
 
 // ── UI primitives ─────────────────────────────────────────────────────────────
 
@@ -167,8 +120,8 @@ function formatTs(ts: string | null | undefined): string {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AnalyticsPage() {
-  const trendsState = useApiFetch<RankingTrendsData>("/api/analytics/ranking-trends");
-  const disagreementState = useApiFetch<SourceDisagreementData>(
+  const trendsState = useApiResource<RankingTrendsData>("/api/analytics/ranking-trends");
+  const disagreementState = useApiResource<SourceDisagreementData>(
     "/api/analytics/source-disagreement"
   );
 

@@ -99,7 +99,7 @@ python3 crawlernest/crawlernest-tests/run_tests.py
 ./scripts/smoke_local_stack.sh
 ```
 
-CI: nine workflows, thirteen jobs — see the table in [README.md](../README.md#continuous-integration).
+CI: ten workflows, fourteen jobs — see the table in [README.md](../README.md#continuous-integration).
 `crawlernest/crawlernest-tests/` now runs in `python-tests.yml`, in two jobs: fixture
 mode, and a PostgreSQL job that opts the database tests in with
 `CRAWLERNEST_RUN_PG_TESTS=1`. Locally those tests skip unless you set the same

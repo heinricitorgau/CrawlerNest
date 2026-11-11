@@ -101,87 +101,63 @@ export function ComparePageContent({
   const isClientReady = useHydrated();
   const [shortlist] = useShortlist();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [comparison, setComparison] = useState<CompareResponse["data"] | null>(null);
-  // The edition the displayed comparison came from. While a refetch for another
-  // edition is in flight the old cards stay up, and their caveats must describe them.
-  const [comparisonYear, setComparisonYear] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // When the shortlist changes (and once after hydration), drop selected ids no longer on it and, if fewer than two
+  // remain, fall back to its first entries. Adjusted during render on that change only -- as the effect it replaces
+  // ran -- so deselecting down to one university is still the user's choice.
+  const [reconciledFor, setReconciledFor] = useState<ShortlistItem[] | null>(null);
+  if (isClientReady && reconciledFor !== shortlist) {
+    setReconciledFor(shortlist);
+    const availableIds = new Set(shortlist.map((item) => item.canonicalUniversityId));
+    const pruned = selectedIds.filter((id) => availableIds.has(id)).slice(0, MAX_COMPARE_ITEMS);
+    setSelectedIds(
+      pruned.length >= 2
+        ? pruned
+        : shortlist.slice(0, Math.min(MAX_COMPARE_ITEMS, shortlist.length)).map((item) => item.canonicalUniversityId)
+    );
+  }
+
+  // Each settled comparison is kept with the request it answers. Loading is derived, and while a refetch for
+  // another edition or selection is in flight the previous cards stay up, with the edition they came from.
+  type SettledComparison = { key: string; data: CompareResponse["data"] | null; year: number | null; error: string | null };
+  const requestKey = JSON.stringify([selectedIds, rankingYear]);
+  const [settled, setSettled] = useState<SettledComparison | null>(null);
+  const comparing = isClientReady && selectedIds.length >= 2;
 
   useEffect(() => {
-    if (!isClientReady) {
-      return;
-    }
-
-    setSelectedIds((previous) => {
-      const availableIds = new Set(shortlist.map((item) => item.canonicalUniversityId));
-      const pruned = previous.filter((id) => availableIds.has(id)).slice(0, MAX_COMPARE_ITEMS);
-
-      if (pruned.length >= 2) {
-        return pruned;
-      }
-
-      const fallback = shortlist
-        .slice(0, Math.min(MAX_COMPARE_ITEMS, shortlist.length))
-        .map((item) => item.canonicalUniversityId);
-
-      return fallback;
-    });
-  }, [isClientReady, shortlist]);
-
-  useEffect(() => {
-    if (!isClientReady || selectedIds.length < 2) {
-      setComparison(null);
-      setComparisonYear(null);
-      return;
-    }
-
+    if (!comparing) return;
     let cancelled = false;
-
-    async function fetchComparison() {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetch("/api/compare", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            universityIds: selectedIds,
-            rankingYear,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
+    fetch("/api/compare", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ universityIds: selectedIds, rankingYear }),
+    })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const payload = (await response.json()) as CompareResponse;
         if (!cancelled) {
-          setComparison(payload.data ?? null);
-          setComparisonYear(payload.data ? rankingYear : null);
+          setSettled({ key: requestKey, data: payload.data ?? null, year: payload.data ? rankingYear : null, error: null });
         }
-      } catch {
+      })
+      .catch(() => {
         if (!cancelled) {
-          setComparison(null);
-          setComparisonYear(null);
-          setError(`Unable to load the ${rankingYear} comparison right now. Please try again.`);
+          setSettled({
+            key: requestKey,
+            data: null,
+            year: null,
+            error: `Unable to load the ${rankingYear} comparison right now. Please try again.`,
+          });
         }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    fetchComparison();
-
+      });
     return () => {
       cancelled = true;
     };
-  }, [isClientReady, selectedIds, rankingYear]);
+  }, [comparing, requestKey, selectedIds, rankingYear]);
+
+  const comparison = comparing ? (settled?.data ?? null) : null;
+  const comparisonYear = comparing && settled?.data ? settled.year : null;
+  const loading = comparing && settled?.key !== requestKey;
+  const error = comparing && settled?.key === requestKey ? settled.error : null;
 
   const selectedCount = selectedIds.length;
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);

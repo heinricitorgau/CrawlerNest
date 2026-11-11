@@ -72,30 +72,27 @@ function RemapPicker({
   disabled: boolean;
 }) {
   const [query, setQuery] = useState("");
-  const [options, setOptions] = useState<CanonicalOption[]>([]);
-  const [searching, setSearching] = useState(false);
+  // Results are kept with the query they answer: a query too short to search shows none, and "searching" is a
+  // query whose answer has not arrived -- both derived, so the effect only sets state from a response.
+  const [found, setFound] = useState<{ query: string; options: CanonicalOption[] } | null>(null);
+  const trimmed = query.trim();
+  const searchable = trimmed.length >= 2;
+  const options = searchable && found?.query === trimmed ? found.options : [];
+  const searching = searchable && found?.query !== trimmed;
 
   useEffect(() => {
-    const trimmed = query.trim();
-    if (trimmed.length < 2) {
-      setOptions([]);
-      return;
-    }
+    if (!searchable) return;
     let cancelled = false;
-    setSearching(true);
     const timer = setTimeout(() => {
       fetch(`/api/admin/mapping-reviews/canonical-search?q=${encodeURIComponent(trimmed)}`, {
         cache: "no-store",
       })
         .then(async (res) => {
           const json = (await res.json()) as { data?: { items?: CanonicalOption[] } };
-          if (!cancelled) setOptions(json.data?.items ?? []);
+          if (!cancelled) setFound({ query: trimmed, options: json.data?.items ?? [] });
         })
         .catch(() => {
-          if (!cancelled) setOptions([]);
-        })
-        .finally(() => {
-          if (!cancelled) setSearching(false);
+          if (!cancelled) setFound({ query: trimmed, options: [] });
         });
     }, 250);
 
@@ -103,7 +100,7 @@ function RemapPicker({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [searchable, trimmed]);
 
   return (
     <div className="mt-3 rounded border border-slate-200 bg-white p-3">
@@ -266,12 +263,19 @@ function CandidateCard({
 
 export default function EntityReviewPage() {
   const [status, setStatus] = useState<"pending" | "decided">("pending");
-  const [state, setState] = useState<LoadState>({ status: "loading" });
+  // Each settled list is kept with the request it answers (status and a reload count); "loading" is derived.
+  const [reloads, setReloads] = useState(0);
+  const requestKey = `${status}:${reloads}`;
+  const [settled, setSettled] = useState<{ key: string; state: Exclude<LoadState, { status: "loading" }> } | null>(null);
+  const state: LoadState = settled?.key === requestKey ? settled.state : { status: "loading" };
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
 
-  const load = useCallback(() => {
-    setState({ status: "loading" });
+  useEffect(() => {
+    let cancelled = false;
+    const settle = (next: Exclude<LoadState, { status: "loading" }>) => {
+      if (!cancelled) setSettled({ key: requestKey, state: next });
+    };
     fetch(`/api/admin/mapping-reviews?status=${status}&limit=50`, { cache: "no-store" })
       .then(async (res) => {
         const json = (await res.json()) as {
@@ -280,20 +284,20 @@ export default function EntityReviewPage() {
           error?: string;
         };
         if (!res.ok || json.success === false || !json.data) {
-          setState({ status: "error", message: json.error ?? `HTTP ${res.status}` });
+          settle({ status: "error", message: json.error ?? `HTTP ${res.status}` });
           return;
         }
-        setState({ status: "ok", data: json.data });
+        settle({ status: "ok", data: json.data });
       })
       .catch((err: unknown) => {
-        setState({
-          status: "error",
-          message: err instanceof Error ? err.message : "Fetch failed",
-        });
+        settle({ status: "error", message: err instanceof Error ? err.message : "Fetch failed" });
       });
-  }, [status]);
+    return () => {
+      cancelled = true;
+    };
+  }, [status, requestKey]);
 
-  useEffect(load, [load]);
+  const load = useCallback(() => setReloads((n) => n + 1), []);
 
   const decide = useCallback(
     (

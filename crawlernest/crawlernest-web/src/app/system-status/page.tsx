@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useApiResource } from "@/hooks/useApiResource";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -95,48 +95,6 @@ interface FreshnessData {
 
 // ── Hooks ─────────────────────────────────────────────────────────────────────
 
-type LoadState<T> =
-  | { status: "loading" }
-  | { status: "ok"; data: T }
-  | { status: "error"; message: string };
-
-function useJsonFetch<T>(path: string): LoadState<T> {
-  const [state, setState] = useState<LoadState<T>>({ status: "loading" });
-
-  useEffect(() => {
-    let cancelled = false;
-    setState({ status: "loading" });
-
-    fetch(path, { cache: "no-store" })
-      .then(async (res) => {
-        const json = (await res.json()) as {
-          success?: boolean;
-          data?: T;
-          error?: string;
-        };
-        if (cancelled) return;
-        if (!res.ok || json.success === false) {
-          setState({ status: "error", message: json.error ?? `HTTP ${res.status}` });
-        } else {
-          setState({ status: "ok", data: json.data as T });
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setState({
-            status: "error",
-            message: err instanceof Error ? err.message : "Fetch failed",
-          });
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [path]);
-
-  return state;
-}
 
 // ── Shared UI primitives ───────────────────────────────────────────────────────
 
@@ -274,12 +232,12 @@ interface SnapshotInfo {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function SystemStatusPage() {
-  const healthState = useJsonFetch<HealthData>("/api/health");
-  const rankingsDiagState = useJsonFetch<RankingsDiagData>("/api/diagnostics/rankings");
-  const subjectsDiagState = useJsonFetch<SubjectsDiagData>("/api/diagnostics/subjects");
-  const freshnessState = useJsonFetch<FreshnessData>("/api/freshness");
-  const opsState = useJsonFetch<OperationalStatusData>("/api/diagnostics/operational-status");
-  const snapshotState = useJsonFetch<SnapshotInfo>("/api/snapshot-info");
+  const healthState = useApiResource<HealthData>("/api/health");
+  const rankingsDiagState = useApiResource<RankingsDiagData>("/api/diagnostics/rankings");
+  const subjectsDiagState = useApiResource<SubjectsDiagData>("/api/diagnostics/subjects");
+  const freshnessState = useApiResource<FreshnessData>("/api/freshness");
+  const opsState = useApiResource<OperationalStatusData>("/api/diagnostics/operational-status");
+  const snapshotState = useApiResource<SnapshotInfo>("/api/snapshot-info");
 
   const health = healthState.status === "ok" ? healthState.data : null;
   const rankingsDiag = rankingsDiagState.status === "ok" ? rankingsDiagState.data : null;

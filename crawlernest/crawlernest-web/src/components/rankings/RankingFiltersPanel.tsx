@@ -30,10 +30,15 @@ export default function RankingFiltersPanel({
   const [countryFilterOpen, setCountryFilterOpen] = useState(false);
   const [countryFilterSearch, setCountryFilterSearch] = useState("");
 
-  useEffect(() => {
+  // A new scope, region or country closes and clears the country picker. Adjusted during render when the filter
+  // changes (React's pattern for resetting state on a prop change), rather than in an effect after it.
+  const filterKey = `${scope}|${region}|${country}`;
+  const [seenFilterKey, setSeenFilterKey] = useState(filterKey);
+  if (seenFilterKey !== filterKey) {
+    setSeenFilterKey(filterKey);
     setCountryFilterSearch("");
     setCountryFilterOpen(false);
-  }, [scope, region, country]);
+  }
 
   useEffect(() => {
     if (!countryFilterOpen) {

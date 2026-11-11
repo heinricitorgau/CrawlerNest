@@ -1,0 +1,48 @@
+name: Web Tests
+
+# The web app's Jest suite (500+ tests) ran nowhere in CI: Release Smoke builds the app, and a build compiles only
+# what the routes import, so the tests, the type check of the test files and the lint rules were left to whoever
+# remembered. This runs all three; any one failing fails the job.
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "crawlernest/crawlernest-web/**"
+      - ".github/workflows/web-tests.yml"
+  pull_request:
+    paths:
+      - "crawlernest/crawlernest-web/**"
+      - ".github/workflows/web-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  web-tests:
+    name: tsc, eslint and Jest (crawlernest-web)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: crawlernest/crawlernest-web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: crawlernest/crawlernest-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Includes the test files, which next build does not type-check.
+      - name: Type check
+        run: npx tsc --noEmit -p .
+
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+
+      - name: Jest
+        run: npm test -- --ci

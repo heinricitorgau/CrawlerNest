@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useApiResource } from "@/hooks/useApiResource";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -98,46 +98,6 @@ interface SourceAgreementData {
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
-type LoadState<T> =
-  | { status: "loading" }
-  | { status: "ok"; data: T }
-  | { status: "error"; message: string };
-
-function useJsonFetch<T>(path: string): LoadState<T> {
-  const [state, setState] = useState<LoadState<T>>({ status: "loading" });
-
-  useEffect(() => {
-    let cancelled = false;
-    setState({ status: "loading" });
-
-    fetch(path, { cache: "no-store" })
-      .then(async (res) => {
-        const json = (await res.json()) as {
-          success?: boolean;
-          data?: T;
-          error?: string;
-        };
-        if (cancelled) return;
-        if (!res.ok || json.success === false) {
-          setState({ status: "error", message: json.error ?? `HTTP ${res.status}` });
-        } else {
-          setState({ status: "ok", data: json.data as T });
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          setState({
-            status: "error",
-            message: err instanceof Error ? err.message : "Fetch failed",
-          });
-        }
-      });
-
-    return () => { cancelled = true; };
-  }, [path]);
-
-  return state;
-}
 
 // ── UI primitives ─────────────────────────────────────────────────────────────
 
@@ -197,8 +157,8 @@ function formatTs(ts: string | null | undefined): string {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DataQualityPage() {
-  const dqState = useJsonFetch<DataQualityData>("/api/diagnostics/data-quality");
-  const agreementState = useJsonFetch<SourceAgreementData>("/api/diagnostics/source-agreement");
+  const dqState = useApiResource<DataQualityData>("/api/diagnostics/data-quality");
+  const agreementState = useApiResource<SourceAgreementData>("/api/diagnostics/source-agreement");
   const dq = dqState.status === "ok" ? dqState.data : null;
   const agreement = agreementState.status === "ok" ? agreementState.data : null;
 

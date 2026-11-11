@@ -8,6 +8,25 @@ export type SavedUniversityItem = {
   savedAt: string;
 };
 
+type SavedResult = { items: SavedUniversityItem[]; expired: boolean };
+
+/** The signed-in user's saved universities; a 401 is an expired session, any other failure an empty list. */
+async function requestSaved(): Promise<SavedResult> {
+  try {
+    const res = await fetch("/api/user/saved-universities", { credentials: "include", cache: "no-store" });
+    if (res.ok) {
+      const json = (await res.json()) as { data?: SavedUniversityItem[] };
+      return { items: Array.isArray(json?.data) ? json.data : [], expired: false };
+    }
+    return { items: [], expired: res.status === 401 };
+  } catch {
+    return { items: [], expired: false };
+  }
+}
+
+const EMPTY_IDS: Set<number> = new Set();
+const EMPTY_ITEMS: SavedUniversityItem[] = [];
+
 export function useSavedUniversities(
   authenticated: boolean,
   onSessionExpired?: () => void
@@ -17,51 +36,38 @@ export function useSavedUniversities(
   const [loading, setLoading] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
 
-  // Stable ref so the callback never forces fetchSaved to re-create.
+  // Stable ref so a new callback from the caller never re-creates apply.
   const onSessionExpiredRef = useRef(onSessionExpired);
   useEffect(() => {
     onSessionExpiredRef.current = onSessionExpired;
   });
 
-  const fetchSaved = useCallback(async () => {
-    if (!authenticated) {
-      setSavedIds(new Set());
-      setSavedItems([]);
-      setSessionExpired(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch("/api/user/saved-universities", {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (res.ok) {
-        const json = (await res.json()) as { data?: SavedUniversityItem[] };
-        const items = Array.isArray(json?.data) ? json.data : [];
-        setSavedItems(items);
-        setSavedIds(new Set(items.map((i) => i.canonicalUniversityId)));
-        setSessionExpired(false);
-      } else if (res.status === 401) {
-        setSavedIds(new Set());
-        setSavedItems([]);
-        setSessionExpired(true);
-        onSessionExpiredRef.current?.();
-      } else {
-        setSavedIds(new Set());
-        setSavedItems([]);
-      }
-    } catch {
-      setSavedIds(new Set());
-      setSavedItems([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [authenticated]);
+  // The result of one request, applied to state by the caller: the effect applies it in a callback, so it never
+  // sets state synchronously. Signed out, nothing is fetched and the returned values are empty by derivation.
+  const apply = useCallback((result: SavedResult) => {
+    setSavedItems(result.items);
+    setSavedIds(new Set(result.items.map((i) => i.canonicalUniversityId)));
+    setSessionExpired(result.expired);
+    setLoading(false);
+    if (result.expired) onSessionExpiredRef.current?.();
+  }, []);
 
   useEffect(() => {
-    fetchSaved();
-  }, [fetchSaved]);
+    if (!authenticated) return;
+    let cancelled = false;
+    void requestSaved().then((result) => {
+      if (!cancelled) apply(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, apply]);
+
+  const refresh = useCallback(async () => {
+    if (!authenticated) return;
+    setLoading(true);
+    apply(await requestSaved());
+  }, [authenticated, apply]);
 
   async function toggleSave(item: { canonicalUniversityId: number }) {
     const id = item.canonicalUniversityId;
@@ -91,7 +97,7 @@ export function useSavedUniversities(
         credentials: "include",
       });
       if (res.ok) {
-        fetchSaved();
+        void refresh();
       } else if (res.status === 401) {
         revert();
         setSessionExpired(true);
@@ -104,5 +110,8 @@ export function useSavedUniversities(
     }
   }
 
-  return { savedIds, savedItems, loading, toggleSave, refresh: fetchSaved, sessionExpired };
+  if (!authenticated) {
+    return { savedIds: EMPTY_IDS, savedItems: EMPTY_ITEMS, loading: false, toggleSave, refresh, sessionExpired: false };
+  }
+  return { savedIds, savedItems, loading, toggleSave, refresh, sessionExpired };
 }

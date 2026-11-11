@@ -19,7 +19,8 @@ export type AgentChatResult = {
   warnings: string[];
 };
 
-type ProviderEnv = NodeJS.ProcessEnv;
+// Only the variables read here; a caller (or a test) need not supply the rest of the process environment.
+type ProviderEnv = Readonly<Record<string, string | undefined>>;
 type FetchLike = typeof fetch;
 
 export const MAX_AGENT_MESSAGE_LENGTH = 4000;
