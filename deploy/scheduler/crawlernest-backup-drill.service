@@ -1,0 +1,16 @@
+# Take a full backup, restore it into a scratch database, compare every table with live, then keep only the
+# newest four drill backups (scripts/release_snapshot.py drill). The live database is only read. Started only by
+# the matching .timer. Report: <repo>/.local/reports/backup_drill/latest.json.
+[Unit]
+Description=CrawlerNest backup drill (dump, restore to scratch, compare)
+After=postgresql.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/crawlernest/scheduler.env
+WorkingDirectory=%h
+ExecStart=/bin/sh -c 'cd "$CRAWLERNEST_REPO" && PGPASSWORD="$CRAWLERNEST_PG_PASSWORD" exec "$CRAWLERNEST_PYTHON" scripts/release_snapshot.py --pg-host "$CRAWLERNEST_PG_HOST" --pg-user "$CRAWLERNEST_PG_USER" --pg-database "$CRAWLERNEST_PG_DATABASE" drill --keep 4'
+TimeoutStartSec=1h
+Nice=10
+StandardOutput=append:%h/.crawlernest/scheduled_refresh/backup_drill.log
+StandardError=append:%h/.crawlernest/scheduled_refresh/backup_drill.log

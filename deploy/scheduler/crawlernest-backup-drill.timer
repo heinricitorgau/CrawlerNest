@@ -1,0 +1,13 @@
+# Weekly, the day before the Monday refresh: if the refresh damages anything, the newest backup is one that has
+# been shown to restore. Persistent runs a missed drill at the next boot.
+[Unit]
+Description=Run the CrawlerNest backup drill weekly
+
+[Timer]
+OnCalendar=Sun *-*-* 04:30:00
+RandomizedDelaySec=30min
+Persistent=true
+Unit=crawlernest-backup-drill.service
+
+[Install]
+WantedBy=timers.target

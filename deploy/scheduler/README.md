@@ -9,7 +9,14 @@ a way to.
 |---|---|
 | `crawlernest-scheduled-refresh.service` | oneshot: `python -m crawlernest.run_pipeline scheduled-refresh` |
 | `crawlernest-scheduled-refresh.timer` | weekly, Monday 03:30 ± 45 min, catches up after downtime |
-| `install_scheduler.sh` | installs both as systemd user units and enables the timer |
+| `crawlernest-backup-drill.service` | oneshot: `scripts/release_snapshot.py drill --keep 4` -- full dump, restore into a scratch database, compare every table with live, keep the newest four drill dumps |
+| `crawlernest-backup-drill.timer` | weekly, Sunday 04:30 ± 30 min, the day before the refresh |
+| `install_scheduler.sh` | installs all four as systemd user units and enables both timers |
+
+The drill reads the live database and writes only to a scratch database (`clawer_backup_drill`, dropped after),
+`.local/backups/` and `.local/reports/backup_drill/latest.json`. It prunes only its own dumps
+(`crawlernest_<db>_<stamp>.dump`), and only after a passing drill; named backups such as
+`qs_archive_pre_ingest_*` are never touched.
 
 ```bash
 deploy/scheduler/install_scheduler.sh --repo ~/dev/University-Data-Infrastructure-Web-Platform

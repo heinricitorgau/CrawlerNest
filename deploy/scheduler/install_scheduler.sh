@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the scheduled-refresh timer as a systemd *user* unit.
+# Install the scheduled-refresh and backup-drill timers as systemd *user* units.
 #
 #   deploy/scheduler/install_scheduler.sh [--repo PATH] [--python PATH]
 #
@@ -39,6 +39,8 @@ fi
 
 install -m 0644 "$here/crawlernest-scheduled-refresh.service" "$unit_dir/"
 install -m 0644 "$here/crawlernest-scheduled-refresh.timer" "$unit_dir/"
+install -m 0644 "$here/crawlernest-backup-drill.service" "$unit_dir/"
+install -m 0644 "$here/crawlernest-backup-drill.timer" "$unit_dir/"
 systemctl --user daemon-reload
-systemctl --user enable --now crawlernest-scheduled-refresh.timer
-systemctl --user list-timers crawlernest-scheduled-refresh.timer --no-pager
+systemctl --user enable --now crawlernest-scheduled-refresh.timer crawlernest-backup-drill.timer
+systemctl --user list-timers crawlernest-scheduled-refresh.timer crawlernest-backup-drill.timer --no-pager

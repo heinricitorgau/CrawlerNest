@@ -21,6 +21,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -315,7 +316,25 @@ def cmd_drill(args: argparse.Namespace) -> int:
             print(f"  {line}")
         return 1
     print(f"OK   backup drill: {report['tables_compared']} tables, {report['rows_restored']} rows restored and equal to live")
+    if not args.backup and args.keep > 0:
+        for old in prune_drill_backups(backups, args.pg_database, keep=args.keep):
+            print(f"pruned {old.name}")
     return 0
+
+
+def prune_drill_backups(directory: Path, database: str, *, keep: int) -> list[Path]:
+    """Delete all but the newest ``keep`` dumps the drill wrote itself, and say which.
+
+    Only ``crawlernest_<database>_<UTC stamp>.dump`` -- the drill's own name -- is ever touched: the named backups
+    a loader takes before a migration (``qs_archive_pre_ingest_*``) are kept whatever their age. Called only after
+    a drill passed, so the newest kept dump is one that is known to restore.
+    """
+    pattern = re.compile(rf"^crawlernest_{re.escape(database)}_\d{{8}}T\d{{6}}Z\.dump$")
+    own = sorted((p for p in directory.glob("*.dump") if pattern.match(p.name)), key=lambda p: p.name, reverse=True)
+    removed = own[max(keep, 1):]
+    for path in removed:
+        path.unlink()
+    return removed
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
@@ -362,6 +381,8 @@ def main(argv: list[str] | None = None) -> int:
     drill.add_argument("--backup", help="an existing pg_dump custom archive; default: take a fresh one into .local/backups/")
     drill.add_argument("--scratch-database", default="clawer_backup_drill")
     drill.add_argument("--keep-scratch", action="store_true")
+    drill.add_argument("--keep", type=int, default=4,
+                       help="after a passing drill, keep this many of the drill's own dumps (default 4; 0 keeps all)")
     drill.set_defaults(func=cmd_drill)
     args = parser.parse_args(argv)
     return int(args.func(args))

@@ -56,5 +56,30 @@ class CompareTest(unittest.TestCase):
             self.assertIn(pattern, release_snapshot.USER_DATA_PATTERNS)
 
 
+class PruneTest(unittest.TestCase):
+    def test_only_the_drills_own_dumps_are_pruned_newest_kept(self):
+        import tempfile
+
+        folder = Path(tempfile.mkdtemp())
+        own = [f"crawlernest_clawer_2026110{d}T030000Z.dump" for d in range(1, 7)]
+        others = ["qs_archive_pre_ingest_2024_clawer_20261003T085057Z.dump", "crawlernest_otherdb_20261101T030000Z.dump",
+                  "crawlernest_clawer_manual.dump"]
+        for name in own + others:
+            (folder / name).write_bytes(b"x")
+
+        removed = release_snapshot.prune_drill_backups(folder, "clawer", keep=4)
+
+        self.assertEqual(sorted(p.name for p in removed), own[:2])
+        left = sorted(p.name for p in folder.iterdir())
+        self.assertEqual(left, sorted(own[2:] + others))
+
+    def test_at_least_one_dump_is_always_kept(self):
+        import tempfile
+
+        folder = Path(tempfile.mkdtemp())
+        (folder / "crawlernest_clawer_20261101T030000Z.dump").write_bytes(b"x")
+        self.assertEqual(release_snapshot.prune_drill_backups(folder, "clawer", keep=0), [])
+
+
 if __name__ == "__main__":
     unittest.main()
