@@ -50,6 +50,9 @@ public class RecommendationController {
             @RequestParam(name = "ranking_year", required = false) Integer rankingYearSnakeCase,
             @RequestParam(name = "subject", required = false) String subject,
             @RequestParam(name = "subject_key", required = false) String subjectSnakeCase,
+            @RequestParam(name = "maxNetPrice", required = false) Integer maxNetPrice,
+            @RequestParam(name = "minAdmissionRate", required = false) Double minAdmissionRate,
+            @RequestParam(name = "maxAdmissionRate", required = false) Double maxAdmissionRate,
             @RequestParam(defaultValue = "10") Integer limit,
             @RequestParam(defaultValue = "v3") String version
     ) {
@@ -76,6 +79,11 @@ public class RecommendationController {
                         limit
                 ));
             }
+            boolean federalFilterGiven = maxNetPrice != null || minAdmissionRate != null || maxAdmissionRate != null;
+            if (federalFilterGiven && !"v3".equalsIgnoreCase(version)) {
+                // Refused rather than ignored: a list that silently skipped the filter would look filtered.
+                throw new IllegalArgumentException("US federal filters (maxNetPrice, minAdmissionRate, maxAdmissionRate) need version v3.");
+            }
             if ("v3".equalsIgnoreCase(version)) {
                 if (resolvedTargetRank == null) {
                     throw new IllegalArgumentException("targetRank is required for recommendation v3.");
@@ -93,7 +101,10 @@ public class RecommendationController {
                         resolvedPreferredRankingSource,
                         resolvedSubject,
                         resolvedRankingYear,
-                        limit
+                        limit,
+                        federalFilterGiven
+                                ? recommendationService.usFederalFilter(maxNetPrice, minAdmissionRate, maxAdmissionRate)
+                                : clawer.service.UsFederalFilter.none()
                 );
                 return clawer.dto.ApiResponse.success(Map.of(
                         "reach", res.getReach(),

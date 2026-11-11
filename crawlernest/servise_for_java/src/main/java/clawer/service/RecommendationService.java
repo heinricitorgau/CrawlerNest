@@ -267,6 +267,11 @@ public class RecommendationService {
         );
     }
 
+    /** Loads a US federal filter for these bounds; {@link UsFederalFilter#none()} when none is given. */
+    public UsFederalFilter usFederalFilter(Integer maxNetPrice, Double minAdmissionRate, Double maxAdmissionRate) {
+        return UsFederalFilter.load(jdbcTemplate, maxNetPrice, minAdmissionRate, maxAdmissionRate);
+    }
+
     public RecommendationGroupResponse getRecommendationsV3(
             String country,
             String scope,
@@ -281,6 +286,31 @@ public class RecommendationService {
             String subjectKey,
             Integer rankingYear,
             Integer limit
+    ) {
+        return getRecommendationsV3(country, scope, region, shortlist, countryPolicy, ieltsScore, targetRank,
+                riskProfile, preferenceWeights, preferredRankingSource, subjectKey, rankingYear, limit,
+                UsFederalFilter.none());
+    }
+
+    /**
+     * As above, with a US federal filter ({@link UsFederalFilter}). The filter removes candidates before they
+     * are scored, so the limit is filled from the candidates that pass; it never changes a score.
+     */
+    public RecommendationGroupResponse getRecommendationsV3(
+            String country,
+            String scope,
+            String region,
+            String shortlist,
+            String countryPolicy,
+            Double ieltsScore,
+            Integer targetRank,
+            String riskProfile,
+            String preferenceWeights,
+            String preferredRankingSource,
+            String subjectKey,
+            Integer rankingYear,
+            Integer limit,
+            UsFederalFilter usFederalFilter
     ) {
         if (targetRank == null || targetRank <= 0) {
             throw new IllegalArgumentException("targetRank is required for recommendation v3.");
@@ -305,6 +335,9 @@ public class RecommendationService {
         int candidateCount = 0;
         for (Candidate candidate : candidates) {
             if (!passesV3Constraints(candidate, country, resolvedCountryPolicy, preferredRankingSource)) {
+                continue;
+            }
+            if (!usFederalFilter.keeps(candidate.canonicalUniversityId)) {
                 continue;
             }
             RecommendationResult result = scoreCandidateV3(
@@ -385,6 +418,7 @@ public class RecommendationService {
                 )
         ));
         metadata.put("admission_caveats", admissionCaveats(grouped));
+        metadata.put("us_federal_filter", usFederalFilter.describe());
         if (grouped.get("reach").isEmpty() && grouped.get("target").isEmpty() && grouped.get("safety").isEmpty()) {
             metadata.put(
                     "no_results_reason",

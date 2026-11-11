@@ -414,6 +414,11 @@ US_FEDERAL_SOURCE_CAVEAT = (
 )
 
 #: Always. Each figure carries its own reference period, and they differ by a decade.
+#: Carried by a recommendation list filtered on US federal figures. A filter, never a score input.
+US_FEDERAL_FILTER_CAVEAT = (
+    "A filter on US federal figures keeps a university only when its College Scorecard or IPEDS figure is reported, or imputed by NCES, and inside the range. Universities outside the United States and Puerto Rico, and US ones without that figure here, are left out rather than guessed, and the response counts them. The figures narrow the list only; they change no score, rank or confidence."
+)
+
 US_FEDERAL_PERIODS_CAVEAT = (
     "Each figure describes its own period, shown beside it. An admission rate is for one entering class, "
     "while earnings follow students who entered about a decade earlier, so the figures are not one year's snapshot."

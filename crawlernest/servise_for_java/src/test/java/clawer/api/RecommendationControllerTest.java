@@ -8,6 +8,7 @@ import clawer.model.RecommendationGroupResponse;
 import clawer.model.RecommendationResult;
 import clawer.service.RecommendationEvidenceService;
 import clawer.service.RecommendationService;
+import clawer.service.UsFederalFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -58,7 +59,7 @@ class RecommendationControllerTest {
                 6.5, null, 100, null,
                 "balanced", null, null, null,
                 null, null, null, null, null, null,
-                null, null, 10, "v2"
+                null, null, null, null, null, 10, "v2"
         );
 
         ApiResponse<?> apiResponse = assertInstanceOf(ApiResponse.class, response);
@@ -86,7 +87,7 @@ class RecommendationControllerTest {
                 6.5, null, 100, null,
                 "balanced", null, null, null,
                 null, null, null, null, null, null,
-                null, null, 5, "v3"
+                null, null, null, null, null, 5, "v3"
         );
 
         ApiResponse<?> apiResponse = assertInstanceOf(ApiResponse.class, response);
@@ -132,7 +133,7 @@ class RecommendationControllerTest {
                 null, 6.5, null, 100,
                 null, "conservative", null, "hard_filter",
                 null, null, null, null, null, null,
-                null, null, 3, "v3"
+                null, null, null, null, null, 3, "v3"
         );
 
         ApiResponse<?> apiResponse = assertInstanceOf(ApiResponse.class, response);
@@ -153,7 +154,31 @@ class RecommendationControllerTest {
                 6.5, null, null, null,
                 "balanced", null, null, null,
                 null, null, null, null, null, null,
-                null, null, 10, null
+                null, null, null, null, null, 10, null
+        ));
+    }
+
+    @Test
+    void usFederalFiltersReachTheServiceOnV3AndAreRefusedOnOtherVersions() {
+        FakeRecommendationService service = new FakeRecommendationService();
+        service.v3Response = new RecommendationGroupResponse(List.of(), List.of(), List.of(), Map.of("version", "v3"));
+        RecommendationController controller = new RecommendationController(service, mock(RecommendationEvidenceService.class));
+
+        controller.getRecommendations(
+                null, null, null, null,
+                null, null, 100, null,
+                null, null, null, null,
+                null, null, null, null, null, null,
+                null, null, 30000, 0.1, 0.6, 5, "v3"
+        );
+        assertEquals(java.util.Arrays.asList(30000, 0.1, 0.6), service.lastFilterBounds);
+
+        assertThrows(ResponseStatusException.class, () -> controller.getRecommendations(
+                null, null, null, null,
+                null, null, 100, null,
+                null, null, null, null,
+                null, null, null, null, null, null,
+                null, null, 30000, null, null, 5, "v2"
         ));
     }
 
@@ -164,6 +189,8 @@ class RecommendationControllerTest {
         private String lastScope;
         private String lastRegion;
         private String lastShortlist;
+        private UsFederalFilter lastFilter;
+        private List<Object> lastFilterBounds;
 
         private FakeRecommendationService() {
             super(new NoopScopedRankingReadAdapter(), mock(JdbcTemplate.class), new ObjectMapper());
@@ -210,6 +237,24 @@ class RecommendationControllerTest {
             this.lastRegion = region;
             this.lastShortlist = shortlist;
             return v3Response;
+        }
+
+        @Override
+        public RecommendationGroupResponse getRecommendationsV3(
+                String country, String scope, String region, String shortlist, String countryPolicy,
+                Double ieltsScore, Integer targetRank, String riskProfile, String preferenceWeights,
+                String preferredRankingSource, String subjectKey, Integer rankingYear, Integer limit,
+                UsFederalFilter usFederalFilter
+        ) {
+            this.lastFilter = usFederalFilter;
+            return getRecommendationsV3(country, scope, region, shortlist, countryPolicy, ieltsScore, targetRank,
+                    riskProfile, preferenceWeights, preferredRankingSource, subjectKey, rankingYear, limit);
+        }
+
+        @Override
+        public UsFederalFilter usFederalFilter(Integer maxNetPrice, Double minAdmissionRate, Double maxAdmissionRate) {
+            this.lastFilterBounds = java.util.Arrays.asList(maxNetPrice, minAdmissionRate, maxAdmissionRate);
+            return UsFederalFilter.none();
         }
     }
 

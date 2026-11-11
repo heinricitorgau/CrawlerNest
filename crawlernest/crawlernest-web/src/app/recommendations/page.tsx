@@ -18,6 +18,13 @@ import { AdmissionSignalBadge } from "@/components/AdmissionSignalBadge";
 import { PlanComparisonMatrix } from "@/components/PlanComparisonMatrix";
 import RecommendationExplanation from "@/components/RecommendationExplanation";
 import {
+  UsFederalFilterFields,
+  UsFederalFilterSummary,
+  usFederalFilterParams,
+  type UsFederalFilterMetadata,
+  type UsFederalFilterValues,
+} from "@/components/UsFederalFilter";
+import {
   formatIelts,
   formatRank,
   formatScore,
@@ -385,6 +392,8 @@ type RecommendationResponse = {
     candidate_count?: number;
     /** CAVEAT_ADMISSION_DATA_STALE for the returned universities, rendered by the API with its date. */
     admission_caveats?: string[];
+    /** What the US federal filter kept and left out, and its caveats; `applied: false` when none was given. */
+    us_federal_filter?: UsFederalFilterMetadata;
     counts?: {
       reach?: number;
       target?: number;
@@ -1071,6 +1080,10 @@ export function RecommendationPageContent({
   const [targetRank, setTargetRank] = useState(DEFAULT_TARGET_RANK);
   const [riskProfile, setRiskProfile] = useState("balanced");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [usFederalFilter, setUsFederalFilter] = useState<UsFederalFilterValues>({
+    maxNetPrice: "",
+    minAdmissionRatePercent: "",
+  });
   const [scenarioIeltsDelta, setScenarioIeltsDelta] = useState<number | "">("");
   const [scenarioToeflDelta, setScenarioToeflDelta] = useState<number | "">("");
   const [scenarioGpaDelta, setScenarioGpaDelta] = useState<number | "">("");
@@ -1474,6 +1487,9 @@ export function RecommendationPageContent({
       }
       if (selectedSubject) {
         params.set("subject", selectedSubject);
+      }
+      for (const [key, value] of Object.entries(usFederalFilterParams(effectiveCountry, usFederalFilter))) {
+        params.set(key, value);
       }
       const requestedYear = rankingYear;
       params.set("rankingYear", String(requestedYear));
@@ -2054,6 +2070,8 @@ export function RecommendationPageContent({
                 placeholder="e.g. 120"
               />
             </label>
+
+            <UsFederalFilterFields country={country} values={usFederalFilter} onChange={setUsFederalFilter} />
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -2254,6 +2272,7 @@ export function RecommendationPageContent({
             <CaveatBanner
               caveats={[...editionCaveats(resultYear ?? rankingYear), ...(metadata?.admission_caveats ?? [])]}
             />
+            <UsFederalFilterSummary filter={metadata?.us_federal_filter} />
             {decisionSummary ? (
               <section className="rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-(--color-ink)">

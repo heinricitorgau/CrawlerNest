@@ -35,7 +35,7 @@ This document lists the current Spring Boot API surface used by the product UI, 
 
 | Method | Path | Purpose | Response summary |
 | --- | --- | --- | --- |
-| `GET` | `/api/v1/recommendations` | Rank-aware recommendation groups. | Reach, target, and safety recommendation groups with explanations. |
+| `GET` | `/api/v1/recommendations` | Rank-aware recommendation groups. Optional US federal filters (v3 only; 400 on another version): `maxNetPrice` (US$ a year, College Scorecard average net price) and `minAdmissionRate` / `maxAdmissionRate` (fractions 0-1). They remove candidates before scoring and change no score, rank or confidence. | Reach, target, and safety recommendation groups with explanations. `metadata.us_federal_filter` says `applied`, and when applied the `bounds`, how many candidates were `kept`, how many were `excluded` per reason (`no_federal_record`, `figure_not_reported`, `outside_range` -- a missing figure never passes), the figures' `reference_periods` and its `caveats`. |
 | `POST` | `/api/v1/compare` | Compare selected universities. | Side-by-side university comparison result. |
 
 ## Diagnostics API

@@ -307,6 +307,10 @@ export const CAVEAT_DISAGREEMENT_ESTIMATE =
 export const CAVEAT_US_FEDERAL_SOURCE =
   "These figures are published by the U.S. Department of Education (College Scorecard) and NCES (IPEDS), not by a ranking source. They are not part of any CrawlerNest rank, composite score or confidence label, and they cover US and Puerto Rico institutions only.";
 
+/** Shown with a recommendation list filtered on US federal figures. */
+export const CAVEAT_US_FEDERAL_FILTER =
+  "A filter on US federal figures keeps a university only when its College Scorecard or IPEDS figure is reported, or imputed by NCES, and inside the range. Universities outside the United States and Puerto Rico, and US ones without that figure here, are left out rather than guessed, and the response counts them. The figures narrow the list only; they change no score, rank or confidence.";
+
 export const CAVEAT_US_FEDERAL_PERIODS =
   "Each figure describes its own period, shown beside it. An admission rate is for one entering class, while earnings follow students who entered about a decade earlier, so the figures are not one year's snapshot.";
 
