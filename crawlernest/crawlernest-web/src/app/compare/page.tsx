@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { CaveatBanner } from "@/components/CaveatBanner";
+import { CompareRankHistory } from "@/components/CompareRankHistory";
 import { SourceRankChange, anyEntityChanged, anyRankChangeShown } from "@/components/SourceRankChange";
 import { YearSelector, YearSelectorFallback } from "@/components/YearSelector";
 import { useSelectedYear } from "@/hooks/useSelectedYear";
@@ -207,6 +208,15 @@ export function ComparePageContent({
 
   const selectedCount = selectedIds.length;
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  // In selection order, so each university keeps one colour and shape in every rank-history chart.
+  const selectedUniversities = useMemo(
+    () =>
+      selectedIds.flatMap((id) => {
+        const item = shortlist.find((entry) => entry.canonicalUniversityId === id);
+        return item ? [{ canonicalUniversityId: id, universityName: item.universityName }] : [];
+      }),
+    [selectedIds, shortlist]
+  );
 
   const comparedUniversities = useMemo(() => {
     if (!comparison?.comparison?.universities) {
@@ -579,6 +589,15 @@ export function ComparePageContent({
                           : null,
                       ]}
                     />
+                    {/* Every held edition, so outside the edition selector's scope; it carries its own caveats. */}
+                    <section className="mt-6 rounded-3xl border border-(--color-rule) bg-white p-6 shadow-sm">
+                      <h2 className="text-xl font-semibold text-(--color-ink)">Rank history by source</h2>
+                      <p className="mt-1 mb-4 text-sm text-(--color-muted)">
+                        Each source&apos;s own printed rank in every edition held, one chart per source. Ranks from
+                        different sources are not combined.
+                      </p>
+                      <CompareRankHistory universities={selectedUniversities} />
+                    </section>
                   </>
                 ) : loading ? (
                   <section className="mt-6 grid gap-6 md:grid-cols-2 2xl:grid-cols-4">

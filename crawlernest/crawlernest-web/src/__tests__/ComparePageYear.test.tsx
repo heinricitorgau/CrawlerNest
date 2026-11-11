@@ -77,15 +77,21 @@ describe("ComparePageContent edition", () => {
     localStorage.clear();
     localStorage.setItem("crawlernest_shortlist", JSON.stringify(SHORTLIST));
     fetchMock.mockReset();
-    fetchMock.mockImplementation(async (_url: string, init: { body: string }) => {
-      const { rankingYear } = JSON.parse(init.body) as { rankingYear: number };
+    fetchMock.mockImplementation(async (url: string, init?: { body: string }) => {
+      if (url !== "/api/compare") {
+        // The rank-history section reads every edition and is outside the edition selector's scope.
+        return { ok: true, json: async () => ({ success: true, data: null }) };
+      }
+      const { rankingYear } = JSON.parse(init!.body) as { rankingYear: number };
       return { ok: true, json: async () => comparison(rankingYear) };
     });
     global.fetch = fetchMock as unknown as typeof fetch;
   });
 
   function requestedYears(): number[] {
-    return fetchMock.mock.calls.map(([, init]) => (JSON.parse(init.body) as { rankingYear: number }).rankingYear);
+    return fetchMock.mock.calls
+      .filter(([url]) => url === "/api/compare")
+      .map(([, init]) => (JSON.parse(init.body) as { rankingYear: number }).rankingYear);
   }
 
   it("sends the selected edition and discloses that edition only", async () => {
