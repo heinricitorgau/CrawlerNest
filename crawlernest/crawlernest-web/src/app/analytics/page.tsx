@@ -10,6 +10,7 @@ import {
 } from "@/lib/analyticsPresentation";
 import { CAVEAT_COMPOSITE_RANK_NOT_COMPARED } from "@/lib/caveatMessages";
 import { RANK_DELTA_REASON_TEXT } from "@/lib/rankDeltaPresentation";
+import { SourceMovers } from "@/components/SourceMovers";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -305,6 +306,15 @@ export default function AnalyticsPage() {
               )}
             </>
           )}
+        </section>
+
+        {/* ── Movers: per source, exact ranks, one edition against the held edition before it ── */}
+        <section className="mb-8">
+          <SectionHeader
+            title="Largest Movers by Source"
+            sub="Each source's own printed ranks, one edition against the held edition before it; exact ranks only"
+          />
+          <SourceMovers />
         </section>
 
         {/* ── Source Disagreement ── */}
