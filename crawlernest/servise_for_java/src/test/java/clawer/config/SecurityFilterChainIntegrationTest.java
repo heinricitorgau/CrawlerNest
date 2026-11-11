@@ -175,8 +175,10 @@ class SecurityFilterChainIntegrationTest {
     @Test
     void aBearerHeaderWorksForCallersThatAreNotBrowsers() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me")
-                        .header("Authorization", "Bearer " + jwtService.issue(7L, "cli@example.com")))
+                        // An account the test creates: a token is accepted only for an account that exists
+                        // (V009). This used id 7 and passed only where a database happened to hold user 7.
+                        .header("Authorization", "Bearer " + jwtService.issue(4242L, "someone@example.com")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(7));
+                .andExpect(jsonPath("$.data.id").value(4242));
     }
 }

@@ -25,7 +25,8 @@ on:
 jobs:
   validate:
     name: Restore the newest release, then check exports and tests against it
-    runs-on: ubuntu-latest
+    # Pinned: the dumps are PostgreSQL 16 archives, and ubuntu-latest moved to an image without postgresql-client-16.
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:16
