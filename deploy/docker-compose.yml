@@ -123,7 +123,9 @@ services:
       AGENT_API_BASE_URL: http://agent:8090
       CRAWLERNEST_SITE_URL: ${CRAWLERNEST_SITE_URL:-}
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      # WEB_BIND=127.0.0.1 behind a reverse proxy (deploy/nginx/crawlernest.conf.example): only the proxy
+      # then reaches the site, and the address the API rate-limits by cannot be chosen by the visitor.
+      - "${WEB_BIND:-0.0.0.0}:${WEB_PORT:-3000}:3000"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ >/dev/null || exit 1"]
       interval: 15s
