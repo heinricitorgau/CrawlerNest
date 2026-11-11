@@ -18,6 +18,8 @@ import type {
   WikipediaArticleResponse,
   UsInstitution,
   UsInstitutionResponse,
+  RankHistory,
+  RankHistoryResponse,
 } from "@/types/university";
 import type {
   SubjectRankingRow,
@@ -28,6 +30,7 @@ import { CAVEAT_RANK_CHANGE, editionCaveats } from "@/lib/caveatMessages";
 import { SourceRankChange, anyEntityChanged, anyRankChangeShown } from "@/components/SourceRankChange";
 import { WikipediaArticle } from "@/components/WikipediaArticle";
 import { UsFederalData } from "@/components/UsFederalData";
+import { RankHistoryChart } from "@/components/RankHistoryChart";
 import { universityDescription } from "@/lib/seo";
 import { absoluteUrl, universityPath } from "@/lib/site";
 
@@ -326,6 +329,18 @@ async function fetchUsInstitution(canonicalUniversityId: number): Promise<UsInst
   }
 }
 
+async function fetchRankHistory(canonicalUniversityId: number): Promise<RankHistory | null> {
+  try {
+    const response = await fetchJson<RankHistoryResponse>(`/api/v1/universities/${canonicalUniversityId}/rank-history`);
+    const data = response.success ? response.data : null;
+    // Another shape (an older API, a proxy's error page) shows no section rather than breaking the page.
+    return data && Array.isArray(data.years) && Array.isArray(data.series) && Array.isArray(data.caveats) ? data : null;
+  } catch (error) {
+    console.error("Rank history fetch failed", error);
+    return null;
+  }
+}
+
 function formatSubjectScore(score?: number | null) {
   if (typeof score !== "number" || !Number.isFinite(score)) {
     return "—";
@@ -471,10 +486,11 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
       : evidenceSummary.agreementLevel === "moderate"
         ? "bg-amber-50 text-amber-800 border-amber-200"
         : "bg-rose-50 text-rose-800 border-rose-200";
-  const [subjectRankings, wikipediaArticle, usInstitution] = await Promise.all([
+  const [subjectRankings, wikipediaArticle, usInstitution, rankHistory] = await Promise.all([
     fetchUniversitySubjectRankings(detail.canonicalUniversityId, year),
     fetchWikipediaArticle(detail.canonicalUniversityId),
     fetchUsInstitution(detail.canonicalUniversityId),
+    fetchRankHistory(detail.canonicalUniversityId),
   ]);
   // The edition the API read; the requested one if an older API does not say.
   const edition = detail.rankingYear ?? year;
@@ -658,6 +674,12 @@ export default async function UniversityDetailPage({ params, searchParams }: Uni
                 ]}
               />
             </Section>
+
+            {rankHistory && rankHistory.years.length > 1 ? (
+              <Section title="Rank history by source">
+                <RankHistoryChart history={rankHistory} />
+              </Section>
+            ) : null}
 
             {usInstitution ? (
               <Section title="US Federal Data (Scorecard / IPEDS)">

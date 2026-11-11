@@ -61,6 +61,7 @@ function answer(
   subjectItems: unknown[] = [],
   wikipedia: WikipediaArticle | null = null,
   usInstitution: unknown = null,
+  rankHistory: unknown = null,
 ) {
   mockedFetchJson.mockImplementation(async (path: string) => {
     if (path.includes("/subject-rankings")) {
@@ -71,6 +72,9 @@ function answer(
     }
     if (path.endsWith("/us-institution")) {
       return { success: true, data: usInstitution } as never;
+    }
+    if (path.endsWith("/rank-history")) {
+      return { success: true, data: rankHistory } as never;
     }
     return { success: true, data: university } as never;
   });
@@ -175,9 +179,30 @@ describe("University detail page edition", () => {
       "/api/v1/universities/1/wikipedia",
       // Not scoped to an edition either: each federal figure carries its own reference period.
       "/api/v1/universities/1/us-institution",
+      // Every edition at once, by definition.
+      "/api/v1/universities/1/rank-history",
     ]);
     expect(screen.getByText("2025 edition")).toBeInTheDocument();
     expect(screen.getByTestId("year-selector")).toBeInTheDocument();
+  });
+
+  it("shows the rank history only when the API returns one spanning more than one edition", async () => {
+    answer(detail({}));
+    await renderPage({ year: "2025" });
+    expect(screen.queryByText("Rank history by source")).not.toBeInTheDocument();
+
+    mockedFetchJson.mockReset();
+    answer(detail({}), [], null, null, {
+      years: [2025, 2026],
+      series: [{ source: "QS", rankedEditions: 2, points: [
+        { year: 2025, status: "ranked", rankLower: 3, rankUpper: 3, rankDisplay: "3" },
+        { year: 2026, status: "ranked", rankLower: 2, rankUpper: 2, rankDisplay: "2" },
+      ] }],
+      caveats: ["history caveat from the API"],
+    });
+    await renderPage({ year: "2025" });
+    expect(screen.getByText("Rank history by source")).toBeInTheDocument();
+    expect(screen.getByText("history caveat from the API")).toBeInTheDocument();
   });
 
   it("discloses that edition only, and keeps it on the links out", async () => {

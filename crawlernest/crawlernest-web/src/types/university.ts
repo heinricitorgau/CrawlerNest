@@ -231,3 +231,39 @@ export type UsInstitutionResponse = {
   /** Null when no federal record is matched to the university. */
   data: UsInstitution | null;
 };
+
+/** One source's place in one edition (GET /api/v1/universities/{id}/rank-history). */
+export type RankHistoryPoint = {
+  year: number;
+  /**
+   * ranked: the source's printed rank. edition_not_held: this warehouse holds no edition of the source that
+   * year. not_in_edition: the edition is held and this university has no rank in it here (not ingested, or
+   * not matched). Neither gap means the source declined to rank it.
+   */
+  status: "ranked" | "edition_not_held" | "not_in_edition";
+  rankDisplay?: string;
+  rankLower?: number;
+  /** Null for an open band ("1001+"); equal to rankLower for an exact rank. */
+  rankUpper?: number | null;
+  archived?: boolean;
+  suspiciousMerge?: boolean;
+  /** The source's entry for this university differs from the previous ranked point's: the line breaks here. */
+  sourceIdentityChanged?: boolean;
+};
+
+export type RankHistorySeries = {
+  source: string;
+  rankedEditions: number;
+  points: RankHistoryPoint[];
+};
+
+export type RankHistory = {
+  years: number[];
+  series: RankHistorySeries[];
+  caveats: string[];
+};
+
+export type RankHistoryResponse = {
+  success: boolean;
+  data: RankHistory | null;
+};
