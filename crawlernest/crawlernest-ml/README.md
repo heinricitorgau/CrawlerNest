@@ -522,6 +522,8 @@ ranking_ml/
     space.py                the whitelisted experiment space
     trace.py                hypothesis / experiment / feedback, and the DAG trace
     proposer.py             one-change proposer, and the CallableProposer hook for an LLM
+    llm_proposer.py         the configured model as proposer, guarded: refusals fall back to the rule
+    holdout.py              the ledger that counts holdout reads across runs
     loop.py                 propose -> run -> judge -> record, and the CLI
   serving/
     predict.py              batch scoring into analytics.ml_predictions
@@ -563,6 +565,23 @@ What is not, on purpose:
 - **A holdout the loop never reads.** The 799 withheld rows are alternated in rank order into a search
   half (decisions) and a holdout half, scored once in the report for the best node and the baseline.
   The report's caveats state how many trials the best node was chosen from.
+- **A bounded number of holdout reads, across runs.** `.local/reports/research/holdout_ledger.json` counts reads
+  per (snapshot bytes, split rule). Past `--max-holdout-reads` (default 3) the report withholds the holdout and
+  says why; `--allow-holdout-reread` overrides it and the report says that too. The remedy is a fresh holdout
+  (the next QS edition, or a new `SPLIT_RULE`), not a higher limit.
+
+### A model as the proposer
+
+```bash
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.research.loop --proposer llm --loops 20
+```
+
+The agent's configured provider (`WEB_AGENT_*` / `AGENT_MODEL_*`) is shown the space and the trace and must answer
+with one JSON spec. `GuardedProposer` refuses -- and never runs -- anything else: a spec outside the space, an
+invalid combination, a repeat, prose, a failed call, or stopping while untried specs remain. The built-in rule
+proposes that step instead. The report's `proposer` block counts the steps the model chose and lists every refusal,
+with the spec the rule ran in its place. With no provider configured every step is refused, so `--proposer llm`
+then behaves exactly like the rule.
 
 Output goes to `.local/reports/research/overall_score_research_<UTC stamp>.json`; nothing is written to
 `artifacts/metrics/` or the warehouse. On QS 2026 the loop tries all 17 combinations in about 16 s and

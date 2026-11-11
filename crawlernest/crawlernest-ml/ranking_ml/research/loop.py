@@ -31,6 +31,7 @@ import pandas as pd
 from ranking_ml.evaluation.metrics import rank_agreement
 from ranking_ml.features.build_features import DEFAULT_SNAPSHOT, FeatureMatrix, load_feature_matrix
 from ranking_ml.models.support import SupportFlagger
+from ranking_ml.research.holdout import DEFAULT_MAX_READS, HoldoutLedger, holdout_key
 from ranking_ml.research.proposer import OneChangeProposer, Proposer
 from ranking_ml.research.space import ExperimentSpec, InvalidSpec, build_estimator
 from ranking_ml.research.trace import Experiment, ExperimentResult, Feedback, Hypothesis, Trace
@@ -42,6 +43,8 @@ DEFAULT_OUT_DIR = _REPO_ROOT / ".local" / "reports" / "research"
 #: A change has to beat the best node by this much Spearman to be accepted, so
 #: a difference in the fourth decimal does not move the search.
 DEFAULT_MIN_DELTA = 0.001
+#: Names the rule split_withheld cuts by; part of the holdout's identity in the ledger. Change it with the rule.
+SPLIT_RULE = "alternate-by-rank-v1"
 
 
 @dataclass(frozen=True)
@@ -167,7 +170,9 @@ class ResearchLoop:
                 break
         return self.trace
 
-    def report(self) -> dict[str, Any]:
+    def report(self, ledger: HoldoutLedger | None = None, *, allow_reread: bool = False) -> dict[str, Any]:
+        """The run's report. With a ledger, the holdout is read only while it has been read fewer than
+        ``ledger.max_reads`` times across runs (``allow_reread`` overrides that, and the report says so)."""
         trace = self.trace
         best = trace.best_index()
         runnable = sum(1 for exp, _ in trace.hist if exp.result is not None)
@@ -187,14 +192,54 @@ class ResearchLoop:
                 "Every score here is a model estimate of QS's overall score; nothing is written to the warehouse.",
             ],
         }
+        summary = getattr(self.proposer, "summary", None)
+        if callable(summary):
+            report["proposer"] = summary()
         if best is not None:
+            if ledger is not None and not ledger.may_read() and not allow_reread:
+                report["holdout_withheld"] = (
+                    f"The holdout has already been read {ledger.reads()} times (limit {ledger.max_reads}). "
+                    "Another read would be a choice made on it; use a fresh holdout instead."
+                )
+                return report
             baseline_spec = trace.hist[0][0].spec
             best_spec = trace.hist[best][0].spec
             report["holdout"] = {
                 "best": {"spec": best_spec.as_dict(), **self.runner.score_holdout(best_spec)},
                 "baseline": {"spec": baseline_spec.as_dict(), **self.runner.score_holdout(baseline_spec)},
             }
+            if ledger is not None:
+                reads = ledger.record_read(note=f"best={best_spec.key()} trials={len(trace.hist)}")
+                report["holdout_reads"] = reads
+                report["caveats"].append(
+                    f"This holdout has now been read {reads} time(s) across runs"
+                    + (" -- past its limit, by explicit override." if reads > ledger.max_reads else ".")
+                )
         return report
+
+
+def _agent_complete():
+    """``complete(system, user)`` over the agent's configured provider (WEB_AGENT_* / AGENT_MODEL_* settings).
+
+    Imported here only: the ML package has no other dependency on the agent. With no provider configured the
+    generator answers with its fallback text, which is not JSON, so every step is refused and the rule proposes.
+    """
+    import sys
+
+    sys.path.insert(0, str(_REPO_ROOT))
+    from crawlernest.agent.web_agent.generation.models import PromptPayload
+    from crawlernest.agent.web_agent.generation.response_generator import WebResponseGenerator
+
+    generator = WebResponseGenerator()
+
+    def complete(system: str, user: str) -> str:
+        result = generator.generate_response(
+            prompt=PromptPayload(system_instruction=system, user_message=user, context_block=""),
+            fallback_text="(no model)",
+        )
+        return result.reply_text
+
+    return complete
 
 
 def main() -> int:
@@ -204,10 +249,21 @@ def main() -> int:
     parser.add_argument("--folds", type=int, default=5)
     parser.add_argument("--min-delta", type=float, default=DEFAULT_MIN_DELTA)
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
+    parser.add_argument("--proposer", choices=("rule", "llm"), default="rule",
+                        help="llm: the agent's configured model proposes, inside the space; refusals fall back to rule")
+    parser.add_argument("--max-holdout-reads", type=int, default=DEFAULT_MAX_READS)
+    parser.add_argument("--allow-holdout-reread", action="store_true")
     args = parser.parse_args()
 
     split = split_withheld(load_feature_matrix(args.snapshot))
-    loop = ResearchLoop(Runner(split, folds=args.folds), min_delta=args.min_delta)
+    proposer: Proposer | None = None
+    if args.proposer == "llm":
+        from ranking_ml.research.llm_proposer import llm_proposer
+
+        proposer = llm_proposer(_agent_complete())
+    loop = ResearchLoop(Runner(split, folds=args.folds), proposer, min_delta=args.min_delta)
+    ledger = HoldoutLedger(Path(args.out_dir) / "holdout_ledger.json",
+                           holdout_key(Path(args.snapshot), SPLIT_RULE), max_reads=args.max_holdout_reads)
     for _ in range(args.loops):
         if not loop.step():
             print("proposer exhausted the space")
@@ -218,7 +274,9 @@ def main() -> int:
         print(f"[{i:>2}] parent={exp.hypothesis.parent_index!s:>4}  {exp.spec.key():<40} "
               f"search {score:<7} {'ACCEPT' if fb else 'reject'}  {fb.reason}")
 
-    report = loop.report()
+    report = loop.report(ledger, allow_reread=args.allow_holdout_reread)
+    if "holdout_withheld" in report:
+        print(f"\nholdout not read: {report['holdout_withheld']}")
     if "holdout" in report:
         best, base = report["holdout"]["best"], report["holdout"]["baseline"]
         print(f"\nholdout  best {best['spearman']:.4f}  ({ExperimentSpec(**best['spec']).key()})")
