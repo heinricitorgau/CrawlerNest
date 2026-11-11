@@ -6,6 +6,7 @@ import {
 } from "@/lib/agentModelProvider";
 import { runEngineTask } from "@/lib/agentEngineTask";
 import { getAgentApiBaseUrl } from "@/lib/api";
+import { refuseIfOverAgentLimit } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -18,6 +19,9 @@ const NO_STORE_HEADERS = {
 };
 
 export async function POST(request: NextRequest) {
+  const refused = refuseIfOverAgentLimit(request);
+  if (refused) return refused;
+
   let payload: unknown;
   try {
     payload = await request.json();

@@ -121,6 +121,8 @@ services:
       # Server-side proxy routes call the services by their compose names.
       API_BASE_URL: http://api:8080
       AGENT_API_BASE_URL: http://agent:8090
+      # Model-calling routes (/api/agent/chat, /tasks, /explain): requests a minute per client address; 0 = off.
+      CRAWLERNEST_AGENT_RATE_LIMIT_PER_MINUTE: ${CRAWLERNEST_AGENT_RATE_LIMIT_PER_MINUTE:-30}
       CRAWLERNEST_SITE_URL: ${CRAWLERNEST_SITE_URL:-}
     ports:
       # WEB_BIND=127.0.0.1 behind a reverse proxy (deploy/nginx/crawlernest.conf.example): only the proxy

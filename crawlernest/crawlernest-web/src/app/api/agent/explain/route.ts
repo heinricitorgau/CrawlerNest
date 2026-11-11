@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getAgentApiBaseUrl } from "@/lib/api";
+import { refuseIfOverAgentLimit } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -22,6 +23,9 @@ const NO_STORE_HEADERS = {
  * and the page simply renders without it.
  */
 export async function POST(request: NextRequest) {
+  const refused = refuseIfOverAgentLimit(request);
+  if (refused) return refused;
+
   const backendUrl = `${getAgentApiBaseUrl()}/api/v1/agent/explain`;
 
   let payload: unknown;

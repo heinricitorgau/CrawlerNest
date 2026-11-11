@@ -82,10 +82,12 @@ Unset, `JwtService` generates a key for the process and logs a warning. Everyone
 | `signin`, `signup`, `password-reset/*` | 20 / minute | client address |
 | `signup` | 10 / hour | client address |
 | Failed sign-ins | 10 / 15 minutes | account (email), from any address |
+| Model-calling web routes (`/api/agent/chat`, `/tasks`, `/explain`) | 30 / minute, shared by the three | client address; enforced by the Next.js server (`src/lib/rateLimit.ts`, `CRAWLERNEST_AGENT_RATE_LIMIT_PER_MINUTE`) |
 
 - **The client address.** `X-Forwarded-For` is believed only when the connection comes from `CRAWLERNEST_TRUSTED_PROXIES` (default loopback; the compose stack adds its network), and then the right-most hop that is not a trusted proxy counts. The Next.js auth proxy forwards the visitor's address. A trusted proxy that names no visitor is the frontend's own server-side rendering and is not limited by address.
 - **Next.js exposed directly** keeps an `X-Forwarded-For` the visitor sent, so a visitor can choose their own key. Put a reverse proxy in front that replaces the header with the address it saw: `deploy/nginx/crawlernest.conf.example`, with `WEB_BIND=127.0.0.1`. The per-account failure limit does not depend on the address.
 - **The failure limit is a lockout an attacker can trigger**, for at most 15 minutes, on an account whose email they know. That is the usual price of stopping a distributed password guess.
+- **The agent routes are limited in Next.js, not in the API.** `/api/agent/chat` calls the model from the web server and the other two go to the agent API on 8090, so none of them passes the Java filter. The agent API itself bounds total concurrency and body size only, and must stay unreachable from outside (the compose file binds it to loopback).
 - **In memory, per process.** N API instances allow N times each limit, and a restart forgets the counts.
 
 ### DB credentials come from the environment
