@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Any, Callable, Protocol
 
-from ranking_ml.research.space import AXES, BASELINE, ExperimentSpec, InvalidSpec, is_valid
+from ranking_ml.research.space import OVERALL_SCORE_SPACE, ExperimentSpec, InvalidSpec, SearchSpace
 from ranking_ml.research.trace import Hypothesis, Trace
 
 
@@ -25,19 +25,22 @@ class Proposer(Protocol):
         """The next hypothesis, or ``None`` when there is nothing left to try."""
 
 
-def _baseline_hypothesis() -> Hypothesis:
+def baseline_hypothesis(space: SearchSpace = OVERALL_SCORE_SPACE) -> Hypothesis:
     return Hypothesis(
-        statement="Baseline: linear weighting, missing indicators renormalised, no region block.",
-        reason="The model train_overall_score recommends for the withheld rows; every change is measured against it.",
-        spec=BASELINE,
+        statement=space.baseline_statement,
+        reason=space.baseline_reason,
+        spec=space.baseline,
         parent_index=None,
     )
 
 
 class OneChangeProposer:
+    def __init__(self, space: SearchSpace = OVERALL_SCORE_SPACE) -> None:
+        self.space = space
+
     def propose(self, trace: Trace) -> Hypothesis | None:
         if not trace.hist:
-            return _baseline_hypothesis()
+            return baseline_hypothesis(self.space)
 
         tried = trace.tried_keys()
         axes = self._axis_order(trace)
@@ -46,13 +49,14 @@ class OneChangeProposer:
         for parent in self._parents_by_score(trace):
             parent_spec = trace.hist[parent][0].spec
             for axis in axes:
-                for value in AXES[axis]:
-                    spec = self._compatible(parent_spec.with_change(axis, value), axis)
+                for value in self.space.axes[axis]:
+                    spec = self.space.repair(parent_spec.with_change(axis, value), axis)
                     if spec is None or spec == parent_spec or spec.key() in tried:
                         continue
-                    repaired = "" if spec.missing == parent_spec.missing or axis == "missing" else (
-                        f" (missing values switch to {spec.missing!r}, since renormalisation exists only for "
-                        "the linear weighting without regions)"
+                    others = [a for a in self.space.axes if a != axis and getattr(spec, a) != getattr(parent_spec, a)]
+                    repaired = "" if not others else (
+                        " (" + ", ".join(f"{a} switches to {getattr(spec, a)!r}" for a in others)
+                        + f", since {self.space.constraint})"
                     )
                     return Hypothesis(
                         statement=f"Changing {axis} from {getattr(parent_spec, axis)!r} to {value!r}{repaired} "
@@ -72,27 +76,17 @@ class OneChangeProposer:
             # Even the baseline failed to run; there is no node to grow from.
             return []
         others = [i for i, (exp, _) in enumerate(trace.hist) if exp.result is not None and i != best]
-        others.sort(key=lambda i: trace.hist[i][0].result.search_spearman, reverse=True)
+        others.sort(key=lambda i: trace.hist[i][0].result.search_score, reverse=True)
         return [best, *others]
 
-    @staticmethod
-    def _compatible(spec: ExperimentSpec, axis: str) -> ExperimentSpec | None:
-        """The spec itself if valid; for a model or region change off renormalisation, its median-imputed twin."""
-        if is_valid(spec):
-            return spec
-        if axis != "missing" and spec.missing == "renormalise":
-            repaired = spec.with_change("missing", "median")
-            return repaired if is_valid(repaired) else None
-        return None
-
-    @staticmethod
-    def _axis_order(trace: Trace) -> list[str]:
+    def _axis_order(self, trace: Trace) -> list[str]:
         """Axes whose most recent change was accepted come first."""
         last_outcome: dict[str, bool] = {}
         for exp, fb in trace.hist:
             if exp.hypothesis.axis is not None:
                 last_outcome[exp.hypothesis.axis] = fb.decision
-        return sorted(AXES, key=lambda axis: (not last_outcome.get(axis, False), list(AXES).index(axis)))
+        axes = list(self.space.axes)
+        return sorted(axes, key=lambda axis: (not last_outcome.get(axis, False), axes.index(axis)))
 
     @staticmethod
     def _reason(trace: Trace, parent: int, axis: str) -> str:
@@ -107,16 +101,21 @@ class OneChangeProposer:
 class CallableProposer:
     """Wrap any ``trace -> dict`` function (an LLM call, a human) as a proposer."""
 
-    def __init__(self, fn: Callable[[list[dict[str, Any]]], dict[str, Any] | None]) -> None:
+    def __init__(
+        self,
+        fn: Callable[[list[dict[str, Any]]], dict[str, Any] | None],
+        space: SearchSpace = OVERALL_SCORE_SPACE,
+    ) -> None:
         self._fn = fn
+        self.space = space
 
     def propose(self, trace: Trace) -> Hypothesis | None:
         if not trace.hist:
-            return _baseline_hypothesis()
+            return baseline_hypothesis(self.space)
         proposal = self._fn(trace.as_dict())
         if proposal is None:
             return None
-        spec = ExperimentSpec.from_dict(proposal.get("spec") or {})
+        spec = self.space.from_dict(proposal.get("spec") or {})
         if spec.key() in trace.tried_keys():
             raise InvalidSpec(f"{spec.key()} is already in the trace")
         parent = trace.best_index()

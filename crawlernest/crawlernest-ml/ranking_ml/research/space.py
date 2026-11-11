@@ -122,3 +122,69 @@ def build_estimator(spec: ExperimentSpec) -> BaseEstimator:
         steps.append(("scale", StandardScaler()))
     steps.append(("model", _model(spec.model)))
     return Pipeline(steps)
+
+
+# --------------------------------------------------------------------------- spaces
+
+
+@dataclass(frozen=True)
+class SearchSpace:
+    """Everything the proposers, the guard and the prompt need to know about one model's search.
+
+    A spec type for a space is a frozen dataclass whose fields are the axes, with ``key()``,
+    ``with_change(axis, value)``, ``as_dict()`` and a ``from_dict`` classmethod -- :class:`ExperimentSpec` is the
+    first. The proposers grow specs from ``axes``; ``repair`` is how a one-axis change that lands on an invalid
+    combination is made valid (or ``None``); the guard and the LLM prompt read ``axes``, ``constraint`` and
+    ``task``.
+    """
+
+    name: str
+    task: str
+    axes: dict[str, tuple[Any, ...]]
+    baseline: Any
+    baseline_statement: str
+    baseline_reason: str
+    constraint: str
+    spec_type: type
+    validate: Any
+    repair: Any
+
+    def is_valid(self, spec: Any) -> bool:
+        try:
+            self.validate(spec)
+        except InvalidSpec:
+            return False
+        return True
+
+    def from_dict(self, data: dict[str, Any]) -> Any:
+        return self.spec_type.from_dict(data)
+
+    def all_valid_specs(self) -> list[Any]:
+        from itertools import product
+
+        specs = [self.spec_type(**dict(zip(self.axes, values))) for values in product(*self.axes.values())]
+        return [spec for spec in specs if self.is_valid(spec)]
+
+
+def _repair_overall(spec: ExperimentSpec, axis: str) -> ExperimentSpec | None:
+    """A model or region change off renormalisation becomes its median-imputed twin."""
+    if is_valid(spec):
+        return spec
+    if axis != "missing" and spec.missing == "renormalise":
+        repaired = spec.with_change("missing", "median")
+        return repaired if is_valid(repaired) else None
+    return None
+
+
+OVERALL_SCORE_SPACE: Final[SearchSpace] = SearchSpace(
+    name="overall_score",
+    task="models that estimate QS's overall score",
+    axes=AXES,
+    baseline=BASELINE,
+    baseline_statement="Baseline: linear weighting, missing indicators renormalised, no region block.",
+    baseline_reason="The model train_overall_score recommends for the withheld rows; every change is measured against it.",
+    constraint='missing="renormalise" exists only with model="linear" and region=false',
+    spec_type=ExperimentSpec,
+    validate=validate,
+    repair=_repair_overall,
+)

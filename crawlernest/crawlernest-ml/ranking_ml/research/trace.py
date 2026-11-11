@@ -43,7 +43,11 @@ class Hypothesis:
 
 @dataclass
 class ExperimentResult:
-    """What a run measured. ``search_spearman`` is the number decisions use."""
+    """What a run of the overall-score model measured. ``search_spearman`` is the number decisions use.
+
+    Every result type exposes ``search_score`` (the decision number, higher is better) and ``metric_name``;
+    the judge, the trace and the proposers read only those, so another model's result can sit in the same loop.
+    """
 
     cv_rmse_mean: float
     cv_rmse_std: float
@@ -51,6 +55,12 @@ class ExperimentResult:
     search_spearman: float
     search_n: int
     supported_search_spearman: float
+
+    metric_name = "Search Spearman"
+
+    @property
+    def search_score(self) -> float:
+        return self.search_spearman
 
     def as_dict(self) -> dict[str, Any]:
         return {k: (round(v, 4) if isinstance(v, float) else v) for k, v in self.__dict__.items()}
@@ -122,7 +132,7 @@ class Trace:
         accepted = [i for i, (exp, fb) in enumerate(self.hist) if fb.decision and exp.result is not None]
         if not accepted:
             return None
-        return max(accepted, key=lambda i: self.hist[i][0].result.search_spearman)
+        return max(accepted, key=lambda i: self.hist[i][0].result.search_score)
 
     def tried_keys(self) -> set[str]:
         return {exp.spec.key() for exp, _ in self.hist}
@@ -133,7 +143,11 @@ class Trace:
                 "index": i,
                 "parent": self.dag_parent[i][0] if self.dag_parent[i] else None,
                 "hypothesis": exp.hypothesis.as_dict(),
-                "result": None if exp.result is None else exp.result.as_dict(),
+                "result": None if exp.result is None else {
+                    **exp.result.as_dict(),
+                    "metric_name": exp.result.metric_name,
+                    "search_score": round(float(exp.result.search_score), 4),
+                },
                 "error": exp.error,
                 "feedback": fb.as_dict(),
             }

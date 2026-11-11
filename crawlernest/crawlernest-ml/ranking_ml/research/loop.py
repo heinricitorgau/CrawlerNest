@@ -107,23 +107,24 @@ def judge(experiment: Experiment, trace: Trace, min_delta: float = DEFAULT_MIN_D
     if experiment.error is not None:
         return Feedback(decision=False, reason=f"The experiment failed: {experiment.error}")
     result = experiment.result
-    if not np.isfinite(result.search_spearman):
-        return Feedback(decision=False, reason="Search-row Spearman is not finite.")
+    name = result.metric_name
+    if not np.isfinite(result.search_score):
+        return Feedback(decision=False, reason=f"{name} is not finite.")
 
     best = trace.best_index()
     if best is None:
         return Feedback(decision=True, reason="First runnable node; it becomes the reference.")
-    best_score = trace.hist[best][0].result.search_spearman
-    delta = result.search_spearman - best_score
+    best_score = trace.hist[best][0].result.search_score
+    delta = result.search_score - best_score
     if delta > min_delta:
         return Feedback(
             decision=True,
-            reason=f"Search Spearman {result.search_spearman:.4f} beats node {best} ({best_score:.4f}) by {delta:+.4f}.",
+            reason=f"{name} {result.search_score:.4f} beats node {best} ({best_score:.4f}) by {delta:+.4f}.",
             delta=delta,
         )
     return Feedback(
         decision=False,
-        reason=f"Search Spearman {result.search_spearman:.4f} vs node {best} ({best_score:.4f}): "
+        reason=f"{name} {result.search_score:.4f} vs node {best} ({best_score:.4f}): "
         f"{delta:+.4f}, not above the {min_delta} threshold.",
         delta=delta,
     )
@@ -176,9 +177,14 @@ class ResearchLoop:
         trace = self.trace
         best = trace.best_index()
         runnable = sum(1 for exp, _ in trace.hist if exp.result is not None)
+        metric = next((exp.result.metric_name for exp, _ in trace.hist if exp.result is not None), "Search Spearman")
+        runner_caveats = getattr(self.runner, "report_caveats", None)
         report: dict[str, Any] = {
             "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "decision_metric": "Spearman between predicted score and published rank, search half of the withheld rows",
+            "decision_metric": (
+                "Spearman between predicted score and published rank, search half of the withheld rows"
+                if metric == "Search Spearman" else f"{metric} on the search rows (out of fold)"
+            ),
             "min_delta": self.min_delta,
             "trials": len(trace.hist),
             "runnable_trials": runnable,
@@ -187,9 +193,11 @@ class ResearchLoop:
             "caveats": [
                 f"The best node was chosen among {runnable} runnable trials on the same search rows, "
                 "so its search-row margin is optimistic. The holdout figures are the ones to quote.",
-                "Rank agreement is measured against QS's published rank, which for the withheld tail is "
-                "often a band lower bound (1401+), so tied ranks cap the attainable Spearman.",
-                "Every score here is a model estimate of QS's overall score; nothing is written to the warehouse.",
+                *(list(runner_caveats) if runner_caveats is not None else [
+                    "Rank agreement is measured against QS's published rank, which for the withheld tail is "
+                    "often a band lower bound (1401+), so tied ranks cap the attainable Spearman.",
+                    "Every score here is a model estimate of QS's overall score; nothing is written to the warehouse.",
+                ]),
             ],
         }
         summary = getattr(self.proposer, "summary", None)
@@ -270,7 +278,7 @@ def main() -> int:
             break
         i = len(loop.trace.hist) - 1
         exp, fb = loop.trace.hist[i]
-        score = "error" if exp.result is None else f"{exp.result.search_spearman:.4f}"
+        score = "error" if exp.result is None else f"{exp.result.search_score:.4f}"
         print(f"[{i:>2}] parent={exp.hypothesis.parent_index!s:>4}  {exp.spec.key():<40} "
               f"search {score:<7} {'ACCEPT' if fb else 'reject'}  {fb.reason}")
 

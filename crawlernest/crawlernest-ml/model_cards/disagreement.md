@@ -149,6 +149,29 @@ and QS in 47** — roughly 4 to 1. The two sources do not merely differ; they
 differ in a consistent direction, which is a finding about the sources rather
 than about the model.
 
+## Research loop (2026-11-11)
+
+`ranking_ml/research/disagreement.py` runs the same propose -> run -> judge loop as the overall-score model over a
+whitelisted space: model (gradient boosting, logistic, random forest) x missing values (median, knn) x class weighting
+(none, balanced), 10 valid specs. Features stay the nine QS indicators. The 1,136 matched universities are split once
+into search (852, 171 positive) and holdout (284, 57 positive), and the label threshold (0.2566) is taken from the
+search rows. Decisions use out-of-fold PR-AUC on the search rows, with a minimum gain of 0.005.
+
+| Spec | Search PR-AUC | Holdout PR-AUC | Holdout ROC-AUC | Holdout Brier |
+|---|---:|---:|---:|---:|
+| gradient_boosting, median, none *(committed model)* | 0.5528 | 0.5549 | 0.8396 | 0.1303 |
+| **random_forest, median, none** *(best)* | **0.6003** | **0.5663** | **0.8616** | **0.1162** |
+| chance | 0.20 | 0.2007 | 0.5 | — |
+
+The search margin (+0.048) mostly does not survive to the holdout (+0.011 PR-AUC, +0.022 ROC-AUC). The best node was
+chosen among 10 trials on the same search rows, so its search margin is optimistic by construction. Whether +0.011
+on 57 holdout positives is more than noise was not tested; testing it would be another read of the holdout. The
+committed model is therefore **unchanged**. A switch to random forest would rest on a fresh holdout (the next THE and
+QS editions), not this one, which the ledger shows as read once.
+
+Logistic regression trails by about 0.25 PR-AUC with or without class weighting, the same gap the committed metrics
+show. Balanced class weights moved random forest by +0.003 (below the threshold) and did not help logistic.
+
 ## Known limitations
 
 - **Single edition.** Nothing here is temporal.

@@ -523,6 +523,7 @@ ranking_ml/
     trace.py                hypothesis / experiment / feedback, and the DAG trace
     proposer.py             one-change proposer, and the CallableProposer hook for an LLM
     llm_proposer.py         the configured model as proposer, guarded: refusals fall back to the rule
+    disagreement.py         the same loop over the disagreement classifier: its space, split, runner and CLI
     holdout.py              the ledger that counts holdout reads across runs
     loop.py                 propose -> run -> judge -> record, and the CLI
   serving/
@@ -569,6 +570,19 @@ What is not, on purpose:
   per (snapshot bytes, split rule). Past `--max-holdout-reads` (default 3) the report withholds the holdout and
   says why; `--allow-holdout-reread` overrides it and the report says that too. The remedy is a fresh holdout
   (the next QS edition, or a new `SPLIT_RULE`), not a higher limit.
+
+### The disagreement classifier
+
+```bash
+PYTHONPATH=crawlernest/crawlernest-ml ./.venv/bin/python -m ranking_ml.research.disagreement --loops 20
+```
+
+The proposer, trace, judge, guard and ledger are shared through `space.SearchSpace`: a space names its axes, baseline,
+validity rule and repair rule, and a result names its decision score (`search_score`, `metric_name`). The
+disagreement space is model x missing values x class weighting (10 valid specs), scored by out-of-fold PR-AUC on a
+75% search split whose label threshold is taken from the search rows alone. On 2026-11-11 random forest led the
+search (0.600 vs 0.553) but only narrowly the holdout (0.566 vs 0.555), so the committed model is unchanged; see the
+model card.
 
 ### A model as the proposer
 

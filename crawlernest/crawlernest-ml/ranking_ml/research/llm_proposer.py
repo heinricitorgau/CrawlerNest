@@ -2,7 +2,7 @@
 
 RD-Agent asks an LLM for the next hypothesis. Here the model sees the space (every allowed value and the one
 invalid combination), the trace so far, and must answer with one JSON object naming a spec. It never writes code
-and never names anything outside :data:`~ranking_ml.research.space.AXES`.
+and never names anything outside its :class:`~ranking_ml.research.space.SearchSpace`.
 
 :class:`GuardedProposer` is what keeps that true. Whatever the model returns -- a spec outside the space, a repeat,
 prose instead of JSON, an exception, or a refusal while untried specs remain -- is **refused and logged, never run**,
@@ -21,24 +21,29 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from ranking_ml.research.proposer import CallableProposer, OneChangeProposer, Proposer
-from ranking_ml.research.space import AXES, ExperimentSpec, InvalidSpec, is_valid
+from ranking_ml.research.space import OVERALL_SCORE_SPACE, InvalidSpec, SearchSpace
 from ranking_ml.research.trace import Hypothesis, Trace
 
 Complete = Callable[[str, str], str]
 
-SYSTEM_INSTRUCTION = (
-    "You propose the next experiment in a search over models that estimate QS's overall score. "
-    "You may only choose values from the space you are given; anything else is refused without being run. "
-    "Answer with exactly one JSON object and nothing else: "
-    '{"spec": {"model": ..., "missing": ..., "region": true|false}, "statement": "...", "reason": "..."} '
-    "-- or {\"spec\": null, \"reason\": \"...\"} if you judge the search finished. "
-    "The statement is a falsifiable hypothesis about the search-row Spearman; the reason cites the trace."
-)
+def system_instruction(space: SearchSpace = OVERALL_SCORE_SPACE) -> str:
+    fields = ", ".join(f'"{axis}": ...' for axis in space.axes)
+    return (
+        f"You propose the next experiment in a search over {space.task}. "
+        "You may only choose values from the space you are given; anything else is refused without being run. "
+        "Answer with exactly one JSON object and nothing else: "
+        f'{{"spec": {{{fields}}}, "statement": "...", "reason": "..."}} '
+        '-- or {"spec": null, "reason": "..."} if you judge the search finished. '
+        "The statement is a falsifiable hypothesis about the search score; the reason cites the trace."
+    )
 
 
-def _space_text() -> str:
-    lines = [f"- {axis}: {', '.join(json.dumps(v) for v in values)}" for axis, values in AXES.items()]
-    lines.append('- invalid: missing="renormalise" exists only with model="linear" and region=false')
+SYSTEM_INSTRUCTION = system_instruction()
+
+
+def _space_text(space: SearchSpace = OVERALL_SCORE_SPACE) -> str:
+    lines = [f"- {axis}: {', '.join(json.dumps(v) for v in values)}" for axis, values in space.axes.items()]
+    lines.append(f"- invalid: {space.constraint}")
     return "\n".join(lines)
 
 
@@ -48,19 +53,21 @@ def _trace_text(trace: list[dict[str, Any]]) -> str:
         spec = node.get("hypothesis", {}).get("spec") or node.get("spec") or {}
         result = node.get("result") or {}
         feedback = node.get("feedback") or {}
-        score = result.get("search_spearman")
+        score = result.get("search_score", result.get("search_spearman"))
+        default = "search_spearman" if "search_spearman" in result else "search score"
+        metric = str(result.get("metric_name") or default).lower().replace(" ", "_")
         rows.append(
             f"[{node.get('index')}] parent={node.get('parent')} spec={json.dumps(spec, sort_keys=True)} "
-            f"search_spearman={'error' if score is None else round(score, 4)} "
+            f"{metric}={'error' if score is None else round(score, 4)} "
             f"{'ACCEPTED' if feedback.get('decision') else 'rejected'}: {feedback.get('reason', '')}"
         )
     return "\n".join(rows) or "(empty)"
 
 
-def build_user_message(trace: list[dict[str, Any]]) -> str:
+def build_user_message(trace: list[dict[str, Any]], space: SearchSpace = OVERALL_SCORE_SPACE) -> str:
     return (
-        "Space:\n" + _space_text()
-        + "\n\nTrace so far (search half of the withheld rows; higher Spearman is better; a change is accepted only "
+        "Space:\n" + _space_text(space)
+        + "\n\nTrace so far (scored on the search rows only; higher is better; a change is accepted only "
         "if it beats the best accepted node by the minimum delta):\n" + _trace_text(trace)
         + "\n\nPropose one spec not already in the trace."
     )
@@ -82,22 +89,21 @@ def parse_reply(reply: str) -> dict[str, Any] | None:
     return data
 
 
-def llm_callable(complete: Complete) -> Callable[[list[dict[str, Any]]], dict[str, Any] | None]:
+def llm_callable(
+    complete: Complete, space: SearchSpace = OVERALL_SCORE_SPACE
+) -> Callable[[list[dict[str, Any]]], dict[str, Any] | None]:
     """The ``trace -> proposal`` function :class:`CallableProposer` wraps."""
+    instruction = system_instruction(space)
 
     def propose(trace: list[dict[str, Any]]) -> dict[str, Any] | None:
-        return parse_reply(complete(SYSTEM_INSTRUCTION, build_user_message(trace)))
+        return parse_reply(complete(instruction, build_user_message(trace, space)))
 
     return propose
 
 
-def _untried_valid_specs(trace: Trace) -> int:
+def _untried_valid_specs(trace: Trace, space: SearchSpace) -> int:
     tried = trace.tried_keys()
-    return sum(
-        1
-        for model in AXES["model"] for missing in AXES["missing"] for region in AXES["region"]
-        if is_valid(spec := ExperimentSpec(model=model, missing=missing, region=region)) and spec.key() not in tried
-    )
+    return sum(1 for spec in space.all_valid_specs() if spec.key() not in tried)
 
 
 @dataclass
@@ -106,6 +112,7 @@ class GuardedProposer:
 
     primary: Proposer
     fallback: Proposer = field(default_factory=OneChangeProposer)
+    space: SearchSpace = OVERALL_SCORE_SPACE
     refusals: list[dict[str, Any]] = field(default_factory=list)
     accepted_from_primary: int = 0
 
@@ -117,11 +124,11 @@ class GuardedProposer:
             self.refusals.append({"step": step, "reason": f"{type(exc).__name__}: {exc}"})
             return self._fallback(trace, step)
         if hypothesis is None:
-            if _untried_valid_specs(trace):
+            if _untried_valid_specs(trace, self.space):
                 self.refusals.append({"step": step, "reason": "the model stopped while untried specs remained"})
                 return self._fallback(trace, step)
             return None
-        if not is_valid(hypothesis.spec) or hypothesis.spec.key() in trace.tried_keys():
+        if not self.space.is_valid(hypothesis.spec) or hypothesis.spec.key() in trace.tried_keys():
             self.refusals.append({"step": step, "reason": f"out of space or repeated: {hypothesis.spec.key()}"})
             return self._fallback(trace, step)
         if step:  # the baseline is not the model's choice
@@ -145,5 +152,9 @@ class GuardedProposer:
         return {"accepted_from_model": self.accepted_from_primary, "refusals": list(self.refusals)}
 
 
-def llm_proposer(complete: Complete) -> GuardedProposer:
-    return GuardedProposer(primary=CallableProposer(llm_callable(complete)))
+def llm_proposer(complete: Complete, space: SearchSpace = OVERALL_SCORE_SPACE) -> GuardedProposer:
+    return GuardedProposer(
+        primary=CallableProposer(llm_callable(complete, space), space=space),
+        fallback=OneChangeProposer(space),
+        space=space,
+    )
