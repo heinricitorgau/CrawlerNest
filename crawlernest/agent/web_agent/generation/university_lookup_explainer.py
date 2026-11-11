@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from crawlernest.core.services.rank_history import summarize_rank_history
 from crawlernest.agent.web_agent.generation.grounded_explainer import (
     ExplanationResult,
     GroundedExplainer,
@@ -26,6 +27,8 @@ _SYSTEM_INSTRUCTION = (
     "facts, and do not fill a missing section with a guess.\n"
     "- Ranks, scores, and requirement values are warehouse facts. Never change "
     "them or compute new ones.\n"
+    "- In the rank history, compare a source only with itself across editions; "
+    "never combine sources, and describe a gap exactly as it is labelled.\n"
     "- If a section is listed as missing or unavailable, say so plainly instead "
     "of implying the data exists.\n"
     "- Preserve every caveat you are given verbatim.\n"
@@ -135,6 +138,13 @@ class UniversityLookupExplainer(GroundedExplainer):
             parts.append(f"- admission: {ad_fields or 'no admission rows'}")
         else:
             parts.append("- admission: none available")
+
+        history = preview.get("rank_history")
+        if isinstance(history, dict) and history.get("series"):
+            parts.append("- rank history (each source's printed rank in every held edition; a gap is either no "
+                         "edition of that source held here, or a held edition without this university -- never "
+                         "the source declining to rank it):")
+            parts.extend(f"  - {line}" for line in summarize_rank_history(history))
 
         availability = preview.get("data_availability")
         if isinstance(availability, dict):

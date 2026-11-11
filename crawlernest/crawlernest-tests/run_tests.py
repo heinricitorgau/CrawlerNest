@@ -229,6 +229,8 @@ def run_all_tests():
         # Every known way a source fails, through the real crawler and RankingSource.run, with no network:
         # blocked, layout_changed, empty_table, http_error, edition_mismatch, network_error, ...
         "test_source_failure_fixtures",
+        # The agent's rank history: the API's statuses, the prompt's words, and the lookup carrying its caveats.
+        "test_rank_history",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.
