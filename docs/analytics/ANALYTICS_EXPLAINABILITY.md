@@ -122,9 +122,9 @@ archive-sourced editions are disclosed per edition, below.
 warehouse held carried no QS row at all, so a sentence opening "QS ranking data"
 could not describe the edition a reader was looking at — and `editionCaveats(2018)`
 would have printed exactly that beside a table containing no QS rank. QS still
-holds no 2015, 2017 or 2021 (the archive has no page at the 2017 address; 2015 and
-2021 have archived data files that are pinned in the manifest but not ingested,
-pending a decision — see `docs/data/QS_ARCHIVE_LOADER_DESIGN.md`). Each
+holds no 2015, 2016 or 2021 (an edition's year is the one QS's own title gives it, so
+QS's September 2016 table is QS 2017; the 2015 and 2021 tables were checked and are
+not ingested, by decision — see `docs/data/QS_ARCHIVE_LOADER_DESIGN.md`). Each
 renderer therefore refuses to render a source over an edition
 `DATASET_COVERAGE` does not give it: the false sentence is unwritable rather
 than merely discouraged.
@@ -170,7 +170,7 @@ Template:
 
 The closing clause used to say "rests on one source rather than on agreement between several". That
 was exact while ARWU alone held the 2015–2024 editions and became false with the THE release, which
-leaves 2015, 2017 and 2021 holding two of the three sources.
+leaves 2015, 2016 and 2021 holding two of the three sources.
 
 `{present}` and `{absent}` use the same source-list rule, except that `{absent}`
 joins with `or`: "no QS and THE rank exists" reads as a claim about the pair
@@ -182,7 +182,7 @@ every source, so 2025 and 2026 do not carry it. It is rendered by
 
 ### Editions read from an Internet Archive capture
 
-QS does not answer automated requests, so QS 2016, 2018–2020 and 2022–2024 were read from
+QS does not answer automated requests, so QS 2017–2020 and 2022–2024 were read from
 Internet Archive captures of QS's own data files rather than crawled. An edition read that way
 says so, for exactly the (source, edition) pairs in `DATASET_ARCHIVE_EDITIONS`
 (`crawlernest/core/dataset.py`, mirrored in `DatasetScope.java` and `datasetScope.ts`). The

@@ -65,8 +65,8 @@ describe("snapshot caveat template", () => {
 
   it("refuses to name a source over an edition it does not cover", () => {
     // The sentence asserts the named source published those tables. QS holds
-    // no 2015, 2017 or 2021.
-    expect(() => snapshotCaveat(["QS"], [2017])).toThrow(/2017/);
+    // no 2015, 2016 or 2021.
+    expect(() => snapshotCaveat(["QS"], [2016])).toThrow(/2016/);
     expect(() => snapshotCaveat(["QS"], [2021])).toThrow(/2021/);
     expect(() => snapshotCaveat(["QS", "THE"], DATASET_YEARS)).toThrow();
     expect(() => snapshotCaveat(["THE"], [2014])).toThrow(/2014/);

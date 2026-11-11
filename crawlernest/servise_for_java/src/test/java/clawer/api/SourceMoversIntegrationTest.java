@@ -31,12 +31,12 @@ class SourceMoversIntegrationTest {
 
     @Test
     void anEditionTheSourceDoesNotHoldIsWithheldNotReachedAround() throws Exception {
-        // QS holds no 2017: 2018 is not compared with 2016 as though that were one step.
-        mvc.perform(get("/api/v1/analytics/source-movers").param("source", "qs").param("year", "2018"))
+        // QS holds no 2016: 2017 is withheld rather than compared with anything older.
+        mvc.perform(get("/api/v1/analytics/source-movers").param("source", "qs").param("year", "2017"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.source").value("QS"))
-                .andExpect(jsonPath("$.data.prior_year").value(2017))
-                .andExpect(jsonPath("$.data.withheld_reason").value("no_qs_edition_2017"))
+                .andExpect(jsonPath("$.data.prior_year").value(2016))
+                .andExpect(jsonPath("$.data.withheld_reason").value("no_qs_edition_2016"))
                 .andExpect(jsonPath("$.data.risers").isEmpty())
                 .andExpect(jsonPath("$.data.caveats", hasItem(AnalyticsService.RANK_CHANGE_CAVEAT)));
     }

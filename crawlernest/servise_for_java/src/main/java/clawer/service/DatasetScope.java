@@ -50,13 +50,13 @@ public class DatasetScope {
      * Which editions each source actually covers, newest first.
      *
      * <p>Mirrors {@code DATASET_COVERAGE} in {@code crawlernest/core/dataset.py}.
-     * ARWU and THE reach back to 2015; QS has gaps (no 2015, 2017, 2021). A flat list of years
+     * ARWU and THE reach back to 2015; QS has gaps (no 2015, 2016, 2021). A flat list of years
      * cannot say that, and the snapshot caveat names a source -- rendering it over
      * every held edition would claim QS published tables for ten editions holding
      * no QS row.
      */
     public static final Map<String, List<Integer>> DATASET_COVERAGE = Map.of(
-            "QS", List.of(2026, 2025, 2024, 2023, 2022, 2020, 2019, 2018, 2016),
+            "QS", List.of(2026, 2025, 2024, 2023, 2022, 2020, 2019, 2018, 2017),
             "THE", List.of(2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015),
             "ARWU", List.of(2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015));
 
@@ -70,7 +70,7 @@ public class DatasetScope {
      * the archive manifest and its ingest receipts.
      */
     public static final Map<String, Map<Integer, String>> DATASET_ARCHIVE_EDITIONS = Map.of(
-            "QS", Map.of(2024, "2026-03-29", 2023, "2026-05-10", 2022, "2022-04-09", 2020, "2021-02-16", 2019, "2021-02-21", 2018, "2021-02-12", 2016, "2022-04-26"));
+            "QS", Map.of(2024, "2026-03-29", 2023, "2026-05-10", 2022, "2022-04-09", 2020, "2021-02-16", 2019, "2021-02-21", 2018, "2021-02-12", 2017, "2022-04-26"));
 
     /** Ranking sources ingested, widest first. Mirrors {@code DATASET_SOURCES} in Python. */
     public static final List<String> DATASET_SOURCES = List.of("QS", "THE", "ARWU");

@@ -231,6 +231,8 @@ def run_all_tests():
         "test_source_failure_fixtures",
         # The agent's rank history: the API's statuses, the prompt's words, and the lookup carrying its caveats.
         "test_rank_history",
+        # Retiring a relabelled QS archive edition only when the new label holds the identical table.
+        "test_retire_relabelled_qs_edition",
     ]
 
     # pytest-based modules are optional for the unified unittest runner.

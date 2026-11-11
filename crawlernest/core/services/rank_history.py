@@ -4,7 +4,7 @@ The same rules as the API's ``GET /universities/{id}/rank-history`` (``clawer.se
 agent and the page cannot disagree about a gap:
 
 - ``ranked``: the source's printed rank and its band;
-- ``edition_not_held``: this warehouse holds no edition of the source that year (QS 2017). Our gap, the same for
+- ``edition_not_held``: this warehouse holds no edition of the source that year (QS 2016). Our gap, the same for
   every university;
 - ``not_in_edition``: the edition is held and this university has no rank in it here (not ingested, or not
   matched). Never "the source declined to rank it".

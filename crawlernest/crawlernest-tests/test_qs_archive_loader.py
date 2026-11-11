@@ -179,6 +179,28 @@ class TestManifest(unittest.TestCase):
         with self.assertRaises(L.ArchiveIntegrityError):
             L.parse_manifest_entry(YEAR, raw)
 
+    def test_a_retitled_page_needs_its_address_year_and_a_reason(self):
+        # QS retitled its /2016 page "2017"; that edition's label differs from its address on purpose.
+        raw = self.good()
+        older = PAGE_ORIGINAL.replace("/2024", "/2023")
+        raw["edition_page"]["snapshot_url"] = f"https://web.archive.org/web/{PAGE_TS}id_/{older}"
+        raw["page_year"] = 2023
+        with self.assertRaises(L.ArchiveIntegrityError):  # no label_basis: nobody said why
+            L.parse_manifest_entry(YEAR, raw)
+        raw["label_basis"] = "QS titles this page 2024 today"
+        entry = L.parse_manifest_entry(YEAR, raw)
+        self.assertEqual((entry.ranking_year, entry.page_year), (YEAR, 2023))
+        raw["page_year"] = 2022  # the address must still be the page_year's
+        with self.assertRaises(L.ArchiveIntegrityError):
+            L.parse_manifest_entry(YEAR, raw)
+
+    def test_the_committed_manifest_never_loads_what_was_decided_against(self):
+        manifest = L.load_manifest(L.DEFAULT_MANIFEST)
+        self.assertNotIn(2015, manifest)
+        self.assertNotIn(2021, manifest)
+        self.assertNotIn(2016, manifest)
+        self.assertEqual(2016, manifest[2017].page_year)
+
     def test_an_unpinned_hash_is_refused(self):
         raw = self.good()
         raw["data_file"]["expected_sha256"] = ""

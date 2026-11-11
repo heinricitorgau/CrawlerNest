@@ -12,12 +12,12 @@
  *
  * Mirrors `DATASET_COVERAGE` in `crawlernest/core/dataset.py` and
  * `DatasetScope.DATASET_COVERAGE` in Java. ARWU and THE reach back to 2015; QS has
- * gaps (no 2015, 2017, 2021). The snapshot caveat names a source, so rendering it over every
+ * gaps (no 2015, 2016, 2021). The snapshot caveat names a source, so rendering it over every
  * held edition would tell a reader that ten editions with no QS row in them are
  * a snapshot of the QS published tables.
  */
 export const DATASET_COVERAGE: Readonly<Record<string, readonly number[]>> = {
-  QS: [2026, 2025, 2024, 2023, 2022, 2020, 2019, 2018, 2016],
+  QS: [2026, 2025, 2024, 2023, 2022, 2020, 2019, 2018, 2017],
   THE: [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015],
   ARWU: [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015],
 };
@@ -31,7 +31,7 @@ export const DATASET_COVERAGE: Readonly<Record<string, readonly number[]>> = {
  * compares the literals, and the dates with the archive manifest and its ingest receipts.
  */
 export const DATASET_ARCHIVE_EDITIONS: Readonly<Record<string, Readonly<Record<number, string>>>> = {
-  QS: { 2024: "2026-03-29", 2023: "2026-05-10", 2022: "2022-04-09", 2020: "2021-02-16", 2019: "2021-02-21", 2018: "2021-02-12", 2016: "2022-04-26" },
+  QS: { 2024: "2026-03-29", 2023: "2026-05-10", 2022: "2022-04-09", 2020: "2021-02-16", 2019: "2021-02-21", 2018: "2021-02-12", 2017: "2022-04-26" },
 };
 
 /** The capture date of an archive-sourced edition, or null when it was crawled live. */

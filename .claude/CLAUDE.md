@@ -151,11 +151,14 @@ CI — several sat unrun for months that way. Add it to the `test_modules` list.
   `source_runs/<SOURCE>/<year>/run_status.json` whether the crawl worked or not; the status rule is shared with
   QS. The warehouse: as of 2026-10-02 `analytics.aggregated_rankings` carries 9,864 QS, 1,712 THE
   and 955 ARWU ranks for 2026 (2025: 1,512 / 1,663 / 961). THE and ARWU also hold
-  every edition 2015–2024. QS holds 2016, 2018–2020 and 2022–2024, read from
+  every edition 2015–2024. QS holds 2017–2020 and 2022–2024, read from
   Internet Archive captures (`crawlernest-jobs/qs_archive_loader.py`, pinned in
   `crawlernest-kb/qs_archive/manifest.json`) with `rank` stored as the lower bound
-  of the printed rank; it has no 2015, 2017 or 2021 (2015 and 2021 are pinned in the
-  manifest but not ingested, pending a decision). The ingested editions carry their own
+  of the printed rank; it has no 2015, 2016 or 2021. An edition's year is the one QS's own title gives it
+  today: the September 2016 table (page address /2016, titled "2017" since 2020) is QS 2017, relabelled from
+  2016 on 2026-11-11 (manifest entry 2017 carries `page_year` and `label_basis`). The 2015 and 2021 tables were
+  checked and are not ingested, by decision; they sit under `_not_ingested` in the manifest, which the loader
+  never reads. The ingested editions carry their own
   caveat (`DATASET_ARCHIVE_EDITIONS`). The QS figure sums every universe type (global, region,
   regional, special, subject); THE and ARWU exist only in `global`, where QS
   is 1,502 of 2,240 universities (README quotes the `global` figures).

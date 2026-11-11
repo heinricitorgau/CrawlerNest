@@ -1,0 +1,18 @@
+{
+  "action": "retire_relabelled_qs_edition",
+  "old_year": 2016,
+  "new_year": 2017,
+  "started_utc": "2026-11-11T14:19:47Z",
+  "finished_utc": "2026-11-11T14:19:47Z",
+  "database": "clawer",
+  "verified_identical_rows": 890,
+  "deleted_ranking_records": 890,
+  "deleted_missing_entity_log": 72,
+  "reaggregated_rows": 842,
+  "aggregated_rows_after": 842,
+  "backup": {
+    "path": "/home/torgau/dev/University-Data-Infrastructure-Web-Platform/.local/backups/qs_archive_pre_ingest_2016_clawer_20261111T141944Z.dump",
+    "bytes": 21480790
+  },
+  "rollback": "pg_restore -h localhost -p 5432 -U test -d clawer --clean --if-exists /home/torgau/dev/University-Data-Infrastructure-Web-Platform/.local/backups/qs_archive_pre_ingest_2016_clawer_20261111T141944Z.dump"
+}

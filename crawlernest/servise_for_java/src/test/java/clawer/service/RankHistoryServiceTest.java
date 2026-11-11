@@ -43,9 +43,9 @@ class RankHistoryServiceTest {
         rows.put("THE", new HashMap<>(Map.of(2026, row(5, "5", "the:x"), 2024, row(201, "201-250", "the:x"))));
         rows.put("QS", new HashMap<>(Map.of(2026, row(3, "=3", "qs:y"))));
 
-        Map<String, Object> data = RankHistoryService.build(List.of(2026, 2025, 2024, 2017), rows);
+        Map<String, Object> data = RankHistoryService.build(List.of(2026, 2025, 2024, 2016), rows);
 
-        assertEquals(List.of(2017, 2024, 2025, 2026), data.get("years"));
+        assertEquals(List.of(2016, 2024, 2025, 2026), data.get("years"));
         assertEquals("ranked", point(data, "THE", 2026).get("status"));
         assertEquals("not_in_edition", point(data, "THE", 2025).get("status"));
         Map<String, Object> banded = point(data, "THE", 2024);
@@ -53,8 +53,8 @@ class RankHistoryServiceTest {
         assertEquals(250, banded.get("rankUpper"));
         assertEquals("201-250", banded.get("rankDisplay"));
 
-        // QS holds no 2017 edition at all: that is not this university's gap.
-        assertEquals("edition_not_held", point(data, "QS", 2017).get("status"));
+        // QS holds no 2016 edition at all: that is not this university's gap.
+        assertEquals("edition_not_held", point(data, "QS", 2016).get("status"));
         assertEquals(3, point(data, "QS", 2026).get("rankLower"));
         // ARWU holds every one of these editions, and this university is in none of them here.
         assertEquals("not_in_edition", point(data, "ARWU", 2026).get("status"));

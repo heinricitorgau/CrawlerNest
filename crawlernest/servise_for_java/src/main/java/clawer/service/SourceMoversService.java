@@ -24,7 +24,7 @@ import clawer.repository.InstitutionLineageRepository;
  * source entry, an institution merger, a match flagged for review) is counted under its reason, never listed.
  *
  * <p>The prior edition is the previous edition the release holds, as on the university page. When the source has
- * no edition that year (QS 2017), nothing is compared, and the response says why. It never quietly reaches back
+ * no edition that year (QS 2016), nothing is compared, and the response says why. It never quietly reaches back
  * to an older edition, since that would present a two-year gap as one step.
  */
 @Service

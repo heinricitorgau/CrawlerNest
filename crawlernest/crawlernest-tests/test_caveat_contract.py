@@ -276,31 +276,31 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
     def test_a_source_cannot_be_named_over_an_edition_it_does_not_cover(self) -> None:
         # The check that makes the false disclosure unwritable rather than merely
         # discouraged. Java and TypeScript raise on the same inputs.
-        # QS holds no 2015, 2017 or 2021; no source holds 2014.
+        # QS holds no 2015, 2016 or 2021; no source holds 2014.
         for source, years in (
-            ("QS", (2017,)), ("QS", (2015, 2026)), ("QS", (2021,)), ("THE", (2014,)), ("ARWU", (2014,)),
+            ("QS", (2016,)), ("QS", (2015, 2026)), ("QS", (2021,)), ("THE", (2014,)), ("ARWU", (2014,)),
         ):
             with self.subTest(source=source, years=years):
                 with self.assertRaises(ValueError):
                     snapshot_caveat(source, years)
 
     def test_an_edition_is_disclosed_with_the_sources_it_actually_holds(self) -> None:
-        self.assertEqual(sources_for_year(2017), ("THE", "ARWU"))
-        self.assertEqual(sources_for_year(2018), ("QS", "THE", "ARWU"))
+        self.assertEqual(sources_for_year(2016), ("THE", "ARWU"))
+        self.assertEqual(sources_for_year(2017), ("QS", "THE", "ARWU"))
         self.assertEqual(sources_for_year(2026), ("QS", "THE", "ARWU"))
 
-        no_qs = edition_snapshot_caveat(2017)
+        no_qs = edition_snapshot_caveat(2016)
         self.assertTrue(no_qs.startswith("THE and ARWU ranking data"), no_qs)
         self.assertNotIn("QS", no_qs)
 
         # And an edition missing a source says so, in the negative ("or"), rather
         # than leaving a reader to infer it from an empty column. Two of the three
         # sources are present here, so the sentence must not say "one source".
-        coverage = edition_source_coverage_caveat(2017)
-        self.assertIn("The 2017 edition holds THE and ARWU ranks only", coverage)
+        coverage = edition_source_coverage_caveat(2016)
+        self.assertIn("The 2016 edition holds THE and ARWU ranks only", coverage)
         self.assertIn("No QS rank exists", coverage)
         self.assertNotIn("one source", coverage)
-        self.assertIsNone(edition_source_coverage_caveat(2018))
+        self.assertIsNone(edition_source_coverage_caveat(2017))
         self.assertIsNone(edition_source_coverage_caveat(2026))
 
     def test_source_lists_join_like_year_lists(self) -> None:
@@ -468,13 +468,13 @@ class TestYearBearingCaveatTemplates(unittest.TestCase):
         # one edition must use the second: STANDARD_CAVEATS opens with QS's
         # snapshot, which beside a 2018 table holding no QS rank is true of the
         # warehouse and useless to the reader.
-        no_qs = edition_caveats(2017)
-        self.assertEqual(no_qs[0], edition_snapshot_caveat(2017))
-        self.assertIn(edition_source_coverage_caveat(2017), no_qs)
+        no_qs = edition_caveats(2016)
+        self.assertEqual(no_qs[0], edition_snapshot_caveat(2016))
+        self.assertIn(edition_source_coverage_caveat(2016), no_qs)
         self.assertIn(CAVEAT_ARWU_PARTIAL, no_qs)
         self.assertIn(CAVEAT_THE_PARTIAL, no_qs)
         self.assertNotIn(CAVEAT_QS_STALE, no_qs)
-        # Nothing archive-sourced is held for 2017, so no archive disclosure either.
+        # Nothing archive-sourced is held for 2016, so no archive disclosure either.
         self.assertFalse(any("Internet Archive" in caveat for caveat in no_qs))
 
         every_source = edition_caveats(2026)
@@ -568,12 +568,22 @@ class TestArchiveEditions(unittest.TestCase):
         # later --replace reloads an earlier archive load (the Miami ids were withheld
         # until the entity split of 2026-10-03). The chain has to be unbroken: the first
         # found the edition empty, and each later one found exactly what the one before it wrote.
+        #
+        # An edition retired under a new label (QS 2016 -> 2017, 2026-11-11) keeps its ingest chain, closed by a
+        # retirement receipt: the rows it deleted were the last ingest's, verified identical to a held edition's,
+        # and that edition was loaded from the same bytes.
         chains: dict[int, list[dict]] = {}
+        retired: dict[int, dict] = {}
         for path in sorted((QS_ARCHIVE_DIR / "receipts").glob("*.json")):
             data = json.loads(_read(path))
-            if data["database"] == "clawer":
+            if data["database"] != "clawer":
+                continue
+            if data.get("action") == "retire_relabelled_qs_edition":
+                retired[int(data["old_year"])] = data
+            else:
                 chains.setdefault(int(data["year"]), []).append(data)
-        self.assertEqual(set(chains), set(DATASET_ARCHIVE_EDITIONS["QS"]))
+        self.assertEqual(set(chains) - set(retired), set(DATASET_ARCHIVE_EDITIONS["QS"]))
+        self.assertFalse(set(retired) & set(DATASET_ARCHIVE_EDITIONS["QS"]))
         manifest = json.loads(_read(QS_ARCHIVE_DIR / "manifest.json"))
         for year, chain in chains.items():
             chain.sort(key=lambda r: r["started_utc"])
@@ -581,10 +591,16 @@ class TestArchiveEditions(unittest.TestCase):
                 self.assertEqual(chain[0]["before"]["ranking_records"], 0)
                 for earlier, later in zip(chain, chain[1:]):
                     self.assertEqual(later["before"]["ranking_records"], earlier["summary"]["matched"])
+                pinned_year = retired[year]["new_year"] if year in retired else year
                 for receipt in chain:
                     self.assertEqual(
-                        receipt["manifest"]["payload_sha256"], manifest[str(year)]["data_file"]["expected_sha256"]
+                        receipt["manifest"]["payload_sha256"],
+                        manifest[str(pinned_year)]["data_file"]["expected_sha256"],
                     )
+                if year in retired:
+                    self.assertIn(retired[year]["new_year"], DATASET_ARCHIVE_EDITIONS["QS"])
+                    self.assertEqual(retired[year]["verified_identical_rows"], chain[-1]["summary"]["matched"])
+                    self.assertEqual(retired[year]["deleted_ranking_records"], chain[-1]["summary"]["matched"])
 
     def test_the_template_names_what_a_reader_would_otherwise_assume(self) -> None:
         for phrase in ("Internet Archive", "not crawled", "may have revised", "lower bound", "composite or confidence"):
@@ -593,7 +609,7 @@ class TestArchiveEditions(unittest.TestCase):
             self.assertIn(slot, ARCHIVE_EDITION_CAVEAT_TEMPLATE)
         # One golden sentence, pinned in the Python, Java and TypeScript suites alike.
         self.assertEqual(ARCHIVE_CAVEAT_QS_2023, archive_edition_caveat("QS", 2023))
-        rendered = archive_edition_caveat("QS", 2016)
+        rendered = archive_edition_caveat("QS", 2017)
         self.assertNotIn("{", rendered)
         self.assertIn("2022-04-26", rendered)
 

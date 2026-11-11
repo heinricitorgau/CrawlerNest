@@ -35,10 +35,10 @@ describe("SourceMovers", () => {
   });
 
   it("explains a withheld comparison instead of reaching back to an older edition", async () => {
-    answer({ ...base, source: "QS", ranking_year: 2018, prior_year: 2017, withheld_reason: "no_qs_edition_2017",
+    answer({ ...base, source: "QS", ranking_year: 2017, prior_year: 2016, withheld_reason: "no_qs_edition_2016",
              risers: [], fallers: [], counts: {} });
     render(<SourceMovers />);
-    await waitFor(() => expect(screen.getByText(/No QS edition of 2017 is held here/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/No QS edition of 2016 is held here/)).toBeInTheDocument());
     expect(screen.getByText(/It is not compared with an older edition instead/)).toBeInTheDocument();
   });
 });

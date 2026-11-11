@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  * <ul>
  *   <li>{@code ranked} -- the source's printed rank, with its band ({@code rankLower}/{@code rankUpper},
  *       upper null for an open band such as "1001+");</li>
- *   <li>{@code edition_not_held} -- this warehouse holds no edition of the source for that year (QS 2017,
+ *   <li>{@code edition_not_held} -- this warehouse holds no edition of the source for that year (QS 2016,
  *       THE before 2015). Our gap in the dataset, the same for every university;</li>
  *   <li>{@code not_in_edition} -- the edition is held and this university has no rank in it here: the data
  *       ingested does not include it, or it was not matched. Never "the source declined to rank it".</li>

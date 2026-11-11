@@ -1,6 +1,6 @@
 """The agent's rank history: the same statuses as GET /universities/{id}/rank-history, and the words a prompt gets.
 
-The page and the agent must not disagree about a gap: "no QS 2017 edition held" is our gap for every university;
+The page and the agent must not disagree about a gap: "no QS 2016 edition held" is our gap for every university;
 "not in the held edition" is about this one. Neither is the source declining to rank it.
 """
 
@@ -37,12 +37,12 @@ class BuildTest(unittest.TestCase):
                 _row("QS", 2023, 100, "=100", "qs:2023:x"),
                 _row("QS", 2024, 90, "90", "qs:2024:x"),
             ],
-            held_years=[2017, 2023, 2024, 2025, 2026],
+            held_years=[2016, 2023, 2024, 2025, 2026],
         )
 
     def test_every_point_says_what_it_is(self):
-        self.assertEqual([2017, 2023, 2024, 2025, 2026], self.history["years"])
-        self.assertEqual("edition_not_held", _point(self.history, "QS", 2017)["status"])
+        self.assertEqual([2016, 2023, 2024, 2025, 2026], self.history["years"])
+        self.assertEqual("edition_not_held", _point(self.history, "QS", 2016)["status"])
         self.assertEqual("not_in_edition", _point(self.history, "QS", 2026)["status"])
         self.assertEqual("not_in_edition", _point(self.history, "ARWU", 2026)["status"])
         banded = _point(self.history, "THE", 2026)
@@ -60,7 +60,7 @@ class BuildTest(unittest.TestCase):
     def test_the_prompt_lines_name_every_gap_in_the_same_words(self):
         lines = rh.summarize_rank_history(self.history)
         qs = next(line for line in lines if line.startswith("QS:"))
-        self.assertIn("2017 no QS edition held", qs)
+        self.assertIn("2016 no QS edition held", qs)
         self.assertIn("2023 =100 (Internet Archive capture)", qs)
         self.assertIn("2026 not in the held edition", qs)
         self.assertNotIn("declin", " ".join(lines))

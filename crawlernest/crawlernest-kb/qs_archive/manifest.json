@@ -1,26 +1,47 @@
 {
   "_comment": "Snapshots pinned by qs_archive_loader. expected_sha256 is the sha256 of the DECODED data bytes. Selection was automated and is pending human review; see docs/data/QS_ARCHIVE_LOADER_DESIGN.md.",
-  "2015": {
-    "ranking_year": 2015,
-    "edition_page": {
-      "snapshot_url": "https://web.archive.org/web/20161108163601id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2015",
-      "snapshot_ts": "20161108163601"
+  "_not_ingested": {
+    "_comment": "Decided 2026-11-11 by the repository owner: these are not ingested. Kept as a record of what was checked; keys under _not_ingested are never loaded (load_manifest skips every key starting with '_'), so --all --ingest cannot reach them. Under the labelling rule adopted the same day (the year QS's current title gives the page), the /2015 table would be the 2016 edition.",
+    "2015": {
+      "ranking_year": 2015,
+      "edition_page": {
+        "snapshot_url": "https://web.archive.org/web/20161108163601id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2015",
+        "snapshot_ts": "20161108163601"
+      },
+      "data_file": {
+        "snapshot_url": "https://web.archive.org/web/20210217124722id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/299926.txt",
+        "snapshot_ts": "20210217124722",
+        "expected_ranking_id": "299926",
+        "expected_sha256": "12ab58b920e2dd9e3056c737fd8ff79733ddc385ac53fe0485ceda2767c09ceb"
+      },
+      "reviewed_by": "claude (automated selection, pending human review)",
+      "reviewed_on": "2026-11-10",
+      "notes": "Pinned, not ingested: whether to hold this edition is an open decision. 2 captures of this data file (2021-02-17, 2022-04-21) differ in membership (916 and 914 rows); earliest pinned. The edition page is a later capture: the 2015-09 and 2016-04 captures declare no ranking id, the 2016-11 to 2019-11 captures declare exactly this one. QS printed this edition as '2015/16' and has titled the same page '2016' since 2020; the year here is the one in the page address and in the title of the pinned capture."
     },
-    "data_file": {
-      "snapshot_url": "https://web.archive.org/web/20210217124722id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/299926.txt",
-      "snapshot_ts": "20210217124722",
-      "expected_ranking_id": "299926",
-      "expected_sha256": "12ab58b920e2dd9e3056c737fd8ff79733ddc385ac53fe0485ceda2767c09ceb"
-    },
-    "reviewed_by": "claude (automated selection, pending human review)",
-    "reviewed_on": "2026-11-10",
-    "notes": "Pinned, not ingested: whether to hold this edition is an open decision. 2 captures of this data file (2021-02-17, 2022-04-21) differ in membership (916 and 914 rows); earliest pinned. The edition page is a later capture: the 2015-09 and 2016-04 captures declare no ranking id, the 2016-11 to 2019-11 captures declare exactly this one. QS printed this edition as '2015/16' and has titled the same page '2016' since 2020; the year here is the one in the page address and in the title of the pinned capture."
+    "2021": {
+      "ranking_year": 2021,
+      "edition_page": {
+        "snapshot_url": "https://web.archive.org/web/20230801232014id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2021",
+        "snapshot_ts": "20230801232014"
+      },
+      "data_file": {
+        "snapshot_url": "https://web.archive.org/web/20210212151348id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/2057712.txt",
+        "snapshot_ts": "20210212151348",
+        "expected_ranking_id": "2057712",
+        "expected_sha256": "1c1e8422ce577a63b1f1caeeb573739d862fcd57ab2685bd8233906c1ea4a7c4"
+      },
+      "reviewed_by": "claude (automated selection, pending human review)",
+      "reviewed_on": "2026-11-10",
+      "notes": "Pinned, not ingested: the choice of capture needs review. 8 readable captures hold 6 distinct contents, and unlike 2018, 2019 and 2022 they do not differ in membership only: the 2021-03-02 capture changes rank_display for 4 rows (two ties gain '=', Rochester 166 to 165, Brno 701-750 to 651-700) and adds one row; later captures drop rows and blank 17 countries. Earliest pinned; on every exact rank it agrees with the table QS first published (id 946820, captured 2020-09-05, outside en/ so it cannot be pinned itself). 184 rows here are absent from that first table (157 printed '1001+', 27 unranked). The 2021-02-18 capture does not decode. The edition page is a later capture: the 2021-03 to 2022-09 captures declare many ranking ids and cannot pass the one-id rule; the 2020-06 capture declares 946820."
+    }
   },
-  "2016": {
-    "ranking_year": 2016,
+  "2017": {
+    "ranking_year": 2017,
+    "page_year": 2016,
+    "label_basis": "Relabelled 2016 -> 2017 on 2026-11-11 by decision of the repository owner: the year is the one QS's own title gives this page today. QS published the table in September 2016 as '2016/17' and has titled the page '2017' since 2020; the address still reads /2016. The edition page pinned below is a 2020 capture whose title names 2017 and which declares this one ranking id, so the loader proves 2017 by the live crawler's rule. The data file and its sha256 are unchanged from the 2016 pin.",
     "edition_page": {
-      "snapshot_url": "https://web.archive.org/web/20160906074827id_/http://www.topuniversities.com/university-rankings/world-university-rankings/2016",
-      "snapshot_ts": "20160906074827"
+      "snapshot_url": "https://web.archive.org/web/20200102171433id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2016",
+      "snapshot_ts": "20200102171433"
     },
     "data_file": {
       "snapshot_url": "https://web.archive.org/web/20220426065734id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/326584.txt",
@@ -29,8 +50,8 @@
       "expected_sha256": "1ff8f9b5f0b3fe465ec2eb2f712342bc3982ebce5e4129d8a57e01112b6b6d3b"
     },
     "reviewed_by": "claude (automated selection, pending human review)",
-    "reviewed_on": "2026-10-03",
-    "notes": "2 captures, byte-identical content; earliest pinned."
+    "reviewed_on": "2026-11-11",
+    "notes": "Data file: 2 captures, byte-identical content; earliest pinned (unchanged since 2026-10-03). Edition page: of ten captures of /2016 since 2020 checked, four pass the 2017 rule (2020-01, 2020-05, 2021-01, 2024-06), all declaring 326584; earliest pinned. The 2016-09 capture pinned before is titled 2016 and proves the old label."
   },
   "2018": {
     "ranking_year": 2018,
@@ -79,22 +100,6 @@
     "reviewed_by": "claude (automated selection, pending human review)",
     "reviewed_on": "2026-10-03",
     "notes": "Only capture of this data file."
-  },
-  "2021": {
-    "ranking_year": 2021,
-    "edition_page": {
-      "snapshot_url": "https://web.archive.org/web/20230801232014id_/https://www.topuniversities.com/university-rankings/world-university-rankings/2021",
-      "snapshot_ts": "20230801232014"
-    },
-    "data_file": {
-      "snapshot_url": "https://web.archive.org/web/20210212151348id_/https://www.topuniversities.com/sites/default/files/qs-rankings-data/en/2057712.txt",
-      "snapshot_ts": "20210212151348",
-      "expected_ranking_id": "2057712",
-      "expected_sha256": "1c1e8422ce577a63b1f1caeeb573739d862fcd57ab2685bd8233906c1ea4a7c4"
-    },
-    "reviewed_by": "claude (automated selection, pending human review)",
-    "reviewed_on": "2026-11-10",
-    "notes": "Pinned, not ingested: the choice of capture needs review. 8 readable captures hold 6 distinct contents, and unlike 2018, 2019 and 2022 they do not differ in membership only: the 2021-03-02 capture changes rank_display for 4 rows (two ties gain '=', Rochester 166 to 165, Brno 701-750 to 651-700) and adds one row; later captures drop rows and blank 17 countries. Earliest pinned; on every exact rank it agrees with the table QS first published (id 946820, captured 2020-09-05, outside en/ so it cannot be pinned itself). 184 rows here are absent from that first table (157 printed '1001+', 27 unranked). The 2021-02-18 capture does not decode. The edition page is a later capture: the 2021-03 to 2022-09 captures declare many ranking ids and cannot pass the one-id rule; the 2020-06 capture declares 946820."
   },
   "2022": {
     "ranking_year": 2022,

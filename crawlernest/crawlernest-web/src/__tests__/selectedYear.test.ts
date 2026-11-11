@@ -67,26 +67,26 @@ describe("editionCaveats", () => {
 
   it("names THE and ARWU, not QS, for an edition QS does not cover", () => {
     // The defect the 2015-2024 ARWU release had to fix, and still true for QS 2015,
-    // 2017 and 2021: editionCaveats(2017) must not render "QS ranking data is a
-    // point-in-time snapshot of the 2017 published tables" onto a table with no QS rank.
-    const shown = editionCaveats(2017);
+    // 2016 and 2021: editionCaveats(2016) must not render "QS ranking data is a
+    // point-in-time snapshot of the 2016 published tables" onto a table with no QS rank.
+    const shown = editionCaveats(2016);
     expect(shown[0]).toBe(
-      SNAPSHOT_CAVEAT_TEMPLATE.replace("{source}", "THE and ARWU").replace("{years}", "2017"),
+      SNAPSHOT_CAVEAT_TEMPLATE.replace("{source}", "THE and ARWU").replace("{years}", "2016"),
     );
     expect(shown.join(" ")).not.toContain("QS ranking data");
-    expect(shown).toContain(editionSourceCoverageCaveat(2017));
+    expect(shown).toContain(editionSourceCoverageCaveat(2016));
     expect(shown).toContain(CAVEAT_THE_PARTIAL);
     expect(shown).toContain(CAVEAT_ARWU_PARTIAL);
     expect(shown.some((c) => c.includes("Internet Archive"))).toBe(false);
   });
 
   it("says which sources an edition is missing, and nothing when it holds them all", () => {
-    const caveat = editionSourceCoverageCaveat(2017);
-    expect(caveat).toContain("The 2017 edition holds THE and ARWU ranks only");
+    const caveat = editionSourceCoverageCaveat(2016);
+    expect(caveat).toContain("The 2016 edition holds THE and ARWU ranks only");
     expect(caveat).toContain("No QS rank exists");
     // Two of three sources are present, so it must not claim a single source.
     expect(caveat).not.toContain("one source");
-    expect(editionSourceCoverageCaveat(2018)).toBeNull();
+    expect(editionSourceCoverageCaveat(2017)).toBeNull();
     expect(editionSourceCoverageCaveat(2026)).toBeNull();
   });
 

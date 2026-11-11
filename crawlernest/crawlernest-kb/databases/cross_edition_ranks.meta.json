@@ -1,7 +1,7 @@
 {
-  "exported_utc": "2026-10-21T15:16:53Z",
+  "exported_utc": "2026-11-11T14:25:21Z",
   "database": "clawer",
-  "csv_sha256": "0d5491f5c0e936de0f40cf291d6b67bfe4c8e9d5ae1e5b9bb9923f92bc17b2c8",
+  "csv_sha256": "a7f115c105f213d695b5d5fa928db5b8646898b31ef96ad2977e03971baf0ff1",
   "rows": 36140,
   "rows_per_source_year": {
     "ARWU 2015": 498,
@@ -16,7 +16,7 @@
     "ARWU 2024": 982,
     "ARWU 2025": 967,
     "ARWU 2026": 961,
-    "QS 2016": 890,
+    "QS 2017": 890,
     "QS 2018": 946,
     "QS 2019": 973,
     "QS 2020": 1038,

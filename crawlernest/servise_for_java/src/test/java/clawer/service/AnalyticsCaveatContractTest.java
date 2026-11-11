@@ -90,22 +90,22 @@ class AnalyticsCaveatContractTest {
     @Test
     @DisplayName("a source is never named over an edition it does not cover")
     void aSourceIsNeverNamedOverAnEditionItDoesNotCover() {
-        // QS holds no 2015, 2017 or 2021; no source holds 2014.
+        // QS holds no 2015, 2016 or 2021; no source holds 2014.
         assertThrows(IllegalArgumentException.class,
-                () -> AnalyticsService.snapshotCaveat(List.of("QS"), List.of(2017)));
+                () -> AnalyticsService.snapshotCaveat(List.of("QS"), List.of(2016)));
         assertThrows(IllegalArgumentException.class,
                 () -> AnalyticsService.snapshotCaveat(List.of("QS"), List.of(2015, 2026)));
         assertThrows(IllegalArgumentException.class,
                 () -> AnalyticsService.snapshotCaveat(List.of("THE"), List.of(2014)));
-        assertTrue(AnalyticsService.editionSnapshotCaveat(2017).startsWith("THE and ARWU ranking data"));
-        assertFalse(AnalyticsService.editionSnapshotCaveat(2017).contains("QS"));
+        assertTrue(AnalyticsService.editionSnapshotCaveat(2016).startsWith("THE and ARWU ranking data"));
+        assertFalse(AnalyticsService.editionSnapshotCaveat(2016).contains("QS"));
     }
 
     @Test
     @DisplayName("an edition missing a source says so, and one holding them all does not")
     void anEditionDisclosesTheSourcesItLacks() {
-        String coverage = AnalyticsService.editionSourceCoverageCaveat(2017);
-        assertTrue(coverage.contains("The 2017 edition holds THE and ARWU ranks only"), coverage);
+        String coverage = AnalyticsService.editionSourceCoverageCaveat(2016);
+        assertTrue(coverage.contains("The 2016 edition holds THE and ARWU ranks only"), coverage);
         assertTrue(coverage.contains("No QS rank exists"), coverage);
         // Two of three sources are present, so the sentence must not claim a single one.
         assertFalse(coverage.contains("one source"), coverage);
@@ -118,8 +118,8 @@ class AnalyticsCaveatContractTest {
     void datasetYearsIsTheUnionOfCoverage() {
         assertTrue(DatasetScope.datasetYearsMatchCoverage(),
                 "DatasetScope.DATASET_YEARS and DATASET_COVERAGE disagree about which editions exist");
-        assertEquals(List.of("THE", "ARWU"), DatasetScope.sourcesFor(2017));
-        assertEquals(List.of("QS", "THE", "ARWU"), DatasetScope.sourcesFor(2018));
+        assertEquals(List.of("THE", "ARWU"), DatasetScope.sourcesFor(2016));
+        assertEquals(List.of("QS", "THE", "ARWU"), DatasetScope.sourcesFor(2017));
         assertEquals(List.of("QS", "THE", "ARWU"), DatasetScope.sourcesFor(2026));
         assertEquals(List.of(), DatasetScope.sourcesFor(2014));
     }

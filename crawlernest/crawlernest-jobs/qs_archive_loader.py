@@ -130,6 +130,10 @@ class ManifestEntry:
     reviewed_by: str
     reviewed_on: str
     notes: str = ""
+    #: The year in the edition page's address, when QS has since retitled that page to another year. The label
+    #: (``ranking_year``) is the year the pinned capture's title names, and the live crawler's rule proves it;
+    #: the address is checked against this. Equal to ``ranking_year`` for every edition QS never retitled.
+    page_year: int = 0
 
 
 def _snapshot_ref(raw: Any, label: str) -> SnapshotRef:
@@ -165,10 +169,14 @@ def parse_manifest_entry(year: int, raw: Any) -> ManifestEntry:
             f"manifest[{year}].data_file.expected_sha256 is not a sha256; pin it after review "
             "(see --show-hash)"
         )
+    page_year = int(raw.get("page_year") or year)
+    if page_year != int(year) and not str(raw.get("label_basis") or "").strip():
+        # A label that differs from the address is a deliberate decision; the manifest must say whose.
+        raise ArchiveIntegrityError(f"manifest[{year}].page_year is {page_year} but no label_basis says why")
     path = urlparse(page.original_url).path.rstrip("/")
-    if path not in {p.format(year=year) for p in _PAGE_PATHS}:
+    if path not in {p.format(year=page_year) for p in _PAGE_PATHS}:
         raise ArchiveIntegrityError(
-            f"manifest[{year}].edition_page archives {path!r}, which is not a QS world ranking page for {year}"
+            f"manifest[{year}].edition_page archives {path!r}, which is not a QS world ranking page for {page_year}"
         )
     data_match = _DATA_PATH.match(urlparse(data.original_url).path)
     if not data_match:
@@ -188,6 +196,7 @@ def parse_manifest_entry(year: int, raw: Any) -> ManifestEntry:
         reviewed_by=str(raw.get("reviewed_by") or ""),
         reviewed_on=str(raw.get("reviewed_on") or ""),
         notes=str(raw.get("notes") or ""),
+        page_year=page_year if page_year != int(year) else 0,
     )
 
 
@@ -580,7 +589,11 @@ def build_artifact(
             "original_url": entry.data_file.original_url,
             "snapshot_timestamp": entry.data_file.snapshot_ts,
             "payload_sha256": payload_sha256,
-            "edition": {**edition.as_meta(), "page_snapshot_timestamp": entry.edition_page.snapshot_ts},
+            "edition": {
+                **edition.as_meta(),
+                "page_snapshot_timestamp": entry.edition_page.snapshot_ts,
+                **({"page_address_year": entry.page_year} if entry.page_year else {}),
+            },
             "reviewed_by": entry.reviewed_by,
             "reviewed_on": entry.reviewed_on,
             "review_notes": entry.notes,
