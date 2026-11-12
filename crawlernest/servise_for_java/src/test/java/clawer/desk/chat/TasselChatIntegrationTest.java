@@ -47,7 +47,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(properties = "crawlernest.jwt.secret=an-integration-test-secret-long-enough-for-hs256")
+@TestPropertySource(properties = {
+        "crawlernest.jwt.secret=an-integration-test-secret-long-enough-for-hs256",
+        // These tests call the (stubbed) model endpoints many times a minute as one user. The model budget is
+        // tested on its own in ModelCallBudgetFilterTest and ModelCallBudgetIntegrationTest.
+        "crawlernest.rate-limit.model-calls-per-minute=100000",
+        "crawlernest.rate-limit.model-calls-per-day=100000"
+})
 @SqlGroup({
         @Sql(scripts = {"classpath:sql/desk_integration_setup.sql", "classpath:sql/desk_integration_seed.sql"},
                 executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD),

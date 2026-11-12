@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import clawer.auth.jwt.JwtCookieAuthenticationFilter;
 import clawer.auth.jwt.JwtService;
 import clawer.auth.jwt.TokenVersionStore;
+import clawer.security.ModelCallBudgetFilter;
 import clawer.security.RateLimitFilter;
 import clawer.security.RateLimits;
 
@@ -91,6 +92,8 @@ public class SecurityConfig {
         if (rateLimits != null) {
             // Before the token is read: a refused request costs no database lookup.
             http.addFilterBefore(new RateLimitFilter(rateLimits), JwtCookieAuthenticationFilter.class);
+            // After the token is read: the model budget belongs to the user, not the address.
+            http.addFilterAfter(new ModelCallBudgetFilter(rateLimits), JwtCookieAuthenticationFilter.class);
         }
 
         return http.build();
