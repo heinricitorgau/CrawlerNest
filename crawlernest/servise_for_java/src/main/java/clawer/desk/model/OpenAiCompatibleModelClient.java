@@ -4,8 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import clawer.auth.jwt.AuthenticatedUser;
 
 import java.io.IOException;
 import java.net.URI;
@@ -26,6 +31,10 @@ import java.util.Locale;
  *
  * <p>Provider errors are not passed on: their bodies can echo the request,
  * including the essay, or name the account.
+ *
+ * <p>Every request sent to the provider is written to {@link ModelUsageLedger} with its outcome and the provider's
+ * token figures, against the signed-in user of the request that caused it. That is what the day's model budget is
+ * counted from, so the budget counts calls actually made, not the most a request might have made.
  */
 @Component
 public class OpenAiCompatibleModelClient implements DeskModelClient {
@@ -39,7 +48,18 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
     private final String reasoningEffort;
     private final ObjectMapper objectMapper;
     private final HttpClient http;
+    /** Null in tests that build the client by hand: then nothing is recorded. */
+    private final ModelUsageLedger ledger;
 
+    /** Without a ledger: calls are made and not recorded. For tests of what goes on the wire. */
+    public OpenAiCompatibleModelClient(String provider, String model, String ds4Model, String baseUrl,
+                                       String ollamaBaseUrl, String ds4BaseUrl, String apiKey, Duration timeout,
+                                       String reasoningEffort, ObjectMapper objectMapper) {
+        this(provider, model, ds4Model, baseUrl, ollamaBaseUrl, ds4BaseUrl, apiKey, timeout, reasoningEffort,
+                objectMapper, null);
+    }
+
+    @Autowired
     public OpenAiCompatibleModelClient(
             @Value("${crawlernest.model.provider:mock}") String provider,
             @Value("${crawlernest.model.model:}") String model,
@@ -50,7 +70,9 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
             @Value("${crawlernest.model.api-key:}") String apiKey,
             @Value("${crawlernest.model.timeout:PT60S}") Duration timeout,
             @Value("${crawlernest.model.reasoning-effort:}") String reasoningEffort,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ModelUsageLedger ledger) {
+        this.ledger = ledger;
         this.provider = provider.trim().toLowerCase(Locale.ROOT);
         this.model = switch (this.provider) {
             case "ds4" -> model.isBlank() ? ds4Model : model.trim();
@@ -142,19 +164,50 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
         try {
             response = http.send(request.build(), HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
+            record(ModelUsageLedger.Outcome.UNREACHABLE, null, null);
             throw new UnavailableException("The model could not be reached. Nothing was stored.");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            record(ModelUsageLedger.Outcome.UNREACHABLE, null, null);
             throw new UnavailableException("The model request was interrupted. Nothing was stored.");
         }
         if (response.statusCode() / 100 != 2) {
+            record(ModelUsageLedger.Outcome.PROVIDER_ERROR, null, null);
             throw new UnavailableException("The model returned an error. Nothing was stored.");
         }
+        JsonNode json;
         try {
-            return objectMapper.readTree(response.body());
+            json = objectMapper.readTree(response.body());
         } catch (IOException e) {
+            record(ModelUsageLedger.Outcome.OK, null, null);
             throw new UnavailableException("The model's reply could not be read. Nothing was stored.");
         }
+        record(ModelUsageLedger.Outcome.OK, servedModel(json), json.path("usage"));
+        return json;
+    }
+
+    private void record(ModelUsageLedger.Outcome outcome, String servedModel, JsonNode usage) {
+        if (ledger == null) {
+            return;
+        }
+        ledger.record(AuthenticatedUser.currentId(), currentEndpoint(), servedModel != null ? servedModel : model,
+                outcome, tokens(usage, "prompt_tokens"), tokens(usage, "completion_tokens"));
+    }
+
+    /** The provider's own figure, or null when it sent none: an absent count is unknown, not zero. */
+    private static Integer tokens(JsonNode usage, String field) {
+        if (usage == null) {
+            return null;
+        }
+        JsonNode value = usage.path(field);
+        return value.canConvertToInt() && value.isIntegralNumber() && value.intValue() >= 0 ? value.intValue() : null;
+    }
+
+    private static String currentEndpoint() {
+        if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
+            return attributes.getRequest().getRequestURI();
+        }
+        return "(no request)";
     }
 
     private static String withV1(String url) {

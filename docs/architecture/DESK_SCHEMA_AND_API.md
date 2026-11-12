@@ -61,6 +61,7 @@ described below against a real PostgreSQL.
 | `skill_mastery` | `desk.skill_mastery` | Unique per (user, subject, unit). Mastery is computed from the counts. |
 | `essay_reviews` | `desk.essay_review` | A redraft is a new row with `revision_of_id`. Dimension scores and suggested edits are JSONB. Identical drafts are deduplicated by `draft_sha256`. |
 | (new) | `desk.chat_action` | Audit trail for function calling: every write the model asked for, and what happened to it. |
+| (new) | `desk.model_call` | One row per request this API sent to the model (V010): endpoint, served model, outcome (`ok`, `provider_error`, `unreachable`) and the provider's own token figures, NULL when it sent none. No prompt or reply text. The day's model budget is counted from it. |
 
 Rows reach every table only through endpoints that take `user_id` from the session, never from the request
 body (`docs/USER_DATA_SAFETY_REVIEW.md`).
@@ -310,6 +311,25 @@ Tests:
 - `EssayReview.test.tsx`.
 
 On `/desk`, the Essay review tab submits drafts, and "Your desk" shows the latest review in brief.
+
+## Model usage: `GET /api/v1/user/desk/usage` (implemented)
+
+The caller's own model calls over the last 24 hours (`desk.model_call`), and the budget they count against:
+
+```json
+{"last24Hours": {"modelCalls": 12, "unreachableCalls": 0, "promptTokens": 9120, "completionTokens": 1404,
+                 "callsWithoutUsage": 2},
+ "budget": {"enforced": true, "modelCallsPerDay": 300, "modelCallsLeft": 288,
+            "reservedPerRequest": {"/api/v1/user/desk/chat/message": 4, "...": 2}},
+ "notes": ["The day is the last 24 hours, ...", "..."]}
+```
+
+- Reserve, then settle: a model-calling request holds its most possible calls against the per-minute budget before
+  it runs (in memory), and the day counts only calls actually made (from the table). An evaluation answered from a
+  stored review costs nothing against the day.
+- `unreachable` calls are listed and not counted: a provider outage does not spend the user's day.
+- Token totals are a lower bound whenever `callsWithoutUsage` is above zero; an absent figure is never summed as 0.
+- Tests: `ModelUsageLedgerTest`, `ModelCallBudgetIntegrationTest`, `OpenAiCompatibleModelClientTest`.
 
 ## CRUD endpoints (implemented)
 

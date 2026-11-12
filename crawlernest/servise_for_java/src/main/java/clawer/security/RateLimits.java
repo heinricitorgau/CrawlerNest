@@ -2,7 +2,9 @@ package clawer.security;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,8 @@ public class RateLimits {
     private final FixedWindowRateLimiter signinFailures;
     private final SlidingWindowBudget modelPerMinute;
     private final SlidingWindowBudget modelPerDay;
+    private final int modelCallsPerDay;
+    private final Clock clock;
 
     @Autowired
     public RateLimits(
@@ -68,6 +72,8 @@ public class RateLimits {
                       Clock clock) {
         this.modelPerMinute = new SlidingWindowBudget(modelCallsPerMinute, Duration.ofMinutes(1), clock);
         this.modelPerDay = new SlidingWindowBudget(modelCallsPerDay, Duration.ofDays(1), clock);
+        this.modelCallsPerDay = modelCallsPerDay;
+        this.clock = clock;
         this.enabled = enabled;
         this.addresses = new ClientAddressResolver(Arrays.asList(trustedProxies.split(",")));
         this.api = new FixedWindowRateLimiter(apiPerMinute, Duration.ofMinutes(1), clock);
@@ -132,6 +138,41 @@ public class RateLimits {
             modelPerMinute.refund(key, modelCalls);
         }
         return day;
+    }
+
+    /**
+     * As {@link #spendModelCalls(long, int)}, but the day is counted from the calls actually made
+     * ({@code countedCalls}, desk.model_call, oldest first) instead of from this process's memory, so it survives a
+     * restart and is shared by every instance. The minute stays in memory.
+     *
+     * <p>Not atomic across requests: two requests may both read the same count and both fit. The minute budget,
+     * spent atomically here first, bounds that overshoot to one minute's allowance per instance.
+     */
+    public FixedWindowRateLimiter.Decision spendModelCalls(long userId, int modelCalls, List<Instant> countedCalls) {
+        if (!enabled) {
+            return new FixedWindowRateLimiter.Decision(true, 0);
+        }
+        if (modelCalls < 1 || modelCalls > modelCallsPerDay) {
+            throw new IllegalArgumentException("weight must be between 1 and the day's limit " + modelCallsPerDay);
+        }
+        String key = Long.toString(userId);
+        FixedWindowRateLimiter.Decision minute = modelPerMinute.trySpend(key, modelCalls);
+        if (!minute.allowed()) {
+            return minute;
+        }
+        int used = countedCalls.size();
+        if (used + modelCalls <= modelCallsPerDay) {
+            return minute;
+        }
+        modelPerMinute.refund(key, modelCalls);
+        // It fits once enough of the oldest calls have left the day: the k-th oldest, for k over the limit.
+        Instant fitsAt = countedCalls.get(used + modelCalls - modelCallsPerDay - 1).plus(Duration.ofDays(1));
+        long millis = fitsAt.toEpochMilli() - clock.millis();
+        return new FixedWindowRateLimiter.Decision(false, Math.max(1, (millis + 999) / 1000));
+    }
+
+    public int modelCallsPerDay() {
+        return modelCallsPerDay;
     }
 
     /** What the user has left today, for the response header. */

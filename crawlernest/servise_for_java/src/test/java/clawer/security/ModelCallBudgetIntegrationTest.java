@@ -7,6 +7,9 @@ import clawer.service.AnalyticsService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -14,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlGroup;
@@ -32,8 +36,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 /**
@@ -42,6 +44,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+// The minute's budget lives in the RateLimits bean; a fresh context per test keeps one test's spends out of the next.
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @TestPropertySource(properties = {
         "crawlernest.jwt.secret=an-integration-test-secret-long-enough-for-hs256",
         "crawlernest.rate-limit.model-calls-per-minute=4",
@@ -75,6 +79,9 @@ class ModelCallBudgetIntegrationTest {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private JdbcTemplate jdbc;
+
     @MockBean
     private DeskModelClient model;
 
@@ -93,9 +100,9 @@ class ModelCallBudgetIntegrationTest {
 
         // An evaluation may make two model calls, so it costs 2 of the 4 a minute.
         evaluate(OWNER).andExpect(status().isOk()).andExpect(header().string("X-Model-Calls-Left-Today", "98"));
-        // Charged again although an unchanged draft is answered without the model: the charge is for what a request
-        // may cost, decided before it runs.
-        evaluate(OWNER).andExpect(status().isOk()).andExpect(header().string("X-Model-Calls-Left-Today", "96"));
+        // The minute holds what a request may cost, up front. The day counts calls actually made (desk.model_call),
+        // and this stubbed model makes none, so the day's figure settles back.
+        evaluate(OWNER).andExpect(status().isOk()).andExpect(header().string("X-Model-Calls-Left-Today", "98"));
         int callsBeforeRefusal = org.mockito.Mockito.mockingDetails(model).getInvocations().size();
         evaluate(OWNER).andExpect(status().isTooManyRequests())
                 .andExpect(header().exists("Retry-After"))
@@ -107,5 +114,48 @@ class ModelCallBudgetIntegrationTest {
         evaluate(OTHER_USER).andExpect(status().isOk());
         evaluate(null).andExpect(status().isUnauthorized());
         verify(model, times(callsBeforeRefusal + 1)).complete(anyString(), anyString());
+    }
+
+    @Test
+    void theDayIsCountedFromTheLedgerSoARestartDoesNotResetIt() throws Exception {
+        // 99 calls this user made an hour ago and earlier -- as a previous process, or another instance, saw them --
+        // and 10 the provider never answered, which do not count.
+        Instant now = Instant.now();
+        for (int i = 0; i < 99; i++) {
+            insertCall(OWNER, "ok", now.minus(Duration.ofHours(1)).minusSeconds(99 - i));
+        }
+        for (int i = 0; i < 10; i++) {
+            insertCall(OWNER, "unreachable", now.minus(Duration.ofMinutes(5)));
+        }
+
+        // An evaluation may make 2; 99 + 2 > 100. It fits once the oldest call leaves the day, ~23 hours from now.
+        String retryAfter = evaluate(OWNER).andExpect(status().isTooManyRequests())
+                .andExpect(header().string("X-Model-Calls-Left-Today", "1"))
+                .andReturn().getResponse().getHeader("Retry-After");
+        verify(model, never()).complete(anyString(), anyString());
+        long seconds = Long.parseLong(retryAfter);
+        org.junit.jupiter.api.Assertions.assertTrue(seconds > 22 * 3600 && seconds <= 23 * 3600,
+                "Retry-After " + seconds + " should be when the oldest call leaves the day");
+
+        // The usage endpoint reads the same rows, and only the caller's own.
+        mvc.perform(get("/api/v1/user/desk/usage").cookie(cookie(OWNER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.last24Hours.modelCalls").value(99))
+                .andExpect(jsonPath("$.data.last24Hours.unreachableCalls").value(10))
+                .andExpect(jsonPath("$.data.budget.modelCallsPerDay").value(100))
+                .andExpect(jsonPath("$.data.budget.modelCallsLeft").value(1))
+                .andExpect(jsonPath("$.data.budget.reservedPerRequest['/api/v1/user/desk/chat/message']").value(4));
+        mvc.perform(get("/api/v1/user/desk/usage").cookie(cookie(OTHER_USER)))
+                .andExpect(jsonPath("$.data.last24Hours.modelCalls").value(0));
+        mvc.perform(get("/api/v1/user/desk/usage")).andExpect(status().isUnauthorized());
+    }
+
+    private Cookie cookie(long userId) {
+        return new Cookie(JwtCookieAuthenticationFilter.COOKIE_NAME, jwtService.issue(userId, userId + "@t.test"));
+    }
+
+    private void insertCall(long userId, String outcome, Instant at) {
+        jdbc.update("INSERT INTO desk.model_call (user_id, endpoint, outcome, called_at) VALUES (?, ?, ?, ?)",
+                userId, "/api/v1/user/desk/essays/evaluate", outcome, Timestamp.from(at));
     }
 }

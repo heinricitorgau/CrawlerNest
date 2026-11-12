@@ -71,7 +71,7 @@ class DeskSchemaIntegrationTest {
                 SELECT table_name FROM information_schema.tables
                 WHERE table_schema = 'desk' ORDER BY table_name
                 """, String.class);
-        assertEquals(List.of("chat_action", "entity_resonance", "essay_review", "skill_mastery", "sprint",
+        assertEquals(List.of("chat_action", "entity_resonance", "essay_review", "model_call", "skill_mastery", "sprint",
                 "target_entity", "task", "user_profile", "user_theme"), tables);
     }
 

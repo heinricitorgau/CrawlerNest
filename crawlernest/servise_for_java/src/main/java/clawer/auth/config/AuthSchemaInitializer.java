@@ -15,7 +15,7 @@ public class AuthSchemaInitializer {
 
     /**
      * The scripts after app_user, in order: the desk schema (docs/architecture/DESK_SCHEMA_AND_API.md)
-     * the password reset tokens (V006) and the profile revision (V007) and the task/target/sprint revisions (V008) and the token generation (V009). Read
+     * the password reset tokens (V006) and the profile revision (V007) and the task/target/sprint revisions (V008) and the token generation (V009) and the model call ledger (V010). Read
      * from the files, not mirrored here. Each must be safe to run on every start.
      */
     static final List<String> SCRIPTS = List.of(
@@ -25,7 +25,8 @@ public class AuthSchemaInitializer {
             "db/auth/V006__password_reset_token.sql",
             "db/auth/V007__user_profile_revision.sql",
             "db/auth/V008__task_target_revision.sql",
-            "db/auth/V009__token_version.sql");
+            "db/auth/V009__token_version.sql",
+            "db/auth/V010__model_call.sql");
 
     private final JdbcTemplate jdbcTemplate;
 

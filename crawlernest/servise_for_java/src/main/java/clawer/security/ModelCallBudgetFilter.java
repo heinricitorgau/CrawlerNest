@@ -1,12 +1,19 @@
 package clawer.security;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import clawer.auth.jwt.AuthenticatedUser;
+import clawer.desk.model.ModelUsageLedger;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +31,12 @@ import jakarta.servlet.http.HttpServletResponse;
  * <p>Runs after the token filter, because it needs to know who is asking. An anonymous request is passed on
  * untouched: the endpoints are under /api/v1/user/**, and the chain answers it 401 without any model call.
  *
+ * <p>Reserve, then settle. The minute's budget is charged the weight up front, in memory, because it guards bursts
+ * and must hold before anything runs. The day's budget is counted from {@link ModelUsageLedger} -- the calls the
+ * model client actually made -- so an evaluation answered from a stored review costs nothing against the day, a
+ * restart does not reset it, and every instance sees the same count. Without a ledger (test slices without a
+ * database), or when the ledger cannot be read, the day falls back to the in-memory budget.
+ *
  * <p>A path added here must be an endpoint that calls the model; ModelCallBudgetFilterTest checks the list against
  * the controllers' mappings.
  */
@@ -37,10 +50,18 @@ public class ModelCallBudgetFilter extends OncePerRequestFilter {
             "/api/v1/user/desk/story/resonance/generate", 2,
             "/api/v1/user/desk/chat/message", 4);
 
+    private static final Logger log = LoggerFactory.getLogger(ModelCallBudgetFilter.class);
+
     private final RateLimits limits;
+    private final ModelUsageLedger ledger;
 
     public ModelCallBudgetFilter(RateLimits limits) {
+        this(limits, null);
+    }
+
+    public ModelCallBudgetFilter(RateLimits limits, ModelUsageLedger ledger) {
         this.limits = limits;
+        this.ledger = ledger;
     }
 
     @Override
@@ -57,13 +78,37 @@ public class ModelCallBudgetFilter extends OncePerRequestFilter {
             return;
         }
         long userId = user.get().id();
-        FixedWindowRateLimiter.Decision decision = limits.spendModelCalls(userId, weightOf(request));
-        response.setHeader("X-Model-Calls-Left-Today", Integer.toString(limits.modelCallsLeftToday(userId)));
+        int weight = weightOf(request);
+        List<Instant> counted = countedToday(userId);
+        FixedWindowRateLimiter.Decision decision;
+        int left;
+        if (counted != null) {
+            decision = limits.spendModelCalls(userId, weight, counted);
+            // What is left if this request makes every call it may; it settles at the real count on the next one.
+            left = Math.max(0, limits.modelCallsPerDay() - counted.size() - (decision.allowed() ? weight : 0));
+        } else {
+            decision = limits.spendModelCalls(userId, weight);
+            left = limits.modelCallsLeftToday(userId);
+        }
+        response.setHeader("X-Model-Calls-Left-Today", Integer.toString(left));
         if (!decision.allowed()) {
             RateLimitFilter.refuse(response, decision);
             return;
         }
         chain.doFilter(request, response);
+    }
+
+    /** The day's counted calls from the ledger, or null to fall back to the in-memory budget. */
+    private List<Instant> countedToday(long userId) {
+        if (ledger == null) {
+            return null;
+        }
+        try {
+            return ledger.countedCallTimes(userId, Duration.ofDays(1));
+        } catch (DataAccessException e) {
+            log.warn("Model call ledger unreadable; counting today's budget in memory: {}", e.getMessage());
+            return null;
+        }
     }
 
     private static Integer weightOf(HttpServletRequest request) {

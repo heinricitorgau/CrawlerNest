@@ -17,6 +17,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * What the client puts on the wire, against a local stand-in for an
@@ -28,13 +31,15 @@ class OpenAiCompatibleModelClientTest {
     private final List<JsonNode> requests = new ArrayList<>();
     private HttpServer server;
     private int status = 200;
+    private String usage = "";
 
     @BeforeEach
     void start() throws Exception {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/v1/chat/completions", exchange -> {
             requests.add(json.readTree(exchange.getRequestBody()));
-            byte[] body = "{\"model\": \"served\", \"choices\": [{\"message\": {\"role\": \"assistant\", \"content\": \"{}\"}}]}"
+            byte[] body = ("{\"model\": \"served\", " + usage
+                    + "\"choices\": [{\"message\": {\"role\": \"assistant\", \"content\": \"{}\"}}]}")
                     .getBytes(StandardCharsets.UTF_8);
             exchange.sendResponseHeaders(status, body.length);
             try (OutputStream out = exchange.getResponseBody()) {
@@ -78,6 +83,48 @@ class OpenAiCompatibleModelClientTest {
         assertEquals("json_object", requests.get(0).path("response_format").path("type").asText());
         assertFalse(requests.get(1).has("response_format"));
         assertEquals("auto", requests.get(1).path("tool_choice").asText());
+    }
+
+    private OpenAiCompatibleModelClient recordingClient(ModelUsageLedger ledger, String baseUrl) {
+        return new OpenAiCompatibleModelClient("ollama", "qwen3-desk", "unused", "", baseUrl, "unused", "",
+                Duration.ofSeconds(5), "", json, ledger);
+    }
+
+    @Test
+    void recordsEachCallWithTheProvidersOwnTokenFigures() {
+        ModelUsageLedger ledger = mock(ModelUsageLedger.class);
+        String url = "http://127.0.0.1:" + server.getAddress().getPort();
+
+        usage = "\"usage\": {\"prompt_tokens\": 812, \"completion_tokens\": 95}, ";
+        recordingClient(ledger, url).complete("s", "u");
+        verify(ledger).record(null, "(no request)", "served", ModelUsageLedger.Outcome.OK, 812, 95);
+
+        // No usage block: unknown, recorded as null, never as 0.
+        usage = "";
+        recordingClient(ledger, url).chat(json.createArrayNode(), json.createArrayNode());
+        verify(ledger).record(null, "(no request)", "served", ModelUsageLedger.Outcome.OK, null, null);
+
+        status = 500;
+        assertThrows(DeskModelClient.UnavailableException.class, () -> recordingClient(ledger, url).complete("s", "u"));
+        verify(ledger).record(null, "(no request)", "qwen3-desk", ModelUsageLedger.Outcome.PROVIDER_ERROR, null, null);
+    }
+
+    @Test
+    void anUnreachableProviderIsRecordedAsSuch() {
+        ModelUsageLedger ledger = mock(ModelUsageLedger.class);
+        String url = "http://127.0.0.1:" + server.getAddress().getPort();
+        server.stop(0);
+        assertThrows(DeskModelClient.UnavailableException.class, () -> recordingClient(ledger, url).complete("s", "u"));
+        verify(ledger).record(null, "(no request)", "qwen3-desk", ModelUsageLedger.Outcome.UNREACHABLE, null, null);
+    }
+
+    @Test
+    void anUnconfiguredModelMakesNoCallAndRecordsNothing() {
+        ModelUsageLedger ledger = mock(ModelUsageLedger.class);
+        OpenAiCompatibleModelClient mockProvider = new OpenAiCompatibleModelClient("mock", "", "unused", "", "", "", "",
+                Duration.ofSeconds(5), "", json, ledger);
+        assertThrows(DeskModelClient.UnavailableException.class, () -> mockProvider.complete("s", "u"));
+        verifyNoInteractions(ledger);
     }
 
     @Test
