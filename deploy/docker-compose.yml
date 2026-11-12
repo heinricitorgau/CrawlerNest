@@ -57,6 +57,9 @@ services:
       CRAWLERNEST_PUBLIC_BASE_URL: ${CRAWLERNEST_PUBLIC_BASE_URL:-http://localhost:3000}
       # The web container reaches the API from the compose network; its X-Forwarded-For names the visitor.
       CRAWLERNEST_TRUSTED_PROXIES: ${CRAWLERNEST_TRUSTED_PROXIES:-127.0.0.1,::1,172.16.0.0/12}
+      # Model calls per signed-in user (essay evaluation, narrative generation, Tassel chat; a chat turn counts 4).
+      CRAWLERNEST_RATE_LIMIT_MODEL_CALLS_PER_MINUTE: ${CRAWLERNEST_RATE_LIMIT_MODEL_CALLS_PER_MINUTE:-20}
+      CRAWLERNEST_RATE_LIMIT_MODEL_CALLS_PER_DAY: ${CRAWLERNEST_RATE_LIMIT_MODEL_CALLS_PER_DAY:-300}
     ports:
       - "127.0.0.1:${API_PORT:-8080}:8080"
     healthcheck:
@@ -123,6 +126,7 @@ services:
       AGENT_API_BASE_URL: http://agent:8090
       # Model-calling routes (/api/agent/chat, /tasks, /explain): requests a minute per client address; 0 = off.
       CRAWLERNEST_AGENT_RATE_LIMIT_PER_MINUTE: ${CRAWLERNEST_AGENT_RATE_LIMIT_PER_MINUTE:-30}
+      CRAWLERNEST_AGENT_RATE_LIMIT_PER_DAY: ${CRAWLERNEST_AGENT_RATE_LIMIT_PER_DAY:-500}
       CRAWLERNEST_SITE_URL: ${CRAWLERNEST_SITE_URL:-}
     ports:
       # WEB_BIND=127.0.0.1 behind a reverse proxy (deploy/nginx/crawlernest.conf.example): only the proxy
