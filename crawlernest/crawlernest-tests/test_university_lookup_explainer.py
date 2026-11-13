@@ -1,4 +1,4 @@
-"""Offline tests for the ds4 university-lookup explanation generator."""
+"""Offline tests for the university-lookup explanation generator."""
 
 from __future__ import annotations
 

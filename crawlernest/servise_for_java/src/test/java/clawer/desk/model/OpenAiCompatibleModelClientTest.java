@@ -56,7 +56,7 @@ class OpenAiCompatibleModelClientTest {
 
     private OpenAiCompatibleModelClient client(String reasoningEffort) {
         String url = "http://127.0.0.1:" + server.getAddress().getPort();
-        return new OpenAiCompatibleModelClient("ollama", "qwen3-desk", "unused", "", url, "unused", "",
+        return new OpenAiCompatibleModelClient("ollama", "qwen3-desk", "", url, "",
                 Duration.ofSeconds(5), reasoningEffort, json);
     }
 
@@ -86,7 +86,7 @@ class OpenAiCompatibleModelClientTest {
     }
 
     private OpenAiCompatibleModelClient recordingClient(ModelUsageLedger ledger, String baseUrl) {
-        return new OpenAiCompatibleModelClient("ollama", "qwen3-desk", "unused", "", baseUrl, "unused", "",
+        return new OpenAiCompatibleModelClient("ollama", "qwen3-desk", "", baseUrl, "",
                 Duration.ofSeconds(5), "", json, ledger);
     }
 
@@ -121,7 +121,7 @@ class OpenAiCompatibleModelClientTest {
     @Test
     void anUnconfiguredModelMakesNoCallAndRecordsNothing() {
         ModelUsageLedger ledger = mock(ModelUsageLedger.class);
-        OpenAiCompatibleModelClient mockProvider = new OpenAiCompatibleModelClient("mock", "", "unused", "", "", "", "",
+        OpenAiCompatibleModelClient mockProvider = new OpenAiCompatibleModelClient("mock", "", "", "", "",
                 Duration.ofSeconds(5), "", json, ledger);
         assertThrows(DeskModelClient.UnavailableException.class, () -> mockProvider.complete("s", "u"));
         verifyNoInteractions(ledger);

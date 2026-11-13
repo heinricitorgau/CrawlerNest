@@ -1,10 +1,11 @@
 """Live-path integration tests against a mock OpenAI-compatible server.
 
-These exercise the REAL HTTP round-trip that ds4 would serve: request encoding,
+These exercise the REAL HTTP round-trip a model server would serve: request encoding,
 the /v1/chat/completions call, response parsing, and the source="llm" vs
 "fallback" mapping. Only the model itself is mocked, so this runs anywhere (no
-GPU, no ds4-server) and covers everything the offline unit tests cannot: the
-actual network path through WebResponseGenerator.
+GPU, no model server) and covers everything the offline unit tests cannot: the
+actual network path through WebResponseGenerator. The provider is Ollama's
+OpenAI-compatible /v1 surface, the local provider the project uses.
 """
 
 from __future__ import annotations
@@ -81,7 +82,7 @@ _ITEMS = [
 ]
 
 
-class TestDs4LivePath(unittest.TestCase):
+class TestLivePath(unittest.TestCase):
     def setUp(self) -> None:
         self.server = _MockServer(("127.0.0.1", 0))
         self.port = self.server.server_address[1]
@@ -90,11 +91,14 @@ class TestDs4LivePath(unittest.TestCase):
         self._env = mock.patch.dict(
             "os.environ",
             {
-                "WEB_AGENT_DS4_BASE_URL": f"http://127.0.0.1:{self.port}",
+                "WEB_AGENT_OLLAMA_BASE_URL": f"http://127.0.0.1:{self.port}",
+                "WEB_AGENT_OLLAMA_MODEL": "qwen3:8b",
                 "WEB_AGENT_GENERATION_DISABLED": "",
                 "WEB_AGENT_OPENAI_BASE_URL": "",
                 "OPENAI_BASE_URL": "",
                 "WEB_AGENT_REASONING_EFFORT": "",
+                "WEB_AGENT_TIMEOUT": "",
+                "WEB_AGENT_STREAM": "",
             },
             clear=False,
         )
@@ -123,13 +127,13 @@ class TestDs4LivePath(unittest.TestCase):
         # Response parsing / mapping.
         self.assertEqual(result.source, "llm")
         self.assertEqual(result.text, "MOCK LLM REPLY")
-        self.assertEqual(result.model_name, "deepseek-v4-flash")
+        self.assertEqual(result.model_name, "qwen3:8b")
 
         # Request encoding: the server actually received a well-formed call.
         self.assertEqual(len(self.server.requests), 1)
         req = self.server.requests[0]
         self.assertEqual(req["path"], "/v1/chat/completions")
-        self.assertEqual(req["body"]["model"], "deepseek-v4-flash")
+        self.assertEqual(req["body"]["model"], "qwen3:8b")
         messages = req["body"]["messages"]
         self.assertEqual(messages[0]["role"], "system")
         self.assertIn("computed mechanically", messages[0]["content"])
@@ -222,8 +226,8 @@ class TestDs4LivePath(unittest.TestCase):
             self.assertEqual(self._explain_and_capture_body()["reasoning_effort"], "none")
 
 
-class TestDs4Streaming(unittest.TestCase):
-    """SSE streaming transport (WEB_AGENT_DS4_STREAM=1)."""
+class TestStreaming(unittest.TestCase):
+    """SSE streaming transport (WEB_AGENT_STREAM=1)."""
 
     def setUp(self) -> None:
         self.server = _MockServer(("127.0.0.1", 0))
@@ -233,8 +237,10 @@ class TestDs4Streaming(unittest.TestCase):
         self._env = mock.patch.dict(
             "os.environ",
             {
-                "WEB_AGENT_DS4_BASE_URL": f"http://127.0.0.1:{self.port}",
-                "WEB_AGENT_DS4_STREAM": "1",
+                "WEB_AGENT_OLLAMA_BASE_URL": f"http://127.0.0.1:{self.port}",
+                "WEB_AGENT_OLLAMA_MODEL": "qwen3:8b",
+                "WEB_AGENT_STREAM": "1",
+                "WEB_AGENT_TIMEOUT": "",
                 "WEB_AGENT_GENERATION_DISABLED": "",
                 "WEB_AGENT_OPENAI_BASE_URL": "",
                 "OPENAI_BASE_URL": "",
@@ -259,7 +265,7 @@ class TestDs4Streaming(unittest.TestCase):
     def test_stream_flag_is_advertised(self) -> None:
         status = WebResponseGenerator().inspect_provider_status()
         self.assertTrue(status["stream"])
-        self.assertEqual(status["providerLabel"], "ds4")
+        self.assertEqual(status["providerLabel"], "ollama")
 
     def test_streamed_deltas_accumulate_and_invoke_on_delta(self) -> None:
         self.server.next_sse = [
@@ -358,7 +364,7 @@ class TestDs4Streaming(unittest.TestCase):
         self.server.next_sse = None
         self.server.next_status = 200
         self.server.next_body = {"choices": [{"message": {"content": "Plain prose."}}]}
-        with mock.patch.dict("os.environ", {"WEB_AGENT_DS4_STREAM": "0"}, clear=False):
+        with mock.patch.dict("os.environ", {"WEB_AGENT_STREAM": "0"}, clear=False):
             RecommendationExplainer(verify=False).explain(
                 items=_ITEMS,
                 profile={"country": "Taiwan"},
@@ -382,9 +388,8 @@ class TestDs4Streaming(unittest.TestCase):
         self.assertEqual(result.reply_text, "PLAIN JSON REPLY")
 
 
-
-class TestNonDs4TimeoutAndStream(unittest.TestCase):
-    """WEB_AGENT_TIMEOUT / WEB_AGENT_STREAM for the providers that are not ds4."""
+class TestTimeoutAndStream(unittest.TestCase):
+    """WEB_AGENT_TIMEOUT / WEB_AGENT_STREAM, which every provider reads."""
 
     def setUp(self) -> None:
         self.server = _MockServer(("127.0.0.1", 0))
@@ -394,7 +399,6 @@ class TestNonDs4TimeoutAndStream(unittest.TestCase):
         self._env = mock.patch.dict(
             "os.environ",
             {
-                "WEB_AGENT_DS4_BASE_URL": "",
                 "WEB_AGENT_GENERATION_DISABLED": "",
                 "WEB_AGENT_OPENAI_BASE_URL": "",
                 "OPENAI_BASE_URL": "",
@@ -416,22 +420,6 @@ class TestNonDs4TimeoutAndStream(unittest.TestCase):
         self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 20.0)
         with mock.patch.dict("os.environ", {"WEB_AGENT_TIMEOUT": "75"}):
             self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 75.0)
-
-    def test_ds4_ignores_the_generic_timeout_and_stream(self) -> None:
-        with mock.patch.dict(
-            "os.environ",
-            {
-                "WEB_AGENT_DS4_BASE_URL": f"http://127.0.0.1:{self.port}",
-                "WEB_AGENT_DS4_TIMEOUT": "",
-                "WEB_AGENT_DS4_STREAM": "",
-                "WEB_AGENT_TIMEOUT": "75",
-                "WEB_AGENT_STREAM": "1",
-            },
-        ):
-            status = WebResponseGenerator().inspect_provider_status()
-        self.assertEqual(status["providerLabel"], "ds4")
-        self.assertEqual(status["timeout"], 60.0)
-        self.assertFalse(status["stream"])
 
     def test_stream_flag_streams_from_ollama(self) -> None:
         self.server.next_sse = [

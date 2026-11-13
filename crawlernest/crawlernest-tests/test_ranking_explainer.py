@@ -1,4 +1,4 @@
-"""Offline tests for the ds4 ranking-explain explanation generator.
+"""Offline tests for the ranking-explain explanation generator.
 
 No network: the LLM provider is replaced by a capturing fake.
 """

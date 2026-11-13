@@ -13,17 +13,14 @@ from crawlernest.agent.web_agent.generation.models import GenerationResult, Prom
 
 logger = logging.getLogger(__name__)
 
-# Default per-request HTTP timeout (seconds). ds4 gets a longer default because
-# a remote, large local model can spend real time on prefill before the first
-# byte; other OpenAI-compatible providers keep the historical 20s, which
-# WEB_AGENT_TIMEOUT overrides. A local 8B model writing a five-university
+# Default per-request HTTP timeout (seconds), which WEB_AGENT_TIMEOUT overrides.
+# A local 8B model writing a five-university
 # explanation spends ~20s generating (441 tokens at ~21 tokens/s on an 8 GB
 # laptop GPU), so it needs either a longer timeout or WEB_AGENT_STREAM=1.
 _DEFAULT_TIMEOUT = 20.0
-_DS4_DEFAULT_TIMEOUT = 60.0
 
 # Process-wide generation outcome counters, for observability: watch the
-# llm-vs-fallback rate when a ds4 host is (or isn't) reachable.
+# llm-vs-fallback rate when a model server is (or isn't) reachable.
 _stats_lock = threading.Lock()
 _generation_stats: dict[str, int] = {"llm": 0, "fallback": 0, "disabled": 0}
 
@@ -194,34 +191,13 @@ class WebResponseGenerator:
         if provider is None:
             return None
         provider.reasoning_effort = os.getenv("WEB_AGENT_REASONING_EFFORT", "").strip()
-        # ds4 keeps its own WEB_AGENT_DS4_TIMEOUT / WEB_AGENT_DS4_STREAM.
-        if provider.provider_label != "ds4":
-            provider.timeout = _resolve_timeout("WEB_AGENT_TIMEOUT", provider.timeout)
-            provider.stream = _env_flag("WEB_AGENT_STREAM")
+        provider.timeout = _resolve_timeout("WEB_AGENT_TIMEOUT", provider.timeout)
+        provider.stream = _env_flag("WEB_AGENT_STREAM")
         return provider
 
     def _resolve_provider_endpoint(self) -> ProviderConfig | None:
         if os.getenv("WEB_AGENT_GENERATION_DISABLED", "").strip() in {"1", "true", "TRUE"}:
             return None
-
-        # DwarfStar 4 (ds4) local inference engine. ds4-server exposes an
-        # OpenAI-compatible /v1 API, so it plugs in as a first-class named
-        # provider. Opt-in: only active when WEB_AGENT_DS4_BASE_URL is set, so
-        # default behavior is unchanged. Recommended value:
-        # http://localhost:8000/v1 (ds4-server default port), model
-        # "deepseek-v4-flash". WEB_AGENT_DS4_TIMEOUT (seconds) overrides the
-        # longer default request timeout for slow/remote generation, and
-        # WEB_AGENT_DS4_STREAM=1 switches to SSE streaming (see _read_sse_stream).
-        ds4_base = os.getenv("WEB_AGENT_DS4_BASE_URL", "").strip()
-        if ds4_base:
-            return ProviderConfig(
-                base_url=_ensure_v1_base(ds4_base),
-                api_key=os.getenv("WEB_AGENT_DS4_API_KEY", "").strip(),
-                model_name=os.getenv("WEB_AGENT_DS4_MODEL", "").strip() or "deepseek-v4-flash",
-                provider_label="ds4",
-                timeout=_resolve_timeout("WEB_AGENT_DS4_TIMEOUT", _DS4_DEFAULT_TIMEOUT),
-                stream=_env_flag("WEB_AGENT_DS4_STREAM"),
-            )
 
         web_base = os.getenv("WEB_AGENT_OPENAI_BASE_URL", "").strip()
         web_key = os.getenv("WEB_AGENT_OPENAI_API_KEY", "").strip()

@@ -52,7 +52,7 @@ guarantee, and Tassel would carry rules about ranking editions it has no use for
 
 ## Tools
 
-The tools use the OpenAI-compatible Chat Completions format, which OpenAI, Ollama and ds4 all accept.
+The tools use the OpenAI-compatible Chat Completions format, which OpenAI and Ollama both accept.
 `tools.json` holds two things:
 
 - `tools` is sent to the model unchanged;

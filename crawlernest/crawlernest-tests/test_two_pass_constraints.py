@@ -5,8 +5,8 @@ prose itself. Two things had to become sayable for that to be affordable and
 safe:
 
 ``constraints["generation"] = "disabled"``
-    Without it the engine writes an explanation nobody reads. On a local ds4
-    that is a 60-second model call attached to every turn, on top of the one the
+    Without it the engine writes an explanation nobody reads. On a local model
+    that can be a tens-of-seconds call attached to every turn, on top of the one the
     caller is about to make itself.
 
 ``constraints["route"] = "web"``

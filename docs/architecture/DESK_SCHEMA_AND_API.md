@@ -230,8 +230,8 @@ Under `/api/v1/user/desk`, like the CRUD endpoints, so the filter chain closes i
 **Who calls the model:** the Spring Boot API calls the model itself (`OpenAiCompatibleModelClient`).
 It is not the browser or the Next route, because then the API would have to accept scores from a caller,
 and a caller could make them up. The API reads the same variables as the Next agent route
-(`AGENT_MODEL_PROVIDER`, `AGENT_MODEL_NAME`, `AGENT_MODEL_BASE_URL`, `OPENAI_API_KEY`, `OLLAMA_BASE_URL`,
-`WEB_AGENT_DS4_*`), so one setting configures both. With the default `mock` there is no model, and the
+(`AGENT_MODEL_PROVIDER`, `AGENT_MODEL_NAME`, `AGENT_MODEL_BASE_URL`, `OPENAI_API_KEY`, `OLLAMA_BASE_URL`),
+so one setting configures both. With the default `mock` there is no model, and the
 endpoint answers `503 MODEL_UNAVAILABLE` rather than inventing scores.
 
 **Rubric:** `servise_for_java/src/main/resources/prompts/essay_rubric.json` (`essay-rubric-2026.1`):

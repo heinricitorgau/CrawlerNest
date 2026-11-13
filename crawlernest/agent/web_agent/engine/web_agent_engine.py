@@ -76,7 +76,7 @@ class WebAgentEngine:
         self._prompt_builder = prompt_builder or WebPromptBuilder()
         self._generator = generator or WebResponseGenerator()
         # Recommendation explanations use a dedicated grounded/honest prompt but
-        # share the same provider (ds4 or whatever is configured) as generic
+        # share the same configured provider as generic
         # generation, so a single config drives both.
         self._recommendation_explainer = RecommendationExplainer(generator=self._generator)
         self._ranking_explainer = RankingExplainer(generator=self._generator)
@@ -359,8 +359,8 @@ class WebAgentEngine:
             return response
         # A caller running its own two-pass pipeline -- the chat route asks the
         # engine for rows and disclosures, then writes the prose itself -- would
-        # otherwise pay for an explanation nobody reads, and on a local ds4 that
-        # is a 60-second model call per turn. Opt-in and exact-match, so an
+        # otherwise pay for an explanation nobody reads, and on a local model that
+        # can be a tens-of-seconds call per turn. Opt-in and exact-match, so an
         # unrecognised value leaves generation on rather than silently
         # suppressing it.
         if str(request.constraints.get("generation", "")).strip().lower() == "disabled":

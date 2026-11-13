@@ -1,8 +1,7 @@
 """Natural-language explanation generator for university recommendations.
 
-This is the first landing point for the local ds4 (DwarfStar 4) inference engine
-inside CrawlerNest. It takes an *already computed* recommendation result and asks
-the configured LLM provider (ds4 by default) to turn it into a clear, honest,
+It takes an *already computed* recommendation result and asks the configured
+LLM provider to turn it into a clear, honest,
 user-facing explanation. Shared provider/fallback plumbing lives in
 :class:`GroundedExplainer`; see its honesty contract.
 """

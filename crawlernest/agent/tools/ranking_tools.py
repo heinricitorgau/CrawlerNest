@@ -480,7 +480,7 @@ class RankingTools:
             "summary": summary,
             "topUniversities": top_names,
             # Full ranking rows are carried through as grounding evidence for the
-            # ds4 ranking explainer. The response formatter builds a fresh dict
+            # ranking explainer. The response formatter builds a fresh dict
             # and ignores keys it does not recognise, so this does not change the
             # user-facing shape.
             "items": items,

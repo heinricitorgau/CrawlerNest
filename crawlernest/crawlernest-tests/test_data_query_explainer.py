@@ -1,4 +1,4 @@
-"""Offline tests for the ds4 data-query explanation generator."""
+"""Offline tests for the data-query explanation generator."""
 
 from __future__ import annotations
 

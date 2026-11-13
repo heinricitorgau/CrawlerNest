@@ -16,8 +16,8 @@ Two modes:
     checker itself against regressions.
 
 ``--live``
-    Generate the explanation with the configured provider (ds4 when
-    ``WEB_AGENT_DS4_BASE_URL`` is set), then check the real output. Reports the
+    Generate the explanation with the configured provider (see
+    ``WebResponseGenerator``), then check the real output. Reports the
     faithfulness of what the model actually produced; requires a reachable
     server. The output is checked against the evidence plus the dataset header
     the model was shown, the same evidence the product verifies against.

@@ -50,8 +50,8 @@ dismissed. The two high duplicates:
 ## The model hook
 
 `--annotator` selects what writes `model_note`, advisory text beside a candidate. The only annotator is `none`.
-A model annotator (Kimi K3 through its API, or the `kimi-k3-in-c` engine on a machine with the 1.7 TB it needs)
-would be for the translations the key misses. Its note is read by a person; it never becomes a merge, a
+A model annotator (for instance the local Ollama model the agent already uses, `WEB_AGENT_OLLAMA_*`) would be for
+the translations the key misses. Its note is read by a person; it never becomes a merge, a
 mapping decision or an alias, and nothing from it is written to the warehouse. Adding one sends candidate
 names, countries and rank summaries to wherever the model runs, which is why `test_entity_review_candidates`
 fails until the test is changed with it.

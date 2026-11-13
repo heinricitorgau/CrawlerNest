@@ -1,7 +1,7 @@
-"""Offline tests for the ds4 recommendation explanation generator.
+"""Offline tests for the recommendation explanation generator.
 
 These tests never hit the network: the LLM provider is replaced by a capturing
-fake, and the ds4 provider wiring is checked through config resolution only.
+fake, and the provider wiring is checked through config resolution only.
 """
 
 from __future__ import annotations
@@ -136,46 +136,49 @@ class TestRecommendationExplainer(unittest.TestCase):
         self.assertIsNone(gen.prompt)
 
 
-class TestDs4ProviderResolution(unittest.TestCase):
-    def test_ds4_env_selects_named_ds4_provider(self) -> None:
-        env = {
-            "WEB_AGENT_DS4_BASE_URL": "http://localhost:8000",
-            "WEB_AGENT_GENERATION_DISABLED": "",
-            "WEB_AGENT_OPENAI_BASE_URL": "",
-            "OPENAI_BASE_URL": "",
-        }
+_NO_PROVIDER = {
+    "WEB_AGENT_GENERATION_DISABLED": "",
+    "WEB_AGENT_OPENAI_BASE_URL": "",
+    "OPENAI_BASE_URL": "",
+    "WEB_AGENT_OLLAMA_BASE_URL": "",
+    "WEB_AGENT_OLLAMA_MODEL": "",
+    "WEB_AGENT_TIMEOUT": "",
+}
+
+
+class TestProviderResolution(unittest.TestCase):
+    def test_ollama_env_selects_ollama_on_its_v1_root(self) -> None:
+        env = {**_NO_PROVIDER, "WEB_AGENT_OLLAMA_BASE_URL": "http://localhost:11434",
+               "WEB_AGENT_OLLAMA_MODEL": "qwen3:8b"}
         with mock.patch.dict("os.environ", env, clear=False):
             status = WebResponseGenerator().inspect_provider_status()
 
         self.assertTrue(status["configured"])
-        self.assertEqual(status["providerLabel"], "ds4")
-        self.assertEqual(status["modelName"], "deepseek-v4-flash")
+        self.assertEqual(status["providerLabel"], "ollama")
+        self.assertEqual(status["modelName"], "qwen3:8b")
         # base_url must be normalized to the OpenAI-compatible /v1 root.
-        self.assertEqual(status["baseUrl"], "http://localhost:8000/v1")
+        self.assertEqual(status["baseUrl"], "http://localhost:11434/v1")
 
-    def test_ds4_disabled_flag_wins(self) -> None:
-        env = {
-            "WEB_AGENT_DS4_BASE_URL": "http://localhost:8000",
-            "WEB_AGENT_GENERATION_DISABLED": "1",
-        }
+    def test_disabled_flag_wins(self) -> None:
+        env = {**_NO_PROVIDER, "WEB_AGENT_OLLAMA_BASE_URL": "http://localhost:11434",
+               "WEB_AGENT_OLLAMA_MODEL": "qwen3:8b", "WEB_AGENT_GENERATION_DISABLED": "1"}
         with mock.patch.dict("os.environ", env, clear=False):
             status = WebResponseGenerator().inspect_provider_status()
         self.assertFalse(status["configured"])
 
-    def test_ds4_timeout_default_and_override(self) -> None:
-        base = {
-            "WEB_AGENT_DS4_BASE_URL": "http://localhost:8000",
-            "WEB_AGENT_GENERATION_DISABLED": "",
-        }
-        # Default: ds4 gets the longer 60s timeout.
-        with mock.patch.dict("os.environ", {**base, "WEB_AGENT_DS4_TIMEOUT": ""}, clear=False):
-            self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 60.0)
-        # Override via env.
-        with mock.patch.dict("os.environ", {**base, "WEB_AGENT_DS4_TIMEOUT": "12.5"}, clear=False):
-            self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 12.5)
-        # Invalid / non-positive values fall back to the default.
-        with mock.patch.dict("os.environ", {**base, "WEB_AGENT_DS4_TIMEOUT": "nope"}, clear=False):
-            self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 60.0)
+    def test_removed_ds4_variables_select_nothing(self) -> None:
+        # ds4 was removed on 2026-11-13. A shell that still exports its variables gets the deterministic
+        # reply, not a silent request to whatever listens on port 8000.
+        env = {**_NO_PROVIDER, "WEB_AGENT_DS4_BASE_URL": "http://localhost:8000", "WEB_AGENT_DS4_MODEL": "x"}
+        with mock.patch.dict("os.environ", env, clear=False):
+            status = WebResponseGenerator().inspect_provider_status()
+        self.assertFalse(status["configured"])
+
+    def test_invalid_timeout_falls_back_to_the_default(self) -> None:
+        env = {**_NO_PROVIDER, "WEB_AGENT_OLLAMA_BASE_URL": "http://localhost:11434",
+               "WEB_AGENT_OLLAMA_MODEL": "qwen3:8b", "WEB_AGENT_TIMEOUT": "nope"}
+        with mock.patch.dict("os.environ", env, clear=False):
+            self.assertEqual(WebResponseGenerator().inspect_provider_status()["timeout"], 20.0)
 
     def test_disabled_records_disabled_stat(self) -> None:
         from crawlernest.agent.web_agent.generation.response_generator import (
@@ -210,7 +213,7 @@ class TestEngineWiring(unittest.TestCase):
         self.assertIsInstance(engine._university_lookup_explainer, UniversityLookupExplainer)
         self.assertIsInstance(engine._data_query_explainer, DataQueryExplainer)
         # Every explainer must reuse the engine's generator so a single provider
-        # configuration (ds4 or otherwise) drives generic generation and all the
+        # configuration drives generic generation and all the
         # task-specific explanations.
         self.assertIs(engine._recommendation_explainer._generator, generator)
         self.assertIs(engine._ranking_explainer._generator, generator)

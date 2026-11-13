@@ -1,4 +1,4 @@
-"""Shared core for the ds4-backed, honesty-bound explanation generators.
+"""Shared core for the model-backed, honesty-bound explanation generators.
 
 Every task-specific explainer (recommendation, ranking, university lookup, data
 query) grounds an already-computed result in prose without recomputing any

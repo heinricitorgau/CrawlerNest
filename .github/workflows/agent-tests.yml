@@ -7,8 +7,8 @@ on:
     branches: ["main"]
 
 jobs:
-  ds4-agent-tests:
-    name: ds4 / web-agent generation tests (offline, no GPU)
+  agent-generation-tests:
+    name: web-agent generation tests (offline, no GPU)
     runs-on: ubuntu-latest
 
     steps:
@@ -26,19 +26,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r crawlernest/requirements.txt
 
-      # The web-agent generation layer + ds4 integration. All offline: the
+      # The web-agent generation layer. All offline: the
       # live-path test drives a real HTTP round-trip against a mock
-      # OpenAI-compatible server, so no GPU and no ds4-server are needed.
-      - name: Run ds4 / generation-layer tests
+      # OpenAI-compatible server, so no GPU and no model server are needed.
+      - name: Run generation-layer tests
         env:
           PYTHONPATH: .
         run: |
           pytest \
-            crawlernest/crawlernest-tests/test_ds4_recommendation_explainer.py \
-            crawlernest/crawlernest-tests/test_ds4_ranking_explainer.py \
-            crawlernest/crawlernest-tests/test_ds4_university_lookup_explainer.py \
-            crawlernest/crawlernest-tests/test_ds4_data_query_explainer.py \
-            crawlernest/crawlernest-tests/test_ds4_live_path_mock_server.py \
+            crawlernest/crawlernest-tests/test_recommendation_explainer.py \
+            crawlernest/crawlernest-tests/test_ranking_explainer.py \
+            crawlernest/crawlernest-tests/test_university_lookup_explainer.py \
+            crawlernest/crawlernest-tests/test_data_query_explainer.py \
+            crawlernest/crawlernest-tests/test_llm_live_path_mock_server.py \
             crawlernest/crawlernest-tests/test_intent_detection.py \
             crawlernest/crawlernest-tests/test_context_builder_summary_facts.py \
             crawlernest/crawlernest-tests/test_prompt_builder_instruction.py \
@@ -49,7 +49,7 @@ jobs:
             crawlernest/crawlernest-tests/test_agent_api_explain.py \
             crawlernest/crawlernest-tests/test_agent_api_sse_stream.py \
             crawlernest/crawlernest-tests/test_agent_api_asgi.py \
-            crawlernest/crawlernest-tests/test_ds4_comparison_and_plan_explainers.py \
+            crawlernest/crawlernest-tests/test_comparison_and_plan_explainers.py \
             crawlernest/crawlernest-tests/test_dataset_context.py \
             crawlernest/crawlernest-tests/test_ml_tools.py \
             crawlernest/crawlernest-tests/test_caveat_contract.py \

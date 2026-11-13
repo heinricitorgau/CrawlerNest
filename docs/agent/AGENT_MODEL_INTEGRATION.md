@@ -43,21 +43,20 @@ response.
 | Mock | `mock` | Default. No external service required. Stable for build, test, and demo. |
 | Ollama | `ollama` | Local model service. Uses native Ollama `/api/chat`. |
 | OpenAI | `openai` | Server-side only. Requires `OPENAI_API_KEY` and `AGENT_MODEL_NAME`. |
-| ds4 | `ds4` | Local DeepSeek V4 Flash via `ds4-server`. OpenAI-compatible `/v1`, no key required. See [DS4_LOCAL_MODEL.md](../DS4_LOCAL_MODEL.md). |
+
+ds4 (DwarfStar 4, DeepSeek V4 Flash) was a provider until 2026-11-13. It needed a machine with ~96-128 GB for the
+model, which this project does not have, so it was removed. `AGENT_MODEL_PROVIDER=ds4` now resolves to `invalid`,
+and the Python client ignores `WEB_AGENT_DS4_*`; both fall back to the deterministic reply rather than guessing.
 
 ## Environment Variables
 
 | Variable | Required | Used by | Notes |
 | --- | --- | --- | --- |
-| `AGENT_MODEL_PROVIDER` | No | all | Defaults to `mock`. Valid values: `mock`, `ollama`, `openai`, `ds4`. |
+| `AGENT_MODEL_PROVIDER` | No | all | Defaults to `mock`. Valid values: `mock`, `ollama`, `openai`. |
 | `AGENT_MODEL_NAME` | Yes for Ollama/OpenAI | ollama/openai | Example: `qwen2.5-coder:7b`, `llama3.1`, or an OpenAI model configured by the operator. |
 | `AGENT_MODEL_BASE_URL` | Optional | ollama/openai | Overrides provider base URL. |
 | `OLLAMA_BASE_URL` | Optional | ollama | Defaults to `http://localhost:11434` when Ollama is selected. |
 | `OPENAI_API_KEY` | Yes for OpenAI | openai | Read only on the server. Never forwarded to the browser. |
-| `WEB_AGENT_DS4_BASE_URL` | Optional | ds4 | Defaults to `http://localhost:8000/v1`. The trailing `/v1` is added when absent. Shared with the Python web-agent client. |
-| `WEB_AGENT_DS4_MODEL` | Optional | ds4 | Defaults to `deepseek-v4-flash`. |
-| `WEB_AGENT_DS4_TIMEOUT` | Optional | ds4 | Seconds per request. Defaults to 60, against 15 for the other providers. |
-| `WEB_AGENT_DS4_API_KEY` | Optional | ds4 | Only when `ds4-server` sits behind an auth-terminating proxy; a bare server has no authentication. |
 
 ## Readonly Guarantees
 
@@ -218,7 +217,7 @@ export WEB_AGENT_OLLAMA_BASE_URL=http://localhost:11434
 export WEB_AGENT_OLLAMA_MODEL=qwen3:8b
 export WEB_AGENT_REASONING_EFFORT=none   # sent as reasoning_effort; blank sends nothing
 export WEB_AGENT_STREAM=1                # stream from the model; the timeout then applies per read
-# export WEB_AGENT_TIMEOUT=60            # seconds; default 20 (ds4 uses WEB_AGENT_DS4_TIMEOUT)
+# export WEB_AGENT_TIMEOUT=60            # seconds; default 20
 ```
 
 A five-university recommendation takes a local 8B model longer than 20 seconds
@@ -249,45 +248,6 @@ npm run dev
 `OPENAI_API_KEY` must be set only in the server environment. Do not use
 `NEXT_PUBLIC_` for model keys. The key is never returned by `/api/agent/chat` or
 included in frontend code.
-
-## ds4 Setup
-
-Example:
-
-```bash
-export AGENT_MODEL_PROVIDER=ds4
-export WEB_AGENT_DS4_BASE_URL=http://localhost:8000/v1   # or a remote ds4 host
-npm run dev
-```
-
-No key and no model name are needed: `ds4-server` has no authentication of its
-own, and both the URL and the model fall back to the values `ds4-server` uses by
-default. `AGENT_MODEL_BASE_URL` and `AGENT_MODEL_NAME` still take precedence when
-set, so this provider follows the same override order as the others.
-
-The `WEB_AGENT_DS4_*` names are deliberately the ones the Python web-agent client
-already reads, so one set of exports points both processes at the same server.
-What they do **not** share is the switch that selects ds4 in the first place, so
-both lines in the example above are load-bearing:
-
-- This route needs `AGENT_MODEL_PROVIDER=ds4`. Without it the provider stays
-  `mock`, no matter what `WEB_AGENT_DS4_BASE_URL` says.
-- The Python client has no `AGENT_MODEL_PROVIDER`. It selects ds4 on the
-  *presence* of `WEB_AGENT_DS4_BASE_URL`, and has no default for it.
-
-Set one and not the other and you get a half-switched stack — usually the Python
-explainers on ds4 and this route still on `mock`, which reads like a broken
-stream rather than a missing export. `curl localhost:3000/api/agent/health`
-reports what this side resolved; `WebResponseGenerator().inspect_provider_status()`
-reports the Python side. Running `ds4-server` itself is covered in
-[DS4_LOCAL_MODEL.md](../DS4_LOCAL_MODEL.md).
-
-**This route is non-streaming.** It sends `stream: false` and waits for the whole
-answer, which is why its timeout is 60s rather than 15s: a local model that takes
-40s to finish would otherwise fall back on every request. A long generation can
-still exceed even 60s, and when it does the page gets the same
-provider-unavailable message as an unreachable server. Streaming, which would
-reset the clock on each chunk, is not implemented here.
 
 ## Fallback Behavior
 

@@ -22,7 +22,7 @@ import java.util.Locale;
 
 /**
  * Calls an OpenAI-compatible {@code /chat/completions} endpoint: OpenAI itself,
- * Ollama's {@code /v1} surface, or a local ds4 server. Configured from the same
+ * or Ollama's {@code /v1} surface. Configured from the same
  * environment variables as the Next.js agent route (application.properties).
  *
  * <p>"mock" -- the default -- is not a model. Essay scores from a canned reply
@@ -52,21 +52,18 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
     private final ModelUsageLedger ledger;
 
     /** Without a ledger: calls are made and not recorded. For tests of what goes on the wire. */
-    public OpenAiCompatibleModelClient(String provider, String model, String ds4Model, String baseUrl,
-                                       String ollamaBaseUrl, String ds4BaseUrl, String apiKey, Duration timeout,
-                                       String reasoningEffort, ObjectMapper objectMapper) {
-        this(provider, model, ds4Model, baseUrl, ollamaBaseUrl, ds4BaseUrl, apiKey, timeout, reasoningEffort,
-                objectMapper, null);
+    public OpenAiCompatibleModelClient(String provider, String model, String baseUrl, String ollamaBaseUrl,
+                                       String apiKey, Duration timeout, String reasoningEffort,
+                                       ObjectMapper objectMapper) {
+        this(provider, model, baseUrl, ollamaBaseUrl, apiKey, timeout, reasoningEffort, objectMapper, null);
     }
 
     @Autowired
     public OpenAiCompatibleModelClient(
             @Value("${crawlernest.model.provider:mock}") String provider,
             @Value("${crawlernest.model.model:}") String model,
-            @Value("${crawlernest.model.ds4-model:deepseek-v4-flash}") String ds4Model,
             @Value("${crawlernest.model.base-url:}") String baseUrl,
             @Value("${crawlernest.model.ollama-base-url:http://localhost:11434}") String ollamaBaseUrl,
-            @Value("${crawlernest.model.ds4-base-url:http://localhost:8000/v1}") String ds4BaseUrl,
             @Value("${crawlernest.model.api-key:}") String apiKey,
             @Value("${crawlernest.model.timeout:PT60S}") Duration timeout,
             @Value("${crawlernest.model.reasoning-effort:}") String reasoningEffort,
@@ -74,14 +71,10 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
             ModelUsageLedger ledger) {
         this.ledger = ledger;
         this.provider = provider.trim().toLowerCase(Locale.ROOT);
-        this.model = switch (this.provider) {
-            case "ds4" -> model.isBlank() ? ds4Model : model.trim();
-            default -> model.trim();
-        };
+        this.model = model.trim();
         this.baseUrl = switch (this.provider) {
             case "openai" -> withV1(baseUrl.isBlank() ? "https://api.openai.com/v1" : baseUrl);
             case "ollama" -> withV1(baseUrl.isBlank() ? ollamaBaseUrl : baseUrl);
-            case "ds4" -> withV1(baseUrl.isBlank() ? ds4BaseUrl : baseUrl);
             default -> "";
         };
         this.apiKey = apiKey.trim();
@@ -98,7 +91,6 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
             case "openai" -> apiKey.isEmpty() || model.isEmpty()
                     ? "The model is not fully configured. Nothing was stored." : null;
             case "ollama" -> model.isEmpty() ? "The model is not fully configured. Nothing was stored." : null;
-            case "ds4" -> null;
             default -> "The model provider setting is not recognised. Nothing was stored.";
         };
     }
@@ -110,7 +102,7 @@ public class OpenAiCompatibleModelClient implements DeskModelClient {
         messages.addObject().put("role", "system").put("content", systemPrompt);
         messages.addObject().put("role", "user").put("content", userPrompt);
         if (provider.equals("openai") || provider.equals("ollama")) {
-            // Both honour JSON mode; ds4 is not known to, and gets the prompt's instruction only.
+            // Both honour JSON mode.
             body.putObject("response_format").put("type", "json_object");
         }
         JsonNode json = post(body);
