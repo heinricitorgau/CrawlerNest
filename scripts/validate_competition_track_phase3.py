@@ -26,14 +26,14 @@ def check(name: str, passed: bool, detail: str = "") -> None:
 def check_phase3_docs() -> None:
     print("[1/7] Phase 3 docs")
     docs = [
-        "docs/ANALYTICS_VISUALIZATION_PLAN.md",
-        "docs/COMPETITION_STORYTELLING.md",
+        "docs/analytics/ANALYTICS_VISUALIZATION_PLAN.md",
+        "docs/competition/COMPETITION_STORYTELLING.md",
     ]
     for doc in docs:
         path = REPO_ROOT / doc
         check(doc, path.exists(), "file missing")
 
-    viz = REPO_ROOT / "docs/ANALYTICS_VISUALIZATION_PLAN.md"
+    viz = REPO_ROOT / "docs/analytics/ANALYTICS_VISUALIZATION_PLAN.md"
     if viz.exists():
         text = viz.read_text()
         check("viz plan has confidence visualization section", "Confidence Visualization" in text)
@@ -41,7 +41,7 @@ def check_phase3_docs() -> None:
         check("viz plan has operational posture section", "Operational Posture" in text)
         check("viz plan references analyticsPresentation.ts", "analyticsPresentation.ts" in text)
 
-    story = REPO_ROOT / "docs/COMPETITION_STORYTELLING.md"
+    story = REPO_ROOT / "docs/competition/COMPETITION_STORYTELLING.md"
     if story.exists():
         text = story.read_text()
         check("storytelling has evidence chain reference", "Evidence Chain" in text)
@@ -86,7 +86,7 @@ def check_analytics_page() -> None:
         check("uses confidencePostureLabel", "confidencePostureLabel" in text)
         check("uses confidenceConfig", "confidenceConfig" in text)
         check("has Operational Posture section", "Operational Posture" in text)
-        check("shows THE unavailable note", "THE" in text and ("Unavailable" in text or "unavailable" in text or "not available" in text.lower()))
+        # THE is ingested; a 'THE unavailable' note would be false (ba3d7d8).
         check("source coverage shows available/unavailable badge", "statusLabel" in text or "availCfg" in text)
         check("historical comparison notice present", "Historical comparison" in text or "single_year_only" in text)
 
@@ -155,15 +155,10 @@ def check_presentation_exports() -> None:
 # ---------------------------------------------------------------------------
 def check_readme() -> None:
     print("[7/7] README and docs references")
+    # The root README was rewritten as a project overview (bf68525); it no longer lists phase docs.
+    # docs/README.md catalogs every doc, and test_docs_catalog.py holds it to that.
     readme = REPO_ROOT / "README.md"
     check("README.md exists", readme.exists(), "file missing")
-    if readme.exists():
-        text = readme.read_text()
-        # Phase 3 may not yet have added README entries — soft check
-        check(
-            "README references competition track",
-            "Competition" in text or "competition" in text,
-        )
 
     docs_readme = REPO_ROOT / "docs/README.md"
     if docs_readme.exists():

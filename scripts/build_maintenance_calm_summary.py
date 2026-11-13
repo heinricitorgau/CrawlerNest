@@ -168,7 +168,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
             lines.append(f"- {concern}")
         lines += [
             "",
-            "Use Mode 4 (Incident Investigation) from `docs/MAINTENANCE_READING_MODES.md`.",
+            "Use Mode 4 (Incident Investigation) from `docs/operational/MAINTENANCE_READING_MODES.md`.",
             "",
             "---",
             "",

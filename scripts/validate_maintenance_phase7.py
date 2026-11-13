@@ -27,10 +27,10 @@ def check(name: str, passed: bool, detail: str = "") -> None:
 def check_phase7_docs() -> None:
     print("[1/7] Phase 7 docs")
     docs = [
-        "docs/OPERATIONAL_CONTINUITY_REVIEW.md",
-        "docs/MAINTENANCE_CONTINUITY_MODEL.md",
-        "docs/OPERATIONAL_MEMORY_DURABILITY.md",
-        "docs/STABLE_DEGRADED_CONTINUITY.md",
+        "docs/operational/OPERATIONAL_CONTINUITY_REVIEW.md",
+        "docs/operational/MAINTENANCE_CONTINUITY_MODEL.md",
+        "docs/operational/OPERATIONAL_MEMORY_DURABILITY.md",
+        "docs/data/STABLE_DEGRADED_CONTINUITY.md",
     ]
     for doc in docs:
         path = REPO_ROOT / doc
@@ -247,30 +247,10 @@ def check_bundle_includes_continuity() -> None:
 # ---------------------------------------------------------------------------
 def check_readme_phase7_references() -> None:
     print("[7/7] README Phase 7 references")
+    # The root README became a project overview (bf68525) and no longer lists maintenance docs or scripts;
+    # docs/README.md catalogs every doc (test_docs_catalog.py). Only the README's presence is checked here.
     readme = REPO_ROOT / "README.md"
     check("README.md exists", readme.exists(), "file missing")
-    if readme.exists():
-        text = readme.read_text(encoding="utf-8")
-        check(
-            "README references OPERATIONAL_CONTINUITY_REVIEW",
-            "OPERATIONAL_CONTINUITY_REVIEW" in text,
-            "continuity review doc not listed",
-        )
-        check(
-            "README references MAINTENANCE_CONTINUITY_MODEL",
-            "MAINTENANCE_CONTINUITY_MODEL" in text,
-            "continuity model doc not listed",
-        )
-        check(
-            "README references STABLE_DEGRADED_CONTINUITY",
-            "STABLE_DEGRADED_CONTINUITY" in text,
-            "stable degraded continuity doc not listed",
-        )
-        check(
-            "README references build_maintenance_continuity_summary",
-            "build_maintenance_continuity_summary" in text,
-            "continuity summary script not listed",
-        )
 
 
 # ---------------------------------------------------------------------------

@@ -57,27 +57,27 @@ echo ""
 echo "[2/7] Copying release documentation..."
 
 copy_or_missing \
-  "${ROOT_DIR}/docs/RELEASE_NOTES_v0.1.md" \
+  "${ROOT_DIR}/docs/release/RELEASE_NOTES_v0.1.md" \
   "${BUNDLE_DIR}/RELEASE_NOTES_v0.1.md" \
   "RELEASE_NOTES_v0.1.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/docs/DEMO_SCRIPT_v0.1.md" \
+  "${ROOT_DIR}/docs/demo/DEMO_SCRIPT_v0.1.md" \
   "${BUNDLE_DIR}/DEMO_SCRIPT_v0.1.md" \
   "DEMO_SCRIPT_v0.1.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/docs/VERSION_SCOPE_v0.1.md" \
+  "${ROOT_DIR}/docs/release/VERSION_SCOPE_v0.1.md" \
   "${BUNDLE_DIR}/VERSION_SCOPE_v0.1.md" \
   "VERSION_SCOPE_v0.1.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/docs/SCREENSHOT_CHECKLIST_v0.1.md" \
+  "${ROOT_DIR}/docs/demo/SCREENSHOT_CHECKLIST_v0.1.md" \
   "${BUNDLE_DIR}/SCREENSHOT_CHECKLIST_v0.1.md" \
   "SCREENSHOT_CHECKLIST_v0.1.md"
 
 copy_or_missing \
-  "${ROOT_DIR}/docs/RELEASE_STRUCTURE.md" \
+  "${ROOT_DIR}/docs/release/RELEASE_STRUCTURE.md" \
   "${BUNDLE_DIR}/RELEASE_STRUCTURE.md" \
   "RELEASE_STRUCTURE.md"
 
@@ -228,7 +228,7 @@ cat > "${BUNDLE_DIR}/screenshots/README.md" << 'EOF'
 
 Place captured screenshots in this directory using the filenames specified in:
 
-  docs/SCREENSHOT_CHECKLIST_v0.1.md
+  docs/demo/SCREENSHOT_CHECKLIST_v0.1.md
 
 ## Required screenshots (priority order)
 
@@ -380,8 +380,8 @@ incident rather than accepted posture.
 | Model estimate support | partial | Some estimates fall outside the fitted data; disclosed as unsupported |
 | Deployment | localhost | Demonstration deployment; architecture is the production shape, scale is not |
 
-See `docs/STABLE_DEGRADED_STATE.md` for escalation triggers and communication
-guidance. See `docs/MAINTENANCE_CADENCE_REVIEW.md` for when to run what.
+See `docs/data/STABLE_DEGRADED_STATE.md` for escalation triggers and communication
+guidance. See `docs/operational/MAINTENANCE_CADENCE_REVIEW.md` for when to run what.
 
 ## Maintenance Calmness
 
@@ -409,9 +409,9 @@ For demo/release preparation, use this reading order (Mode 2):
 5. `operational_trust_summary.md` — confidence posture
 6. `smoke_release_output.txt` — build/runtime health confirmation
 
-Full reading modes are in `docs/MAINTENANCE_READING_MODES.md`.
+Full reading modes are in `docs/operational/MAINTENANCE_READING_MODES.md`.
 Full maintenance cadence (daily/weekly/release-demo/incident-only) is in
-`docs/MAINTENANCE_CADENCE_REVIEW.md`
+`docs/operational/MAINTENANCE_CADENCE_REVIEW.md`
 (both available in the live repository, not copied into this bundle).
 
 ## Operational Continuity Semantics
@@ -426,9 +426,9 @@ The bundle captures the operational continuity posture at bundle-build time.
 | Release honesty continuity | `demo_caveats.md` — required disclosures at bundle-build time |
 | Confidence continuity | `operational_trust_summary.md` — confidence derived from observable signals |
 
-See `docs/OPERATIONAL_MEMORY_DURABILITY.md` for full durability classification.
-See `docs/STABLE_DEGRADED_CONTINUITY.md` for long-term stable degraded guidance.
-See `docs/MAINTENANCE_CONTINUITY_MODEL.md` for continuity concept definitions.
+See `docs/operational/OPERATIONAL_MEMORY_DURABILITY.md` for full durability classification.
+See `docs/data/STABLE_DEGRADED_CONTINUITY.md` for long-term stable degraded guidance.
+See `docs/operational/MAINTENANCE_CONTINUITY_MODEL.md` for continuity concept definitions.
 
 ## Readonly Boundary
 

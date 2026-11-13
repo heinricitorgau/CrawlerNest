@@ -15,7 +15,7 @@ REPO_ROOT = Path(__file__).parent.parent
 REPORTS_DIR = REPO_ROOT / ".local" / "reports"
 SNAPSHOTS_DIR = REPO_ROOT / ".local" / "snapshots"
 RELEASE_DIR = REPO_ROOT / "docs" / "releases" / "v0.1-demo"
-VALIDATION_DOC = REPO_ROOT / "docs" / "RC1_VALIDATION_RESULTS.md"
+VALIDATION_DOC = REPO_ROOT / "docs" / "release/RC1_VALIDATION_RESULTS.md"
 
 
 def read_text(path: Path, warnings: list[str], require_heading: bool = True) -> str:
@@ -142,7 +142,7 @@ def build_summary(
         "| Freshness escalation | `.local/reports/freshness_escalation.md` | Staleness and source-gap classification. |",
         "| Drift timeline | `.local/reports/drift_timeline.md` | Historical drift event classification. |",
         "| Latest snapshot | `.local/snapshots/latest_status.json` | Latest compact snapshot pointer. |",
-        "| Validation results | `docs/RC1_VALIDATION_RESULTS.md` | Latest recorded validation table. |",
+        "| Validation results | `docs/release/RC1_VALIDATION_RESULTS.md` | Latest recorded validation table. |",
         "| Release bundle manifest | `docs/releases/v0.1-demo/MANIFEST.txt` | Latest bundle contents and timestamp. |",
         "| Smoke output | `docs/releases/v0.1-demo/smoke_release_output.txt` | Latest bundle-captured smoke run. |",
         "",

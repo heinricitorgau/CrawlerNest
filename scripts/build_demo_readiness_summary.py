@@ -109,16 +109,16 @@ def doc_exists(filename: str) -> bool:
 
 def check_production_docs() -> dict[str, bool]:
     return {
-        "DEMO_PRODUCTION_RUNBOOK.md": doc_exists("DEMO_PRODUCTION_RUNBOOK.md"),
-        "DEMO_BROWSER_STATE.md": doc_exists("DEMO_BROWSER_STATE.md"),
-        "SCREENSHOT_CAPTURE_WORKFLOW.md": doc_exists("SCREENSHOT_CAPTURE_WORKFLOW.md"),
-        "DEMO_RECORDING_PREP.md": doc_exists("DEMO_RECORDING_PREP.md"),
-        "DEMO_DATA_FREEZE.md": doc_exists("DEMO_DATA_FREEZE.md"),
-        "DEMO_FAILURE_RECOVERY.md": doc_exists("DEMO_FAILURE_RECOVERY.md"),
-        "DEMO_FLOW_ARCHITECTURE.md": doc_exists("DEMO_FLOW_ARCHITECTURE.md"),
-        "DEMO_ROUTE.md": doc_exists("DEMO_ROUTE.md"),
-        "DEMO_HONESTY_STRATEGY.md": doc_exists("DEMO_HONESTY_STRATEGY.md"),
-        "DEMO_EVIDENCE_SEQUENCING.md": doc_exists("DEMO_EVIDENCE_SEQUENCING.md"),
+        "DEMO_PRODUCTION_RUNBOOK.md": doc_exists("demo/DEMO_PRODUCTION_RUNBOOK.md"),
+        "DEMO_BROWSER_STATE.md": doc_exists("demo/DEMO_BROWSER_STATE.md"),
+        "SCREENSHOT_CAPTURE_WORKFLOW.md": doc_exists("demo/SCREENSHOT_CAPTURE_WORKFLOW.md"),
+        "DEMO_RECORDING_PREP.md": doc_exists("demo/DEMO_RECORDING_PREP.md"),
+        "DEMO_DATA_FREEZE.md": doc_exists("demo/DEMO_DATA_FREEZE.md"),
+        "DEMO_FAILURE_RECOVERY.md": doc_exists("demo/DEMO_FAILURE_RECOVERY.md"),
+        "DEMO_FLOW_ARCHITECTURE.md": doc_exists("demo/DEMO_FLOW_ARCHITECTURE.md"),
+        "DEMO_ROUTE.md": doc_exists("demo/DEMO_ROUTE.md"),
+        "DEMO_HONESTY_STRATEGY.md": doc_exists("demo/DEMO_HONESTY_STRATEGY.md"),
+        "DEMO_EVIDENCE_SEQUENCING.md": doc_exists("demo/DEMO_EVIDENCE_SEQUENCING.md"),
     }
 
 

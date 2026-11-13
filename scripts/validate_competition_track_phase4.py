@@ -27,18 +27,18 @@ def check(name: str, passed: bool, detail: str = "") -> None:
 def check_phase4_docs() -> None:
     print("[1/7] Phase 4 demo docs")
     docs = [
-        "docs/DEMO_FLOW_ARCHITECTURE.md",
-        "docs/JUDGE_ATTENTION_STRATEGY.md",
-        "docs/DEMO_ROUTE.md",
-        "docs/DEMO_SCREENSHOT_PLAN.md",
-        "docs/DEMO_EVIDENCE_SEQUENCING.md",
-        "docs/DEMO_HONESTY_STRATEGY.md",
+        "docs/demo/DEMO_FLOW_ARCHITECTURE.md",
+        "docs/competition/JUDGE_ATTENTION_STRATEGY.md",
+        "docs/demo/DEMO_ROUTE.md",
+        "docs/demo/DEMO_SCREENSHOT_PLAN.md",
+        "docs/demo/DEMO_EVIDENCE_SEQUENCING.md",
+        "docs/demo/DEMO_HONESTY_STRATEGY.md",
     ]
     for doc in docs:
         path = REPO_ROOT / doc
         check(doc, path.exists(), "file missing")
 
-    flow = REPO_ROOT / "docs/DEMO_FLOW_ARCHITECTURE.md"
+    flow = REPO_ROOT / "docs/demo/DEMO_FLOW_ARCHITECTURE.md"
     if flow.exists():
         text = flow.read_text()
         check("flow has 4-minute timing", "4:00" in text or "4-minute" in text.lower())
@@ -47,7 +47,7 @@ def check_phase4_docs() -> None:
         check("flow references /analytics", "/analytics" in text)
         check("flow references /recommendations", "/recommendations" in text)
 
-    route = REPO_ROOT / "docs/DEMO_ROUTE.md"
+    route = REPO_ROOT / "docs/demo/DEMO_ROUTE.md"
     if route.exists():
         text = route.read_text()
         check("route has pre-demo checklist", "Pre-Demo Checklist" in text or "checklist" in text.lower())
@@ -55,27 +55,27 @@ def check_phase4_docs() -> None:
         check("route has timing estimates", "0:30" in text or "0:45" in text)
         check("route references Evidence Chain", "Evidence Chain" in text)
 
-    judge = REPO_ROOT / "docs/JUDGE_ATTENTION_STRATEGY.md"
+    judge = REPO_ROOT / "docs/competition/JUDGE_ATTENTION_STRATEGY.md"
     if judge.exists():
         text = judge.read_text()
         check("judge strategy has high-impact screens", "High-Impact" in text or "High-impact" in text)
         check("judge strategy has misunderstanding table", "misunderstand" in text.lower())
         check("judge strategy has framing guidance", "framing" in text.lower() or "Framing" in text)
 
-    honesty = REPO_ROOT / "docs/DEMO_HONESTY_STRATEGY.md"
+    honesty = REPO_ROOT / "docs/demo/DEMO_HONESTY_STRATEGY.md"
     if honesty.exists():
         text = honesty.read_text()
         check("honesty strategy has verbal caveats section", "aloud" in text.lower() or "Aloud" in text)
         check("honesty strategy has framing examples", "framing" in text.lower())
         check("honesty strategy has alarm inflation reference", "alarm" in text.lower())
 
-    evidence = REPO_ROOT / "docs/DEMO_EVIDENCE_SEQUENCING.md"
+    evidence = REPO_ROOT / "docs/demo/DEMO_EVIDENCE_SEQUENCING.md"
     if evidence.exists():
         text = evidence.read_text()
         check("evidence sequencing has level progression", "Level 0" in text and "Level 1" in text)
         check("evidence sequencing has anti-patterns", "Anti-Pattern" in text or "anti-pattern" in text.lower())
 
-    screenshot = REPO_ROOT / "docs/DEMO_SCREENSHOT_PLAN.md"
+    screenshot = REPO_ROOT / "docs/demo/DEMO_SCREENSHOT_PLAN.md"
     if screenshot.exists():
         text = screenshot.read_text()
         check("screenshot plan has priority 1 section", "Priority 1" in text)
@@ -174,13 +174,12 @@ def check_caveat_visibility() -> None:
     if caveat_file.exists():
         text = caveat_file.read_text()
         check("RC1_STANDARD_CAVEATS exported", "RC1_STANDARD_CAVEATS" in text)
-        check("CAVEAT_THE_UNAVAILABLE exported", "CAVEAT_THE_UNAVAILABLE" in text)
-        check("CAVEAT_ARWU_UNAVAILABLE exported", "CAVEAT_ARWU_UNAVAILABLE" in text)
+        # CAVEAT_THE_UNAVAILABLE / CAVEAT_ARWU_UNAVAILABLE were removed (ba3d7d8): THE and ARWU are ingested, so
+        # saying they are unavailable would be false. Pages take per-edition caveats instead of RC1_STANDARD_CAVEATS.
 
     rec_page = REPO_ROOT / "crawlernest/crawlernest-web/src/app/recommendations/page.tsx"
     if rec_page.exists():
         text = rec_page.read_text()
-        check("recommendations imports RC1_STANDARD_CAVEATS", "RC1_STANDARD_CAVEATS" in text)
         check("recommendations has Data Caveats section", "Data Caveats" in text)
 
 

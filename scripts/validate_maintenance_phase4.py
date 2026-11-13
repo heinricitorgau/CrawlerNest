@@ -16,12 +16,12 @@ REPORTS_DIR = REPO_ROOT / ".local" / "reports"
 def check_phase4_docs() -> list[str]:
     failures: list[str] = []
     required = [
-        "OPERATIONAL_RESTRAINT_GUIDELINES.md",
-        "MAINTENANCE_SUSTAINABILITY_REVIEW.md",
-        "SIGNAL_TO_NOISE_REVIEW.md",
-        "OPERATIONAL_BOUNDARY_REINFORCEMENT.md",
-        "REPORT_CRITICALITY.md",
-        "RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md",
+        "operational/OPERATIONAL_RESTRAINT_GUIDELINES.md",
+        "operational/MAINTENANCE_SUSTAINABILITY_REVIEW.md",
+        "data/SIGNAL_TO_NOISE_REVIEW.md",
+        "operational/OPERATIONAL_BOUNDARY_REINFORCEMENT.md",
+        "data/REPORT_CRITICALITY.md",
+        "release/RELEASE_BUNDLE_SIMPLIFICATION_REVIEW.md",
     ]
     for name in required:
         path = DOCS_DIR / name
@@ -87,13 +87,14 @@ def check_maintenance_overview_hints() -> list[str]:
         failures.append(f"[missing script] {script}")
         return failures
     text = script.read_text(encoding="utf-8")
+    # The overview became nine numbered steps; "6/6" and the old navigation heading are gone, and the
+    # navigation report is its step [6/9].
     for expected in [
-        "Maintenance Navigation Hint",
         "Report Criticality Hint",
         "Operational Restraint Reminder",
         "REPORT_CRITICALITY.md",
         "OPERATIONAL_RESTRAINT_GUIDELINES.md",
-        "6/6",
+        "Maintenance navigation report",
     ]:
         if expected not in text:
             failures.append(f"[maintenance_overview.sh] missing expected content: '{expected}'")
@@ -102,7 +103,7 @@ def check_maintenance_overview_hints() -> list[str]:
 
 def check_report_criticality_doc() -> list[str]:
     failures: list[str] = []
-    path = DOCS_DIR / "REPORT_CRITICALITY.md"
+    path = DOCS_DIR / "data/REPORT_CRITICALITY.md"
     if not path.exists():
         failures.append(f"[missing] {path}")
         return failures
@@ -119,11 +120,8 @@ def check_readme_maintenance_section() -> list[str]:
         if not readme_path.exists():
             failures.append(f"[missing] {readme_path}")
             continue
-        text = readme_path.read_text(encoding="utf-8")
-        if "OPERATIONAL_RESTRAINT_GUIDELINES" not in text:
-            failures.append(f"[{readme_path.name}] missing OPERATIONAL_RESTRAINT_GUIDELINES reference")
-        if "REPORT_CRITICALITY" not in text:
-            failures.append(f"[{readme_path.name}] missing REPORT_CRITICALITY reference")
+        # The root READMEs became a project overview (bf68525) and no longer list maintenance docs;
+        # docs/README.md catalogs them (test_docs_catalog.py). Only their presence is still checked here.
     return failures
 
 

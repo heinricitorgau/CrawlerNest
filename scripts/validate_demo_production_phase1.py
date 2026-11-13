@@ -27,18 +27,18 @@ def check(name: str, passed: bool, detail: str = "") -> None:
 def check_production_docs() -> None:
     print("[1/7] Production docs exist")
     docs = [
-        "docs/DEMO_PRODUCTION_RUNBOOK.md",
-        "docs/DEMO_BROWSER_STATE.md",
-        "docs/SCREENSHOT_CAPTURE_WORKFLOW.md",
-        "docs/DEMO_RECORDING_PREP.md",
-        "docs/DEMO_DATA_FREEZE.md",
-        "docs/DEMO_FAILURE_RECOVERY.md",
+        "docs/demo/DEMO_PRODUCTION_RUNBOOK.md",
+        "docs/demo/DEMO_BROWSER_STATE.md",
+        "docs/demo/SCREENSHOT_CAPTURE_WORKFLOW.md",
+        "docs/demo/DEMO_RECORDING_PREP.md",
+        "docs/demo/DEMO_DATA_FREEZE.md",
+        "docs/demo/DEMO_FAILURE_RECOVERY.md",
     ]
     for doc in docs:
         path = REPO_ROOT / doc
         check(doc, path.exists(), "file missing")
 
-    runbook = REPO_ROOT / "docs/DEMO_PRODUCTION_RUNBOOK.md"
+    runbook = REPO_ROOT / "docs/demo/DEMO_PRODUCTION_RUNBOOK.md"
     if runbook.exists():
         text = runbook.read_text()
         check("runbook has environment startup section", "Environment Startup" in text or "environment startup" in text.lower())
@@ -48,7 +48,7 @@ def check_production_docs() -> None:
         check("runbook references backend startup command", "spring-boot:run" in text)
         check("runbook references frontend startup command", "npm run dev" in text)
 
-    browser = REPO_ROOT / "docs/DEMO_BROWSER_STATE.md"
+    browser = REPO_ROOT / "docs/demo/DEMO_BROWSER_STATE.md"
     if browser.exists():
         text = browser.read_text()
         check("browser state has tabs to open", "Tabs to Open" in text or "tabs to open" in text.lower())
@@ -57,7 +57,7 @@ def check_production_docs() -> None:
         check("browser state has avoid-during-demo section", "Avoid During Demo" in text or "avoid during demo" in text.lower())
         check("browser state references light mode", "light mode" in text.lower() or "Light mode" in text)
 
-    screenshot = REPO_ROOT / "docs/SCREENSHOT_CAPTURE_WORKFLOW.md"
+    screenshot = REPO_ROOT / "docs/demo/SCREENSHOT_CAPTURE_WORKFLOW.md"
     if screenshot.exists():
         text = screenshot.read_text()
         check("screenshot workflow has Priority 1 section", "Priority 1" in text)
@@ -66,7 +66,7 @@ def check_production_docs() -> None:
         check("screenshot workflow references Evidence Chain", "Evidence Chain" in text)
         check("screenshot workflow has fallback use section", "Fallback" in text or "fallback" in text.lower())
 
-    recording = REPO_ROOT / "docs/DEMO_RECORDING_PREP.md"
+    recording = REPO_ROOT / "docs/demo/DEMO_RECORDING_PREP.md"
     if recording.exists():
         text = recording.read_text()
         check("recording prep has screen resolution", "resolution" in text.lower() or "1080" in text)
@@ -74,7 +74,7 @@ def check_production_docs() -> None:
         check("recording prep has offline-safe section", "offline" in text.lower() or "Offline" in text)
         check("recording prep has if-demo-breaks guidance", "breaks" in text.lower() or "recovery" in text.lower())
 
-    freeze = REPO_ROOT / "docs/DEMO_DATA_FREEZE.md"
+    freeze = REPO_ROOT / "docs/demo/DEMO_DATA_FREEZE.md"
     if freeze.exists():
         text = freeze.read_text()
         check("data freeze has stable degraded section", "Stable Degraded" in text or "stable degraded" in text.lower())
@@ -82,7 +82,7 @@ def check_production_docs() -> None:
         check("data freeze references QS freeze", "QS" in text and ("Freeze" in text or "freeze" in text.lower() or "Frozen" in text))
         check("data freeze references THE/ARWU freeze", "THE" in text and "ARWU" in text)
 
-    recovery = REPO_ROOT / "docs/DEMO_FAILURE_RECOVERY.md"
+    recovery = REPO_ROOT / "docs/demo/DEMO_FAILURE_RECOVERY.md"
     if recovery.exists():
         text = recovery.read_text()
         check("recovery guide has backend down section", "backend" in text.lower() and "down" in text.lower())
@@ -107,7 +107,8 @@ def check_readiness_script() -> None:
             check("script compiles cleanly", False, str(exc)[:100])
 
         text = script.read_text()
-        check("script defines REQUIRED_VERBAL_CAVEATS", "REQUIRED_VERBAL_CAVEATS" in text)
+        # REQUIRED_VERBAL_CAVEATS became SPOKEN_CAVEATS, imported from _release_posture (b4d550d).
+        check("script uses SPOKEN_CAVEATS", "SPOKEN_CAVEATS" in text)
         check("script defines WHAT_NOT_TO_CLAIM", "WHAT_NOT_TO_CLAIM" in text)
         check("script defines DEMO_PREP_CHECKLIST", "DEMO_PREP_CHECKLIST" in text)
         check("script defines DEMO_SURFACES", "DEMO_SURFACES" in text)
@@ -164,13 +165,12 @@ def check_caveat_preservation() -> None:
     if caveat_file.exists():
         text = caveat_file.read_text()
         check("RC1_STANDARD_CAVEATS exported", "RC1_STANDARD_CAVEATS" in text)
-        check("CAVEAT_THE_UNAVAILABLE present", "CAVEAT_THE_UNAVAILABLE" in text)
-        check("CAVEAT_ARWU_UNAVAILABLE present", "CAVEAT_ARWU_UNAVAILABLE" in text)
+        # CAVEAT_THE_UNAVAILABLE / CAVEAT_ARWU_UNAVAILABLE were removed (ba3d7d8): THE and ARWU are ingested, so
+        # saying they are unavailable would be false. Pages take per-edition caveats instead of RC1_STANDARD_CAVEATS.
 
     rec_page = REPO_ROOT / "crawlernest/crawlernest-web/src/app/recommendations/page.tsx"
     if rec_page.exists():
         text = rec_page.read_text()
-        check("recommendations imports RC1_STANDARD_CAVEATS", "RC1_STANDARD_CAVEATS" in text)
         check("recommendations has Evidence Chain heading", "Evidence Chain" in text)
         check("recommendations has Data Caveats section", "Data Caveats" in text)
         check("recommendations has Not AI-generated text", "Not AI-generated" in text)

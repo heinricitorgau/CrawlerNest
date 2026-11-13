@@ -150,7 +150,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
 
     lines += [
         "",
-        "See `docs/STABLE_DEGRADED_STATE.md` for the full posture definition and",
+        "See `docs/data/STABLE_DEGRADED_STATE.md` for the full posture definition and",
         "communication guidance.",
         "",
         "---",
@@ -170,7 +170,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
             lines.append(f"- {concern}")
         lines += [
             "",
-            "Use Mode 4 (Incident Investigation) from `docs/MAINTENANCE_READING_MODES.md`.",
+            "Use Mode 4 (Incident Investigation) from `docs/operational/MAINTENANCE_READING_MODES.md`.",
         ]
     else:
         lines += [
@@ -195,7 +195,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
             lines.append(f"- {concern}")
         lines += [
             "",
-            "Use Mode 4 (Incident Investigation) from `docs/MAINTENANCE_READING_MODES.md`.",
+            "Use Mode 4 (Incident Investigation) from `docs/operational/MAINTENANCE_READING_MODES.md`.",
             "",
             "---",
             "",
@@ -217,7 +217,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "- Daily maintenance check: run `maintenance_overview.sh` only. No additional scripts needed.",
         "- Any concern listed above requires Mode 4 investigation before demo or release.",
         "- Full maintenance cadence (daily/weekly/release-demo/incident-only) is in",
-        "  `docs/MAINTENANCE_CADENCE_REVIEW.md`.",
+        "  `docs/operational/MAINTENANCE_CADENCE_REVIEW.md`.",
         "",
         "---",
         "",

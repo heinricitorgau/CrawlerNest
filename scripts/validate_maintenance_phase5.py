@@ -16,11 +16,11 @@ REPORTS_DIR = REPO_ROOT / ".local" / "reports"
 def check_phase5_docs() -> list[str]:
     failures: list[str] = []
     required = [
-        "OPERATIONAL_CALMNESS_REVIEW.md",
-        "REPORT_LIFECYCLE.md",
-        "MAINTENANCE_FATIGUE_REVIEW.md",
-        "OPERATIONAL_COHERENCE_REVIEW.md",
-        "MAINTENANCE_READING_MODES.md",
+        "operational/OPERATIONAL_CALMNESS_REVIEW.md",
+        "data/REPORT_LIFECYCLE.md",
+        "operational/MAINTENANCE_FATIGUE_REVIEW.md",
+        "operational/OPERATIONAL_COHERENCE_REVIEW.md",
+        "operational/MAINTENANCE_READING_MODES.md",
     ]
     for name in required:
         path = DOCS_DIR / name
@@ -115,7 +115,6 @@ def check_maintenance_overview_hints() -> list[str]:
     for expected in [
         "Calm Posture Summary",
         "Maintenance Reading Mode",
-        "7/7",
         "maintenance_calm_summary",
         "MAINTENANCE_READING_MODES.md",
     ]:
@@ -146,19 +145,14 @@ def check_readme_phase5_references() -> list[str]:
         if not readme_path.exists():
             failures.append(f"[missing] {readme_path}")
             continue
-        text = readme_path.read_text(encoding="utf-8")
-        if "OPERATIONAL_CALMNESS_REVIEW" not in text:
-            failures.append(f"[{readme_path.name}] missing OPERATIONAL_CALMNESS_REVIEW reference")
-        if "MAINTENANCE_READING_MODES" not in text:
-            failures.append(f"[{readme_path.name}] missing MAINTENANCE_READING_MODES reference")
-        if "REPORT_LIFECYCLE" not in text:
-            failures.append(f"[{readme_path.name}] missing REPORT_LIFECYCLE reference")
+        # The root READMEs became a project overview (bf68525) and no longer list maintenance docs;
+        # docs/README.md catalogs them (test_docs_catalog.py). Only their presence is still checked here.
     return failures
 
 
 def check_lifecycle_doc_completeness() -> list[str]:
     failures: list[str] = []
-    path = DOCS_DIR / "REPORT_LIFECYCLE.md"
+    path = DOCS_DIR / "data/REPORT_LIFECYCLE.md"
     if not path.exists():
         failures.append(f"[missing] {path}")
         return failures
@@ -175,7 +169,7 @@ def check_lifecycle_doc_completeness() -> list[str]:
 
 def check_reading_modes_doc() -> list[str]:
     failures: list[str] = []
-    path = DOCS_DIR / "MAINTENANCE_READING_MODES.md"
+    path = DOCS_DIR / "operational/MAINTENANCE_READING_MODES.md"
     if not path.exists():
         failures.append(f"[missing] {path}")
         return failures

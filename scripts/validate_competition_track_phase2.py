@@ -26,13 +26,13 @@ def check(name: str, passed: bool, detail: str = "") -> None:
 def check_phase2_docs() -> None:
     print("[1/7] Phase 2 docs")
     docs = [
-        "docs/RECOMMENDATION_EVIDENCE_MODEL.md",
+        "docs/analytics/RECOMMENDATION_EVIDENCE_MODEL.md",
     ]
     for doc in docs:
         path = REPO_ROOT / doc
         check(doc, path.exists(), "file missing")
 
-    narrative = REPO_ROOT / "docs/COMPETITION_DEMO_NARRATIVE.md"
+    narrative = REPO_ROOT / "docs/competition/COMPETITION_DEMO_NARRATIVE.md"
     check("COMPETITION_DEMO_NARRATIVE.md exists", narrative.exists(), "file missing")
     if narrative.exists():
         text = narrative.read_text()
@@ -51,8 +51,8 @@ def check_caveat_messages() -> None:
     if ts_file.exists():
         text = ts_file.read_text()
         check("defines CAVEAT_QS_STALE", "CAVEAT_QS_STALE" in text)
-        check("defines CAVEAT_THE_UNAVAILABLE", "CAVEAT_THE_UNAVAILABLE" in text)
-        check("defines CAVEAT_ARWU_UNAVAILABLE", "CAVEAT_ARWU_UNAVAILABLE" in text)
+        # CAVEAT_THE_UNAVAILABLE / CAVEAT_ARWU_UNAVAILABLE were removed (ba3d7d8): THE and ARWU are ingested, so
+        # saying they are unavailable would be false. Pages take per-edition caveats instead of RC1_STANDARD_CAVEATS.
         check("defines RC1_STANDARD_CAVEATS", "RC1_STANDARD_CAVEATS" in text)
 
 
@@ -123,7 +123,6 @@ def check_frontend_recommendations() -> None:
     check("recommendations/page.tsx exists", page.exists(), "file missing")
     if page.exists():
         text = page.read_text()
-        check("page imports RC1_STANDARD_CAVEATS", "RC1_STANDARD_CAVEATS" in text)
         check("page has ExplainPanel component", "ExplainPanel" in text)
         check("page has collapsible Why this recommendation", "Why this recommendation" in text)
         check("page has Source Coverage section", "Source Coverage" in text)
@@ -135,7 +134,6 @@ def check_frontend_recommendations() -> None:
     check("saved-recommendations/page.tsx exists", saved_page.exists(), "file missing")
     if saved_page.exists():
         text = saved_page.read_text()
-        check("saved page imports RC1_STANDARD_CAVEATS", "RC1_STANDARD_CAVEATS" in text)
         check("saved page has Evidence Details section", "Evidence Details" in text)
         check("saved page handles missing evidence", "Evidence details were not stored" in text)
 
@@ -145,11 +143,10 @@ def check_frontend_recommendations() -> None:
 # ---------------------------------------------------------------------------
 def check_readme() -> None:
     print("[7/7] README phase 2 references")
+    # The root README was rewritten as a project overview (bf68525); it no longer lists phase docs.
+    # docs/README.md catalogs every doc, and test_docs_catalog.py holds it to that.
     readme = REPO_ROOT / "README.md"
     check("README.md exists", readme.exists(), "file missing")
-    if readme.exists():
-        text = readme.read_text()
-        check("README references RECOMMENDATION_EVIDENCE_MODEL", "RECOMMENDATION_EVIDENCE_MODEL" in text)
 
 
 # ---------------------------------------------------------------------------

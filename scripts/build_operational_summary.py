@@ -15,7 +15,7 @@ from build_snapshot_timeline import load_snapshot_records
 REPO_ROOT = Path(__file__).parent.parent
 SNAPSHOT_DIR = REPO_ROOT / ".local" / "snapshots"
 REPORTS_DIR = REPO_ROOT / ".local" / "reports"
-VALIDATION_DOC = REPO_ROOT / "docs" / "RC1_VALIDATION_RESULTS.md"
+VALIDATION_DOC = REPO_ROOT / "docs" / "release/RC1_VALIDATION_RESULTS.md"
 
 
 def validation_summary() -> str:

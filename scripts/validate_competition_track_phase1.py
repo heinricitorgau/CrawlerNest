@@ -26,10 +26,10 @@ def check(name: str, passed: bool, detail: str = "") -> None:
 def check_competition_docs() -> None:
     print("[1/7] Competition Track docs")
     docs = [
-        "docs/COMPETITION_TRACK.md",
-        "docs/ANALYTICS_SURFACE_PLAN.md",
-        "docs/ANALYTICS_EXPLAINABILITY.md",
-        "docs/COMPETITION_DEMO_NARRATIVE.md",
+        "docs/competition/COMPETITION_TRACK.md",
+        "docs/analytics/ANALYTICS_SURFACE_PLAN.md",
+        "docs/analytics/ANALYTICS_EXPLAINABILITY.md",
+        "docs/competition/COMPETITION_DEMO_NARRATIVE.md",
     ]
     for doc in docs:
         path = REPO_ROOT / doc
@@ -144,12 +144,10 @@ def check_navbar() -> None:
 # ---------------------------------------------------------------------------
 def check_readme() -> None:
     print("[7/7] README competition track references")
+    # The root README was rewritten as a project overview (bf68525); it no longer lists phase docs.
+    # docs/README.md catalogs every doc, and test_docs_catalog.py holds it to that.
     readme = REPO_ROOT / "README.md"
     check("README.md exists", readme.exists(), "file missing")
-    if readme.exists():
-        text = readme.read_text()
-        check("README references COMPETITION_TRACK", "COMPETITION_TRACK" in text)
-        check("README references ANALYTICS_SURFACE_PLAN", "ANALYTICS_SURFACE_PLAN" in text)
 
 
 # ---------------------------------------------------------------------------

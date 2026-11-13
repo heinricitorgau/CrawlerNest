@@ -27,10 +27,10 @@ def check(name: str, passed: bool, detail: str = "") -> None:
 def check_phase6_docs() -> None:
     print("[1/7] Phase 6 docs")
     docs = [
-        "docs/MAINTENANCE_CADENCE_REVIEW.md",
-        "docs/OPERATIONAL_MEMORY_PRESERVATION.md",
-        "docs/STABLE_DEGRADED_STATE.md",
-        "docs/MAINTENANCE_DISCIPLINE.md",
+        "docs/operational/MAINTENANCE_CADENCE_REVIEW.md",
+        "docs/operational/OPERATIONAL_MEMORY_PRESERVATION.md",
+        "docs/data/STABLE_DEGRADED_STATE.md",
+        "docs/operational/MAINTENANCE_DISCIPLINE.md",
     ]
     for doc in docs:
         path = REPO_ROOT / doc
@@ -172,30 +172,10 @@ def check_bundle_includes_steadiness() -> None:
 # ---------------------------------------------------------------------------
 def check_readme_phase6_references() -> None:
     print("[7/7] README Phase 6 references")
+    # The root README became a project overview (bf68525) and no longer lists maintenance docs or scripts;
+    # docs/README.md catalogs every doc (test_docs_catalog.py). Only the README's presence is checked here.
     readme = REPO_ROOT / "README.md"
     check("README.md exists", readme.exists(), "file missing")
-    if readme.exists():
-        text = readme.read_text(encoding="utf-8")
-        check(
-            "README references MAINTENANCE_CADENCE_REVIEW",
-            "MAINTENANCE_CADENCE_REVIEW" in text,
-            "cadence doc not listed",
-        )
-        check(
-            "README references STABLE_DEGRADED_STATE",
-            "STABLE_DEGRADED_STATE" in text,
-            "stable degraded state doc not listed",
-        )
-        check(
-            "README references MAINTENANCE_DISCIPLINE",
-            "MAINTENANCE_DISCIPLINE" in text,
-            "discipline doc not listed",
-        )
-        check(
-            "README references build_maintenance_steadiness_summary",
-            "build_maintenance_steadiness_summary" in text,
-            "steadiness summary script not listed",
-        )
 
 
 # ---------------------------------------------------------------------------

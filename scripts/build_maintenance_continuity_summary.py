@@ -27,7 +27,7 @@ CONTINUITY_DIMENSIONS = [
     ("Snapshot continuity", "Named snapshots append-only; latest_status.json is current pointer"),
     ("Confidence continuity", "Trust levels derived from observable signals; not manually adjusted"),
     ("Release honesty continuity", "demo_caveats.md exists and was last generated this session"),
-    ("Operational vocabulary continuity", "Terminology consistent with docs/OPERATIONAL_VOCABULARY.md"),
+    ("Operational vocabulary continuity", "Terminology consistent with docs/operational/OPERATIONAL_VOCABULARY.md"),
 ]
 
 
@@ -165,7 +165,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
 
     lines += [
         "",
-        "See `docs/STABLE_DEGRADED_CONTINUITY.md` for long-term maintenance guidance.",
+        "See `docs/data/STABLE_DEGRADED_CONTINUITY.md` for long-term maintenance guidance.",
         "",
         "---",
         "",
@@ -178,7 +178,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         "| Live reports (.local/reports/*.md) | ephemeral; regenerated each session |",
         "| Demo caveats | " + honesty_status + " |",
         "",
-        "See `docs/OPERATIONAL_MEMORY_DURABILITY.md` for full durability classification.",
+        "See `docs/operational/OPERATIONAL_MEMORY_DURABILITY.md` for full durability classification.",
         "",
         "---",
         "",
@@ -206,7 +206,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
         ]
 
     lines += [
-        "See `docs/DEMO_HONESTY_GUIDELINES.md` for required phrasing.",
+        "See `docs/demo/DEMO_HONESTY_GUIDELINES.md` for required phrasing.",
         "",
         "---",
         "",
@@ -236,7 +236,7 @@ def build(reports_dir: Path, snapshot_file: Path, releases_dir: Path) -> str:
             lines.append(f"- {concern}")
         lines += [
             "",
-            "Use Mode 4 (Incident Investigation) from `docs/MAINTENANCE_READING_MODES.md`.",
+            "Use Mode 4 (Incident Investigation) from `docs/operational/MAINTENANCE_READING_MODES.md`.",
             "",
             "---",
             "",

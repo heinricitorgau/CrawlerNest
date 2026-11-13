@@ -13,11 +13,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_DOCS = [
-    "docs/AGENT_DEMO_PROMPTS.md",
-    "docs/AGENT_DEMO_EVALUATION.md",
-    "docs/AGENT_PROVIDER_MATRIX.md",
-    "docs/AGENT_DEMO_FALLBACK.md",
-    "docs/AGENT_MODEL_INTEGRATION.md",
+    "docs/agent/AGENT_DEMO_PROMPTS.md",
+    "docs/agent/AGENT_DEMO_EVALUATION.md",
+    "docs/agent/AGENT_PROVIDER_MATRIX.md",
+    "docs/agent/AGENT_DEMO_FALLBACK.md",
+    "docs/agent/AGENT_MODEL_INTEGRATION.md",
 ]
 
 REQUIRED_FILES = [
@@ -37,21 +37,21 @@ READONLY_TERMS = [
 ]
 
 DOC_EXPECTATIONS = {
-    "docs/AGENT_DEMO_PROMPTS.md": [
+    "docs/agent/AGENT_DEMO_PROMPTS.md": [
         "Why does source disagreement matter?",
         "What does stale data mean?",
         "How should I interpret recommendation confidence?",
         "Why is explainability important?",
         "Why is THE unavailable?",
     ],
-    "docs/AGENT_DEMO_EVALUATION.md": [
+    "docs/agent/AGENT_DEMO_EVALUATION.md": [
         "Good Answer Should",
         "Bad Answer Examples",
         "I fixed the data",
         "I reran the rankings",
         "I updated the database",
     ],
-    "docs/AGENT_PROVIDER_MATRIX.md": [
+    "docs/agent/AGENT_PROVIDER_MATRIX.md": [
         "mock",
         "ollama",
         "openai",
@@ -59,7 +59,7 @@ DOC_EXPECTATIONS = {
         "mock",
         "ollama",
     ],
-    "docs/AGENT_DEMO_FALLBACK.md": [
+    "docs/agent/AGENT_DEMO_FALLBACK.md": [
         "Ollama unavailable",
         "OpenAI unavailable",
         "timeout",
