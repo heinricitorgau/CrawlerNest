@@ -6,6 +6,7 @@ import { CollegeListPanel } from "./CollegeListPanel";
 import { EssayReviewPanel, LatestEssayCard } from "./EssayReviewPanel";
 import { LiveDeadlinesCard, LiveSkillsCard, LiveSprintCard } from "./LiveDeskCards";
 import { LiveNarrativeCard } from "./LiveNarrativeCard";
+import { ModelUsageNotice } from "./ModelUsageNotice";
 import {
   ChatPanel,
   DESK_TABS,
@@ -37,6 +38,9 @@ export default function DeskPage() {
   const [today] = useState(() => new Date());
   // Bumped when Tassel or the user changes desk data from the chat, so cards re-read it.
   const [revision, setRevision] = useState(0);
+  // Bumped after anything that may have called the model, so the usage line re-reads it.
+  const [usageTick, setUsageTick] = useState(0);
+  const modelCalled = () => setUsageTick((n) => n + 1);
 
   async function handleSend(prompt: string) {
     const id = crypto.randomUUID();
@@ -48,6 +52,7 @@ export default function DeskPage() {
     setPending(true);
     const result = await sendTasselMessage({ sessionId, message: prompt, history, mode: modeFor(activeTab) });
     setPending(false);
+    modelCalled();
     if (!result.ok) {
       const content = result.reason === "unauthenticated" ? "Sign in to talk to Tassel." : result.message;
       setMessages((prev) => [...prev, { id: `${id}-a`, role: "assistant", content, error: true }]);
@@ -80,12 +85,12 @@ export default function DeskPage() {
         <LiveDeadlinesCard today={today} />
         <LiveSkillsCard />
         <LatestEssayCard onOpenReviews={() => setActiveTab("essay-review")} />
-        <LiveNarrativeCard />
+        <LiveNarrativeCard onModelCall={modelCalled} />
       </div>
     ) : activeTab === "colleges" ? (
       <CollegeListPanel onChanged={() => setRevision((n) => n + 1)} />
     ) : activeTab === "essay-review" ? (
-      <EssayReviewPanel />
+      <EssayReviewPanel onModelCall={modelCalled} />
     ) : (
       <DeskCard title={activeLabel}>
         <p className="text-sm text-slate-500">This section is not built yet.</p>
@@ -105,7 +110,12 @@ export default function DeskPage() {
           pending={pending}
         />
       }
-      panel={panel}
+      panel={
+        <div className="space-y-4">
+          <ModelUsageNotice key={usageTick} />
+          {panel}
+        </div>
+      }
       tabBar={<DeskTabBar activeTab={activeTab} onChange={setActiveTab} />}
     />
   );

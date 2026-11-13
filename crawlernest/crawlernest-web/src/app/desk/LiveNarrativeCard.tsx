@@ -20,7 +20,7 @@ const button = "rounded-lg px-3 py-1.5 text-sm font-medium disabled:opacity-50";
  * the schools on their list. Every action returns the whole narrative, so what is
  * shown is always one consistent state. The caveats travel with it.
  */
-export function LiveNarrativeCard() {
+export function LiveNarrativeCard({ onModelCall }: { onModelCall?: () => void } = {}) {
   const [narrative, setNarrative] = useState<Narrative | null>(null);
   const [failure, setFailure] = useState<DeskApiFailure | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -41,6 +41,7 @@ export function LiveNarrativeCard() {
     setBusy(label);
     const result = await action();
     setBusy(null);
+    onModelCall?.();
     if (result.ok) {
       setNarrative(result.data);
       setFailure(null);

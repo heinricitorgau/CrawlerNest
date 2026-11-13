@@ -419,3 +419,48 @@ export const decideChatAction = (id: string, decision: ChatActionDecision) =>
     const status = ACTION_STATUSES.includes(r.status as ChatActionStatus) ? (r.status as ChatActionStatus) : null;
     return status;
   });
+
+// ─── Model usage (GET /usage) ────────────────────────────────────────────────
+
+/**
+ * The signed-in user's model calls over the last 24 hours, against their budget. `perDay` and `left` are null
+ * when the API enforces no budget. Token totals are a lower bound when `callsWithoutUsage` is above zero.
+ */
+export type ModelUsage = {
+  modelCalls: number;
+  unreachableCalls: number;
+  promptTokens: number;
+  completionTokens: number;
+  callsWithoutUsage: number;
+  perDay: number | null;
+  left: number | null;
+};
+
+function count(value: unknown): number | null {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : null;
+}
+
+export function toModelUsage(raw: unknown): ModelUsage | null {
+  if (!raw || typeof raw !== "object") return null;
+  const last = (raw as { last24Hours?: Record<string, unknown> }).last24Hours;
+  const budget = (raw as { budget?: Record<string, unknown> }).budget;
+  if (!last || typeof last !== "object" || !budget || typeof budget !== "object") return null;
+  const modelCalls = count(last.modelCalls);
+  if (modelCalls === null) return null;
+  const enforced = budget.enforced === true;
+  const perDay = enforced ? count(budget.modelCallsPerDay) : null;
+  const left = enforced ? count(budget.modelCallsLeft) : null;
+  // An enforced budget without its figures cannot be shown honestly as "N of M".
+  if (enforced && (perDay === null || left === null)) return null;
+  return {
+    modelCalls,
+    unreachableCalls: count(last.unreachableCalls) ?? 0,
+    promptTokens: count(last.promptTokens) ?? 0,
+    completionTokens: count(last.completionTokens) ?? 0,
+    callsWithoutUsage: count(last.callsWithoutUsage) ?? 0,
+    perDay,
+    left,
+  };
+}
+
+export const getModelUsage = () => call("/usage", {}, toModelUsage);

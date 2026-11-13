@@ -30,7 +30,7 @@ function SignInPrompt() {
 }
 
 /** The Essay review tab: submit a draft, see its review, pick an earlier draft to revise. */
-export function EssayReviewPanel() {
+export function EssayReviewPanel({ onModelCall }: { onModelCall?: () => void } = {}) {
   const [history, setHistory] = useState<EssaySummary[] | null>(null);
   const [failure, setFailure] = useState<DeskApiFailure | null>(null);
   const [title, setTitle] = useState("");
@@ -66,6 +66,7 @@ export function EssayReviewPanel() {
       wordLimit: wordLimit ? Number(wordLimit) : undefined,
     });
     setScoring(false);
+    onModelCall?.();
     if (!result.ok || result.data === null) {
       setFailure(result.ok ? { ok: false, reason: "unavailable", message: "The review could not be read." } : result);
       return;
