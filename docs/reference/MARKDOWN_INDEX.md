@@ -5,6 +5,10 @@ repository.
 
 ## Scope
 
+`docs/README.md` is the complete, test-checked list of everything under `docs/`, by folder. This page
+is the repository-wide inventory: it adds the module docs under `crawlernest/` and a reading order, and lists
+a curated subset of `docs/`.
+
 Included:
 - Root docs
 - `docs/`
@@ -40,7 +44,6 @@ If someone is new to the repo, this is the fastest path:
 | --- | --- |
 | `README.md` | Main English project entrypoint and overall repo introduction. |
 | `README.zh-TW.md` | Traditional Chinese version of the main project overview. |
-| `MARKDOWN_INDEX.md` | Root-level pointer to the canonical Markdown inventory under `docs/reference/`. |
 | `docs/README.md` | Documentation hub, canonical reading order, and duplicate-content policy. |
 
 ## 2. Foundation And Repo Governance

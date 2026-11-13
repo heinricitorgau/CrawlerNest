@@ -31,7 +31,7 @@ flowchart TB
 ```
 
 **Why this approach?**
-[run_production_safe.sh](file:///Users/test/Desktop/crawlernest/crawlernest/scripts/run_production_safe.sh) is a one-shot process (it does not loop infinitely). If we ran it as a standard `Restart=always` systemd service, it would loop constantly upon finishing, burning through the 72-hour 403 cooldowns instantly and hammering QS servers. The correct architecture for Lobster-01 is a **systemd Timer** triggering a **oneshot Service** every 4 hours.
+[run_production_safe.sh](../../crawlernest/scripts/run_production_safe.sh) is a one-shot process (it does not loop infinitely). If we ran it as a standard `Restart=always` systemd service, it would loop constantly upon finishing, burning through the 72-hour 403 cooldowns instantly and hammering QS servers. The correct architecture for Lobster-01 is a **systemd Timer** triggering a **oneshot Service** every 4 hours.
 
 ---
 
@@ -112,7 +112,7 @@ WantedBy=timers.target
 
 ## 4. Log Rotation Strategy
 
-The [run_production_safe.sh](file:///Users/test/Desktop/crawlernest/crawlernest/scripts/run_production_safe.sh) script generates timestamped logs in `/opt/crawlernest/logs/`. To prevent the disk from filling up, configuring standard `logrotate` is essential.
+The [run_production_safe.sh](../../crawlernest/scripts/run_production_safe.sh) script generates timestamped logs in `/opt/crawlernest/logs/`. To prevent the disk from filling up, configuring standard `logrotate` is essential.
 
 **File:** `/etc/logrotate.d/crawlernest`
 ```

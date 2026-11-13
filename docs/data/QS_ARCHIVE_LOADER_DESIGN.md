@@ -1,6 +1,12 @@
 # QS 歷年封存資料載入器:設計
 
-狀態:**設計草案,尚未實作,等待決定**(見最後一節)。
+狀態:**已實作。** 載入器 2026-10-03 完成(`crawlernest-jobs/qs_archive_loader.py`,commit `49fc4d7`;
+ingest 步驟 `a934ae5`),快照釘在 `crawlernest-kb/qs_archive/manifest.json`。下文保留原設計稿,實際狀態以
+這兩處和 `.claude/CLAUDE.md` 為準:現在收錄的是 QS 2017–2020、2022–2024(2016 年那張表 2026-11-11 依 QS
+現行標題改標為 2017),2015 與 2021 經檢查後決定不收,列在 manifest 的 `_not_ingested`。第 8、9 節的待決事項
+已由〈QS 歷年封存資料與 THE 歷年資料:揭露設計〉(`QS_ARCHIVE_DISCLOSURE_DESIGN.md`)的方案 A 定案。
+
+原設計稿的狀態行(保留):**設計草案,尚未實作,等待決定**(見最後一節)。
 依據:2026-10-02、10-03 對 Wayback Machine 的乾跑,以及對 `run_pipeline.py`、`qs_adapter.py`、
 `rank_delta.py`、`multi_source/pipeline.py` 的閱讀。
 

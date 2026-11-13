@@ -169,6 +169,8 @@ def run_all_tests():
         # The entity review queue: what it lists for a person (and what not), dismissals, the offline-only
         # annotator. Pure functions; the warehouse read is PostgreSQL-gated.
         "test_entity_review_candidates",
+        # docs/README.md lists every tracked doc and its links resolve (the hub had fallen 52 docs behind).
+        "test_docs_catalog",
         # QS's country spellings from 2026-10-21 ("China", "Hong Kong SAR, China", "N/A"), read as the
         # countries the warehouse holds by the crawler, the resolver and the Wikipedia loader.
         "test_country_spellings",
