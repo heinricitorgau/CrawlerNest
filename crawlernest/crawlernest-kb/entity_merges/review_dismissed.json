@@ -1,0 +1,19 @@
+{
+ "about": "Candidates of crawlernest/scripts/entity_review_candidates.py that a person reviewed and left as they are. A candidate listed here is reported under 'dismissed', not in the queue. Every entry says why. kind 'duplicate' names two canonical slugs; kind 'mapping' names a source_code and source_entity_id.",
+ "dismissed": [
+  {
+   "kind": "duplicate",
+   "slugs": ["china-university-of-mining-and-technology", "china-university-of-mining-and-technology-beijing"],
+   "decided_on": "2026-10-12",
+   "decided_by": "transcribed from docs/data/DUPLICATE_MERGE_2026-10-12.md, 'Not merged, and why'",
+   "why": "Two universities (Xuzhou and Beijing); QS ranks both in one table. Their shared Wikipedia article is withheld from the Beijing record in wikipedia/en/overrides.json."
+  },
+  {
+   "kind": "duplicate",
+   "slugs": ["miami-university", "university-of-miami"],
+   "decided_on": "2026-10-03",
+   "decided_by": "transcribed from docs/data/ENTITY_SPLIT_2026-10-03.md",
+   "why": "Miami University (Ohio) and the University of Miami (Florida); QS and THE list them separately. Split on 2026-10-03 after name normalisation had joined them."
+  }
+ ]
+}

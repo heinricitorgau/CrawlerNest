@@ -227,6 +227,9 @@ enrollment) in `warehouse.us_institution` and `warehouse.us_institution_metric`,
   sources than the university has. 112 were merged on 2026-10-12 (`crawlernest/scripts/merge_duplicate_canonicals.py`,
   `docs/data/DUPLICATE_MERGE_2026-10-12.md`). After a backfill, re-run `wikipedia_profile_loader.py match` and read the
   `shared_with` entries of `matches.json`: two active records on one Wikipedia article is this defect.
+- `crawlernest/scripts/entity_review_candidates.py build` lists both defects for a person (read-only; report under
+  `.local/reports/entity_review/`; `docs/data/ENTITY_REVIEW_QUEUE.md`). Its name key finds candidates and must never
+  decide a merge or an alias; a reviewed-and-fine candidate goes in `crawlernest-kb/entity_merges/review_dismissed.json`.
 - An alias outranks a display name and an exact alias match ignores the country. Before writing aliases in bulk, ask
   `entity_resolution/alias_safety.py`; a name with a trailing parenthesis is indexed without it as well.
 - `ranking_decision_preview` is a derived table written with `ON CONFLICT DO NOTHING`; re-running its command does not
